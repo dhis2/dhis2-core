@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
@@ -45,53 +44,51 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class AuditManagerTest
-{
-    private AuditManager auditManager;
+@ExtendWith(MockitoExtension.class)
+class AuditManagerTest {
+  private AuditManager auditManager;
 
-    @Mock
-    private AuditProducerSupplier auditProducerSupplier;
+  @Mock private AuditProducerSupplier auditProducerSupplier;
 
-    @Mock
-    private AuditScheduler auditScheduler;
+  @Mock private AuditScheduler auditScheduler;
 
-    @Mock
-    private AuditMatrix auditMatrix;
+  @Mock private AuditMatrix auditMatrix;
 
-    @Mock
-    private AuditObjectFactory auditObjectFactory;
+  @Mock private AuditObjectFactory auditObjectFactory;
 
-    @Mock
-    private UsernameSupplier usernameSupplier;
+  @Mock private UsernameSupplier usernameSupplier;
 
-    @BeforeEach
-    public void setUp()
-    {
-        auditManager = new AuditManager( auditProducerSupplier, auditScheduler,
+  @BeforeEach
+  public void setUp() {
+    auditManager =
+        new AuditManager(
+            auditProducerSupplier,
+            auditScheduler,
             AuditProducerConfiguration.builder().build(),
-            auditMatrix, auditObjectFactory, usernameSupplier );
-    }
+            auditMatrix,
+            auditObjectFactory,
+            usernameSupplier);
+  }
 
-    @Test
-    void testCollectAuditAttributes()
-    {
-        DataElement dataElement = new DataElement();
-        dataElement.setUid( "DataElementUID" );
-        dataElement.setName( "DataElementA" );
+  @Test
+  void testCollectAuditAttributes() {
+    DataElement dataElement = new DataElement();
+    dataElement.setUid("DataElementUID");
+    dataElement.setName("DataElementA");
 
-        AuditAttributes attributes = auditManager.collectAuditAttributes( dataElement, DataElement.class );
-        assertNotNull( attributes );
-        assertEquals( dataElement.getUid(), attributes.get( "uid" ) );
+    AuditAttributes attributes =
+        auditManager.collectAuditAttributes(dataElement, DataElement.class);
+    assertNotNull(attributes);
+    assertEquals(dataElement.getUid(), attributes.get("uid"));
 
-        Map<String, Object> map = new HashMap<>();
-        map.put( "name", dataElement.getName() );
-        map.put( "uid", dataElement.getUid() );
-        map.put( "code", "CODEA" );
+    Map<String, Object> map = new HashMap<>();
+    map.put("name", dataElement.getName());
+    map.put("uid", dataElement.getUid());
+    map.put("code", "CODEA");
 
-        attributes = auditManager.collectAuditAttributes( map, DataElement.class );
-        assertNotNull( attributes );
-        assertEquals( dataElement.getUid(), attributes.get( "uid" ) );
-        assertEquals( "CODEA", attributes.get( "code" ) );
-    }
+    attributes = auditManager.collectAuditAttributes(map, DataElement.class);
+    assertNotNull(attributes);
+    assertEquals(dataElement.getUid(), attributes.get("uid"));
+    assertEquals("CODEA", attributes.get("code"));
+  }
 }

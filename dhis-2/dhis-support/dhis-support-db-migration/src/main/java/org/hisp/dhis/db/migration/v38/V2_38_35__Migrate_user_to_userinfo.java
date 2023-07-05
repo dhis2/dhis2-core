@@ -29,49 +29,44 @@ package org.hisp.dhis.db.migration.v38;
 
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class V2_38_35__Migrate_user_to_userinfo extends BaseJavaMigration
-{
-    private static final Logger log = LoggerFactory.getLogger( V2_38_35__Migrate_user_to_userinfo.class );
+public class V2_38_35__Migrate_user_to_userinfo extends BaseJavaMigration {
+  private static final Logger log =
+      LoggerFactory.getLogger(V2_38_35__Migrate_user_to_userinfo.class);
 
-    public void migrate( Context context )
-        throws SQLException
-    {
-        String query = "UPDATE userinfo set " +
-            "username = uc.username, " +
-            "password = uc.password, " +
-            "secret = uc.secret, " +
-            "twofa = uc.twofa, " +
-            "externalauth = uc.externalauth, " +
-            "openid = uc.openid, " +
-            "ldapid = uc.ldapid, " +
-            "passwordlastupdated = uc.passwordlastupdated, " +
-            "lastlogin = uc.lastlogin, " +
-            "restoretoken = uc.restoretoken, " +
-            "restoreexpiry = uc.restoreexpiry, " +
-            "selfregistered = uc.selfregistered, " +
-            "invitation = uc.invitation, " +
-            "disabled = uc.disabled, " +
-            "uuid = uc.uuid, " +
-            "idtoken = uc.idtoken, " +
-            "accountexpiry = uc.accountexpiry " +
-            "FROM (SELECT * FROM users) AS uc " +
-            "WHERE userinfo.userinfoid = uc.userid";
+  public void migrate(Context context) throws SQLException {
+    String query =
+        "UPDATE userinfo set "
+            + "username = uc.username, "
+            + "password = uc.password, "
+            + "secret = uc.secret, "
+            + "twofa = uc.twofa, "
+            + "externalauth = uc.externalauth, "
+            + "openid = uc.openid, "
+            + "ldapid = uc.ldapid, "
+            + "passwordlastupdated = uc.passwordlastupdated, "
+            + "lastlogin = uc.lastlogin, "
+            + "restoretoken = uc.restoretoken, "
+            + "restoreexpiry = uc.restoreexpiry, "
+            + "selfregistered = uc.selfregistered, "
+            + "invitation = uc.invitation, "
+            + "disabled = uc.disabled, "
+            + "uuid = uc.uuid, "
+            + "idtoken = uc.idtoken, "
+            + "accountexpiry = uc.accountexpiry "
+            + "FROM (SELECT * FROM users) AS uc "
+            + "WHERE userinfo.userinfoid = uc.userid";
 
-        try ( Statement statement = context.getConnection().createStatement() )
-        {
-            log.info( "Executing user/usercredentials migration query: [" + query + "]" );
-            statement.execute( query );
-        }
-        catch ( SQLException e )
-        {
-            log.error( e.getMessage() );
-            throw e;
-        }
+    try (Statement statement = context.getConnection().createStatement()) {
+      log.info("Executing user/usercredentials migration query: [" + query + "]");
+      statement.execute(query);
+    } catch (SQLException e) {
+      log.error(e.getMessage());
+      throw e;
     }
+  }
 }

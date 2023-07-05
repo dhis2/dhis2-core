@@ -34,12 +34,9 @@ import org.apache.commons.math3.distribution.NormalDistribution;
  *
  * @author Jim Grace
  */
-public class FunctionNormDistDen
-    extends FunctionNormDistAbstract
-{
-    @Override
-    protected Double getDistributionValue( NormalDistribution dist, Double x )
-    {
-        return dist.density( x );
-    }
+public class FunctionNormDistDen extends FunctionNormDistAbstract {
+  @Override
+  protected Double getDistributionValue(NormalDistribution dist, Double x) {
+    return dist.density(x);
+  }
 }

@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
@@ -46,74 +45,68 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GoogleProvider extends AbstractOidcProvider
-{
-    public static final String REGISTRATION_ID = "google";
+public class GoogleProvider extends AbstractOidcProvider {
+  public static final String REGISTRATION_ID = "google";
 
-    private GoogleProvider()
-    {
-        throw new IllegalStateException( "Utility class" );
+  private GoogleProvider() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  public static DhisOidcClientRegistration parse(Properties config) {
+    Objects.requireNonNull(config, "DhisConfigurationProvider is missing!");
+
+    Map<String, Set<String>> allKeysByProvider =
+        GenericOidcProviderConfigParser.extractKeysGroupByProvider(config);
+
+    // Skip parsing if there is no keys matching REGISTRATION_ID
+    if (!allKeysByProvider.containsKey(REGISTRATION_ID)
+        || allKeysByProvider.get(REGISTRATION_ID).isEmpty()) {
+      return null;
     }
 
-    public static DhisOidcClientRegistration parse( Properties config )
-    {
-        Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
+    Set<String> googleKeys = allKeysByProvider.get(REGISTRATION_ID);
 
-        Map<String, Set<String>> allKeysByProvider = GenericOidcProviderConfigParser
-            .extractKeysGroupByProvider( config );
+    Map<String, Map<String, String>> externalClientConfigs =
+        GenericOidcProviderConfigParser.getAllExternalClients(config, REGISTRATION_ID, googleKeys);
 
-        // Skip parsing if there is no keys matching REGISTRATION_ID
-        if ( !allKeysByProvider.containsKey( REGISTRATION_ID ) || allKeysByProvider.get( REGISTRATION_ID ).isEmpty() )
-        {
-            return null;
-        }
+    ClientRegistration clientRegistration = buildClientRegistration(config);
 
-        Set<String> googleKeys = allKeysByProvider.get( REGISTRATION_ID );
-
-        Map<String, Map<String, String>> externalClientConfigs = GenericOidcProviderConfigParser
-            .getAllExternalClients( config, REGISTRATION_ID, googleKeys );
-
-        ClientRegistration clientRegistration = buildClientRegistration( config );
-
-        if ( clientRegistration == null )
-        {
-            return null;
-        }
-
-        return DhisOidcClientRegistration.builder()
-            .clientRegistration( clientRegistration )
-            .mappingClaimKey(
-                StringUtils.firstNonBlank(
-                    config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM.getKey() ),
-                    "email" ) )
-            .loginIcon( "../oidc/btn_google_light_normal_ios.svg" )
-            .loginIconPadding( "0px 0px" )
-            .loginText( "login_with_google" )
-            .externalClients( externalClientConfigs )
-            .build();
+    if (clientRegistration == null) {
+      return null;
     }
 
-    private static ClientRegistration buildClientRegistration( Properties config )
-    {
-        String clientId = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID.getKey() );
-        String clientSecret = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET.getKey() );
+    return DhisOidcClientRegistration.builder()
+        .clientRegistration(clientRegistration)
+        .mappingClaimKey(
+            StringUtils.firstNonBlank(
+                config.getProperty(OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM.getKey()), "email"))
+        .loginIcon("../oidc/btn_google_light_normal_ios.svg")
+        .loginIconPadding("0px 0px")
+        .loginText("login_with_google")
+        .externalClients(externalClientConfigs)
+        .build();
+  }
 
-        if ( clientId.isEmpty() )
-        {
-            return null;
-        }
+  private static ClientRegistration buildClientRegistration(Properties config) {
+    String clientId = config.getProperty(OIDC_PROVIDER_GOOGLE_CLIENT_ID.getKey());
+    String clientSecret = config.getProperty(OIDC_PROVIDER_GOOGLE_CLIENT_SECRET.getKey());
 
-        if ( clientSecret.isEmpty() )
-        {
-            throw new IllegalArgumentException( "Google client secret is missing!" );
-        }
-
-        return CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
-            .clientId( clientId )
-            .clientSecret( clientSecret )
-            .redirectUri( StringUtils.firstNonBlank(
-                config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI.getKey() ),
-                DEFAULT_REDIRECT_TEMPLATE_URL ) )
-            .build();
+    if (clientId.isEmpty()) {
+      return null;
     }
+
+    if (clientSecret.isEmpty()) {
+      throw new IllegalArgumentException("Google client secret is missing!");
+    }
+
+    return CommonOAuth2Provider.GOOGLE
+        .getBuilder(REGISTRATION_ID)
+        .clientId(clientId)
+        .clientSecret(clientSecret)
+        .redirectUri(
+            StringUtils.firstNonBlank(
+                config.getProperty(OIDC_PROVIDER_GOOGLE_REDIRECT_URI.getKey()),
+                DEFAULT_REDIRECT_TEMPLATE_URL))
+        .build();
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.program.message;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -40,77 +39,68 @@ import org.springframework.stereotype.Component;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @Slf4j
-@Component( "org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" )
-public class SmsDeliveryChannelStrategy
-    extends DeliveryChannelStrategy
-{
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+@Component("org.hisp.dhis.program.message.SmsDeliveryChannelStrategy")
+public class SmsDeliveryChannelStrategy extends DeliveryChannelStrategy {
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public DeliveryChannel getDeliveryChannel()
-    {
-        return DeliveryChannel.SMS;
+  @Override
+  public DeliveryChannel getDeliveryChannel() {
+    return DeliveryChannel.SMS;
+  }
+
+  @Override
+  public ProgramMessage setAttributes(ProgramMessage message) {
+    validate(message);
+
+    OrganisationUnit orgUnit = getOrganisationUnit(message);
+
+    TrackedEntity tei = getTrackedEntity(message);
+
+    if (orgUnit != null) {
+      message.getRecipients().getPhoneNumbers().add(getOrganisationUnitRecipient(orgUnit));
     }
 
-    @Override
-    public ProgramMessage setAttributes( ProgramMessage message )
-    {
-        validate( message );
-
-        OrganisationUnit orgUnit = getOrganisationUnit( message );
-
-        TrackedEntity tei = getTrackedEntity( message );
-
-        if ( orgUnit != null )
-        {
-            message.getRecipients().getPhoneNumbers().add( getOrganisationUnitRecipient( orgUnit ) );
-        }
-
-        if ( tei != null )
-        {
-            message.getRecipients().getPhoneNumbers()
-                .add( getTrackedEntityRecipient( tei, ValueType.PHONE_NUMBER ) );
-        }
-
-        return message;
+    if (tei != null) {
+      message
+          .getRecipients()
+          .getPhoneNumbers()
+          .add(getTrackedEntityRecipient(tei, ValueType.PHONE_NUMBER));
     }
 
-    @Override
-    public void validate( ProgramMessage message )
-    {
-        String violation = null;
+    return message;
+  }
 
-        ProgramMessageRecipients recipient = message.getRecipients();
+  @Override
+  public void validate(ProgramMessage message) {
+    String violation = null;
 
-        if ( message.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
-        {
-            if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntity()
-                && recipient.getPhoneNumbers().isEmpty() )
-            {
-                violation = "No destination found for SMS";
-            }
-        }
+    ProgramMessageRecipients recipient = message.getRecipients();
 
-        if ( violation != null )
-        {
-            log.info( "Message validation failed: " + violation );
-
-            throw new IllegalQueryException( violation );
-        }
+    if (message.getDeliveryChannels().contains(DeliveryChannel.SMS)) {
+      if (!recipient.hasOrganisationUnit()
+          && !recipient.hasTrackedEntity()
+          && recipient.getPhoneNumbers().isEmpty()) {
+        violation = "No destination found for SMS";
+      }
     }
 
-    @Override
-    public String getOrganisationUnitRecipient( OrganisationUnit orgUnit )
-    {
-        if ( orgUnit.getPhoneNumber() == null )
-        {
-            log.error( "Organisation unit does not have phone number" );
+    if (violation != null) {
+      log.info("Message validation failed: " + violation);
 
-            throw new IllegalQueryException( "Organisation unit does not have phone number" );
-        }
-
-        return orgUnit.getPhoneNumber();
+      throw new IllegalQueryException(violation);
     }
+  }
+
+  @Override
+  public String getOrganisationUnitRecipient(OrganisationUnit orgUnit) {
+    if (orgUnit.getPhoneNumber() == null) {
+      log.error("Organisation unit does not have phone number");
+
+      throw new IllegalQueryException("Organisation unit does not have phone number");
+    }
+
+    return orgUnit.getPhoneNumber();
+  }
 }

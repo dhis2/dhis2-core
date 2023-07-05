@@ -28,7 +28,6 @@
 package org.hisp.dhis.programstagefilter.hibernate;
 
 import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstagefilter.EventFilter;
@@ -41,25 +40,29 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-@Repository( "org.hisp.dhis.programstagefilter.EventFilterStore" )
-public class HibernateEventFilterStore
-    extends HibernateIdentifiableObjectStore<EventFilter>
-    implements EventFilterStore
-{
-    public HibernateEventFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, EventFilter.class, currentUserService,
-            aclService, false );
-    }
+@Repository("org.hisp.dhis.programstagefilter.EventFilterStore")
+public class HibernateEventFilterStore extends HibernateIdentifiableObjectStore<EventFilter>
+    implements EventFilterStore {
+  public HibernateEventFilterStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        EventFilter.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public List<EventFilter> getByProgram( String program )
-    {
-        String hql = "from EventFilter psif where psif.program =:program";
-        return getQuery( hql ).setParameter( "program", program ).getResultList();
-    }
-
+  @Override
+  public List<EventFilter> getByProgram(String program) {
+    String hql = "from EventFilter psif where psif.program =:program";
+    return getQuery(hql).setParameter("program", program).getResultList();
+  }
 }

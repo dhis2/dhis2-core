@@ -28,26 +28,22 @@
 package org.hisp.dhis.dataset.notifications;
 
 import java.util.List;
-
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 
-/**
- * Created by zubair@dhis2.org on 20.07.17.
- */
-public interface DataSetNotificationTemplateService
-{
-    DataSetNotificationTemplate get( long id );
+/** Created by zubair@dhis2.org on 20.07.17. */
+public interface DataSetNotificationTemplateService {
+  DataSetNotificationTemplate get(long id);
 
-    DataSetNotificationTemplate get( String uid );
+  DataSetNotificationTemplate get(String uid);
 
-    List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet );
+  List<DataSetNotificationTemplate> getCompleteNotifications(DataSet dataSet);
 
-    List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
+  List<DataSetNotificationTemplate> getScheduledNotifications(NotificationTrigger trigger);
 
-    List<DataSetNotificationTemplate> getAll();
+  List<DataSetNotificationTemplate> getAll();
 
-    void save( DataSetNotificationTemplate template );
+  void save(DataSetNotificationTemplate template);
 
-    void delete( DataSetNotificationTemplate template );
+  void delete(DataSetNotificationTemplate template);
 }

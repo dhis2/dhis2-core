@@ -29,227 +29,207 @@ package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
 import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.ValueType;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.ValueType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@OpenApi.Shared( pattern = TRACKER )
-@Deprecated( since = "2.41" )
-@JacksonXmlRootElement( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
-public class Attribute
-{
-    private String displayName;
+@OpenApi.Shared(pattern = TRACKER)
+@Deprecated(since = "2.41")
+@JacksonXmlRootElement(localName = "attribute", namespace = DxfNamespaces.DXF_2_0)
+public class Attribute {
+  private String displayName;
 
-    private String attribute;
+  private String attribute;
 
-    private String created;
+  private String created;
 
-    private String lastUpdated;
+  private String lastUpdated;
 
-    private ValueType valueType;
+  private ValueType valueType;
 
-    private String code;
+  private String code;
 
-    private String value;
+  private String value;
 
-    private String storedBy;
+  private String storedBy;
 
-    private boolean skipSynchronization = false;
+  private boolean skipSynchronization = false;
 
-    public Attribute()
-    {
+  public Attribute() {}
+
+  public Attribute(String value) {
+    this.value = value;
+  }
+
+  public Attribute(String attribute, ValueType valueType, String value) {
+    this.attribute = attribute;
+    this.valueType = valueType;
+    this.value = value;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String name) {
+    this.displayName = name;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getAttribute() {
+    return attribute;
+  }
+
+  public void setAttribute(String attribute) {
+    this.attribute = attribute;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCreated() {
+    return created;
+  }
+
+  public void setCreated(String created) {
+    this.created = created;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getLastUpdated() {
+    return lastUpdated;
+  }
+
+  public void setLastUpdated(String lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public ValueType getValueType() {
+    return valueType;
+  }
+
+  public void setValueType(ValueType valueType) {
+    this.valueType = valueType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getStoredBy() {
+    return storedBy;
+  }
+
+  public void setStoredBy(String storedBy) {
+    this.storedBy = storedBy;
+  }
+
+  @JsonIgnore
+  public Boolean isSkipSynchronization() {
+    return skipSynchronization;
+  }
+
+  public void setSkipSynchronization(boolean skipSynchronization) {
+    this.skipSynchronization = skipSynchronization;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Attribute attribute1 = (Attribute) o;
+
+    if (attribute != null
+        ? !attribute.equals(attribute1.attribute)
+        : attribute1.attribute != null) {
+      return false;
     }
 
-    public Attribute( String value )
-    {
-        this.value = value;
+    if (displayName != null
+        ? !displayName.equals(attribute1.displayName)
+        : attribute1.displayName != null) {
+      return false;
     }
 
-    public Attribute( String attribute, ValueType valueType, String value )
-    {
-        this.attribute = attribute;
-        this.valueType = valueType;
-        this.value = value;
+    if (valueType != null
+        ? !valueType.equals(attribute1.valueType)
+        : attribute1.valueType != null) {
+      return false;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getDisplayName()
-    {
-        return displayName;
+    if (code != null ? !code.equals(attribute1.code) : attribute1.code != null) {
+      return false;
     }
 
-    public void setDisplayName( String name )
-    {
-        this.displayName = name;
+    if (value != null ? !value.equals(attribute1.value) : attribute1.value != null) {
+      return false;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getAttribute()
-    {
-        return attribute;
-    }
+    return true;
+  }
 
-    public void setAttribute( String attribute )
-    {
-        this.attribute = attribute;
-    }
+  @Override
+  public int hashCode() {
+    int result = displayName != null ? displayName.hashCode() : 0;
+    result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
+    result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
+    result = 31 * result + (code != null ? code.hashCode() : 0);
+    result = 31 * result + (value != null ? value.hashCode() : 0);
+    return result;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( String created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( String lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public ValueType getValueType()
-    {
-        return valueType;
-    }
-
-    public void setValueType( ValueType valueType )
-    {
-        this.valueType = valueType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCode()
-    {
-        return code;
-    }
-
-    public void setCode( String code )
-    {
-        this.code = code;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    @JsonIgnore
-    public Boolean isSkipSynchronization()
-    {
-        return skipSynchronization;
-    }
-
-    public void setSkipSynchronization( boolean skipSynchronization )
-    {
-        this.skipSynchronization = skipSynchronization;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-
-        Attribute attribute1 = (Attribute) o;
-
-        if ( attribute != null ? !attribute.equals( attribute1.attribute ) : attribute1.attribute != null )
-        {
-            return false;
-        }
-
-        if ( displayName != null ? !displayName.equals( attribute1.displayName ) : attribute1.displayName != null )
-        {
-            return false;
-        }
-
-        if ( valueType != null ? !valueType.equals( attribute1.valueType ) : attribute1.valueType != null )
-        {
-            return false;
-        }
-
-        if ( code != null ? !code.equals( attribute1.code ) : attribute1.code != null )
-        {
-            return false;
-        }
-
-        if ( value != null ? !value.equals( attribute1.value ) : attribute1.value != null )
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = displayName != null ? displayName.hashCode() : 0;
-        result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
-        result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (code != null ? code.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "Attribute{" +
-            "displayName='" + displayName + '\'' +
-            ", attribute='" + attribute + '\'' +
-            ", valueType=" + valueType +
-            ", code='" + code + '\'' +
-            ", value='" + value + '\'' +
-            ", skipSynchronization=" + skipSynchronization +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "Attribute{"
+        + "displayName='"
+        + displayName
+        + '\''
+        + ", attribute='"
+        + attribute
+        + '\''
+        + ", valueType="
+        + valueType
+        + ", code='"
+        + code
+        + '\''
+        + ", value='"
+        + value
+        + '\''
+        + ", skipSynchronization="
+        + skipSynchronization
+        + '}';
+  }
 }

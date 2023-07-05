@@ -29,7 +29,6 @@ package org.hisp.dhis.visualization;
 
 import java.util.Date;
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -42,39 +41,52 @@ import org.jfree.chart.JFreeChart;
 /**
  * @author Lars Helge Overland
  */
-public interface ChartService
-{
-    /**
-     * Supported visualization types.
-     */
-    Set<VisualizationType> SUPPORTED_TYPES = Set.of(
-        VisualizationType.LINE, VisualizationType.COLUMN, VisualizationType.BAR,
-        VisualizationType.AREA, VisualizationType.PIE, VisualizationType.STACKED_COLUMN,
-        VisualizationType.STACKED_BAR, VisualizationType.RADAR, VisualizationType.GAUGE );
+public interface ChartService {
+  /** Supported visualization types. */
+  Set<VisualizationType> SUPPORTED_TYPES =
+      Set.of(
+          VisualizationType.LINE,
+          VisualizationType.COLUMN,
+          VisualizationType.BAR,
+          VisualizationType.AREA,
+          VisualizationType.PIE,
+          VisualizationType.STACKED_COLUMN,
+          VisualizationType.STACKED_BAR,
+          VisualizationType.RADAR,
+          VisualizationType.GAUGE);
 
-    /**
-     * Generates a JFreeChart.
-     *
-     * @param plotData the plot data to use as basis for the JFreeChart
-     *        generation.
-     * @param date the date to use as basis for relative periods, can be null.
-     * @param organisationUnit the org unit to use as basis for relative units,
-     *        will override the current user org unit if set, can be null.
-     * @param format the i18n format.
-     * @return a JFreeChart object.
-     */
-    JFreeChart getJFreeChart( PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format );
+  /**
+   * Generates a JFreeChart.
+   *
+   * @param plotData the plot data to use as basis for the JFreeChart generation.
+   * @param date the date to use as basis for relative periods, can be null.
+   * @param organisationUnit the org unit to use as basis for relative units, will override the
+   *     current user org unit if set, can be null.
+   * @param format the i18n format.
+   * @return a JFreeChart object.
+   */
+  JFreeChart getJFreeChart(
+      PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format);
 
-    JFreeChart getJFreeChart( PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format,
-        User currentUser );
+  JFreeChart getJFreeChart(
+      PlotData plotData,
+      Date date,
+      OrganisationUnit organisationUnit,
+      I18nFormat format,
+      User currentUser);
 
-    JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit organisationUnit, boolean title,
-        I18nFormat format );
+  JFreeChart getJFreePeriodChart(
+      Indicator indicator, OrganisationUnit organisationUnit, boolean title, I18nFormat format);
 
-    JFreeChart getJFreeOrganisationUnitChart( Indicator indicator, OrganisationUnit parent, boolean title,
-        I18nFormat format );
+  JFreeChart getJFreeOrganisationUnitChart(
+      Indicator indicator, OrganisationUnit parent, boolean title, I18nFormat format);
 
-    JFreeChart getJFreeChartHistory( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
-        int historyLength, I18nFormat format );
+  JFreeChart getJFreeChartHistory(
+      DataElement dataElement,
+      CategoryOptionCombo categoryOptionCombo,
+      CategoryOptionCombo attributeOptionCombo,
+      Period lastPeriod,
+      OrganisationUnit organisationUnit,
+      int historyLength,
+      I18nFormat format);
 }

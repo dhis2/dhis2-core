@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -38,38 +37,32 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.UserService;
 
 /**
- * Contains validators for User types of {@link ValueType} such as
- * {@link ValueType#USERNAME}.
- * <p>
- * The first argument of this {@link BiFunction} is the value of the
- * {@link AttributeValue} which is the UID of the current object.
- * <p>
- * The second argument is the {@link Predicate} which responsible for checking
- * object existence by calling {@link UserService} methods
- * <p>
- * The function returns a list of {@link ErrorReport}
- * <p>
- * Example:
+ * Contains validators for User types of {@link ValueType} such as {@link ValueType#USERNAME}.
  *
- * <pre>
- * {@code
+ * <p>The first argument of this {@link BiFunction} is the value of the {@link AttributeValue} which
+ * is the UID of the current object.
+ *
+ * <p>The second argument is the {@link Predicate} which responsible for checking object existence
+ * by calling {@link UserService} methods
+ *
+ * <p>The function returns a list of {@link ErrorReport}
+ *
+ * <p>Example:
+ *
+ * <pre>{@code
  * UserCheck.isUserNameExist.apply( value, klass -> userService.getUserByUsername( value ) != null )
- * }
- * </pre>
+ * }</pre>
  *
  * @author viet
  */
-public class UserCheck
-{
-    interface Function extends BiFunction<String, UserService, List<ErrorReport>>
-    {
-    }
+public class UserCheck {
+  interface Function extends BiFunction<String, UserService, List<ErrorReport>> {}
 
-    static final Function empty = ( userName, userService ) -> List.of();
+  static final Function empty = (userName, userService) -> List.of();
 
-    static final Function isUserNameExist = ( userName,
-        userService ) -> userService.getUserByUsername( userName ) == null
-            ? List.of( new ErrorReport( AttributeValue.class, ErrorCode.E6020, userName ) )
-            : List.of();
-
+  static final Function isUserNameExist =
+      (userName, userService) ->
+          userService.getUserByUsername(userName) == null
+              ? List.of(new ErrorReport(AttributeValue.class, ErrorCode.E6020, userName))
+              : List.of();
 }

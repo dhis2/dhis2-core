@@ -33,22 +33,15 @@ import java.sql.SQLException;
 /**
  * @author Ameen Mohamed
  */
-public class OwnedTeiMapper
-    extends
-    AbstractMapper<String>
-{
+public class OwnedTeiMapper extends AbstractMapper<String> {
 
-    @Override
-    String getItem( ResultSet rs )
-        throws SQLException
-    {
-        return rs.getString( "pgm_uid" );
-    }
+  @Override
+  String getItem(ResultSet rs) throws SQLException {
+    return rs.getString("pgm_uid");
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return "tei_uid";
-    }
-
+  @Override
+  String getKeyColumn() {
+    return "tei_uid";
+  }
 }

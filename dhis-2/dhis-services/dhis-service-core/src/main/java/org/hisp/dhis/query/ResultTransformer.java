@@ -33,7 +33,6 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @FunctionalInterface
-public interface ResultTransformer<T>
-{
-    List<T> transform( List<T> result );
+public interface ResultTransformer<T> {
+  List<T> transform(List<T> result);
 }

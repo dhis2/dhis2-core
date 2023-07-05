@@ -32,10 +32,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Locale;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.http.HttpStatus;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,59 +51,54 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Slf4j
-class TranslationWebApiTest extends DhisWebSpringTest
-{
+class TranslationWebApiTest extends DhisWebSpringTest {
 
-    @Autowired
-    protected DbmsManager dbmsManager;
+  @Autowired protected DbmsManager dbmsManager;
 
-    @Autowired
-    protected TransactionTemplate transactionTemplate;
+  @Autowired protected TransactionTemplate transactionTemplate;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
-    @Test
-    @Disabled
-    void testOK()
-        throws Exception
-    {
-        final Locale locale = Locale.FRENCH;
-        final CategoryCombo categoryCombo = createCategoryCombo( 'C' );
-        final DataElement dataElementA = createDataElement( 'A', categoryCombo );
-        final String valueToCheck = "frenchTranslated";
-        final MockHttpSession session = getSession( "ALL" );
-        transactionTemplate.execute( status -> {
-            identifiableObjectManager.save( categoryCombo );
-            identifiableObjectManager.save( dataElementA );
-            dataElementA.getTranslations().add( new Translation( locale.getLanguage(), "NAME", valueToCheck ) );
-            try
-            {
-                mvc.perform( put( "/dataElements/" + dataElementA.getUid() + "/translations" ).session( session )
-                    .contentType( TestUtils.APPLICATION_JSON_UTF8 )
-                    .content( TestUtils.convertObjectToJsonBytes( dataElementA ) ) )
-                    .andExpect( status().is( HttpStatus.SC_NO_CONTENT ) );
-            }
-            catch ( Exception e )
-            {
-                log.error( "Failed:" + e.getMessage(), e );
-            }
-            dbmsManager.clearSession();
-            return null;
-        } );
-        MvcResult result = mvc
-            .perform( get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() )
-                .session( session ).contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
+  @Test
+  @Disabled
+  void testOK() throws Exception {
+    final Locale locale = Locale.FRENCH;
+    final CategoryCombo categoryCombo = createCategoryCombo('C');
+    final DataElement dataElementA = createDataElement('A', categoryCombo);
+    final String valueToCheck = "frenchTranslated";
+    final MockHttpSession session = getSession("ALL");
+    transactionTemplate.execute(
+        status -> {
+          identifiableObjectManager.save(categoryCombo);
+          identifiableObjectManager.save(dataElementA);
+          dataElementA
+              .getTranslations()
+              .add(new Translation(locale.getLanguage(), "NAME", valueToCheck));
+          try {
+            mvc.perform(
+                    put("/dataElements/" + dataElementA.getUid() + "/translations")
+                        .session(session)
+                        .contentType(TestUtils.APPLICATION_JSON_UTF8)
+                        .content(TestUtils.convertObjectToJsonBytes(dataElementA)))
+                .andExpect(status().is(HttpStatus.SC_NO_CONTENT));
+          } catch (Exception e) {
+            log.error("Failed:" + e.getMessage(), e);
+          }
+          dbmsManager.clearSession();
+          return null;
+        });
+    MvcResult result =
+        mvc.perform(
+                get("/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage())
+                    .session(session)
+                    .contentType(TestUtils.APPLICATION_JSON_UTF8))
             .andReturn();
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node = mapper.readTree( result.getResponse().getContentAsString() );
-        assertEquals( valueToCheck, node.get( "displayName" ).asText() );
-    }
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode node = mapper.readTree(result.getResponse().getContentAsString());
+    assertEquals(valueToCheck, node.get("displayName").asText());
+  }
 }

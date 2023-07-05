@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -38,27 +37,24 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramTempOwnerService" )
-public class DefaultProgramTempOwnerService implements ProgramTempOwnerService
-{
-    private final ProgramTempOwnerStore programTempOwnerStore;
+@Service("org.hisp.dhis.program.ProgramTempOwnerService")
+public class DefaultProgramTempOwnerService implements ProgramTempOwnerService {
+  private final ProgramTempOwnerStore programTempOwnerStore;
 
-    // -------------------------------------------------------------------------
-    // ProgramTempOwnershipAuditService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramTempOwnershipAuditService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void addProgramTempOwner( ProgramTempOwner programTempOwner )
-    {
-        programTempOwnerStore.addProgramTempOwner( programTempOwner );
-    }
+  @Override
+  @Transactional
+  public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
+    programTempOwnerStore.addProgramTempOwner(programTempOwner);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public int getValidTempOwnerRecordCount( Program program, TrackedEntity entityInstance, User user )
-    {
-        return programTempOwnerStore.getValidTempOwnerCount( program, entityInstance, user );
-    }
-
+  @Override
+  @Transactional(readOnly = true)
+  public int getValidTempOwnerRecordCount(
+      Program program, TrackedEntity entityInstance, User user) {
+    return programTempOwnerStore.getValidTempOwnerCount(program, entityInstance, user);
+  }
 }

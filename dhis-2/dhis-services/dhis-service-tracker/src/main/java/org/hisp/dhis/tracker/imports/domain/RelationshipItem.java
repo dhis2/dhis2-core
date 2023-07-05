@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,15 +40,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RelationshipItem
-{
+public class RelationshipItem {
 
-    @JsonProperty
-    private String trackedEntity;
+  @JsonProperty private String trackedEntity;
 
-    @JsonProperty
-    private String enrollment;
+  @JsonProperty private String enrollment;
 
-    @JsonProperty
-    private String event;
+  @JsonProperty private String event;
 }

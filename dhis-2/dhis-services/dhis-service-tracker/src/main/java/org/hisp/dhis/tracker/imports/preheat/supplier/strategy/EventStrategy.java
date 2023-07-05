@@ -28,11 +28,8 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -46,22 +43,18 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.Event.class, mapper = EventMapper.class )
-public class EventStrategy implements ClassBasedSupplierStrategy
-{
-    @Nonnull
-    private final EventStore eventStore;
+@StrategyFor(value = org.hisp.dhis.tracker.imports.domain.Event.class, mapper = EventMapper.class)
+public class EventStrategy implements ClassBasedSupplierStrategy {
+  @Nonnull private final EventStore eventStore;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        for ( List<String> ids : splitList )
-        {
-            List<Event> events = eventStore.getIncludingDeleted( ids );
+  @Override
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    for (List<String> ids : splitList) {
+      List<Event> events = eventStore.getIncludingDeleted(ids);
 
-            preheat.putEvents(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    events ) );
-        }
+      preheat.putEvents(
+          DetachUtils.detach(this.getClass().getAnnotation(StrategyFor.class).mapper(), events));
     }
+  }
 }

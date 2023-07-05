@@ -27,37 +27,32 @@
  */
 package org.hisp.dhis.user;
 
-/**
- * Created by zubair on 08.03.17.
- */
+/** Created by zubair on 08.03.17. */
 @FunctionalInterface
-public interface PasswordValidationRule
-{
+public interface PasswordValidationRule {
 
-    /**
-     * Validates user password to make sure it comply with requirements related
-     * to password strength.
-     *
-     * Not all rules are applicable all the time. If a rule does not apply it
-     * returns {@link PasswordValidationResult#VALID}.
-     *
-     * @param credentialsInfo info to check
-     * @return {@link PasswordValidationResult}
-     */
-    PasswordValidationResult validate( CredentialsInfo credentialsInfo );
+  /**
+   * Validates user password to make sure it comply with requirements related to password strength.
+   *
+   * <p>Not all rules are applicable all the time. If a rule does not apply it returns {@link
+   * PasswordValidationResult#VALID}.
+   *
+   * @param credentialsInfo info to check
+   * @return {@link PasswordValidationResult}
+   */
+  PasswordValidationResult validate(CredentialsInfo credentialsInfo);
 
-    /**
-     * Utility method to chain multiple {@link PasswordValidationRule}s to a
-     * complex rule with a defined sequence in which rules are checked.
-     *
-     * @param next Rule to check in case this is valid
-     * @return result of this check if invalid, otherwise result of next check
-     */
-    default PasswordValidationRule then( PasswordValidationRule next )
-    {
-        return credentialsInfo -> {
-            PasswordValidationResult result = validate( credentialsInfo );
-            return !result.isValid() ? result : next.validate( credentialsInfo );
-        };
-    }
+  /**
+   * Utility method to chain multiple {@link PasswordValidationRule}s to a complex rule with a
+   * defined sequence in which rules are checked.
+   *
+   * @param next Rule to check in case this is valid
+   * @return result of this check if invalid, otherwise result of next check
+   */
+  default PasswordValidationRule then(PasswordValidationRule next) {
+    return credentialsInfo -> {
+      PasswordValidationResult result = validate(credentialsInfo);
+      return !result.isValid() ? result : next.validate(credentialsInfo);
+    };
+  }
 }

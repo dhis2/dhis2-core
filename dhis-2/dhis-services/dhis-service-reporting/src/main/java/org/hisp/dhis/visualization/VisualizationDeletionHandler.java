@@ -30,7 +30,6 @@ package org.hisp.dhis.visualization;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -47,46 +46,39 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class VisualizationDeletionHandler
-    extends
-    GenericAnalyticalObjectDeletionHandler<Visualization, VisualizationService>
-{
+    extends GenericAnalyticalObjectDeletionHandler<Visualization, VisualizationService> {
 
-    public VisualizationDeletionHandler( VisualizationService visualizationService )
-    {
-        super( new DeletionVeto( Visualization.class ), visualizationService );
-        checkNotNull( visualizationService );
+  public VisualizationDeletionHandler(VisualizationService visualizationService) {
+    super(new DeletionVeto(Visualization.class), visualizationService);
+    checkNotNull(visualizationService);
+  }
+
+  @Override
+  protected void registerHandler() {
+    // generic
+    whenDeleting(Indicator.class, this::deleteIndicator);
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
+    whenDeleting(Period.class, this::deletePeriod);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+    whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);
+    // special
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+    whenDeleting(ExpressionDimensionItem.class, this::deleteExpressionDimensionItem);
+  }
+
+  private void deleteLegendSet(LegendSet legendSet) {
+    List<Visualization> visualizations = service.getAnalyticalObjects(legendSet);
+
+    for (Visualization visualization : visualizations) {
+      if (visualization.getLegendDefinitions() != null) {
+        visualization.getLegendDefinitions().setLegendSet(null);
+      }
+
+      service.update(visualization);
     }
-
-    @Override
-    protected void registerHandler()
-    {
-        // generic
-        whenDeleting( Indicator.class, this::deleteIndicator );
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
-        whenDeleting( Period.class, this::deletePeriod );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
-        // special
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
-        whenDeleting( ExpressionDimensionItem.class, this::deleteExpressionDimensionItem );
-    }
-
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        List<Visualization> visualizations = service.getAnalyticalObjects( legendSet );
-
-        for ( Visualization visualization : visualizations )
-        {
-            if ( visualization.getLegendDefinitions() != null )
-            {
-                visualization.getLegendDefinitions().setLegendSet( null );
-            }
-
-            service.update( visualization );
-        }
-    }
+  }
 }

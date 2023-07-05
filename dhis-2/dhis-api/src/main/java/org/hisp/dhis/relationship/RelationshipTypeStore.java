@@ -32,17 +32,13 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Abyot Asalefew Gizaw
  */
-public interface RelationshipTypeStore
-    extends IdentifiableObjectStore<RelationshipType>
-{
-    /**
-     * Retrieves a relationship.
-     *
-     * @param aIsToB The A side
-     * @param bIsToA The B side
-     *
-     * @return RelationshipType
-     */
-    RelationshipType getRelationshipType( String aIsToB, String bIsToA );
-
+public interface RelationshipTypeStore extends IdentifiableObjectStore<RelationshipType> {
+  /**
+   * Retrieves a relationship.
+   *
+   * @param aIsToB The A side
+   * @param bIsToA The B side
+   * @return RelationshipType
+   */
+  RelationshipType getRelationshipType(String aIsToB, String bIsToA);
 }

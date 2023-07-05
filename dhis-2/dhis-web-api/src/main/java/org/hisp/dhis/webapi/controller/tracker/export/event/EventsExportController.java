@@ -35,17 +35,15 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
-
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -72,97 +70,85 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-@OpenApi.EntityType( Event.class )
-@OpenApi.Tags( "tracker" )
+@OpenApi.EntityType(Event.class)
+@OpenApi.Tags("tracker")
 @RestController
-@RequestMapping( value = RESOURCE_PATH + "/" + EventsExportController.EVENTS )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = RESOURCE_PATH + "/" + EventsExportController.EVENTS)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
-class EventsExportController
-{
-    protected static final String EVENTS = "events";
+class EventsExportController {
+  protected static final String EVENTS = "events";
 
-    private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
+  private static final EventMapper EVENTS_MAPPER = Mappers.getMapper(EventMapper.class);
 
-    @Nonnull
-    private final org.hisp.dhis.tracker.export.event.EventService eventService;
+  @Nonnull private final org.hisp.dhis.tracker.export.event.EventService eventService;
 
-    @Nonnull
-    private final EventRequestParamsMapper eventParamsMapper;
+  @Nonnull private final EventRequestParamsMapper eventParamsMapper;
 
-    @Nonnull
-    private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
+  @Nonnull
+  private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
-    @Nonnull
-    private final FieldFilterService fieldFilterService;
+  @Nonnull private final FieldFilterService fieldFilterService;
 
-    private final EventFieldsParamMapper eventsMapper;
+  private final EventFieldsParamMapper eventsMapper;
 
-    @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getEvents( RequestParams requestParams )
-        throws BadRequestException,
-        ForbiddenException
-    {
-        EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
+  @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  PagingWrapper<ObjectNode> getEvents(RequestParams requestParams)
+      throws BadRequestException, ForbiddenException {
+    EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
-        Events events = eventService.getEvents( eventOperationParams );
+    Events events = eventService.getEvents(eventOperationParams);
 
-        PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        if ( requestParams.isPagingRequest() )
-        {
-            pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.fromLegacy( requestParams, events.getPager() ) );
-        }
-
-        List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), requestParams.getFields() );
-        return pagingWrapper.withInstances( objectNodes );
+    if (requestParams.isPagingRequest()) {
+      pagingWrapper =
+          pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(requestParams, events.getPager()));
     }
 
-    @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
-    void getEventsAsCsv(
-        RequestParams requestParams,
-        HttpServletResponse response,
-        @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
-        HttpServletRequest request )
-        throws IOException,
-        BadRequestException,
-        ForbiddenException
-    {
-        EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(
+            EVENTS_MAPPER.fromCollection(events.getEvents()), requestParams.getFields());
+    return pagingWrapper.withInstances(objectNodes);
+  }
 
-        Events events = eventService.getEvents( eventOperationParams );
+  @GetMapping(produces = {CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV})
+  void getEventsAsCsv(
+      RequestParams requestParams,
+      HttpServletResponse response,
+      @RequestParam(required = false, defaultValue = "false") boolean skipHeader,
+      HttpServletRequest request)
+      throws IOException, BadRequestException, ForbiddenException {
+    EventOperationParams eventOperationParams = eventParamsMapper.map(requestParams);
 
-        OutputStream outputStream = response.getOutputStream();
-        response.setContentType( CONTENT_TYPE_CSV );
-        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv\"" );
+    Events events = eventService.getEvents(eventOperationParams);
 
-        if ( ContextUtils.isAcceptCsvGzip( request ) )
-        {
-            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            outputStream = new GZIPOutputStream( outputStream );
-            response.setContentType( CONTENT_TYPE_CSV_GZIP );
-            response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv.gz\"" );
-        }
+    OutputStream outputStream = response.getOutputStream();
+    response.setContentType(CONTENT_TYPE_CSV);
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv\"");
 
-        csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
+    if (ContextUtils.isAcceptCsvGzip(request)) {
+      response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      outputStream = new GZIPOutputStream(outputStream);
+      response.setContentType(CONTENT_TYPE_CSV_GZIP);
+      response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv.gz\"");
     }
 
-    @OpenApi.Response( OpenApi.EntityType.class )
-    @GetMapping( "/{uid}" )
-    ResponseEntity<ObjectNode> getEventByUid(
-        @OpenApi.Param( { UID.class, Event.class } ) @PathVariable UID uid,
-        @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws NotFoundException,
-        ForbiddenException
-    {
-        EventParams eventParams = eventsMapper.map( fields );
-        Event event = EVENTS_MAPPER.from( eventService.getEvent( uid.getValue(), eventParams ) );
+    csvEventService.write(
+        outputStream, EVENTS_MAPPER.fromCollection(events.getEvents()), !skipHeader);
+  }
 
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( event, fields ) );
-    }
+  @OpenApi.Response(OpenApi.EntityType.class)
+  @GetMapping("/{uid}")
+  ResponseEntity<ObjectNode> getEventByUid(
+      @OpenApi.Param({UID.class, Event.class}) @PathVariable UID uid,
+      @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
+          List<FieldPath> fields)
+      throws NotFoundException, ForbiddenException {
+    EventParams eventParams = eventsMapper.map(fields);
+    Event event = EVENTS_MAPPER.from(eventService.getEvent(uid.getValue(), eventParams));
+
+    return ResponseEntity.ok(fieldFilterService.toObjectNode(event, fields));
+  }
 }

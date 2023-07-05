@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
@@ -39,72 +38,66 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- *
- * Tests for dashboards which have not been actively viewed in the past year.*
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_not_used_1year.yaml
+ * Tests for dashboards which have not been actively viewed in the past year.* {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_not_used_1year.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDashboardsNotUsedOneYearControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityDashboardsNotUsedOneYearControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    @Autowired
-    private DataStatisticsEventStore dataStatisticsEventStore;
+  @Autowired private DataStatisticsEventStore dataStatisticsEventStore;
 
-    @Autowired
-    private DashboardService dashboardService;
+  @Autowired private DashboardService dashboardService;
 
-    private DataStatisticsEvent dse1;
+  private DataStatisticsEvent dse1;
 
-    private static final String check = "dashboards_not_viewed_one_year";
+  private static final String check = "dashboards_not_viewed_one_year";
 
-    private static final String detailsIdType = "dashboards";
+  private static final String detailsIdType = "dashboards";
 
-    @Test
-    void testUnusedDashboardExist()
-    {
+  @Test
+  void testUnusedDashboardExist() {
 
-        setUpDashboards();
-        Date date = Date.from( ZonedDateTime.now().minusYears( 1 ).minusDays( 1 ).toInstant() );
+    setUpDashboards();
+    Date date = Date.from(ZonedDateTime.now().minusYears(1).minusDays(1).toInstant());
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, date, "TestUser", BASE_UID );
-        dataStatisticsEventStore.save( dse1 );
+    dse1 =
+        new DataStatisticsEvent(DataStatisticsEventType.DASHBOARD_VIEW, date, "TestUser", BASE_UID);
+    dataStatisticsEventStore.save(dse1);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertNamedMetadataObjectExists( detailsIdType, "Test Dashboard" );
-        assertHasDataIntegrityIssues( detailsIdType, check, 100, BASE_UID, "Test Dashboard", null, true );
-    }
+    assertNamedMetadataObjectExists(detailsIdType, "Test Dashboard");
+    assertHasDataIntegrityIssues(detailsIdType, check, 100, BASE_UID, "Test Dashboard", null, true);
+  }
 
-    @Test
-    void testUsedDashboardsExist()
-    {
+  @Test
+  void testUsedDashboardsExist() {
 
-        setUpDashboards();
-        long millis = System.currentTimeMillis();
-        Date date = new Date( millis );
+    setUpDashboards();
+    long millis = System.currentTimeMillis();
+    Date date = new Date(millis);
 
-        dse1 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, date, "TestUser", BASE_UID );
-        dataStatisticsEventStore.save( dse1 );
+    dse1 =
+        new DataStatisticsEvent(DataStatisticsEventType.DASHBOARD_VIEW, date, "TestUser", BASE_UID);
+    dataStatisticsEventStore.save(dse1);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testUnusedDashboardsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
+  @Test
+  void testUnusedDashboardsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    void setUpDashboards()
-    {
-        Dashboard dashboardA = new Dashboard();
-        dashboardA.setName( "Test Dashboard" );
-        dashboardA.setUid( BASE_UID );
-        dashboardService.saveDashboard( dashboardA );
-
-    }
+  void setUpDashboards() {
+    Dashboard dashboardA = new Dashboard();
+    dashboardA.setName("Test Dashboard");
+    dashboardA.setUid(BASE_UID);
+    dashboardService.saveDashboard(dashboardA);
+  }
 }

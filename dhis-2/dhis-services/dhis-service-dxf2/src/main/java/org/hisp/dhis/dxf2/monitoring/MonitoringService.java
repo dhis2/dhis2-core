@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.monitoring;
 /**
  * @author Lars Helge Overland
  */
-public interface MonitoringService
-{
-    void pushMonitoringInfo();
+public interface MonitoringService {
+  void pushMonitoringInfo();
 }

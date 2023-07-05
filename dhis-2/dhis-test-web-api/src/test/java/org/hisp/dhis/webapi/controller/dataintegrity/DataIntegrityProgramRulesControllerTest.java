@@ -40,97 +40,105 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Combined integrity test for program rules.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/program_rules/}
+ * Combined integrity test for program rules. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/program_rules/}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityProgramRulesControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+  @Autowired private ProgramRuleService programRuleService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    private ProgramRule programRuleA;
+  private ProgramRule programRuleA;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    private static final String detailsIdType = "programRules";
+  private static final String detailsIdType = "programRules";
 
-    @Test
-    void testProgramRuleNoAction()
-    {
+  @Test
+  void testProgramRuleNoAction() {
 
-        setUpTest();
+    setUpTest();
 
-        programStageService.saveProgramStage( programStageA );
-        programRuleService.addProgramRule( programRuleA );
+    programStageService.saveProgramStage(programStageA);
+    programRuleService.addProgramRule(programRuleA);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIdType, "program_rules_no_action", 100, programRuleA.getUid(),
-            programRuleA.getName(), null, true );
-        assertHasDataIntegrityIssues( detailsIdType, "program_rules_no_expression", 100, programRuleA.getUid(),
-            programRuleA.getName(), null, true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        "program_rules_no_action",
+        100,
+        programRuleA.getUid(),
+        programRuleA.getName(),
+        null,
+        true);
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        "program_rules_no_expression",
+        100,
+        programRuleA.getUid(),
+        programRuleA.getName(),
+        null,
+        true);
+  }
 
-    @Test
-    void testProgramRuleChecksRun()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, "program_rules_no_action", false );
-        assertHasNoDataIntegrityIssues( detailsIdType, "program_rules_no_expression", false );
-        assertHasNoDataIntegrityIssues( detailsIdType, "program_rules_message_no_template", false );
-    }
+  @Test
+  void testProgramRuleChecksRun() {
+    assertHasNoDataIntegrityIssues(detailsIdType, "program_rules_no_action", false);
+    assertHasNoDataIntegrityIssues(detailsIdType, "program_rules_no_expression", false);
+    assertHasNoDataIntegrityIssues(detailsIdType, "program_rules_message_no_template", false);
+  }
 
-    @Test
-    void testProgramRuleMessageTemplate()
-    {
+  @Test
+  void testProgramRuleMessageTemplate() {
 
-        setUpTest();
+    setUpTest();
 
-        ProgramRuleAction programRuleAction = new ProgramRuleAction();
-        programRuleAction.setAutoFields();
-        programRuleAction.setName( "Rule Action A" );
-        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
-        programRuleA.getProgramRuleActions().add( programRuleAction );
-        programStageService.saveProgramStage( programStageA );
-        programRuleService.addProgramRule( programRuleA );
+    ProgramRuleAction programRuleAction = new ProgramRuleAction();
+    programRuleAction.setAutoFields();
+    programRuleAction.setName("Rule Action A");
+    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SENDMESSAGE);
+    programRuleA.getProgramRuleActions().add(programRuleAction);
+    programStageService.saveProgramStage(programStageA);
+    programRuleService.addProgramRule(programRuleA);
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( detailsIdType, "program_rules_message_no_template", 100, programRuleA.getUid(),
-            programRuleA.getName(), null, true );
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        "program_rules_message_no_template",
+        100,
+        programRuleA.getUid(),
+        programRuleA.getName(),
+        null,
+        true);
+  }
 
-    }
+  public void setUpTest() {
 
-    public void setUpTest()
-    {
+    Program programA = new Program();
+    programA.setAutoFields();
+    programA.setName("Program A");
+    programA.setShortName("Program A");
+    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
+    programService.addProgram(programA);
 
-        Program programA = new Program();
-        programA.setAutoFields();
-        programA.setName( "Program A" );
-        programA.setShortName( "Program A" );
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programA.setCategoryCombo( categoryService.getCategoryCombo( getDefaultCatCombo() ) );
-        programService.addProgram( programA );
+    programStageA = new ProgramStage();
+    programStageA.setAutoFields();
+    programStageA.setName("programStageA");
+    programStageA.setProgram(programA);
 
-        programStageA = new ProgramStage();
-        programStageA.setAutoFields();
-        programStageA.setName( "programStageA" );
-        programStageA.setProgram( programA );
-
-        programRuleA = new ProgramRule();
-        programRuleA.setAutoFields();
-        programRuleA.setName( "ProgramRuleA" );
-        programRuleA.setProgram( programA );
-        programRuleA.setProgramStage( programStageA );
-        programA.getProgramStages().add( programStageA );
-
-    }
+    programRuleA = new ProgramRule();
+    programRuleA.setAutoFields();
+    programRuleA.setName("ProgramRuleA");
+    programRuleA.setProgram(programA);
+    programRuleA.setProgramStage(programStageA);
+    programA.getProgramStages().add(programStageA);
+  }
 }

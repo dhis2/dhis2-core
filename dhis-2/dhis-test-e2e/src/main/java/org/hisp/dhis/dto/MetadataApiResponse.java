@@ -33,23 +33,22 @@ import java.util.stream.Collectors;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataApiResponse
-    extends ApiResponse
-{
-    public MetadataApiResponse( ApiResponse response )
-    {
-        super( response.raw );
-    }
+public class MetadataApiResponse extends ApiResponse {
+  public MetadataApiResponse(ApiResponse response) {
+    super(response.raw);
+  }
 
-    public List<String> extractObjectUid( String metadataObject )
-    {
-        return this.getTypeReports()
-            .stream().filter( p -> {
-                String[] parts = p.getKlass().split( "\\." );
+  public List<String> extractObjectUid(String metadataObject) {
+    return this.getTypeReports().stream()
+        .filter(
+            p -> {
+              String[] parts = p.getKlass().split("\\.");
 
-                return parts[parts.length - 1].equals( metadataObject );
-            } ).findFirst()
-
-            .map( p -> p.getObjectReports().stream().map( ObjectReport::getUid ) ).get().collect( Collectors.toList() );
-    }
+              return parts[parts.length - 1].equals(metadataObject);
+            })
+        .findFirst()
+        .map(p -> p.getObjectReports().stream().map(ObjectReport::getUid))
+        .get()
+        .collect(Collectors.toList());
+  }
 }

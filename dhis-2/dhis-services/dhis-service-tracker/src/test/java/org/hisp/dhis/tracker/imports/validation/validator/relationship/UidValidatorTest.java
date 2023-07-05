@@ -43,46 +43,43 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Enrico Colasante
  */
-class UidValidatorTest
-{
+class UidValidatorTest {
 
-    private static final String INVALID_UID = "InvalidUID";
+  private static final String INVALID_UID = "InvalidUID";
 
-    private UidValidator validator;
+  private UidValidator validator;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+  @BeforeEach
+  void setUp() {
+    TrackerPreheat preheat = new TrackerPreheat();
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    preheat.setIdSchemes(idSchemes);
+    reporter = new Reporter(idSchemes);
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
-        validator = new UidValidator();
-    }
+    validator = new UidValidator();
+  }
 
-    @Test
-    void verifyRelationshipValidationSuccess()
-    {
-        Relationship relationship = Relationship.builder().relationship( CodeGenerator.generateUid() ).build();
+  @Test
+  void verifyRelationshipValidationSuccess() {
+    Relationship relationship =
+        Relationship.builder().relationship(CodeGenerator.generateUid()).build();
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyRelationshipWithInvalidUidFails()
-    {
-        Relationship relationship = Relationship.builder().relationship( INVALID_UID ).build();
+  @Test
+  void verifyRelationshipWithInvalidUidFails() {
+    Relationship relationship = Relationship.builder().relationship(INVALID_UID).build();
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E1048 );
-    }
+    assertHasError(reporter, relationship, E1048);
+  }
 }

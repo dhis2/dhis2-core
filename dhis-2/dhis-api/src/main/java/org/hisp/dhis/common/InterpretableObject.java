@@ -28,14 +28,11 @@
 package org.hisp.dhis.common;
 
 import java.util.Set;
-
 import org.hisp.dhis.interpretation.Interpretation;
 
 /**
  * @author Lars Helge Overland
  */
-public interface InterpretableObject
-    extends IdentifiableObject
-{
-    Set<Interpretation> getInterpretations();
+public interface InterpretableObject extends IdentifiableObject {
+  Set<Interpretation> getInterpretations();
 }

@@ -28,43 +28,41 @@
 package org.hisp.dhis.fieldfilter;
 
 import java.util.List;
-
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface FieldFilterService
-{
-    List<String> SHARING_FIELDS = List.of(
-        "!user", "!publicAccess", "!userGroupAccesses", "!userAccesses", "!externalAccess", "!sharing" );
+public interface FieldFilterService {
+  List<String> SHARING_FIELDS =
+      List.of(
+          "!user",
+          "!publicAccess",
+          "!userGroupAccesses",
+          "!userAccesses",
+          "!externalAccess",
+          "!sharing");
 
-    /**
-     * Perform inclusion/exclusion on a list of objects.
-     */
-    ComplexNode toComplexNode( FieldFilterParams params );
+  /** Perform inclusion/exclusion on a list of objects. */
+  ComplexNode toComplexNode(FieldFilterParams params);
 
-    /**
-     * Perform inclusion/exclusion on a list of objects.
-     */
-    CollectionNode toCollectionNode( Class<?> wrapper, FieldFilterParams params );
+  /** Perform inclusion/exclusion on a list of objects. */
+  CollectionNode toCollectionNode(Class<?> wrapper, FieldFilterParams params);
 
-    /**
-     * This method will build and return a CollectionNode based on the given
-     * parameters. This method works with POJO/DTO without nested objects. It's
-     * main goal is to handle simple view objects and DTOs that do not have a
-     * real schema and/or that are not persisted. This method doesn't evaluates
-     * any complex logic based on Schema, sharing or access details. Its goal is
-     * simply to return back a CollectionNode based on the concrete "klass" and
-     * its direct attributes.
-     *
-     * @param klass the concrete class
-     * @param fieldFilterParams the fields to be added to the response
-     * @param collectionName the name of the collection for the node
-     * @param namespace a namespace for the node
-     * @return a CollectionNode populated/based on the input arguments
-     */
-    CollectionNode toConcreteClassCollectionNode( Class<?> klass, FieldFilterParams fieldFilterParams,
-        String collectionName, String namespace );
+  /**
+   * This method will build and return a CollectionNode based on the given parameters. This method
+   * works with POJO/DTO without nested objects. It's main goal is to handle simple view objects and
+   * DTOs that do not have a real schema and/or that are not persisted. This method doesn't
+   * evaluates any complex logic based on Schema, sharing or access details. Its goal is simply to
+   * return back a CollectionNode based on the concrete "klass" and its direct attributes.
+   *
+   * @param klass the concrete class
+   * @param fieldFilterParams the fields to be added to the response
+   * @param collectionName the name of the collection for the node
+   * @param namespace a namespace for the node
+   * @return a CollectionNode populated/based on the input arguments
+   */
+  CollectionNode toConcreteClassCollectionNode(
+      Class<?> klass, FieldFilterParams fieldFilterParams, String collectionName, String namespace);
 }

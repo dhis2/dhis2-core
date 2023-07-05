@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.BaseEventAclCheck;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -39,14 +38,9 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventCreationAclCheck
-    extends
-    BaseEventAclCheck
-{
-    @Override
-    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-        Event event )
-    {
-        return trackerAccessManager.canCreate( user, event, false );
-    }
+public class EventCreationAclCheck extends BaseEventAclCheck {
+  @Override
+  public List<String> checkAcl(TrackerAccessManager trackerAccessManager, User user, Event event) {
+    return trackerAccessManager.canCreate(user, event, false);
+  }
 }

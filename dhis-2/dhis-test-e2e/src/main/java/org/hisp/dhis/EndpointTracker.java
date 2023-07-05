@@ -33,82 +33,67 @@ import java.util.List;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EndpointTracker
-{
-    private static List<Coverage> coverageList;
+public class EndpointTracker {
+  private static List<Coverage> coverageList;
 
-    public static List<Coverage> getCoverageList()
-    {
-        return coverageList;
+  public static List<Coverage> getCoverageList() {
+    return coverageList;
+  }
+
+  public static void add(String method, String url) {
+    if (coverageList == null) {
+      coverageList = new ArrayList<>();
     }
 
-    public static void add( String method, String url )
-    {
-        if ( coverageList == null )
-        {
-            coverageList = new ArrayList<>();
-        }
-
-        Coverage existing = coverageList.stream()
-            .filter( p -> p.method.equalsIgnoreCase( method ) && p.url.equalsIgnoreCase( url ) )
+    Coverage existing =
+        coverageList.stream()
+            .filter(p -> p.method.equalsIgnoreCase(method) && p.url.equalsIgnoreCase(url))
             .findFirst()
-            .orElse( null );
+            .orElse(null);
 
-        if ( existing != null )
+    if (existing != null) {
 
-        {
-            existing.occurrences += 1;
-        }
+      existing.occurrences += 1;
+    } else {
+      coverageList.add(new Coverage(method, url));
+    }
+  }
 
-        else
-        {
-            coverageList.add( new Coverage( method, url ) );
-        }
+  public static class Coverage {
+    private String method;
+
+    private String url;
+
+    private Integer occurrences;
+
+    public Coverage(String method, String url) {
+      this.method = method;
+      this.url = url;
+      this.occurrences = 1;
     }
 
-    public static class Coverage
-    {
-        private String method;
-
-        private String url;
-
-        private Integer occurrences;
-
-        public Coverage( String method, String url )
-        {
-            this.method = method;
-            this.url = url;
-            this.occurrences = 1;
-        }
-
-        public String getMethod()
-        {
-            return method;
-        }
-
-        public void setMethod( String method )
-        {
-            this.method = method;
-        }
-
-        public String getUrl()
-        {
-            return this.url;
-        }
-
-        public void setUrl( String url )
-        {
-            this.url = url;
-        }
-
-        public Integer getOccurrences()
-        {
-            return occurrences;
-        }
-
-        public void setOccurrences( int occurrences )
-        {
-            this.occurrences = occurrences;
-        }
+    public String getMethod() {
+      return method;
     }
+
+    public void setMethod(String method) {
+      this.method = method;
+    }
+
+    public String getUrl() {
+      return this.url;
+    }
+
+    public void setUrl(String url) {
+      this.url = url;
+    }
+
+    public Integer getOccurrences() {
+      return occurrences;
+    }
+
+    public void setOccurrences(int occurrences) {
+      this.occurrences = occurrences;
+    }
+  }
 }

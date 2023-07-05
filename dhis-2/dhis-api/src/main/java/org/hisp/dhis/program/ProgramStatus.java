@@ -30,21 +30,18 @@ package org.hisp.dhis.program;
 /**
  * @author Lars Helge Overland
  */
-public enum ProgramStatus
-{
-    ACTIVE( 0 ),
-    COMPLETED( 1 ),
-    CANCELLED( 2 );
+public enum ProgramStatus {
+  ACTIVE(0),
+  COMPLETED(1),
+  CANCELLED(2);
 
-    private int value;
+  private int value;
 
-    ProgramStatus( int value )
-    {
-        this.value = value;
-    }
+  ProgramStatus(int value) {
+    this.value = value;
+  }
 
-    public int getValue()
-    {
-        return value;
-    }
+  public int getValue() {
+    return value;
+  }
 }

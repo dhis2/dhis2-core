@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Henning Håkonsen
@@ -43,8 +41,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MockJobParameters implements JobParameters
-{
-    @JsonProperty
-    private String message;
+public class MockJobParameters implements JobParameters {
+  @JsonProperty private String message;
 }

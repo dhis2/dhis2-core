@@ -41,9 +41,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.TrackerType;
@@ -57,245 +55,226 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class SeqTest
-{
-    private Reporter reporter;
+class SeqTest {
+  private Reporter reporter;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    void setUp()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
+  @BeforeEach
+  void setUp() {
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+    bundle = TrackerBundle.builder().build();
+  }
+
+  @Test
+  void testSeqCallsUntilFirstError() {
+    // @formatter:off
+    Validator<String> validator =
+        seq(
+            new MatchingValidator("V1", "one"), // no error so moving on to the next validator
+            seq(
+                new MatchingValidator(
+                    "V2", "two"), // input matches so no further validators are called
+                seq(new MatchingValidator("V3", "two"), new MatchingValidator("V4", "two"))));
+
+    validator.validate(reporter, bundle, "two");
+
+    assertContainsOnly(List.of("V2"), actualErrorMessages());
+  }
+
+  @Test
+  void testWrappedAddErrorIfNullStopsExecutionIfGivenObjectIsNull() {
+    // @formatter:off
+    Validator<String> validator =
+        seq((r, b, s) -> r.addErrorIfNull(s, dummyDto(), E1011), (r, b, s) -> addError(r, "V2"));
+
+    validator.validate(reporter, bundle, null);
+
+    assertContainsOnly(List.of(E1011.getMessage()), actualErrorMessages());
+  }
+
+  @Test
+  void
+      testWrappedAddErrorIfNullStopsExecutionIfGivenObjectIsNullAndNextCallInSameValidatorDoesNotAddError() {
+    // @formatter:off
+    Validator<String> validator =
+        seq(
+            (r, b, s) -> {
+              r.addErrorIfNull(s, dummyDto(), E1011);
+              r.addErrorIfNull("not null", dummyDto(), E1012);
+            },
+            (r, b, s) -> addError(r, "V2"));
+
+    validator.validate(reporter, bundle, null);
+
+    assertContainsOnly(List.of(E1011.getMessage()), actualErrorMessages());
+  }
+
+  @Test
+  void testWrappedAddErrorIfNullDoesNotStopExecutionIfGivenObjectIsNotNull() {
+    // @formatter:off
+    Validator<String> validator =
+        seq((r, b, s) -> r.addErrorIfNull(s, dummyDto(), E1011), (r, b, s) -> addError(r, "V2"));
+
+    validator.validate(reporter, bundle, "non null string");
+
+    assertContainsOnly(List.of("V2"), actualErrorMessages());
+  }
+
+  @Test
+  void testWrappedAddErrorIfStopsExecutionIfGivenPredicateSucceeds() {
+    // @formatter:off
+    Validator<String> validator =
+        seq(
+            (r, b, s) -> r.addErrorIf(() -> true, dummyDto(), E1011),
+            (r, b, s) -> addError(r, "V2"));
+
+    validator.validate(reporter, bundle, "irrelevant input");
+
+    assertContainsOnly(List.of(E1011.getMessage()), actualErrorMessages());
+  }
+
+  @Test
+  void
+      testWrappedAddErrorIfStopsExecutionIfGivenPredicateSucceedsAndNextCallInSameValidatorDoesNotAddError() {
+    // @formatter:off
+    Validator<String> validator =
+        seq(
+            (r, b, s) -> {
+              r.addErrorIf(() -> true, dummyDto(), E1011);
+              r.addErrorIf(() -> false, dummyDto(), E1012);
+            },
+            (r, b, s) -> addError(r, "V2"));
+
+    validator.validate(reporter, bundle, "irrelevant input");
+
+    assertContainsOnly(List.of(E1011.getMessage()), actualErrorMessages());
+  }
+
+  @Test
+  void testWrappedAddErrorIfDoesNotStopExecutionIfGivenPredicateFails() {
+    // @formatter:off
+    Validator<String> validator =
+        seq(
+            (r, b, s) -> r.addErrorIf(() -> false, dummyDto(), E1011),
+            (r, b, s) -> addError(r, "V2"));
+
+    validator.validate(reporter, bundle, "irrelevant input");
+
+    assertContainsOnly(List.of("V2"), actualErrorMessages());
+  }
+
+  @Test
+  void testSeqDoesNotCallValidatorsIfItShouldNotRunOnGivenStrategy() {
+    bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
+
+    Validator<String> validator =
+        seq(
+            new Validator<>() {
+              @Override
+              public void validate(Reporter reporter, TrackerBundle bundle, String input) {
+                addError(reporter, "V1");
+              }
+
+              @Override
+              public boolean needsToRun(TrackerImportStrategy strategy) {
+                return strategy == DELETE;
+              }
+            });
+
+    validator.validate(reporter, bundle, "irrelevant input");
+
+    assertIsEmpty(actualErrorMessages());
+  }
+
+  @Test
+  void testSeqDoesNotCallValidatorsIfItShouldNotRunOnGivenStrategyForATrackerDto() {
+    bundle =
+        TrackerBundle.builder()
+            .importStrategy(CREATE_AND_UPDATE)
+            .resolvedStrategyMap(new EnumMap<>(Map.of(TrackerType.EVENT, Map.of("event1", UPDATE))))
             .build();
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().build();
+
+    // @formatter:off
+    Validator<Event> validator =
+        seq(
+            new Validator<>() {
+              @Override
+              public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
+                addError(reporter, "V1");
+              }
+
+              @Override
+              public boolean needsToRun(TrackerImportStrategy strategy) {
+                return strategy == CREATE;
+              }
+            },
+            new Validator<>() {
+              @Override
+              public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
+                addError(reporter, "V2");
+              }
+
+              @Override
+              public boolean needsToRun(TrackerImportStrategy strategy) {
+                return strategy == UPDATE;
+              }
+            });
+
+    validator.validate(reporter, bundle, Event.builder().event("event1").build());
+
+    assertContainsOnly(List.of("V2"), actualErrorMessages());
+  }
+
+  /**
+   * Adds an error with the {@link #message} as the error message if the input equals {@link
+   * #matches}.
+   */
+  @RequiredArgsConstructor
+  private static class MatchingValidator implements Validator<String> {
+    private final String message;
+
+    private final String matches;
+
+    @Override
+    public void validate(Reporter reporter, TrackerBundle bundle, String input) {
+      if (matches.equals(input)) {
+        addError(reporter, message);
+      }
     }
+  }
 
-    @Test
-    void testSeqCallsUntilFirstError()
-    {
-        // @formatter:off
-        Validator<String> validator = seq(
-                new MatchingValidator( "V1", "one" ), // no error so moving on to the next validator
-                seq(
-                    new MatchingValidator( "V2", "two" ), // input matches so no further validators are called
-                    seq(
-                        new MatchingValidator( "V3", "two" ),
-                        new MatchingValidator( "V4", "two" )
-                    )
-                )
-        );
+  /**
+   * Add error with given message to {@link Reporter}. Every {@link Error} is attributed to a {@link
+   * TrackerDto}, which makes adding errors cumbersome when you do not care about any particular
+   * tracker type, uid or error code.
+   */
+  private static void addError(Reporter reporter, String message) {
+    reporter.addError(new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid"));
+  }
 
-        validator.validate( reporter, bundle, "two" );
+  /**
+   * Used to add errors to {@link Reporter}. Needed since every {@link Error} is attributed to a
+   * {@link TrackerDto}. In these tests we are not concerned with any particular type.
+   *
+   * @return tracker dto
+   */
+  private static TrackerDto dummyDto() {
+    return new TrackerDto() {
+      @Override
+      public String getUid() {
+        return "uid";
+      }
 
-        assertContainsOnly( List.of( "V2" ), actualErrorMessages() );
-    }
+      @Override
+      public TrackerType getTrackerType() {
+        return TrackerType.TRACKED_ENTITY;
+      }
+    };
+  }
 
-    @Test
-    void testWrappedAddErrorIfNullStopsExecutionIfGivenObjectIsNull()
-    {
-        // @formatter:off
-        Validator<String> validator = seq(
-                (r, b, s) -> r.addErrorIfNull(s, dummyDto(), E1011),
-                (r, b, s) -> addError(r, "V2")
-        );
-
-        validator.validate( reporter, bundle, null);
-
-        assertContainsOnly( List.of( E1011.getMessage() ), actualErrorMessages() );
-    }
-    @Test
-    void testWrappedAddErrorIfNullStopsExecutionIfGivenObjectIsNullAndNextCallInSameValidatorDoesNotAddError()
-    {
-        // @formatter:off
-        Validator<String> validator = seq(
-                (r, b, s) -> {
-                    r.addErrorIfNull(s, dummyDto(), E1011);
-                    r.addErrorIfNull("not null", dummyDto(), E1012);
-                },
-                (r, b, s) -> addError(r, "V2")
-        );
-
-        validator.validate( reporter, bundle, null);
-
-        assertContainsOnly( List.of( E1011.getMessage() ), actualErrorMessages() );
-    }
-    @Test
-    void testWrappedAddErrorIfNullDoesNotStopExecutionIfGivenObjectIsNotNull()
-    {
-        // @formatter:off
-        Validator<String> validator = seq(
-                (r, b, s) -> r.addErrorIfNull(s, dummyDto(), E1011),
-                (r, b, s) -> addError(r, "V2")
-        );
-
-        validator.validate( reporter, bundle, "non null string" );
-
-        assertContainsOnly( List.of( "V2" ), actualErrorMessages() );
-    }
-
-    @Test
-    void testWrappedAddErrorIfStopsExecutionIfGivenPredicateSucceeds()
-    {
-        // @formatter:off
-        Validator<String> validator = seq(
-                (r, b, s) -> r.addErrorIf(() -> true, dummyDto(), E1011),
-                (r, b, s) -> addError(r, "V2")
-        );
-
-        validator.validate( reporter, bundle, "irrelevant input");
-
-        assertContainsOnly( List.of( E1011.getMessage() ), actualErrorMessages() );
-    }
-
-    @Test
-    void testWrappedAddErrorIfStopsExecutionIfGivenPredicateSucceedsAndNextCallInSameValidatorDoesNotAddError()
-    {
-        // @formatter:off
-        Validator<String> validator = seq(
-                (r, b, s) -> {
-                    r.addErrorIf(() -> true, dummyDto(), E1011);
-                    r.addErrorIf(() -> false, dummyDto(), E1012);
-                },
-                (r, b, s) -> addError(r, "V2")
-        );
-
-        validator.validate( reporter, bundle, "irrelevant input");
-
-        assertContainsOnly( List.of( E1011.getMessage() ), actualErrorMessages() );
-    }
-    @Test
-    void testWrappedAddErrorIfDoesNotStopExecutionIfGivenPredicateFails()
-    {
-        // @formatter:off
-        Validator<String> validator = seq(
-                (r, b, s) -> r.addErrorIf(() -> false, dummyDto(), E1011),
-                (r, b, s) -> addError(r, "V2")
-        );
-
-        validator.validate( reporter, bundle, "irrelevant input" );
-
-        assertContainsOnly( List.of( "V2" ), actualErrorMessages() );
-    }
-
-    @Test
-    void testSeqDoesNotCallValidatorsIfItShouldNotRunOnGivenStrategy()
-    {
-        bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
-
-        Validator<String> validator = seq(
-                new Validator<>() {
-                    @Override
-                    public void validate(Reporter reporter, TrackerBundle bundle, String input) {
-                        addError(reporter, "V1");
-                    }
-
-                    @Override
-                    public boolean needsToRun(TrackerImportStrategy strategy) {
-                        return strategy == DELETE;
-                    }
-                }
-        );
-
-        validator.validate( reporter, bundle, "irrelevant input" );
-
-        assertIsEmpty(actualErrorMessages());
-    }
-
-    @Test
-    void testSeqDoesNotCallValidatorsIfItShouldNotRunOnGivenStrategyForATrackerDto()
-    {
-        bundle = TrackerBundle.builder()
-                .importStrategy(CREATE_AND_UPDATE)
-                .resolvedStrategyMap(new EnumMap<>(Map.of(
-                        TrackerType.EVENT, Map.of("event1", UPDATE)
-                )))
-                .build();
-
-        // @formatter:off
-        Validator<Event> validator = seq(
-                new Validator<>() {
-                    @Override
-                    public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
-                        addError(reporter, "V1");
-                    }
-
-                    @Override
-                    public boolean needsToRun(TrackerImportStrategy strategy) {
-                        return strategy == CREATE;
-                    }
-                },
-                new Validator<>() {
-                    @Override
-                    public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
-                        addError(reporter, "V2");
-                    }
-
-                    @Override
-                    public boolean needsToRun(TrackerImportStrategy strategy) {
-                        return strategy == UPDATE;
-                    }
-                }
-        );
-
-        validator.validate( reporter, bundle, Event.builder().event("event1").build());
-
-        assertContainsOnly( List.of( "V2"), actualErrorMessages() );
-    }
-
-    /**
-     * Adds an error with the {@link #message} as the error message if the input
-     * equals {@link #matches}.
-     */
-    @RequiredArgsConstructor
-    private static class MatchingValidator implements Validator<String>
-    {
-        private final String message;
-
-        private final String matches;
-
-        @Override
-        public void validate( Reporter reporter, TrackerBundle bundle, String input )
-        {
-            if ( matches.equals( input ) )
-            {
-                addError(reporter, message);
-            }
-        }
-    }
-
-    /**
-     * Add error with given message to {@link Reporter}. Every {@link Error} is attributed to a
-     * {@link TrackerDto}, which makes adding errors cumbersome when you do not care about any particular tracker type, uid or error code.
-     */
-    private static void addError( Reporter reporter, String message )
-    {
-        reporter.addError( new Error( message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid" ) );
-    }
-
-    /**
-     * Used to add errors to {@link Reporter}. Needed since every {@link Error} is attributed to a
-     * {@link TrackerDto}. In these tests we are not concerned with any particular type.
-     *
-     * @return tracker dto
-     */
-    private static TrackerDto dummyDto() {
-       return new TrackerDto() {
-           @Override
-           public String getUid() {
-               return "uid";
-           }
-
-           @Override
-           public TrackerType getTrackerType() {
-               return TrackerType.TRACKED_ENTITY;
-           }
-       };
-    }
-
-    private List<String> actualErrorMessages()
-    {
-        return reporter.getErrors().stream().map( Error::getMessage ).collect( Collectors.toList() );
-    }
+  private List<String> actualErrorMessages() {
+    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+  }
 }

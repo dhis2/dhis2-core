@@ -37,99 +37,91 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class TypedIndexedObjectContainerTest
-{
+class TypedIndexedObjectContainerTest {
 
-    private final TypedIndexedObjectContainer container = new TypedIndexedObjectContainer();
+  private final TypedIndexedObjectContainer container = new TypedIndexedObjectContainer();
 
-    @Test
-    void getContainerNew()
-    {
-        IndexedObjectContainer container1 = container.getTypedContainer( Attribute.class );
-        Assertions.assertSame( container1, container.getTypedContainer( Attribute.class ) );
-        IndexedObjectContainer container2 = container.getTypedContainer( Category.class );
-        Assertions.assertSame( container2, container.getTypedContainer( Category.class ) );
-        Assertions.assertNotSame( container1, container2 );
-        Assertions.assertSame( container1, container.getTypedContainer( Attribute.class ) );
-    }
+  @Test
+  void getContainerNew() {
+    IndexedObjectContainer container1 = container.getTypedContainer(Attribute.class);
+    Assertions.assertSame(container1, container.getTypedContainer(Attribute.class));
+    IndexedObjectContainer container2 = container.getTypedContainer(Category.class);
+    Assertions.assertSame(container2, container.getTypedContainer(Category.class));
+    Assertions.assertNotSame(container1, container2);
+    Assertions.assertSame(container1, container.getTypedContainer(Attribute.class));
+  }
 
-    @Test
-    void getContainerExisting()
-    {
-        final Attribute attribute1 = new Attribute();
-        final Category category1 = new Category();
-        container.mergeObjectIndex( new Attribute() );
-        container.mergeObjectIndex( new Category() );
-        container.mergeObjectIndex( attribute1 );
-        container.mergeObjectIndex( category1 );
-        IndexedObjectContainer container1 = container.getTypedContainer( Attribute.class );
-        Assertions.assertSame( 1, container1.mergeObjectIndex( attribute1 ) );
-        IndexedObjectContainer container2 = container.getTypedContainer( Category.class );
-        Assertions.assertSame( 1, container2.mergeObjectIndex( category1 ) );
-    }
+  @Test
+  void getContainerExisting() {
+    final Attribute attribute1 = new Attribute();
+    final Category category1 = new Category();
+    container.mergeObjectIndex(new Attribute());
+    container.mergeObjectIndex(new Category());
+    container.mergeObjectIndex(attribute1);
+    container.mergeObjectIndex(category1);
+    IndexedObjectContainer container1 = container.getTypedContainer(Attribute.class);
+    Assertions.assertSame(1, container1.mergeObjectIndex(attribute1));
+    IndexedObjectContainer container2 = container.getTypedContainer(Category.class);
+    Assertions.assertSame(1, container2.mergeObjectIndex(category1));
+  }
 
-    @Test
-    void merge()
-    {
-        final Attribute attribute1 = new Attribute();
-        final Attribute attribute2 = new Attribute();
-        final Attribute attribute3 = new Attribute();
-        final Category category1 = new Category();
-        final Category category2 = new Category();
-        Assertions.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
-        Assertions.assertEquals( (Integer) 1, container.mergeObjectIndex( attribute2 ) );
-        Assertions.assertEquals( (Integer) 2, container.mergeObjectIndex( attribute3 ) );
-        Assertions.assertEquals( (Integer) 0, container.mergeObjectIndex( category1 ) );
-        Assertions.assertEquals( (Integer) 1, container.mergeObjectIndex( category2 ) );
-    }
+  @Test
+  void merge() {
+    final Attribute attribute1 = new Attribute();
+    final Attribute attribute2 = new Attribute();
+    final Attribute attribute3 = new Attribute();
+    final Category category1 = new Category();
+    final Category category2 = new Category();
+    Assertions.assertEquals((Integer) 0, container.mergeObjectIndex(attribute1));
+    Assertions.assertEquals((Integer) 1, container.mergeObjectIndex(attribute2));
+    Assertions.assertEquals((Integer) 2, container.mergeObjectIndex(attribute3));
+    Assertions.assertEquals((Integer) 0, container.mergeObjectIndex(category1));
+    Assertions.assertEquals((Integer) 1, container.mergeObjectIndex(category2));
+  }
 
-    @Test
-    void add()
-    {
-        final Attribute attribute1 = new Attribute();
-        final Attribute attribute2 = new Attribute();
-        final Attribute attribute3 = new Attribute();
-        final Category category1 = new Category();
-        final Category category2 = new Category();
-        container.add( attribute1 );
-        container.add( attribute2 );
-        container.add( attribute3 );
-        container.add( category1 );
-        container.add( category2 );
-        Assertions.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
-        Assertions.assertEquals( (Integer) 1, container.mergeObjectIndex( attribute2 ) );
-        Assertions.assertEquals( (Integer) 2, container.mergeObjectIndex( attribute3 ) );
-        Assertions.assertEquals( (Integer) 0, container.mergeObjectIndex( category1 ) );
-        Assertions.assertEquals( (Integer) 1, container.mergeObjectIndex( category2 ) );
-    }
+  @Test
+  void add() {
+    final Attribute attribute1 = new Attribute();
+    final Attribute attribute2 = new Attribute();
+    final Attribute attribute3 = new Attribute();
+    final Category category1 = new Category();
+    final Category category2 = new Category();
+    container.add(attribute1);
+    container.add(attribute2);
+    container.add(attribute3);
+    container.add(category1);
+    container.add(category2);
+    Assertions.assertEquals((Integer) 0, container.mergeObjectIndex(attribute1));
+    Assertions.assertEquals((Integer) 1, container.mergeObjectIndex(attribute2));
+    Assertions.assertEquals((Integer) 2, container.mergeObjectIndex(attribute3));
+    Assertions.assertEquals((Integer) 0, container.mergeObjectIndex(category1));
+    Assertions.assertEquals((Integer) 1, container.mergeObjectIndex(category2));
+  }
 
-    @Test
-    void containsObjectNoType()
-    {
-        final Category category1 = new Category();
-        final Category category2 = new Category();
-        container.add( category1 );
-        container.add( category2 );
-        Assertions.assertFalse( container.containsObject( new Attribute() ) );
-    }
+  @Test
+  void containsObjectNoType() {
+    final Category category1 = new Category();
+    final Category category2 = new Category();
+    container.add(category1);
+    container.add(category2);
+    Assertions.assertFalse(container.containsObject(new Attribute()));
+  }
 
-    @Test
-    void containsObjectNot()
-    {
-        final Category category1 = new Category();
-        final Category category2 = new Category();
-        container.add( category1 );
-        container.add( category2 );
-        Assertions.assertFalse( container.containsObject( new Category() ) );
-    }
+  @Test
+  void containsObjectNot() {
+    final Category category1 = new Category();
+    final Category category2 = new Category();
+    container.add(category1);
+    container.add(category2);
+    Assertions.assertFalse(container.containsObject(new Category()));
+  }
 
-    @Test
-    void containsObject()
-    {
-        final Category category1 = new Category();
-        final Category category2 = new Category();
-        container.add( category1 );
-        container.add( category2 );
-        Assertions.assertTrue( container.containsObject( category1 ) );
-    }
+  @Test
+  void containsObject() {
+    final Category category1 = new Category();
+    final Category category2 = new Category();
+    container.add(category1);
+    container.add(category2);
+    Assertions.assertTrue(container.containsObject(category1));
+  }
 }

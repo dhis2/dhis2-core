@@ -27,40 +27,33 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Jan Bernitt
  */
 @Getter
 @Setter
-public class LockExceptionCleanupJobParameters implements JobParameters
-{
-    /**
-     * Number of month (from its created date) when a
-     * {@link org.hisp.dhis.dataset.LockException}s is considered expired and
-     * subject to clean-up.
-     */
-    @JsonProperty
-    private Integer expiresAfterMonths;
+public class LockExceptionCleanupJobParameters implements JobParameters {
+  /**
+   * Number of month (from its created date) when a {@link org.hisp.dhis.dataset.LockException}s is
+   * considered expired and subject to clean-up.
+   */
+  @JsonProperty private Integer expiresAfterMonths;
 
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( expiresAfterMonths != null && (expiresAfterMonths < 1 || expiresAfterMonths > 12) )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "expiresAfterMonths", 1, 12, expiresAfterMonths ) );
-        }
-        return Optional.empty();
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (expiresAfterMonths != null && (expiresAfterMonths < 1 || expiresAfterMonths > 12)) {
+      return Optional.of(
+          new ErrorReport(
+              getClass(), ErrorCode.E4008, "expiresAfterMonths", 1, 12, expiresAfterMonths));
     }
+    return Optional.empty();
+  }
 }

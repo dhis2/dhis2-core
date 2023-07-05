@@ -30,7 +30,6 @@ package org.hisp.dhis.web.embeddedjetty;
 import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
 
 import java.io.IOException;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -40,30 +39,22 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetAppMenuServlet
-    extends HttpServlet
-{
+public class GetAppMenuServlet extends HttpServlet {
 
-    @Override
-    protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws IOException,
-        ServletException
-    {
-        Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+      throws IOException, ServletException {
+    Object springSecurityContext = session().getAttribute("SPRING_SECURITY_CONTEXT");
 
-        if ( springSecurityContext != null )
-        {
-            resp.setContentType( "application/json" );
-            resp.setStatus( HttpServletResponse.SC_OK );
+    if (springSecurityContext != null) {
+      resp.setContentType("application/json");
+      resp.setStatus(HttpServletResponse.SC_OK);
 
-            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
-                "/api/apps/menu" );
+      RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
 
-            dispatcher.include( req, resp );
-        }
-        else
-        {
-            resp.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-        }
+      dispatcher.include(req, resp);
+    } else {
+      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
+  }
 }

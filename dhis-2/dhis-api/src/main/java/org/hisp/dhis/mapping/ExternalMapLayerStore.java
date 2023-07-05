@@ -32,7 +32,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public interface ExternalMapLayerStore
-    extends IdentifiableObjectStore<ExternalMapLayer>
-{
-}
+public interface ExternalMapLayerStore extends IdentifiableObjectStore<ExternalMapLayer> {}

@@ -30,7 +30,6 @@ package org.hisp.dhis.report;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.visualization.Visualization;
@@ -41,25 +40,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ReportDeletionHandler extends DeletionHandler
-{
-    private final ReportService reportService;
+public class ReportDeletionHandler extends DeletionHandler {
+  private final ReportService reportService;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( Visualization.class, this::allowDeleteVisualization );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(Visualization.class, this::allowDeleteVisualization);
+  }
 
-    private DeletionVeto allowDeleteVisualization( Visualization visualization )
-    {
-        for ( Report report : reportService.getAllReports() )
-        {
-            if ( report.getVisualization() != null && report.getVisualization().equals( visualization ) )
-            {
-                return new DeletionVeto( Visualization.class, report.getName() );
-            }
-        }
-        return ACCEPT;
+  private DeletionVeto allowDeleteVisualization(Visualization visualization) {
+    for (Report report : reportService.getAllReports()) {
+      if (report.getVisualization() != null && report.getVisualization().equals(visualization)) {
+        return new DeletionVeto(Visualization.class, report.getName());
+      }
     }
+    return ACCEPT;
+  }
 }

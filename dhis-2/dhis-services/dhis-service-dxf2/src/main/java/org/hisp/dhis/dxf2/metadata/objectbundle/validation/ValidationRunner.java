@@ -29,9 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.TypeReport;
@@ -40,28 +38,29 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-class ValidationRunner
-{
+class ValidationRunner {
 
-    private final Map<ImportStrategy, List<ValidationCheck>> validatorsByImportStrategy;
+  private final Map<ImportStrategy, List<ValidationCheck>> validatorsByImportStrategy;
 
-    public <T extends IdentifiableObject> TypeReport executeValidationChain( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ValidationContext ctx )
-    {
-        TypeReport typeReport = new TypeReport( klass );
+  public <T extends IdentifiableObject> TypeReport executeValidationChain(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ValidationContext ctx) {
+    TypeReport typeReport = new TypeReport(klass);
 
-        ImportStrategy importMode = bundle.getImportMode();
+    ImportStrategy importMode = bundle.getImportMode();
 
-        List<ValidationCheck> validationChecks = validatorsByImportStrategy.get( importMode );
+    List<ValidationCheck> validationChecks = validatorsByImportStrategy.get(importMode);
 
-        for ( ValidationCheck validationCheck : validationChecks )
-        {
-            TypeReport check = validationCheck.check( bundle, klass, persistedObjects, nonPersistedObjects, importMode,
-                ctx );
-            typeReport.merge( check );
-        }
-
-        return typeReport;
+    for (ValidationCheck validationCheck : validationChecks) {
+      TypeReport check =
+          validationCheck.check(
+              bundle, klass, persistedObjects, nonPersistedObjects, importMode, ctx);
+      typeReport.merge(check);
     }
+
+    return typeReport;
+  }
 }

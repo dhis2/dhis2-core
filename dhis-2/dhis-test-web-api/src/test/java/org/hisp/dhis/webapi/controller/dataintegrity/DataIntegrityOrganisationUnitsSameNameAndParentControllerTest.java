@@ -30,71 +30,87 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests for organisation units which have the same name and parent.
  *
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_same_name_and_parent.yaml}
+ * <p>{@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_same_name_and_parent.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsSameNameAndParentControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "orgunits_same_name_and_parent";
+class DataIntegrityOrganisationUnitsSameNameAndParentControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "orgunits_same_name_and_parent";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    private String orgunitA;
+  private String orgunitA;
 
-    private String orgunitB;
+  private String orgunitB;
 
-    @Test
-    void DataIntegrityOrganisationUnitsSameParentAndName()
-    {
+  @Test
+  void DataIntegrityOrganisationUnitsSameParentAndName() {
 
-        setupTest();
-        String orgunitC = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2023-01-01', " +
-                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
+    setupTest();
+    String orgunitC =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2023-01-01', "
+                    + "'parent': {'id' : '"
+                    + orgunitA
+                    + "'}}"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66, Set.of( orgunitB, orgunitC ),
-            Set.of( "Pizza District" ),
-            Set.of(), true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        check,
+        66,
+        Set.of(orgunitB, orgunitC),
+        Set.of("Pizza District"),
+        Set.of(),
+        true);
+  }
 
-    @Test
-    void orgUnitsDifferentNames()
-    {
-        setupTest();
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Taco District', 'shortName': 'Taco District', 'openingDate' : '2023-01-01', " +
-                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
+  @Test
+  void orgUnitsDifferentNames() {
+    setupTest();
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Taco District', 'shortName': 'Taco District', 'openingDate' : '2023-01-01', "
+                + "'parent': {'id' : '"
+                + orgunitA
+                + "'}}"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testOrgunitsSameNameParentZeroCase()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
+  @Test
+  void testOrgunitsSameNameParentZeroCase() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    }
+  void setupTest() {
+    orgunitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-    void setupTest()
-    {
-        orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
-
-        orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', " +
-                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
-    }
-
+    orgunitB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + orgunitA
+                    + "'}}"));
+  }
 }

@@ -34,144 +34,122 @@ import static org.springframework.util.Assert.hasText;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
 import org.cache2k.Cache2kBuilder;
 
 /**
- * Local cache implementation of {@link Cache}. This implementation is backed by
- * Caffeine library which uses an in memory Map implementation.
+ * Local cache implementation of {@link Cache}. This implementation is backed by Caffeine library
+ * which uses an in memory Map implementation.
  *
  * @author Ameen Mohamed
  */
-public class LocalCache<V> implements Cache<V>
-{
-    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+public class LocalCache<V> implements Cache<V> {
+  private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
 
-    private final org.cache2k.Cache<String, V> cache2kInstance;
+  private final org.cache2k.Cache<String, V> cache2kInstance;
 
-    private final V defaultValue;
+  private final V defaultValue;
 
-    /**
-     * Constructor to instantiate LocalCache object.
-     *
-     * @param cacheBuilder CacheBuilder instance
-     */
-    @SuppressWarnings( "unchecked" )
-    public LocalCache( final CacheBuilder<V> cacheBuilder )
-    {
-        Cache2kBuilder<?, ?> builder = Cache2kBuilder.forUnknownTypes();
+  /**
+   * Constructor to instantiate LocalCache object.
+   *
+   * @param cacheBuilder CacheBuilder instance
+   */
+  @SuppressWarnings("unchecked")
+  public LocalCache(final CacheBuilder<V> cacheBuilder) {
+    Cache2kBuilder<?, ?> builder = Cache2kBuilder.forUnknownTypes();
 
-        if ( cacheBuilder.isExpiryEnabled() )
-        {
-            builder.eternal( false );
-            // TODO cacheBuilder.isRefreshExpiryOnAccess() cannot be considered
-            // because of issue https://github.com/cache2k/cache2k/issues/39 which is resolved in 2.5.3
-            builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
-        }
-        else
-        {
-            builder.eternal( true );
-        }
-        if ( cacheBuilder.getMaximumSize() > 0 )
-        {
-            builder.entryCapacity( cacheBuilder.getMaximumSize() );
-        }
-
-        // Using unknown typed key for builder and casting it
-        this.cache2kInstance = (org.cache2k.Cache<String, V>) builder.build();
-        this.defaultValue = cacheBuilder.getDefaultValue();
+    if (cacheBuilder.isExpiryEnabled()) {
+      builder.eternal(false);
+      // TODO cacheBuilder.isRefreshExpiryOnAccess() cannot be considered
+      // because of issue https://github.com/cache2k/cache2k/issues/39 which is resolved in 2.5.3
+      builder.expireAfterWrite(cacheBuilder.getExpiryInSeconds(), SECONDS);
+    } else {
+      builder.eternal(true);
+    }
+    if (cacheBuilder.getMaximumSize() > 0) {
+      builder.entryCapacity(cacheBuilder.getMaximumSize());
     }
 
-    @Override
-    public Optional<V> getIfPresent( String key )
-    {
-        return Optional.ofNullable( cache2kInstance.get( key ) );
+    // Using unknown typed key for builder and casting it
+    this.cache2kInstance = (org.cache2k.Cache<String, V>) builder.build();
+    this.defaultValue = cacheBuilder.getDefaultValue();
+  }
+
+  @Override
+  public Optional<V> getIfPresent(String key) {
+    return Optional.ofNullable(cache2kInstance.get(key));
+  }
+
+  @Override
+  public Optional<V> get(String key) {
+    return Optional.ofNullable(Optional.ofNullable(cache2kInstance.get(key)).orElse(defaultValue));
+  }
+
+  @Override
+  public V get(String key, Function<String, V> mappingFunction) {
+    if (null == mappingFunction) {
+      throw new IllegalArgumentException("MappingFunction cannot be null");
     }
 
-    @Override
-    public Optional<V> get( String key )
-    {
-        return Optional.ofNullable( Optional.ofNullable( cache2kInstance.get( key ) ).orElse( defaultValue ) );
+    V value = cache2kInstance.get(key);
+
+    if (value == null) {
+      value = mappingFunction.apply(key);
+
+      if (value != null) {
+        cache2kInstance.put(key, value);
+      }
     }
 
-    @Override
-    public V get( String key, Function<String, V> mappingFunction )
-    {
-        if ( null == mappingFunction )
-        {
-            throw new IllegalArgumentException( "MappingFunction cannot be null" );
-        }
+    return Optional.ofNullable(value).orElse(defaultValue);
+  }
 
-        V value = cache2kInstance.get( key );
+  @Override
+  public Stream<V> getAll() {
+    return cache2kInstance.asMap().values().stream();
+  }
 
-        if ( value == null )
-        {
-            value = mappingFunction.apply( key );
+  @Override
+  public Iterable<String> keys() {
+    return cache2kInstance.keys();
+  }
 
-            if ( value != null )
-            {
-                cache2kInstance.put( key, value );
-            }
-        }
-
-        return Optional.ofNullable( value ).orElse( defaultValue );
+  @Override
+  public void put(String key, V value) {
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
     }
+    cache2kInstance.put(key, value);
+  }
 
-    @Override
-    public Stream<V> getAll()
-    {
-        return cache2kInstance.asMap().values().stream();
-    }
+  @Override
+  public void put(String key, V value, long ttlInSeconds) {
+    hasText(key, VALUE_CANNOT_BE_NULL);
+    cache2kInstance.invoke(
+        key,
+        e -> e.setValue(value).setExpiryTime(currentTimeMillis() + SECONDS.toMillis(ttlInSeconds)));
+  }
 
-    @Override
-    public Iterable<String> keys()
-    {
-        return cache2kInstance.keys();
+  @Override
+  public boolean putIfAbsent(String key, V value) {
+    if (null == value) {
+      throw new IllegalArgumentException(VALUE_CANNOT_BE_NULL);
     }
+    return cache2kInstance.putIfAbsent(key, value);
+  }
 
-    @Override
-    public void put( String key, V value )
-    {
-        if ( null == value )
-        {
-            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
-        }
-        cache2kInstance.put( key, value );
-    }
+  @Override
+  public void invalidate(String key) {
+    cache2kInstance.remove(key);
+  }
 
-    @Override
-    public void put( String key, V value, long ttlInSeconds )
-    {
-        hasText( key, VALUE_CANNOT_BE_NULL );
-        cache2kInstance.invoke( key,
-            e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + SECONDS.toMillis( ttlInSeconds ) ) );
-    }
+  @Override
+  public void invalidateAll() {
+    cache2kInstance.removeAll();
+  }
 
-    @Override
-    public boolean putIfAbsent( String key, V value )
-    {
-        if ( null == value )
-        {
-            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
-        }
-        return cache2kInstance.putIfAbsent( key, value );
-    }
-
-    @Override
-    public void invalidate( String key )
-    {
-        cache2kInstance.remove( key );
-    }
-
-    @Override
-    public void invalidateAll()
-    {
-        cache2kInstance.removeAll();
-    }
-
-    @Override
-    public CacheType getCacheType()
-    {
-        return CacheType.IN_MEMORY;
-    }
+  @Override
+  public CacheType getCacheType() {
+    return CacheType.IN_MEMORY;
+  }
 }

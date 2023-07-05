@@ -34,9 +34,7 @@ import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import javax.annotation.Nonnull;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
@@ -53,102 +51,101 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
  *
  * @author Volker Schmidt <volker@dhis2.org>
  */
-public abstract class AbstractRootNodeMessageConverter extends AbstractHttpMessageConverter<RootNode>
-{
-    private static final String METADATA_ATTACHMENT = "metadata";
+public abstract class AbstractRootNodeMessageConverter
+    extends AbstractHttpMessageConverter<RootNode> {
+  private static final String METADATA_ATTACHMENT = "metadata";
 
-    private final NodeService nodeService;
+  private final NodeService nodeService;
 
-    private final String contentType;
+  private final String contentType;
 
-    private final String fileExtension;
+  private final String fileExtension;
 
-    private final Compression compression;
+  private final Compression compression;
 
-    protected AbstractRootNodeMessageConverter( @Nonnull NodeService nodeService, @Nonnull String contentType,
-        @Nonnull String fileExtension, Compression compression )
-    {
-        this.nodeService = nodeService;
-        this.contentType = contentType;
-        this.fileExtension = fileExtension;
-        this.compression = compression;
+  protected AbstractRootNodeMessageConverter(
+      @Nonnull NodeService nodeService,
+      @Nonnull String contentType,
+      @Nonnull String fileExtension,
+      Compression compression) {
+    this.nodeService = nodeService;
+    this.contentType = contentType;
+    this.fileExtension = fileExtension;
+    this.compression = compression;
+  }
+
+  protected Compression getCompression() {
+    return compression;
+  }
+
+  @Override
+  protected boolean supports(Class<?> clazz) {
+    return RootNode.class.equals(clazz);
+  }
+
+  @Override
+  protected boolean canRead(MediaType mediaType) {
+    return false;
+  }
+
+  @Override
+  protected RootNode readInternal(Class<? extends RootNode> clazz, HttpInputMessage inputMessage) {
+    return null;
+  }
+
+  @Override
+  protected void writeInternal(RootNode rootNode, HttpOutputMessage outputMessage)
+      throws IOException, HttpMessageNotWritableException {
+    final String contentDisposition =
+        outputMessage.getHeaders().getFirst(ContextUtils.HEADER_CONTENT_DISPOSITION);
+    final boolean attachment = isAttachment(contentDisposition);
+    final String extensibleAttachmentFilename =
+        StringUtils.substringBefore(ContextUtils.getAttachmentFileName(contentDisposition), ".");
+
+    if (Compression.GZIP == compression) {
+      if (!attachment
+          || (extensibleAttachmentFilename != null
+              && extensibleAttachmentFilename.equalsIgnoreCase(METADATA_ATTACHMENT))) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, "gz"));
+        outputMessage.getHeaders().set(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      }
+
+      GZIPOutputStream outputStream = new GZIPOutputStream(outputMessage.getBody());
+      nodeService.serialize(rootNode, contentType, outputStream);
+      outputStream.close();
+    } else if (Compression.ZIP == compression) {
+      if (!attachment
+          || (extensibleAttachmentFilename != null
+              && extensibleAttachmentFilename.equalsIgnoreCase(METADATA_ATTACHMENT))) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, "zip"));
+        outputMessage.getHeaders().set(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      }
+
+      ZipOutputStream outputStream = new ZipOutputStream(outputMessage.getBody());
+      outputStream.putNextEntry(new ZipEntry(extensibleAttachmentFilename + "." + fileExtension));
+
+      nodeService.serialize(rootNode, contentType, outputStream);
+      outputStream.close();
+    } else {
+      if (extensibleAttachmentFilename != null
+          && extensibleAttachmentFilename.equalsIgnoreCase(METADATA_ATTACHMENT)) {
+        outputMessage
+            .getHeaders()
+            .set(
+                ContextUtils.HEADER_CONTENT_DISPOSITION,
+                getContentDispositionHeaderValue(extensibleAttachmentFilename, null));
+      }
+
+      nodeService.serialize(rootNode, contentType, outputMessage.getBody());
+      outputMessage.getBody().close();
     }
-
-    protected Compression getCompression()
-    {
-        return compression;
-    }
-
-    @Override
-    protected boolean supports( Class<?> clazz )
-    {
-        return RootNode.class.equals( clazz );
-    }
-
-    @Override
-    protected boolean canRead( MediaType mediaType )
-    {
-        return false;
-    }
-
-    @Override
-    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage )
-    {
-        return null;
-    }
-
-    @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage )
-        throws IOException,
-        HttpMessageNotWritableException
-    {
-        final String contentDisposition = outputMessage.getHeaders()
-            .getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION );
-        final boolean attachment = isAttachment( contentDisposition );
-        final String extensibleAttachmentFilename = StringUtils
-            .substringBefore( ContextUtils.getAttachmentFileName( contentDisposition ), "." );
-
-        if ( Compression.GZIP == compression )
-        {
-            if ( !attachment || (extensibleAttachmentFilename != null
-                && extensibleAttachmentFilename.equalsIgnoreCase( METADATA_ATTACHMENT )) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "gz" ) );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            nodeService.serialize( rootNode, contentType, outputStream );
-            outputStream.close();
-        }
-        else if ( Compression.ZIP == compression )
-        {
-            if ( !attachment || (extensibleAttachmentFilename != null
-                && extensibleAttachmentFilename.equalsIgnoreCase( METADATA_ATTACHMENT )) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, "zip" ) );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( extensibleAttachmentFilename + "." + fileExtension ) );
-
-            nodeService.serialize( rootNode, contentType, outputStream );
-            outputStream.close();
-        }
-        else
-        {
-            if ( extensibleAttachmentFilename != null
-                && extensibleAttachmentFilename.equalsIgnoreCase( METADATA_ATTACHMENT ) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                    getContentDispositionHeaderValue( extensibleAttachmentFilename, null ) );
-            }
-
-            nodeService.serialize( rootNode, contentType, outputMessage.getBody() );
-            outputMessage.getBody().close();
-        }
-    }
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -36,53 +35,52 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-public interface DataValueAuditStore
-{
-    String ID = DataValueAuditStore.class.getName();
+public interface DataValueAuditStore {
+  String ID = DataValueAuditStore.class.getName();
 
-    /**
-     * Updates the given audit.
-     *
-     * OBS! This is for use in tests only!
-     *
-     * @param dataValueAudit entry to update
-     */
-    void updateDataValueAudit( DataValueAudit dataValueAudit );
+  /**
+   * Updates the given audit.
+   *
+   * <p>OBS! This is for use in tests only!
+   *
+   * @param dataValueAudit entry to update
+   */
+  void updateDataValueAudit(DataValueAudit dataValueAudit);
 
-    /**
-     * Adds a DataValueAudit.
-     *
-     * @param dataValueAudit the DataValueAudit to add.
-     */
-    void addDataValueAudit( DataValueAudit dataValueAudit );
+  /**
+   * Adds a DataValueAudit.
+   *
+   * @param dataValueAudit the DataValueAudit to add.
+   */
+  void addDataValueAudit(DataValueAudit dataValueAudit);
 
-    /**
-     * Deletes all data value audits for the given organisation unit.
-     *
-     * @param organisationUnit the organisation unit.
-     */
-    void deleteDataValueAudits( OrganisationUnit organisationUnit );
+  /**
+   * Deletes all data value audits for the given organisation unit.
+   *
+   * @param organisationUnit the organisation unit.
+   */
+  void deleteDataValueAudits(OrganisationUnit organisationUnit);
 
-    /**
-     * Deletes all data value audits for the given data element.
-     *
-     * @param dataElement the data element.
-     */
-    void deleteDataValueAudits( DataElement dataElement );
+  /**
+   * Deletes all data value audits for the given data element.
+   *
+   * @param dataElement the data element.
+   */
+  void deleteDataValueAudits(DataElement dataElement);
 
-    /**
-     * Returns data value audits for the given query.
-     *
-     * @param params the {@link DataValueAuditQueryParams}.
-     * @return a list of {@link DataValueAudit}.
-     */
-    List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params );
+  /**
+   * Returns data value audits for the given query.
+   *
+   * @param params the {@link DataValueAuditQueryParams}.
+   * @return a list of {@link DataValueAudit}.
+   */
+  List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params);
 
-    /**
-     * Counts data value audits for the given query.
-     *
-     * @param params the {@link DataValueAuditQueryParams}.
-     * @return a list of {@link DataValueAudit}.
-     */
-    int countDataValueAudits( DataValueAuditQueryParams params );
+  /**
+   * Counts data value audits for the given query.
+   *
+   * @param params the {@link DataValueAuditQueryParams}.
+   * @return a list of {@link DataValueAudit}.
+   */
+  int countDataValueAudits(DataValueAuditQueryParams params);
 }

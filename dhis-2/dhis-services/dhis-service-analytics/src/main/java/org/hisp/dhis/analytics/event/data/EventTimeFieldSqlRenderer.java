@@ -47,10 +47,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -61,84 +59,81 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
-{
-    private final StatementBuilder statementBuilder;
+class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
+  private final StatementBuilder statementBuilder;
 
-    @Getter
-    private final Set<TimeField> allowedTimeFields = Set.of( LAST_UPDATED, SCHEDULED_DATE );
+  @Getter private final Set<TimeField> allowedTimeFields = Set.of(LAST_UPDATED, SCHEDULED_DATE);
 
-    @Override
-    protected String getAggregatedConditionForPeriods( EventQueryParams params )
-    {
-        List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
+  @Override
+  protected String getAggregatedConditionForPeriods(EventQueryParams params) {
+    List<DimensionalItemObject> periods = params.getDimensionOrFilterItems(PERIOD_DIM_ID);
 
-        Optional<TimeField> timeField = getTimeField( params );
-        StringBuilder sql = new StringBuilder();
+    Optional<TimeField> timeField = getTimeField(params);
+    StringBuilder sql = new StringBuilder();
 
-        if ( timeField.isPresent() && !timeField.get().supportsRawPeriod() )
-        {
-            sql.append( periods.stream()
-                .filter( dimensionalItemObject -> dimensionalItemObject instanceof Period )
-                .map( dimensionalItemObject -> (Period) dimensionalItemObject )
-                .map( period -> toSqlCondition( period, timeField.get() ) )
-                .collect( Collectors.joining( " or ", "(", ")" ) ) );
-        }
-        else
-        {
-            String alias = getPeriodAlias( params );
+    if (timeField.isPresent() && !timeField.get().supportsRawPeriod()) {
+      sql.append(
+          periods.stream()
+              .filter(dimensionalItemObject -> dimensionalItemObject instanceof Period)
+              .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+              .map(period -> toSqlCondition(period, timeField.get()))
+              .collect(Collectors.joining(" or ", "(", ")")));
+    } else {
+      String alias = getPeriodAlias(params);
 
-            sql.append( quote( alias, params.getPeriodType().toLowerCase() ) )
-                .append( OPEN_IN )
-                .append( getQuotedCommaDelimitedString( getUids( periods ) ) )
-                .append( ") " );
-        }
-
-        return sql.toString();
+      sql.append(quote(alias, params.getPeriodType().toLowerCase()))
+          .append(OPEN_IN)
+          .append(getQuotedCommaDelimitedString(getUids(periods)))
+          .append(") ");
     }
 
-    @Override
-    protected String getColumnName( Optional<TimeField> timeField, EventOutputType outputType )
-    {
-        return getTimeCol( timeField, outputType );
-    }
+    return sql.toString();
+  }
 
-    @Override
-    protected String getConditionForNonDefaultBoundaries( EventQueryParams params )
-    {
-        return params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
-            .map( analyticsPeriodBoundary -> statementBuilder.getBoundaryCondition( analyticsPeriodBoundary,
-                params.getProgramIndicator(),
-                params.getTimeFieldAsField(), params.getEarliestStartDate(), params.getLatestEndDate() ) )
-            .collect( Collectors.joining( " and " ) );
-    }
+  @Override
+  protected String getColumnName(Optional<TimeField> timeField, EventOutputType outputType) {
+    return getTimeCol(timeField, outputType);
+  }
 
-    private String getTimeCol( Optional<TimeField> timeField, EventOutputType outputType )
-    {
-        if ( timeField.isPresent() )
-        {
-            return quoteAlias( timeField.get().getField() );
-        }
-        else if ( ENROLLMENT == outputType )
-        {
-            return quoteAlias( ENROLLMENT_DATE.getField() );
-        }
-        else
-        {
-            // EVENTS
-            return quoteAlias( EVENT_DATE.getField() );
-        }
-    }
+  @Override
+  protected String getConditionForNonDefaultBoundaries(EventQueryParams params) {
+    return params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
+        .map(
+            analyticsPeriodBoundary ->
+                statementBuilder.getBoundaryCondition(
+                    analyticsPeriodBoundary,
+                    params.getProgramIndicator(),
+                    params.getTimeFieldAsField(),
+                    params.getEarliestStartDate(),
+                    params.getLatestEndDate()))
+        .collect(Collectors.joining(" and "));
+  }
 
-    private String toSqlCondition( Period period, TimeField timeField )
-    {
-        String timeCol = quoteAlias( timeField.getField() );
-        return "( " + timeCol + " >= '" + getMediumDateString( period.getStartDate() ) + "' and " + timeCol + " < '"
-            + getMediumDateString( plusOneDay( period.getEndDate() ) ) + "') ";
+  private String getTimeCol(Optional<TimeField> timeField, EventOutputType outputType) {
+    if (timeField.isPresent()) {
+      return quoteAlias(timeField.get().getField());
+    } else if (ENROLLMENT == outputType) {
+      return quoteAlias(ENROLLMENT_DATE.getField());
+    } else {
+      // EVENTS
+      return quoteAlias(EVENT_DATE.getField());
     }
+  }
 
-    private String getPeriodAlias( EventQueryParams params )
-    {
-        return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
-    }
+  private String toSqlCondition(Period period, TimeField timeField) {
+    String timeCol = quoteAlias(timeField.getField());
+    return "( "
+        + timeCol
+        + " >= '"
+        + getMediumDateString(period.getStartDate())
+        + "' and "
+        + timeCol
+        + " < '"
+        + getMediumDateString(plusOneDay(period.getEndDate()))
+        + "') ";
+  }
+
+  private String getPeriodAlias(EventQueryParams params) {
+    return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+  }
 }

@@ -32,9 +32,8 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface TrackerImporterDataBuilder
-{
-    public JsonObject single();
+public interface TrackerImporterDataBuilder {
+  public JsonObject single();
 
-    public JsonObject array();
+  public JsonObject array();
 }

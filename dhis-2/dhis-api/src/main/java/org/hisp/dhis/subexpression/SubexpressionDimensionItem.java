@@ -34,10 +34,8 @@ import static org.hisp.dhis.common.DimensionItemType.SUBEXPRESSION_DIMENSION_ITE
 
 import java.util.Collection;
 import java.util.List;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryModifiers;
@@ -48,62 +46,53 @@ import org.hisp.dhis.common.QueryModifiers;
  * @author Jim Grace
  */
 @Getter
-@EqualsAndHashCode( callSuper = true )
-public class SubexpressionDimensionItem
-    extends BaseDimensionalItemObject
-{
-    /**
-     * The SQL fragment containing the subexpression logic.
-     */
-    private final String subexSql;
+@EqualsAndHashCode(callSuper = true)
+public class SubexpressionDimensionItem extends BaseDimensionalItemObject {
+  /** The SQL fragment containing the subexpression logic. */
+  private final String subexSql;
 
-    /**
-     * The subexpression item objects. Must be of type data element or data
-     * element operand. Note that it can be a {@link Collection} for normal use
-     * or a {@link List} for testing so the items will be inserted into the
-     * query in a predictable order.
-     */
-    private final Collection<DimensionalItemObject> items;
+  /**
+   * The subexpression item objects. Must be of type data element or data element operand. Note that
+   * it can be a {@link Collection} for normal use or a {@link List} for testing so the items will
+   * be inserted into the query in a predictable order.
+   */
+  private final Collection<DimensionalItemObject> items;
 
-    public SubexpressionDimensionItem( String subexSql, Collection<DimensionalItemObject> items,
-        QueryModifiers queryMods )
-    {
-        this.subexSql = subexSql;
-        this.items = items;
-        this.queryMods = queryMods;
-        this.uid = generateUid();
-        this.aggregationType = SUM; // (QueryMods can override this.)
+  public SubexpressionDimensionItem(
+      String subexSql, Collection<DimensionalItemObject> items, QueryModifiers queryMods) {
+    this.subexSql = subexSql;
+    this.items = items;
+    this.queryMods = queryMods;
+    this.uid = generateUid();
+    this.aggregationType = SUM; // (QueryMods can override this.)
 
-        setDimensionItemType( SUBEXPRESSION_DIMENSION_ITEM );
-    }
+    setDimensionItemType(SUBEXPRESSION_DIMENSION_ITEM);
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    /**
-     * Gets a quoted SQL column name for a data element uid and optionally a
-     * category option combo uid. These column names are generated in the SQL
-     * fragment for each item and referenced in the SQL fragment for the
-     * subexpression as a whole.
-     * <p>
-     * If there is an aggregation type override in the query modifiers, its name
-     * is appended to the end of the column name. This is needed in case the
-     * same item appears in the same subexpression with and without an
-     * aggregation type override.
-     */
-    public static String getItemColumnName( String deUid, String cocUid, String aocUid, QueryModifiers mods )
-    {
-        String separator = (isEmpty( cocUid ) && isEmpty( aocUid )) ? "" : "_";
+  /**
+   * Gets a quoted SQL column name for a data element uid and optionally a category option combo
+   * uid. These column names are generated in the SQL fragment for each item and referenced in the
+   * SQL fragment for the subexpression as a whole.
+   *
+   * <p>If there is an aggregation type override in the query modifiers, its name is appended to the
+   * end of the column name. This is needed in case the same item appears in the same subexpression
+   * with and without an aggregation type override.
+   */
+  public static String getItemColumnName(
+      String deUid, String cocUid, String aocUid, QueryModifiers mods) {
+    String separator = (isEmpty(cocUid) && isEmpty(aocUid)) ? "" : "_";
 
-        String coc = isEmpty( cocUid ) ? "" : cocUid;
+    String coc = isEmpty(cocUid) ? "" : cocUid;
 
-        String aoc = isEmpty( aocUid ) ? "" : "_" + aocUid;
+    String aoc = isEmpty(aocUid) ? "" : "_" + aocUid;
 
-        String aggregationName = (mods != null && mods.getAggregationType() != null)
-            ? mods.getAggregationType().name()
-            : "";
+    String aggregationName =
+        (mods != null && mods.getAggregationType() != null) ? mods.getAggregationType().name() : "";
 
-        return "\"" + deUid + separator + coc + aoc + aggregationName + "\"";
-    }
+    return "\"" + deUid + separator + coc + aoc + aggregationName + "\"";
+  }
 }

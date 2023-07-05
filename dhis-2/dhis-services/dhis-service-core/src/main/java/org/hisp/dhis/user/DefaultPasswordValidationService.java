@@ -32,37 +32,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-/**
- * Created by zubair.
- */
-@Service( "org.hisp.dhis.user.PasswordValidationService" )
-public class DefaultPasswordValidationService
-    implements PasswordValidationService
-{
-    private final PasswordValidationRule rule;
+/** Created by zubair. */
+@Service("org.hisp.dhis.user.PasswordValidationService")
+public class DefaultPasswordValidationService implements PasswordValidationService {
+  private final PasswordValidationRule rule;
 
-    @Autowired
-    public DefaultPasswordValidationService( PasswordEncoder passwordEncoder, UserService userService,
-        CurrentUserService currentUserService, SystemSettingManager systemSettings )
-    {
-        this( new PasswordMandatoryValidationRule()
-            .then( new PasswordLengthValidationRule( systemSettings ) )
-            .then( new DigitPatternValidationRule() )
-            .then( new UpperCasePatternValidationRule() )
-            .then( new SpecialCharacterValidationRule() )
-            .then( new PasswordDictionaryValidationRule() )
-            .then( new UserParameterValidationRule() )
-            .then( new PasswordHistoryValidationRule( passwordEncoder, userService, currentUserService ) ) );
-    }
+  @Autowired
+  public DefaultPasswordValidationService(
+      PasswordEncoder passwordEncoder,
+      UserService userService,
+      CurrentUserService currentUserService,
+      SystemSettingManager systemSettings) {
+    this(
+        new PasswordMandatoryValidationRule()
+            .then(new PasswordLengthValidationRule(systemSettings))
+            .then(new DigitPatternValidationRule())
+            .then(new UpperCasePatternValidationRule())
+            .then(new SpecialCharacterValidationRule())
+            .then(new PasswordDictionaryValidationRule())
+            .then(new UserParameterValidationRule())
+            .then(
+                new PasswordHistoryValidationRule(
+                    passwordEncoder, userService, currentUserService)));
+  }
 
-    public DefaultPasswordValidationService( PasswordValidationRule rule )
-    {
-        this.rule = rule;
-    }
+  public DefaultPasswordValidationService(PasswordValidationRule rule) {
+    this.rule = rule;
+  }
 
-    @Override
-    public PasswordValidationResult validate( CredentialsInfo credentials )
-    {
-        return rule.validate( credentials );
-    }
+  @Override
+  public PasswordValidationResult validate(CredentialsInfo credentials) {
+    return rule.validate(credentials);
+  }
 }

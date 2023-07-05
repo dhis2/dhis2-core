@@ -27,47 +27,39 @@
  */
 package org.hisp.dhis.icon;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * This class is the API response representation of the Icon class. It is used
- * to serialize and deserialize Icon objects. Ideally it should live in the
- * dhis-web-api module, but it is not possible to do so because we need to use
- * it in IconSchemaDescriptor, which is in the dhis-service-schema module.
+ * This class is the API response representation of the Icon class. It is used to serialize and
+ * deserialize Icon objects. Ideally it should live in the dhis-web-api module, but it is not
+ * possible to do so because we need to use it in IconSchemaDescriptor, which is in the
+ * dhis-service-schema module.
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class IconResponse
-{
+public class IconResponse {
 
-    @JsonProperty
-    private String key;
+  @JsonProperty private String key;
 
-    @JsonProperty
-    private String description;
+  @JsonProperty private String description;
 
-    @JsonProperty
-    private String[] keywords;
+  @JsonProperty private String[] keywords;
 
-    @JsonProperty
-    private String fileResourceUid;
+  @JsonProperty private String fileResourceUid;
 
-    @JsonProperty
-    private String userUid;
+  @JsonProperty private String userUid;
 
-    @JsonProperty( "href" )
-    private String reference;
+  @JsonProperty("href")
+  private String reference;
 
-    public IconResponse( String key, String description, String[] keywords, String reference )
-    {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-        this.reference = reference;
-    }
+  public IconResponse(String key, String description, String[] keywords, String reference) {
+    this.key = key;
+    this.description = description;
+    this.keywords = keywords;
+    this.reference = reference;
+  }
 }

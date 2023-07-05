@@ -33,72 +33,88 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- *
- * Tests metadata integrity check category option combinations with incorrect
- * cardinality.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_option_combinations_cardinality.yaml
+ * Tests metadata integrity check category option combinations with incorrect cardinality. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/category_option_combinations_cardinality.yaml
  * }
  *
  * @author Jason P. Pickering
  */
+class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "cocs_wrong_cardinality";
 
-class DataIntegrityCategoryOptionComboWrongCardinalityControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "cocs_wrong_cardinality";
+  private final String detailsIdType = "categoryOptionCombos";
 
-    private final String detailsIdType = "categoryOptionCombos";
+  private String categoryColor;
 
-    private String categoryColor;
+  private String testCatCombo;
 
-    private String testCatCombo;
+  @Test
+  void setTestCatCombosWrongCardinalityExists() {
 
-    @Test
-    void setTestCatCombosWrongCardinalityExists()
-    {
+    setupTest();
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE",
+            "{ 'name' : 'Taste and color', "
+                + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                + "{'id' : '"
+                + categoryColor
+                + "'} ]} "));
 
-        setupTest();
-        assertStatus( HttpStatus.OK,
-            PUT( "/categoryCombos/" + testCatCombo + "?mergeMode=REPLACE", "{ 'name' : 'Taste and color', " +
-                "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
-                "{'id' : '" + categoryColor + "'} ]} " ) );
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 50, testCatCombo, "Taste and color", null, true);
+  }
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 50, testCatCombo, "Taste and color", null, true );
+  @Test
+  void setTestCatCombosWrongCardinalityDoesNotExist() {
 
-    }
+    setupTest();
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void setTestCatCombosWrongCardinalityDoesNotExist()
-    {
+  void setupTest() {
+    String categoryOptionSour =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Sour', 'shortName': 'Sour' }"));
 
-        setupTest();
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    String categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-    }
+    categoryColor =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'} ] }"));
 
-    void setupTest()
-    {
-        String categoryOptionSour = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Sour', 'shortName': 'Sour' }" ) );
+    String categoryTaste =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionSour
+                    + "'} ] }"));
 
-        String categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
-
-        categoryColor = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
-
-        String categoryTaste = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionSour + "'} ] }" ) );
-
-        testCatCombo = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryCombos", "{ 'name' : 'Taste and color', " +
-                "'dataDimensionType' : 'DISAGGREGATION', 'categories' : [" +
-                "{'id' : '" + categoryColor + "'} , {'id' : '" + categoryTaste + "'}]} " ) );
-    }
-
+    testCatCombo =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryCombos",
+                "{ 'name' : 'Taste and color', "
+                    + "'dataDimensionType' : 'DISAGGREGATION', 'categories' : ["
+                    + "{'id' : '"
+                    + categoryColor
+                    + "'} , {'id' : '"
+                    + categoryTaste
+                    + "'}]} "));
+  }
 }

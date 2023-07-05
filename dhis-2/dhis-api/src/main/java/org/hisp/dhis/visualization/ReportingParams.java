@@ -29,130 +29,105 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
 
 /**
- * The ReportingParams object represents the reporting parameters for a
- * Visualization. The reporting parameters are meant to make the Visualization
- * more generic, as it can avoid having dynamic, selectable parameters rather
- * than static. The ReportingParams is mainly used to assist during the Report
- * generation.
+ * The ReportingParams object represents the reporting parameters for a Visualization. The reporting
+ * parameters are meant to make the Visualization more generic, as it can avoid having dynamic,
+ * selectable parameters rather than static. The ReportingParams is mainly used to assist during the
+ * Report generation.
  */
-@JacksonXmlRootElement( localName = "reportingParams", namespace = DXF_2_0 )
-public class ReportingParams
-    implements
-    Serializable
-{
+@JacksonXmlRootElement(localName = "reportingParams", namespace = DXF_2_0)
+public class ReportingParams implements Serializable {
 
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 3380878533309773050L;
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 3380878533309773050L;
 
-    /**
-     * Flag to indicate if there is a reporting period set or not.
-     */
-    private boolean reportingPeriod;
+  /** Flag to indicate if there is a reporting period set or not. */
+  private boolean reportingPeriod;
 
-    /**
-     * Indicates if there is a grandparent organisation unit set or not.
-     */
-    private boolean grandParentOrganisationUnit;
+  /** Indicates if there is a grandparent organisation unit set or not. */
+  private boolean grandParentOrganisationUnit;
 
-    /**
-     * Indicates if there is a parent organisation unit set or not.
-     */
-    private boolean parentOrganisationUnit;
+  /** Indicates if there is a parent organisation unit set or not. */
+  private boolean parentOrganisationUnit;
 
-    /**
-     * Indicates if there is an organisation unit set or not.
-     */
-    private boolean organisationUnit;
+  /** Indicates if there is an organisation unit set or not. */
+  private boolean organisationUnit;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ReportingParams()
-    {
-    }
+  public ReportingParams() {}
 
-    public ReportingParams( boolean reportingPeriod, boolean grandParentOrganisationUnit,
-        boolean parentOrganisationUnit, boolean organisationUnit )
-    {
-        this.reportingPeriod = reportingPeriod;
-        this.grandParentOrganisationUnit = grandParentOrganisationUnit;
-        this.parentOrganisationUnit = parentOrganisationUnit;
-        this.organisationUnit = organisationUnit;
-    }
+  public ReportingParams(
+      boolean reportingPeriod,
+      boolean grandParentOrganisationUnit,
+      boolean parentOrganisationUnit,
+      boolean organisationUnit) {
+    this.reportingPeriod = reportingPeriod;
+    this.grandParentOrganisationUnit = grandParentOrganisationUnit;
+    this.parentOrganisationUnit = parentOrganisationUnit;
+    this.organisationUnit = organisationUnit;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean isSet()
-    {
-        return isReportingPeriod() || isOrganisationUnitSet();
-    }
+  public boolean isSet() {
+    return isReportingPeriod() || isOrganisationUnitSet();
+  }
 
-    public boolean isOrganisationUnitSet()
-    {
-        return isGrandParentOrganisationUnit() || isParentOrganisationUnit() || isOrganisationUnit();
-    }
+  public boolean isOrganisationUnitSet() {
+    return isGrandParentOrganisationUnit() || isParentOrganisationUnit() || isOrganisationUnit();
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty( value = "reportingPeriod" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isReportingPeriod()
-    {
-        return reportingPeriod;
-    }
+  @JsonProperty(value = "reportingPeriod")
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isReportingPeriod() {
+    return reportingPeriod;
+  }
 
-    public void setReportingPeriod( Boolean reportingPeriod )
-    {
-        this.reportingPeriod = reportingPeriod;
-    }
+  public void setReportingPeriod(Boolean reportingPeriod) {
+    this.reportingPeriod = reportingPeriod;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isGrandParentOrganisationUnit()
-    {
-        return grandParentOrganisationUnit;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isGrandParentOrganisationUnit() {
+    return grandParentOrganisationUnit;
+  }
 
-    public void setGrandParentOrganisationUnit( Boolean grandParentOrganisationUnit )
-    {
-        this.grandParentOrganisationUnit = grandParentOrganisationUnit;
-    }
+  public void setGrandParentOrganisationUnit(Boolean grandParentOrganisationUnit) {
+    this.grandParentOrganisationUnit = grandParentOrganisationUnit;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isParentOrganisationUnit()
-    {
-        return parentOrganisationUnit;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isParentOrganisationUnit() {
+    return parentOrganisationUnit;
+  }
 
-    public void setParentOrganisationUnit( Boolean parentOrganisationUnit )
-    {
-        this.parentOrganisationUnit = parentOrganisationUnit;
-    }
+  public void setParentOrganisationUnit(Boolean parentOrganisationUnit) {
+    this.parentOrganisationUnit = parentOrganisationUnit;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public boolean isOrganisationUnit()
-    {
-        return organisationUnit;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public boolean isOrganisationUnit() {
+    return organisationUnit;
+  }
 
-    public void setOrganisationUnit( Boolean organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
+  public void setOrganisationUnit(Boolean organisationUnit) {
+    this.organisationUnit = organisationUnit;
+  }
 }

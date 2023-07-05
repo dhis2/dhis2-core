@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -44,118 +43,106 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class ProgramServiceTest extends TransactionalIntegrationTest
-{
+class ProgramServiceTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private OrganisationUnit organisationUnitB;
+  private OrganisationUnit organisationUnitB;
 
-    private Program programA;
+  private Program programA;
 
-    private Program programB;
+  private Program programB;
 
-    private Program programC;
+  private Program programC;
 
-    @Override
-    public void setUpTest()
-    {
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnitA );
-        organisationUnitB = createOrganisationUnit( 'B' );
-        organisationUnitService.addOrganisationUnit( organisationUnitB );
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setUid( "UID-A" );
-        programB = createProgram( 'B', new HashSet<>(), organisationUnitA );
-        programB.setUid( "UID-B" );
-        programC = createProgram( 'C', new HashSet<>(), organisationUnitB );
-        programC.setUid( "UID-C" );
-    }
+  @Override
+  public void setUpTest() {
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(organisationUnitA);
+    organisationUnitB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(organisationUnitB);
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.setUid("UID-A");
+    programB = createProgram('B', new HashSet<>(), organisationUnitA);
+    programB.setUid("UID-B");
+    programC = createProgram('C', new HashSet<>(), organisationUnitB);
+    programC.setUid("UID-C");
+  }
 
-    @Test
-    void testAddProgram()
-    {
-        long idA = programService.addProgram( programA );
-        long idB = programService.addProgram( programB );
-        assertNotNull( programService.getProgram( idA ) );
-        assertNotNull( programService.getProgram( idB ) );
-    }
+  @Test
+  void testAddProgram() {
+    long idA = programService.addProgram(programA);
+    long idB = programService.addProgram(programB);
+    assertNotNull(programService.getProgram(idA));
+    assertNotNull(programService.getProgram(idB));
+  }
 
-    @Test
-    void testUpdateProgram()
-    {
-        long idA = programService.addProgram( programA );
-        assertNotNull( programService.getProgram( idA ) );
-        programA.setName( "B" );
-        programService.updateProgram( programA );
-        assertEquals( "B", programService.getProgram( idA ).getName() );
-    }
+  @Test
+  void testUpdateProgram() {
+    long idA = programService.addProgram(programA);
+    assertNotNull(programService.getProgram(idA));
+    programA.setName("B");
+    programService.updateProgram(programA);
+    assertEquals("B", programService.getProgram(idA).getName());
+  }
 
-    @Test
-    void testDeleteProgram()
-    {
-        long idA = programService.addProgram( programA );
-        long idB = programService.addProgram( programB );
-        assertNotNull( programService.getProgram( idA ) );
-        assertNotNull( programService.getProgram( idB ) );
-        programService.deleteProgram( programA );
-        assertNull( programService.getProgram( idA ) );
-        assertNotNull( programService.getProgram( idB ) );
-        programService.deleteProgram( programB );
-        assertNull( programService.getProgram( idA ) );
-        assertNull( programService.getProgram( idB ) );
-    }
+  @Test
+  void testDeleteProgram() {
+    long idA = programService.addProgram(programA);
+    long idB = programService.addProgram(programB);
+    assertNotNull(programService.getProgram(idA));
+    assertNotNull(programService.getProgram(idB));
+    programService.deleteProgram(programA);
+    assertNull(programService.getProgram(idA));
+    assertNotNull(programService.getProgram(idB));
+    programService.deleteProgram(programB);
+    assertNull(programService.getProgram(idA));
+    assertNull(programService.getProgram(idB));
+  }
 
-    @Test
-    void testGetProgramById()
-    {
-        long idA = programService.addProgram( programA );
-        long idB = programService.addProgram( programB );
-        assertEquals( programA, programService.getProgram( idA ) );
-        assertEquals( programB, programService.getProgram( idB ) );
-    }
+  @Test
+  void testGetProgramById() {
+    long idA = programService.addProgram(programA);
+    long idB = programService.addProgram(programB);
+    assertEquals(programA, programService.getProgram(idA));
+    assertEquals(programB, programService.getProgram(idB));
+  }
 
-    @Test
-    void testGetAllPrograms()
-    {
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-        assertTrue( equals( programService.getAllPrograms(), programA, programB ) );
-    }
+  @Test
+  void testGetAllPrograms() {
+    programService.addProgram(programA);
+    programService.addProgram(programB);
+    assertTrue(equals(programService.getAllPrograms(), programA, programB));
+  }
 
-    @Test
-    void testGetProgramsByOu()
-    {
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-        programService.addProgram( programC );
-        List<Program> programs = programService.getPrograms( organisationUnitA );
-        assertTrue( equals( programs, programA, programB ) );
-        programs = programService.getPrograms( organisationUnitB );
-        assertTrue( equals( programs, programC ) );
-    }
+  @Test
+  void testGetProgramsByOu() {
+    programService.addProgram(programA);
+    programService.addProgram(programB);
+    programService.addProgram(programC);
+    List<Program> programs = programService.getPrograms(organisationUnitA);
+    assertTrue(equals(programs, programA, programB));
+    programs = programService.getPrograms(organisationUnitB);
+    assertTrue(equals(programs, programC));
+  }
 
-    @Test
-    void testGetProgramByUid()
-    {
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-        assertEquals( programA, programService.getProgram( "UID-A" ) );
-        assertEquals( programB, programService.getProgram( "UID-B" ) );
-    }
+  @Test
+  void testGetProgramByUid() {
+    programService.addProgram(programA);
+    programService.addProgram(programB);
+    assertEquals(programA, programService.getProgram("UID-A"));
+    assertEquals(programB, programService.getProgram("UID-B"));
+  }
 
-    @Test
-    void testProgramHasOrgUnit()
-    {
-        programService.addProgram( programA );
-        Program p = programService.getProgram( programA.getUid() );
-        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( organisationUnitA.getUid() );
-        assertTrue( programService.hasOrgUnit( p, ou ) );
-    }
+  @Test
+  void testProgramHasOrgUnit() {
+    programService.addProgram(programA);
+    Program p = programService.getProgram(programA.getUid());
+    OrganisationUnit ou = organisationUnitService.getOrganisationUnit(organisationUnitA.getUid());
+    assertTrue(programService.hasOrgUnit(p, ou));
+  }
 }

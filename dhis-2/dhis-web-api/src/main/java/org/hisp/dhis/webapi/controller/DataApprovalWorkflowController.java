@@ -33,10 +33,7 @@ import org.hisp.dhis.schema.descriptors.DataApprovalWorkflowSchemaDescriptor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = DataApprovalWorkflowSchemaDescriptor.API_ENDPOINT )
-public class DataApprovalWorkflowController
-    extends AbstractCrudController<DataApprovalWorkflow>
-{
-}
+@RequestMapping(value = DataApprovalWorkflowSchemaDescriptor.API_ENDPOINT)
+public class DataApprovalWorkflowController extends AbstractCrudController<DataApprovalWorkflow> {}

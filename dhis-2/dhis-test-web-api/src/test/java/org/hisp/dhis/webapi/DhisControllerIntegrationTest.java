@@ -50,71 +50,61 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for all Spring Mock MVC based controller tests which use postgres
- * database in a docker instance.
+ * Base class for all Spring Mock MVC based controller tests which use postgres database in a docker
+ * instance.
  *
  * @author Viet Nguyen
  */
-@ExtendWith( SpringExtension.class )
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class, IntegrationTestConfig.class } )
-@ActiveProfiles( profiles = { "test-postgres" } )
+@ContextConfiguration(
+    classes = {MvcTestConfig.class, WebTestConfiguration.class, IntegrationTestConfig.class})
+@ActiveProfiles(profiles = {"test-postgres"})
 @IntegrationTest
 @Transactional
-public class DhisControllerIntegrationTest extends DhisControllerTestBase
-{
-    public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
+public class DhisControllerIntegrationTest extends DhisControllerTestBase {
+  public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    protected CurrentUserService currentUserService;
+  @Autowired protected CurrentUserService currentUserService;
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+  @Autowired protected IdentifiableObjectManager manager;
 
-    @Autowired
-    protected DbmsManager dbmsManager;
+  @Autowired protected DbmsManager dbmsManager;
 
-    @Autowired
-    protected DhisConfigurationProvider dhisConfigurationProvider;
+  @Autowired protected DhisConfigurationProvider dhisConfigurationProvider;
 
-    @BeforeEach
-    final void setup()
-        throws Exception
-    {
-        userService = _userService;
-        clearSecurityContext();
+  @BeforeEach
+  final void setup() throws Exception {
+    userService = _userService;
+    clearSecurityContext();
 
-        superUser = createAndAddAdminUser( "ALL" );
+    superUser = createAndAddAdminUser("ALL");
 
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
+    mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        switchContextToUser( superUser );
-        currentUser = superUser;
+    switchContextToUser(superUser);
+    currentUser = superUser;
 
-        TestUtils.executeStartupRoutines( webApplicationContext );
+    TestUtils.executeStartupRoutines(webApplicationContext);
 
-        integrationTestBefore();
+    integrationTestBefore();
 
-        dbmsManager.flushSession();
-        dbmsManager.clearSession();
+    dbmsManager.flushSession();
+    dbmsManager.clearSession();
+  }
+
+  protected void integrationTestBefore() throws Exception {
+    boolean enableQueryLogging =
+        dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
+    // Enable to query logger to log only what's happening inside the test
+    // method
+    if (enableQueryLogging) {
+      Configurator.setLevel(ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO);
+      Configurator.setRootLevel(Level.INFO);
     }
-
-    protected void integrationTestBefore()
-        throws Exception
-    {
-        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-        // Enable to query logger to log only what's happening inside the test
-        // method
-        if ( enableQueryLogging )
-        {
-            Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
-            Configurator.setRootLevel( Level.INFO );
-        }
-    }
+  }
 }

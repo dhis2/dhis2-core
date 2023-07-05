@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -41,47 +40,47 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat object a List of all Enrollment UIDs that
- * have at least ONE Program Stage Instance that is not logically deleted
- * ('deleted = true').
+ * This supplier adds to the pre-heat object a List of all Enrollment UIDs that have at least ONE
+ * Program Stage Instance that is not logically deleted ('deleted = true').
  *
  * @author Luciano Fiandesio
  */
 @Component
-public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatSupplier
-{
-    private final static String COLUMN = "uid";
+public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatSupplier {
+  private static final String COLUMN = "uid";
 
-    private final static String SQL = "select  " + COLUMN +
-        " from programinstance " +
-        "where exists( select eventid " +
-        "from event " +
-        "where programinstance.programinstanceid = event.programinstanceid " +
-        "and programinstance.deleted = false) " +
-        "and programinstanceid in (:ids)";
+  private static final String SQL =
+      "select  "
+          + COLUMN
+          + " from programinstance "
+          + "where exists( select eventid "
+          + "from event "
+          + "where programinstance.programinstanceid = event.programinstanceid "
+          + "and programinstance.deleted = false) "
+          + "and programinstanceid in (:ids)";
 
-    protected EnrollmentsWithAtLeastOneEventSupplier( JdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
+  protected EnrollmentsWithAtLeastOneEventSupplier(JdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
+
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    final Map<String, Enrollment> enrollments = preheat.getEnrollments();
+    List<Long> programStageIds =
+        enrollments.values().stream().map(IdentifiableObject::getId).collect(Collectors.toList());
+
+    if (!programStageIds.isEmpty()) {
+      List<String> uids = new ArrayList<>();
+
+      MapSqlParameterSource parameters = new MapSqlParameterSource();
+      parameters.addValue("ids", programStageIds);
+      jdbcTemplate.query(
+          SQL,
+          parameters,
+          rs -> {
+            uids.add(rs.getString(COLUMN));
+          });
+      preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent(uids);
     }
-
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        final Map<String, Enrollment> enrollments = preheat.getEnrollments();
-        List<Long> programStageIds = enrollments.values().stream().map( IdentifiableObject::getId )
-            .collect( Collectors.toList() );
-
-        if ( !programStageIds.isEmpty() )
-        {
-            List<String> uids = new ArrayList<>();
-
-            MapSqlParameterSource parameters = new MapSqlParameterSource();
-            parameters.addValue( "ids", programStageIds );
-            jdbcTemplate.query( SQL, parameters, rs -> {
-                uids.add( rs.getString( COLUMN ) );
-            } );
-            preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent( uids );
-        }
-    }
+  }
 }

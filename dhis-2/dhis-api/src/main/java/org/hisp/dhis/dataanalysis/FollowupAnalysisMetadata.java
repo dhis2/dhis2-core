@@ -27,45 +27,35 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.List;
-
 import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Jan Bernitt
  */
 @Getter
-public class FollowupAnalysisMetadata
-{
+public class FollowupAnalysisMetadata {
 
-    @JsonProperty
-    private final List<String> de;
+  @JsonProperty private final List<String> de;
 
-    @JsonProperty
-    private final List<String> coc;
+  @JsonProperty private final List<String> coc;
 
-    @JsonProperty
-    private final List<String> ou;
+  @JsonProperty private final List<String> ou;
 
-    @JsonProperty
-    private final Date startDate;
+  @JsonProperty private final Date startDate;
 
-    @JsonProperty
-    private final Date endDate;
+  @JsonProperty private final Date endDate;
 
-    @JsonProperty
-    private final int maxResults;
+  @JsonProperty private final int maxResults;
 
-    public FollowupAnalysisMetadata( FollowupAnalysisRequest request )
-    {
-        this.de = request.getDe();
-        this.coc = request.getCoc();
-        this.ou = request.getOu();
-        this.startDate = request.getStartDate();
-        this.endDate = request.getEndDate();
-        this.maxResults = request.getMaxResults();
-    }
+  public FollowupAnalysisMetadata(FollowupAnalysisRequest request) {
+    this.de = request.getDe();
+    this.coc = request.getCoc();
+    this.ou = request.getOu();
+    this.startDate = request.getStartDate();
+    this.endDate = request.getEndDate();
+    this.maxResults = request.getMaxResults();
+  }
 }

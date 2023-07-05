@@ -41,65 +41,58 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
 /**
- * Be default, metadata checks which are marked as "slow" should be excluded
- * from a default run of all checks. These "slow" checks may require significant
- * computational resources. Users should be able to trigger these checks
- * individually though as needed.
+ * Be default, metadata checks which are marked as "slow" should be excluded from a default run of
+ * all checks. These "slow" checks may require significant computational resources. Users should be
+ * able to trigger these checks individually though as needed.
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTest {
 
-    @Test
-    void testNonSlowChecksNotRunByDefault()
-    {
-        final String check = "data_elements_aggregate_abandoned";
-        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity?checks=" + check )
+  @Test
+  void testNonSlowChecksNotRunByDefault() {
+    final String check = "data_elements_aggregate_abandoned";
+    JsonList<JsonDataIntegrityCheck> checks =
+        GET("/dataIntegrity?checks=" + check).content().asList(JsonDataIntegrityCheck.class);
+    assertEquals(1, checks.size());
+    JsonDataIntegrityCheck slowCheck = checks.get(0);
+    assertTrue(slowCheck.getIsSlow());
+
+    // Be sure we start with a clean slate
+    assertStatus(HttpStatus.NO_CONTENT, POST("/maintenance?cacheClear=true"));
+
+    // Trigger the default checks
+    assertStatus(HttpStatus.OK, POST("/dataIntegrity/summary"));
+
+    // The slow check should not exist
+    JsonDataIntegritySummary summary =
+        GET("/dataIntegrity/" + check + "/summary").content().as(JsonDataIntegritySummary.class);
+    assertTrue(summary.exists());
+    assertFalse(summary.has("count"));
+    assertFalse(summary.has("percentage"));
+    assertFalse(summary.has("finishedTime"));
+
+    summary =
+        GET("/dataIntegrity/categories-no-options/summary")
             .content()
-            .asList( JsonDataIntegrityCheck.class );
-        assertEquals( 1, checks.size() );
-        JsonDataIntegrityCheck slowCheck = checks.get( 0 );
-        assertTrue( slowCheck.getIsSlow() );
+            .as(JsonDataIntegritySummary.class);
+    assertTrue(summary.exists());
+    assertTrue(summary.isObject());
+    assertEquals(0, summary.getCount());
+    assertFalse(summary.getIsSlow());
+    assertNotNull(summary.getFinishedTime());
+    assertEquals(0, summary.getPercentage());
 
-        //Be sure we start with a clean slate
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/maintenance?cacheClear=true" ) );
+    // Trigger the slow check
+    assertStatus(HttpStatus.OK, POST("/dataIntegrity/summary?checks=" + check));
 
-        //Trigger the default checks
-        assertStatus( HttpStatus.OK, POST( "/dataIntegrity/summary" ) );
-
-        //The slow check should not exist
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/" + check + "/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertFalse( summary.has( "count" ) );
-        assertFalse( summary.has( "percentage" ) );
-        assertFalse( summary.has( "finishedTime" ) );
-
-        summary = GET( "/dataIntegrity/categories-no-options/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertFalse( summary.getIsSlow() );
-        assertNotNull( summary.getFinishedTime() );
-        assertEquals( 0, summary.getPercentage() );
-
-        //Trigger the slow check
-        assertStatus( HttpStatus.OK, POST( "/dataIntegrity/summary?checks=" + check ) );
-
-        summary = GET( "/dataIntegrity/" + check + "/summary" )
-            .content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 0, summary.getCount() );
-        assertTrue( summary.getIsSlow() );
-        assertNotNull( summary.getFinishedTime() );
-        assertNull( summary.getPercentage() );
-
-    }
-
+    summary =
+        GET("/dataIntegrity/" + check + "/summary").content().as(JsonDataIntegritySummary.class);
+    assertTrue(summary.exists());
+    assertTrue(summary.isObject());
+    assertEquals(0, summary.getCount());
+    assertTrue(summary.getIsSlow());
+    assertNotNull(summary.getFinishedTime());
+    assertNull(summary.getPercentage());
+  }
 }

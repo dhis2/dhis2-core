@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.deprecated.tracker.aggregates;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackerTest;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
@@ -43,58 +43,58 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+class TrackedEntityAggregateUserTest extends TrackerTest {
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-class TrackedEntityAggregateUserTest extends TrackerTest
-{
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  private User superUser;
 
-    private User superUser;
+  private User nonSuperUser;
 
-    private User nonSuperUser;
+  @BeforeEach
+  void setUp() {
+    doInTransaction(
+        () -> {
+          superUser = preCreateInjectAdminUser();
+          injectSecurityContext(superUser);
 
-    @BeforeEach
-    void setUp()
-    {
-        doInTransaction( () -> {
-            superUser = preCreateInjectAdminUser();
-            injectSecurityContext( superUser );
+          nonSuperUser = createUserWithAuth("testUser2");
+          nonSuperUser.addOrganisationUnit(organisationUnitA);
+          nonSuperUser.getTeiSearchOrganisationUnits().add(organisationUnitA);
+          nonSuperUser.getTeiSearchOrganisationUnits().add(organisationUnitB);
+          userService.updateUser(nonSuperUser);
 
-            nonSuperUser = createUserWithAuth( "testUser2" );
-            nonSuperUser.addOrganisationUnit( organisationUnitA );
-            nonSuperUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
-            nonSuperUser.getTeiSearchOrganisationUnits().add( organisationUnitB );
-            userService.updateUser( nonSuperUser );
+          dbmsManager.clearSession();
+        });
+  }
 
-            dbmsManager.clearSession();
-        } );
-
-    }
-
-    @Test
-    void testFetchTrackedEntityInstances()
-    {
-        doInTransaction( () -> {
-            this.persistTrackedEntity();
-            this.persistTrackedEntity();
-            this.persistTrackedEntity();
-            this.persistTrackedEntity();
-        } );
-        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( trackedEntityInstances, hasSize( 4 ) );
-        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
-        // Check further for explicit uid in param
-        queryParams.getTrackedEntityUids().addAll( trackedEntityInstances.stream().limit( 2 )
-            .map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toSet() ) );
-        final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( limitedTTrackedEntityInstances, hasSize( 2 ) );
-    }
+  @Test
+  void testFetchTrackedEntityInstances() {
+    doInTransaction(
+        () -> {
+          this.persistTrackedEntity();
+          this.persistTrackedEntity();
+          this.persistTrackedEntity();
+          this.persistTrackedEntity();
+        });
+    TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
+    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setTrackedEntityType(trackedEntityTypeA);
+    queryParams.setIncludeAllAttributes(true);
+    TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+    final List<TrackedEntityInstance> trackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(trackedEntityInstances, hasSize(4));
+    assertThat(trackedEntityInstances.get(0).getEnrollments(), hasSize(0));
+    // Check further for explicit uid in param
+    queryParams
+        .getTrackedEntityUids()
+        .addAll(
+            trackedEntityInstances.stream()
+                .limit(2)
+                .map(TrackedEntityInstance::getTrackedEntityInstance)
+                .collect(Collectors.toSet()));
+    final List<TrackedEntityInstance> limitedTTrackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(limitedTTrackedEntityInstances, hasSize(2));
+  }
 }

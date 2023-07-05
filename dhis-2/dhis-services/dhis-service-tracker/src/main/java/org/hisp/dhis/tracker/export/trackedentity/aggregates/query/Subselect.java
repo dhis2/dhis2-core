@@ -35,21 +35,18 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-class Subselect implements QueryElement
-{
-    private String query;
+class Subselect implements QueryElement {
+  private String query;
 
-    private String alias;
+  private String alias;
 
-    @Override
-    public String useInSelect()
-    {
-        return query + " as " + alias;
-    }
+  @Override
+  public String useInSelect() {
+    return query + " as " + alias;
+  }
 
-    @Override
-    public String getResultsetValue()
-    {
-        return alias;
-    }
+  @Override
+  public String getResultsetValue() {
+    return alias;
+  }
 }
