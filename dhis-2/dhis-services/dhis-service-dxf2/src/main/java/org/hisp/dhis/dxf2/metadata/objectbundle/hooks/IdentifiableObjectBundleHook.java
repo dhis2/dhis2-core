@@ -94,13 +94,15 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                 List<IdentifiableObject> collection = ListUtils.emptyIfNull(
                     ReflectionUtils.invokeGetterMethod( property.getFieldName(), identifiableObject ) );
 
-                boolean hasSortOrder = collection.stream().anyMatch( item -> (( SortableObject ) item).getSortOrder() != null );
+                boolean hasSortOrder = collection.stream()
+                    .anyMatch( item -> ((SortableObject) item).getSortOrder() != null );
                 int sortOrder = 0;
                 int max = collection.size();
                 for ( IdentifiableObject item : collection )
                 {
-                    SortableObject sortableItem = (SortableObject) bundle.getPreheat().get( bundle.getPreheatIdentifier(), item );
-                    if ( (( SortableObject ) item).getSortOrder() == null )
+                    SortableObject sortableItem = (SortableObject) bundle.getPreheat()
+                        .get( bundle.getPreheatIdentifier(), item );
+                    if ( ((SortableObject) item).getSortOrder() == null )
                     {
                         sortableItem.setSortOrder( hasSortOrder ? sortOrder++ : ++max );
                     }
@@ -109,8 +111,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                 }
             } );
     }
-
-
 
     private List<Property> findSortableProperty( Schema schema )
     {
