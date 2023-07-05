@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.db.migration.v41;
 
-import org.hisp.dhis.jsontree.JsonList;
+import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.updateUniqueValue;
+
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+import org.hisp.dhis.db.migration.helper.UniqueValueUtils.UniqueValueParams;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.user.UserGroup}.
+ * Makes the {@code code} column of dashboards unique.
  *
  * @author Jan Bernitt
  */
-public interface JsonUserGroup extends JsonIdentifiableObject
+@SuppressWarnings( "java:S101" )
+public class V2_41_18__Unique_dashboard_code_column extends BaseJavaMigration
 {
-    default JsonList<JsonUser> getUsers()
+    @Override
+    public void migrate( Context context )
+        throws Exception
     {
-        return getList( "users", JsonUser.class );
-    }
-
-    default JsonList<JsonUserGroup> getManagedGroups()
-    {
-        return getList( "managedGroups", JsonUserGroup.class );
-    }
-
-    default JsonList<JsonUserGroup> getManagedByGroups()
-    {
-        return getList( "managedByGroups", JsonUserGroup.class );
-    }
-
-    default String getUsername()
-    {
-        return getString( "username" ).string();
+        updateUniqueValue( context, new UniqueValueParams( "dashboard", "dashboardid", "code", 50, true ) );
     }
 }
