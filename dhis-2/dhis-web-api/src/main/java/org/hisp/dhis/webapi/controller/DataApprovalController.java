@@ -226,19 +226,7 @@ public class DataApprovalController
             orgUnits.add( getAndValidateOrgUnit( orgUnit ) );
         }
 
-        List<CategoryOptionCombo> optionCombos = new ArrayList<>();
-
-        if ( aoc == null )
-        {
-            optionCombos.add( getAndValidateAttributeOptionCombo( null ) );
-        }
-        else
-        {
-            for ( String optionCombo : aoc )
-            {
-                optionCombos.add( getAndValidateAttributeOptionCombo( optionCombo ) );
-            }
-        }
+        Set<CategoryOptionCombo> attributeOptionCombos = getAndValidateAttributeOptionCombos( aoc );
 
         List<DataApproval> dataApprovals = new ArrayList<>();
 
@@ -253,7 +241,7 @@ public class DataApprovalController
                 {
                     for ( OrganisationUnit orgUnit : orgUnits )
                     {
-                        for ( CategoryOptionCombo optionCombo : optionCombos )
+                        for ( CategoryOptionCombo optionCombo : attributeOptionCombos )
                         {
                             dataApprovals.add( new DataApproval( null, workflow, period, orgUnit, optionCombo ) );
                         }
@@ -379,14 +367,14 @@ public class DataApprovalController
         @OpenApi.Param( Period.class ) @RequestParam String pe,
         @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ou,
         @OpenApi.Param( { UID.class, OrganisationUnit.class } ) @RequestParam( required = false ) String ouFilter,
-        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) String aoc )
+        @OpenApi.Param( { UID.class, CategoryOptionCombo.class } ) @RequestParam( required = false ) Set<String> aoc )
         throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
         Period period = getAndValidatePeriod( pe );
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
         OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit( ouFilter );
-        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
+        Set<CategoryOptionCombo> attributeOptionCombos = getAndValidateAttributeOptionCombos( aoc );
 
         if ( orgUnit != null && orgUnit.isRoot() )
         {
@@ -407,7 +395,7 @@ public class DataApprovalController
             for ( CategoryCombo attributeCombo : attributeCombos )
             {
                 statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit,
-                    orgUnitFilter, attributeCombo, attributeOptionCombo ) );
+                    orgUnitFilter, attributeCombo, attributeOptionCombos ) );
             }
         }
 
@@ -801,6 +789,26 @@ public class DataApprovalController
         }
 
         return dataApprovalLevel;
+    }
+
+    private Set<CategoryOptionCombo> getAndValidateAttributeOptionCombos( Set<String> aoc )
+        throws WebMessageException
+    {
+        Set<CategoryOptionCombo> optionCombos = new HashSet<>();
+
+        if ( aoc == null )
+        {
+            optionCombos.add( categoryService.getDefaultCategoryOptionCombo() );
+        }
+        else
+        {
+            for ( String optionCombo : aoc )
+            {
+                optionCombos.add( getAndValidateAttributeOptionCombo( optionCombo ) );
+            }
+        }
+
+        return optionCombos;
     }
 
     private CategoryOptionCombo getAndValidateAttributeOptionCombo( String aoc )
