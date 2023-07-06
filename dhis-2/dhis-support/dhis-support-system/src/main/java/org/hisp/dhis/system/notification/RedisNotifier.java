@@ -28,11 +28,14 @@
 package org.hisp.dhis.system.notification;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -157,10 +160,11 @@ public class RedisNotifier implements Notifier
             -1 );
         if ( notifications == null )
             return new LinkedList<>();
-        Deque<Notification> res = new LinkedList<>();
-        notifications.stream().sorted().forEach( notification -> executeLogErrors(
+        List<Notification> res = new ArrayList<>();
+        notifications.forEach( notification -> executeLogErrors(
             () -> res.add( jsonMapper.readValue( notification, Notification.class ) ) ) );
-        return res;
+        Collections.sort( res );
+        return new LinkedList<>( res );
     }
 
     @Override
