@@ -329,6 +329,26 @@ class GistFilterControllerTest extends AbstractGistControllerTest {
   }
 
   @Test
+  void testFilter_GroupsOR_SingleGroup() {
+    createDataSetsForOrganisationUnit(5, orgUnitId, "alpha");
+    createDataSetsForOrganisationUnit(5, orgUnitId, "beta");
+    createDataSetsForOrganisationUnit(5, orgUnitId, "gamma");
+    // both filters in group 2 are combined OR because root junction is
+    // implicitly AND
+    String url =
+        "/dataSets/gist?filter=2:name:like:alpha&filter=2:name:like:beta&headless=true&order=name";
+    JsonArray matches = GET(url).content();
+    assertEquals(10, matches.size());
+    assertTrue(
+        matches.asList(JsonObject.class).stream()
+            .allMatch(
+                obj -> {
+                  String name = obj.getString("name").string();
+                  return name.startsWith("alpha") || name.startsWith("beta");
+                }));
+  }
+
+  @Test
   void testFilter_GroupAND() {
     createDataSetsForOrganisationUnit(5, orgUnitId, "alpha");
     createDataSetsForOrganisationUnit(5, orgUnitId, "beta");
