@@ -30,8 +30,7 @@ package org.hisp.dhis.predictor;
 /**
  * @author Jim Grace
  */
-public enum PredictionStatus
-{
-    SUCCESS,
-    ERROR
+public enum PredictionStatus {
+  SUCCESS,
+  ERROR
 }

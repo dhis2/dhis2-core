@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
@@ -45,32 +42,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ContinuousAnalyticsJobParameters implements JobParameters
-{
-    /**
-     * The hour of day at which the full analytics table update will be invoked.
-     */
-    @JsonProperty
-    private Integer fullUpdateHourOfDay = 0;
+public class ContinuousAnalyticsJobParameters implements JobParameters {
+  /** The hour of day at which the full analytics table update will be invoked. */
+  @JsonProperty private Integer fullUpdateHourOfDay = 0;
 
-    /**
-     * The number of last years of data to include in the full analytics table
-     * update.
-     */
-    @JsonProperty
-    private Integer lastYears;
+  /** The number of last years of data to include in the full analytics table update. */
+  @JsonProperty private Integer lastYears;
 
-    /**
-     * The types of analytics tables for which to skip update.
-     */
-    @JsonProperty
-    private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+  /** The types of analytics tables for which to skip update. */
+  @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
-    public ContinuousAnalyticsJobParameters( Integer fullUpdateHourOfDay, Integer lastYears,
-        Set<AnalyticsTableType> skipTableTypes )
-    {
-        this.fullUpdateHourOfDay = fullUpdateHourOfDay;
-        this.lastYears = lastYears;
-        this.skipTableTypes = skipTableTypes;
-    }
+  public ContinuousAnalyticsJobParameters(
+      Integer fullUpdateHourOfDay, Integer lastYears, Set<AnalyticsTableType> skipTableTypes) {
+    this.fullUpdateHourOfDay = fullUpdateHourOfDay;
+    this.lastYears = lastYears;
+    this.skipTableTypes = skipTableTypes;
+  }
 }

@@ -41,7 +41,6 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -59,125 +58,123 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class DataDimensionExtractorTest
-{
-    @Test
-    void testGetAtomicIdsForDataElement()
-    {
-        // Given
-        final DimensionalItemId dataElementItem = new DimensionalItemId( DATA_ELEMENT, "id0" );
-        final Set<DimensionalItemId> someItemIds = newHashSet( dataElementItem );
+class DataDimensionExtractorTest {
+  @Test
+  void testGetAtomicIdsForDataElement() {
+    // Given
+    final DimensionalItemId dataElementItem = new DimensionalItemId(DATA_ELEMENT, "id0");
+    final Set<DimensionalItemId> someItemIds = newHashSet(dataElementItem);
 
-        // When
-        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
-            .getAtomicIds( someItemIds );
+    // When
+    final SetMap<Class<? extends IdentifiableObject>, String> result =
+        new DataDimensionExtractor(null).getAtomicIds(someItemIds);
 
-        // Then
-        assertThat( result.size(), is( equalTo( 1 ) ) );
-        assertThat( result.get( DataElement.class ), containsInAnyOrder( dataElementItem.getId0() ) );
-    }
+    // Then
+    assertThat(result.size(), is(equalTo(1)));
+    assertThat(result.get(DataElement.class), containsInAnyOrder(dataElementItem.getId0()));
+  }
 
-    @Test
-    void testGetAtomicIdsForDataElementOperand()
-    {
-        // Given
-        final DimensionalItemId dataElementOperandItem = new DimensionalItemId( DATA_ELEMENT_OPERAND, "id0", "id1",
-            "id2" );
+  @Test
+  void testGetAtomicIdsForDataElementOperand() {
+    // Given
+    final DimensionalItemId dataElementOperandItem =
+        new DimensionalItemId(DATA_ELEMENT_OPERAND, "id0", "id1", "id2");
 
-        final Set<DimensionalItemId> someItemIds = newHashSet( dataElementOperandItem );
+    final Set<DimensionalItemId> someItemIds = newHashSet(dataElementOperandItem);
 
-        // When
-        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
-            .getAtomicIds( someItemIds );
+    // When
+    final SetMap<Class<? extends IdentifiableObject>, String> result =
+        new DataDimensionExtractor(null).getAtomicIds(someItemIds);
 
-        // Then
-        assertThat( result.size(), is( equalTo( 2 ) ) );
-        assertThat( result.get( DataElement.class ), containsInAnyOrder( dataElementOperandItem.getId0() ) );
-        assertThat( result.get( CategoryOptionCombo.class ),
-            containsInAnyOrder( dataElementOperandItem.getId1(), dataElementOperandItem.getId2() ) );
-    }
+    // Then
+    assertThat(result.size(), is(equalTo(2)));
+    assertThat(result.get(DataElement.class), containsInAnyOrder(dataElementOperandItem.getId0()));
+    assertThat(
+        result.get(CategoryOptionCombo.class),
+        containsInAnyOrder(dataElementOperandItem.getId1(), dataElementOperandItem.getId2()));
+  }
 
-    @Test
-    void testGetAtomicIdsForIndicator()
-    {
-        // Given
-        final DimensionalItemId indicatorItem = new DimensionalItemId( INDICATOR, "id0" );
-        final Set<DimensionalItemId> someItemIds = newHashSet(
-            indicatorItem );
+  @Test
+  void testGetAtomicIdsForIndicator() {
+    // Given
+    final DimensionalItemId indicatorItem = new DimensionalItemId(INDICATOR, "id0");
+    final Set<DimensionalItemId> someItemIds = newHashSet(indicatorItem);
 
-        // When
-        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
-            .getAtomicIds( someItemIds );
+    // When
+    final SetMap<Class<? extends IdentifiableObject>, String> result =
+        new DataDimensionExtractor(null).getAtomicIds(someItemIds);
 
-        // Then
-        assertThat( result.size(), is( equalTo( 1 ) ) );
-        assertThat( result.get( Indicator.class ), containsInAnyOrder( indicatorItem.getId0() ) );
-    }
+    // Then
+    assertThat(result.size(), is(equalTo(1)));
+    assertThat(result.get(Indicator.class), containsInAnyOrder(indicatorItem.getId0()));
+  }
 
-    @Test
-    void testGetAtomicIdsForReportingRate()
-    {
-        // Given
-        final DimensionalItemId reportingRateItem = new DimensionalItemId( REPORTING_RATE, "id0", "REPORTING_RATE" );
-        final Set<DimensionalItemId> someItemIds = newHashSet( reportingRateItem );
+  @Test
+  void testGetAtomicIdsForReportingRate() {
+    // Given
+    final DimensionalItemId reportingRateItem =
+        new DimensionalItemId(REPORTING_RATE, "id0", "REPORTING_RATE");
+    final Set<DimensionalItemId> someItemIds = newHashSet(reportingRateItem);
 
-        // When
-        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
-            .getAtomicIds( someItemIds );
+    // When
+    final SetMap<Class<? extends IdentifiableObject>, String> result =
+        new DataDimensionExtractor(null).getAtomicIds(someItemIds);
 
-        // Then
-        assertThat( result.size(), is( equalTo( 1 ) ) );
-        assertThat( result.get( DataSet.class ), containsInAnyOrder( reportingRateItem.getId0() ) );
-    }
+    // Then
+    assertThat(result.size(), is(equalTo(1)));
+    assertThat(result.get(DataSet.class), containsInAnyOrder(reportingRateItem.getId0()));
+  }
 
-    @Test
-    void testGetAtomicIdsForProgramDataElement()
-    {
-        // Given
-        final DimensionalItemId programDataElementItem = new DimensionalItemId( PROGRAM_DATA_ELEMENT, "id0", "id1" );
+  @Test
+  void testGetAtomicIdsForProgramDataElement() {
+    // Given
+    final DimensionalItemId programDataElementItem =
+        new DimensionalItemId(PROGRAM_DATA_ELEMENT, "id0", "id1");
 
-        final Set<DimensionalItemId> someItemIds = newHashSet( programDataElementItem );
+    final Set<DimensionalItemId> someItemIds = newHashSet(programDataElementItem);
 
-        // When
-        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
-            .getAtomicIds( someItemIds );
+    // When
+    final SetMap<Class<? extends IdentifiableObject>, String> result =
+        new DataDimensionExtractor(null).getAtomicIds(someItemIds);
 
-        // Then
-        assertThat( result.size(), is( equalTo( 2 ) ) );
-        assertThat( result.get( Program.class ), containsInAnyOrder( programDataElementItem.getId0() ) );
-        assertThat( result.get( DataElement.class ), containsInAnyOrder( programDataElementItem.getId1() ) );
-    }
+    // Then
+    assertThat(result.size(), is(equalTo(2)));
+    assertThat(result.get(Program.class), containsInAnyOrder(programDataElementItem.getId0()));
+    assertThat(result.get(DataElement.class), containsInAnyOrder(programDataElementItem.getId1()));
+  }
 
-    @Test
-    void testGetAtomicIdsForProgramAttribute()
-    {
-        // Given
-        final DimensionalItemId programAttributeItem = new DimensionalItemId( PROGRAM_ATTRIBUTE, "id0", "id1" );
-        final Set<DimensionalItemId> someItemIds = newHashSet( programAttributeItem );
+  @Test
+  void testGetAtomicIdsForProgramAttribute() {
+    // Given
+    final DimensionalItemId programAttributeItem =
+        new DimensionalItemId(PROGRAM_ATTRIBUTE, "id0", "id1");
+    final Set<DimensionalItemId> someItemIds = newHashSet(programAttributeItem);
 
-        // When
-        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
-            .getAtomicIds( someItemIds );
+    // When
+    final SetMap<Class<? extends IdentifiableObject>, String> result =
+        new DataDimensionExtractor(null).getAtomicIds(someItemIds);
 
-        // Then
-        assertThat( result.size(), is( equalTo( 2 ) ) );
-        assertThat( result.get( Program.class ), containsInAnyOrder( programAttributeItem.getId0() ) );
-        assertThat( result.get( TrackedEntityAttribute.class ), containsInAnyOrder( programAttributeItem.getId1() ) );
-    }
+    // Then
+    assertThat(result.size(), is(equalTo(2)));
+    assertThat(result.get(Program.class), containsInAnyOrder(programAttributeItem.getId0()));
+    assertThat(
+        result.get(TrackedEntityAttribute.class),
+        containsInAnyOrder(programAttributeItem.getId1()));
+  }
 
-    @Test
-    void testGetAtomicIdsForProgramIndicator()
-    {
-        // Given
-        final DimensionalItemId programIndicatorItem = new DimensionalItemId( PROGRAM_INDICATOR, "id0" );
-        final Set<DimensionalItemId> someItemIds = newHashSet( programIndicatorItem );
+  @Test
+  void testGetAtomicIdsForProgramIndicator() {
+    // Given
+    final DimensionalItemId programIndicatorItem = new DimensionalItemId(PROGRAM_INDICATOR, "id0");
+    final Set<DimensionalItemId> someItemIds = newHashSet(programIndicatorItem);
 
-        // When
-        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
-            .getAtomicIds( someItemIds );
+    // When
+    final SetMap<Class<? extends IdentifiableObject>, String> result =
+        new DataDimensionExtractor(null).getAtomicIds(someItemIds);
 
-        // Then
-        assertThat( result.size(), is( equalTo( 1 ) ) );
-        assertThat( result.get( ProgramIndicator.class ), containsInAnyOrder( programIndicatorItem.getId0() ) );
-    }
+    // Then
+    assertThat(result.size(), is(equalTo(1)));
+    assertThat(
+        result.get(ProgramIndicator.class), containsInAnyOrder(programIndicatorItem.getId0()));
+  }
 }

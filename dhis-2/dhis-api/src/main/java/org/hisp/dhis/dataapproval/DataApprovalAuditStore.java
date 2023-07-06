@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataapproval;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -37,23 +36,21 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  *
  * @author Jim Grace
  */
-public interface DataApprovalAuditStore
-    extends GenericStore<DataApprovalAudit>
-{
-    String ID = DataApprovalAuditStore.class.getName();
+public interface DataApprovalAuditStore extends GenericStore<DataApprovalAudit> {
+  String ID = DataApprovalAuditStore.class.getName();
 
-    /**
-     * Deletes DataApprovalAudits for the given organisation unit.
-     *
-     * @param organisationUnit the organisation unit.
-     */
-    void deleteDataApprovalAudits( OrganisationUnit organisationUnit );
+  /**
+   * Deletes DataApprovalAudits for the given organisation unit.
+   *
+   * @param organisationUnit the organisation unit.
+   */
+  void deleteDataApprovalAudits(OrganisationUnit organisationUnit);
 
-    /**
-     * Returns DataApprovalAudit objects for query parameters.
-     *
-     * @param params Data approval audit query parameters.
-     * @return matching DataApproval object, if any
-     */
-    List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params );
+  /**
+   * Returns DataApprovalAudit objects for query parameters.
+   *
+   * @param params Data approval audit query parameters.
+   * @return matching DataApproval object, if any
+   */
+  List<DataApprovalAudit> getDataApprovalAudits(DataApprovalAuditQueryParams params);
 }

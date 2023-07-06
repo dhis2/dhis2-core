@@ -27,24 +27,19 @@
  */
 package org.hisp.dhis.sms.command;
 
-/**
- * Created by zubair@dhis2.org on 17.08.17.
- */
-public enum CompletenessMethod
-{
-    ALL_DATAVALUE( "Receive all data values" ),
-    AT_LEAST_ONE_DATAVALUE( "Receive at least one data value" ),
-    DO_NOT_MARK_COMPLETE( "Do not mark the form as complete" );
+/** Created by zubair@dhis2.org on 17.08.17. */
+public enum CompletenessMethod {
+  ALL_DATAVALUE("Receive all data values"),
+  AT_LEAST_ONE_DATAVALUE("Receive at least one data value"),
+  DO_NOT_MARK_COMPLETE("Do not mark the form as complete");
 
-    private String method;
+  private String method;
 
-    CompletenessMethod( String method )
-    {
-        this.method = method;
-    }
+  CompletenessMethod(String method) {
+    this.method = method;
+  }
 
-    public String getMethod()
-    {
-        return method;
-    }
+  public String getMethod() {
+    return method;
+  }
 }

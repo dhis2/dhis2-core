@@ -33,14 +33,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserGroupMapper.class } )
-public interface UserRoleMapper extends PreheatMapper<UserRole>
-{
-    UserRoleMapper INSTANCE = Mappers.getMapper( UserRoleMapper.class );
+@Mapper(uses = {DebugMapper.class, UserGroupMapper.class})
+public interface UserRoleMapper extends PreheatMapper<UserRole> {
+  UserRoleMapper INSTANCE = Mappers.getMapper(UserRoleMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "authorities" )
-    UserRole map( UserRole userGroupAccess );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "authorities")
+  UserRole map(UserRole userGroupAccess);
 }

@@ -29,9 +29,7 @@ package org.hisp.dhis.webapi.dimension.mappers;
 
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.Getter;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
@@ -40,33 +38,29 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapper
-{
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        ProgramStageDataElement.class );
+public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapper {
+  @Getter
+  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+      Set.of(ProgramStageDataElement.class);
 
-    /**
-     * maps program stages to DimensionResponse
-     */
-    @Override
-    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
-    {
-        ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) prefixedDimension.getItem();
+  /** maps program stages to DimensionResponse */
+  @Override
+  public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
+    ProgramStageDataElement programStageDataElement =
+        (ProgramStageDataElement) prefixedDimension.getItem();
 
-        PrefixedDimension dataElementPrefixedDimension = PrefixedDimension.builder()
-            .item( programStageDataElement.getDataElement() )
-            .build();
+    PrefixedDimension dataElementPrefixedDimension =
+        PrefixedDimension.builder().item(programStageDataElement.getDataElement()).build();
 
-        final DimensionResponse mapped = super.map( dataElementPrefixedDimension, prefix )
-            .withValueType( programStageDataElement.getDataElement().getValueType().name() );
+    final DimensionResponse mapped =
+        super.map(dataElementPrefixedDimension, prefix)
+            .withValueType(programStageDataElement.getDataElement().getValueType().name());
 
-        return Optional.of( programStageDataElement )
-            .map( ProgramStageDataElement::getDataElement )
-            .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
-            .map( mapped::withOptionSet )
-            .orElse( mapped );
-    }
-
+    return Optional.of(programStageDataElement)
+        .map(ProgramStageDataElement::getDataElement)
+        .map(DataElement::getOptionSet)
+        .map(BaseIdentifiableObject::getUid)
+        .map(mapped::withOptionSet)
+        .orElse(mapped);
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.monitoring.metrics;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;
@@ -38,25 +37,24 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public abstract class MetricsEnabler
-    extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.REGISTER_BEAN;
-    }
+public abstract class MetricsEnabler extends PropertiesAwareConfigurationCondition {
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.REGISTER_BEAN;
+  }
 
-    @Override
-    public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
-    {
-        ConfigurationKey key = getConfigKey();
+  @Override
+  public boolean matches(
+      ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata) {
+    ConfigurationKey key = getConfigKey();
 
-        boolean isEnabled = !isTestRun( conditionContext ) && getBooleanValue( getConfigKey() );
-        log.info(
-            String.format( "Monitoring metric for key %s is %s", key.getKey(), isEnabled ? "enabled" : "disabled" ) );
-        return isEnabled;
-    }
+    boolean isEnabled = !isTestRun(conditionContext) && getBooleanValue(getConfigKey());
+    log.info(
+        String.format(
+            "Monitoring metric for key %s is %s",
+            key.getKey(), isEnabled ? "enabled" : "disabled"));
+    return isEnabled;
+  }
 
-    protected abstract ConfigurationKey getConfigKey();
+  protected abstract ConfigurationKey getConfigKey();
 }

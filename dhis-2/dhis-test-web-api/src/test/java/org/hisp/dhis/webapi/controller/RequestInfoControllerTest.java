@@ -41,22 +41,19 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class RequestInfoControllerTest extends DhisControllerConvenienceTest
-{
+class RequestInfoControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetCurrentInfo_NoHeader()
-    {
-        JsonObject info = GET( "/request" ).content();
-        assertTrue( info.isObject() );
-        assertTrue( info.isEmpty() );
-    }
+  @Test
+  void testGetCurrentInfo_NoHeader() {
+    JsonObject info = GET("/request").content();
+    assertTrue(info.isObject());
+    assertTrue(info.isEmpty());
+  }
 
-    @Test
-    void testGetCurrentInfo_XRequestIdHeader()
-    {
-        JsonResponse info = GET( "/request", Header( "X-Request-ID", "abc" ) ).content();
-        assertTrue( info.isObject() );
-        assertEquals( "abc", info.getString( "headerXRequestID" ).string() );
-    }
+  @Test
+  void testGetCurrentInfo_XRequestIdHeader() {
+    JsonResponse info = GET("/request", Header("X-Request-ID", "abc")).content();
+    assertTrue(info.isObject());
+    assertEquals("abc", info.getString("headerXRequestID").string());
+  }
 }

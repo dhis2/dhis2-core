@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 
 /**
@@ -41,32 +39,25 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-final class PdfDataValueSetReader implements DataValueSetReader
-{
-    private final InputStream in;
+final class PdfDataValueSetReader implements DataValueSetReader {
+  private final InputStream in;
 
-    @Override
-    public DataValueSet readHeader()
-    {
-        return PdfDataEntryFormUtil.getDataValueSet( in );
-    }
+  @Override
+  public DataValueSet readHeader() {
+    return PdfDataEntryFormUtil.getDataValueSet(in);
+  }
 
-    @Override
-    public DataValueEntry readNext()
-    {
-        return null; // header contains the values
-    }
+  @Override
+  public DataValueEntry readNext() {
+    return null; // header contains the values
+  }
 
-    @Override
-    public void close()
-    {
-        try
-        {
-            in.close();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  @Override
+  public void close() {
+    try {
+      in.close();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 }

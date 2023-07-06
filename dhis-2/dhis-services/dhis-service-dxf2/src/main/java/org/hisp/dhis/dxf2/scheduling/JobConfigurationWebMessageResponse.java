@@ -27,94 +27,82 @@
  */
 package org.hisp.dhis.dxf2.scheduling;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.Date;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Henning Håkonsen
  */
-public class JobConfigurationWebMessageResponse
-    implements WebMessageResponse
-{
-    private String name;
+public class JobConfigurationWebMessageResponse implements WebMessageResponse {
+  private String name;
 
-    private String id;
+  private String id;
 
-    private Date created;
+  private Date created;
 
-    private JobType jobType;
+  private JobType jobType;
 
-    private JobStatus jobStatus;
+  private JobStatus jobStatus;
 
-    private JobParameters jobParameters;
+  private JobParameters jobParameters;
 
-    private String relativeNotifierEndpoint;
+  private String relativeNotifierEndpoint;
 
-    public JobConfigurationWebMessageResponse( JobConfiguration jobConfiguration )
-    {
-        this.name = jobConfiguration.getDisplayName();
-        this.id = jobConfiguration.getUid();
-        this.created = jobConfiguration.getCreated();
-        this.jobType = jobConfiguration.getJobType();
-        this.jobStatus = jobConfiguration.getJobStatus();
-        this.jobParameters = jobConfiguration.getJobParameters();
-        this.relativeNotifierEndpoint = "/api/system/tasks/" + this.jobType + "/" + this.id;
-    }
+  public JobConfigurationWebMessageResponse(JobConfiguration jobConfiguration) {
+    this.name = jobConfiguration.getDisplayName();
+    this.id = jobConfiguration.getUid();
+    this.created = jobConfiguration.getCreated();
+    this.jobType = jobConfiguration.getJobType();
+    this.jobStatus = jobConfiguration.getJobStatus();
+    this.jobParameters = jobConfiguration.getJobParameters();
+    this.relativeNotifierEndpoint = "/api/system/tasks/" + this.jobType + "/" + this.id;
+  }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+  @JacksonXmlProperty
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
+  @JacksonXmlProperty
+  @JsonProperty
+  public String getId() {
+    return id;
+  }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
+  @JacksonXmlProperty
+  @JsonProperty
+  public Date getCreated() {
+    return created;
+  }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    public JobType getJobType()
-    {
-        return jobType;
-    }
+  @JacksonXmlProperty
+  @JsonProperty
+  public JobType getJobType() {
+    return jobType;
+  }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    public JobStatus getJobStatus()
-    {
-        return jobStatus;
-    }
+  @JacksonXmlProperty
+  @JsonProperty
+  public JobStatus getJobStatus() {
+    return jobStatus;
+  }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    public JobParameters getJobParameters()
-    {
-        return jobParameters;
-    }
+  @JacksonXmlProperty
+  @JsonProperty
+  public JobParameters getJobParameters() {
+    return jobParameters;
+  }
 
-    @JacksonXmlProperty
-    @JsonProperty
-    public String getRelativeNotifierEndpoint()
-    {
-        return relativeNotifierEndpoint;
-    }
+  @JacksonXmlProperty
+  @JsonProperty
+  public String getRelativeNotifierEndpoint() {
+    return relativeNotifierEndpoint;
+  }
 }

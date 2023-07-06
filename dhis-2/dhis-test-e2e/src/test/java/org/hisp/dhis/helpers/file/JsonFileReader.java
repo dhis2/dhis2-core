@@ -27,170 +27,138 @@
  */
 package org.hisp.dhis.helpers.file;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.JsonParserUtils;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class JsonFileReader
-    implements FileReader
-{
-    private JsonObject obj;
+public class JsonFileReader implements FileReader {
+  private JsonObject obj;
 
-    public JsonFileReader( File file )
-        throws IOException
-    {
-        byte[] content = Files.readAllBytes( Paths.get( file.getPath() ) );
+  public JsonFileReader(File file) throws IOException {
+    byte[] content = Files.readAllBytes(Paths.get(file.getPath()));
 
-        String json = new String( content );
+    String json = new String(content);
 
-        obj = new JsonParser().parse( json ).getAsJsonObject();
+    obj = new JsonParser().parse(json).getAsJsonObject();
+  }
+
+  public JsonFileReader read(File file) throws IOException {
+    return new JsonFileReader(file);
+  }
+
+  @Override
+  public FileReader replacePropertyValuesWithIds(String propertyName) {
+    return replacePropertyValuesWith(propertyName, "uniqueid");
+  }
+
+  /***
+   * Replaces all occurrences of a string with unique generated id
+   *
+   * @param strToReplace
+   * @return
+   */
+  public JsonFileReader replaceStringsWithIds(String... strToReplace) {
+    String replacedJson = obj.toString();
+    for (String s : strToReplace) {
+      replacedJson = replacedJson.replaceAll(s, new IdGenerator().generateUniqueId());
     }
 
-    public JsonFileReader read( File file )
-        throws IOException
-    {
-        return new JsonFileReader( file );
-    }
+    obj = JsonParserUtils.toJsonObject(replacedJson);
 
-    @Override
-    public FileReader replacePropertyValuesWithIds( String propertyName )
-    {
-        return replacePropertyValuesWith( propertyName, "uniqueid" );
-    }
+    return this;
+  }
 
-    /***
-     * Replaces all occurrences of a string with unique generated id
-     *
-     * @param strToReplace
-     * @return
-     */
-    public JsonFileReader replaceStringsWithIds( String... strToReplace )
-    {
-        String replacedJson = obj.toString();
-        for ( String s : strToReplace )
-        {
-            replacedJson = replacedJson.replaceAll( s, new IdGenerator().generateUniqueId() );
+  @Override
+  public JsonFileReader replacePropertyValuesWith(String propertyName, String replacedValue) {
+    replace(
+        p -> {
+          JsonObject object = ((JsonElement) p).getAsJsonObject();
+          if (replacedValue.equalsIgnoreCase("uniqueid")) {
+            object.addProperty(propertyName, new IdGenerator().generateUniqueId());
+          } else {
+            object.addProperty(propertyName, replacedValue);
+          }
+
+          return object;
+        });
+
+    return this;
+  }
+
+  @Override
+  public JsonFileReader replacePropertyValuesRecursivelyWith(
+      String propertyName, String replacedValue) {
+    replace(
+        obj,
+        jsonObject -> {
+          if (!jsonObject.has(propertyName)) {
+            return;
+          }
+          if (replacedValue.equalsIgnoreCase("uniqueid")) {
+            jsonObject.addProperty(propertyName, new IdGenerator().generateUniqueId());
+          } else {
+            jsonObject.addProperty(propertyName, replacedValue);
+          }
+        });
+
+    return this;
+  }
+
+  public JsonObject get() {
+    return obj;
+  }
+
+  public JsonObjectBuilder getAsObjectBuilder() {
+    return new JsonObjectBuilder(obj);
+  }
+
+  @Override
+  public JsonFileReader replace(Function<Object, Object> function) {
+    JsonObject newObj = new JsonObject();
+    for (String key : obj.keySet()) {
+      JsonElement element = obj.get(key);
+      if (element.isJsonArray()) {
+        JsonArray array = new JsonArray();
+        for (JsonElement e : element.getAsJsonArray()) {
+          array.add((JsonElement) function.apply(e));
         }
-
-        obj = JsonParserUtils.toJsonObject( replacedJson );
-
-        return this;
+        newObj.add(key, array);
+      } else {
+        newObj.add(key, (JsonElement) function.apply(element));
+      }
     }
 
-    @Override
-    public JsonFileReader replacePropertyValuesWith( String propertyName, String replacedValue )
-    {
-        replace( p -> {
-            JsonObject object = ((JsonElement) p).getAsJsonObject();
-            if ( replacedValue.equalsIgnoreCase( "uniqueid" ) )
-            {
-                object.addProperty( propertyName, new IdGenerator().generateUniqueId() );
-            }
-            else
-            {
-                object.addProperty( propertyName, replacedValue );
-            }
+    obj = newObj;
+    return this;
+  }
 
-            return object;
-        } );
-
-        return this;
-    }
-
-    @Override
-    public JsonFileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue )
-    {
-        replace( obj, jsonObject -> {
-            if ( !jsonObject.has( propertyName ) )
-            {
-                return;
-            }
-            if ( replacedValue.equalsIgnoreCase( "uniqueid" ) )
-            {
-                jsonObject.addProperty( propertyName, new IdGenerator().generateUniqueId() );
-            }
-            else
-            {
-                jsonObject.addProperty( propertyName, replacedValue );
-            }
-        } );
-
-        return this;
-    }
-
-    public JsonObject get()
-    {
-        return obj;
-    }
-
-    public JsonObjectBuilder getAsObjectBuilder()
-    {
-        return new JsonObjectBuilder( obj );
-    }
-
-    @Override
-    public JsonFileReader replace( Function<Object, Object> function )
-    {
-        JsonObject newObj = new JsonObject();
-        for ( String key : obj.keySet() )
-        {
-            JsonElement element = obj.get( key );
-            if ( element.isJsonArray() )
-            {
-                JsonArray array = new JsonArray();
-                for ( JsonElement e : element.getAsJsonArray() )
-                {
-                    array.add( (JsonElement) function.apply( e ) );
-                }
-                newObj.add( key, array );
-            }
-
-            else
-            {
-                newObj.add( key, (JsonElement) function.apply( element ) );
-            }
+  private void replace(JsonElement root, Consumer<JsonObject> function) {
+    if (root.isJsonArray()) {
+      for (JsonElement e : root.getAsJsonArray()) {
+        replace(e, function);
+      }
+    } else if (root.isJsonObject()) {
+      JsonObject jsonObjRoot = root.getAsJsonObject();
+      function.accept(jsonObjRoot);
+      for (String key : jsonObjRoot.keySet()) {
+        JsonElement element = jsonObjRoot.get(key);
+        if (element.isJsonArray()) {
+          replace(element, function);
         }
-
-        obj = newObj;
-        return this;
+      }
     }
-
-    private void replace( JsonElement root, Consumer<JsonObject> function )
-    {
-        if ( root.isJsonArray() )
-        {
-            for ( JsonElement e : root.getAsJsonArray() )
-            {
-                replace( e, function );
-            }
-        }
-        else if ( root.isJsonObject() )
-        {
-            JsonObject jsonObjRoot = root.getAsJsonObject();
-            function.accept( jsonObjRoot );
-            for ( String key : jsonObjRoot.keySet() )
-            {
-                JsonElement element = jsonObjRoot.get( key );
-                if ( element.isJsonArray() )
-                {
-                    replace( element, function );
-                }
-            }
-        }
-    }
+  }
 }

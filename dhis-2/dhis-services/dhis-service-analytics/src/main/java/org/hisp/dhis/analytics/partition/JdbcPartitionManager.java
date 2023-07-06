@@ -32,10 +32,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.table.PartitionUtils;
@@ -48,71 +46,69 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.analytics.partition.PartitionManager" )
+@Service("org.hisp.dhis.analytics.partition.PartitionManager")
 @RequiredArgsConstructor
-public class JdbcPartitionManager
-    implements PartitionManager
-{
-    private Map<AnalyticsTableType, Set<String>> analyticsPartitions = new HashMap<>();
+public class JdbcPartitionManager implements PartitionManager {
+  private Map<AnalyticsTableType, Set<String>> analyticsPartitions = new HashMap<>();
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    @Override
-    public Set<String> getAnalyticsPartitions( AnalyticsTableType tableType )
-    {
-        if ( analyticsPartitions.containsKey( tableType ) )
-        {
-            return analyticsPartitions.get( tableType );
-        }
-
-        String sql = "select table_name from information_schema.tables " +
-            "where table_name like '" + tableType.getTableName() + "%' " +
-            "and table_type = 'BASE TABLE'";
-
-        log.info( "Information schema analytics table SQL: " + sql );
-
-        Set<String> partitions = new HashSet<>( jdbcTemplate.queryForList( sql, String.class ) );
-
-        analyticsPartitions.put( tableType, partitions );
-
-        return partitions;
+  @Override
+  public Set<String> getAnalyticsPartitions(AnalyticsTableType tableType) {
+    if (analyticsPartitions.containsKey(tableType)) {
+      return analyticsPartitions.get(tableType);
     }
 
-    @Override
-    public boolean tableExists( String table )
-    {
-        String sql = "select count(table_name) from information_schema.tables " +
-            "where table_name = '" + table + "' " +
-            "and table_type = 'BASE TABLE'";
+    String sql =
+        "select table_name from information_schema.tables "
+            + "where table_name like '"
+            + tableType.getTableName()
+            + "%' "
+            + "and table_type = 'BASE TABLE'";
 
-        log.debug( "Table exists SQL: " + sql );
+    log.info("Information schema analytics table SQL: " + sql);
 
-        int count = jdbcTemplate.queryForObject( sql, Integer.class );
+    Set<String> partitions = new HashSet<>(jdbcTemplate.queryForList(sql, String.class));
 
-        return count > 0;
-    }
+    analyticsPartitions.put(tableType, partitions);
 
-    @Override
-    public void filterNonExistingPartitions( Partitions partitions, String tableName )
-    {
-        Set<Integer> partitionSet = partitions.getPartitions().stream()
-            .filter( partition -> partitionExists( tableName, partition ) )
-            .collect( Collectors.toSet() );
+    return partitions;
+  }
 
-        partitions.setPartitions( partitionSet );
-    }
+  @Override
+  public boolean tableExists(String table) {
+    String sql =
+        "select count(table_name) from information_schema.tables "
+            + "where table_name = '"
+            + table
+            + "' "
+            + "and table_type = 'BASE TABLE'";
 
-    private boolean partitionExists( String tableName, Integer partition )
-    {
-        return tableExists( PartitionUtils.getPartitionName( tableName, partition ) );
+    log.debug("Table exists SQL: " + sql);
 
-    }
+    int count = jdbcTemplate.queryForObject(sql, Integer.class);
 
-    @Override
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        analyticsPartitions = new HashMap<>();
-        log.info( "Analytics partition cache cleared" );
-    }
+    return count > 0;
+  }
+
+  @Override
+  public void filterNonExistingPartitions(Partitions partitions, String tableName) {
+    Set<Integer> partitionSet =
+        partitions.getPartitions().stream()
+            .filter(partition -> partitionExists(tableName, partition))
+            .collect(Collectors.toSet());
+
+    partitions.setPartitions(partitionSet);
+  }
+
+  private boolean partitionExists(String tableName, Integer partition) {
+    return tableExists(PartitionUtils.getPartitionName(tableName, partition));
+  }
+
+  @Override
+  @EventListener
+  public void handleApplicationCachesCleared(ApplicationCacheClearedEvent event) {
+    analyticsPartitions = new HashMap<>();
+    log.info("Analytics partition cache cleared");
+  }
 }

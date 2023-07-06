@@ -30,31 +30,26 @@ package org.hisp.dhis.webapi.json.domain;
 import org.hisp.dhis.jsontree.JsonString;
 
 /**
- * Web API equivalent of a 8 character access pattern as used in
- * {@link org.hisp.dhis.user.sharing.Sharing} JSON.
+ * Web API equivalent of a 8 character access pattern as used in {@link
+ * org.hisp.dhis.user.sharing.Sharing} JSON.
  *
  * @author Jan Bernitt
  */
-public interface JsonAccess extends JsonString
-{
+public interface JsonAccess extends JsonString {
 
-    default boolean isMetadataRead()
-    {
-        return string().charAt( 0 ) == 'r';
-    }
+  default boolean isMetadataRead() {
+    return string().charAt(0) == 'r';
+  }
 
-    default boolean isMetadataWrite()
-    {
-        return string().charAt( 1 ) == 'w';
-    }
+  default boolean isMetadataWrite() {
+    return string().charAt(1) == 'w';
+  }
 
-    default boolean iDataRead()
-    {
-        return string().charAt( 2 ) == 'r';
-    }
+  default boolean iDataRead() {
+    return string().charAt(2) == 'r';
+  }
 
-    default boolean isDataWrite()
-    {
-        return string().charAt( 3 ) == 'w';
-    }
+  default boolean isDataWrite() {
+    return string().charAt(3) == 'w';
+  }
 }

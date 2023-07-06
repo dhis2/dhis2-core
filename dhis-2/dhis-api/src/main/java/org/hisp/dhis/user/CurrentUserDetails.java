@@ -31,44 +31,42 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public interface CurrentUserDetails extends UserDetails
-{
+public interface CurrentUserDetails extends UserDetails {
 
-    @Override
-    Collection<? extends GrantedAuthority> getAuthorities();
+  @Override
+  Collection<? extends GrantedAuthority> getAuthorities();
 
-    @Override
-    String getPassword();
+  @Override
+  String getPassword();
 
-    @Override
-    String getUsername();
+  @Override
+  String getUsername();
 
-    @Override
-    boolean isAccountNonExpired();
+  @Override
+  boolean isAccountNonExpired();
 
-    @Override
-    boolean isAccountNonLocked();
+  @Override
+  boolean isAccountNonLocked();
 
-    @Override
-    boolean isCredentialsNonExpired();
+  @Override
+  boolean isCredentialsNonExpired();
 
-    @Override
-    boolean isEnabled();
+  @Override
+  boolean isEnabled();
 
-    boolean isSuper();
+  boolean isSuper();
 
-    String getUid();
+  String getUid();
 
-    /**
-     * Set of UserGroup UID which current User belongs to.
-     *
-     * @return
-     */
-    Set<String> getUserGroupIds();
+  /**
+   * Set of UserGroup UID which current User belongs to.
+   *
+   * @return
+   */
+  Set<String> getUserGroupIds();
 
-    Map<String, Serializable> getUserSettings();
+  Map<String, Serializable> getUserSettings();
 }

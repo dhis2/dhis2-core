@@ -27,161 +27,127 @@
  */
 package org.hisp.dhis.dxf2.dataset.streaming;
 
-import java.io.IOException;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
-
 import com.fasterxml.jackson.core.JsonGenerator;
+import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
-public class StreamingJsonCompleteDataSetRegistration
-    extends CompleteDataSetRegistration
-{
-    private JsonGenerator generator;
+public class StreamingJsonCompleteDataSetRegistration extends CompleteDataSetRegistration {
+  private JsonGenerator generator;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public StreamingJsonCompleteDataSetRegistration( JsonGenerator generator )
-    {
-        this.generator = generator;
+  public StreamingJsonCompleteDataSetRegistration(JsonGenerator generator) {
+    this.generator = generator;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void open() {
+    try {
+      generator.writeStartObject();
+    } catch (IOException e) {
+      // Intentionally ignored
+    }
+  }
+
+  @Override
+  public void close() {
+    if (generator == null) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    try {
+      generator.writeEndObject();
+    } catch (IOException e) {
+      // Intentionally ignored
+    }
+  }
 
-    @Override
-    public void open()
-    {
-        try
-        {
-            generator.writeStartObject();
-        }
-        catch ( IOException e )
-        {
-            // Intentionally ignored
-        }
+  // -------------------------------------------------------------------------
+  // Setters
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void setDataSet(String dataSet) {
+    writeField(FIELD_DATASET, dataSet);
+  }
+
+  @Override
+  public void setPeriod(String period) {
+    writeField(FIELD_PERIOD, period);
+  }
+
+  @Override
+  public void setOrganisationUnit(String organisationUnit) {
+    writeField(FIELD_ORGUNIT, organisationUnit);
+  }
+
+  @Override
+  public void setAttributeOptionCombo(String attributeOptionCombo) {
+    writeField(FIELD_ATTR_OPTION_COMBO, attributeOptionCombo);
+  }
+
+  @Override
+  public void setDate(String date) {
+    writeField(FIELD_DATE, date);
+  }
+
+  @Override
+  public void setStoredBy(String storedBy) {
+    writeField(FIELD_STORED_BY, storedBy);
+  }
+
+  @Override
+  public void setLastUpdated(String lastUpdated) {
+    writeField(FIELD_LAST_UPDATED, lastUpdated);
+  }
+
+  @Override
+  public void setCompleted(Boolean completed) {
+    writeField(FIELD_IS_COMPLETED, completed);
+  }
+
+  @Override
+  public void setLastUpdatedBy(String lastUpdatedBy) {
+    writeField(FIELD_LAST_UPDATED_BY, lastUpdatedBy);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private void writeField(String fieldName, Boolean value) {
+    if (value == null) {
+      return;
     }
 
-    @Override
-    public void close()
-    {
-        if ( generator == null )
-        {
-            return;
-        }
+    try {
+      generator.writeObjectField(fieldName, value);
+    } catch (IOException e) {
+      log.error(e.getMessage());
+    }
+  }
 
-        try
-        {
-            generator.writeEndObject();
-        }
-        catch ( IOException e )
-        {
-            // Intentionally ignored
-        }
+  @Override
+  protected void writeField(String fieldName, String value) {
+    if (value == null) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // Setters
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void setDataSet( String dataSet )
-    {
-        writeField( FIELD_DATASET, dataSet );
+    try {
+      generator.writeObjectField(fieldName, value);
+    } catch (IOException e) {
+      log.error(e.getMessage());
     }
-
-    @Override
-    public void setPeriod( String period )
-    {
-        writeField( FIELD_PERIOD, period );
-    }
-
-    @Override
-    public void setOrganisationUnit( String organisationUnit )
-    {
-        writeField( FIELD_ORGUNIT, organisationUnit );
-    }
-
-    @Override
-    public void setAttributeOptionCombo( String attributeOptionCombo )
-    {
-        writeField( FIELD_ATTR_OPTION_COMBO, attributeOptionCombo );
-    }
-
-    @Override
-    public void setDate( String date )
-    {
-        writeField( FIELD_DATE, date );
-    }
-
-    @Override
-    public void setStoredBy( String storedBy )
-    {
-        writeField( FIELD_STORED_BY, storedBy );
-    }
-
-    @Override
-    public void setLastUpdated( String lastUpdated )
-    {
-        writeField( FIELD_LAST_UPDATED, lastUpdated );
-    }
-
-    @Override
-    public void setCompleted( Boolean completed )
-    {
-        writeField( FIELD_IS_COMPLETED, completed );
-    }
-
-    @Override
-    public void setLastUpdatedBy( String lastUpdatedBy )
-    {
-        writeField( FIELD_LAST_UPDATED_BY, lastUpdatedBy );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private void writeField( String fieldName, Boolean value )
-    {
-        if ( value == null )
-        {
-            return;
-        }
-
-        try
-        {
-            generator.writeObjectField( fieldName, value );
-        }
-        catch ( IOException e )
-        {
-            log.error( e.getMessage() );
-        }
-    }
-
-    @Override
-    protected void writeField( String fieldName, String value )
-    {
-        if ( value == null )
-        {
-            return;
-        }
-
-        try
-        {
-            generator.writeObjectField( fieldName, value );
-        }
-        catch ( IOException e )
-        {
-            log.error( e.getMessage() );
-        }
-    }
+  }
 }

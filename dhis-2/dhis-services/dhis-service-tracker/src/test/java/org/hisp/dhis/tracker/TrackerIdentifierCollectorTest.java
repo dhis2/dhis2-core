@@ -42,7 +42,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -66,230 +65,203 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TrackerIdentifierCollectorTest
-{
+class TrackerIdentifierCollectorTest {
 
-    private TrackerIdentifierCollector collector;
+  private TrackerIdentifierCollector collector;
 
-    @BeforeEach
-    void setUp()
-    {
+  @BeforeEach
+  void setUp() {
 
-        ProgramRuleService programRuleService = mock( ProgramRuleService.class );
-        collector = new TrackerIdentifierCollector( programRuleService );
+    ProgramRuleService programRuleService = mock(ProgramRuleService.class);
+    collector = new TrackerIdentifierCollector(programRuleService);
+  }
+
+  @Test
+  void collectTrackedEntities() {
+
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
+            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
+            .build();
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(uid())
+            .trackedEntityType(ofAttribute("NTVsGflP5Ix", "sunshine"))
+            .orgUnit(ofName("ward"))
+            .attributes(teAttributes("VohJnvWfvyo", "qv9xOw8fBzy"))
+            .build();
+
+    TrackerImportParams params =
+        params(idSchemes).trackedEntities(singletonList(trackedEntity)).build();
+
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
+
+    assertNotNull(ids);
+    assertContainsOnly(Set.of(trackedEntity.getTrackedEntity()), ids.get(TrackedEntity.class));
+    assertContainsOnly(Set.of("sunshine"), ids.get(TrackedEntityType.class));
+    assertContainsOnly(Set.of("ward"), ids.get(OrganisationUnit.class));
+    assertContainsOnly(Set.of("VohJnvWfvyo", "qv9xOw8fBzy"), ids.get(TrackedEntityAttribute.class));
+  }
+
+  @Test
+  void collectEnrollments() {
+
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder()
+            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
+            .programIdScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
+            .build();
+
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(uid())
+            .trackedEntity(uid())
+            .program(ofAttribute("NTVsGflP5Ix", "sunshine"))
+            .orgUnit(ofName("ward"))
+            .attributes(teAttributes("VohJnvWfvyo", "qv9xOw8fBzy"))
+            .build();
+
+    TrackerImportParams params = params(idSchemes).enrollments(singletonList(enrollment)).build();
+
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
+
+    assertNotNull(ids);
+    assertContainsOnly(Set.of(enrollment.getUid()), ids.get(Enrollment.class));
+    assertContainsOnly(Set.of(enrollment.getTrackedEntity()), ids.get(TrackedEntity.class));
+    assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
+    assertContainsOnly(Set.of("ward"), ids.get(OrganisationUnit.class));
+    assertContainsOnly(Set.of("VohJnvWfvyo", "qv9xOw8fBzy"), ids.get(TrackedEntityAttribute.class));
+  }
+
+  @Test
+  void collectEvents() {
+
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder()
+            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
+            .programIdScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
+            .dataElementIdScheme(TrackerIdSchemeParam.UID)
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.CODE)
+            .build();
+
+    Event event =
+        Event.builder()
+            .event(uid())
+            .enrollment(uid())
+            .program(ofAttribute("NTVsGflP5Ix", "sunshine"))
+            .programStage(ofAttribute("NTVsGflP5Ix", "flowers"))
+            .orgUnit(ofName("ward"))
+            .dataValues(dataValues("VohJnvWfvyo", "qv9xOw8fBzy"))
+            .attributeOptionCombo(ofCode("rgb"))
+            .attributeCategoryOptions(Set.of(ofCode("red"), ofCode("green"), ofCode("blue")))
+            .notes(List.of(Note.builder().note("i1vviSlidJE").value("nice day!").build()))
+            .build();
+
+    TrackerImportParams params = params(idSchemes).events(singletonList(event)).build();
+
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
+
+    assertNotNull(ids);
+    assertContainsOnly(Set.of(event.getUid()), ids.get(Event.class));
+    assertContainsOnly(Set.of(event.getEnrollment()), ids.get(Enrollment.class));
+    assertContainsOnly(Set.of("sunshine"), ids.get(Program.class));
+    assertContainsOnly(Set.of("flowers"), ids.get(ProgramStage.class));
+    assertContainsOnly(Set.of("ward"), ids.get(OrganisationUnit.class));
+    assertContainsOnly(Set.of("VohJnvWfvyo", "qv9xOw8fBzy"), ids.get(DataElement.class));
+    assertContainsOnly(Set.of("rgb"), ids.get(CategoryOptionCombo.class));
+    assertContainsOnly(Set.of("red", "green", "blue"), ids.get(CategoryOption.class));
+    assertContainsOnly(Set.of("i1vviSlidJE"), ids.get(TrackedEntityComment.class));
+  }
+
+  @Test
+  void collectEventsSkipsNotesWithoutAnId() {
+    Event event = Event.builder().notes(List.of(Note.builder().value("nice day!").build())).build();
+
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build()).events(singletonList(event)).build();
+
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
+
+    assertNotNull(ids);
+    assertNull(ids.get(TrackedEntityComment.class));
+  }
+
+  @Test
+  void collectEventsSkipsNotesWithoutAValue() {
+    Event event =
+        Event.builder().notes(List.of(Note.builder().note("i1vviSlidJE").build())).build();
+
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build()).events(singletonList(event)).build();
+
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
+
+    assertNotNull(ids);
+    assertNull(ids.get(TrackedEntityComment.class));
+  }
+
+  @Test
+  void collectRelationships() {
+
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.ofAttribute("NTVsGflP5Ix"))
+            .orgUnitIdScheme(TrackerIdSchemeParam.NAME)
+            .build();
+
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(uid())
+            .relationshipType(ofAttribute("NTVsGflP5Ix", "sunshine"))
+            .from(RelationshipItem.builder().enrollment(uid()).build())
+            .to(RelationshipItem.builder().event(uid()).build())
+            .build();
+
+    TrackerImportParams params =
+        params(idSchemes).relationships(singletonList(relationship)).build();
+
+    Map<Class<?>, Set<String>> ids = collector.collect(params);
+
+    assertNotNull(ids);
+    assertContainsOnly(Set.of(relationship.getRelationship()), ids.get(Relationship.class));
+    assertContainsOnly(Set.of("sunshine"), ids.get(RelationshipType.class));
+    assertContainsOnly(Set.of(relationship.getFrom().getEnrollment()), ids.get(Enrollment.class));
+    assertContainsOnly(Set.of(relationship.getTo().getEvent()), ids.get(Event.class));
+  }
+
+  private String uid() {
+    return CodeGenerator.generateUid();
+  }
+
+  private TrackerImportParams.TrackerImportParamsBuilder params(TrackerIdSchemeParams idSchemes) {
+    return TrackerImportParams.builder().idSchemes(idSchemes);
+  }
+
+  private List<Attribute> teAttributes(String... uids) {
+
+    List<Attribute> result = new ArrayList<>();
+    for (String uid : uids) {
+      result.add(teAttribute(uid));
     }
+    return result;
+  }
 
-    @Test
-    void collectTrackedEntities()
-    {
+  private Attribute teAttribute(String uid) {
+    return Attribute.builder().attribute(ofUid(uid)).build();
+  }
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.ofAttribute( "NTVsGflP5Ix" ) )
-            .orgUnitIdScheme( TrackerIdSchemeParam.NAME )
-            .build();
+  private Set<DataValue> dataValues(String... dataElementUids) {
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( uid() )
-            .trackedEntityType( ofAttribute( "NTVsGflP5Ix", "sunshine" ) )
-            .orgUnit( ofName( "ward" ) )
-            .attributes( teAttributes( "VohJnvWfvyo", "qv9xOw8fBzy" ) )
-            .build();
-
-        TrackerImportParams params = params( idSchemes )
-            .trackedEntities( singletonList( trackedEntity ) )
-            .build();
-
-        Map<Class<?>, Set<String>> ids = collector.collect( params );
-
-        assertNotNull( ids );
-        assertContainsOnly( Set.of( trackedEntity.getTrackedEntity() ), ids.get( TrackedEntity.class ) );
-        assertContainsOnly( Set.of( "sunshine" ), ids.get( TrackedEntityType.class ) );
-        assertContainsOnly( Set.of( "ward" ), ids.get( OrganisationUnit.class ) );
-        assertContainsOnly( Set.of( "VohJnvWfvyo", "qv9xOw8fBzy" ), ids.get( TrackedEntityAttribute.class ) );
+    Set<DataValue> result = new HashSet<>();
+    for (String uid : dataElementUids) {
+      result.add(dataValue(uid));
     }
+    return result;
+  }
 
-    @Test
-    void collectEnrollments()
-    {
-
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .orgUnitIdScheme( TrackerIdSchemeParam.NAME )
-            .programIdScheme( TrackerIdSchemeParam.ofAttribute( "NTVsGflP5Ix" ) )
-            .build();
-
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( uid() )
-            .trackedEntity( uid() )
-            .program( ofAttribute( "NTVsGflP5Ix", "sunshine" ) )
-            .orgUnit( ofName( "ward" ) )
-            .attributes( teAttributes( "VohJnvWfvyo", "qv9xOw8fBzy" ) )
-            .build();
-
-        TrackerImportParams params = params( idSchemes )
-            .enrollments( singletonList( enrollment ) )
-            .build();
-
-        Map<Class<?>, Set<String>> ids = collector.collect( params );
-
-        assertNotNull( ids );
-        assertContainsOnly( Set.of( enrollment.getUid() ), ids.get( Enrollment.class ) );
-        assertContainsOnly( Set.of( enrollment.getTrackedEntity() ), ids.get( TrackedEntity.class ) );
-        assertContainsOnly( Set.of( "sunshine" ), ids.get( Program.class ) );
-        assertContainsOnly( Set.of( "ward" ), ids.get( OrganisationUnit.class ) );
-        assertContainsOnly( Set.of( "VohJnvWfvyo", "qv9xOw8fBzy" ), ids.get( TrackedEntityAttribute.class ) );
-    }
-
-    @Test
-    void collectEvents()
-    {
-
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .orgUnitIdScheme( TrackerIdSchemeParam.NAME )
-            .programIdScheme( TrackerIdSchemeParam.ofAttribute( "NTVsGflP5Ix" ) )
-            .dataElementIdScheme( TrackerIdSchemeParam.UID )
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.CODE )
-            .build();
-
-        Event event = Event.builder()
-            .event( uid() )
-            .enrollment( uid() )
-            .program( ofAttribute( "NTVsGflP5Ix", "sunshine" ) )
-            .programStage( ofAttribute( "NTVsGflP5Ix", "flowers" ) )
-            .orgUnit( ofName( "ward" ) )
-            .dataValues( dataValues( "VohJnvWfvyo", "qv9xOw8fBzy" ) )
-            .attributeOptionCombo( ofCode( "rgb" ) )
-            .attributeCategoryOptions( Set.of( ofCode( "red" ), ofCode( "green" ), ofCode( "blue" ) ) )
-            .notes( List.of( Note.builder().note( "i1vviSlidJE" ).value( "nice day!" ).build() ) )
-            .build();
-
-        TrackerImportParams params = params( idSchemes )
-            .events( singletonList( event ) )
-            .build();
-
-        Map<Class<?>, Set<String>> ids = collector.collect( params );
-
-        assertNotNull( ids );
-        assertContainsOnly( Set.of( event.getUid() ), ids.get( Event.class ) );
-        assertContainsOnly( Set.of( event.getEnrollment() ), ids.get( Enrollment.class ) );
-        assertContainsOnly( Set.of( "sunshine" ), ids.get( Program.class ) );
-        assertContainsOnly( Set.of( "flowers" ), ids.get( ProgramStage.class ) );
-        assertContainsOnly( Set.of( "ward" ), ids.get( OrganisationUnit.class ) );
-        assertContainsOnly( Set.of( "VohJnvWfvyo", "qv9xOw8fBzy" ), ids.get( DataElement.class ) );
-        assertContainsOnly( Set.of( "rgb" ), ids.get( CategoryOptionCombo.class ) );
-        assertContainsOnly( Set.of( "red", "green", "blue" ), ids.get( CategoryOption.class ) );
-        assertContainsOnly( Set.of( "i1vviSlidJE" ), ids.get( TrackedEntityComment.class ) );
-    }
-
-    @Test
-    void collectEventsSkipsNotesWithoutAnId()
-    {
-        Event event = Event.builder()
-            .notes( List.of( Note.builder().value( "nice day!" ).build() ) )
-            .build();
-
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .events( singletonList( event ) )
-            .build();
-
-        Map<Class<?>, Set<String>> ids = collector.collect( params );
-
-        assertNotNull( ids );
-        assertNull( ids.get( TrackedEntityComment.class ) );
-    }
-
-    @Test
-    void collectEventsSkipsNotesWithoutAValue()
-    {
-        Event event = Event.builder()
-            .notes( List.of( Note.builder().note( "i1vviSlidJE" ).build() ) )
-            .build();
-
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .events( singletonList( event ) )
-            .build();
-
-        Map<Class<?>, Set<String>> ids = collector.collect( params );
-
-        assertNotNull( ids );
-        assertNull( ids.get( TrackedEntityComment.class ) );
-    }
-
-    @Test
-    void collectRelationships()
-    {
-
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.ofAttribute( "NTVsGflP5Ix" ) )
-            .orgUnitIdScheme( TrackerIdSchemeParam.NAME )
-            .build();
-
-        Relationship relationship = Relationship.builder()
-            .relationship( uid() )
-            .relationshipType( ofAttribute( "NTVsGflP5Ix", "sunshine" ) )
-            .from( RelationshipItem.builder()
-                .enrollment( uid() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .event( uid() )
-                .build() )
-            .build();
-
-        TrackerImportParams params = params( idSchemes )
-            .relationships( singletonList( relationship ) )
-            .build();
-
-        Map<Class<?>, Set<String>> ids = collector.collect( params );
-
-        assertNotNull( ids );
-        assertContainsOnly( Set.of( relationship.getRelationship() ), ids.get( Relationship.class ) );
-        assertContainsOnly( Set.of( "sunshine" ), ids.get( RelationshipType.class ) );
-        assertContainsOnly( Set.of( relationship.getFrom().getEnrollment() ), ids.get( Enrollment.class ) );
-        assertContainsOnly( Set.of( relationship.getTo().getEvent() ), ids.get( Event.class ) );
-    }
-
-    private String uid()
-    {
-        return CodeGenerator.generateUid();
-    }
-
-    private TrackerImportParams.TrackerImportParamsBuilder params( TrackerIdSchemeParams idSchemes )
-    {
-        return TrackerImportParams.builder().idSchemes( idSchemes );
-    }
-
-    private List<Attribute> teAttributes( String... uids )
-    {
-
-        List<Attribute> result = new ArrayList<>();
-        for ( String uid : uids )
-        {
-            result.add( teAttribute( uid ) );
-        }
-        return result;
-    }
-
-    private Attribute teAttribute( String uid )
-    {
-        return Attribute.builder()
-            .attribute( ofUid( uid ) )
-            .build();
-    }
-
-    private Set<DataValue> dataValues( String... dataElementUids )
-    {
-
-        Set<DataValue> result = new HashSet<>();
-        for ( String uid : dataElementUids )
-        {
-            result.add( dataValue( uid ) );
-        }
-        return result;
-    }
-
-    private DataValue dataValue( String dataElementUid )
-    {
-        return DataValue.builder()
-            .dataElement( ofUid( dataElementUid ) )
-            .build();
-    }
+  private DataValue dataValue(String dataElementUid) {
+    return DataValue.builder().dataElement(ofUid(dataElementUid)).build();
+  }
 }

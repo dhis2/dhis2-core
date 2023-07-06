@@ -28,45 +28,33 @@
 package org.hisp.dhis.utils;
 
 import java.util.Iterator;
-
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Dxf2NamespaceResolver
-    implements NamespaceContext
-{
-    @Override
-    public String getNamespaceURI( String prefix )
-    {
-        if ( prefix == null )
-        {
-            throw new IllegalArgumentException( "No prefix provided!" );
-        }
-        else
-        {
-            if ( prefix.equals( "d" ) )
-            {
-                return "http://dhis2.org/schema/dxf/2.0";
-            }
-            else
-            {
-                return XMLConstants.NULL_NS_URI;
-            }
-        }
+public class Dxf2NamespaceResolver implements NamespaceContext {
+  @Override
+  public String getNamespaceURI(String prefix) {
+    if (prefix == null) {
+      throw new IllegalArgumentException("No prefix provided!");
+    } else {
+      if (prefix.equals("d")) {
+        return "http://dhis2.org/schema/dxf/2.0";
+      } else {
+        return XMLConstants.NULL_NS_URI;
+      }
     }
+  }
 
-    @Override
-    public String getPrefix( String namespaceURI )
-    {
-        return null;
-    }
+  @Override
+  public String getPrefix(String namespaceURI) {
+    return null;
+  }
 
-    @Override
-    public Iterator<String> getPrefixes( String namespaceURI )
-    {
-        return null;
-    }
+  @Override
+  public Iterator<String> getPrefixes(String namespaceURI) {
+    return null;
+  }
 }

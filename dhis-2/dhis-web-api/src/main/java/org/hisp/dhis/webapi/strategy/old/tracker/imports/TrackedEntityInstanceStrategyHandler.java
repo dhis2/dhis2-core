@@ -28,14 +28,12 @@
 package org.hisp.dhis.webapi.strategy.old.tracker.imports;
 
 import java.io.IOException;
-
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.request.TrackerEntityInstanceRequest;
 
-public interface TrackedEntityInstanceStrategyHandler
-{
-    ImportSummaries mergeOrDeleteTrackedEntityInstances( TrackerEntityInstanceRequest trackerEntityInstanceRequest )
-        throws IOException,
-        BadRequestException;
+public interface TrackedEntityInstanceStrategyHandler {
+  ImportSummaries mergeOrDeleteTrackedEntityInstances(
+      TrackerEntityInstanceRequest trackerEntityInstanceRequest)
+      throws IOException, BadRequestException;
 }

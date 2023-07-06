@@ -28,42 +28,35 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-@Transactional( readOnly = true )
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.EventSyncService" )
-public class DefaultEventSyncService implements EventSyncService
-{
-    private final EventSyncStore eventSyncStore;
+@Service("org.hisp.dhis.program.EventSyncService")
+public class DefaultEventSyncService implements EventSyncService {
+  private final EventSyncStore eventSyncStore;
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    public List<ProgramStageInstance> getEvents( List<String> uids )
-    {
-        return eventSyncStore.getEvents( uids );
-    }
+  @Override
+  public List<ProgramStageInstance> getEvents(List<String> uids) {
+    return eventSyncStore.getEvents(uids);
+  }
 
-    @Override
-    public ProgramStageInstance getEvent( String uid )
-    {
-        return eventSyncStore.getEvent( uid );
-    }
+  @Override
+  public ProgramStageInstance getEvent(String uid) {
+    return eventSyncStore.getEvent(uid);
+  }
 
-    @Override
-    public ProgramInstance getEnrollment( String uid )
-    {
-        return eventSyncStore.getEnrollment( uid );
-    }
+  @Override
+  public ProgramInstance getEnrollment(String uid) {
+    return eventSyncStore.getEnrollment(uid);
+  }
 }

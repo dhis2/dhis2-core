@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.importer.enrollments;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -38,39 +39,34 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EnrollmentsUpdateTests
-    extends TrackerNtiApiTest
-{
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions.loginAsSuperUser();
-    }
+public class EnrollmentsUpdateTests extends TrackerNtiApiTest {
+  @BeforeAll
+  public void beforeAll() {
+    loginActions.loginAsSuperUser();
+  }
 
-    @Test
-    public void shouldNotUpdateImmutableProperties()
-        throws Exception
-    {
-        String enrollmentId = importEnrollment();
-        String program = new ProgramActions().createProgram( "WITH_REGISTRATION" ).extractUid();
-        JsonObject body = trackerActions.get( "/enrollments/" + enrollmentId ).getBody();
+  @Test
+  public void shouldNotUpdateImmutableProperties() throws Exception {
+    String enrollmentId = importEnrollment();
+    String program = new ProgramActions().createProgram("WITH_REGISTRATION").extractUid();
+    JsonObject body = trackerActions.get("/enrollments/" + enrollmentId).getBody();
 
-        body = JsonObjectBuilder.jsonObject( body )
-            .addProperty( "enrollment", enrollmentId )
-            .addProperty( "trackedEntity", importTei() )
-            .addProperty( "program", program )
-            .wrapIntoArray( "enrollments" );
+    body =
+        JsonObjectBuilder.jsonObject(body)
+            .addProperty("enrollment", enrollmentId)
+            .addProperty("trackedEntity", importTei())
+            .addProperty("program", program)
+            .wrapIntoArray("enrollments");
 
-        trackerActions.postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) )
-            .validateErrorReport()
-            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 2 ) ) )
-            .body( "errorCode", hasItems( "E1127", "E1127" ) )
-            .body( "message", Matchers.hasItem( Matchers.containsString( "trackedEntity" ) ) )
-            .body( "message", Matchers.hasItem( Matchers.containsString( "program" ) ) );
-    }
+    trackerActions
+        .postAndGetJobReport(body, new QueryParamsBuilder().add("importStrategy=UPDATE"))
+        .validateErrorReport()
+        .body("", hasSize(Matchers.greaterThanOrEqualTo(2)))
+        .body("errorCode", hasItems("E1127", "E1127"))
+        .body("message", Matchers.hasItem(Matchers.containsString("trackedEntity")))
+        .body("message", Matchers.hasItem(Matchers.containsString("program")));
+  }
 }

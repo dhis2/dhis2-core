@@ -34,19 +34,22 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    InstantMapper.class,
-    UserMapper.class,
-    MetadataIdentifierMapper.class
-} )
-interface TrackedEntityMapper extends DomainMapper<TrackedEntity, org.hisp.dhis.tracker.domain.TrackedEntity>
-{
-    @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
-    @Mapping( target = "trackedEntityType", source = "trackedEntityType", qualifiedByName = "toMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.TrackedEntity from( TrackedEntity trackedEntity,
-        @Context TrackerIdSchemeParams idSchemeParams );
-
+@Mapper(
+    uses = {
+      RelationshipMapper.class,
+      AttributeMapper.class,
+      EnrollmentMapper.class,
+      InstantMapper.class,
+      UserMapper.class,
+      MetadataIdentifierMapper.class
+    })
+interface TrackedEntityMapper
+    extends DomainMapper<TrackedEntity, org.hisp.dhis.tracker.domain.TrackedEntity> {
+  @Mapping(target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier")
+  @Mapping(
+      target = "trackedEntityType",
+      source = "trackedEntityType",
+      qualifiedByName = "toMetadataIdentifier")
+  org.hisp.dhis.tracker.domain.TrackedEntity from(
+      TrackedEntity trackedEntity, @Context TrackerIdSchemeParams idSchemeParams);
 }

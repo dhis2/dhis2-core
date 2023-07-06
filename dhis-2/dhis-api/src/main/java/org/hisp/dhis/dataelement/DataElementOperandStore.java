@@ -32,8 +32,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface DataElementOperandStore
-    extends IdentifiableObjectStore<DataElementOperand>
-{
-    String ID = DataElementOperand.class.getName();
+public interface DataElementOperandStore extends IdentifiableObjectStore<DataElementOperand> {
+  String ID = DataElementOperand.class.getName();
 }

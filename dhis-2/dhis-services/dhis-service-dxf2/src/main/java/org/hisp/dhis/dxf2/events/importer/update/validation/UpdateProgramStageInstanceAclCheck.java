@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -39,12 +38,12 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class UpdateProgramStageInstanceAclCheck extends BaseEventAclCheck
-{
-    @Override
-    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
-        final ProgramStageInstance programStageInstance )
-    {
-        return trackerAccessManager.canUpdate( user, programStageInstance, false );
-    }
+public class UpdateProgramStageInstanceAclCheck extends BaseEventAclCheck {
+  @Override
+  public List<String> checkAcl(
+      final TrackerAccessManager trackerAccessManager,
+      final User user,
+      final ProgramStageInstance programStageInstance) {
+    return trackerAccessManager.canUpdate(user, programStageInstance, false);
+  }
 }

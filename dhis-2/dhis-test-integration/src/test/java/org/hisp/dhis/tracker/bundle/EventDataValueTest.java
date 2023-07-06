@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -54,99 +53,98 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class EventDataValueTest extends TrackerTest
-{
+class EventDataValueTest extends TrackerTest {
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+  @Autowired private ProgramStageInstanceService programStageInstanceService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/simple_metadata.json" );
-        final User userA = userService.getUser( "M5zQapPyTZI" );
-        injectSecurityContext( userA );
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
+    final User userA = userService.getUser("M5zQapPyTZI");
+    injectSecurityContext(userA);
 
-        TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
-        assertNoErrors( trackerImportService.importTracker( teiParams ) );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
-        assertNoErrors( trackerImportService.importTracker( enrollmentParams ) );
-        manager.flush();
-    }
+    TrackerImportParams teiParams = fromJson("tracker/single_tei.json", userA.getUid());
+    assertNoErrors(trackerImportService.importTracker(teiParams));
+    TrackerImportParams enrollmentParams =
+        fromJson("tracker/single_enrollment.json", userA.getUid());
+    assertNoErrors(trackerImportService.importTracker(enrollmentParams));
+    manager.flush();
+  }
 
-    @Test
-    void successWhenEventHasNoProgramAndHasProgramStage()
-        throws IOException
-    {
-        ImportReport importReport = trackerImportService
-            .importTracker( fromJson( "tracker/validations/events-with_no_program.json" ) );
+  @Test
+  void successWhenEventHasNoProgramAndHasProgramStage() throws IOException {
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            fromJson("tracker/validations/events-with_no_program.json"));
 
-        assertNoErrors( importReport );
-    }
+    assertNoErrors(importReport);
+  }
 
-    @Test
-    void testEventDataValue()
-        throws IOException
-    {
-        ImportReport importReport = trackerImportService
-            .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
+  @Test
+  void testEventDataValue() throws IOException {
+    ImportReport importReport =
+        trackerImportService.importTracker(fromJson("tracker/event_with_data_values.json"));
 
-        assertNoErrors( importReport );
-        List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
-        assertEquals( 1, events.size() );
-        ProgramStageInstance psi = events.get( 0 );
-        Set<EventDataValue> eventDataValues = psi.getEventDataValues();
-        assertEquals( 4, eventDataValues.size() );
-    }
+    assertNoErrors(importReport);
+    List<ProgramStageInstance> events = manager.getAll(ProgramStageInstance.class);
+    assertEquals(1, events.size());
+    ProgramStageInstance psi = events.get(0);
+    Set<EventDataValue> eventDataValues = psi.getEventDataValues();
+    assertEquals(4, eventDataValues.size());
+  }
 
-    @Test
-    void testEventDataValueUpdate()
-        throws IOException
-    {
-        ImportReport importReport = trackerImportService
-            .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
+  @Test
+  void testEventDataValueUpdate() throws IOException {
+    ImportReport importReport =
+        trackerImportService.importTracker(fromJson("tracker/event_with_data_values.json"));
 
-        assertNoErrors( importReport );
-        List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
-        assertEquals( 1, events.size() );
-        ProgramStageInstance psi = events.get( 0 );
-        Set<EventDataValue> eventDataValues = psi.getEventDataValues();
-        assertEquals( 4, eventDataValues.size() );
-        // update
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );
-        // make sure that the uid property is populated as well - otherwise
-        // update will
-        // not work
-        trackerImportParams.getEvents().get( 0 ).setEvent( trackerImportParams.getEvents().get( 0 ).getEvent() );
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        importReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( importReport );
-        List<ProgramStageInstance> updatedEvents = manager.getAll( ProgramStageInstance.class );
-        assertEquals( 1, updatedEvents.size() );
-        ProgramStageInstance updatedPsi = programStageInstanceService
-            .getProgramStageInstance( updatedEvents.get( 0 ).getUid() );
-        assertEquals( 3, updatedPsi.getEventDataValues().size() );
-        List<String> values = updatedPsi.getEventDataValues().stream().map( EventDataValue::getValue )
-            .collect( Collectors.toList() );
-        assertThat( values, hasItem( "First" ) );
-        assertThat( values, hasItem( "Second" ) );
-        assertThat( values, hasItem( "Fourth updated" ) );
+    assertNoErrors(importReport);
+    List<ProgramStageInstance> events = manager.getAll(ProgramStageInstance.class);
+    assertEquals(1, events.size());
+    ProgramStageInstance psi = events.get(0);
+    Set<EventDataValue> eventDataValues = psi.getEventDataValues();
+    assertEquals(4, eventDataValues.size());
+    // update
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/event_with_updated_data_values.json");
+    // make sure that the uid property is populated as well - otherwise
+    // update will
+    // not work
+    trackerImportParams
+        .getEvents()
+        .get(0)
+        .setEvent(trackerImportParams.getEvents().get(0).getEvent());
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    importReport = trackerImportService.importTracker(trackerImportParams);
+    assertNoErrors(importReport);
+    List<ProgramStageInstance> updatedEvents = manager.getAll(ProgramStageInstance.class);
+    assertEquals(1, updatedEvents.size());
+    ProgramStageInstance updatedPsi =
+        programStageInstanceService.getProgramStageInstance(updatedEvents.get(0).getUid());
+    assertEquals(3, updatedPsi.getEventDataValues().size());
+    List<String> values =
+        updatedPsi.getEventDataValues().stream()
+            .map(EventDataValue::getValue)
+            .collect(Collectors.toList());
+    assertThat(values, hasItem("First"));
+    assertThat(values, hasItem("Second"));
+    assertThat(values, hasItem("Fourth updated"));
 
-        Map<String, EventDataValue> dataValueMap = eventDataValues.stream()
-            .collect( Collectors.toMap( EventDataValue::getDataElement, ev -> ev ) );
-        Map<String, EventDataValue> updatedDataValueMap = updatedPsi.getEventDataValues().stream()
-            .collect( Collectors.toMap( EventDataValue::getDataElement, ev -> ev ) );
+    Map<String, EventDataValue> dataValueMap =
+        eventDataValues.stream()
+            .collect(Collectors.toMap(EventDataValue::getDataElement, ev -> ev));
+    Map<String, EventDataValue> updatedDataValueMap =
+        updatedPsi.getEventDataValues().stream()
+            .collect(Collectors.toMap(EventDataValue::getDataElement, ev -> ev));
 
-        String updatedDataElementId = "DATAEL00004";
-        assertEquals( dataValueMap.get( updatedDataElementId ).getCreated(),
-            updatedDataValueMap.get( updatedDataElementId ).getCreated() );
-        assertEquals( "Fourth updated", updatedDataValueMap.get( updatedDataElementId ).getValue() );
-    }
+    String updatedDataElementId = "DATAEL00004";
+    assertEquals(
+        dataValueMap.get(updatedDataElementId).getCreated(),
+        updatedDataValueMap.get(updatedDataElementId).getCreated());
+    assertEquals("Fourth updated", updatedDataValueMap.get(updatedDataElementId).getValue());
+  }
 }

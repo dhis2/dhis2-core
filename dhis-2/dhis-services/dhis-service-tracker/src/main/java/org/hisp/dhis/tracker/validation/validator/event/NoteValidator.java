@@ -36,12 +36,10 @@ import org.hisp.dhis.tracker.validation.validator.ValidationUtils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class NoteValidator implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        event
-            .setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), event, event.getNotes() ) );
-    }
+class NoteValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    event.setNotes(
+        ValidationUtils.validateNotes(reporter, bundle.getPreheat(), event, event.getNotes()));
+  }
 }

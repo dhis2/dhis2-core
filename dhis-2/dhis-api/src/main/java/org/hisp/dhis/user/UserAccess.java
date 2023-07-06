@@ -27,152 +27,125 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.schema.annotation.Property;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import java.io.Serializable;
+import java.util.Objects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared( name = "LegacyUserAccess" )
-@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    implements Serializable
-{
-    private String access;
+@OpenApi.Shared(name = "LegacyUserAccess")
+@JacksonXmlRootElement(localName = "userAccess", namespace = DxfNamespaces.DXF_2_0)
+public class UserAccess implements Serializable {
+  private String access;
 
-    private transient User user;
+  private transient User user;
 
-    private String uid;
+  private String uid;
 
-    private String displayName;
+  private String displayName;
 
-    public UserAccess()
-    {
+  public UserAccess() {}
+
+  public UserAccess(User user, String access) {
+    this.user = user;
+    this.uid = user.getUid();
+    this.displayName = user.getDisplayName();
+    this.access = access;
+  }
+
+  public UserAccess(String uid, String access) {
+    this.uid = uid;
+    this.access = access;
+  }
+
+  public String getId() {
+    return uid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(required = Property.Value.TRUE)
+  public String getAccess() {
+    return access;
+  }
+
+  public void setAccess(String access) {
+    this.access = access;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getUserUid() {
+    return user != null ? user.getUid() : null;
+  }
+
+  @JsonProperty("id")
+  @JacksonXmlProperty(localName = "id", namespace = DxfNamespaces.DXF_2_0)
+  @Property(required = Property.Value.TRUE)
+  public String getUid() {
+    return uid != null ? uid : (user != null ? user.getUid() : null);
+  }
+
+  public void setUid(String uid) {
+    this.uid = uid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
+  @JsonIgnore
+  public User getUser() {
+    if (user == null) {
+      User newUser = new User();
+      newUser.setUid(uid);
+      return newUser;
     }
 
-    public UserAccess( User user, String access )
-    {
-        this.user = user;
-        this.uid = user.getUid();
-        this.displayName = user.getDisplayName();
-        this.access = access;
+    return user;
+  }
+
+  @JsonProperty
+  public void setUser(User user) {
+    this.user = user;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public UserAccess( String uid, String access )
-    {
-        this.uid = uid;
-        this.access = access;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public String getId()
-    {
-        return uid;
-    }
+    UserAccess that = (UserAccess) o;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
-    public String getAccess()
-    {
-        return access;
-    }
+    return Objects.equals(access, that.access) && Objects.equals(getUid(), that.getUid());
+  }
 
-    public void setAccess( String access )
-    {
-        this.access = access;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(access, getUid());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserUid()
-    {
-        return user != null ? user.getUid() : null;
-    }
-
-    @JsonProperty( "id" )
-    @JacksonXmlProperty( localName = "id", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( required = Property.Value.TRUE )
-    public String getUid()
-    {
-        return uid != null ? uid : (user != null ? user.getUid() : null);
-    }
-
-    public void setUid( String uid )
-    {
-        this.uid = uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayName()
-    {
-        return displayName;
-    }
-
-    public void setDisplayName( String displayName )
-    {
-        this.displayName = displayName;
-    }
-
-    @JsonIgnore
-    public User getUser()
-    {
-        if ( user == null )
-        {
-            User newUser = new User();
-            newUser.setUid( uid );
-            return newUser;
-        }
-
-        return user;
-    }
-
-    @JsonProperty
-    public void setUser( User user )
-    {
-        this.user = user;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        UserAccess that = (UserAccess) o;
-
-        return Objects.equals( access, that.access ) && Objects.equals( getUid(), that.getUid() );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( access, getUid() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "access", access )
-            .add( "uid", getUid() )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("access", access).add("uid", getUid()).toString();
+  }
 }

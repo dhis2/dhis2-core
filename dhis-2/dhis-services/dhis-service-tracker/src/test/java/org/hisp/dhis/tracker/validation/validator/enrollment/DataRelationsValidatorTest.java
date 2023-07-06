@@ -31,8 +31,8 @@ import static org.hisp.dhis.tracker.validation.validator.AssertValidations.asser
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.Collections;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -54,228 +54,219 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class DataRelationsValidatorTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class DataRelationsValidatorTest extends DhisConvenienceTest {
 
-    private static final String PROGRAM_UID = "PROGRAM_UID";
+  private static final String PROGRAM_UID = "PROGRAM_UID";
 
-    private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
+  private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-    private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
 
-    private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
+  private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
 
-    private static final String TEI_ID = "TEI_ID";
+  private static final String TEI_ID = "TEI_ID";
 
-    private DataRelationsValidator validator;
+  private DataRelationsValidator validator;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        validator = new DataRelationsValidator();
+  @BeforeEach
+  void setUp() {
+    validator = new DataRelationsValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void verifyValidationSuccessForEnrollment()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, teiType ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( preheat.getTrackedEntity( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
+  @Test
+  void verifyValidationSuccessForEnrollment() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    TrackedEntityType teiType = trackedEntityType(TEI_TYPE_ID);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, teiType));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getTrackedEntity(TEI_ID))
+        .thenReturn(trackedEntityInstance(TEI_TYPE_ID, teiType, orgUnit));
 
-        Enrollment enrollment = Enrollment.builder()
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .enrollment( CodeGenerator.generateUid() )
-            .trackedEntity( TEI_ID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .enrollment(CodeGenerator.generateUid())
+            .trackedEntity(TEI_ID)
             .build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentIsNotARegistration()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+  @Test
+  void verifyValidationFailsWhenEnrollmentIsNotARegistration() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
+        .thenReturn(programWithoutRegistration(PROGRAM_UID, orgUnit));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
 
-        Enrollment enrollment = Enrollment.builder()
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, ValidationCode.E1014 );
-    }
+    assertHasError(reporter, enrollment, ValidationCode.E1014);
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, anotherOrgUnit ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn(
-                Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
+  @Test
+  void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    OrganisationUnit anotherOrgUnit = organisationUnit(CodeGenerator.generateUid());
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
+        .thenReturn(programWithRegistration(PROGRAM_UID, anotherOrgUnit));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(
+            Collections.singletonMap(
+                PROGRAM_UID, Collections.singletonList(anotherOrgUnit.getUid())));
 
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, ValidationCode.E1041 );
-    }
+    assertHasError(reporter, enrollment, ValidationCode.E1041);
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
-        when( preheat.getTrackedEntity( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_ID, anotherTrackedEntityType, orgUnit ) );
+  @Test
+  void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TEI_TYPE_ID)));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    TrackedEntityType anotherTrackedEntityType = trackedEntityType(TEI_ID, 'B');
+    when(preheat.getTrackedEntity(TEI_ID))
+        .thenReturn(trackedEntityInstance(TEI_ID, anotherTrackedEntityType, orgUnit));
 
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
             .build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, ValidationCode.E1022 );
-    }
+    assertHasError(reporter, enrollment, ValidationCode.E1022);
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( null );
+  @Test
+  void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))).thenReturn(orgUnit);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID)))
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TEI_TYPE_ID)));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(null);
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .trackedEntityType( MetadataIdentifier.ofUid( ANOTHER_TEI_TYPE_ID ) )
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .trackedEntityType(MetadataIdentifier.ofUid(ANOTHER_TEI_TYPE_ID))
             .build();
-        bundle.setTrackedEntities( Collections.singletonList( trackedEntity ) );
+    bundle.setTrackedEntities(Collections.singletonList(trackedEntity));
 
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
             .build();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, ValidationCode.E1022 );
-    }
+    assertHasError(reporter, enrollment, ValidationCode.E1022);
+  }
 
-    private OrganisationUnit organisationUnit( String uid )
-    {
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnit.setUid( uid );
-        return organisationUnit;
-    }
+  private OrganisationUnit organisationUnit(String uid) {
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    organisationUnit.setUid(uid);
+    return organisationUnit;
+  }
 
-    private Program programWithRegistration( String uid, OrganisationUnit orgUnit )
-    {
-        return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
-    }
+  private Program programWithRegistration(String uid, OrganisationUnit orgUnit) {
+    return program(
+        uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType(TEI_TYPE_ID));
+  }
 
-    // Note : parameters that always have the same value are kept to
-    // make connections between different entities clear when looking at the
-    // test. Without having to navigate to the
-    // helpers.
-    private Program programWithRegistration( String uid, OrganisationUnit orgUnit, TrackedEntityType teiType )
-    {
-        return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType );
-    }
+  // Note : parameters that always have the same value are kept to
+  // make connections between different entities clear when looking at the
+  // test. Without having to navigate to the
+  // helpers.
+  private Program programWithRegistration(
+      String uid, OrganisationUnit orgUnit, TrackedEntityType teiType) {
+    return program(uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType);
+  }
 
-    private Program programWithoutRegistration( String uid, OrganisationUnit orgUnit )
-    {
-        return program( uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
-    }
+  private Program programWithoutRegistration(String uid, OrganisationUnit orgUnit) {
+    return program(
+        uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType(TEI_TYPE_ID));
+  }
 
-    private Program program( String uid, ProgramType type, char uniqueCharacter, OrganisationUnit orgUnit,
-        TrackedEntityType teiType )
-    {
-        Program program = createProgram( uniqueCharacter );
-        program.setUid( uid );
-        program.setProgramType( type );
-        program.setOrganisationUnits( Sets.newHashSet( orgUnit ) );
-        program.setTrackedEntityType( teiType );
-        return program;
-    }
+  private Program program(
+      String uid,
+      ProgramType type,
+      char uniqueCharacter,
+      OrganisationUnit orgUnit,
+      TrackedEntityType teiType) {
+    Program program = createProgram(uniqueCharacter);
+    program.setUid(uid);
+    program.setProgramType(type);
+    program.setOrganisationUnits(Sets.newHashSet(orgUnit));
+    program.setTrackedEntityType(teiType);
+    return program;
+  }
 
-    private TrackedEntityType trackedEntityType( String uid )
-    {
-        return trackedEntityType( uid, 'A' );
-    }
+  private TrackedEntityType trackedEntityType(String uid) {
+    return trackedEntityType(uid, 'A');
+  }
 
-    private TrackedEntityType trackedEntityType( String uid, char uniqueChar )
-    {
-        TrackedEntityType trackedEntityType = createTrackedEntityType( uniqueChar );
-        trackedEntityType.setUid( uid );
-        return trackedEntityType;
-    }
+  private TrackedEntityType trackedEntityType(String uid, char uniqueChar) {
+    TrackedEntityType trackedEntityType = createTrackedEntityType(uniqueChar);
+    trackedEntityType.setUid(uid);
+    return trackedEntityType;
+  }
 
-    private TrackedEntityInstance trackedEntityInstance( String uid, TrackedEntityType type, OrganisationUnit orgUnit )
-    {
-        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
-        tei.setUid( uid );
-        tei.setTrackedEntityType( type );
-        return tei;
-    }
+  private TrackedEntityInstance trackedEntityInstance(
+      String uid, TrackedEntityType type, OrganisationUnit orgUnit) {
+    TrackedEntityInstance tei = createTrackedEntityInstance(orgUnit);
+    tei.setUid(uid);
+    tei.setTrackedEntityType(type);
+    return tei;
+  }
 }

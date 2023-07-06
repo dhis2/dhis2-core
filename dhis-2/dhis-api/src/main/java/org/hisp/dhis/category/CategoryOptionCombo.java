@@ -27,12 +27,17 @@
  */
 package org.hisp.dhis.category;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -45,373 +50,329 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Aselefew
  */
-@JacksonXmlRootElement( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
-public class CategoryOptionCombo
-    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
-{
-    public static final String DEFAULT_NAME = "default";
+@JacksonXmlRootElement(localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0)
+public class CategoryOptionCombo extends BaseDimensionalItemObject
+    implements SystemDefaultMetadataObject {
+  public static final String DEFAULT_NAME = "default";
 
-    public static final String DEFAULT_TOSTRING = "(default)";
+  public static final String DEFAULT_TOSTRING = "(default)";
 
-    /**
-     * The category combo.
-     */
-    private CategoryCombo categoryCombo;
+  /** The category combo. */
+  private CategoryCombo categoryCombo;
 
-    /**
-     * The category options.
-     */
-    private Set<CategoryOption> categoryOptions = new HashSet<>();
+  /** The category options. */
+  private Set<CategoryOption> categoryOptions = new HashSet<>();
 
-    /**
-     * Indicates whether to ignore data approval.
-     */
-    private boolean ignoreApproval;
+  /** Indicates whether to ignore data approval. */
+  private boolean ignoreApproval;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public CategoryOptionCombo()
-    {
-    }
+  public CategoryOptionCombo() {}
 
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // hashCode, equals and toString
+  // -------------------------------------------------------------------------
 
-    @Override
-    public int hashCode()
-    {
-        final int prime = 31;
+  @Override
+  public int hashCode() {
+    final int prime = 31;
 
-        int result = 1;
+    int result = 1;
 
-        result = prime * result + ((categoryCombo == null) ? 0 : categoryCombo.hashCode());
-        result = prime * result + ((categoryOptions == null) ? 0 : categoryOptions.hashCode());
+    result = prime * result + ((categoryCombo == null) ? 0 : categoryCombo.hashCode());
+    result = prime * result + ((categoryOptions == null) ? 0 : categoryOptions.hashCode());
 
-        return result;
-    }
+    return result;
+  }
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        return this == obj || obj instanceof CategoryOptionCombo && objectEquals( (CategoryOptionCombo) obj );
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof CategoryOptionCombo && objectEquals((CategoryOptionCombo) obj);
+  }
 
-    private boolean objectEquals( CategoryOptionCombo other )
-    {
-        return Objects.equals( categoryCombo, other.categoryCombo )
-            && Objects.equals( categoryOptions, other.categoryOptions );
-    }
+  private boolean objectEquals(CategoryOptionCombo other) {
+    return Objects.equals(categoryCombo, other.categoryCombo)
+        && Objects.equals(categoryOptions, other.categoryOptions);
+  }
 
-    @Override
-    public String toString()
-    {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + getId() + "\", " +
-            "\"uid\":\"" + getUid() + "\", " +
-            "\"code\":\"" + getCode() + "\", " +
-            "\"categoryCombo\":" + categoryCombo + ", " +
-            "\"categoryOptions\":" + categoryOptions +
-            "}";
-    }
+  @Override
+  public String toString() {
+    return "{"
+        + "\"class\":\""
+        + getClass()
+        + "\", "
+        + "\"id\":\""
+        + getId()
+        + "\", "
+        + "\"uid\":\""
+        + getUid()
+        + "\", "
+        + "\"code\":\""
+        + getCode()
+        + "\", "
+        + "\"categoryCombo\":"
+        + categoryCombo
+        + ", "
+        + "\"categoryOptions\":"
+        + categoryOptions
+        + "}";
+  }
 
-    // -------------------------------------------------------------------------
-    // hashCode and equals based on identifiable object
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // hashCode and equals based on identifiable object
+  // -------------------------------------------------------------------------
 
-    public int hashCodeIdentifiableObject()
-    {
-        return super.hashCode();
-    }
+  public int hashCodeIdentifiableObject() {
+    return super.hashCode();
+  }
 
-    public boolean equalsIdentifiableObject( Object object )
-    {
-        return super.equals( object );
-    }
+  public boolean equalsIdentifiableObject(Object object) {
+    return super.equals(object);
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public void addCategoryOption( CategoryOption dataElementCategoryOption )
-    {
-        categoryOptions.add( dataElementCategoryOption );
-        dataElementCategoryOption.getCategoryOptionCombos().add( this );
-    }
+  public void addCategoryOption(CategoryOption dataElementCategoryOption) {
+    categoryOptions.add(dataElementCategoryOption);
+    dataElementCategoryOption.getCategoryOptionCombos().add(this);
+  }
 
-    public void removeCategoryOption( CategoryOption dataElementCategoryOption )
-    {
-        categoryOptions.remove( dataElementCategoryOption );
-        dataElementCategoryOption.getCategoryOptionCombos().remove( this );
-    }
+  public void removeCategoryOption(CategoryOption dataElementCategoryOption) {
+    categoryOptions.remove(dataElementCategoryOption);
+    dataElementCategoryOption.getCategoryOptionCombos().remove(this);
+  }
 
-    public void removeAllCategoryOptions()
-    {
-        categoryOptions.clear();
-    }
+  public void removeAllCategoryOptions() {
+    categoryOptions.clear();
+  }
 
-    @Override
-    public boolean isDefault()
-    {
-        return categoryCombo != null && DEFAULT_NAME.equals( categoryCombo.getName() );
-    }
+  @Override
+  public boolean isDefault() {
+    return categoryCombo != null && DEFAULT_NAME.equals(categoryCombo.getName());
+  }
 
-    /**
-     * Gets a range of valid dates for this (attribute) category option combo
-     * for a data set.
-     * <p>
-     * The earliest valid date is the latest start date (if any) from all the
-     * category options associated with this option combo.
-     * <p>
-     * The latest valid date is the earliest end date (if any) from all the
-     * category options associated with this option combo.
-     *
-     * @param dataSet the data set for which to check dates.
-     * @return valid date range for this (attribute) category option combo.
-     */
-    public DateRange getDateRange( DataSet dataSet )
-    {
-        Date earliestEndDate = getCategoryOptions().stream()
-            .map( co -> co.getAdjustedEndDate( dataSet ) )
-            .filter( Objects::nonNull )
-            .min( Date::compareTo )
-            .orElse( null );
+  /**
+   * Gets a range of valid dates for this (attribute) category option combo for a data set.
+   *
+   * <p>The earliest valid date is the latest start date (if any) from all the category options
+   * associated with this option combo.
+   *
+   * <p>The latest valid date is the earliest end date (if any) from all the category options
+   * associated with this option combo.
+   *
+   * @param dataSet the data set for which to check dates.
+   * @return valid date range for this (attribute) category option combo.
+   */
+  public DateRange getDateRange(DataSet dataSet) {
+    Date earliestEndDate =
+        getCategoryOptions().stream()
+            .map(co -> co.getAdjustedEndDate(dataSet))
+            .filter(Objects::nonNull)
+            .min(Date::compareTo)
+            .orElse(null);
 
-        return new DateRange( getLatestStartDate(), earliestEndDate );
-    }
+    return new DateRange(getLatestStartDate(), earliestEndDate);
+  }
 
-    /**
-     * Gets a range of valid dates for this (attribute) category option combo
-     * for a data element (for all data sets to which the data element belongs).
-     * <p>
-     * The earliest valid date is the latest start date (if any) from all the
-     * category options associated with this option combo.
-     * <p>
-     * The latest valid date is the earliest end date (if any) from all the
-     * category options associated with this option combo.
-     *
-     * @param dataElement the data element for which to check dates.
-     * @return valid date range for this (attribute) category option combo.
-     */
-    public DateRange getDateRange( DataElement dataElement )
-    {
-        Date earliestEndDate = getCategoryOptions().stream()
-            .map( co -> co.getAdjustedEndDate( dataElement ) )
-            .filter( Objects::nonNull )
-            .min( Date::compareTo )
-            .orElse( null );
+  /**
+   * Gets a range of valid dates for this (attribute) category option combo for a data element (for
+   * all data sets to which the data element belongs).
+   *
+   * <p>The earliest valid date is the latest start date (if any) from all the category options
+   * associated with this option combo.
+   *
+   * <p>The latest valid date is the earliest end date (if any) from all the category options
+   * associated with this option combo.
+   *
+   * @param dataElement the data element for which to check dates.
+   * @return valid date range for this (attribute) category option combo.
+   */
+  public DateRange getDateRange(DataElement dataElement) {
+    Date earliestEndDate =
+        getCategoryOptions().stream()
+            .map(co -> co.getAdjustedEndDate(dataElement))
+            .filter(Objects::nonNull)
+            .min(Date::compareTo)
+            .orElse(null);
 
-        return new DateRange( getLatestStartDate(), earliestEndDate );
-    }
+    return new DateRange(getLatestStartDate(), earliestEndDate);
+  }
 
-    /**
-     * Gets a range of valid dates for this (attribute) category option combo
-     * for a program.
-     * <p>
-     * The earliest valid date is the latest start date (if any) from all the
-     * category options associated with this option combo.
-     * <p>
-     * The latest valid date is the earliest end date (if any) from all the
-     * category options associated with this option combo.
-     *
-     * @param program the data set for which to check dates.
-     * @return valid date range for this (attribute) category option combo.
-     */
-    public DateRange getDateRange( Program program )
-    {
-        Date earliestEndDate = getCategoryOptions().stream()
-            .map( co -> co.getAdjustedEndDate( program ) )
-            .filter( Objects::nonNull )
-            .min( Date::compareTo )
-            .orElse( null );
+  /**
+   * Gets a range of valid dates for this (attribute) category option combo for a program.
+   *
+   * <p>The earliest valid date is the latest start date (if any) from all the category options
+   * associated with this option combo.
+   *
+   * <p>The latest valid date is the earliest end date (if any) from all the category options
+   * associated with this option combo.
+   *
+   * @param program the data set for which to check dates.
+   * @return valid date range for this (attribute) category option combo.
+   */
+  public DateRange getDateRange(Program program) {
+    Date earliestEndDate =
+        getCategoryOptions().stream()
+            .map(co -> co.getAdjustedEndDate(program))
+            .filter(Objects::nonNull)
+            .min(Date::compareTo)
+            .orElse(null);
 
-        return new DateRange( getLatestStartDate(), earliestEndDate );
-    }
+    return new DateRange(getLatestStartDate(), earliestEndDate);
+  }
 
-    /**
-     * Gets a set of valid organisation units (subtrees) for this (attribute)
-     * category option combo, if any.
-     * <p>
-     * The set of valid organisation units (if any) is the intersection of the
-     * sets of valid organisation untis for all the category options associated
-     * with this option combo.
-     * <p>
-     * Note: returns null if there are no organisation unit restrictions (no
-     * associated option combos have any organisation unit restrictions), but
-     * returns an empty set if associated option combos have organisation unit
-     * restrictions and their intersection is empty.
-     *
-     * @return valid organisation units for this (attribute) category option
-     *         combo.
-     */
-    public Set<OrganisationUnit> getOrganisationUnits()
-    {
-        Set<OrganisationUnit> orgUnits = null;
+  /**
+   * Gets a set of valid organisation units (subtrees) for this (attribute) category option combo,
+   * if any.
+   *
+   * <p>The set of valid organisation units (if any) is the intersection of the sets of valid
+   * organisation untis for all the category options associated with this option combo.
+   *
+   * <p>Note: returns null if there are no organisation unit restrictions (no associated option
+   * combos have any organisation unit restrictions), but returns an empty set if associated option
+   * combos have organisation unit restrictions and their intersection is empty.
+   *
+   * @return valid organisation units for this (attribute) category option combo.
+   */
+  public Set<OrganisationUnit> getOrganisationUnits() {
+    Set<OrganisationUnit> orgUnits = null;
 
-        for ( CategoryOption option : getCategoryOptions() )
-        {
-            if ( !CollectionUtils.isEmpty( option.getOrganisationUnits() ) )
-            {
-                if ( orgUnits == null )
-                {
-                    orgUnits = option.getOrganisationUnits();
-                }
-                else
-                {
-                    orgUnits = new HashSet<>( orgUnits );
-                    orgUnits.retainAll( option.getOrganisationUnits() );
-                }
-            }
+    for (CategoryOption option : getCategoryOptions()) {
+      if (!CollectionUtils.isEmpty(option.getOrganisationUnits())) {
+        if (orgUnits == null) {
+          orgUnits = option.getOrganisationUnits();
+        } else {
+          orgUnits = new HashSet<>(orgUnits);
+          orgUnits.retainAll(option.getOrganisationUnits());
         }
-
-        return orgUnits;
+      }
     }
 
-    /**
-     * Gets the latest category option start date for this category option
-     * combo. The combo is only valid between the latest start date of any
-     * options and the earliest end date of any options.
-     *
-     * @return the latest option start date for this combo.
-     */
-    public Date getLatestStartDate()
-    {
-        return getCategoryOptions().stream()
-            .map( CategoryOption::getStartDate )
-            .filter( Objects::nonNull )
-            .max( Date::compareTo )
-            .orElse( null );
+    return orgUnits;
+  }
+
+  /**
+   * Gets the latest category option start date for this category option combo. The combo is only
+   * valid between the latest start date of any options and the earliest end date of any options.
+   *
+   * @return the latest option start date for this combo.
+   */
+  public Date getLatestStartDate() {
+    return getCategoryOptions().stream()
+        .map(CategoryOption::getStartDate)
+        .filter(Objects::nonNull)
+        .max(Date::compareTo)
+        .orElse(null);
+  }
+
+  /**
+   * Gets the earliest category option end date for this category option combo. The combo is only
+   * valid between the latest start date of any options and the earliest end date of any options.
+   *
+   * <p>Note that this end date does not take into account any possible extensions to the category
+   * end dates for aggregate data entry in data sets with openPeriodsAfterCoEndDate.
+   *
+   * @return the earliest option end date for this combo.
+   */
+  public Date getEarliestEndDate() {
+    return getCategoryOptions().stream()
+        .map(CategoryOption::getEndDate)
+        .filter(Objects::nonNull)
+        .min(Date::compareTo)
+        .orElse(null);
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String getName() {
+    if (name != null) {
+      return name;
     }
 
-    /**
-     * Gets the earliest category option end date for this category option
-     * combo. The combo is only valid between the latest start date of any
-     * options and the earliest end date of any options.
-     * <p>
-     * Note that this end date does not take into account any possible
-     * extensions to the category end dates for aggregate data entry in data
-     * sets with openPeriodsAfterCoEndDate.
-     *
-     * @return the earliest option end date for this combo.
-     */
-    public Date getEarliestEndDate()
-    {
-        return getCategoryOptions().stream()
-            .map( CategoryOption::getEndDate )
-            .filter( Objects::nonNull )
-            .min( Date::compareTo )
-            .orElse( null );
+    StringBuilder builder = new StringBuilder();
+
+    if (categoryCombo == null || categoryCombo.getCategories().isEmpty()) {
+      return uid;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+    List<Category> categories = categoryCombo.getCategories();
 
-    @Override
-    public String getName()
-    {
-        if ( name != null )
-        {
-            return name;
+    for (Category category : categories) {
+      List<CategoryOption> options = category.getCategoryOptions();
+
+      optionLoop:
+      for (CategoryOption option : categoryOptions) {
+        if (options.contains(option)) {
+          builder.append(option.getDisplayName()).append(", ");
+
+          continue optionLoop;
         }
-
-        StringBuilder builder = new StringBuilder();
-
-        if ( categoryCombo == null || categoryCombo.getCategories().isEmpty() )
-        {
-            return uid;
-        }
-
-        List<Category> categories = categoryCombo.getCategories();
-
-        for ( Category category : categories )
-        {
-            List<CategoryOption> options = category.getCategoryOptions();
-
-            optionLoop: for ( CategoryOption option : categoryOptions )
-            {
-                if ( options.contains( option ) )
-                {
-                    builder.append( option.getDisplayName() ).append( ", " );
-
-                    continue optionLoop;
-                }
-            }
-        }
-
-        builder.delete( Math.max( builder.length() - 2, 0 ), builder.length() );
-
-        return StringUtils.substring( builder.toString(), 0, 255 );
+      }
     }
 
-    @Override
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+    builder.delete(Math.max(builder.length() - 2, 0), builder.length());
 
-    @Override
-    @JsonIgnore
-    public String getShortName()
-    {
-        return getName();
-    }
+    return StringUtils.substring(builder.toString(), 0, 255);
+  }
 
-    @Override
-    public void setShortName( String shortName )
-    {
-        // Not supported
-    }
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getCategoryCombo()
-    {
-        return categoryCombo;
-    }
+  @Override
+  @JsonIgnore
+  public String getShortName() {
+    return getName();
+  }
 
-    public void setCategoryCombo( CategoryCombo categoryCombo )
-    {
-        this.categoryCombo = categoryCombo;
-    }
+  @Override
+  public void setShortName(String shortName) {
+    // Not supported
+  }
 
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<CategoryOption> getCategoryOptions()
-    {
-        return categoryOptions;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getCategoryCombo() {
+    return categoryCombo;
+  }
 
-    public void setCategoryOptions( Set<CategoryOption> categoryOptions )
-    {
-        this.categoryOptions = categoryOptions;
-    }
+  public void setCategoryCombo(CategoryCombo categoryCombo) {
+    this.categoryCombo = categoryCombo;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isIgnoreApproval()
-    {
-        return ignoreApproval;
-    }
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
+  public Set<CategoryOption> getCategoryOptions() {
+    return categoryOptions;
+  }
 
-    public void setIgnoreApproval( boolean ignoreApproval )
-    {
-        this.ignoreApproval = ignoreApproval;
-    }
+  public void setCategoryOptions(Set<CategoryOption> categoryOptions) {
+    this.categoryOptions = categoryOptions;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isIgnoreApproval() {
+    return ignoreApproval;
+  }
+
+  public void setIgnoreApproval(boolean ignoreApproval) {
+    this.ignoreApproval = ignoreApproval;
+  }
 }

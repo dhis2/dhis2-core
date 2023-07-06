@@ -29,27 +29,25 @@ package org.hisp.dhis.attribute.exception;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.attribute.Attribute;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MissingMandatoryAttributeValueException extends Exception
-{
-    private final List<Attribute> attributes;
+public class MissingMandatoryAttributeValueException extends Exception {
+  private final List<Attribute> attributes;
 
-    public MissingMandatoryAttributeValueException( List<Attribute> attributes )
-    {
-        super( String.valueOf( attributes.stream()
-            .map( att -> "Attribute " + att.getDisplayName() + " (" + att.getUid() + ")" )
-            .collect( Collectors.toList() ) ) );
+  public MissingMandatoryAttributeValueException(List<Attribute> attributes) {
+    super(
+        String.valueOf(
+            attributes.stream()
+                .map(att -> "Attribute " + att.getDisplayName() + " (" + att.getUid() + ")")
+                .collect(Collectors.toList())));
 
-        this.attributes = attributes;
-    }
+    this.attributes = attributes;
+  }
 
-    public List<Attribute> getAttributes()
-    {
-        return attributes;
-    }
+  public List<Attribute> getAttributes() {
+    return attributes;
+  }
 }

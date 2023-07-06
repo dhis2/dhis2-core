@@ -38,15 +38,11 @@ import org.hisp.dhis.tracker.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class UidValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        checkUidFormat( event.getEvent(), reporter, event, event, event.getEvent() );
+class UidValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    checkUidFormat(event.getEvent(), reporter, event, event, event.getEvent());
 
-        validateNotesUid( event.getNotes(), reporter, event );
-    }
-
+    validateNotesUid(event.getNotes(), reporter, event);
+  }
 }

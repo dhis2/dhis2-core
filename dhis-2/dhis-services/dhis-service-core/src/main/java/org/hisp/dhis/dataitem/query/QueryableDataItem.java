@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.of;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,30 +45,26 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
  *
  * @author maikel arabori
  */
-public enum QueryableDataItem
-{
-    INDICATOR( Indicator.class ),
-    DATA_ELEMENT( DataElement.class ),
-    DATA_SET( DataSet.class ),
-    PROGRAM_INDICATOR( ProgramIndicator.class ),
-    PROGRAM_DATA_ELEMENT( ProgramDataElementDimensionItem.class ),
-    PROGRAM_ATTRIBUTE( ProgramTrackedEntityAttributeDimensionItem.class ),
-    EXPRESSION_DIMENSION_ITEM( ExpressionDimensionItem.class );
+public enum QueryableDataItem {
+  INDICATOR(Indicator.class),
+  DATA_ELEMENT(DataElement.class),
+  DATA_SET(DataSet.class),
+  PROGRAM_INDICATOR(ProgramIndicator.class),
+  PROGRAM_DATA_ELEMENT(ProgramDataElementDimensionItem.class),
+  PROGRAM_ATTRIBUTE(ProgramTrackedEntityAttributeDimensionItem.class),
+  EXPRESSION_DIMENSION_ITEM(ExpressionDimensionItem.class);
 
-    private Class<? extends BaseIdentifiableObject> entity;
+  private Class<? extends BaseIdentifiableObject> entity;
 
-    QueryableDataItem( final Class<? extends BaseIdentifiableObject> entity )
-    {
-        this.entity = entity;
-    }
+  QueryableDataItem(final Class<? extends BaseIdentifiableObject> entity) {
+    this.entity = entity;
+  }
 
-    public Class<? extends BaseIdentifiableObject> getEntity()
-    {
-        return this.entity;
-    }
+  public Class<? extends BaseIdentifiableObject> getEntity() {
+    return this.entity;
+  }
 
-    public static Set<Class<? extends BaseIdentifiableObject>> getEntities()
-    {
-        return of( QueryableDataItem.values() ).map( QueryableDataItem::getEntity ).collect( toSet() );
-    }
+  public static Set<Class<? extends BaseIdentifiableObject>> getEntities() {
+    return of(QueryableDataItem.values()).map(QueryableDataItem::getEntity).collect(toSet());
+  }
 }

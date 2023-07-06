@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.validation.validator.ValidationUtils.addIssu
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
@@ -43,25 +42,21 @@ import org.springframework.stereotype.Component;
 /**
  * @author Enrico Colasante
  */
-@Component( "org.hisp.dhis.tracker.validation.validator.enrollment.RuleEngineValidator" )
-class RuleEngineValidator
-    implements Validator<Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        if ( !bundle.getEnrollmentRuleActionExecutors().containsKey( enrollment ) )
-        {
-            return;
-        }
-
-        List<ProgramRuleIssue> programRuleIssues = bundle.getEnrollmentRuleActionExecutors().get( enrollment )
-            .stream()
-            .map( e -> e.executeRuleAction( bundle, enrollment ) )
-            .filter( Optional::isPresent )
-            .map( Optional::get )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, enrollment, programRuleIssues );
+@Component("org.hisp.dhis.tracker.validation.validator.enrollment.RuleEngineValidator")
+class RuleEngineValidator implements Validator<Enrollment> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    if (!bundle.getEnrollmentRuleActionExecutors().containsKey(enrollment)) {
+      return;
     }
+
+    List<ProgramRuleIssue> programRuleIssues =
+        bundle.getEnrollmentRuleActionExecutors().get(enrollment).stream()
+            .map(e -> e.executeRuleAction(bundle, enrollment))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+
+    addIssuesToReporter(reporter, enrollment, programRuleIssues);
+  }
 }

@@ -55,6 +55,7 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -68,9 +69,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryOption;
@@ -139,1120 +138,1066 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class AbstractEventService implements EventService
-{
-    public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID,
-        EVENT_CREATED_ID,
-        EVENT_CREATED_BY_USER_INFO_ID, EVENT_LAST_UPDATED_ID, EVENT_LAST_UPDATED_BY_USER_INFO_ID, EVENT_STORED_BY_ID,
-        EVENT_COMPLETED_BY_ID,
-        EVENT_COMPLETED_DATE_ID, EVENT_EXECUTION_DATE_ID, EVENT_DUE_DATE_ID, EVENT_ORG_UNIT_ID, EVENT_ORG_UNIT_NAME,
-        EVENT_STATUS_ID, EVENT_PROGRAM_STAGE_ID, EVENT_PROGRAM_ID, EVENT_ATTRIBUTE_OPTION_COMBO_ID, EVENT_DELETED,
-        EVENT_GEOMETRY );
+public abstract class AbstractEventService implements EventService {
+  public static final List<String> STATIC_EVENT_COLUMNS =
+      Arrays.asList(
+          EVENT_ID,
+          EVENT_ENROLLMENT_ID,
+          EVENT_CREATED_ID,
+          EVENT_CREATED_BY_USER_INFO_ID,
+          EVENT_LAST_UPDATED_ID,
+          EVENT_LAST_UPDATED_BY_USER_INFO_ID,
+          EVENT_STORED_BY_ID,
+          EVENT_COMPLETED_BY_ID,
+          EVENT_COMPLETED_DATE_ID,
+          EVENT_EXECUTION_DATE_ID,
+          EVENT_DUE_DATE_ID,
+          EVENT_ORG_UNIT_ID,
+          EVENT_ORG_UNIT_NAME,
+          EVENT_STATUS_ID,
+          EVENT_PROGRAM_STAGE_ID,
+          EVENT_PROGRAM_ID,
+          EVENT_ATTRIBUTE_OPTION_COMBO_ID,
+          EVENT_DELETED,
+          EVENT_GEOMETRY);
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    protected EventImporter eventImporter;
+  protected EventImporter eventImporter;
 
-    protected EventManager eventManager;
+  protected EventManager eventManager;
 
-    protected WorkContextLoader workContextLoader;
+  protected WorkContextLoader workContextLoader;
 
-    protected ProgramService programService;
+  protected ProgramService programService;
 
-    protected ProgramInstanceService programInstanceService;
+  protected ProgramInstanceService programInstanceService;
 
-    protected ProgramStageInstanceService programStageInstanceService;
+  protected ProgramStageInstanceService programStageInstanceService;
 
-    protected OrganisationUnitService organisationUnitService;
+  protected OrganisationUnitService organisationUnitService;
 
-    protected CurrentUserService currentUserService;
+  protected CurrentUserService currentUserService;
 
-    protected TrackedEntityInstanceService entityInstanceService;
+  protected TrackedEntityInstanceService entityInstanceService;
 
-    protected TrackedEntityCommentService commentService;
+  protected TrackedEntityCommentService commentService;
 
-    protected EventStore eventStore;
+  protected EventStore eventStore;
 
-    protected Notifier notifier;
+  protected Notifier notifier;
 
-    protected DbmsManager dbmsManager;
+  protected DbmsManager dbmsManager;
 
-    protected IdentifiableObjectManager manager;
+  protected IdentifiableObjectManager manager;
 
-    protected CategoryService categoryService;
+  protected CategoryService categoryService;
 
-    protected FileResourceService fileResourceService;
+  protected FileResourceService fileResourceService;
 
-    protected SchemaService schemaService;
+  protected SchemaService schemaService;
 
-    protected QueryService queryService;
+  protected QueryService queryService;
 
-    protected TrackerAccessManager trackerAccessManager;
+  protected TrackerAccessManager trackerAccessManager;
 
-    protected TrackerOwnershipManager trackerOwnershipAccessManager;
+  protected TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    protected RelationshipService relationshipService;
+  protected RelationshipService relationshipService;
 
-    protected UserService userService;
+  protected UserService userService;
 
-    protected EventSyncService eventSyncService;
+  protected EventSyncService eventSyncService;
 
-    protected EventServiceContextBuilder eventServiceContextBuilder;
+  protected EventServiceContextBuilder eventServiceContextBuilder;
 
-    protected Cache<Boolean> dataElementCache;
+  protected Cache<Boolean> dataElementCache;
 
-    private static final int FLUSH_FREQUENCY = 100;
+  private static final int FLUSH_FREQUENCY = 100;
 
-    // -------------------------------------------------------------------------
-    // Caches
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Caches
+  // -------------------------------------------------------------------------
 
-    private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
+  private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
-    private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
+  private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
-    // -------------------------------------------------------------------------
-    // CREATE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // CREATE
+  // -------------------------------------------------------------------------
 
-    @Override
-    public ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions,
-        JobConfiguration jobConfiguration )
-    {
-        return eventImporter.importAll( events, importOptions, jobConfiguration );
+  @Override
+  public ImportSummaries processEventImport(
+      List<Event> events, ImportOptions importOptions, JobConfiguration jobConfiguration) {
+    return eventImporter.importAll(events, importOptions, jobConfiguration);
+  }
+
+  @Transactional
+  @Override
+  public ImportSummaries addEvents(
+      List<Event> events, ImportOptions importOptions, boolean clearSession) {
+    final WorkContext workContext = workContextLoader.load(importOptions, events);
+    return eventManager.addEvents(events, workContext);
+  }
+
+  @Transactional
+  @Override
+  public ImportSummaries addEvents(
+      final List<Event> events,
+      ImportOptions importOptions,
+      final JobConfiguration jobConfiguration) {
+    notifier.clear(jobConfiguration).notify(jobConfiguration, "Importing events");
+    importOptions = updateImportOptions(importOptions);
+
+    try {
+      final WorkContext workContext = workContextLoader.load(importOptions, events);
+
+      final ImportSummaries importSummaries = eventManager.addEvents(events, workContext);
+
+      if (jobConfiguration != null) {
+        notifier
+            .notify(jobConfiguration, NotificationLevel.INFO, "Import done", true)
+            .addJobSummary(jobConfiguration, importSummaries, ImportSummaries.class);
+      }
+
+      return importSummaries;
+    } catch (RuntimeException ex) {
+      log.error(DebugUtils.getStackTrace(ex));
+      notifier.notify(jobConfiguration, ERROR, "Process failed: " + ex.getMessage(), true);
+      return new ImportSummaries()
+          .addImportSummary(
+              new ImportSummary(
+                  ImportStatus.ERROR, "The import process failed: " + ex.getMessage()));
+    }
+  }
+
+  @Transactional
+  @Override
+  public ImportSummary addEvent(Event event, ImportOptions importOptions, boolean bulkImport) {
+    final WorkContext workContext =
+        workContextLoader.load(importOptions, Collections.singletonList(event));
+
+    return eventManager.addEvent(event, workContext);
+  }
+
+  // -------------------------------------------------------------------------
+  // READ
+  // -------------------------------------------------------------------------
+
+  @Transactional(readOnly = true)
+  @Override
+  public Events getEvents(EventSearchParams params) {
+    User user = currentUserService.getCurrentUser();
+
+    validate(params, user);
+
+    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
+
+    if (!params.isPaging() && !params.isSkipPaging()) {
+      params.setDefaultPaging();
     }
 
-    @Transactional
-    @Override
-    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
-    {
-        final WorkContext workContext = workContextLoader.load( importOptions, events );
-        return eventManager.addEvents( events, workContext );
+    Events events = new Events();
+    List<Event> eventList = new ArrayList<>();
+
+    if (params.isSkipPaging()) {
+      events.setEvents(eventStore.getEvents(params, organisationUnits, emptyMap()));
+      return events;
     }
 
-    @Transactional
-    @Override
-    public ImportSummaries addEvents( final List<Event> events, ImportOptions importOptions,
-        final JobConfiguration jobConfiguration )
-    {
-        notifier.clear( jobConfiguration ).notify( jobConfiguration, "Importing events" );
-        importOptions = updateImportOptions( importOptions );
+    Pager pager;
+    eventList.addAll(eventStore.getEvents(params, organisationUnits, emptyMap()));
 
-        try
-        {
-            final WorkContext workContext = workContextLoader.load( importOptions, events );
-
-            final ImportSummaries importSummaries = eventManager.addEvents( events, workContext );
-
-            if ( jobConfiguration != null )
-            {
-                notifier.notify( jobConfiguration, NotificationLevel.INFO, "Import done", true )
-                    .addJobSummary( jobConfiguration, importSummaries, ImportSummaries.class );
-            }
-
-            return importSummaries;
-        }
-        catch ( RuntimeException ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-            notifier.notify( jobConfiguration, ERROR, "Process failed: " + ex.getMessage(), true );
-            return new ImportSummaries().addImportSummary(
-                new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() ) );
-        }
+    if (params.isTotalPages()) {
+      int count = eventStore.getEventCount(params, organisationUnits);
+      pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
+    } else {
+      pager = handleLastPageFlag(params, eventList);
     }
 
-    @Transactional
-    @Override
-    public ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport )
-    {
-        final WorkContext workContext = workContextLoader.load( importOptions, Collections.singletonList( event ) );
+    events.setPager(pager);
+    events.setEvents(eventList);
 
-        return eventManager.addEvent( event, workContext );
+    return events;
+  }
+
+  /**
+   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
+   * conjunction with the method: {@link
+   * EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
+   *
+   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
+   * allow us to evaluate if we are in the last page or not. And this is what his method does,
+   * returning the respective Pager object.
+   *
+   * @param params the request params
+   * @param eventList the reference to the list of Event
+   * @return the populated SlimPager instance
+   */
+  private Pager handleLastPageFlag(EventSearchParams params, List<Event> eventList) {
+    Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
+    Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
+    boolean isLastPage = false;
+
+    if (isNotEmpty(eventList)) {
+      isLastPage = eventList.size() <= originalPageSize;
+      if (!isLastPage) {
+        // Get the same number of elements of the pageSize, forcing
+        // the removal of the last additional element added at querying
+        // time.
+        eventList.retainAll(eventList.subList(0, originalPageSize));
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // READ
-    // -------------------------------------------------------------------------
+    return new SlimPager(originalPage, originalPageSize, isLastPage);
+  }
 
-    @Transactional( readOnly = true )
-    @Override
-    public Events getEvents( EventSearchParams params )
-    {
-        User user = currentUserService.getCurrentUser();
+  @Transactional(readOnly = true)
+  @Override
+  public Grid getEventsGrid(EventSearchParams params) {
+    User user = currentUserService.getCurrentUser();
 
-        validate( params, user );
-
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
-
-        if ( !params.isPaging() && !params.isSkipPaging() )
-        {
-            params.setDefaultPaging();
-        }
-
-        Events events = new Events();
-        List<Event> eventList = new ArrayList<>();
-
-        if ( params.isSkipPaging() )
-        {
-            events.setEvents( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
-            return events;
-        }
-
-        Pager pager;
-        eventList.addAll( eventStore.getEvents( params, organisationUnits, emptyMap() ) );
-
-        if ( params.isTotalPages() )
-        {
-            int count = eventStore.getEventCount( params, organisationUnits );
-            pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-        }
-        else
-        {
-            pager = handleLastPageFlag( params, eventList );
-        }
-
-        events.setPager( pager );
-        events.setEvents( eventList );
-
-        return events;
+    if (params.getProgramStage() == null || params.getProgramStage().getProgram() == null) {
+      throw new IllegalQueryException("Program stage can not be null");
     }
 
-    /**
-     * This method will apply the logic related to the parameter
-     * 'totalPages=false'. This works in conjunction with the method:
-     * {@link EventStore#getEvents(EventSearchParams,List<OrganisationUnit>,Map<String,Set<String>>)}
-     *
-     * This is needed because we need to query (pageSize + 1) at DB level. The
-     * resulting query will allow us to evaluate if we are in the last page or
-     * not. And this is what his method does, returning the respective Pager
-     * object.
-     *
-     * @param params the request params
-     * @param eventList the reference to the list of Event
-     * @return the populated SlimPager instance
-     */
-    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
-    {
-        Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
-        boolean isLastPage = false;
-
-        if ( isNotEmpty( eventList ) )
-        {
-            isLastPage = eventList.size() <= originalPageSize;
-            if ( !isLastPage )
-            {
-                // Get the same number of elements of the pageSize, forcing
-                // the removal of the last additional element added at querying
-                // time.
-                eventList.retainAll( eventList.subList( 0, originalPageSize ) );
-            }
-        }
-
-        return new SlimPager( originalPage, originalPageSize, isLastPage );
+    if (params.getProgramStage().getProgramStageDataElements() == null) {
+      throw new IllegalQueryException("Program stage should have at least one data element");
     }
 
-    @Transactional( readOnly = true )
-    @Override
-    public Grid getEventsGrid( EventSearchParams params )
-    {
-        User user = currentUserService.getCurrentUser();
+    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
 
-        if ( params.getProgramStage() == null || params.getProgramStage().getProgram() == null )
-        {
-            throw new IllegalQueryException( "Program stage can not be null" );
+    // ---------------------------------------------------------------------
+    // If includeAllDataElements is set to true, return all data elements.
+    // If no data element is specified, use those set as display in report.
+    // ---------------------------------------------------------------------
+
+    if (params.isIncludeAllDataElements()) {
+      for (ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements()) {
+        QueryItem qi =
+            new QueryItem(
+                pde.getDataElement(),
+                pde.getDataElement().getLegendSet(),
+                pde.getDataElement().getValueType(),
+                pde.getDataElement().getAggregationType(),
+                pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null);
+        params.getDataElements().add(qi);
+      }
+    } else {
+      if (params.getDataElements().isEmpty()) {
+        for (ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements()) {
+          if (pde.getDisplayInReports()) {
+            QueryItem qi =
+                new QueryItem(
+                    pde.getDataElement(),
+                    pde.getDataElement().getLegendSet(),
+                    pde.getDataElement().getValueType(),
+                    pde.getDataElement().getAggregationType(),
+                    pde.getDataElement().hasOptionSet()
+                        ? pde.getDataElement().getOptionSet()
+                        : null);
+            params.getDataElements().add(qi);
+          }
         }
-
-        if ( params.getProgramStage().getProgramStageDataElements() == null )
-        {
-            throw new IllegalQueryException( "Program stage should have at least one data element" );
-        }
-
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
-
-        // ---------------------------------------------------------------------
-        // If includeAllDataElements is set to true, return all data elements.
-        // If no data element is specified, use those set as display in report.
-        // ---------------------------------------------------------------------
-
-        if ( params.isIncludeAllDataElements() )
-        {
-            for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
-            {
-                QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
-                    pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
-                    pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
-                params.getDataElements().add( qi );
-            }
-        }
-        else
-        {
-            if ( params.getDataElements().isEmpty() )
-            {
-                for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
-                {
-                    if ( pde.getDisplayInReports() )
-                    {
-                        QueryItem qi = new QueryItem( pde.getDataElement(), pde.getDataElement().getLegendSet(),
-                            pde.getDataElement().getValueType(), pde.getDataElement().getAggregationType(),
-                            pde.getDataElement().hasOptionSet() ? pde.getDataElement().getOptionSet() : null );
-                        params.getDataElements().add( qi );
-                    }
-                }
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Grid headers
-        // ---------------------------------------------------------------------
-
-        Grid grid = new ListGrid();
-
-        for ( String col : STATIC_EVENT_COLUMNS )
-        {
-            grid.addHeader( new GridHeader( col, col ) );
-        }
-
-        for ( QueryItem item : params.getDataElements() )
-        {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
-        }
-
-        List<Map<String, String>> events = eventStore.getEventsGrid( params, organisationUnits );
-
-        // ---------------------------------------------------------------------
-        // Grid rows
-        // ---------------------------------------------------------------------
-
-        for ( Map<String, String> event : events )
-        {
-            grid.addRow();
-
-            for ( String col : STATIC_EVENT_COLUMNS )
-            {
-                grid.addValue( event.get( col ) );
-            }
-
-            for ( QueryItem item : params.getDataElements() )
-            {
-                grid.addValue( event.get( item.getItemId() ) );
-            }
-        }
-
-        Map<String, Object> metaData = new HashMap<>();
-
-        if ( params.isPaging() )
-        {
-            final Pager pager;
-
-            if ( params.isTotalPages() )
-            {
-                int count = eventStore.getEventCount( params, organisationUnits );
-                pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-            }
-            else
-            {
-                pager = handleLastPageFlag( params, grid );
-            }
-
-            metaData.put( PAGER_META_KEY, pager );
-        }
-
-        grid.setMetaData( metaData );
-
-        return grid;
+      }
     }
 
-    /**
-     * This method will apply the logic related to the parameter
-     * 'totalPages=false'. This works in conjunction with the method:
-     * {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventSearchParams)}
-     *
-     * This is needed because we need to query (pageSize + 1) at DB level. The
-     * resulting query will allow us to evaluate if we are in the last page or
-     * not. And this is what his method does, returning the respective Pager
-     * object.
-     *
-     * @param params the request params
-     * @param grid the populated Grid object
-     * @return the populated SlimPager instance
-     */
-    private Pager handleLastPageFlag( final EventSearchParams params, final Grid grid )
-    {
-        final Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        final Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
-        boolean isLastPage = false;
+    // ---------------------------------------------------------------------
+    // Grid headers
+    // ---------------------------------------------------------------------
 
-        if ( isNotEmpty( grid.getRows() ) )
-        {
-            isLastPage = grid.getRows().size() <= originalPageSize;
-            if ( !isLastPage )
-            {
-                // Get the same number of elements of the pageSize, forcing
-                // the removal of the last additional element added at querying
-                // time.
-                grid.getRows().retainAll( grid.getRows().subList( 0, originalPageSize ) );
-            }
-        }
+    Grid grid = new ListGrid();
 
-        return new SlimPager( originalPage, originalPageSize, isLastPage );
+    for (String col : STATIC_EVENT_COLUMNS) {
+      grid.addHeader(new GridHeader(col, col));
     }
 
-    @Transactional( readOnly = true )
-    @Override
-    public int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore )
-    {
-        EventSearchParams params = new EventSearchParams().setProgramType( ProgramType.WITHOUT_REGISTRATION )
-            .setIncludeDeleted( true ).setSynchronizationQuery( true ).setSkipChangedBefore( skipChangedBefore );
-
-        return eventStore.getEventCount( params, null );
+    for (QueryItem item : params.getDataElements()) {
+      grid.addHeader(new GridHeader(item.getItem().getUid(), item.getItem().getName()));
     }
 
-    @Override
-    public Events getAnonymousEventsForSync( int pageSize, Date skipChangedBefore,
-        Map<String, Set<String>> psdesWithSkipSyncTrue )
-    {
-        // A page is not specified here as it would lead to SQLGrammarException
-        // after a successful sync of few pages, as total count will change
-        // and offset won't be valid.
+    List<Map<String, String>> events = eventStore.getEventsGrid(params, organisationUnits);
 
-        EventSearchParams params = new EventSearchParams().setProgramType( ProgramType.WITHOUT_REGISTRATION )
-            .setIncludeDeleted( true ).setSynchronizationQuery( true ).setPageSize( pageSize )
-            .setSkipChangedBefore( skipChangedBefore );
+    // ---------------------------------------------------------------------
+    // Grid rows
+    // ---------------------------------------------------------------------
 
-        Events anonymousEvents = new Events();
-        List<Event> events = eventStore.getEvents( params, null, psdesWithSkipSyncTrue );
-        anonymousEvents.setEvents( events );
-        return anonymousEvents;
+    for (Map<String, String> event : events) {
+      grid.addRow();
+
+      for (String col : STATIC_EVENT_COLUMNS) {
+        grid.addValue(event.get(col));
+      }
+
+      for (QueryItem item : params.getDataElements()) {
+        grid.addValue(event.get(item.getItemId()));
+      }
     }
 
-    @Transactional( readOnly = true )
-    @Override
-    public EventRows getEventRows( EventSearchParams params )
-    {
-        User user = currentUserService.getCurrentUser();
+    Map<String, Object> metaData = new HashMap<>();
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
+    if (params.isPaging()) {
+      final Pager pager;
 
-        EventRows eventRows = new EventRows();
+      if (params.isTotalPages()) {
+        int count = eventStore.getEventCount(params, organisationUnits);
+        pager = new Pager(params.getPageWithDefault(), count, params.getPageSizeWithDefault());
+      } else {
+        pager = handleLastPageFlag(params, grid);
+      }
 
-        List<EventRow> eventRowList = eventStore.getEventRows( params, organisationUnits );
-
-        EventContext eventContext = eventServiceContextBuilder.build( eventRowList, user );
-
-        for ( EventRow eventRow : eventRowList )
-        {
-            if ( trackerOwnershipAccessManager.hasAccessUsingContext( user,
-                eventRow.getTrackedEntityInstance(),
-                eventRow.getProgram(),
-                eventContext ) )
-            {
-                eventRows.getEventRows().add( eventRow );
-            }
-        }
-
-        return eventRows;
+      metaData.put(PAGER_META_KEY, pager);
     }
 
-    @Transactional( readOnly = true )
-    @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
-    {
-        return getEvent( programStageInstance, false, false, eventParams );
+    grid.setMetaData(metaData);
+
+    return grid;
+  }
+
+  /**
+   * This method will apply the logic related to the parameter 'totalPages=false'. This works in
+   * conjunction with the method: {@link
+   * org.hisp.dhis.dxf2.events.event.JdbcEventStore#getEventPagingQuery(EventSearchParams)}
+   *
+   * <p>This is needed because we need to query (pageSize + 1) at DB level. The resulting query will
+   * allow us to evaluate if we are in the last page or not. And this is what his method does,
+   * returning the respective Pager object.
+   *
+   * @param params the request params
+   * @param grid the populated Grid object
+   * @return the populated SlimPager instance
+   */
+  private Pager handleLastPageFlag(final EventSearchParams params, final Grid grid) {
+    final Integer originalPage = defaultIfNull(params.getPage(), FIRST_PAGE);
+    final Integer originalPageSize = defaultIfNull(params.getPageSize(), DEFAULT_PAGE_SIZE);
+    boolean isLastPage = false;
+
+    if (isNotEmpty(grid.getRows())) {
+      isLastPage = grid.getRows().size() <= originalPageSize;
+      if (!isLastPage) {
+        // Get the same number of elements of the pageSize, forcing
+        // the removal of the last additional element added at querying
+        // time.
+        grid.getRows().retainAll(grid.getRows().subList(0, originalPageSize));
+      }
     }
 
-    @Transactional( readOnly = true )
-    @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck, EventParams eventParams )
-    {
-        if ( programStageInstance == null )
-        {
-            return null;
-        }
+    return new SlimPager(originalPage, originalPageSize, isLastPage);
+  }
 
-        Event event = new Event();
-        event.setEvent( programStageInstance.getUid() );
+  @Transactional(readOnly = true)
+  @Override
+  public int getAnonymousEventReadyForSynchronizationCount(Date skipChangedBefore) {
+    EventSearchParams params =
+        new EventSearchParams()
+            .setProgramType(ProgramType.WITHOUT_REGISTRATION)
+            .setIncludeDeleted(true)
+            .setSynchronizationQuery(true)
+            .setSkipChangedBefore(skipChangedBefore);
 
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
-        {
-            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
-        }
+    return eventStore.getEventCount(params, null);
+  }
 
-        event.setFollowup( programStageInstance.getProgramInstance().getFollowup() );
-        event.setEnrollmentStatus(
-            EnrollmentStatus.fromProgramStatus( programStageInstance.getProgramInstance().getStatus() ) );
-        event.setStatus( programStageInstance.getStatus() );
-        event.setEventDate( DateUtils.getIso8601NoTz( programStageInstance.getExecutionDate() ) );
-        event.setDueDate( DateUtils.getIso8601NoTz( programStageInstance.getDueDate() ) );
-        event.setStoredBy( programStageInstance.getStoredBy() );
-        event.setCompletedBy( programStageInstance.getCompletedBy() );
-        event.setCompletedDate( DateUtils.getIso8601NoTz( programStageInstance.getCompletedDate() ) );
-        event.setCreated( DateUtils.getIso8601NoTz( programStageInstance.getCreated() ) );
-        event.setCreatedByUserInfo( programStageInstance.getCreatedByUserInfo() );
-        event.setLastUpdatedByUserInfo( programStageInstance.getLastUpdatedByUserInfo() );
-        event.setCreatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getCreatedAtClient() ) );
-        event.setLastUpdated( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdated() ) );
-        event.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( programStageInstance.getLastUpdatedAtClient() ) );
-        event.setGeometry( programStageInstance.getGeometry() );
-        event.setDeleted( programStageInstance.isDeleted() );
+  @Override
+  public Events getAnonymousEventsForSync(
+      int pageSize, Date skipChangedBefore, Map<String, Set<String>> psdesWithSkipSyncTrue) {
+    // A page is not specified here as it would lead to SQLGrammarException
+    // after a successful sync of few pages, as total count will change
+    // and offset won't be valid.
 
-        if ( programStageInstance.getAssignedUser() != null )
-        {
-            event.setAssignedUser( programStageInstance.getAssignedUser().getUid() );
-            event.setAssignedUserUsername( programStageInstance.getAssignedUser().getUsername() );
-            event.setAssignedUserDisplayName( programStageInstance.getAssignedUser().getName() );
-            event.setAssignedUserFirstName( programStageInstance.getAssignedUser().getFirstName() );
-            event.setAssignedUserSurname( programStageInstance.getAssignedUser().getSurname() );
-        }
+    EventSearchParams params =
+        new EventSearchParams()
+            .setProgramType(ProgramType.WITHOUT_REGISTRATION)
+            .setIncludeDeleted(true)
+            .setSynchronizationQuery(true)
+            .setPageSize(pageSize)
+            .setSkipChangedBefore(skipChangedBefore);
 
-        User user = currentUserService.getCurrentUser();
-        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+    Events anonymousEvents = new Events();
+    List<Event> events = eventStore.getEvents(params, null, psdesWithSkipSyncTrue);
+    anonymousEvents.setEvents(events);
+    return anonymousEvents;
+  }
 
-        List<String> errors = trackerAccessManager.canRead( user, programStageInstance, skipOwnershipCheck );
+  @Transactional(readOnly = true)
+  @Override
+  public EventRows getEventRows(EventSearchParams params) {
+    User user = currentUserService.getCurrentUser();
 
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
+    List<OrganisationUnit> organisationUnits = getOrganisationUnits(params, user);
 
-        if ( ou != null )
-        {
-            event.setOrgUnit( ou.getUid() );
-            event.setOrgUnitName( ou.getName() );
-        }
+    EventRows eventRows = new EventRows();
 
-        Program program = programStageInstance.getProgramInstance().getProgram();
+    List<EventRow> eventRowList = eventStore.getEventRows(params, organisationUnits);
 
-        event.setProgram( program.getUid() );
-        event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
-        event.setProgramStage( programStageInstance.getProgramStage().getUid() );
-        CategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
-        if ( attributeOptionCombo != null )
-        {
-            event.setAttributeOptionCombo( attributeOptionCombo.getUid() );
-            event.setAttributeCategoryOptions( String.join( ";", attributeOptionCombo
-                .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
-        }
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
-        {
-            event
-                .setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
-        }
+    EventContext eventContext = eventServiceContextBuilder.build(eventRowList, user);
 
-        Collection<EventDataValue> dataValues;
-        if ( !isSynchronizationQuery )
-        {
-            dataValues = programStageInstance.getEventDataValues();
-        }
-        else
-        {
-            Set<String> dataElementsToSync = programStageInstance.getProgramStage().getProgramStageDataElements()
-                .stream().filter( psde -> !psde.getSkipSynchronization() ).map( psde -> psde.getDataElement().getUid() )
-                .collect( Collectors.toSet() );
-
-            dataValues = programStageInstance.getEventDataValues().stream()
-                .filter( dv -> dataElementsToSync.contains( dv.getDataElement() ) ).collect( Collectors.toSet() );
-        }
-
-        for ( EventDataValue dataValue : dataValues )
-        {
-            if ( getDataElement( user.getUid(), dataValue.getDataElement() ) )
-            {
-                DataValue value = new DataValue();
-                value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
-                value.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
-                value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
-                value.setLastUpdatedByUserInfo( dataValue.getLastUpdatedByUserInfo() );
-                value.setDataElement( dataValue.getDataElement() );
-                value.setValue( dataValue.getValue() );
-                value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-                value.setStoredBy( dataValue.getStoredBy() );
-
-                event.getDataValues().add( value );
-            }
-            else
-            {
-                log.info( "Can not find a Data Element having UID [" + dataValue.getDataElement() + "]" );
-            }
-        }
-
-        event.getNotes().addAll( NoteHelper.convertNotes( programStageInstance.getComments() ) );
-
-        if ( eventParams.isIncludeRelationships() )
-        {
-            event.setRelationships( programStageInstance.getRelationshipItems()
-                .stream()
-                .filter( Objects::nonNull )
-                .map( r -> relationshipService.findRelationship( r.getRelationship(), RelationshipParams.FALSE,
-                    user ) )
-                .filter( Optional::isPresent ).map( Optional::get )
-                .collect( Collectors.toSet() ) );
-        }
-
-        return event;
+    for (EventRow eventRow : eventRowList) {
+      if (trackerOwnershipAccessManager.hasAccessUsingContext(
+          user, eventRow.getTrackedEntityInstance(), eventRow.getProgram(), eventContext)) {
+        eventRows.getEventRows().add(eventRow);
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // UPDATE
-    // -------------------------------------------------------------------------
+    return eventRows;
+  }
 
-    @Transactional
-    @Override
-    public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
-        boolean clearSession )
-    {
-        ImportSummaries importSummaries = new ImportSummaries();
-        importOptions = updateImportOptions( importOptions );
-        List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
+  @Transactional(readOnly = true)
+  @Override
+  public Event getEvent(ProgramStageInstance programStageInstance, EventParams eventParams) {
+    return getEvent(programStageInstance, false, false, eventParams);
+  }
 
-        for ( List<Event> _events : partitions )
-        {
-            reloadUser( importOptions );
-            // prepareCaches( importOptions.getUser(), _events );
-
-            for ( Event event : _events )
-            {
-                importSummaries.addImportSummary( updateEvent( event, singleValue, importOptions, true ) );
-            }
-
-            if ( clearSession && events.size() >= FLUSH_FREQUENCY )
-            {
-                // clearSession( importOptions.getUser() );
-            }
-        }
-
-        updateEntities( importOptions.getUser() );
-
-        return importSummaries;
+  @Transactional(readOnly = true)
+  @Override
+  public Event getEvent(
+      ProgramStageInstance programStageInstance,
+      boolean isSynchronizationQuery,
+      boolean skipOwnershipCheck,
+      EventParams eventParams) {
+    if (programStageInstance == null) {
+      return null;
     }
 
-    @Transactional
-    @Override
-    public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions,
-        boolean bulkUpdate )
-    {
-        ImportOptions localImportOptions = importOptions;
+    Event event = new Event();
+    event.setEvent(programStageInstance.getUid());
 
-        // API allows null import options
-        if ( localImportOptions == null )
-        {
-            localImportOptions = ImportOptions.getDefaultImportOptions();
-        }
-        // TODO this doesn't make a lot of sense, but I didn't want to change
-        // the EventService interface and preserve the "singleValue" flag
-        localImportOptions.setMergeDataValues( singleValue );
-
-        return eventManager.updateEvent( event,
-            workContextLoader.load( localImportOptions, Collections.singletonList( event ) ) );
+    if (programStageInstance.getProgramInstance().getEntityInstance() != null) {
+      event.setTrackedEntityInstance(
+          programStageInstance.getProgramInstance().getEntityInstance().getUid());
     }
 
-    @Transactional
-    @Override
-    public void updateEventForNote( Event event )
-    {
-        ProgramStageInstance programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getEvent() );
+    event.setFollowup(programStageInstance.getProgramInstance().getFollowup());
+    event.setEnrollmentStatus(
+        EnrollmentStatus.fromProgramStatus(programStageInstance.getProgramInstance().getStatus()));
+    event.setStatus(programStageInstance.getStatus());
+    event.setEventDate(DateUtils.getIso8601NoTz(programStageInstance.getExecutionDate()));
+    event.setDueDate(DateUtils.getIso8601NoTz(programStageInstance.getDueDate()));
+    event.setStoredBy(programStageInstance.getStoredBy());
+    event.setCompletedBy(programStageInstance.getCompletedBy());
+    event.setCompletedDate(DateUtils.getIso8601NoTz(programStageInstance.getCompletedDate()));
+    event.setCreated(DateUtils.getIso8601NoTz(programStageInstance.getCreated()));
+    event.setCreatedByUserInfo(programStageInstance.getCreatedByUserInfo());
+    event.setLastUpdatedByUserInfo(programStageInstance.getLastUpdatedByUserInfo());
+    event.setCreatedAtClient(DateUtils.getIso8601NoTz(programStageInstance.getCreatedAtClient()));
+    event.setLastUpdated(DateUtils.getIso8601NoTz(programStageInstance.getLastUpdated()));
+    event.setLastUpdatedAtClient(
+        DateUtils.getIso8601NoTz(programStageInstance.getLastUpdatedAtClient()));
+    event.setGeometry(programStageInstance.getGeometry());
+    event.setDeleted(programStageInstance.isDeleted());
 
-        if ( programStageInstance == null )
-        {
-            return;
-        }
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        saveTrackedEntityComment( programStageInstance, event, currentUser, getValidUsername( event.getStoredBy(), null,
-            currentUser != null ? currentUser.getUsername() : "[Unknown]" ) );
-
-        updateTrackedEntityInstance( programStageInstance, currentUser, false );
+    if (programStageInstance.getAssignedUser() != null) {
+      event.setAssignedUser(programStageInstance.getAssignedUser().getUid());
+      event.setAssignedUserUsername(programStageInstance.getAssignedUser().getUsername());
+      event.setAssignedUserDisplayName(programStageInstance.getAssignedUser().getName());
+      event.setAssignedUserFirstName(programStageInstance.getAssignedUser().getFirstName());
+      event.setAssignedUserSurname(programStageInstance.getAssignedUser().getSurname());
     }
 
-    @Transactional
-    @Override
-    public void updateEventForEventDate( Event event )
-    {
-        ProgramStageInstance programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getEvent() );
+    User user = currentUserService.getCurrentUser();
+    OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
-        if ( programStageInstance == null )
-        {
-            return;
-        }
+    List<String> errors =
+        trackerAccessManager.canRead(user, programStageInstance, skipOwnershipCheck);
 
-        List<String> errors = trackerAccessManager.canUpdate( currentUserService.getCurrentUser(), programStageInstance,
-            false );
-
-        if ( !errors.isEmpty() )
-        {
-            return;
-        }
-
-        Date executionDate = new Date();
-
-        if ( event.getEventDate() != null )
-        {
-            executionDate = DateUtils.parseDate( event.getEventDate() );
-        }
-
-        Date eventDate = executionDate != null ? executionDate : programStageInstance.getDueDate();
-
-        validateAttributeOptionComboDate( programStageInstance.getAttributeOptionCombo(), eventDate );
-
-        if ( event.getStatus() == EventStatus.COMPLETED )
-        {
-            programStageInstance.setStatus( EventStatus.COMPLETED );
-        }
-        else
-        {
-            programStageInstance.setStatus( EventStatus.VISITED );
-        }
-
-        ImportOptions importOptions = new ImportOptions();
-
-        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
-
-        if ( organisationUnit == null )
-        {
-            organisationUnit = programStageInstance.getOrganisationUnit();
-        }
-
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setExecutionDate( executionDate );
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+    if (!errors.isEmpty()) {
+      throw new IllegalQueryException(errors.toString());
     }
 
-    @Transactional
-    @Override
-    public void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized )
-    {
-        programStageInstanceService.updateProgramStageInstancesSyncTimestamp( eventsUIDs, lastSynchronized );
+    if (ou != null) {
+      event.setOrgUnit(ou.getUid());
+      event.setOrgUnitName(ou.getName());
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
+    Program program = programStageInstance.getProgramInstance().getProgram();
 
-    @Transactional
-    @Override
-    public ImportSummary deleteEvent( String uid )
-    {
-        boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
-
-        if ( existsEvent )
-        {
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
-
-            List<String> errors = trackerAccessManager.canDelete( currentUserService.getCurrentUser(),
-                programStageInstance, false );
-
-            if ( !errors.isEmpty() )
-            {
-                return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
-            }
-
-            programStageInstance.setAutoFields();
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
-
-            if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
-            {
-                entityInstanceService
-                    .updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
-            }
-
-            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS,
-                "Deletion of event " + uid + " was successful" ).incrementDeleted();
-            importSummary.setReference( uid );
-            return importSummary;
-        }
-        else
-        {
-            return new ImportSummary( ImportStatus.SUCCESS,
-                "Event " + uid + " cannot be deleted as it is not present in the system" ).incrementIgnored();
-        }
+    event.setProgram(program.getUid());
+    event.setEnrollment(programStageInstance.getProgramInstance().getUid());
+    event.setProgramStage(programStageInstance.getProgramStage().getUid());
+    CategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
+    if (attributeOptionCombo != null) {
+      event.setAttributeOptionCombo(attributeOptionCombo.getUid());
+      event.setAttributeCategoryOptions(
+          String.join(
+              ";",
+              attributeOptionCombo.getCategoryOptions().stream()
+                  .map(CategoryOption::getUid)
+                  .collect(Collectors.toList())));
+    }
+    if (programStageInstance.getProgramInstance().getEntityInstance() != null) {
+      event.setTrackedEntityInstance(
+          programStageInstance.getProgramInstance().getEntityInstance().getUid());
     }
 
-    @Transactional
-    @Override
-    public ImportSummaries deleteEvents( List<String> uids, boolean clearSession )
-    {
-        ImportSummaries importSummaries = new ImportSummaries();
-        for ( String uid : uids )
-        {
-            importSummaries.addImportSummary( deleteEvent( uid ) );
-        }
+    Collection<EventDataValue> dataValues;
+    if (!isSynchronizationQuery) {
+      dataValues = programStageInstance.getEventDataValues();
+    } else {
+      Set<String> dataElementsToSync =
+          programStageInstance.getProgramStage().getProgramStageDataElements().stream()
+              .filter(psde -> !psde.getSkipSynchronization())
+              .map(psde -> psde.getDataElement().getUid())
+              .collect(Collectors.toSet());
 
-        return importSummaries;
+      dataValues =
+          programStageInstance.getEventDataValues().stream()
+              .filter(dv -> dataElementsToSync.contains(dv.getDataElement()))
+              .collect(Collectors.toSet());
     }
 
-    // -------------------------------------------------------------------------
-    // HELPERS
-    // -------------------------------------------------------------------------
+    for (EventDataValue dataValue : dataValues) {
+      if (getDataElement(user.getUid(), dataValue.getDataElement())) {
+        DataValue value = new DataValue();
+        value.setCreated(DateUtils.getIso8601NoTz(dataValue.getCreated()));
+        value.setCreatedByUserInfo(dataValue.getCreatedByUserInfo());
+        value.setLastUpdated(DateUtils.getIso8601NoTz(dataValue.getLastUpdated()));
+        value.setLastUpdatedByUserInfo(dataValue.getLastUpdatedByUserInfo());
+        value.setDataElement(dataValue.getDataElement());
+        value.setValue(dataValue.getValue());
+        value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
+        value.setStoredBy(dataValue.getStoredBy());
 
-    private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params, User user )
-    {
-        OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-        if ( orgUnitSelectionMode == null )
-        {
-            if ( params.getOrgUnit() != null )
-            {
-                return Collections.emptyList();
-            }
-
-            return getAccessibleOrgUnits( params, user );
-        }
-
-        List<OrganisationUnit> organisationUnits;
-
-        switch ( orgUnitSelectionMode )
-        {
-        case ALL:
-            organisationUnits = getAllOrgUnits( params, user );
-            break;
-        case CHILDREN:
-            organisationUnits = getChildrenOrgUnits( params );
-            break;
-        case DESCENDANTS:
-            organisationUnits = getDescendantOrgUnits( params );
-            break;
-        case CAPTURE:
-            organisationUnits = getCaptureOrgUnits( params, user );
-            break;
-        case SELECTED:
-            organisationUnits = getSelectedOrgUnits( params );
-            break;
-        default:
-            organisationUnits = getAccessibleOrgUnits( params, user );
-            break;
-        }
-
-        return organisationUnits;
+        event.getDataValues().add(value);
+      } else {
+        log.info("Can not find a Data Element having UID [" + dataValue.getDataElement() + "]");
+      }
     }
 
-    private List<OrganisationUnit> getAllOrgUnits( EventSearchParams params, User user )
-    {
-        if ( params.getOrgUnit() != null )
-        {
-            return Collections.emptyList();
-        }
+    event.getNotes().addAll(NoteHelper.convertNotes(programStageInstance.getComments()));
 
-        if ( !userCanSearchOuModeALL( user ) )
-        {
-            throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
-        }
+    if (eventParams.isIncludeRelationships()) {
+      event.setRelationships(
+          programStageInstance.getRelationshipItems().stream()
+              .filter(Objects::nonNull)
+              .map(
+                  r ->
+                      relationshipService.findRelationship(
+                          r.getRelationship(), RelationshipParams.FALSE, user))
+              .filter(Optional::isPresent)
+              .map(Optional::get)
+              .collect(Collectors.toSet()));
+    }
 
+    return event;
+  }
+
+  // -------------------------------------------------------------------------
+  // UPDATE
+  // -------------------------------------------------------------------------
+
+  @Transactional
+  @Override
+  public ImportSummaries updateEvents(
+      List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession) {
+    ImportSummaries importSummaries = new ImportSummaries();
+    importOptions = updateImportOptions(importOptions);
+    List<List<Event>> partitions = Lists.partition(events, FLUSH_FREQUENCY);
+
+    for (List<Event> _events : partitions) {
+      reloadUser(importOptions);
+      // prepareCaches( importOptions.getUser(), _events );
+
+      for (Event event : _events) {
+        importSummaries.addImportSummary(updateEvent(event, singleValue, importOptions, true));
+      }
+
+      if (clearSession && events.size() >= FLUSH_FREQUENCY) {
+        // clearSession( importOptions.getUser() );
+      }
+    }
+
+    updateEntities(importOptions.getUser());
+
+    return importSummaries;
+  }
+
+  @Transactional
+  @Override
+  public ImportSummary updateEvent(
+      Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate) {
+    ImportOptions localImportOptions = importOptions;
+
+    // API allows null import options
+    if (localImportOptions == null) {
+      localImportOptions = ImportOptions.getDefaultImportOptions();
+    }
+    // TODO this doesn't make a lot of sense, but I didn't want to change
+    // the EventService interface and preserve the "singleValue" flag
+    localImportOptions.setMergeDataValues(singleValue);
+
+    return eventManager.updateEvent(
+        event, workContextLoader.load(localImportOptions, Collections.singletonList(event)));
+  }
+
+  @Transactional
+  @Override
+  public void updateEventForNote(Event event) {
+    ProgramStageInstance programStageInstance =
+        programStageInstanceService.getProgramStageInstance(event.getEvent());
+
+    if (programStageInstance == null) {
+      return;
+    }
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    saveTrackedEntityComment(
+        programStageInstance,
+        event,
+        currentUser,
+        getValidUsername(
+            event.getStoredBy(),
+            null,
+            currentUser != null ? currentUser.getUsername() : "[Unknown]"));
+
+    updateTrackedEntityInstance(programStageInstance, currentUser, false);
+  }
+
+  @Transactional
+  @Override
+  public void updateEventForEventDate(Event event) {
+    ProgramStageInstance programStageInstance =
+        programStageInstanceService.getProgramStageInstance(event.getEvent());
+
+    if (programStageInstance == null) {
+      return;
+    }
+
+    List<String> errors =
+        trackerAccessManager.canUpdate(
+            currentUserService.getCurrentUser(), programStageInstance, false);
+
+    if (!errors.isEmpty()) {
+      return;
+    }
+
+    Date executionDate = new Date();
+
+    if (event.getEventDate() != null) {
+      executionDate = DateUtils.parseDate(event.getEventDate());
+    }
+
+    Date eventDate = executionDate != null ? executionDate : programStageInstance.getDueDate();
+
+    validateAttributeOptionComboDate(programStageInstance.getAttributeOptionCombo(), eventDate);
+
+    if (event.getStatus() == EventStatus.COMPLETED) {
+      programStageInstance.setStatus(EventStatus.COMPLETED);
+    } else {
+      programStageInstance.setStatus(EventStatus.VISITED);
+    }
+
+    ImportOptions importOptions = new ImportOptions();
+
+    OrganisationUnit organisationUnit =
+        getOrganisationUnit(importOptions.getIdSchemes(), event.getOrgUnit());
+
+    if (organisationUnit == null) {
+      organisationUnit = programStageInstance.getOrganisationUnit();
+    }
+
+    programStageInstance.setOrganisationUnit(organisationUnit);
+    programStageInstance.setExecutionDate(executionDate);
+    programStageInstanceService.updateProgramStageInstance(programStageInstance);
+  }
+
+  @Transactional
+  @Override
+  public void updateEventsSyncTimestamp(List<String> eventsUIDs, Date lastSynchronized) {
+    programStageInstanceService.updateProgramStageInstancesSyncTimestamp(
+        eventsUIDs, lastSynchronized);
+  }
+
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
+
+  @Transactional
+  @Override
+  public ImportSummary deleteEvent(String uid) {
+    boolean existsEvent = programStageInstanceService.programStageInstanceExists(uid);
+
+    if (existsEvent) {
+      ProgramStageInstance programStageInstance =
+          programStageInstanceService.getProgramStageInstance(uid);
+
+      List<String> errors =
+          trackerAccessManager.canDelete(
+              currentUserService.getCurrentUser(), programStageInstance, false);
+
+      if (!errors.isEmpty()) {
+        return new ImportSummary(ImportStatus.ERROR, errors.toString()).incrementIgnored();
+      }
+
+      programStageInstance.setAutoFields();
+      programStageInstanceService.deleteProgramStageInstance(programStageInstance);
+
+      if (programStageInstance.getProgramStage().getProgram().isRegistration()) {
+        entityInstanceService.updateTrackedEntityInstance(
+            programStageInstance.getProgramInstance().getEntityInstance());
+      }
+
+      ImportSummary importSummary =
+          new ImportSummary(ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful")
+              .incrementDeleted();
+      importSummary.setReference(uid);
+      return importSummary;
+    } else {
+      return new ImportSummary(
+              ImportStatus.SUCCESS,
+              "Event " + uid + " cannot be deleted as it is not present in the system")
+          .incrementIgnored();
+    }
+  }
+
+  @Transactional
+  @Override
+  public ImportSummaries deleteEvents(List<String> uids, boolean clearSession) {
+    ImportSummaries importSummaries = new ImportSummaries();
+    for (String uid : uids) {
+      importSummaries.addImportSummary(deleteEvent(uid));
+    }
+
+    return importSummaries;
+  }
+
+  // -------------------------------------------------------------------------
+  // HELPERS
+  // -------------------------------------------------------------------------
+
+  private List<OrganisationUnit> getOrganisationUnits(EventSearchParams params, User user) {
+    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
+
+    if (orgUnitSelectionMode == null) {
+      if (params.getOrgUnit() != null) {
         return Collections.emptyList();
+      }
+
+      return getAccessibleOrgUnits(params, user);
     }
 
-    private List<OrganisationUnit> getChildrenOrgUnits( EventSearchParams params )
-    {
-        if ( params.getOrgUnit() == null )
-        {
-            throw new IllegalQueryException( "Organisation unit is required to use CHILDREN scope." );
-        }
+    List<OrganisationUnit> organisationUnits;
 
-        return Arrays.asList( params.getOrgUnit() );
+    switch (orgUnitSelectionMode) {
+      case ALL:
+        organisationUnits = getAllOrgUnits(params, user);
+        break;
+      case CHILDREN:
+        organisationUnits = getChildrenOrgUnits(params);
+        break;
+      case DESCENDANTS:
+        organisationUnits = getDescendantOrgUnits(params);
+        break;
+      case CAPTURE:
+        organisationUnits = getCaptureOrgUnits(params, user);
+        break;
+      case SELECTED:
+        organisationUnits = getSelectedOrgUnits(params);
+        break;
+      default:
+        organisationUnits = getAccessibleOrgUnits(params, user);
+        break;
     }
 
-    private List<OrganisationUnit> getSelectedOrgUnits( EventSearchParams params )
-    {
-        if ( params.getOrgUnit() == null )
-        {
-            throw new IllegalQueryException( "Organisation unit is required to use SELECTED scope. " );
-        }
+    return organisationUnits;
+  }
 
-        return Collections.emptyList();
+  private List<OrganisationUnit> getAllOrgUnits(EventSearchParams params, User user) {
+    if (params.getOrgUnit() != null) {
+      return Collections.emptyList();
     }
 
-    private List<OrganisationUnit> getDescendantOrgUnits( EventSearchParams params )
-    {
-        if ( params.getOrgUnit() == null )
-        {
-            throw new IllegalQueryException( "Organisation unit is required to use DESCENDANTS scope. " );
-        }
-
-        return Arrays.asList( params.getOrgUnit() );
+    if (!userCanSearchOuModeALL(user)) {
+      throw new IllegalQueryException("User is not authorized to use ALL organisation units. ");
     }
 
-    private List<OrganisationUnit> getCaptureOrgUnits( EventSearchParams params, User user )
-    {
-        if ( params.getOrgUnit() != null )
-        {
-            return Collections.emptyList();
-        }
+    return Collections.emptyList();
+  }
 
-        if ( user == null )
-        {
-            throw new IllegalQueryException( "User is required to use CAPTURE scope." );
-        }
-
-        return user.getOrganisationUnits().stream().collect( Collectors.toList() );
+  private List<OrganisationUnit> getChildrenOrgUnits(EventSearchParams params) {
+    if (params.getOrgUnit() == null) {
+      throw new IllegalQueryException("Organisation unit is required to use CHILDREN scope.");
     }
 
-    private List<OrganisationUnit> getAccessibleOrgUnits( EventSearchParams params, User user )
-    {
-        if ( params.getOrgUnit() != null )
-        {
-            return Collections.emptyList();
-        }
+    return Arrays.asList(params.getOrgUnit());
+  }
 
-        if ( user == null )
-        {
-            throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
-        }
-
-        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE );
-
-        if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
-        {
-            return user.getOrganisationUnits().stream().collect( Collectors.toList() );
-        }
-
-        return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect( Collectors.toList() );
+  private List<OrganisationUnit> getSelectedOrgUnits(EventSearchParams params) {
+    if (params.getOrgUnit() == null) {
+      throw new IllegalQueryException("Organisation unit is required to use SELECTED scope. ");
     }
 
-    private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
-        String storedBy )
-    {
-        for ( Note note : event.getNotes() )
-        {
-            String noteUid = CodeGenerator.isValidUid( note.getNote() ) ? note.getNote() : CodeGenerator.generateUid();
+    return Collections.emptyList();
+  }
 
-            if ( !commentService.trackedEntityCommentExists( noteUid ) && !StringUtils.isEmpty( note.getValue() ) )
-            {
-                TrackedEntityComment comment = new TrackedEntityComment();
-                comment.setUid( noteUid );
-                comment.setCommentText( note.getValue() );
-                comment.setCreator( getValidUsername( note.getStoredBy(), null, storedBy ) );
-
-                Date created = DateUtils.parseDate( note.getStoredDate() );
-                comment.setCreated( created );
-
-                comment.setLastUpdatedBy( user );
-                comment.setLastUpdated( new Date() );
-
-                commentService.addTrackedEntityComment( comment );
-
-                programStageInstance.getComments().add( comment );
-            }
-        }
+  private List<OrganisationUnit> getDescendantOrgUnits(EventSearchParams params) {
+    if (params.getOrgUnit() == null) {
+      throw new IllegalQueryException("Organisation unit is required to use DESCENDANTS scope. ");
     }
 
-    public static String getValidUsername( String userName, ImportConflicts importConflicts, String fallbackUsername )
-    {
-        String validUsername = userName;
+    return Arrays.asList(params.getOrgUnit());
+  }
 
-        if ( StringUtils.isEmpty( validUsername ) )
-        {
-            validUsername = User.getSafeUsername( fallbackUsername );
-        }
-        else if ( !ValidationUtils.usernameIsValid( userName, false ) )
-        {
-            if ( importConflicts != null )
-            {
-                importConflicts.addConflict( "Username", validUsername + " is more than "
-                    + User.USERNAME_MAX_LENGTH + " characters, using current username instead" );
-            }
-
-            validUsername = User.getSafeUsername( fallbackUsername );
-        }
-
-        return validUsername;
+  private List<OrganisationUnit> getCaptureOrgUnits(EventSearchParams params, User user) {
+    if (params.getOrgUnit() != null) {
+      return Collections.emptyList();
     }
 
-    private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
-    {
-        return organisationUnitCache.get( id,
-            () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
+    if (user == null) {
+      throw new IllegalQueryException("User is required to use CAPTURE scope.");
     }
 
-    /**
-     * Get DataElement by given uid
-     *
-     * @return FALSE if currentUser doesn't have READ access to given
-     *         DataElement OR no DataElement with given uid exist TRUE if
-     *         DataElement exist and currentUser has READ access
-     */
-    private boolean getDataElement( String userUid, String dataElementUid )
-    {
-        String key = userUid + "-" + dataElementUid;
-        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null );
+    return user.getOrganisationUnits().stream().collect(Collectors.toList());
+  }
+
+  private List<OrganisationUnit> getAccessibleOrgUnits(EventSearchParams params, User user) {
+    if (params.getOrgUnit() != null) {
+      return Collections.emptyList();
     }
 
-    @Override
-    public void validate( EventSearchParams params, User user )
-        throws IllegalQueryException
-    {
-        String violation = null;
-
-        if ( params.hasLastUpdatedDuration() && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate()) )
-        {
-            violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
-        }
-
-        if ( violation == null && params.hasLastUpdatedDuration()
-            && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
-        {
-            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
-        }
-
-        if ( violation == null && params.getOrgUnit() != null
-            && !trackerAccessManager.canAccess( user, params.getProgram(), params.getOrgUnit() ) )
-        {
-            violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
-        }
-
-        if ( violation == null && params.getOrgUnitSelectionMode() != null )
-        {
-            violation = getOuModeViolation( params, user );
-        }
-
-        if ( violation != null )
-        {
-            log.warn( "Validation failed: " + violation );
-
-            throw new IllegalQueryException( violation );
-        }
+    if (user == null) {
+      throw new IllegalQueryException("User is required to use ACCESSIBLE scope.");
     }
 
-    private String getOuModeViolation( EventSearchParams params, User user )
-    {
-        OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE);
 
-        String violation = null;
+    if (params.getProgram() == null
+        || params.getProgram().isClosed()
+        || params.getProgram().isProtected()) {
+      return user.getOrganisationUnits().stream().collect(Collectors.toList());
+    }
 
-        switch ( selectedOuMode )
-        {
-        case ALL:
-            violation = userCanSearchOuModeALL( user ) ? null
+    return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect(Collectors.toList());
+  }
+
+  private void saveTrackedEntityComment(
+      ProgramStageInstance programStageInstance, Event event, User user, String storedBy) {
+    for (Note note : event.getNotes()) {
+      String noteUid =
+          CodeGenerator.isValidUid(note.getNote()) ? note.getNote() : CodeGenerator.generateUid();
+
+      if (!commentService.trackedEntityCommentExists(noteUid)
+          && !StringUtils.isEmpty(note.getValue())) {
+        TrackedEntityComment comment = new TrackedEntityComment();
+        comment.setUid(noteUid);
+        comment.setCommentText(note.getValue());
+        comment.setCreator(getValidUsername(note.getStoredBy(), null, storedBy));
+
+        Date created = DateUtils.parseDate(note.getStoredDate());
+        comment.setCreated(created);
+
+        comment.setLastUpdatedBy(user);
+        comment.setLastUpdated(new Date());
+
+        commentService.addTrackedEntityComment(comment);
+
+        programStageInstance.getComments().add(comment);
+      }
+    }
+  }
+
+  public static String getValidUsername(
+      String userName, ImportConflicts importConflicts, String fallbackUsername) {
+    String validUsername = userName;
+
+    if (StringUtils.isEmpty(validUsername)) {
+      validUsername = User.getSafeUsername(fallbackUsername);
+    } else if (!ValidationUtils.usernameIsValid(userName, false)) {
+      if (importConflicts != null) {
+        importConflicts.addConflict(
+            "Username",
+            validUsername
+                + " is more than "
+                + User.USERNAME_MAX_LENGTH
+                + " characters, using current username instead");
+      }
+
+      validUsername = User.getSafeUsername(fallbackUsername);
+    }
+
+    return validUsername;
+  }
+
+  private OrganisationUnit getOrganisationUnit(IdSchemes idSchemes, String id) {
+    return organisationUnitCache.get(
+        id, () -> manager.getObject(OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id));
+  }
+
+  /**
+   * Get DataElement by given uid
+   *
+   * @return FALSE if currentUser doesn't have READ access to given DataElement OR no DataElement
+   *     with given uid exist TRUE if DataElement exist and currentUser has READ access
+   */
+  private boolean getDataElement(String userUid, String dataElementUid) {
+    String key = userUid + "-" + dataElementUid;
+    return dataElementCache.get(key, k -> manager.get(DataElement.class, dataElementUid) != null);
+  }
+
+  @Override
+  public void validate(EventSearchParams params, User user) throws IllegalQueryException {
+    String violation = null;
+
+    if (params.hasLastUpdatedDuration()
+        && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate())) {
+      violation =
+          "Last updated from and/or to and last updated duration cannot be specified simultaneously";
+    }
+
+    if (violation == null
+        && params.hasLastUpdatedDuration()
+        && DateUtils.getDuration(params.getLastUpdatedDuration()) == null) {
+      violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+    }
+
+    if (violation == null
+        && params.getOrgUnit() != null
+        && !trackerAccessManager.canAccess(user, params.getProgram(), params.getOrgUnit())) {
+      violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
+    }
+
+    if (violation == null && params.getOrgUnitSelectionMode() != null) {
+      violation = getOuModeViolation(params, user);
+    }
+
+    if (violation != null) {
+      log.warn("Validation failed: " + violation);
+
+      throw new IllegalQueryException(violation);
+    }
+  }
+
+  private String getOuModeViolation(EventSearchParams params, User user) {
+    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
+
+    String violation = null;
+
+    switch (selectedOuMode) {
+      case ALL:
+        violation =
+            userCanSearchOuModeALL(user)
+                ? null
                 : "Current user is not authorized to query across all organisation units";
-            break;
-        case ACCESSIBLE:
-        case CAPTURE:
-            violation = user == null ? "User is required for ouMode: " + params.getOrgUnitSelectionMode() : null;
-            break;
-        case CHILDREN:
-        case SELECTED:
-        case DESCENDANTS:
-            violation = params.getOrgUnit() == null
+        break;
+      case ACCESSIBLE:
+      case CAPTURE:
+        violation =
+            user == null
+                ? "User is required for ouMode: " + params.getOrgUnitSelectionMode()
+                : null;
+        break;
+      case CHILDREN:
+      case SELECTED:
+      case DESCENDANTS:
+        violation =
+            params.getOrgUnit() == null
                 ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
                 : null;
-            break;
-        default:
-            violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-            break;
-        }
-
-        return violation;
+        break;
+      default:
+        violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
+        break;
     }
 
-    /**
-     * TODO this method duplicates the functionality of
-     * AttributeOptionComboDateCheck Remove when refactoring
-     * AbstractEventService
-     */
-    private void validateAttributeOptionComboDate( CategoryOptionCombo attributeOptionCombo, Date date )
-    {
-        if ( date == null )
-        {
-            throw new IllegalQueryException( "Event date can not be empty" );
-        }
+    return violation;
+  }
 
-        for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
-        {
-            if ( option.getStartDate() != null && date.compareTo( option.getStartDate() ) < 0 )
-            {
-                throw new IllegalQueryException( "Event date " + getMediumDateString( date ) + " is before start date "
-                    + getMediumDateString( option.getStartDate() ) + " for attributeOption '" + option.getName()
-                    + "'" );
-            }
-
-            if ( option.getEndDate() != null && date.compareTo( option.getEndDate() ) > 0 )
-            {
-                throw new IllegalQueryException( "Event date " + getMediumDateString( date ) + " is after end date "
-                    + getMediumDateString( option.getEndDate() ) + " for attributeOption '" + option.getName() + "'" );
-            }
-        }
+  /**
+   * TODO this method duplicates the functionality of AttributeOptionComboDateCheck Remove when
+   * refactoring AbstractEventService
+   */
+  private void validateAttributeOptionComboDate(
+      CategoryOptionCombo attributeOptionCombo, Date date) {
+    if (date == null) {
+      throw new IllegalQueryException("Event date can not be empty");
     }
 
-    private void updateEntities( User user )
-    {
-        trackedEntityInstancesToUpdate.forEach( tei -> manager.update( tei, user ) );
-        trackedEntityInstancesToUpdate.clear();
-    }
+    for (CategoryOption option : attributeOptionCombo.getCategoryOptions()) {
+      if (option.getStartDate() != null && date.compareTo(option.getStartDate()) < 0) {
+        throw new IllegalQueryException(
+            "Event date "
+                + getMediumDateString(date)
+                + " is before start date "
+                + getMediumDateString(option.getStartDate())
+                + " for attributeOption '"
+                + option.getName()
+                + "'");
+      }
 
-    private void updateTrackedEntityInstance( ProgramStageInstance programStageInstance, User user, boolean bulkUpdate )
-    {
-        updateTrackedEntityInstance( Lists.newArrayList( programStageInstance ), user, bulkUpdate );
+      if (option.getEndDate() != null && date.compareTo(option.getEndDate()) > 0) {
+        throw new IllegalQueryException(
+            "Event date "
+                + getMediumDateString(date)
+                + " is after end date "
+                + getMediumDateString(option.getEndDate())
+                + " for attributeOption '"
+                + option.getName()
+                + "'");
+      }
     }
+  }
 
-    private void updateTrackedEntityInstance( List<ProgramStageInstance> programStageInstances, User user,
-        boolean bulkUpdate )
-    {
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
-        {
-            if ( programStageInstance.getProgramInstance() != null )
-            {
-                if ( !bulkUpdate )
-                {
-                    if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
-                    {
-                        manager.update( programStageInstance.getProgramInstance().getEntityInstance(), user );
-                    }
-                }
-                else
-                {
-                    if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
-                    {
-                        trackedEntityInstancesToUpdate
-                            .add( programStageInstance.getProgramInstance().getEntityInstance() );
-                    }
-                }
-            }
+  private void updateEntities(User user) {
+    trackedEntityInstancesToUpdate.forEach(tei -> manager.update(tei, user));
+    trackedEntityInstancesToUpdate.clear();
+  }
+
+  private void updateTrackedEntityInstance(
+      ProgramStageInstance programStageInstance, User user, boolean bulkUpdate) {
+    updateTrackedEntityInstance(Lists.newArrayList(programStageInstance), user, bulkUpdate);
+  }
+
+  private void updateTrackedEntityInstance(
+      List<ProgramStageInstance> programStageInstances, User user, boolean bulkUpdate) {
+    for (ProgramStageInstance programStageInstance : programStageInstances) {
+      if (programStageInstance.getProgramInstance() != null) {
+        if (!bulkUpdate) {
+          if (programStageInstance.getProgramInstance().getEntityInstance() != null) {
+            manager.update(programStageInstance.getProgramInstance().getEntityInstance(), user);
+          }
+        } else {
+          if (programStageInstance.getProgramInstance().getEntityInstance() != null) {
+            trackedEntityInstancesToUpdate.add(
+                programStageInstance.getProgramInstance().getEntityInstance());
+          }
         }
+      }
+    }
+  }
+
+  protected ImportOptions updateImportOptions(ImportOptions importOptions) {
+    if (importOptions == null) {
+      importOptions = new ImportOptions();
     }
 
-    protected ImportOptions updateImportOptions( ImportOptions importOptions )
-    {
-        if ( importOptions == null )
-        {
-            importOptions = new ImportOptions();
-        }
-
-        if ( importOptions.getUser() == null )
-        {
-            importOptions.setUser( currentUserService.getCurrentUser() );
-        }
-
-        return importOptions;
+    if (importOptions.getUser() == null) {
+      importOptions.setUser(currentUserService.getCurrentUser());
     }
 
-    private void reloadUser( ImportOptions importOptions )
-    {
-        if ( importOptions == null || importOptions.getUser() == null )
-        {
-            return;
-        }
+    return importOptions;
+  }
 
-        importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+  private void reloadUser(ImportOptions importOptions) {
+    if (importOptions == null || importOptions.getUser() == null) {
+      return;
     }
 
-    private boolean userCanSearchOuModeALL( User user )
-    {
-        if ( user == null )
-        {
-            return false;
-        }
+    importOptions.setUser(userService.getUser(importOptions.getUser().getId()));
+  }
 
-        return user.isSuper()
-            || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
+  private boolean userCanSearchOuModeALL(User user) {
+    if (user == null) {
+      return false;
     }
+
+    return user.isSuper()
+        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+  }
 }

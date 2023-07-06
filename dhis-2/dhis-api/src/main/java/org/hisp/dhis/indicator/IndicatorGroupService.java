@@ -30,7 +30,6 @@ package org.hisp.dhis.indicator;
 /**
  * @author Stian Sandvold
  */
-public interface IndicatorGroupService
-{
-    IndicatorGroup getIndicatorGroupByUid( String uid );
+public interface IndicatorGroupService {
+  IndicatorGroup getIndicatorGroupByUid(String uid);
 }

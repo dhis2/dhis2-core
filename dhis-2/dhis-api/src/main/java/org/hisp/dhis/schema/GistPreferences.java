@@ -27,35 +27,31 @@
  */
 package org.hisp.dhis.schema;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Information as extracted from {@link org.hisp.dhis.schema.annotation.Gist}
- * annotation to be included in {@link Property} metadata.
+ * Information as extracted from {@link org.hisp.dhis.schema.annotation.Gist} annotation to be
+ * included in {@link Property} metadata.
  *
  * @author Jan Bernitt
  */
 @Getter
 @AllArgsConstructor
-public final class GistPreferences
-{
-    public static final GistPreferences DEFAULT = new GistPreferences( Include.AUTO, Gist.Transform.AUTO );
+public final class GistPreferences {
+  public static final GistPreferences DEFAULT =
+      new GistPreferences(Include.AUTO, Gist.Transform.AUTO);
 
-    /**
-     * @see Gist#included()
-     */
-    @JsonProperty
-    private final Include included;
+  /**
+   * @see Gist#included()
+   */
+  @JsonProperty private final Include included;
 
-    /**
-     * @see Gist#transformation()
-     */
-    @JsonProperty
-    private final Gist.Transform transformation;
+  /**
+   * @see Gist#transformation()
+   */
+  @JsonProperty private final Gist.Transform transformation;
 }

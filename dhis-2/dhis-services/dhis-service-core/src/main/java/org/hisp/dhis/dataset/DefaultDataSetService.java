@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,9 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -55,404 +54,368 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.dataset.DataSetService" )
-public class DefaultDataSetService
-    implements DataSetService
-{
-    private final DataSetStore dataSetStore;
+@Service("org.hisp.dhis.dataset.DataSetService")
+public class DefaultDataSetService implements DataSetService {
+  private final DataSetStore dataSetStore;
 
-    private final LockExceptionStore lockExceptionStore;
+  private final LockExceptionStore lockExceptionStore;
 
-    private final DataApprovalService dataApprovalService;
+  private final DataApprovalService dataApprovalService;
 
-    @Qualifier( "jdbcDataSetOrgUnitAssociationsStore" )
-    private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
+  @Qualifier("jdbcDataSetOrgUnitAssociationsStore")
+  private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataSet
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addDataSet( DataSet dataSet )
-    {
-        dataSetStore.save( dataSet );
-        return dataSet.getId();
+  @Override
+  @Transactional
+  public long addDataSet(DataSet dataSet) {
+    dataSetStore.save(dataSet);
+    return dataSet.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateDataSet(DataSet dataSet) {
+    dataSetStore.update(dataSet);
+  }
+
+  @Override
+  @Transactional
+  public void deleteDataSet(DataSet dataSet) {
+    dataSetStore.delete(dataSet);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DataSet getDataSet(long id) {
+    return dataSetStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DataSet getDataSet(String uid) {
+    return dataSetStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DataSet getDataSetNoAcl(String uid) {
+    return dataSetStore.getByUidNoAcl(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm) {
+    return dataSetStore.getDataSetsByDataEntryForm(dataEntryForm);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataSet> getAllDataSets() {
+    return dataSetStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataSet> getDataSetsByPeriodType(PeriodType periodType) {
+    return dataSetStore.getDataSetsByPeriodType(periodType);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataSet> getUserDataRead(User user) {
+    if (user == null) {
+      return Lists.newArrayList();
     }
 
-    @Override
-    @Transactional
-    public void updateDataSet( DataSet dataSet )
-    {
-        dataSetStore.update( dataSet );
+    return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataSet> getUserDataWrite(User user) {
+    if (user == null) {
+      return Lists.newArrayList();
     }
 
-    @Override
-    @Transactional
-    public void deleteDataSet( DataSet dataSet )
-    {
-        dataSetStore.delete( dataSet );
+    return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataSet> getDataSetsNotAssignedToOrganisationUnits() {
+    return dataSetStore.getDataSetsNotAssignedToOrganisationUnits();
+  }
+
+  // -------------------------------------------------------------------------
+  // DataSet LockExceptions
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public long addLockException(LockException lockException) {
+    lockExceptionStore.save(lockException);
+    return lockException.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateLockException(LockException lockException) {
+    lockExceptionStore.update(lockException);
+  }
+
+  @Override
+  @Transactional
+  public void deleteLockException(LockException lockException) {
+    lockExceptionStore.delete(lockException);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public LockException getLockException(long id) {
+    return lockExceptionStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public int getLockExceptionCount() {
+    return lockExceptionStore.getCount();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<LockException> getAllLockExceptions() {
+    return lockExceptionStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<LockException> getDataWriteLockExceptions() {
+    return lockExceptionStore.getLockExceptions(dataSetStore.getDataWriteAll());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<LockException> getLockExceptionCombinations() {
+    return lockExceptionStore.getLockExceptionCombinations();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public LockStatus getLockStatus(
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo) {
+    User user = currentUserService.getCurrentUser();
+
+    return getLockStatus(dataSet, period, organisationUnit, attributeOptionCombo, user, new Date());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public LockStatus getLockStatus(
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      User user,
+      Date now) {
+    if (dataApprovalService.isApproved(
+        dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo)) {
+      return LockStatus.APPROVED;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataSet getDataSet( long id )
-    {
-        return dataSetStore.get( id );
+    if (isLocked(user, dataSet, period, organisationUnit, now)) {
+      return LockStatus.LOCKED;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataSet getDataSet( String uid )
-    {
-        return dataSetStore.getByUid( uid );
+    return LockStatus.OPEN;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public LockStatus getLockStatus(
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      User user,
+      Date now,
+      boolean useOrgUnitChildren) {
+    if (!useOrgUnitChildren) {
+      return getLockStatus(dataSet, period, organisationUnit, attributeOptionCombo, user, now);
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataSet getDataSetNoAcl( String uid )
-    {
-        return dataSetStore.getByUidNoAcl( uid );
+    if (organisationUnit == null || !organisationUnit.hasChild()) {
+      return LockStatus.OPEN;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        return dataSetStore.getDataSetsByDataEntryForm( dataEntryForm );
+    for (OrganisationUnit child : organisationUnit.getChildren()) {
+      LockStatus childLockStatus =
+          getLockStatus(dataSet, period, child, attributeOptionCombo, user, now);
+      if (!childLockStatus.isOpen()) {
+        return childLockStatus;
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getAllDataSets()
-    {
-        return dataSetStore.getAll();
+    return LockStatus.OPEN;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public LockStatus getLockStatus(
+      DataElement dataElement,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      User user,
+      Date now) {
+    if (user == null || !user.isAuthorized(Authorities.F_EDIT_EXPIRED.getAuthority())) {
+      now = now != null ? now : new Date();
+
+      boolean expired = dataElement.isExpired(period, now);
+
+      if (expired && lockExceptionStore.getCount(dataElement, period, organisationUnit) == 0L) {
+        return LockStatus.LOCKED;
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getDataSetsByPeriodType( PeriodType periodType )
-    {
-        return dataSetStore.getDataSetsByPeriodType( periodType );
+    DataSet dataSet = dataElement.getApprovalDataSet();
+
+    if (dataSet == null) {
+      return LockStatus.OPEN;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getUserDataRead( User user )
-    {
-        if ( user == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataReadAll( user );
+    if (dataApprovalService.isApproved(
+        dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo)) {
+      return LockStatus.APPROVED;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getUserDataWrite( User user )
-    {
-        if ( user == null )
-        {
-            return Lists.newArrayList();
-        }
+    return LockStatus.OPEN;
+  }
 
-        return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll( user );
+  @Override
+  @Transactional
+  public void deleteLockExceptionCombination(DataSet dataSet, Period period) {
+    lockExceptionStore.deleteLockExceptions(dataSet, period);
+  }
+
+  @Override
+  @Transactional
+  public void deleteLockExceptionCombination(
+      DataSet dataSet, Period period, OrganisationUnit organisationUnit) {
+    lockExceptionStore.deleteLockExceptions(dataSet, period, organisationUnit);
+  }
+
+  @Override
+  @Transactional
+  public void deleteLockExceptions(OrganisationUnit organisationUnit) {
+    lockExceptionStore.deleteLockExceptions(organisationUnit);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isLocked(
+      User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now) {
+    return dataSet.isLocked(user, period, now)
+        && lockExceptionStore.getCount(dataSet, period, organisationUnit) == 0L;
+  }
+
+  @Override
+  @Transactional
+  public List<LockException> filterLockExceptions(List<String> filters) {
+    List<LockException> lockExceptions = getAllLockExceptions();
+    Set<LockException> returnList = new HashSet<>(lockExceptions);
+
+    for (String filter : filters) {
+      String[] split = filter.split(":");
+
+      if (split.length != 3) {
+        throw new QueryParserException("Invalid filter: " + filter);
+      }
+
+      if ("organisationUnit.id".equalsIgnoreCase(split[0])) {
+        returnList.retainAll(getLockExceptionByOrganisationUnit(split[1], split[2], returnList));
+      }
+
+      if ("dataSet.id".equalsIgnoreCase(split[0])) {
+        returnList.retainAll(getLockExceptionByDataSet(split[1], split[2], returnList));
+      }
+
+      if ("period".equalsIgnoreCase(split[0])) {
+        returnList.retainAll(getLockExceptionByPeriod(split[1], split[2], returnList));
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
-    {
-        return dataSetStore.getDataSetsNotAssignedToOrganisationUnits();
+    return new ArrayList<>(returnList);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations() {
+    Set<String> uids =
+        getUserDataWrite(currentUserService.getCurrentUser()).stream()
+            .map(DataSet::getUid)
+            .collect(Collectors.toSet());
+
+    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(uids);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private List<LockException> getLockExceptionByOrganisationUnit(
+      String operator, String orgUnitIds, Collection<LockException> lockExceptions) {
+
+    List<String> ids = parseIdFromString(orgUnitIds, operator);
+
+    return lockExceptions.stream()
+        .filter(lockException -> ids.contains(lockException.getOrganisationUnit().getUid()))
+        .collect(Collectors.toList());
+  }
+
+  private List<LockException> getLockExceptionByDataSet(
+      String operator, String dataSetIds, Collection<LockException> lockExceptions) {
+    List<String> ids = parseIdFromString(dataSetIds, operator);
+
+    return lockExceptions.stream()
+        .filter(lockException -> ids.contains(lockException.getDataSet().getUid()))
+        .collect(Collectors.toList());
+  }
+
+  private List<LockException> getLockExceptionByPeriod(
+      String operator, String periods, Collection<LockException> lockExceptions) {
+    List<String> ids = parseIdFromString(periods, operator);
+
+    return lockExceptions.stream()
+        .filter(lockException -> ids.contains(lockException.getPeriod().getIsoDate()))
+        .collect(Collectors.toList());
+  }
+
+  private List<String> parseIdFromString(String input, String operator) {
+    List<String> ids = new ArrayList<>();
+
+    if ("in".equalsIgnoreCase(operator)) {
+      if (input.startsWith("[") && input.endsWith("]")) {
+        String[] split = input.substring(1, input.length() - 1).split(",");
+        Collections.addAll(ids, split);
+      } else {
+        throw new QueryParserException("Invalid query: " + input);
+      }
+    } else if ("eq".equalsIgnoreCase(operator)) {
+      ids.add(input);
     }
-
-    // -------------------------------------------------------------------------
-    // DataSet LockExceptions
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional
-    public long addLockException( LockException lockException )
-    {
-        lockExceptionStore.save( lockException );
-        return lockException.getId();
-    }
-
-    @Override
-    @Transactional
-    public void updateLockException( LockException lockException )
-    {
-        lockExceptionStore.update( lockException );
-    }
-
-    @Override
-    @Transactional
-    public void deleteLockException( LockException lockException )
-    {
-        lockExceptionStore.delete( lockException );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public LockException getLockException( long id )
-    {
-        return lockExceptionStore.get( id );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int getLockExceptionCount()
-    {
-        return lockExceptionStore.getCount();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<LockException> getAllLockExceptions()
-    {
-        return lockExceptionStore.getAll();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<LockException> getDataWriteLockExceptions()
-    {
-        return lockExceptionStore.getLockExceptions( dataSetStore.getDataWriteAll() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<LockException> getLockExceptionCombinations()
-    {
-        return lockExceptionStore.getLockExceptionCombinations();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public LockStatus getLockStatus( DataSet dataSet, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getLockStatus( dataSet, period, organisationUnit, attributeOptionCombo, user, new Date() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, User user, Date now )
-    {
-        if ( dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo ) )
-        {
-            return LockStatus.APPROVED;
-        }
-
-        if ( isLocked( user, dataSet, period, organisationUnit, now ) )
-        {
-            return LockStatus.LOCKED;
-        }
-
-        return LockStatus.OPEN;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public LockStatus getLockStatus( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, User user, Date now, boolean useOrgUnitChildren )
-    {
-        if ( !useOrgUnitChildren )
-        {
-            return getLockStatus( dataSet, period, organisationUnit, attributeOptionCombo, user, now );
-        }
-
-        if ( organisationUnit == null || !organisationUnit.hasChild() )
-        {
-            return LockStatus.OPEN;
-        }
-
-        for ( OrganisationUnit child : organisationUnit.getChildren() )
-        {
-            LockStatus childLockStatus = getLockStatus( dataSet, period, child, attributeOptionCombo, user, now );
-            if ( !childLockStatus.isOpen() )
-            {
-                return childLockStatus;
-            }
-        }
-
-        return LockStatus.OPEN;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public LockStatus getLockStatus( DataElement dataElement, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, User user, Date now )
-    {
-        if ( user == null || !user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-        {
-            now = now != null ? now : new Date();
-
-            boolean expired = dataElement.isExpired( period, now );
-
-            if ( expired && lockExceptionStore.getCount( dataElement, period, organisationUnit ) == 0L )
-            {
-                return LockStatus.LOCKED;
-            }
-        }
-
-        DataSet dataSet = dataElement.getApprovalDataSet();
-
-        if ( dataSet == null )
-        {
-            return LockStatus.OPEN;
-        }
-
-        if ( dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo ) )
-        {
-            return LockStatus.APPROVED;
-        }
-
-        return LockStatus.OPEN;
-    }
-
-    @Override
-    @Transactional
-    public void deleteLockExceptionCombination( DataSet dataSet, Period period )
-    {
-        lockExceptionStore.deleteLockExceptions( dataSet, period );
-    }
-
-    @Override
-    @Transactional
-    public void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
-    {
-        lockExceptionStore.deleteLockExceptions( dataSet, period, organisationUnit );
-    }
-
-    @Override
-    @Transactional
-    public void deleteLockExceptions( OrganisationUnit organisationUnit )
-    {
-        lockExceptionStore.deleteLockExceptions( organisationUnit );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
-    {
-        return dataSet.isLocked( user, period, now )
-            && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
-    }
-
-    @Override
-    @Transactional
-    public List<LockException> filterLockExceptions( List<String> filters )
-    {
-        List<LockException> lockExceptions = getAllLockExceptions();
-        Set<LockException> returnList = new HashSet<>( lockExceptions );
-
-        for ( String filter : filters )
-        {
-            String[] split = filter.split( ":" );
-
-            if ( split.length != 3 )
-            {
-                throw new QueryParserException( "Invalid filter: " + filter );
-            }
-
-            if ( "organisationUnit.id".equalsIgnoreCase( split[0] ) )
-            {
-                returnList.retainAll( getLockExceptionByOrganisationUnit( split[1], split[2], returnList ) );
-            }
-
-            if ( "dataSet.id".equalsIgnoreCase( split[0] ) )
-            {
-                returnList.retainAll( getLockExceptionByDataSet( split[1], split[2], returnList ) );
-            }
-
-            if ( "period".equalsIgnoreCase( split[0] ) )
-            {
-                returnList.retainAll( getLockExceptionByPeriod( split[1], split[2], returnList ) );
-            }
-        }
-
-        return new ArrayList<>( returnList );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public SetValuedMap<String, String> getDataSetOrganisationUnitsAssociations()
-    {
-        Set<String> uids = getUserDataWrite( currentUserService.getCurrentUser() ).stream()
-            .map( DataSet::getUid )
-            .collect( Collectors.toSet() );
-
-        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( uids );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private List<LockException> getLockExceptionByOrganisationUnit( String operator, String orgUnitIds,
-        Collection<LockException> lockExceptions )
-    {
-
-        List<String> ids = parseIdFromString( orgUnitIds, operator );
-
-        return lockExceptions.stream()
-            .filter( lockException -> ids.contains( lockException.getOrganisationUnit().getUid() ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<LockException> getLockExceptionByDataSet( String operator, String dataSetIds,
-        Collection<LockException> lockExceptions )
-    {
-        List<String> ids = parseIdFromString( dataSetIds, operator );
-
-        return lockExceptions.stream()
-            .filter( lockException -> ids.contains( lockException.getDataSet().getUid() ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<LockException> getLockExceptionByPeriod( String operator, String periods,
-        Collection<LockException> lockExceptions )
-    {
-        List<String> ids = parseIdFromString( periods, operator );
-
-        return lockExceptions.stream()
-            .filter( lockException -> ids.contains( lockException.getPeriod().getIsoDate() ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<String> parseIdFromString( String input, String operator )
-    {
-        List<String> ids = new ArrayList<>();
-
-        if ( "in".equalsIgnoreCase( operator ) )
-        {
-            if ( input.startsWith( "[" ) && input.endsWith( "]" ) )
-            {
-                String[] split = input.substring( 1, input.length() - 1 ).split( "," );
-                Collections.addAll( ids, split );
-            }
-            else
-            {
-                throw new QueryParserException( "Invalid query: " + input );
-            }
-        }
-        else if ( "eq".equalsIgnoreCase( operator ) )
-        {
-            ids.add( input );
-        }
-        return ids;
-    }
+    return ids;
+  }
 }

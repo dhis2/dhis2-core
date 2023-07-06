@@ -34,20 +34,16 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class IndicatorGroupDeletionHandler extends IdObjectDeletionHandler<IndicatorGroup>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( Indicator.class, this::deleteIndicator );
-    }
+public class IndicatorGroupDeletionHandler extends IdObjectDeletionHandler<IndicatorGroup> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(Indicator.class, this::deleteIndicator);
+  }
 
-    private void deleteIndicator( Indicator indicator )
-    {
-        for ( IndicatorGroup group : indicator.getGroups() )
-        {
-            group.getMembers().remove( indicator );
-            idObjectManager.updateNoAcl( group );
-        }
+  private void deleteIndicator(Indicator indicator) {
+    for (IndicatorGroup group : indicator.getGroups()) {
+      group.getMembers().remove(indicator);
+      idObjectManager.updateNoAcl(group);
     }
+  }
 }

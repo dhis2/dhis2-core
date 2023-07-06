@@ -35,35 +35,33 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.indicator.Indicator;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for {@link ExpressionDimensionItem}.
- */
-class ExpressionDimensionItemTest
-{
-    @Test
-    void testToIndicator()
-    {
-        // Given
-        ExpressionDimensionItem expressionDimensionItem = new ExpressionDimensionItem();
-        expressionDimensionItem.setExpression( "#{R4KStuS8qt7.LbkJRbDblhe} / #{o0fOD1HLuv8.LbkJRbDblhe}" );
-        expressionDimensionItem.setUid( "anyUid" );
-        expressionDimensionItem.setCode( "anyCode" );
-        expressionDimensionItem.setName( "anyName" );
-        expressionDimensionItem.setDescription( "anyDescription" );
+/** Unit tests for {@link ExpressionDimensionItem}. */
+class ExpressionDimensionItemTest {
+  @Test
+  void testToIndicator() {
+    // Given
+    ExpressionDimensionItem expressionDimensionItem = new ExpressionDimensionItem();
+    expressionDimensionItem.setExpression(
+        "#{R4KStuS8qt7.LbkJRbDblhe} / #{o0fOD1HLuv8.LbkJRbDblhe}");
+    expressionDimensionItem.setUid("anyUid");
+    expressionDimensionItem.setCode("anyCode");
+    expressionDimensionItem.setName("anyName");
+    expressionDimensionItem.setDescription("anyDescription");
 
-        // When
-        Indicator indicator = expressionDimensionItem.toIndicator();
+    // When
+    Indicator indicator = expressionDimensionItem.toIndicator();
 
-        // Then
-        assertEquals( "anyUid", indicator.getUid() );
-        assertEquals( "anyCode", indicator.getCode() );
-        assertEquals( "anyName", indicator.getName() );
-        assertEquals( "#{R4KStuS8qt7.LbkJRbDblhe} / #{o0fOD1HLuv8.LbkJRbDblhe}", indicator.getNumerator() );
-        assertEquals( "1", indicator.getDenominator() );
-        assertEquals( 1, indicator.getIndicatorType().getFactor() );
-        assertNull( indicator.getDescription() );
-        assertNull( indicator.getDecimals() );
-        assertFalse( indicator.isAnnualized() );
-        assertTrue( indicator.getIndicatorType().isNumber() );
-    }
+    // Then
+    assertEquals("anyUid", indicator.getUid());
+    assertEquals("anyCode", indicator.getCode());
+    assertEquals("anyName", indicator.getName());
+    assertEquals(
+        "#{R4KStuS8qt7.LbkJRbDblhe} / #{o0fOD1HLuv8.LbkJRbDblhe}", indicator.getNumerator());
+    assertEquals("1", indicator.getDenominator());
+    assertEquals(1, indicator.getIndicatorType().getFactor());
+    assertNull(indicator.getDescription());
+    assertNull(indicator.getDecimals());
+    assertFalse(indicator.isAnnualized());
+    assertTrue(indicator.getIndicatorType().isNumber());
+  }
 }

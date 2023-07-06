@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -53,40 +52,39 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "ui" )
+@OpenApi.Tags("ui")
 @Controller
-@RequestMapping( value = DashboardItemSchemaDescriptor.API_ENDPOINT )
-public class DashboardItemController
-    extends AbstractCrudController<DashboardItem>
-{
-    // TODO this controller class is only needed for the pre 2.30 old dashboard
-    // app and should be removed
+@RequestMapping(value = DashboardItemSchemaDescriptor.API_ENDPOINT)
+public class DashboardItemController extends AbstractCrudController<DashboardItem> {
+  // TODO this controller class is only needed for the pre 2.30 old dashboard
+  // app and should be removed
 
-    @Autowired
-    private DashboardService dashboardService;
+  @Autowired private DashboardService dashboardService;
 
-    @PutMapping( "/{uid}/shape/{shape}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void putDashboardItemShape( @PathVariable String uid, @PathVariable DashboardItemShape shape,
-        @CurrentUser User currentUser, HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        DashboardItem item = dashboardService.getDashboardItem( uid );
+  @PutMapping("/{uid}/shape/{shape}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void putDashboardItemShape(
+      @PathVariable String uid,
+      @PathVariable DashboardItemShape shape,
+      @CurrentUser User currentUser,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    DashboardItem item = dashboardService.getDashboardItem(uid);
 
-        if ( item == null )
-        {
-            throw new WebMessageException( notFound( "Dashboard item does not exist: " + uid ) );
-        }
-
-        Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( item );
-
-        if ( !aclService.canUpdate( currentUser, dashboard ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this dashboard." );
-        }
-
-        item.setShape( shape );
-
-        dashboardService.updateDashboardItem( item );
+    if (item == null) {
+      throw new WebMessageException(notFound("Dashboard item does not exist: " + uid));
     }
+
+    Dashboard dashboard = dashboardService.getDashboardFromDashboardItem(item);
+
+    if (!aclService.canUpdate(currentUser, dashboard)) {
+      throw new UpdateAccessDeniedException(
+          "You don't have the proper permissions to update this dashboard.");
+    }
+
+    item.setShape(shape);
+
+    dashboardService.updateDashboardItem(item);
+  }
 }

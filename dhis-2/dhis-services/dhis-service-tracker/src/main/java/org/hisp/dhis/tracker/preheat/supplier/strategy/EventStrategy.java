@@ -28,11 +28,8 @@
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -47,22 +44,20 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = Event.class, mapper = ProgramStageInstanceMapper.class )
-public class EventStrategy implements ClassBasedSupplierStrategy
-{
-    @Nonnull
-    private final ProgramStageInstanceStore programStageInstanceStore;
+@StrategyFor(value = Event.class, mapper = ProgramStageInstanceMapper.class)
+public class EventStrategy implements ClassBasedSupplierStrategy {
+  @Nonnull private final ProgramStageInstanceStore programStageInstanceStore;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        for ( List<String> ids : splitList )
-        {
-            List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getIncludingDeleted( ids );
+  @Override
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    for (List<String> ids : splitList) {
+      List<ProgramStageInstance> programStageInstances =
+          programStageInstanceStore.getIncludingDeleted(ids);
 
-            preheat.putEvents(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    programStageInstances ) );
-        }
+      preheat.putEvents(
+          DetachUtils.detach(
+              this.getClass().getAnnotation(StrategyFor.class).mapper(), programStageInstances));
     }
+  }
 }

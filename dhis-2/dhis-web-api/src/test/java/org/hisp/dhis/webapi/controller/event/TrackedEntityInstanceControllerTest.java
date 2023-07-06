@@ -36,7 +36,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
-
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -60,80 +59,76 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@ExtendWith( MockitoExtension.class )
-class TrackedEntityInstanceControllerTest
-{
+@ExtendWith(MockitoExtension.class)
+class TrackedEntityInstanceControllerTest {
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
+  @Mock private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
-    @Mock
-    private TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
+  @Mock private TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
-    @Mock
-    private User user;
+  @Mock private User user;
 
-    @Mock
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
+  @Mock private org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
 
-    @Mock
-    private TrackerAccessManager trackerAccessManager;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
-    @Mock
-    private TrackedEntityInstance trackedEntityInstance;
+  @Mock private TrackedEntityInstance trackedEntityInstance;
 
-    private final static String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
+  private static final String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
 
-    @BeforeEach
-    public void setUp()
-        throws BadRequestException,
-        IOException
-    {
-        final TrackedEntityInstanceController controller = new TrackedEntityInstanceController(
-            mock( TrackedEntityInstanceService.class ), instanceService, null, null, null,
-            currentUserService, null, trackerAccessManager, null, null,
+  @BeforeEach
+  public void setUp() throws BadRequestException, IOException {
+    final TrackedEntityInstanceController controller =
+        new TrackedEntityInstanceController(
+            mock(TrackedEntityInstanceService.class),
+            instanceService,
+            null,
+            null,
+            null,
+            currentUserService,
+            null,
+            trackerAccessManager,
+            null,
+            null,
             new TrackedEntityInstanceStrategyImpl(
-                trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy ) );
+                trackedEntityInstanceSyncStrategy, trackedEntityInstanceAsyncStrategy));
 
-        mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        when( user.getUid() ).thenReturn( "userId" );
-    }
+    mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(user.getUid()).thenReturn("userId");
+  }
 
-    @Test
-    void shouldCallSyncStrategy()
-        throws Exception
-    {
+  @Test
+  void shouldCallSyncStrategy() throws Exception {
 
-        when( trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances( any() ) )
-            .thenReturn( new ImportSummaries() );
+    when(trackedEntityInstanceSyncStrategy.mergeOrDeleteTrackedEntityInstances(any()))
+        .thenReturn(new ImportSummaries());
 
-        mockMvc.perform( post( ENDPOINT )
-            .contentType( MediaType.APPLICATION_JSON )
-            .content( "{}" ) )
-            .andExpect( status().isOk() )
-            .andReturn();
+    mockMvc
+        .perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isOk())
+        .andReturn();
 
-        verify( trackedEntityInstanceSyncStrategy, times( 1 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-        verify( trackedEntityInstanceAsyncStrategy, times( 0 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-    }
+    verify(trackedEntityInstanceSyncStrategy, times(1)).mergeOrDeleteTrackedEntityInstances(any());
+    verify(trackedEntityInstanceAsyncStrategy, times(0)).mergeOrDeleteTrackedEntityInstances(any());
+  }
 
-    @Test
-    void shouldCallAsyncStrategy()
-        throws Exception
-    {
-        mockMvc.perform( post( ENDPOINT )
-            .contentType( MediaType.APPLICATION_JSON ).param( "async", "true" )
-            .content( "{}" ) )
-            .andExpect( status().isOk() )
-            .andReturn();
+  @Test
+  void shouldCallAsyncStrategy() throws Exception {
+    mockMvc
+        .perform(
+            post(ENDPOINT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("async", "true")
+                .content("{}"))
+        .andExpect(status().isOk())
+        .andReturn();
 
-        verify( trackedEntityInstanceSyncStrategy, times( 0 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-        verify( trackedEntityInstanceAsyncStrategy, times( 1 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-    }
+    verify(trackedEntityInstanceSyncStrategy, times(0)).mergeOrDeleteTrackedEntityInstances(any());
+    verify(trackedEntityInstanceAsyncStrategy, times(1)).mergeOrDeleteTrackedEntityInstances(any());
+  }
 }

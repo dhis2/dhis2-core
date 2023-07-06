@@ -31,43 +31,34 @@ import static org.hisp.dhis.tracker.validation.ValidationCode.E1118;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1120;
 
 import java.util.Optional;
-
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 
-class AssignedUserValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        if ( event.getAssignedUser() != null && !event.getAssignedUser().isEmpty() )
-        {
-            if ( assignedUserNotPresentInPreheat( bundle.getPreheat(), event ) )
-            {
-                reporter.addError( event, E1118, event.getAssignedUser().toString() );
-            }
-            if ( isNotEnabledUserAssignment( bundle.getPreheat(), event ) )
-            {
-                reporter.addWarning( event, E1120, event.getProgramStage() );
-            }
-        }
+class AssignedUserValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    if (event.getAssignedUser() != null && !event.getAssignedUser().isEmpty()) {
+      if (assignedUserNotPresentInPreheat(bundle.getPreheat(), event)) {
+        reporter.addError(event, E1118, event.getAssignedUser().toString());
+      }
+      if (isNotEnabledUserAssignment(bundle.getPreheat(), event)) {
+        reporter.addWarning(event, E1120, event.getProgramStage());
+      }
     }
+  }
 
-    private boolean isNotEnabledUserAssignment( TrackerPreheat preheat, Event event )
-    {
-        Boolean userAssignmentEnabled = preheat.getProgramStage( event.getProgramStage() ).isEnableUserAssignment();
+  private boolean isNotEnabledUserAssignment(TrackerPreheat preheat, Event event) {
+    Boolean userAssignmentEnabled =
+        preheat.getProgramStage(event.getProgramStage()).isEnableUserAssignment();
 
-        return !Optional.ofNullable( userAssignmentEnabled )
-            .orElse( false );
-    }
+    return !Optional.ofNullable(userAssignmentEnabled).orElse(false);
+  }
 
-    private boolean assignedUserNotPresentInPreheat( TrackerPreheat preheat, Event event )
-    {
-        return event.getAssignedUser().getUsername() == null ||
-            preheat.getUserByUsername( event.getAssignedUser().getUsername() ).isEmpty();
-    }
+  private boolean assignedUserNotPresentInPreheat(TrackerPreheat preheat, Event event) {
+    return event.getAssignedUser().getUsername() == null
+        || preheat.getUserByUsername(event.getAssignedUser().getUsername()).isEmpty();
+  }
 }

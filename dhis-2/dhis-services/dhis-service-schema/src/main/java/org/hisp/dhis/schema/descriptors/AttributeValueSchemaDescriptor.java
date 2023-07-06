@@ -34,15 +34,13 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AttributeValueSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "attributeValue";
+public class AttributeValueSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "attributeValue";
 
-    public static final String PLURAL = "attributeValues";
+  public static final String PLURAL = "attributeValues";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( AttributeValue.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(AttributeValue.class, SINGULAR, PLURAL);
+  }
 }

@@ -30,40 +30,32 @@ package org.hisp.dhis.dxf2.importsummary;
 import org.hisp.dhis.feedback.ErrorCode;
 
 /**
- * Interface that is meant to be implemented by enumerations that define the set
- * of possible conflicts for a certain type of import or a certain phase of an
- * import.
+ * Interface that is meant to be implemented by enumerations that define the set of possible
+ * conflicts for a certain type of import or a certain phase of an import.
  *
  * @author Jan Bernitt
  */
-public interface ImportConflictDescriptor
-{
-    /**
-     * @return The error code for the conflict
-     */
-    ErrorCode getErrorCode();
+public interface ImportConflictDescriptor {
+  /**
+   * @return The error code for the conflict
+   */
+  ErrorCode getErrorCode();
 
-    /**
-     * Use type {@link org.hisp.dhis.i18n.I18n} for error keys that should be
-     * translated using the {@link org.hisp.dhis.i18n.I18n}. Otherwise the
-     * classes returned should be either
-     * {@link org.hisp.dhis.common.IdentifiableObject}s or simple types like
-     * {@link String}.
-     *
-     * @return The type of object that has the conflict and to which the object
-     *         references point.
-     */
-    Class<?>[] getObjectTypes();
+  /**
+   * Use type {@link org.hisp.dhis.i18n.I18n} for error keys that should be translated using the
+   * {@link org.hisp.dhis.i18n.I18n}. Otherwise the classes returned should be either {@link
+   * org.hisp.dhis.common.IdentifiableObject}s or simple types like {@link String}.
+   *
+   * @return The type of object that has the conflict and to which the object references point.
+   */
+  Class<?>[] getObjectTypes();
 
-    /**
-     * @return The name of the property of the imported object that the conflict
-     *         is related to (if available and clearly related to a single
-     *         property)
-     */
-    default String getProperty()
-    {
-        // by default conflicts are not related to a single property
-        return null;
-    }
-
+  /**
+   * @return The name of the property of the imported object that the conflict is related to (if
+   *     available and clearly related to a single property)
+   */
+  default String getProperty() {
+    // by default conflicts are not related to a single property
+    return null;
+  }
 }

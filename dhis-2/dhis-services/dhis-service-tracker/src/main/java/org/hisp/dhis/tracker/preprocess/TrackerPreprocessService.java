@@ -32,12 +32,11 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 /**
  * @author Enrico Colasante
  */
-public interface TrackerPreprocessService
-{
-    /**
-     * Execute preprocess actions on bundle
-     *
-     * @param bundle Bundle to preprocess
-     */
-    TrackerBundle preprocess( TrackerBundle bundle );
+public interface TrackerPreprocessService {
+  /**
+   * Execute preprocess actions on bundle
+   *
+   * @param bundle Bundle to preprocess
+   */
+  TrackerBundle preprocess(TrackerBundle bundle);
 }

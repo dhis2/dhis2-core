@@ -33,9 +33,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.ExecutionException;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -52,38 +50,35 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( { "user", "login" } )
+@OpenApi.Tags({"user", "login"})
 @Controller
-@RequestMapping( value = TokenController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class TokenController
-{
-    public static final String RESOURCE_PATH = "/tokens";
+@RequestMapping(value = TokenController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class TokenController {
+  public static final String RESOURCE_PATH = "/tokens";
 
-    private static final String TOKEN_CACHE_KEY = "keyGoogleAccessToken";
+  private static final String TOKEN_CACHE_KEY = "keyGoogleAccessToken";
 
-    private final Cache<GoogleAccessToken> tokenCache;
+  private final Cache<GoogleAccessToken> tokenCache;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    public TokenController( DhisConfigurationProvider config, CacheProvider cacheProvider )
-    {
-        this.config = config;
-        this.tokenCache = cacheProvider.createGoogleAccessTokenCache();
-    }
+  public TokenController(DhisConfigurationProvider config, CacheProvider cacheProvider) {
+    this.config = config;
+    this.tokenCache = cacheProvider.createGoogleAccessTokenCache();
+  }
 
-    @GetMapping( value = "/google", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
-        throws WebMessageException,
-        ExecutionException
-    {
-        setNoStore( response );
+  @GetMapping(value = "/google", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody GoogleAccessToken getEarthEngineToken(HttpServletResponse response)
+      throws WebMessageException, ExecutionException {
+    setNoStore(response);
 
-        GoogleAccessToken token = tokenCache.get( TOKEN_CACHE_KEY,
-            c -> config.getGoogleAccessToken().get() );
+    GoogleAccessToken token =
+        tokenCache.get(TOKEN_CACHE_KEY, c -> config.getGoogleAccessToken().get());
 
-        token.setExpiresInSeconds( ChronoUnit.SECONDS.between( LocalDateTime.now(), token.getExpiresOn() ) );
+    token.setExpiresInSeconds(
+        ChronoUnit.SECONDS.between(LocalDateTime.now(), token.getExpiresOn()));
 
-        return token;
-    }
+    return token;
+  }
 }

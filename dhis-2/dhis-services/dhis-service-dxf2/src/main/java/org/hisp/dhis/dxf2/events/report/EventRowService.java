@@ -32,7 +32,6 @@ import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public interface EventRowService
-{
-    EventRows getEventRows( EventSearchParams params );
+public interface EventRowService {
+  EventRows getEventRows(EventSearchParams params);
 }

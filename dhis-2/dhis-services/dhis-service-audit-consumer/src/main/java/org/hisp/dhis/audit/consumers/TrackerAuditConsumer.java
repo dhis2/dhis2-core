@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.audit.consumers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Objects;
-
 import javax.jms.TextMessage;
-
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
@@ -39,35 +38,27 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Tracker audit consumer.
  *
  * @author Morten Olav Hansen <morten@dhis2.org>
  */
 @Component
-public class TrackerAuditConsumer
-    extends AbstractAuditConsumer
-{
-    public TrackerAuditConsumer(
-        AuditService auditService,
-        ObjectMapper objectMapper,
-        DhisConfigurationProvider dhisConfig )
-    {
-        this.auditService = auditService;
-        this.objectMapper = objectMapper;
+public class TrackerAuditConsumer extends AbstractAuditConsumer {
+  public TrackerAuditConsumer(
+      AuditService auditService, ObjectMapper objectMapper, DhisConfigurationProvider dhisConfig) {
+    this.auditService = auditService;
+    this.objectMapper = objectMapper;
 
-        // for legacy reasons we are overriding the default here and using "off"
-        // for tracking logger (we don't have a specific key for tracker logger)
-        this.isAuditLogEnabled = Objects
-            .equals( dhisConfig.getPropertyOrDefault( ConfigurationKey.AUDIT_LOGGER, "off" ), "on" );
-        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
-    }
+    // for legacy reasons we are overriding the default here and using "off"
+    // for tracking logger (we don't have a specific key for tracker logger)
+    this.isAuditLogEnabled =
+        Objects.equals(dhisConfig.getPropertyOrDefault(ConfigurationKey.AUDIT_LOGGER, "off"), "on");
+    this.isAuditDatabaseEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_DATABASE);
+  }
 
-    @JmsListener( destination = Topics.TRACKER_TOPIC_NAME )
-    public void consume( TextMessage message )
-    {
-        _consume( message );
-    }
+  @JmsListener(destination = Topics.TRACKER_TOPIC_NAME)
+  public void consume(TextMessage message) {
+    _consume(message);
+  }
 }

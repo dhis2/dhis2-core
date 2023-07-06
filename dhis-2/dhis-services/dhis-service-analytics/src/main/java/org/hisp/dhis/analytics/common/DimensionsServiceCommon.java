@@ -49,7 +49,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,61 +56,63 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-public class DimensionsServiceCommon
-{
+public class DimensionsServiceCommon {
 
-    protected static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = EnumSet.of(
-        IMAGE,
-        FILE_RESOURCE,
-        TRACKER_ASSOCIATE );
+  protected static final Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES =
+      EnumSet.of(IMAGE, FILE_RESOURCE, TRACKER_ASSOCIATE);
 
-    protected static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = EnumSet.of(
-        NUMBER,
-        UNIT_INTERVAL,
-        PERCENTAGE,
-        INTEGER,
-        INTEGER_POSITIVE,
-        INTEGER_NEGATIVE,
-        INTEGER_ZERO_OR_POSITIVE,
-        BOOLEAN,
-        TRUE_ONLY );
+  protected static final Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES =
+      EnumSet.of(
+          NUMBER,
+          UNIT_INTERVAL,
+          PERCENTAGE,
+          INTEGER,
+          INTEGER_POSITIVE,
+          INTEGER_NEGATIVE,
+          INTEGER_ZERO_OR_POSITIVE,
+          BOOLEAN,
+          TRUE_ONLY);
 
-    private static final Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
-        OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
-        OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
+  private static final Map<OperationType, Predicate<ValueType>> OPERATION_FILTER =
+      Map.of(
+          OperationType.QUERY,
+          not(QUERY_DISALLOWED_VALUE_TYPES::contains),
+          OperationType.AGGREGATE,
+          AGGREGATE_ALLOWED_VALUE_TYPES::contains);
 
-    private static final Map<Class<?>, Function<PrefixedDimension, ValueType>> VALUE_TYPE_GETTERS_BY_CLASS = Map.of(
-        TrackedEntityAttribute.class, pd -> ((TrackedEntityAttribute) pd.getItem()).getValueType(),
-        DataElement.class, pd -> ((DataElement) pd.getItem()).getValueType(),
-        ProgramStageDataElement.class, pd -> ((ProgramStageDataElement) pd.getItem()).getDataElement().getValueType() );
+  private static final Map<Class<?>, Function<PrefixedDimension, ValueType>>
+      VALUE_TYPE_GETTERS_BY_CLASS =
+          Map.of(
+              TrackedEntityAttribute.class,
+                  pd -> ((TrackedEntityAttribute) pd.getItem()).getValueType(),
+              DataElement.class, pd -> ((DataElement) pd.getItem()).getValueType(),
+              ProgramStageDataElement.class,
+                  pd -> ((ProgramStageDataElement) pd.getItem()).getDataElement().getValueType());
 
-    public enum OperationType
-    {
-        QUERY,
-        AGGREGATE
-    }
+  public enum OperationType {
+    QUERY,
+    AGGREGATE
+  }
 
-    public static List<PrefixedDimension> collectDimensions(
-        Collection<Collection<? extends PrefixedDimension>> dimensionCollections )
-    {
-        return dimensionCollections.stream()
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
-    }
+  public static List<PrefixedDimension> collectDimensions(
+      Collection<Collection<? extends PrefixedDimension>> dimensionCollections) {
+    return dimensionCollections.stream().flatMap(Collection::stream).collect(Collectors.toList());
+  }
 
-    public static <T extends PrefixedDimension> Collection<T> filterByValueType(
-        DimensionsServiceCommon.OperationType operationType,
-        Collection<T> elements )
-    {
-        return elements.stream()
-            .filter( t -> OPERATION_FILTER.get( operationType )
-                .test( getValueTypeGetter( HibernateProxyUtils.getRealClass( t.getItem() ) ).apply( t ) ) )
-            .collect( Collectors.toList() );
-    }
+  public static <T extends PrefixedDimension> Collection<T> filterByValueType(
+      DimensionsServiceCommon.OperationType operationType, Collection<T> elements) {
+    return elements.stream()
+        .filter(
+            t ->
+                OPERATION_FILTER
+                    .get(operationType)
+                    .test(
+                        getValueTypeGetter(HibernateProxyUtils.getRealClass(t.getItem())).apply(t)))
+        .collect(Collectors.toList());
+  }
 
-    private static Function<PrefixedDimension, ValueType> getValueTypeGetter( Class<?> clazz )
-    {
-        return Optional.ofNullable( VALUE_TYPE_GETTERS_BY_CLASS.get( clazz ) )
-            .orElseThrow( IllegalArgumentException::new );
-    }
+  private static Function<PrefixedDimension, ValueType> getValueTypeGetter(Class<?> clazz) {
+    return Optional.ofNullable(VALUE_TYPE_GETTERS_BY_CLASS.get(clazz))
+        .orElseThrow(IllegalArgumentException::new);
+  }
 }

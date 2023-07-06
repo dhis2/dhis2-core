@@ -30,33 +30,31 @@ package org.hisp.dhis.commons.jackson.serialization;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
-
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen
  */
-class DataSetPeriodTypeSerializationTest
-{
+class DataSetPeriodTypeSerializationTest {
 
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
-    void testPeriodTypeAsString()
-    {
-        DataSet dataSet = new DataSet( "DataSetUnderTest", PeriodType.getPeriodTypeByName( "Daily" ) );
-        dataSet.setDataSetElements( new HashSet<>() );
-        JsonNode dataSetNodes = jsonMapper.valueToTree( dataSet );
-        assertTrue( dataSetNodes.has( "periodType" ) );
-        assertTrue( dataSetNodes.get( "periodType" ).isTextual() );
-        assertEquals( "Daily", dataSetNodes.get( "periodType" ).asText(),
-            "PeriodType serialization does not match expectation" );
-    }
+  @Test
+  void testPeriodTypeAsString() {
+    DataSet dataSet = new DataSet("DataSetUnderTest", PeriodType.getPeriodTypeByName("Daily"));
+    dataSet.setDataSetElements(new HashSet<>());
+    JsonNode dataSetNodes = jsonMapper.valueToTree(dataSet);
+    assertTrue(dataSetNodes.has("periodType"));
+    assertTrue(dataSetNodes.get("periodType").isTextual());
+    assertEquals(
+        "Daily",
+        dataSetNodes.get("periodType").asText(),
+        "PeriodType serialization does not match expectation");
+  }
 }

@@ -30,75 +30,66 @@ package org.hisp.dhis.mapgeneration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.awt.Color;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  */
-class GeoToolsMapObjectTest
-{
+class GeoToolsMapObjectTest {
 
-    private InternalMapObject geoToolsMapObject;
+  private InternalMapObject geoToolsMapObject;
 
-    @BeforeEach
-    void before()
-    {
-        geoToolsMapObject = new InternalMapObject();
-    }
+  @BeforeEach
+  void before() {
+    geoToolsMapObject = new InternalMapObject();
+  }
 
-    @Test
-    void testSetGetName()
-    {
-        geoToolsMapObject.setName( "Name1" );
-        assertEquals( "Name1", geoToolsMapObject.getName() );
-        geoToolsMapObject.setName( "Another name" );
-        assertEquals( "Another name", geoToolsMapObject.getName() );
-    }
+  @Test
+  void testSetGetName() {
+    geoToolsMapObject.setName("Name1");
+    assertEquals("Name1", geoToolsMapObject.getName());
+    geoToolsMapObject.setName("Another name");
+    assertEquals("Another name", geoToolsMapObject.getName());
+  }
 
-    @Test
-    void testSetGetValue()
-    {
-        geoToolsMapObject.setValue( 489.3 );
-        assertEquals( geoToolsMapObject.getValue(), 0.00001, 489.3 );
-        geoToolsMapObject.setValue( 41.423 );
-        assertEquals( geoToolsMapObject.getValue(), 0.00001, 41.423 );
-    }
+  @Test
+  void testSetGetValue() {
+    geoToolsMapObject.setValue(489.3);
+    assertEquals(geoToolsMapObject.getValue(), 0.00001, 489.3);
+    geoToolsMapObject.setValue(41.423);
+    assertEquals(geoToolsMapObject.getValue(), 0.00001, 41.423);
+  }
 
-    @Test
-    void testSetGetRadius()
-    {
-        geoToolsMapObject.setRadius( 32 );
-        assertEquals( geoToolsMapObject.getRadius(), 0.00001, 32.5264F );
-        geoToolsMapObject.setRadius( 61 );
-        assertEquals( geoToolsMapObject.getRadius(), 0.00001, 61441.5F );
-    }
+  @Test
+  void testSetGetRadius() {
+    geoToolsMapObject.setRadius(32);
+    assertEquals(geoToolsMapObject.getRadius(), 0.00001, 32.5264F);
+    geoToolsMapObject.setRadius(61);
+    assertEquals(geoToolsMapObject.getRadius(), 0.00001, 61441.5F);
+  }
 
-    @Test
-    void testSetGetFillColor()
-    {
-        geoToolsMapObject.setFillColor( Color.BLUE );
-        assertEquals( Color.BLUE, geoToolsMapObject.getFillColor() );
-        geoToolsMapObject.setFillColor( Color.CYAN );
-        assertEquals( Color.CYAN, geoToolsMapObject.getFillColor() );
-    }
+  @Test
+  void testSetGetFillColor() {
+    geoToolsMapObject.setFillColor(Color.BLUE);
+    assertEquals(Color.BLUE, geoToolsMapObject.getFillColor());
+    geoToolsMapObject.setFillColor(Color.CYAN);
+    assertEquals(Color.CYAN, geoToolsMapObject.getFillColor());
+  }
 
-    @Test
-    void testSetGetFillOpacity()
-    {
-        geoToolsMapObject.setFillOpacity( 5.23F );
-        assertEquals( geoToolsMapObject.getFillOpacity(), 0.00001, 5.23F );
-        geoToolsMapObject.setFillOpacity( 594208420.134F );
-        assertEquals( geoToolsMapObject.getFillOpacity(), 0.00001, 594208420.134F );
-    }
+  @Test
+  void testSetGetFillOpacity() {
+    geoToolsMapObject.setFillOpacity(5.23F);
+    assertEquals(geoToolsMapObject.getFillOpacity(), 0.00001, 5.23F);
+    geoToolsMapObject.setFillOpacity(594208420.134F);
+    assertEquals(geoToolsMapObject.getFillOpacity(), 0.00001, 594208420.134F);
+  }
 
-    @Test
-    void testSetGetStrokeColor()
-    {
-        geoToolsMapObject.setStrokeColor( Color.GREEN );
-        assertEquals( Color.GREEN, geoToolsMapObject.getStrokeColor() );
-        geoToolsMapObject.setStrokeColor( Color.WHITE );
-        assertEquals( Color.WHITE, geoToolsMapObject.getStrokeColor() );
-    }
+  @Test
+  void testSetGetStrokeColor() {
+    geoToolsMapObject.setStrokeColor(Color.GREEN);
+    assertEquals(Color.GREEN, geoToolsMapObject.getStrokeColor());
+    geoToolsMapObject.setStrokeColor(Color.WHITE);
+    assertEquals(Color.WHITE, geoToolsMapObject.getStrokeColor());
+  }
 }

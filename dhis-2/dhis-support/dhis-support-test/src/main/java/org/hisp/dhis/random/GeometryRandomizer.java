@@ -34,14 +34,10 @@ import org.locationtech.jts.shape.random.RandomPointsInGridBuilder;
 /**
  * @author Luciano Fiandesio
  */
-public class GeometryRandomizer
-    implements
-    Randomizer<Geometry>
-{
+public class GeometryRandomizer implements Randomizer<Geometry> {
 
-    @Override
-    public Geometry getRandomValue()
-    {
-        return new RandomPointsInGridBuilder().getGeometry();
-    }
+  @Override
+  public Geometry getRandomValue() {
+    return new RandomPointsInGridBuilder().getGeometry();
+  }
 }

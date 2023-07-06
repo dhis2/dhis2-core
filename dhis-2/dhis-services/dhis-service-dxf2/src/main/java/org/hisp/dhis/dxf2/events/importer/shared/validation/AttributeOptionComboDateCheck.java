@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.events.importer.Checker;
@@ -47,56 +46,61 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class AttributeOptionComboDateCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        CategoryOptionCombo attributeOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
+public class AttributeOptionComboDateCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    CategoryOptionCombo attributeOptionCombo = ctx.getCategoryOptionComboMap().get(event.getUid());
 
-        Date executionDate = null;
+    Date executionDate = null;
 
-        if ( event.getEventDate() != null )
-        {
-            executionDate = DateUtils.parseDate( event.getEventDate() );
-        }
-
-        Date dueDate = new Date();
-
-        if ( event.getDueDate() != null )
-        {
-            dueDate = DateUtils.parseDate( event.getDueDate() );
-        }
-
-        Date eventDate = executionDate != null ? executionDate : dueDate;
-
-        if ( eventDate == null )
-        {
-            return error( "Event date can not be empty", event.getEvent() );
-        }
-
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-
-        for ( CategoryOption categoryOption : attributeOptionCombo.getCategoryOptions() )
-        {
-            if ( categoryOption.getStartDate() != null &&
-                eventDate.compareTo( categoryOption.getStartDate() ) < 0 )
-            {
-                return error( "Event date " + getMediumDateString( eventDate )
-                    + " is before start date " + getMediumDateString( categoryOption.getStartDate() )
-                    + " for attributeOption '" + categoryOption.getName() + "'", event.getEvent() );
-            }
-
-            if ( categoryOption.getEndDate() != null &&
-                eventDate.compareTo( categoryOption.getAdjustedEndDate( program ) ) > 0 )
-            {
-                return error( "Event date " + getMediumDateString( eventDate )
-                    + " is after end date " + getMediumDateString( categoryOption.getAdjustedEndDate( program ) )
-                    + " for attributeOption '" + categoryOption.getName()
-                    + "' in program '" + program.getName() + "'", event.getEvent() );
-            }
-        }
-
-        return success();
+    if (event.getEventDate() != null) {
+      executionDate = DateUtils.parseDate(event.getEventDate());
     }
+
+    Date dueDate = new Date();
+
+    if (event.getDueDate() != null) {
+      dueDate = DateUtils.parseDate(event.getDueDate());
+    }
+
+    Date eventDate = executionDate != null ? executionDate : dueDate;
+
+    if (eventDate == null) {
+      return error("Event date can not be empty", event.getEvent());
+    }
+
+    Program program = ctx.getProgramsMap().get(event.getProgram());
+
+    for (CategoryOption categoryOption : attributeOptionCombo.getCategoryOptions()) {
+      if (categoryOption.getStartDate() != null
+          && eventDate.compareTo(categoryOption.getStartDate()) < 0) {
+        return error(
+            "Event date "
+                + getMediumDateString(eventDate)
+                + " is before start date "
+                + getMediumDateString(categoryOption.getStartDate())
+                + " for attributeOption '"
+                + categoryOption.getName()
+                + "'",
+            event.getEvent());
+      }
+
+      if (categoryOption.getEndDate() != null
+          && eventDate.compareTo(categoryOption.getAdjustedEndDate(program)) > 0) {
+        return error(
+            "Event date "
+                + getMediumDateString(eventDate)
+                + " is after end date "
+                + getMediumDateString(categoryOption.getAdjustedEndDate(program))
+                + " for attributeOption '"
+                + categoryOption.getName()
+                + "' in program '"
+                + program.getName()
+                + "'",
+            event.getEvent());
+      }
+    }
+
+    return success();
+  }
 }

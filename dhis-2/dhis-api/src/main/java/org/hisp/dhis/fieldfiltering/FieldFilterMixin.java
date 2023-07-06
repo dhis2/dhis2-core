@@ -32,7 +32,5 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 /**
  * @author Morten Olav Hansen
  */
-@JsonFilter( "field-filter" )
-public interface FieldFilterMixin
-{
-}
+@JsonFilter("field-filter")
+public interface FieldFilterMixin {}

@@ -33,13 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -67,186 +67,186 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+@ExtendWith(MockitoExtension.class)
+class TrigramSummaryControllerTest extends DhisControllerConvenienceTest {
 
-@ExtendWith( MockitoExtension.class )
-class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
-{
+  private static final List<FieldPath> DEFAULT_FIELDS =
+      FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 
-    private static final List<FieldPath> DEFAULT_FIELDS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Mock private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
 
-    @Mock
-    private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired private ContextService contextService;
 
-    @Autowired
-    private ContextService contextService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private FieldFilterService fieldFilterService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+  private TrigramSummaryController controller;
 
-    private TrigramSummaryController controller;
+  private OrganisationUnit orgUnit;
 
-    private OrganisationUnit orgUnit;
+  private Program program;
 
-    private Program program;
+  private TrackedEntityInstance tei;
 
-    private TrackedEntityInstance tei;
+  private ProgramInstance programInstance;
 
-    private ProgramInstance programInstance;
+  private TrackedEntityAttribute teaA;
 
-    private TrackedEntityAttribute teaA;
+  private TrackedEntityAttribute teaB;
 
-    private TrackedEntityAttribute teaB;
+  private TrackedEntityAttribute teaC;
 
-    private TrackedEntityAttribute teaC;
+  private TrackedEntityAttribute teaD;
 
-    private TrackedEntityAttribute teaD;
+  private TrackedEntityAttribute teaE;
 
-    private TrackedEntityAttribute teaE;
+  private TrackedEntityAttribute teaF;
 
-    private TrackedEntityAttribute teaF;
+  ProgramTrackedEntityAttribute pteaA;
 
-    ProgramTrackedEntityAttribute pteaA;
+  ProgramTrackedEntityAttribute pteaB;
 
-    ProgramTrackedEntityAttribute pteaB;
+  TrackedEntityTypeAttribute tetaA;
 
-    TrackedEntityTypeAttribute tetaA;
+  TrackedEntityTypeAttribute tetaB;
 
-    TrackedEntityTypeAttribute tetaB;
+  TrackedEntityType trackedEntityType;
 
-    TrackedEntityType trackedEntityType;
+  @BeforeEach
+  void setUp() {
+    controller =
+        new TrigramSummaryController(
+            trackedEntityAttributeService,
+            trackedEntityAttributeTableManager,
+            contextService,
+            aclService,
+            fieldFilterService);
+    orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit);
 
-    @BeforeEach
-    void setUp()
-    {
-        controller = new TrigramSummaryController( trackedEntityAttributeService, trackedEntityAttributeTableManager,
-            contextService, aclService, fieldFilterService );
-        orgUnit = createOrganisationUnit( 'A' );
-        manager.save( orgUnit );
+    program = createProgram('A');
+    manager.save(program);
 
-        program = createProgram( 'A' );
-        manager.save( program );
+    teaA = createTrackedEntityAttribute('A');
+    teaB = createTrackedEntityAttribute('B');
+    teaC = createTrackedEntityAttribute('C');
+    teaD = createTrackedEntityAttribute('D');
+    teaE = createTrackedEntityAttribute('E');
+    teaF = createTrackedEntityAttribute('F');
+    teaF.setUnique(true);
+    manager.save(teaA);
+    manager.save(teaB);
+    manager.save(teaC);
+    manager.save(teaD);
+    manager.save(teaE);
+    manager.save(teaF);
 
-        teaA = createTrackedEntityAttribute( 'A' );
-        teaB = createTrackedEntityAttribute( 'B' );
-        teaC = createTrackedEntityAttribute( 'C' );
-        teaD = createTrackedEntityAttribute( 'D' );
-        teaE = createTrackedEntityAttribute( 'E' );
-        teaF = createTrackedEntityAttribute( 'F' );
-        teaF.setUnique( true );
-        manager.save( teaA );
-        manager.save( teaB );
-        manager.save( teaC );
-        manager.save( teaD );
-        manager.save( teaE );
-        manager.save( teaF );
+    trackedEntityType = createTrackedEntityType('A');
+    manager.save(trackedEntityType);
 
-        trackedEntityType = createTrackedEntityType( 'A' );
-        manager.save( trackedEntityType );
+    tetaA = new TrackedEntityTypeAttribute();
+    tetaA.setSearchable(true);
+    tetaA.setTrackedEntityType(trackedEntityType);
+    tetaA.setTrackedEntityAttribute(teaA);
+    manager.save(tetaA);
+    trackedEntityType.getTrackedEntityTypeAttributes().add(tetaA);
 
-        tetaA = new TrackedEntityTypeAttribute();
-        tetaA.setSearchable( true );
-        tetaA.setTrackedEntityType( trackedEntityType );
-        tetaA.setTrackedEntityAttribute( teaA );
-        manager.save( tetaA );
-        trackedEntityType.getTrackedEntityTypeAttributes().add( tetaA );
+    tetaB = new TrackedEntityTypeAttribute();
+    tetaB.setSearchable(false);
+    tetaB.setTrackedEntityType(trackedEntityType);
+    tetaB.setTrackedEntityAttribute(teaD);
+    manager.save(tetaB);
+    trackedEntityType.getTrackedEntityTypeAttributes().add(tetaB);
 
-        tetaB = new TrackedEntityTypeAttribute();
-        tetaB.setSearchable( false );
-        tetaB.setTrackedEntityType( trackedEntityType );
-        tetaB.setTrackedEntityAttribute( teaD );
-        manager.save( tetaB );
-        trackedEntityType.getTrackedEntityTypeAttributes().add( tetaB );
+    manager.update(trackedEntityType);
 
-        manager.update( trackedEntityType );
+    pteaA = new ProgramTrackedEntityAttribute();
+    pteaA.setSearchable(true);
+    pteaA.setAttribute(teaB);
+    pteaA.setProgram(program);
+    manager.save(pteaA);
 
-        pteaA = new ProgramTrackedEntityAttribute();
-        pteaA.setSearchable( true );
-        pteaA.setAttribute( teaB );
-        pteaA.setProgram( program );
-        manager.save( pteaA );
+    pteaB = new ProgramTrackedEntityAttribute();
+    pteaB.setSearchable(false);
+    pteaB.setAttribute(teaE);
+    pteaB.setProgram(program);
+    manager.save(pteaB);
 
-        pteaB = new ProgramTrackedEntityAttribute();
-        pteaB.setSearchable( false );
-        pteaB.setAttribute( teaE );
-        pteaB.setProgram( program );
-        manager.save( pteaB );
+    program.getProgramAttributes().add(pteaA);
+    program.getProgramAttributes().add(pteaB);
+    manager.update(program);
 
-        program.getProgramAttributes().add( pteaA );
-        program.getProgramAttributes().add( pteaB );
-        manager.update( program );
+    tei = createTrackedEntityInstance(orgUnit);
+    tei.setTrackedEntityType(trackedEntityType);
+    manager.save(tei);
 
-        tei = createTrackedEntityInstance( orgUnit );
-        tei.setTrackedEntityType( trackedEntityType );
-        manager.save( tei );
+    programInstance = new ProgramInstance(program, tei, orgUnit);
+    programInstance.setAutoFields();
+    programInstance.setEnrollmentDate(new Date());
+    programInstance.setIncidentDate(new Date());
+    programInstance.setStatus(ProgramStatus.COMPLETED);
+    programInstance.setFollowup(true);
+    manager.save(programInstance);
+  }
 
-        programInstance = new ProgramInstance( program, tei, orgUnit );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstance.setFollowup( true );
-        manager.save( programInstance );
-    }
+  @Test
+  void getTrigramIndexSummaryWhenNoIndexesAreCreated() {
 
-    @Test
-    void getTrigramIndexSummaryWhenNoIndexesAreCreated()
-    {
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
+        .thenReturn(new ArrayList<>());
 
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
-            .thenReturn( new ArrayList<>() );
+    TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
 
-        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>(), DEFAULT_FIELDS );
+    assertNotNull(trigramSummary);
+    assertAttributeList(
+        trigramSummary.getIndexableAttributes(),
+        Set.of("\"AttributeA\"", "\"AttributeB\"", "\"AttributeF\""));
+    assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of());
+    assertAttributeList(trigramSummary.getObsoleteIndexedAttributes(), Set.of());
+  }
 
-        assertNotNull( trigramSummary );
-        assertAttributeList( trigramSummary.getIndexableAttributes(),
-            Set.of( "\"AttributeA\"", "\"AttributeB\"", "\"AttributeF\"" ) );
-        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of() );
-        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of() );
-    }
+  @Test
+  void getTrigramIndexSummaryWithOneIndexAlreadyCreated() {
 
-    @Test
-    void getTrigramIndexSummaryWithOneIndexAlreadyCreated()
-    {
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
+        .thenReturn(List.of(teaB.getId()));
 
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
-            .thenReturn( List.of( teaB.getId() ) );
+    TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
 
-        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>(), DEFAULT_FIELDS );
+    assertNotNull(trigramSummary);
+    assertAttributeList(
+        trigramSummary.getIndexableAttributes(), Set.of("\"AttributeA\"", "\"AttributeF\""));
+    assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of("\"AttributeB\""));
+    assertAttributeList(trigramSummary.getObsoleteIndexedAttributes(), Set.of());
+  }
 
-        assertNotNull( trigramSummary );
-        assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );
-        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of( "\"AttributeB\"" ) );
-        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of() );
-    }
+  @Test
+  void getTrigramIndexSummaryWithAnObsoleteIndex() {
 
-    @Test
-    void getTrigramIndexSummaryWithAnObsoleteIndex()
-    {
+    when(trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex())
+        .thenReturn(List.of(teaB.getId(), teaC.getId()));
+    TrigramSummary trigramSummary = controller.getTrigramSummary(new HashMap<>(), DEFAULT_FIELDS);
 
-        when( trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex() )
-            .thenReturn( List.of( teaB.getId(), teaC.getId() ) );
-        TrigramSummary trigramSummary = controller.getTrigramSummary( new HashMap<>(), DEFAULT_FIELDS );
+    assertNotNull(trigramSummary);
+    assertAttributeList(
+        trigramSummary.getIndexableAttributes(), Set.of("\"AttributeA\"", "\"AttributeF\""));
+    assertAttributeList(trigramSummary.getIndexedAttributes(), Set.of("\"AttributeB\""));
+    assertAttributeList(trigramSummary.getObsoleteIndexedAttributes(), Set.of("\"AttributeC\""));
+  }
 
-        assertNotNull( trigramSummary );
-        assertAttributeList( trigramSummary.getIndexableAttributes(), Set.of( "\"AttributeA\"", "\"AttributeF\"" ) );
-        assertAttributeList( trigramSummary.getIndexedAttributes(), Set.of( "\"AttributeB\"" ) );
-        assertAttributeList( trigramSummary.getObsoleteIndexedAttributes(), Set.of( "\"AttributeC\"" ) );
-    }
-
-    private static void assertAttributeList( List<ObjectNode> attributes, Set<String> expected )
-    {
-        assertAll( () -> assertEquals( expected.size(), attributes.size() ),
-            () -> assertEquals( expected, attributes.stream().map( e -> e.get( "displayName" ).toString() )
-                .collect( Collectors.toSet() ) ) );
-    }
+  private static void assertAttributeList(List<ObjectNode> attributes, Set<String> expected) {
+    assertAll(
+        () -> assertEquals(expected.size(), attributes.size()),
+        () ->
+            assertEquals(
+                expected,
+                attributes.stream()
+                    .map(e -> e.get("displayName").toString())
+                    .collect(Collectors.toSet())));
+  }
 }

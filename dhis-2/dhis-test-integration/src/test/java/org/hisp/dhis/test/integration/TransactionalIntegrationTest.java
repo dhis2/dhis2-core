@@ -28,7 +28,6 @@
 package org.hisp.dhis.test.integration;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.BaseSpringTest;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.config.IntegrationTestConfig;
@@ -41,35 +40,27 @@ import org.springframework.transaction.annotation.Transactional;
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@ContextConfiguration(classes = {IntegrationTestConfig.class})
 @IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
+@ActiveProfiles(profiles = {"test-postgres"})
 @Transactional
 @Slf4j
-public abstract class TransactionalIntegrationTest extends BaseSpringTest
-{
-    @BeforeEach
-    public final void before()
-        throws Exception
-    {
-        integrationTestBefore();
+public abstract class TransactionalIntegrationTest extends BaseSpringTest {
+  @BeforeEach
+  public final void before() throws Exception {
+    integrationTestBefore();
+  }
+
+  @AfterEach
+  public final void after() throws Exception {
+    clearSecurityContext();
+
+    tearDownTest();
+
+    try {
+      dbmsManager.clearSession();
+    } catch (Exception e) {
+      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
     }
-
-    @AfterEach
-    public final void after()
-        throws Exception
-    {
-        clearSecurityContext();
-
-        tearDownTest();
-
-        try
-        {
-            dbmsManager.clearSession();
-        }
-        catch ( Exception e )
-        {
-            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
-        }
-    }
+  }
 }

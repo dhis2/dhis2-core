@@ -27,24 +27,19 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Jan Bernitt
  */
 @Getter
 @AllArgsConstructor
-public class FollowupAnalysisResponse implements Serializable
-{
-    @JsonProperty
-    private final FollowupAnalysisMetadata metadata;
+public class FollowupAnalysisResponse implements Serializable {
+  @JsonProperty private final FollowupAnalysisMetadata metadata;
 
-    @JsonProperty
-    private final List<FollowupValue> followupValues;
+  @JsonProperty private final List<FollowupValue> followupValues;
 }

@@ -27,40 +27,26 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.OpenApi;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@OpenApi.Shared( name = "ExchangeTarget" )
+@OpenApi.Shared(name = "ExchangeTarget")
 @Getter
 @Setter
 @NoArgsConstructor
-@Accessors( chain = true )
-public class Target
-    implements Serializable
-{
-    /**
-     * Type of target.
-     */
-    @JsonProperty
-    private TargetType type;
+@Accessors(chain = true)
+public class Target implements Serializable {
+  /** Type of target. */
+  @JsonProperty private TargetType type;
 
-    /**
-     * Only relevant for {@link TargetType#EXTERNAL}.
-     */
-    @JsonProperty
-    private Api api;
+  /** Only relevant for {@link TargetType#EXTERNAL}. */
+  @JsonProperty private Api api;
 
-    /**
-     * Target request.
-     */
-    @JsonProperty
-    private TargetRequest request;
+  /** Target request. */
+  @JsonProperty private TargetRequest request;
 }

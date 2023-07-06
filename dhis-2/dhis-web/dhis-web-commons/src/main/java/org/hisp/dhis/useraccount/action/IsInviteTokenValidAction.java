@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import com.opensymphony.xwork2.Action;
 import javax.servlet.http.HttpSession;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.RestoreOptions;
@@ -38,117 +38,100 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Jim Grace
  */
-public class IsInviteTokenValidAction
-    implements Action
-{
-    @Autowired
-    private SecurityService securityService;
+public class IsInviteTokenValidAction implements Action {
+  @Autowired private SecurityService securityService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
 
-    private String token;
+  private String token;
 
-    public String getToken()
-    {
-        return token;
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  public String getAccountAction() {
+    return "invited";
+  }
+
+  private String usernameChoice;
+
+  public String getUsernameChoice() {
+    return usernameChoice;
+  }
+
+  private String email;
+
+  public String getEmail() {
+    return email;
+  }
+
+  private String username;
+
+  public String getUsername() {
+    return username;
+  }
+
+  private String cspNonce = "";
+
+  public void setCspNonce(String cspNonce) {
+    this.cspNonce = cspNonce;
+  }
+
+  public String getCspNonce() {
+    return cspNonce;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    String[] idAndRestoreToken = securityService.decodeEncodedTokens(token);
+    String idToken = idAndRestoreToken[0];
+    String restoreToken = idAndRestoreToken[1];
+
+    User user = userService.getUserByIdToken(idToken);
+
+    if (user == null) {
+      return ERROR;
     }
 
-    public void setToken( String token )
-    {
-        this.token = token;
+    ErrorCode errorCode =
+        securityService.validateRestoreToken(user, restoreToken, RestoreType.INVITE);
+
+    if (errorCode != null) {
+      return ERROR;
     }
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+    HttpSession session = ServletActionContext.getRequest().getSession();
+    String nonce = (String) session.getAttribute("nonce");
+    setCspNonce(nonce);
 
-    public String getAccountAction()
-    {
-        return "invited";
+    email = user.getEmail();
+    username = user.getUsername();
+
+    RestoreOptions restoreOptions = securityService.getRestoreOptions(restoreToken);
+
+    if (restoreOptions != null) {
+      usernameChoice = Boolean.toString(restoreOptions.isUsernameChoice());
     }
 
-    private String usernameChoice;
-
-    public String getUsernameChoice()
-    {
-        return usernameChoice;
-    }
-
-    private String email;
-
-    public String getEmail()
-    {
-        return email;
-    }
-
-    private String username;
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    private String cspNonce = "";
-
-    public void setCspNonce( String cspNonce )
-    {
-        this.cspNonce = cspNonce;
-    }
-
-    public String getCspNonce()
-    {
-        return cspNonce;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
-        String idToken = idAndRestoreToken[0];
-        String restoreToken = idAndRestoreToken[1];
-
-        User user = userService.getUserByIdToken( idToken );
-
-        if ( user == null )
-        {
-            return ERROR;
-        }
-
-        ErrorCode errorCode = securityService.validateRestoreToken( user, restoreToken, RestoreType.INVITE );
-
-        if ( errorCode != null )
-        {
-            return ERROR;
-        }
-
-        HttpSession session = ServletActionContext.getRequest().getSession();
-        String nonce = (String) session.getAttribute( "nonce" );
-        setCspNonce( nonce );
-
-        email = user.getEmail();
-        username = user.getUsername();
-
-        RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
-
-        if ( restoreOptions != null )
-        {
-            usernameChoice = Boolean.toString( restoreOptions.isUsernameChoice() );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

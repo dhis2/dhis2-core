@@ -36,23 +36,21 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class BaseIdentifiableObjectTest
-{
+class BaseIdentifiableObjectTest {
 
-    @Test
-    void testGetValue()
-    {
-        DataElement deA = new DataElement();
-        deA.setUid( "A1234567890" );
-        deA.setCode( "CodeA" );
-        deA.setName( "NameA" );
-        DataElement deB = new DataElement();
-        IdScheme idSchemeUid = IdScheme.from( IdentifiableProperty.UID );
-        IdScheme idSchemeCode = IdScheme.from( IdentifiableProperty.CODE );
-        IdScheme idSchemeName = IdScheme.from( IdentifiableProperty.NAME );
-        assertEquals( "A1234567890", deA.getPropertyValue( idSchemeUid ) );
-        assertEquals( "CodeA", deA.getPropertyValue( idSchemeCode ) );
-        assertEquals( "NameA", deA.getPropertyValue( idSchemeName ) );
-        assertNull( deB.getPropertyValue( idSchemeCode ) );
-    }
+  @Test
+  void testGetValue() {
+    DataElement deA = new DataElement();
+    deA.setUid("A1234567890");
+    deA.setCode("CodeA");
+    deA.setName("NameA");
+    DataElement deB = new DataElement();
+    IdScheme idSchemeUid = IdScheme.from(IdentifiableProperty.UID);
+    IdScheme idSchemeCode = IdScheme.from(IdentifiableProperty.CODE);
+    IdScheme idSchemeName = IdScheme.from(IdentifiableProperty.NAME);
+    assertEquals("A1234567890", deA.getPropertyValue(idSchemeUid));
+    assertEquals("CodeA", deA.getPropertyValue(idSchemeCode));
+    assertEquals("NameA", deA.getPropertyValue(idSchemeName));
+    assertNull(deB.getPropertyValue(idSchemeCode));
+  }
 }

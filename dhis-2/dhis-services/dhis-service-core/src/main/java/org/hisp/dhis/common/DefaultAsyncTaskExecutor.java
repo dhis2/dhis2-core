@@ -28,9 +28,7 @@
 package org.hisp.dhis.common;
 
 import java.util.concurrent.Future;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -42,20 +40,17 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultAsyncTaskExecutor implements AsyncTaskExecutor
-{
-    @Qualifier( "taskScheduler" )
-    private final AsyncListenableTaskExecutor jobExecutor;
+public class DefaultAsyncTaskExecutor implements AsyncTaskExecutor {
+  @Qualifier("taskScheduler")
+  private final AsyncListenableTaskExecutor jobExecutor;
 
-    @Override
-    public void executeTask( Runnable job )
-    {
-        jobExecutor.execute( job );
-    }
+  @Override
+  public void executeTask(Runnable job) {
+    jobExecutor.execute(job);
+  }
 
-    @Override
-    public Future<?> executeTaskWithCancelation( Runnable task )
-    {
-        return jobExecutor.submitListenable( task );
-    }
+  @Override
+  public Future<?> executeTaskWithCancelation(Runnable task) {
+    return jobExecutor.submitListenable(task);
+  }
 }

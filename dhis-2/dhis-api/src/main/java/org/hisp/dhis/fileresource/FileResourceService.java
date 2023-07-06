@@ -34,66 +34,62 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
-
 import javax.annotation.Nonnull;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface FileResourceService
-{
-    FileResource getFileResource( String uid );
+public interface FileResourceService {
+  FileResource getFileResource(String uid);
 
-    List<FileResource> getFileResources( @Nonnull List<String> uids );
+  List<FileResource> getFileResources(@Nonnull List<String> uids);
 
-    List<FileResource> getOrphanedFileResources();
+  List<FileResource> getOrphanedFileResources();
 
-    void saveFileResource( FileResource fileResource, File file );
+  void saveFileResource(FileResource fileResource, File file);
 
-    String saveFileResource( FileResource fileResource, byte[] bytes );
+  String saveFileResource(FileResource fileResource, byte[] bytes);
 
-    void deleteFileResource( String uid );
+  void deleteFileResource(String uid);
 
-    void deleteFileResource( FileResource fileResource );
+  void deleteFileResource(FileResource fileResource);
 
-    InputStream getFileResourceContent( FileResource fileResource );
+  InputStream getFileResourceContent(FileResource fileResource);
 
-    /**
-     * Copy fileResource content to outputStream and Return File content length
-     *
-     * @param fileResource
-     * @param outputStream
-     * @return
-     * @throws IOException
-     * @throws NoSuchElementException
-     */
-    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException,
-        NoSuchElementException;
+  /**
+   * Copy fileResource content to outputStream and Return File content length
+   *
+   * @param fileResource
+   * @param outputStream
+   * @return
+   * @throws IOException
+   * @throws NoSuchElementException
+   */
+  void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
+      throws IOException, NoSuchElementException;
 
-    /**
-     * Copy fileResource content to a byte array
-     *
-     * @param fileResource
-     * @return a byte array of the content
-     * @throws IOException
-     * @throws NoSuchElementException
-     */
-    byte[] copyFileResourceContent( FileResource fileResource )
-        throws IOException,
-        NoSuchElementException;
+  /**
+   * Copy fileResource content to a byte array
+   *
+   * @param fileResource
+   * @return a byte array of the content
+   * @throws IOException
+   * @throws NoSuchElementException
+   */
+  byte[] copyFileResourceContent(FileResource fileResource)
+      throws IOException, NoSuchElementException;
 
-    boolean fileResourceExists( String uid );
+  boolean fileResourceExists(String uid);
 
-    void updateFileResource( FileResource fileResource );
+  void updateFileResource(FileResource fileResource);
 
-    URI getSignedGetFileResourceContentUri( String uid );
+  URI getSignedGetFileResourceContentUri(String uid);
 
-    URI getSignedGetFileResourceContentUri( FileResource fileResource );
+  URI getSignedGetFileResourceContentUri(FileResource fileResource);
 
-    List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+  List<FileResource> getExpiredFileResources(FileResourceRetentionStrategy retentionStrategy);
 
-    List<FileResource> getAllUnProcessedImagesFiles();
+  List<FileResource> getAllUnProcessedImagesFiles();
 
-    long getFileResourceContentLength( FileResource fileResource );
+  long getFileResourceContentLength(FileResource fileResource);
 }

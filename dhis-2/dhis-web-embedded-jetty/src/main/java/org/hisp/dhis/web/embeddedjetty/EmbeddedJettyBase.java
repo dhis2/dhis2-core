@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
+import com.google.common.base.Preconditions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,9 +35,7 @@ import java.io.InputStreamReader;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.eclipse.jetty.rewrite.handler.RedirectPatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.*;
@@ -47,143 +46,120 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.base.Preconditions;
-
 @Slf4j
-public abstract class EmbeddedJettyBase
-{
-    private String resourceBase = "./dhis-web/dhis-web-portal/target/dhis";
+public abstract class EmbeddedJettyBase {
+  private String resourceBase = "./dhis-web/dhis-web-portal/target/dhis";
 
-    public EmbeddedJettyBase()
-    {
-        Thread.currentThread().setUncaughtExceptionHandler( EmbeddedJettyUncaughtExceptionHandler.systemExit( log ) );
-    }
+  public EmbeddedJettyBase() {
+    Thread.currentThread()
+        .setUncaughtExceptionHandler(EmbeddedJettyUncaughtExceptionHandler.systemExit(log));
+  }
 
-    public void startJetty()
-        throws Exception
-    {
-        Integer queueSize = getIntSystemProperty( "jetty.thread.queue", 6000 );
-        BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>( queueSize );
+  public void startJetty() throws Exception {
+    Integer queueSize = getIntSystemProperty("jetty.thread.queue", 6000);
+    BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(queueSize);
 
-        Integer maxThreads = getIntSystemProperty( "jetty.threads.max", 200 );
-        QueuedThreadPool threadPool = new InstrumentedQueuedThreadPool(
-            maxThreads,
-            10,
-            60000,
-            queue );
+    Integer maxThreads = getIntSystemProperty("jetty.threads.max", 200);
+    QueuedThreadPool threadPool = new InstrumentedQueuedThreadPool(maxThreads, 10, 60000, queue);
 
-        threadPool.setDetailedDump( getBooleanSystemProperty( "jetty.detailedDump", false ) );
+    threadPool.setDetailedDump(getBooleanSystemProperty("jetty.detailedDump", false));
 
-        Server server = new Server( threadPool );
-        server.addBean( new org.eclipse.jetty.util.thread.ScheduledExecutorScheduler() );
+    Server server = new Server(threadPool);
+    server.addBean(new org.eclipse.jetty.util.thread.ScheduledExecutorScheduler());
 
-        ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setDirectoriesListed( false );
-        resourceHandler.setResourceBase( resourceBase );
+    ResourceHandler resourceHandler = new ResourceHandler();
+    resourceHandler.setDirectoriesListed(false);
+    resourceHandler.setResourceBase(resourceBase);
 
-        RewriteHandler rewrite = new RewriteHandler();
-        rewrite.setHandler( resourceHandler );
-        RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
-        rewritePatternRule.setPattern( "" );
-        rewritePatternRule.setLocation( "/index.html" );
-        rewrite.addRule( rewritePatternRule );
+    RewriteHandler rewrite = new RewriteHandler();
+    rewrite.setHandler(resourceHandler);
+    RedirectPatternRule rewritePatternRule = new RedirectPatternRule();
+    rewritePatternRule.setPattern("");
+    rewritePatternRule.setLocation("/index.html");
+    rewrite.addRule(rewritePatternRule);
 
-        HandlerList handlers = new HandlerList();
-        handlers.setHandlers( new Handler[] { rewrite,
-            getServletContextHandler(), new DefaultHandler() } );
-        server.setHandler( handlers );
+    HandlerList handlers = new HandlerList();
+    handlers.setHandlers(new Handler[] {rewrite, getServletContextHandler(), new DefaultHandler()});
+    server.setHandler(handlers);
 
-        final HttpConfiguration http_config = getHttpConfiguration();
-        addHttpConnector( server, http_config );
+    final HttpConfiguration http_config = getHttpConfiguration();
+    addHttpConnector(server, http_config);
 
-        server.setStopAtShutdown( true );
-        server.setStopTimeout( 5000 );
-        server.setDumpBeforeStop( getBooleanSystemProperty( "jetty.dumpBeforeStop", false ) );
-        server.setDumpAfterStart( getBooleanSystemProperty( "jetty.dumpBeforeStart", false ) );
+    server.setStopAtShutdown(true);
+    server.setStopTimeout(5000);
+    server.setDumpBeforeStop(getBooleanSystemProperty("jetty.dumpBeforeStop", false));
+    server.setDumpAfterStart(getBooleanSystemProperty("jetty.dumpBeforeStart", false));
 
-        server.start();
-        server.join();
+    server.start();
+    server.join();
 
-        log.info( "DHIS2 Server stopped!" );
-    }
+    log.info("DHIS2 Server stopped!");
+  }
 
-    private void addHttpConnector( Server server, HttpConfiguration http_config )
-    {
-        setDefaultPropertyValue( "jetty.port", System.getProperty( "jetty.http.port" ) );
-        server.addConnector( setupHTTPConnector( server, http_config ) );
-    }
+  private void addHttpConnector(Server server, HttpConfiguration http_config) {
+    setDefaultPropertyValue("jetty.port", System.getProperty("jetty.http.port"));
+    server.addConnector(setupHTTPConnector(server, http_config));
+  }
 
-    private HttpConfiguration getHttpConfiguration()
-    {
-        HttpConfiguration httpConfig = new HttpConfiguration();
-        httpConfig.setOutputBufferSize( 32768 );
-        httpConfig.setRequestHeaderSize( 8192 );
-        httpConfig.setResponseHeaderSize( 8192 );
-        httpConfig.setSendServerVersion( true );
-        httpConfig.setSendDateHeader( false );
-        httpConfig.setHeaderCacheSize( 512 );
-        return httpConfig;
-    }
+  private HttpConfiguration getHttpConfiguration() {
+    HttpConfiguration httpConfig = new HttpConfiguration();
+    httpConfig.setOutputBufferSize(32768);
+    httpConfig.setRequestHeaderSize(8192);
+    httpConfig.setResponseHeaderSize(8192);
+    httpConfig.setSendServerVersion(true);
+    httpConfig.setSendDateHeader(false);
+    httpConfig.setHeaderCacheSize(512);
+    return httpConfig;
+  }
 
-    private Connector setupHTTPConnector( Server server, HttpConfiguration http_config )
-    {
-        ServerConnector httpConnector = new ServerConnector(
+  private Connector setupHTTPConnector(Server server, HttpConfiguration http_config) {
+    ServerConnector httpConnector =
+        new ServerConnector(
             server,
-            getIntSystemProperty( "jetty.http.acceptors", -1 ),
-            getIntSystemProperty( "jetty.http.selectors", -1 ),
-            new HttpConnectionFactory( http_config ) );
+            getIntSystemProperty("jetty.http.acceptors", -1),
+            getIntSystemProperty("jetty.http.selectors", -1),
+            new HttpConnectionFactory(http_config));
 
-        httpConnector.setHost( getStringSystemProperty( "jetty.host", null ) );
-        httpConnector.setPort( getIntSystemProperty( "jetty.http.port", -1 ) );
-        httpConnector.setIdleTimeout( getIntSystemProperty( "jetty.http.idleTimeout", 300000 ) );
+    httpConnector.setHost(getStringSystemProperty("jetty.host", null));
+    httpConnector.setPort(getIntSystemProperty("jetty.http.port", -1));
+    httpConnector.setIdleTimeout(getIntSystemProperty("jetty.http.idleTimeout", 300000));
 
-        return httpConnector;
+    return httpConnector;
+  }
+
+  protected void printBanner(String name) {
+    String msg = "Starting: " + name;
+    try (final InputStream resourceStream = new ClassPathResource("banner.txt").getInputStream();
+        final InputStreamReader inputStreamReader = new InputStreamReader(resourceStream, "UTF-8");
+        final BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+      final String banner = bufferedReader.lines().collect(Collectors.joining(String.format("%n")));
+      msg = String.format("Starting: %n%s", banner);
+    } catch (IllegalArgumentException | IOException ignored) {
     }
+    log.info(msg);
+  }
 
-    protected void printBanner( String name )
-    {
-        String msg = "Starting: " + name;
-        try (
-            final InputStream resourceStream = new ClassPathResource( "banner.txt" ).getInputStream();
-            final InputStreamReader inputStreamReader = new InputStreamReader( resourceStream, "UTF-8" );
-            final BufferedReader bufferedReader = new BufferedReader( inputStreamReader ) )
-        {
-            final String banner = bufferedReader
-                .lines()
-                .collect( Collectors.joining( String.format( "%n" ) ) );
-            msg = String.format( "Starting: %n%s", banner );
-        }
-        catch ( IllegalArgumentException | IOException ignored )
-        {
-        }
-        log.info( msg );
-    }
+  public static Boolean getBooleanSystemProperty(String key, Boolean defaultValue) {
+    Preconditions.checkNotNull(key, "Key can not be NULL!");
+    return Boolean.valueOf(System.getProperty(key, defaultValue.toString()));
+  }
 
-    public static Boolean getBooleanSystemProperty( String key, Boolean defaultValue )
-    {
-        Preconditions.checkNotNull( key, "Key can not be NULL!" );
-        return Boolean.valueOf( System.getProperty( key, defaultValue.toString() ) );
-    }
+  public static String getStringSystemProperty(String key, String defaultValue) {
+    Preconditions.checkNotNull(key, "'key' can not be NULL!");
+    return System.getProperty(key, defaultValue);
+  }
 
-    public static String getStringSystemProperty( String key, String defaultValue )
-    {
-        Preconditions.checkNotNull( key, "'key' can not be NULL!" );
-        return System.getProperty( key, defaultValue );
-    }
+  public static Integer getIntSystemProperty(String key, Integer defaultValue) {
+    Preconditions.checkNotNull(key, "Key can not be NULL!");
+    return Integer.valueOf(System.getProperty(key, String.valueOf(defaultValue)));
+  }
 
-    public static Integer getIntSystemProperty( String key, Integer defaultValue )
-    {
-        Preconditions.checkNotNull( key, "Key can not be NULL!" );
-        return Integer.valueOf( System.getProperty( key, String.valueOf( defaultValue ) ) );
-    }
+  public static void setDefaultPropertyValue(String key, String defaultValue) {
+    Preconditions.checkNotNull(key);
+    Preconditions.checkNotNull(defaultValue);
+    String property = System.getProperty(key, defaultValue);
+    System.setProperty(key, property);
+  }
 
-    public static void setDefaultPropertyValue( String key, String defaultValue )
-    {
-        Preconditions.checkNotNull( key );
-        Preconditions.checkNotNull( defaultValue );
-        String property = System.getProperty( key, defaultValue );
-        System.setProperty( key, property );
-    }
-
-    public abstract ServletContextHandler getServletContextHandler();
+  public abstract ServletContextHandler getServletContextHandler();
 }

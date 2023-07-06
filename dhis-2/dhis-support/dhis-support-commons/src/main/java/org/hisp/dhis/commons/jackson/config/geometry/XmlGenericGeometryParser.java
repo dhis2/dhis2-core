@@ -27,41 +27,31 @@
  */
 package org.hisp.dhis.commons.jackson.config.geometry;
 
+import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
+import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
-
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 
-import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
-import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
  * @author Enrico Colasante
  */
 @Slf4j
-public class XmlGenericGeometryParser
-    extends BaseParser
-    implements GeometryParser<Geometry>
-{
-    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
-    {
-        super( geometryFactory );
-    }
+public class XmlGenericGeometryParser extends BaseParser implements GeometryParser<Geometry> {
+  public XmlGenericGeometryParser(GeometryFactory geometryFactory) {
+    super(geometryFactory);
+  }
 
-    public Geometry geometryFromJson( JsonNode node )
-    {
-        WKTReader wktR = new WKTReader();
-        try
-        {
-            return wktR.read( node.asText() );
-        }
-        catch ( ParseException e )
-        {
-            log.error( "Error reading WKT of geometry", e );
-            return null;
-        }
+  public Geometry geometryFromJson(JsonNode node) {
+    WKTReader wktR = new WKTReader();
+    try {
+      return wktR.read(node.asText());
+    } catch (ParseException e) {
+      log.error("Error reading WKT of geometry", e);
+      return null;
     }
+  }
 }

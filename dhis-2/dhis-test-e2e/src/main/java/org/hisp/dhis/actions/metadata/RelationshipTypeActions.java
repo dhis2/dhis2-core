@@ -27,57 +27,53 @@
  */
 package org.hisp.dhis.actions.metadata;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipTypeActions
-    extends RestApiActions
-{
-    public RelationshipTypeActions()
-    {
-        super( "relationshipTypes" );
-    }
+public class RelationshipTypeActions extends RestApiActions {
+  public RelationshipTypeActions() {
+    super("relationshipTypes");
+  }
 
-    public String createRelationshipType( String fromEntityType, String fromConstraintId, String toEntityType,
-        String toConstraintId,
-        boolean bidirectional )
-    {
-        JsonObject object = new JsonObjectBuilder()
-            .addProperty( "publicAccess", "rwrw----" )
-            .addProperty( "name", "TA_RELATIONSHIP_TYPE " + DataGenerator.randomString() )
-            .addProperty( "fromToName", "Test to" )
-            .addProperty( "toFromName", "Test from" )
-            .addObject( "fromConstraint", createRelationshipConstraint( fromEntityType, fromConstraintId ) )
-            .addObject( "toConstraint", createRelationshipConstraint( toEntityType, toConstraintId ) )
-            .addProperty( "bidirectional", String.valueOf( bidirectional ) )
+  public String createRelationshipType(
+      String fromEntityType,
+      String fromConstraintId,
+      String toEntityType,
+      String toConstraintId,
+      boolean bidirectional) {
+    JsonObject object =
+        new JsonObjectBuilder()
+            .addProperty("publicAccess", "rwrw----")
+            .addProperty("name", "TA_RELATIONSHIP_TYPE " + DataGenerator.randomString())
+            .addProperty("fromToName", "Test to")
+            .addProperty("toFromName", "Test from")
+            .addObject(
+                "fromConstraint", createRelationshipConstraint(fromEntityType, fromConstraintId))
+            .addObject("toConstraint", createRelationshipConstraint(toEntityType, toConstraintId))
+            .addProperty("bidirectional", String.valueOf(bidirectional))
             .addUserGroupAccess()
             .build();
 
-        return this.create( object );
+    return this.create(object);
+  }
+
+  private JsonObject createRelationshipConstraint(String type, String id) {
+    JsonObjectBuilder builder = new JsonObjectBuilder().addProperty("relationshipEntity", type);
+    switch (type) {
+      case "PROGRAM_STAGE_INSTANCE":
+        builder.addObject("programStage", new JsonObjectBuilder().addProperty("id", id));
+        break;
+
+      case "TRACKED_ENTITY_INSTANCE":
+        builder.addObject("trackedEntityType", new JsonObjectBuilder().addProperty("id", id));
+        break;
     }
 
-    private JsonObject createRelationshipConstraint( String type, String id )
-    {
-        JsonObjectBuilder builder = new JsonObjectBuilder().addProperty( "relationshipEntity", type );
-        switch ( type )
-        {
-        case "PROGRAM_STAGE_INSTANCE":
-            builder
-                .addObject( "programStage", new JsonObjectBuilder().addProperty( "id", id ) );
-            break;
-
-        case "TRACKED_ENTITY_INSTANCE":
-            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", id ) );
-            break;
-
-        }
-
-        return builder.build();
-    }
+    return builder.build();
+  }
 }

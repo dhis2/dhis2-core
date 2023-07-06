@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.spring;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.security.PasswordManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -38,31 +37,26 @@ import org.springframework.stereotype.Component;
  * @author Halvdan Hoem Grelland
  */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.security.PasswordManager" )
-public class SpringSecurityPasswordManager
-    implements PasswordManager
-{
-    private final PasswordEncoder passwordEncoder;
+@Component("org.hisp.dhis.security.PasswordManager")
+public class SpringSecurityPasswordManager implements PasswordManager {
+  private final PasswordEncoder passwordEncoder;
 
-    // -------------------------------------------------------------------------
-    // PasswordManager implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // PasswordManager implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public final String encode( String password )
-    {
-        return passwordEncoder.encode( password );
-    }
+  @Override
+  public final String encode(String password) {
+    return passwordEncoder.encode(password);
+  }
 
-    @Override
-    public boolean matches( String rawPassword, String encodedPassword )
-    {
-        return passwordEncoder.matches( rawPassword, encodedPassword );
-    }
+  @Override
+  public boolean matches(String rawPassword, String encodedPassword) {
+    return passwordEncoder.matches(rawPassword, encodedPassword);
+  }
 
-    @Override
-    public String getPasswordEncoderClassName()
-    {
-        return passwordEncoder.getClass().getName();
-    }
+  @Override
+  public String getPasswordEncoderClassName() {
+    return passwordEncoder.getClass().getName();
+  }
 }

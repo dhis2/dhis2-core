@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.programrule.executor.enrollment;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.IssueType;
@@ -40,31 +38,23 @@ import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.executor.ValidationExecutor;
 import org.hisp.dhis.tracker.programrule.executor.ValidationRuleAction;
 
-/**
- * This executor shows warnings calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
+/** This executor shows warnings calculated by Rule Engine. @Author Enrico Colasante */
 @RequiredArgsConstructor
-public class ShowWarningExecutor implements ValidationExecutor<Enrollment>
-{
-    private final ValidationRuleAction ruleAction;
+public class ShowWarningExecutor implements ValidationExecutor<Enrollment> {
+  private final ValidationRuleAction ruleAction;
 
-    @Override
-    public boolean needsToRun( Enrollment enrollment )
-    {
-        return true;
-    }
+  @Override
+  public boolean needsToRun(Enrollment enrollment) {
+    return true;
+  }
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return WARNING;
-    }
+  @Override
+  public IssueType getIssueType() {
+    return WARNING;
+  }
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
-    {
-        return execute( ruleAction, enrollment );
-    }
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
+    return execute(ruleAction, enrollment);
+  }
 }

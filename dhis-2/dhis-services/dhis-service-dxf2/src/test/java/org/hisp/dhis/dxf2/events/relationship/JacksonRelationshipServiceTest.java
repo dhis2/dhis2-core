@@ -32,9 +32,9 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Optional;
-
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -64,184 +64,166 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class JacksonRelationshipServiceTest
-{
-    @Mock
-    protected DbmsManager dbmsManager;
+@ExtendWith(MockitoExtension.class)
+class JacksonRelationshipServiceTest {
+  @Mock protected DbmsManager dbmsManager;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    @Mock
-    private QueryService queryService;
+  @Mock private QueryService queryService;
 
-    @Mock
-    private TrackerAccessManager trackerAccessManager;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
-    @Mock
-    private org.hisp.dhis.relationship.RelationshipService relationshipService;
+  @Mock private org.hisp.dhis.relationship.RelationshipService relationshipService;
 
-    @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Mock private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Mock
-    private EnrollmentService enrollmentService;
+  @Mock private EnrollmentService enrollmentService;
 
-    @Mock
-    private EventService eventService;
+  @Mock private EventService eventService;
 
-    @Mock
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+  @Mock private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    @Mock
-    private ObjectMapper jsonMapper;
+  @Mock private ObjectMapper jsonMapper;
 
-    @Mock
-    private ObjectMapper xmlMapper;
+  @Mock private ObjectMapper xmlMapper;
 
-    @InjectMocks
-    private JacksonRelationshipService subject;
+  @InjectMocks private JacksonRelationshipService subject;
 
-    private Relationship relationship;
+  private Relationship relationship;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private static final String RELATIONSHIP_UID = "relationship uid";
+  private static final String RELATIONSHIP_UID = "relationship uid";
 
-    @BeforeEach
-    public void setUp()
-        throws IllegalAccessException
-    {
-        RelationshipType relationshipType = createRelationshipTypeWithTeiConstraint();
-        relationship = createTei2TeiRelationship( relationshipType );
-        relationship.setRelationship( RELATIONSHIP_UID );
+  @BeforeEach
+  public void setUp() throws IllegalAccessException {
+    RelationshipType relationshipType = createRelationshipTypeWithTeiConstraint();
+    relationship = createTei2TeiRelationship(relationshipType);
+    relationship.setRelationship(RELATIONSHIP_UID);
 
-        initFakeCaches( relationship, relationshipType );
-    }
+    initFakeCaches(relationship, relationshipType);
+  }
 
-    @Test
-    void verifyRelationshipIsImportedIfDoesNotExist()
-    {
-        when(
-            relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
-                .thenReturn( Optional.empty() );
+  @Test
+  void verifyRelationshipIsImportedIfDoesNotExist() {
+    when(relationshipService.getRelationshipByRelationship(
+            any(org.hisp.dhis.relationship.Relationship.class)))
+        .thenReturn(Optional.empty());
 
-        ImportSummary importSummary = subject.addRelationship( relationship, rnd.nextObject( ImportOptions.class ) );
+    ImportSummary importSummary =
+        subject.addRelationship(relationship, rnd.nextObject(ImportOptions.class));
 
-        assertThat( importSummary.getStatus(), is( ImportStatus.SUCCESS ) );
-        assertThat( importSummary.getImportCount().getImported(), is( 1 ) );
-    }
+    assertThat(importSummary.getStatus(), is(ImportStatus.SUCCESS));
+    assertThat(importSummary.getImportCount().getImported(), is(1));
+  }
 
-    @Test
-    void verifyRelationshipIsNotImportedWhenDoesExist()
-    {
-        org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
-        daoRelationship.setUid( "12345" );
+  @Test
+  void verifyRelationshipIsNotImportedWhenDoesExist() {
+    org.hisp.dhis.relationship.Relationship daoRelationship =
+        new org.hisp.dhis.relationship.Relationship();
+    daoRelationship.setUid("12345");
 
-        when(
-            relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
-                .thenReturn( Optional.of( daoRelationship ) );
+    when(relationshipService.getRelationshipByRelationship(
+            any(org.hisp.dhis.relationship.Relationship.class)))
+        .thenReturn(Optional.of(daoRelationship));
 
-        ImportSummary importSummary = subject.addRelationship( relationship, rnd.nextObject( ImportOptions.class ) );
+    ImportSummary importSummary =
+        subject.addRelationship(relationship, rnd.nextObject(ImportOptions.class));
 
-        assertThat( importSummary.getStatus(), is( ImportStatus.ERROR ) );
-        assertThat( importSummary.getImportCount().getImported(), is( 0 ) );
-        assertThat( importSummary.getReference(), is( daoRelationship.getUid() ) );
-        assertThat( importSummary.getDescription(),
-            is( "Relationship " + daoRelationship.getUid() + " already exists" ) );
-    }
+    assertThat(importSummary.getStatus(), is(ImportStatus.ERROR));
+    assertThat(importSummary.getImportCount().getImported(), is(0));
+    assertThat(importSummary.getReference(), is(daoRelationship.getUid()));
+    assertThat(
+        importSummary.getDescription(),
+        is("Relationship " + daoRelationship.getUid() + " already exists"));
+  }
 
-    @Test
-    void verifySoftRelationshipIsNotUpdated()
-    {
-        org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
-        daoRelationship.setUid( RELATIONSHIP_UID );
-        daoRelationship.setDeleted( true );
+  @Test
+  void verifySoftRelationshipIsNotUpdated() {
+    org.hisp.dhis.relationship.Relationship daoRelationship =
+        new org.hisp.dhis.relationship.Relationship();
+    daoRelationship.setUid(RELATIONSHIP_UID);
+    daoRelationship.setDeleted(true);
 
-        when( relationshipService.getRelationshipIncludeDeleted( RELATIONSHIP_UID ) ).thenReturn( daoRelationship );
+    when(relationshipService.getRelationshipIncludeDeleted(RELATIONSHIP_UID))
+        .thenReturn(daoRelationship);
 
-        ImportSummary importSummary = subject.updateRelationship( relationship, rnd.nextObject( ImportOptions.class ) );
+    ImportSummary importSummary =
+        subject.updateRelationship(relationship, rnd.nextObject(ImportOptions.class));
 
-        assertThat( importSummary.getStatus(), is( ImportStatus.ERROR ) );
-        assertThat( importSummary.getImportCount().getImported(), is( 0 ) );
-        assertThat( importSummary.getReference(), is( RELATIONSHIP_UID ) );
-        assertThat( importSummary.getDescription(),
-            is( "Relationship '" + RELATIONSHIP_UID + "' is already deleted and cannot be modified." ) );
-    }
+    assertThat(importSummary.getStatus(), is(ImportStatus.ERROR));
+    assertThat(importSummary.getImportCount().getImported(), is(0));
+    assertThat(importSummary.getReference(), is(RELATIONSHIP_UID));
+    assertThat(
+        importSummary.getDescription(),
+        is("Relationship '" + RELATIONSHIP_UID + "' is already deleted and cannot be modified."));
+  }
 
-    private void initFakeCaches( Relationship relationship, RelationshipType relationshipType )
-        throws IllegalAccessException
-    {
-        // init relationship type cache
-        HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
-        relationshipTypeCache.put( relationship.getRelationshipType(), relationshipType );
+  private void initFakeCaches(Relationship relationship, RelationshipType relationshipType)
+      throws IllegalAccessException {
+    // init relationship type cache
+    HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
+    relationshipTypeCache.put(relationship.getRelationshipType(), relationshipType);
 
-        // init tracked entity instance cache
-        HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
-        trackedEntityInstanceCache.put( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
-            new TrackedEntityInstance()
-            {
-                {
-                    setTrackedEntityType( relationshipType.getFromConstraint().getTrackedEntityType() );
-                }
-            } );
-        trackedEntityInstanceCache.put( relationship.getTo().getTrackedEntityInstance().getTrackedEntityInstance(),
-            new TrackedEntityInstance()
-            {
-                {
-                    setTrackedEntityType( relationshipType.getToConstraint().getTrackedEntityType() );
-                }
-            } );
+    // init tracked entity instance cache
+    HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
+    trackedEntityInstanceCache.put(
+        relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
+        new TrackedEntityInstance() {
+          {
+            setTrackedEntityType(relationshipType.getFromConstraint().getTrackedEntityType());
+          }
+        });
+    trackedEntityInstanceCache.put(
+        relationship.getTo().getTrackedEntityInstance().getTrackedEntityInstance(),
+        new TrackedEntityInstance() {
+          {
+            setTrackedEntityType(relationshipType.getToConstraint().getTrackedEntityType());
+          }
+        });
 
-        FieldUtils.writeField( subject, "relationshipTypeCache", relationshipTypeCache, true );
-        FieldUtils.writeField( subject, "trackedEntityInstanceCache", trackedEntityInstanceCache, true );
+    FieldUtils.writeField(subject, "relationshipTypeCache", relationshipTypeCache, true);
+    FieldUtils.writeField(subject, "trackedEntityInstanceCache", trackedEntityInstanceCache, true);
+  }
 
-    }
+  private Relationship createTei2TeiRelationship(RelationshipType relationshipType) {
+    Relationship relationship = new Relationship();
 
-    private Relationship createTei2TeiRelationship( RelationshipType relationshipType )
-    {
-        Relationship relationship = new Relationship();
+    RelationshipItem from = new RelationshipItem();
+    from.setTrackedEntityInstance(
+        rnd.nextObject(org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class));
 
-        RelationshipItem from = new RelationshipItem();
-        from.setTrackedEntityInstance(
-            rnd.nextObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+    RelationshipItem to = new RelationshipItem();
+    to.setTrackedEntityInstance(
+        rnd.nextObject(org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class));
 
-        RelationshipItem to = new RelationshipItem();
-        to.setTrackedEntityInstance(
-            rnd.nextObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+    relationship.setFrom(from);
+    relationship.setTo(to);
+    relationship.setRelationshipType(relationshipType.getUid());
+    return relationship;
+  }
 
-        relationship.setFrom( from );
-        relationship.setTo( to );
-        relationship.setRelationshipType( relationshipType.getUid() );
-        return relationship;
-    }
+  private RelationshipType createRelationshipTypeWithTeiConstraint() {
+    RelationshipType relationshipType = new RelationshipType();
+    relationshipType.setUid(CodeGenerator.generateUid());
 
-    private RelationshipType createRelationshipTypeWithTeiConstraint()
-    {
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( CodeGenerator.generateUid() );
+    RelationshipConstraint from = new RelationshipConstraint();
+    from.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    from.setTrackedEntityType(new TrackedEntityType("a", "b"));
+    RelationshipConstraint to = rnd.nextObject(RelationshipConstraint.class);
+    to.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    to.setTrackedEntityType(new TrackedEntityType("b", "c"));
+    relationshipType.setFromConstraint(from);
+    relationshipType.setToConstraint(to);
 
-        RelationshipConstraint from = new RelationshipConstraint();
-        from.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        from.setTrackedEntityType( new TrackedEntityType( "a", "b" ) );
-        RelationshipConstraint to = rnd.nextObject( RelationshipConstraint.class );
-        to.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        to.setTrackedEntityType( new TrackedEntityType( "b", "c" ) );
-        relationshipType.setFromConstraint( from );
-        relationshipType.setToConstraint( to );
-
-        return relationshipType;
-    }
+    return relationshipType;
+  }
 }

@@ -37,20 +37,18 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class SimpleNodeTest
-{
+class SimpleNodeTest {
 
-    @Test
-    void createWithProperty()
-    {
-        final Property property = new Property( AbstractNodeTest.TestClass.class );
-        property.setName( "test" );
-        property.setNamespace( "testUri" );
-        property.setAttribute( true );
-        final SimpleNode simpleNode = new SimpleNode( "id", property, "My Test" );
-        Assertions.assertEquals( "id", simpleNode.getName() );
-        Assertions.assertEquals( "testUri", simpleNode.getNamespace() );
-        Assertions.assertTrue( simpleNode.isAttribute() );
-        Assertions.assertEquals( "My Test", simpleNode.getValue() );
-    }
+  @Test
+  void createWithProperty() {
+    final Property property = new Property(AbstractNodeTest.TestClass.class);
+    property.setName("test");
+    property.setNamespace("testUri");
+    property.setAttribute(true);
+    final SimpleNode simpleNode = new SimpleNode("id", property, "My Test");
+    Assertions.assertEquals("id", simpleNode.getName());
+    Assertions.assertEquals("testUri", simpleNode.getNamespace());
+    Assertions.assertTrue(simpleNode.isAttribute());
+    Assertions.assertEquals("My Test", simpleNode.getValue());
+  }
 }

@@ -39,43 +39,62 @@ import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleController} using (mocked) REST
+ * requests.
  *
  * @author Jan Bernitt
  */
-class ProgramRuleControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramRuleControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testValidateCondition()
-    {
-        String pId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-        assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/programRules/condition/description?programId=" + pId, "1 != 1" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testValidateCondition() {
+    String pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Valid",
+        POST("/programRules/condition/description?programId=" + pId, "1 != 1")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testValidateCondition_NoSuchProgram()
-    {
-        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
-            POST( "/programRules/condition/description?programId=xyz", "1 != 1" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testValidateCondition_NoSuchProgram() {
+    assertWebMessage(
+        "OK",
+        200,
+        "ERROR",
+        "Expression is not valid",
+        POST("/programRules/condition/description?programId=xyz", "1 != 1").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testDuplicateNameInProgram()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
-        assertStatus( HttpStatus.OK, GET( "/programs/{id}", program.getUid() ) );
-        assertStatus( HttpStatus.OK,
-            POST( "/metadata/", "{'programRules':[{'name':'test', 'program':{ 'id':'" + program.getUid() + "'}}]}" ) );
+  @Test
+  void testDuplicateNameInProgram() {
+    Program program = createProgram('A');
+    manager.save(program);
+    assertStatus(HttpStatus.OK, GET("/programs/{id}", program.getUid()));
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/metadata/",
+            "{'programRules':[{'name':'test', 'program':{ 'id':'" + program.getUid() + "'}}]}"));
 
-        JsonImportSummary response = POST( "/metadata/",
-            "{'programRules':[{'name':'test', 'program':{ 'id':'" + program.getUid() + "'}}]}" )
-                .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
-        assertEquals( "The Program Rule name test already exist in Program ProgramA",
-            response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4057 ).getMessage() );
-    }
+    JsonImportSummary response =
+        POST(
+                "/metadata/",
+                "{'programRules':[{'name':'test', 'program':{ 'id':'" + program.getUid() + "'}}]}")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+    assertEquals(
+        "The Program Rule name test already exist in Program ProgramA",
+        response
+            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4057)
+            .getMessage());
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.preprocess;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
-
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -45,39 +44,36 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-class EventStatusPreProcessorTest
-{
+class EventStatusPreProcessorTest {
 
-    private EventStatusPreProcessor preProcessorToTest;
+  private EventStatusPreProcessor preProcessorToTest;
 
-    @BeforeEach
-    void setUp()
-    {
-        this.preProcessorToTest = new EventStatusPreProcessor();
-    }
+  @BeforeEach
+  void setUp() {
+    this.preProcessorToTest = new EventStatusPreProcessor();
+  }
 
-    @Test
-    void testVisitedStatusIsConvertedToActive()
-    {
-        // Given
-        Event event = new Event();
-        event.setStatus( EventStatus.VISITED );
-        event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( "programInstanceUid" );
-        Program program = new Program();
-        program.setUid( "programUid" );
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( "programStageUid" );
-        programStage.setProgram( program );
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
-        preheat.put( programStage );
-        bundle.setPreheat( preheat );
-        // When
-        preProcessorToTest.process( bundle );
-        // Then
-        assertEquals( EventStatus.ACTIVE, bundle.getEvents().get( 0 ).getStatus() );
-    }
+  @Test
+  void testVisitedStatusIsConvertedToActive() {
+    // Given
+    Event event = new Event();
+    event.setStatus(EventStatus.VISITED);
+    event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
+    TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid("programInstanceUid");
+    Program program = new Program();
+    program.setUid("programUid");
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("programStageUid");
+    programStage.setProgram(program);
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.putProgramInstancesWithoutRegistration("programUid", programInstance);
+    preheat.put(programStage);
+    bundle.setPreheat(preheat);
+    // When
+    preProcessorToTest.process(bundle);
+    // Then
+    assertEquals(EventStatus.ACTIVE, bundle.getEvents().get(0).getStatus());
+  }
 }

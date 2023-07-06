@@ -34,31 +34,28 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Configure content negotiation so that both path extensions {@code .json} and
- * {@code .xml} can be used as well as the {@code Accept} header.
+ * Configure content negotiation so that both path extensions {@code .json} and {@code .xml} can be
+ * used as well as the {@code Accept} header.
  *
- * Default response is JSON.
+ * <p>Default response is JSON.
  *
  * @author Jan Bernitt
  */
 @Configuration
-public class ContentNegotiationConfig implements WebMvcConfigurer
-{
-    @Override
-    public void configureContentNegotiation( ContentNegotiationConfigurer config )
-    {
-        config
-            .favorPathExtension( true )
-            .favorParameter( false )
-            .ignoreAcceptHeader( false )
-            .defaultContentType( MediaType.APPLICATION_JSON )
-            .mediaType( "json", MediaType.APPLICATION_JSON )
-            .mediaType( "xml", MediaType.APPLICATION_XML );
-    }
+public class ContentNegotiationConfig implements WebMvcConfigurer {
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer config) {
+    config
+        .favorPathExtension(true)
+        .favorParameter(false)
+        .ignoreAcceptHeader(false)
+        .defaultContentType(MediaType.APPLICATION_JSON)
+        .mediaType("json", MediaType.APPLICATION_JSON)
+        .mediaType("xml", MediaType.APPLICATION_XML);
+  }
 
-    @Override
-    public void configurePathMatch( PathMatchConfigurer config )
-    {
-        config.setUseSuffixPatternMatch( true );
-    }
+  @Override
+  public void configurePathMatch(PathMatchConfigurer config) {
+    config.setUseSuffixPatternMatch(true);
+  }
 }

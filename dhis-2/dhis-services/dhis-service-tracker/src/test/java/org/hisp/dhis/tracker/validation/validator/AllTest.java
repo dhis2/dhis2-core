@@ -39,7 +39,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
@@ -53,120 +52,109 @@ import org.hisp.dhis.tracker.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AllTest
-{
-    private Reporter reporter;
+class AllTest {
+  private Reporter reporter;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    void setUp()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .build();
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().build();
-    }
+  @BeforeEach
+  void setUp() {
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+    bundle = TrackerBundle.builder().build();
+  }
 
-    @Test
-    void testAllAreCalled()
-    {
-        // @formatter:off
-        Validator<String> validator = all(
-            ( r, b, s ) -> addError( r, "V1" ),
-            ( r, b, s ) -> addError( r, "V2" ),
+  @Test
+  void testAllAreCalled() {
+    // @formatter:off
+    Validator<String> validator =
+        all(
+            (r, b, s) -> addError(r, "V1"),
+            (r, b, s) -> addError(r, "V2"),
             all(
-                ( r, b, s ) -> addError( r, "V3" ),
-                ( r, b, s ) -> addError( r, "V4" ),
-                all(
-                    ( r, b, s ) -> addError( r, "V5" )
-                )
-            )
-        );
+                (r, b, s) -> addError(r, "V3"),
+                (r, b, s) -> addError(r, "V4"),
+                all((r, b, s) -> addError(r, "V5"))));
 
-        validator.validate( reporter, bundle, "irrelevant input" );
+    validator.validate(reporter, bundle, "irrelevant input");
 
-        assertEquals( List.of( "V1", "V2", "V3", "V4", "V5" ), actualErrorMessages() );
-    }
+    assertEquals(List.of("V1", "V2", "V3", "V4", "V5"), actualErrorMessages());
+  }
 
-    @Test
-    void testAllDoesNotCallValidatorIfItShouldNotRunOnGivenStrategy()
-    {
-        bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
+  @Test
+  void testAllDoesNotCallValidatorIfItShouldNotRunOnGivenStrategy() {
+    bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
 
-        // @formatter:off
-        Validator<String> validator = all(
-                (r, b, s) -> addError(r, "V1"),
-                new Validator<>() {
-                    @Override
-                    public void validate(Reporter reporter, TrackerBundle bundle, String input) {
-                        addError(reporter, "V2");
-                    }
+    // @formatter:off
+    Validator<String> validator =
+        all(
+            (r, b, s) -> addError(r, "V1"),
+            new Validator<>() {
+              @Override
+              public void validate(Reporter reporter, TrackerBundle bundle, String input) {
+                addError(reporter, "V2");
+              }
 
-                    @Override
-                    public boolean needsToRun(TrackerImportStrategy strategy) {
-                        return strategy == DELETE;
-                    }
-                }
-        );
+              @Override
+              public boolean needsToRun(TrackerImportStrategy strategy) {
+                return strategy == DELETE;
+              }
+            });
 
-        validator.validate( reporter, bundle, "irrelevant input" );
+    validator.validate(reporter, bundle, "irrelevant input");
 
-        assertContainsOnly( List.of( "V1"), actualErrorMessages() );
-    }
+    assertContainsOnly(List.of("V1"), actualErrorMessages());
+  }
 
-    @Test
-    void testAllDoesNotCallValidatorIfItShouldNotRunOnGivenStrategyForATrackerDto()
-    {
-        bundle = TrackerBundle.builder()
-                .importStrategy(CREATE_AND_UPDATE)
-                .resolvedStrategyMap(new EnumMap<>(Map.of(
-                        TrackerType.EVENT, Map.of("event1", UPDATE)
-                )))
-                .build();
+  @Test
+  void testAllDoesNotCallValidatorIfItShouldNotRunOnGivenStrategyForATrackerDto() {
+    bundle =
+        TrackerBundle.builder()
+            .importStrategy(CREATE_AND_UPDATE)
+            .resolvedStrategyMap(new EnumMap<>(Map.of(TrackerType.EVENT, Map.of("event1", UPDATE))))
+            .build();
 
-        // @formatter:off
-        Validator<Event> validator = all(
-                new Validator<>() {
-                    @Override
-                    public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
-                        addError(reporter, "V1");
-                    }
+    // @formatter:off
+    Validator<Event> validator =
+        all(
+            new Validator<>() {
+              @Override
+              public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
+                addError(reporter, "V1");
+              }
 
-                    @Override
-                    public boolean needsToRun(TrackerImportStrategy strategy) {
-                        return strategy == CREATE;
-                    }
-                },
-                new Validator<>() {
-                    @Override
-                    public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
-                        addError(reporter, "V2");
-                    }
+              @Override
+              public boolean needsToRun(TrackerImportStrategy strategy) {
+                return strategy == CREATE;
+              }
+            },
+            new Validator<>() {
+              @Override
+              public void validate(Reporter reporter, TrackerBundle bundle, Event input) {
+                addError(reporter, "V2");
+              }
 
-                    @Override
-                    public boolean needsToRun(TrackerImportStrategy strategy) {
-                        return strategy == UPDATE;
-                    }
-                }
-        );
+              @Override
+              public boolean needsToRun(TrackerImportStrategy strategy) {
+                return strategy == UPDATE;
+              }
+            });
 
-        validator.validate( reporter, bundle, Event.builder().event("event1").build());
+    validator.validate(reporter, bundle, Event.builder().event("event1").build());
 
-        assertContainsOnly( List.of( "V2"), actualErrorMessages() );
-    }
+    assertContainsOnly(List.of("V2"), actualErrorMessages());
+  }
 
-    /**
-     * Add error with given message to {@link Reporter}. Every {@link Error} is attributed to a
-     * {@link TrackerDto}, which makes adding errors cumbersome when you do not care about any particular tracker type, uid or error code.
-     */
-    private static void addError( Reporter reporter, String message )
-    {
-        reporter.addError( new Error( message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid" ) );
-    }
+  /**
+   * Add error with given message to {@link Reporter}. Every {@link Error} is attributed to a {@link
+   * TrackerDto}, which makes adding errors cumbersome when you do not care about any particular
+   * tracker type, uid or error code.
+   */
+  private static void addError(Reporter reporter, String message) {
+    reporter.addError(new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid"));
+  }
 
-    private List<String> actualErrorMessages()
-    {
-        return reporter.getErrors().stream().map( Error::getMessage ).collect( Collectors.toList() );
-    }
+  private List<String> actualErrorMessages() {
+    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+  }
 }

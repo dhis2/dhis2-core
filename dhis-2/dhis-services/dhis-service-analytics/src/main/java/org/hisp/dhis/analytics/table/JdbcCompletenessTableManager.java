@@ -37,11 +37,11 @@ import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartiti
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -71,236 +71,264 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.analytics.CompletenessTableManager" )
-public class JdbcCompletenessTableManager
-    extends AbstractJdbcTableManager
-{
-    public JdbcCompletenessTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings,
-        PeriodDataProvider periodDataProvider )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings, periodDataProvider );
-    }
+@Service("org.hisp.dhis.analytics.CompletenessTableManager")
+public class JdbcCompletenessTableManager extends AbstractJdbcTableManager {
+  public JdbcCompletenessTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      StatementBuilder statementBuilder,
+      PartitionManager partitionManager,
+      DatabaseInfo databaseInfo,
+      JdbcTemplate jdbcTemplate,
+      AnalyticsExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        statementBuilder,
+        partitionManager,
+        databaseInfo,
+        jdbcTemplate,
+        analyticsExportSettings,
+        periodDataProvider);
+  }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
-        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
-        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(
+          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "ds.uid"),
+          new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"));
 
-    @Override
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return AnalyticsTableType.COMPLETENESS;
-    }
+  @Override
+  public AnalyticsTableType getAnalyticsTableType() {
+    return AnalyticsTableType.COMPLETENESS;
+  }
 
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
-    {
-        AnalyticsTable table = params.isLatestUpdate()
-            ? getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() )
-            : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
+  @Override
+  @Transactional
+  public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    AnalyticsTable table =
+        params.isLatestUpdate()
+            ? getLatestAnalyticsTable(params, getDimensionColumns(), getValueColumns())
+            : getRegularAnalyticsTable(
+                params, getDataYears(params), getDimensionColumns(), getValueColumns());
 
-        return table.hasPartitionTables() ? List.of( table ) : List.of();
-    }
+    return table.hasPartitionTables() ? List.of(table) : List.of();
+  }
 
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return Sets.newHashSet( getTableName() );
-    }
+  @Override
+  public Set<String> getExistingDatabaseTables() {
+    return Sets.newHashSet(getTableName());
+  }
 
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select datasetid from completedatasetregistration limit 1" )
+  @Override
+  public String validState() {
+    boolean hasData =
+        jdbcTemplate
+            .queryForRowSet("select datasetid from completedatasetregistration limit 1")
             .next();
 
-        if ( !hasData )
-        {
-            return "No complete registrations exist, not updating completeness analytics tables";
-        }
-
-        return null;
+    if (!hasData) {
+      return "No complete registrations exist, not updating completeness analytics tables";
     }
 
-    @Override
-    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
-    {
-        String sql = "select cdr.datasetid " +
-            "from completedatasetregistration cdr " +
-            "where cdr.lastupdated >= '" + getLongDateString( startDate ) + "' " +
-            "and cdr.lastupdated < '" + getLongDateString( endDate ) + "' " +
-            "limit 1";
+    return null;
+  }
 
-        return !jdbcTemplate.queryForList( sql ).isEmpty();
-    }
+  @Override
+  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+    String sql =
+        "select cdr.datasetid "
+            + "from completedatasetregistration cdr "
+            + "where cdr.lastupdated >= '"
+            + getLongDateString(startDate)
+            + "' "
+            + "and cdr.lastupdated < '"
+            + getLongDateString(endDate)
+            + "' "
+            + "limit 1";
 
-    @Override
-    public void removeUpdatedData( List<AnalyticsTable> tables )
-    {
-        AnalyticsTablePartition partition = getLatestTablePartition( tables );
-        String sql = "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
-            "where ax.id in (" +
-            "select (ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id " +
-            "from completedatasetregistration cdr " +
-            "inner join dataset ds on cdr.datasetid=ds.datasetid " +
-            "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
-            "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid " +
-            "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid " +
-            "where cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
-            "and cdr.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
+    return !jdbcTemplate.queryForList(sql).isEmpty();
+  }
 
-        invokeTimeAndLog( sql, "Remove updated data values" );
-    }
+  @Override
+  public void removeUpdatedData(List<AnalyticsTable> tables) {
+    AnalyticsTablePartition partition = getLatestTablePartition(tables);
+    String sql =
+        "delete from "
+            + quote(getAnalyticsTableType().getTableName())
+            + " ax "
+            + "where ax.id in ("
+            + "select (ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id "
+            + "from completedatasetregistration cdr "
+            + "inner join dataset ds on cdr.datasetid=ds.datasetid "
+            + "inner join _periodstructure ps on cdr.periodid=ps.periodid "
+            + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
+            + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
+            + "where cdr.lastupdated >= '"
+            + getLongDateString(partition.getStartDate())
+            + "' "
+            + "and cdr.lastupdated < '"
+            + getLongDateString(partition.getEndDate())
+            + "')";
 
-    @Override
-    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
-    {
-        return partition.isLatestPartition() ? emptyList() : List.of( "year = " + partition.getYear() + "" );
-    }
+    invokeTimeAndLog(sql, "Remove updated data values");
+  }
 
-    @Override
-    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
-    {
-        String tableName = partition.getTempTableName();
-        String partitionClause = partition.isLatestPartition()
-            ? "and cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' "
+  @Override
+  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+    return partition.isLatestPartition()
+        ? emptyList()
+        : List.of("year = " + partition.getYear() + "");
+  }
+
+  @Override
+  protected void populateTable(
+      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getTempTableName();
+    String partitionClause =
+        partition.isLatestPartition()
+            ? "and cdr.lastupdated >= '" + getLongDateString(partition.getStartDate()) + "' "
             : "and ps.year = " + partition.getYear() + " ";
 
-        String insert = "insert into " + partition.getTempTableName() + " (";
+    String insert = "insert into " + partition.getTempTableName() + " (";
 
-        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+    List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
 
-        validateDimensionColumns( columns );
+    validateDimensionColumns(columns);
 
-        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
-        {
-            insert += col.getName() + ",";
-        }
-
-        insert = TextUtils.removeLastComma( insert ) + ") ";
-
-        String select = "select ";
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            select += col.getAlias() + ",";
-        }
-
-        // Database legacy fix
-
-        select = select.replace( "organisationunitid", "sourceid" );
-
-        select += "cdr.date as value " +
-            "from completedatasetregistration cdr " +
-            "inner join dataset ds on cdr.datasetid=ds.datasetid " +
-            "inner join period pe on cdr.periodid=pe.periodid " +
-            "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
-            "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid " +
-            "inner join _organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid " +
-            "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
-            "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
-            "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid " +
-            "where cdr.date is not null " +
-            partitionClause +
-            "and cdr.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and cdr.completed = true";
-
-        String sql = insert + select;
-
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+    for (AnalyticsTableColumn col : ListUtils.union(columns, values)) {
+      insert += col.getName() + ",";
     }
 
-    private List<AnalyticsTableColumn> getDimensionColumns()
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
+    insert = TextUtils.removeLastComma(insert) + ") ";
 
-        String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
-        columns.add( new AnalyticsTableColumn( quote( "id" ), ColumnDataType.TEXT, idColAlias ) );
+    String select = "select ";
 
-        List<OrganisationUnitGroupSet> orgUnitGroupSets = idObjectManager
-            .getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
-
-        List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
-
-        List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets = categoryService
-            .getAttributeCategoryOptionGroupSetsNoAcl();
-
-        List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
-
-        for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
-        {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11,
-                "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
-        }
-
-        for ( OrganisationUnitLevel level : levels )
-        {
-            String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add(
-                new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
-        }
-
-        for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
-        {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11,
-                "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
-        }
-
-        for ( Category category : attributeCategories )
-        {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11,
-                "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
-        }
-
-        columns.addAll( addPeriodTypeColumns( "ps" ) );
-
-        String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate",
-            statementBuilder.getCastToDate( "cdr.date" ) );
-        String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
-
-        columns.add( new AnalyticsTableColumn( quote( "timely" ), BOOLEAN, timelyAlias ) );
-        columns.addAll( getFixedColumns() );
-        return filterDimensionColumns( columns );
+    for (AnalyticsTableColumn col : columns) {
+      select += col.getAlias() + ",";
     }
 
-    private List<AnalyticsTableColumn> getValueColumns()
-    {
-        return List.of( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
+    // Database legacy fix
+
+    select = select.replace("organisationunitid", "sourceid");
+
+    select +=
+        "cdr.date as value "
+            + "from completedatasetregistration cdr "
+            + "inner join dataset ds on cdr.datasetid=ds.datasetid "
+            + "inner join period pe on cdr.periodid=pe.periodid "
+            + "inner join _periodstructure ps on cdr.periodid=ps.periodid "
+            + "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid "
+            + "inner join _organisationunitgroupsetstructure ougs on cdr.sourceid=ougs.organisationunitid "
+            + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
+            + "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid "
+            + "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid "
+            + "where cdr.date is not null "
+            + partitionClause
+            + "and cdr.lastupdated < '"
+            + getLongDateString(params.getStartTime())
+            + "' "
+            + "and cdr.completed = true";
+
+    String sql = insert + select;
+
+    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+  }
+
+  private List<AnalyticsTableColumn> getDimensionColumns() {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    String idColAlias = "(ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id ";
+    columns.add(new AnalyticsTableColumn(quote("id"), ColumnDataType.TEXT, idColAlias));
+
+    List<OrganisationUnitGroupSet> orgUnitGroupSets =
+        idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class);
+
+    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
+
+    List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
+        categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
+
+    List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
+
+    for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
+      columns.add(
+          new AnalyticsTableColumn(
+                  quote(groupSet.getUid()), CHARACTER_11, "ougs." + quote(groupSet.getUid()))
+              .withCreated(groupSet.getCreated()));
     }
 
-    private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
-    {
-        String sql = "select distinct(extract(year from pe.startdate)) " +
-            "from completedatasetregistration cdr " +
-            "inner join period pe on cdr.periodid=pe.periodid " +
-            "where pe.startdate is not null " +
-            "and cdr.date < '" + getLongDateString( params.getStartTime() ) + "' ";
-
-        if ( params.getFromDate() != null )
-        {
-            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
-        }
-
-        return jdbcTemplate.queryForList( sql, Integer.class );
+    for (OrganisationUnitLevel level : levels) {
+      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
+      columns.add(
+          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
+              .withCreated(level.getCreated()));
     }
 
-    @Override
-    public List<AnalyticsTableColumn> getFixedColumns()
-    {
-        return FIXED_COLS;
+    for (CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets) {
+      columns.add(
+          new AnalyticsTableColumn(
+                  quote(groupSet.getUid()), CHARACTER_11, "acs." + quote(groupSet.getUid()))
+              .withCreated(groupSet.getCreated()));
     }
+
+    for (Category category : attributeCategories) {
+      columns.add(
+          new AnalyticsTableColumn(
+                  quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
+              .withCreated(category.getCreated()));
+    }
+
+    columns.addAll(addPeriodTypeColumns("ps"));
+
+    String timelyDateDiff =
+        statementBuilder.getDaysBetweenDates(
+            "pe.enddate", statementBuilder.getCastToDate("cdr.date"));
+    String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
+
+    columns.add(new AnalyticsTableColumn(quote("timely"), BOOLEAN, timelyAlias));
+    columns.addAll(getFixedColumns());
+    return filterDimensionColumns(columns);
+  }
+
+  private List<AnalyticsTableColumn> getValueColumns() {
+    return List.of(new AnalyticsTableColumn(quote("value"), DATE, "value"));
+  }
+
+  private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
+    String sql =
+        "select distinct(extract(year from pe.startdate)) "
+            + "from completedatasetregistration cdr "
+            + "inner join period pe on cdr.periodid=pe.periodid "
+            + "where pe.startdate is not null "
+            + "and cdr.date < '"
+            + getLongDateString(params.getStartTime())
+            + "' ";
+
+    if (params.getFromDate() != null) {
+      sql += "and pe.startdate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
+    }
+
+    return jdbcTemplate.queryForList(sql, Integer.class);
+  }
+
+  @Override
+  public List<AnalyticsTableColumn> getFixedColumns() {
+    return FIXED_COLS;
+  }
 }

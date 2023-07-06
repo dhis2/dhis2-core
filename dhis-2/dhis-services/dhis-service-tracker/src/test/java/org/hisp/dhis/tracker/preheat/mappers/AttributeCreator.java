@@ -28,38 +28,31 @@
 package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Set;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
-class AttributeCreator
-{
-    static Set<AttributeValue> attributeValues( String uid, String value )
-    {
-        return Set.of( attributeValue( uid, value ) );
-    }
+class AttributeCreator {
+  static Set<AttributeValue> attributeValues(String uid, String value) {
+    return Set.of(attributeValue(uid, value));
+  }
 
-    static AttributeValue attributeValue( String uid, String value )
-    {
-        return new AttributeValue( attribute( uid ), value );
-    }
+  static AttributeValue attributeValue(String uid, String value) {
+    return new AttributeValue(attribute(uid), value);
+  }
 
-    static Attribute attribute( String attributeUid )
-    {
-        Attribute att = new Attribute();
-        att.setUid( attributeUid );
-        return att;
-    }
+  static Attribute attribute(String attributeUid) {
+    Attribute att = new Attribute();
+    att.setUid(attributeUid);
+    return att;
+  }
 
-    static <T extends BaseIdentifiableObject> T setIdSchemeFields( T identifiable, String uid, String name, String code,
-        Set<AttributeValue> attributeValues )
-    {
-        identifiable.setUid( uid );
-        identifiable.setName( name );
-        identifiable.setCode( code );
-        identifiable.setAttributeValues( attributeValues );
-        return identifiable;
-    }
-
+  static <T extends BaseIdentifiableObject> T setIdSchemeFields(
+      T identifiable, String uid, String name, String code, Set<AttributeValue> attributeValues) {
+    identifiable.setUid(uid);
+    identifiable.setName(name);
+    identifiable.setCode(code);
+    identifiable.setAttributeValues(attributeValues);
+    return identifiable;
+  }
 }

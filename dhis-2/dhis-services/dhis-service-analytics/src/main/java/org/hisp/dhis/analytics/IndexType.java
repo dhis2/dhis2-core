@@ -32,23 +32,20 @@ package org.hisp.dhis.analytics;
  *
  * @author Lars Helge Overland
  */
-public enum IndexType
-{
-    BTREE( "btree" ),
-    GIST( "gist" ),
-    HASH( "hash" ),
-    BLOOM( "bloom" ),
-    GIN( "gin" );
+public enum IndexType {
+  BTREE("btree"),
+  GIST("gist"),
+  HASH("hash"),
+  BLOOM("bloom"),
+  GIN("gin");
 
-    private String keyword;
+  private String keyword;
 
-    IndexType( String keyword )
-    {
-        this.keyword = keyword;
-    }
+  IndexType(String keyword) {
+    this.keyword = keyword;
+  }
 
-    public String keyword()
-    {
-        return keyword;
-    }
+  public String keyword() {
+    return keyword;
+  }
 }

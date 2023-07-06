@@ -30,11 +30,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -46,42 +43,44 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier
-{
-    @Nonnull
-    private final RelationshipStore relationshipStore;
+public class DuplicateRelationshipSupplier extends AbstractPreheatSupplier {
+  @Nonnull private final RelationshipStore relationshipStore;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationshipKeys(
-            params.getRelationships(), preheat );
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    List<org.hisp.dhis.relationship.Relationship> relationships =
+        retrieveRelationshipKeys(params.getRelationships(), preheat);
 
+    relationships.stream()
+        .map(RelationshipMapper.INSTANCE::map)
+        .filter(Objects::nonNull)
+        .forEach(preheat::addExistingRelationship);
+  }
+
+  private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys(
+      List<Relationship> relationships, TrackerPreheat preheat) {
+    List<RelationshipType> relationshipTypes = preheat.getAll(RelationshipType.class);
+    List<String> keys =
         relationships.stream()
-            .map( RelationshipMapper.INSTANCE::map )
-            .filter( Objects::nonNull )
-            .forEach( preheat::addExistingRelationship );
-    }
-
-    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationshipKeys( List<Relationship> relationships,
-        TrackerPreheat preheat )
-    {
-        List<RelationshipType> relationshipTypes = preheat.getAll( RelationshipType.class );
-        List<String> keys = relationships.stream()
             .filter(
-                rel -> RelationshipKeySupport.hasRelationshipKey( rel, getRelationshipType( rel, relationshipTypes ) ) )
-            .map( rel -> RelationshipKeySupport.getRelationshipKey( rel, getRelationshipType( rel, relationshipTypes ) )
-                .asString() )
-            .collect( Collectors.toList() );
+                rel ->
+                    RelationshipKeySupport.hasRelationshipKey(
+                        rel, getRelationshipType(rel, relationshipTypes)))
+            .map(
+                rel ->
+                    RelationshipKeySupport.getRelationshipKey(
+                            rel, getRelationshipType(rel, relationshipTypes))
+                        .asString())
+            .collect(Collectors.toList());
 
-        return relationshipStore.getByUid( relationshipStore.getUidsByRelationshipKeys( keys ) );
-    }
+    return relationshipStore.getByUid(relationshipStore.getUidsByRelationshipKeys(keys));
+  }
 
-    private RelationshipType getRelationshipType( Relationship rel, List<RelationshipType> relationshipTypes )
-    {
-        return relationshipTypes.stream()
-            .filter( type -> rel.getRelationshipType().isEqualTo( type ) )
-            .findAny()
-            .orElse( null );
-    }
+  private RelationshipType getRelationshipType(
+      Relationship rel, List<RelationshipType> relationshipTypes) {
+    return relationshipTypes.stream()
+        .filter(type -> rel.getRelationshipType().isEqualTo(type))
+        .findAny()
+        .orElse(null);
+  }
 }

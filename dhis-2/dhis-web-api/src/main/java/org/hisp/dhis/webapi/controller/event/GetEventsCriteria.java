@@ -30,10 +30,8 @@ package org.hisp.dhis.webapi.controller.event;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
@@ -44,77 +42,76 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Getter
 @Setter
-public class GetEventsCriteria
-{
-    private String program;
+public class GetEventsCriteria {
+  private String program;
 
-    private String programStage;
+  private String programStage;
 
-    private ProgramStatus programStatus;
+  private ProgramStatus programStatus;
 
-    private Boolean followUp;
+  private Boolean followUp;
 
-    private String trackedEntityInstance;
+  private String trackedEntityInstance;
 
-    private String orgUnit;
+  private String orgUnit;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+  private AssignedUserSelectionMode assignedUserMode;
 
-    private String assignedUser;
+  private String assignedUser;
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    private Date dueDateStart;
+  private Date dueDateStart;
 
-    private Date dueDateEnd;
+  private Date dueDateEnd;
 
-    private Date lastUpdated;
+  private Date lastUpdated;
 
-    private Date lastUpdatedStartDate;
+  private Date lastUpdatedStartDate;
 
-    private Date lastUpdatedEndDate;
+  private Date lastUpdatedEndDate;
 
-    private String lastUpdatedDuration;
+  private String lastUpdatedDuration;
 
-    private EventStatus status;
+  private EventStatus status;
 
-    private String attributeCc;
+  private String attributeCc;
 
-    private String attributeCos;
+  private String attributeCos;
 
-    private boolean skipMeta;
+  private boolean skipMeta;
 
-    private Integer page;
+  private Integer page;
 
-    private Integer pageSize;
+  private Integer pageSize;
 
-    private boolean totalPages;
+  private boolean totalPages;
 
-    private Boolean skipPaging;
+  private Boolean skipPaging;
 
-    private boolean skipEventId;
+  private boolean skipEventId;
 
-    private boolean skipHeader = false;
+  private boolean skipHeader = false;
 
-    private Boolean paging;
+  private Boolean paging;
 
-    private String order;
+  private String order;
 
-    private String attachment;
+  private String attachment;
 
-    private boolean includeDeleted = false;
+  private boolean includeDeleted = false;
 
-    private String event;
+  private String event;
 
-    private Set<String> filter;
+  private Set<String> filter;
 
-    private Set<String> dataElement;
+  private Set<String> dataElement;
 
-    private boolean includeAllDataElements = false;
+  private boolean includeAllDataElements = false;
 
-    private Map<String, String> parameters;
+  private Map<String, String> parameters;
 }

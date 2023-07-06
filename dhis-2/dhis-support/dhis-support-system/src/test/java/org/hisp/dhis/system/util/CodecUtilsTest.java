@@ -32,15 +32,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-class CodecUtilsTest
-{
-    @Test
-    void testMd5Hex()
-    {
-        String value = "10-05-2022T12:55:45";
+class CodecUtilsTest {
+  @Test
+  void testMd5Hex() {
+    String value = "10-05-2022T12:55:45";
 
-        assertNull( CodecUtils.md5Hex( null ) );
-        assertEquals( 32, CodecUtils.md5Hex( value ).length() );
-        assertEquals( "c149820871470e3ab15eb24d42b3561a", CodecUtils.md5Hex( value ) );
-    }
+    assertNull(CodecUtils.md5Hex(null));
+    assertEquals(32, CodecUtils.md5Hex(value).length());
+    assertEquals("c149820871470e3ab15eb24d42b3561a", CodecUtils.md5Hex(value));
+  }
 }

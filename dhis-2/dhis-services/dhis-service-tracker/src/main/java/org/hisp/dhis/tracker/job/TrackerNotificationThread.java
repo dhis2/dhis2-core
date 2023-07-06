@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.job;
 
 import java.util.Map;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramInstance;
@@ -43,57 +42,56 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker
- * notification consumer consumes a message from tracker notification queue.
+ * Class represents a thread which will be triggered as soon as tracker notification consumer
+ * consumes a message from tracker notification queue.
  *
  * @author Zubair Asghar
  */
 @Component
-@Scope( BeanDefinition.SCOPE_PROTOTYPE )
-public class TrackerNotificationThread extends SecurityContextRunnable
-{
-    private final Notifier notifier;
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class TrackerNotificationThread extends SecurityContextRunnable {
+  private final Notifier notifier;
 
-    private TrackerSideEffectDataBundle sideEffectDataBundle;
+  private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    private final IdentifiableObjectManager manager;
+  private final IdentifiableObjectManager manager;
 
-    private final Map<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper;
+  private final Map<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper;
 
-    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier,
-        IdentifiableObjectManager manager )
-    {
-        this.notifier = notifier;
-        this.manager = manager;
-        this.serviceMapper = Map.of(
+  public TrackerNotificationThread(
+      ProgramNotificationService programNotificationService,
+      Notifier notifier,
+      IdentifiableObjectManager manager) {
+    this.notifier = notifier;
+    this.manager = manager;
+    this.serviceMapper =
+        Map.of(
             ProgramInstance.class, programNotificationService::sendEnrollmentNotifications,
-            ProgramStageInstance.class, programNotificationService::sendEventCompletionNotifications );
+            ProgramStageInstance.class,
+                programNotificationService::sendEventCompletionNotifications);
+  }
+
+  @Override
+  public void call() {
+    if (sideEffectDataBundle == null) {
+      return;
     }
 
-    @Override
-    public void call()
-    {
-        if ( sideEffectDataBundle == null )
-        {
-            return;
-        }
-
-        if ( serviceMapper.containsKey( sideEffectDataBundle.getKlass() ) )
-        {
-            BaseIdentifiableObject object = manager.get( sideEffectDataBundle.getKlass(),
-                sideEffectDataBundle.getObject() );
-            if ( object != null )
-            {
-                serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
-            }
-        }
-
-        notifier.notify( sideEffectDataBundle.getJobConfiguration(), NotificationLevel.DEBUG,
-            "Tracker notification side effects completed" );
+    if (serviceMapper.containsKey(sideEffectDataBundle.getKlass())) {
+      BaseIdentifiableObject object =
+          manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
+      if (object != null) {
+        serviceMapper.get(sideEffectDataBundle.getKlass()).accept(object.getId());
+      }
     }
 
-    public void setSideEffectDataBundle( TrackerSideEffectDataBundle sideEffectDataBundle )
-    {
-        this.sideEffectDataBundle = sideEffectDataBundle;
-    }
+    notifier.notify(
+        sideEffectDataBundle.getJobConfiguration(),
+        NotificationLevel.DEBUG,
+        "Tracker notification side effects completed");
+  }
+
+  public void setSideEffectDataBundle(TrackerSideEffectDataBundle sideEffectDataBundle) {
+    this.sideEffectDataBundle = sideEffectDataBundle;
+  }
 }

@@ -27,103 +27,87 @@
  */
 package org.hisp.dhis.legend;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.legend.comparator.LegendValueComparator;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Jan Henrik Overland
  */
-@JacksonXmlRootElement( localName = "legendSet", namespace = DxfNamespaces.DXF_2_0 )
-public class LegendSet
-    extends BaseIdentifiableObject implements MetadataObject
-{
-    private String symbolizer;
+@JacksonXmlRootElement(localName = "legendSet", namespace = DxfNamespaces.DXF_2_0)
+public class LegendSet extends BaseIdentifiableObject implements MetadataObject {
+  private String symbolizer;
 
-    private Set<Legend> legends = new HashSet<>();
+  private Set<Legend> legends = new HashSet<>();
 
-    public LegendSet()
-    {
+  public LegendSet() {}
+
+  public LegendSet(String name, String symbolizer, Set<Legend> legends) {
+    this.name = name;
+    this.symbolizer = symbolizer;
+    this.legends = legends;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void removeAllLegends() {
+    legends.clear();
+  }
+
+  public Legend getLegendByUid(String uid) {
+    for (Legend legend : legends) {
+      if (legend != null && legend.getUid().equals(uid)) {
+        return legend;
+      }
     }
 
-    public LegendSet( String name, String symbolizer, Set<Legend> legends )
-    {
-        this.name = name;
-        this.symbolizer = symbolizer;
-        this.legends = legends;
-    }
+    return null;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  public List<Legend> getSortedLegends() {
+    return legends.stream().sorted(LegendValueComparator.INSTANCE).collect(Collectors.toList());
+  }
 
-    public void removeAllLegends()
-    {
-        legends.clear();
-    }
+  public Map<String, String> getLegendUidPropertyMap(IdScheme idScheme) {
+    return legends.stream()
+        .collect(Collectors.toMap(Legend::getUid, l -> l.getPropertyValue(idScheme)));
+  }
 
-    public Legend getLegendByUid( String uid )
-    {
-        for ( Legend legend : legends )
-        {
-            if ( legend != null && legend.getUid().equals( uid ) )
-            {
-                return legend;
-            }
-        }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-        return null;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getSymbolizer() {
+    return symbolizer;
+  }
 
-    public List<Legend> getSortedLegends()
-    {
-        return legends.stream().sorted( LegendValueComparator.INSTANCE ).collect( Collectors.toList() );
-    }
+  public void setSymbolizer(String symbolizer) {
+    this.symbolizer = symbolizer;
+  }
 
-    public Map<String, String> getLegendUidPropertyMap( IdScheme idScheme )
-    {
-        return legends.stream().collect( Collectors.toMap( Legend::getUid, l -> l.getPropertyValue( idScheme ) ) );
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "legends", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "legend", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Legend> getLegends() {
+    return legends;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSymbolizer()
-    {
-        return symbolizer;
-    }
-
-    public void setSymbolizer( String symbolizer )
-    {
-        this.symbolizer = symbolizer;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "legends", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "legend", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Legend> getLegends()
-    {
-        return legends;
-    }
-
-    public void setLegends( Set<Legend> legends )
-    {
-        this.legends = legends;
-    }
+  public void setLegends(Set<Legend> legends) {
+    this.legends = legends;
+  }
 }

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.relationship;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -34,89 +37,71 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Stian Sandvold
  */
-public class RelationshipItem implements EmbeddedObject
-{
-    private int id;
+public class RelationshipItem implements EmbeddedObject {
+  private int id;
 
-    private Relationship relationship;
+  private Relationship relationship;
 
-    private TrackedEntityInstance trackedEntityInstance;
+  private TrackedEntityInstance trackedEntityInstance;
 
-    private ProgramInstance programInstance;
+  private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramStageInstance programStageInstance;
 
-    public RelationshipItem()
-    {
+  public RelationshipItem() {}
 
-    }
+  public int getId() {
+    return id;
+  }
 
-    public int getId()
-    {
-        return id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    public void setId( int id )
-    {
-        this.id = id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public Relationship getRelationship() {
+    return relationship;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Relationship getRelationship()
-    {
-        return relationship;
-    }
+  public void setRelationship(Relationship relationship) {
+    this.relationship = relationship;
+  }
 
-    public void setRelationship( Relationship relationship )
-    {
-        this.relationship = relationship;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public TrackedEntityInstance getTrackedEntityInstance() {
+    return trackedEntityInstance;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public TrackedEntityInstance getTrackedEntityInstance()
-    {
-        return trackedEntityInstance;
-    }
+  public void setTrackedEntityInstance(TrackedEntityInstance trackedEntityInstance) {
+    this.trackedEntityInstance = trackedEntityInstance;
+  }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
-    {
-        this.trackedEntityInstance = trackedEntityInstance;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public ProgramInstance getProgramInstance() {
+    return programInstance;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
+  public void setProgramInstance(ProgramInstance programInstance) {
+    this.programInstance = programInstance;
+  }
 
-    public void setProgramInstance( ProgramInstance programInstance )
-    {
-        this.programInstance = programInstance;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  public ProgramStageInstance getProgramStageInstance() {
+    return programStageInstance;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
-
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        this.programStageInstance = programStageInstance;
-    }
+  public void setProgramStageInstance(ProgramStageInstance programStageInstance) {
+    this.programStageInstance = programStageInstance;
+  }
 }

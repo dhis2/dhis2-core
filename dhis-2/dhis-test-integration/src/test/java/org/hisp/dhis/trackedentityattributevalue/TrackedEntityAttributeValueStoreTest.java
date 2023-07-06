@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
-
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -49,176 +48,172 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBase
-{
+class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private TrackedEntityAttributeValueStore attributeValueStore;
+  @Autowired private TrackedEntityAttributeValueStore attributeValueStore;
 
-    @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+  @Autowired private TrackedEntityInstanceService entityInstanceService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
+  @Autowired private TrackedEntityAttributeService attributeService;
 
-    @Autowired
-    private TrackedEntityAttributeValueAuditStore attributeValueAuditStore;
+  @Autowired private TrackedEntityAttributeValueAuditStore attributeValueAuditStore;
 
-    @Autowired
-    private RenderService renderService;
+  @Autowired private RenderService renderService;
 
-    private TrackedEntityAttribute atA;
+  private TrackedEntityAttribute atA;
 
-    private TrackedEntityAttribute atB;
+  private TrackedEntityAttribute atB;
 
-    private TrackedEntityAttribute atC;
+  private TrackedEntityAttribute atC;
 
-    private TrackedEntityAttribute atD;
+  private TrackedEntityAttribute atD;
 
-    private TrackedEntityInstance teiA;
+  private TrackedEntityInstance teiA;
 
-    private TrackedEntityInstance teiB;
+  private TrackedEntityInstance teiB;
 
-    private TrackedEntityInstance teiC;
+  private TrackedEntityInstance teiC;
 
-    private TrackedEntityInstance teiD;
+  private TrackedEntityInstance teiD;
 
-    private TrackedEntityAttributeValue avA;
+  private TrackedEntityAttributeValue avA;
 
-    private TrackedEntityAttributeValue avB;
+  private TrackedEntityAttributeValue avB;
 
-    private TrackedEntityAttributeValue avC;
+  private TrackedEntityAttributeValue avC;
 
-    private TrackedEntityAttributeValue avD;
+  private TrackedEntityAttributeValue avD;
 
-    @Override
-    public void setUpTest()
-    {
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-        teiA = createTrackedEntityInstance( organisationUnit );
-        teiB = createTrackedEntityInstance( organisationUnit );
-        teiC = createTrackedEntityInstance( organisationUnit );
-        teiD = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( teiA );
-        entityInstanceService.addTrackedEntityInstance( teiB );
-        entityInstanceService.addTrackedEntityInstance( teiC );
-        entityInstanceService.addTrackedEntityInstance( teiD );
-        atA = createTrackedEntityAttribute( 'A' );
-        atB = createTrackedEntityAttribute( 'B' );
-        atC = createTrackedEntityAttribute( 'C' );
-        atD = createTrackedEntityAttribute( 'D' );
-        attributeService.addTrackedEntityAttribute( atA );
-        attributeService.addTrackedEntityAttribute( atB );
-        attributeService.addTrackedEntityAttribute( atC );
-        attributeService.addTrackedEntityAttribute( atD );
-        avA = new TrackedEntityAttributeValue( atA, teiA, "A" );
-        avB = new TrackedEntityAttributeValue( atB, teiA, "B" );
-        avC = new TrackedEntityAttributeValue( atC, teiB, "C" );
-        avD = new TrackedEntityAttributeValue( atD, teiB, "D" );
-        avA.setAutoFields();
-        avB.setAutoFields();
-        avC.setAutoFields();
-        avD.setAutoFields();
-    }
+  @Override
+  public void setUpTest() {
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(organisationUnit);
+    teiA = createTrackedEntityInstance(organisationUnit);
+    teiB = createTrackedEntityInstance(organisationUnit);
+    teiC = createTrackedEntityInstance(organisationUnit);
+    teiD = createTrackedEntityInstance(organisationUnit);
+    entityInstanceService.addTrackedEntityInstance(teiA);
+    entityInstanceService.addTrackedEntityInstance(teiB);
+    entityInstanceService.addTrackedEntityInstance(teiC);
+    entityInstanceService.addTrackedEntityInstance(teiD);
+    atA = createTrackedEntityAttribute('A');
+    atB = createTrackedEntityAttribute('B');
+    atC = createTrackedEntityAttribute('C');
+    atD = createTrackedEntityAttribute('D');
+    attributeService.addTrackedEntityAttribute(atA);
+    attributeService.addTrackedEntityAttribute(atB);
+    attributeService.addTrackedEntityAttribute(atC);
+    attributeService.addTrackedEntityAttribute(atD);
+    avA = new TrackedEntityAttributeValue(atA, teiA, "A");
+    avB = new TrackedEntityAttributeValue(atB, teiA, "B");
+    avC = new TrackedEntityAttributeValue(atC, teiB, "C");
+    avD = new TrackedEntityAttributeValue(atD, teiB, "D");
+    avA.setAutoFields();
+    avB.setAutoFields();
+    avC.setAutoFields();
+    avD.setAutoFields();
+  }
 
-    @Test
-    void testSaveTrackedEntityAttributeValue()
-    {
-        attributeValueStore.saveVoid( avA );
-        attributeValueStore.saveVoid( avB );
-        assertNotNull( attributeValueStore.get( teiA, atA ) );
-        assertNotNull( attributeValueStore.get( teiA, atA ) );
-    }
+  @Test
+  void testSaveTrackedEntityAttributeValue() {
+    attributeValueStore.saveVoid(avA);
+    attributeValueStore.saveVoid(avB);
+    assertNotNull(attributeValueStore.get(teiA, atA));
+    assertNotNull(attributeValueStore.get(teiA, atA));
+  }
 
-    @Test
-    void testDeleteTrackedEntityAttributeValueByEntityInstance()
-    {
-        attributeValueStore.saveVoid( avA );
-        attributeValueStore.saveVoid( avB );
-        attributeValueStore.saveVoid( avC );
-        assertNotNull( attributeValueStore.get( teiA, atA ) );
-        assertNotNull( attributeValueStore.get( teiA, atB ) );
-        assertNotNull( attributeValueStore.get( teiB, atC ) );
-        attributeValueStore.deleteByTrackedEntityInstance( teiA );
-        assertNull( attributeValueStore.get( teiA, atA ) );
-        assertNull( attributeValueStore.get( teiA, atB ) );
-        assertNotNull( attributeValueStore.get( teiB, atC ) );
-        attributeValueStore.deleteByTrackedEntityInstance( teiB );
-        assertNull( attributeValueStore.get( teiA, atA ) );
-        assertNull( attributeValueStore.get( teiA, atB ) );
-        assertNull( attributeValueStore.get( teiB, atC ) );
-    }
+  @Test
+  void testDeleteTrackedEntityAttributeValueByEntityInstance() {
+    attributeValueStore.saveVoid(avA);
+    attributeValueStore.saveVoid(avB);
+    attributeValueStore.saveVoid(avC);
+    assertNotNull(attributeValueStore.get(teiA, atA));
+    assertNotNull(attributeValueStore.get(teiA, atB));
+    assertNotNull(attributeValueStore.get(teiB, atC));
+    attributeValueStore.deleteByTrackedEntityInstance(teiA);
+    assertNull(attributeValueStore.get(teiA, atA));
+    assertNull(attributeValueStore.get(teiA, atB));
+    assertNotNull(attributeValueStore.get(teiB, atC));
+    attributeValueStore.deleteByTrackedEntityInstance(teiB);
+    assertNull(attributeValueStore.get(teiA, atA));
+    assertNull(attributeValueStore.get(teiA, atB));
+    assertNull(attributeValueStore.get(teiB, atC));
+  }
 
-    @Test
-    void testGetTrackedEntityAttributeValue()
-    {
-        attributeValueStore.saveVoid( avA );
-        attributeValueStore.saveVoid( avC );
-        assertEquals( avA, attributeValueStore.get( teiA, atA ) );
-        assertEquals( avC, attributeValueStore.get( teiB, atC ) );
-    }
+  @Test
+  void testGetTrackedEntityAttributeValue() {
+    attributeValueStore.saveVoid(avA);
+    attributeValueStore.saveVoid(avC);
+    assertEquals(avA, attributeValueStore.get(teiA, atA));
+    assertEquals(avC, attributeValueStore.get(teiB, atC));
+  }
 
-    @Test
-    void testGetByEntityInstance()
-    {
-        attributeValueStore.saveVoid( avA );
-        attributeValueStore.saveVoid( avB );
-        attributeValueStore.saveVoid( avC );
-        List<TrackedEntityAttributeValue> attributeValues = attributeValueStore.get( teiA );
-        assertContainsOnly( List.of( avA, avB ), attributeValues );
-        attributeValues = attributeValueStore.get( teiB );
-        assertContainsOnly( List.of( avC ), attributeValues );
-    }
+  @Test
+  void testGetByEntityInstance() {
+    attributeValueStore.saveVoid(avA);
+    attributeValueStore.saveVoid(avB);
+    attributeValueStore.saveVoid(avC);
+    List<TrackedEntityAttributeValue> attributeValues = attributeValueStore.get(teiA);
+    assertContainsOnly(List.of(avA, avB), attributeValues);
+    attributeValues = attributeValueStore.get(teiB);
+    assertContainsOnly(List.of(avC), attributeValues);
+  }
 
-    @Test
-    void testGetTrackedEntityAttributeValueAudits()
-    {
-        attributeValueStore.saveVoid( avA );
-        attributeValueStore.saveVoid( avB );
-        attributeValueStore.saveVoid( avC );
-        attributeValueStore.saveVoid( avD );
-        TrackedEntityAttributeValueAudit auditA = new TrackedEntityAttributeValueAudit( avA,
-            renderService.toJsonAsString( avA ), "userA", AuditType.UPDATE );
-        TrackedEntityAttributeValueAudit auditB = new TrackedEntityAttributeValueAudit( avB,
-            renderService.toJsonAsString( avB ), "userA", AuditType.UPDATE );
-        TrackedEntityAttributeValueAudit auditC = new TrackedEntityAttributeValueAudit( avC,
-            renderService.toJsonAsString( avC ), "userA", AuditType.CREATE );
-        TrackedEntityAttributeValueAudit auditD = new TrackedEntityAttributeValueAudit( avD,
-            renderService.toJsonAsString( avD ), "userA", AuditType.DELETE );
-        attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditA );
-        attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditB );
-        attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditC );
-        attributeValueAuditStore.addTrackedEntityAttributeValueAudit( auditD );
+  @Test
+  void testGetTrackedEntityAttributeValueAudits() {
+    attributeValueStore.saveVoid(avA);
+    attributeValueStore.saveVoid(avB);
+    attributeValueStore.saveVoid(avC);
+    attributeValueStore.saveVoid(avD);
+    TrackedEntityAttributeValueAudit auditA =
+        new TrackedEntityAttributeValueAudit(
+            avA, renderService.toJsonAsString(avA), "userA", AuditType.UPDATE);
+    TrackedEntityAttributeValueAudit auditB =
+        new TrackedEntityAttributeValueAudit(
+            avB, renderService.toJsonAsString(avB), "userA", AuditType.UPDATE);
+    TrackedEntityAttributeValueAudit auditC =
+        new TrackedEntityAttributeValueAudit(
+            avC, renderService.toJsonAsString(avC), "userA", AuditType.CREATE);
+    TrackedEntityAttributeValueAudit auditD =
+        new TrackedEntityAttributeValueAudit(
+            avD, renderService.toJsonAsString(avD), "userA", AuditType.DELETE);
+    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditA);
+    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditB);
+    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditC);
+    attributeValueAuditStore.addTrackedEntityAttributeValueAudit(auditD);
 
-        TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
-            .setTrackedEntityAttributes( List.of( atA ) )
-            .setTrackedEntityInstances( List.of( teiA ) )
-            .setAuditTypes( List.of( AuditType.UPDATE ) );
+    TrackedEntityAttributeValueAuditQueryParams params =
+        new TrackedEntityAttributeValueAuditQueryParams()
+            .setTrackedEntityAttributes(List.of(atA))
+            .setTrackedEntityInstances(List.of(teiA))
+            .setAuditTypes(List.of(AuditType.UPDATE));
 
-        assertContainsOnly( List.of( auditA ),
-            attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ) );
+    assertContainsOnly(
+        List.of(auditA), attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
 
-        params = new TrackedEntityAttributeValueAuditQueryParams()
-            .setTrackedEntityInstances( List.of( teiA ) )
-            .setAuditTypes( List.of( AuditType.UPDATE ) );
+    params =
+        new TrackedEntityAttributeValueAuditQueryParams()
+            .setTrackedEntityInstances(List.of(teiA))
+            .setAuditTypes(List.of(AuditType.UPDATE));
 
-        assertContainsOnly( List.of( auditA, auditB ),
-            attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ) );
+    assertContainsOnly(
+        List.of(auditA, auditB),
+        attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
 
-        params = new TrackedEntityAttributeValueAuditQueryParams()
-            .setAuditTypes( List.of( AuditType.CREATE ) );
+    params =
+        new TrackedEntityAttributeValueAuditQueryParams().setAuditTypes(List.of(AuditType.CREATE));
 
-        assertContainsOnly( List.of( auditC ),
-            attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ) );
+    assertContainsOnly(
+        List.of(auditC), attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
 
-        params = new TrackedEntityAttributeValueAuditQueryParams()
-            .setAuditTypes( List.of( AuditType.CREATE, AuditType.DELETE ) );
+    params =
+        new TrackedEntityAttributeValueAuditQueryParams()
+            .setAuditTypes(List.of(AuditType.CREATE, AuditType.DELETE));
 
-        assertContainsOnly( List.of( auditC, auditD ),
-            attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ) );
-    }
+    assertContainsOnly(
+        List.of(auditC, auditD),
+        attributeValueAuditStore.getTrackedEntityAttributeValueAudits(params));
+  }
 }

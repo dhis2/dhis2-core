@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OpenApi;
@@ -54,41 +52,36 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( value = AggregateDataExchangeSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class AggregateDataExchangeController
-    extends AbstractCrudController<AggregateDataExchange>
-{
-    private final AggregateDataExchangeService service;
+@RequestMapping(value = AggregateDataExchangeSchemaDescriptor.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class AggregateDataExchangeController extends AbstractCrudController<AggregateDataExchange> {
+  private final AggregateDataExchangeService service;
 
-    @PostMapping( "/exchange" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public ImportSummaries runDataExchange( @RequestBody AggregateDataExchange exchange )
-    {
-        return service.exchangeData( exchange, NoopJobProgress.INSTANCE );
-    }
+  @PostMapping("/exchange")
+  @ResponseStatus(value = HttpStatus.OK)
+  public ImportSummaries runDataExchange(@RequestBody AggregateDataExchange exchange) {
+    return service.exchangeData(exchange, NoopJobProgress.INSTANCE);
+  }
 
-    @PostMapping( "/{uid}/exchange" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public ImportSummaries runDataExchangeByUid( @PathVariable String uid )
-    {
-        return service.exchangeData( uid, NoopJobProgress.INSTANCE );
-    }
+  @PostMapping("/{uid}/exchange")
+  @ResponseStatus(value = HttpStatus.OK)
+  public ImportSummaries runDataExchangeByUid(@PathVariable String uid) {
+    return service.exchangeData(uid, NoopJobProgress.INSTANCE);
+  }
 
-    @GetMapping( "/{uid}/sourceData" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public List<Grid> getSourceData( @PathVariable String uid, SourceDataQueryParams params )
-    {
-        return service.getSourceData( uid, params );
-    }
+  @GetMapping("/{uid}/sourceData")
+  @ResponseStatus(value = HttpStatus.OK)
+  public List<Grid> getSourceData(@PathVariable String uid, SourceDataQueryParams params) {
+    return service.getSourceData(uid, params);
+  }
 
-    @GetMapping( "/{uid}/sourceDataValueSets" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public List<DataValueSet> getSourceDataValueSets( @PathVariable String uid, SourceDataQueryParams params )
-    {
-        return service.getSourceDataValueSets( uid, params );
-    }
+  @GetMapping("/{uid}/sourceDataValueSets")
+  @ResponseStatus(value = HttpStatus.OK)
+  public List<DataValueSet> getSourceDataValueSets(
+      @PathVariable String uid, SourceDataQueryParams params) {
+    return service.getSourceDataValueSets(uid, params);
+  }
 }

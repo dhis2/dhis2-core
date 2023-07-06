@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.category.Category;
@@ -52,115 +51,100 @@ import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.Test;
 
 /**
- * A test for {@link CategorySecurityUtils} This class is a test for the method
- * {@link CategorySecurityUtils#getConstrainedCategories(List, List)} which is
- * used to get the categories that are not restricted by the user.
+ * A test for {@link CategorySecurityUtils} This class is a test for the method {@link
+ * CategorySecurityUtils#getConstrainedCategories(List, List)} which is used to get the categories
+ * that are not restricted by the user.
  */
-class CategorySecurityUtilsTest
-{
+class CategorySecurityUtilsTest {
 
-    @Test
-    void testCategoryOptionsConstraints()
-    {
-        runTest(
-            // categories in Program -> categoryCombo -> categories
-            List.of( "cat1", "cat2", "cat3" ),
-            // Dimensions with flag if they have items
-            List.of(
-                // has items
-                Pair.of( "cat1", true ),
-                // has no items
-                Pair.of( "cat2", false ) ),
-            // only categories not specified or without items should be returned
-            List.of( "cat2", "cat3" ) );
+  @Test
+  void testCategoryOptionsConstraints() {
+    runTest(
+        // categories in Program -> categoryCombo -> categories
+        List.of("cat1", "cat2", "cat3"),
+        // Dimensions with flag if they have items
+        List.of(
+            // has items
+            Pair.of("cat1", true),
+            // has no items
+            Pair.of("cat2", false)),
+        // only categories not specified or without items should be returned
+        List.of("cat2", "cat3"));
+  }
 
+  @Test
+  void testCategoryOptionsNoConstraints() {
+    List<String> allCategories = List.of("cat1", "cat2", "cat3");
+    runTest(
+        // categories in Program -> categoryCombo -> categories
+        allCategories,
+        // when no dimensions/filters
+        Collections.emptyList(),
+        // all categories should be returned
+        allCategories);
+  }
+
+  /**
+   * The actual test implementation. It mocks the objects needed for the test and runs the test.
+   *
+   * @param categoryUids the categories in the Program -> categoryCombo -> categories
+   * @param dimensionsWithFlag the dimensions with flag if they have items
+   * @param expected the expected result
+   */
+  private void runTest(
+      List<String> categoryUids,
+      List<Pair<String, Boolean>> dimensionsWithFlag,
+      List<String> expected) {
+    List<Category> categories =
+        categoryUids.stream().map(this::mockCategory).collect(Collectors.toList());
+
+    CategoryCombo categoryCombo = mock(CategoryCombo.class);
+    when(categoryCombo.getCategories()).thenReturn(categories);
+
+    Program program = mock(Program.class);
+    when(program.getCategoryCombo()).thenReturn(categoryCombo);
+    when(program.hasNonDefaultCategoryCombo()).thenReturn(true);
+
+    EventQueryParams.Builder paramBuilder = new EventQueryParams.Builder().withProgram(program);
+
+    dimensionsWithFlag.stream()
+        .map(dimWithFlag -> mockDimension(dimWithFlag.getLeft(), dimWithFlag.getRight()))
+        .forEach(paramBuilder::addDimension);
+
+    EventQueryParams params = paramBuilder.build();
+
+    // the actual tested method
+    List<String> actual =
+        getConstrainedCategories(
+                params.getProgram(),
+                Stream.concat(params.getDimensions().stream(), params.getFilters().stream())
+                    .collect(Collectors.toList()))
+            .stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
+
+    assertThat(expected, containsInAnyOrder(actual.toArray()));
+    assertThat(actual, hasSize(expected.size()));
+  }
+
+  private DimensionalObject mockDimension(String dim, boolean withItem) {
+    DimensionalObject dimension = mock(DimensionalObject.class);
+    when(dimension.getDimensionType()).thenReturn(DimensionType.CATEGORY);
+    when(dimension.getUid()).thenReturn(dim);
+    when(dimension.getDimension()).thenReturn(dim);
+    if (withItem) {
+      when(dimension.getItems()).thenReturn(singletonList(mockDimensionalItemObject()));
     }
+    return dimension;
+  }
 
-    @Test
-    void testCategoryOptionsNoConstraints()
-    {
-        List<String> allCategories = List.of( "cat1", "cat2", "cat3" );
-        runTest(
-            // categories in Program -> categoryCombo -> categories
-            allCategories,
-            // when no dimensions/filters
-            Collections.emptyList(),
-            // all categories should be returned
-            allCategories );
-    }
+  private DimensionalItemObject mockDimensionalItemObject() {
+    return mock(DimensionalItemObject.class);
+  }
 
-    /**
-     * The actual test implementation. It mocks the objects needed for the test
-     * and runs the test.
-     *
-     * @param categoryUids the categories in the Program -> categoryCombo ->
-     *        categories
-     * @param dimensionsWithFlag the dimensions with flag if they have items
-     * @param expected the expected result
-     */
-    private void runTest( List<String> categoryUids, List<Pair<String, Boolean>> dimensionsWithFlag,
-        List<String> expected )
-    {
-        List<Category> categories = categoryUids.stream()
-            .map( this::mockCategory )
-            .collect( Collectors.toList() );
-
-        CategoryCombo categoryCombo = mock( CategoryCombo.class );
-        when( categoryCombo.getCategories() ).thenReturn( categories );
-
-        Program program = mock( Program.class );
-        when( program.getCategoryCombo() ).thenReturn( categoryCombo );
-        when( program.hasNonDefaultCategoryCombo() ).thenReturn( true );
-
-        EventQueryParams.Builder paramBuilder = new EventQueryParams.Builder().withProgram( program );
-
-        dimensionsWithFlag.stream()
-            .map( dimWithFlag -> mockDimension(
-                dimWithFlag.getLeft(),
-                dimWithFlag.getRight() ) )
-            .forEach( paramBuilder::addDimension );
-
-        EventQueryParams params = paramBuilder.build();
-
-        // the actual tested method
-        List<String> actual = getConstrainedCategories(
-            params.getProgram(),
-            Stream.concat(
-                params.getDimensions().stream(),
-                params.getFilters().stream() )
-                .collect( Collectors.toList() ) )
-                    .stream()
-                    .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toList() );
-
-        assertThat( expected, containsInAnyOrder( actual.toArray() ) );
-        assertThat( actual, hasSize( expected.size() ) );
-    }
-
-    private DimensionalObject mockDimension( String dim, boolean withItem )
-    {
-        DimensionalObject dimension = mock( DimensionalObject.class );
-        when( dimension.getDimensionType() ).thenReturn( DimensionType.CATEGORY );
-        when( dimension.getUid() ).thenReturn( dim );
-        when( dimension.getDimension() ).thenReturn( dim );
-        if ( withItem )
-        {
-            when( dimension.getItems() )
-                .thenReturn(
-                    singletonList( mockDimensionalItemObject() ) );
-        }
-        return dimension;
-    }
-
-    private DimensionalItemObject mockDimensionalItemObject()
-    {
-        return mock( DimensionalItemObject.class );
-    }
-
-    private Category mockCategory( String uid )
-    {
-        Category category = mock( Category.class );
-        when( category.getUid() ).thenReturn( uid );
-        return category;
-    }
+  private Category mockCategory(String uid) {
+    Category category = mock(Category.class);
+    when(category.getUid()).thenReturn(uid);
+    return category;
+  }
 }

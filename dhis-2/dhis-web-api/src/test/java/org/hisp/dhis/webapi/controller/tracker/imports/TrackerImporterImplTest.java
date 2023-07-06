@@ -49,60 +49,50 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class TrackerImporterImplTest
-{
-    @InjectMocks
-    TrackerAsyncImporter asyncImporter;
+@ExtendWith(MockitoExtension.class)
+class TrackerImporterImplTest {
+  @InjectMocks TrackerAsyncImporter asyncImporter;
 
-    @InjectMocks
-    TrackerSyncImporter syncImporter;
+  @InjectMocks TrackerSyncImporter syncImporter;
 
-    @Mock
-    TrackerImportService trackerImportService;
+  @Mock TrackerImportService trackerImportService;
 
-    @Mock
-    MessageManager messageManager;
+  @Mock MessageManager messageManager;
 
-    @Test
-    void shouldCreateReportSync()
-    {
-        TrackerImportParams params = TrackerImportParams.builder()
-            .jobConfiguration( new JobConfiguration(
-                "",
-                JobType.TRACKER_IMPORT_JOB,
-                "userId",
-                false ) )
-            .reportMode( TrackerBundleReportMode.FULL )
+  @Test
+  void shouldCreateReportSync() {
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .jobConfiguration(new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, "userId", false))
+            .reportMode(TrackerBundleReportMode.FULL)
             .build();
 
-        syncImporter.importTracker( params );
+    syncImporter.importTracker(params);
 
-        verify( trackerImportService ).importTracker( params );
-        verify( trackerImportService ).buildImportReport( any(), eq( TrackerBundleReportMode.FULL ) );
-    }
+    verify(trackerImportService).importTracker(params);
+    verify(trackerImportService).buildImportReport(any(), eq(TrackerBundleReportMode.FULL));
+  }
 
-    @Test
-    void shouldSendMessageToQueueAsync()
-    {
-        ArgumentCaptor<String> queueNameCaptor = ArgumentCaptor.forClass( String.class );
-        ArgumentCaptor<TrackerMessage> trackerMessageCaptor = ArgumentCaptor.forClass( TrackerMessage.class );
+  @Test
+  void shouldSendMessageToQueueAsync() {
+    ArgumentCaptor<String> queueNameCaptor = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<TrackerMessage> trackerMessageCaptor =
+        ArgumentCaptor.forClass(TrackerMessage.class);
 
-        doNothing().when( messageManager ).sendQueue( queueNameCaptor.capture(), trackerMessageCaptor.capture() );
+    doNothing()
+        .when(messageManager)
+        .sendQueue(queueNameCaptor.capture(), trackerMessageCaptor.capture());
 
-        TrackerImportParams params = TrackerImportParams.builder()
-            .jobConfiguration( new JobConfiguration(
-                "",
-                JobType.TRACKER_IMPORT_JOB,
-                "userId",
-                true ) )
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .jobConfiguration(new JobConfiguration("", JobType.TRACKER_IMPORT_JOB, "userId", true))
             .build();
 
-        asyncImporter.importTracker( params, null, "" );
+    asyncImporter.importTracker(params, null, "");
 
-        verify( trackerImportService, times( 0 ) ).importTracker( any() );
-        verify( messageManager ).sendQueue( any(), any() );
-        assertEquals( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, queueNameCaptor.getValue() );
-        assertEquals( params, trackerMessageCaptor.getValue().getTrackerImportParams() );
-    }
+    verify(trackerImportService, times(0)).importTracker(any());
+    verify(messageManager).sendQueue(any(), any());
+    assertEquals(Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, queueNameCaptor.getValue());
+    assertEquals(params, trackerMessageCaptor.getValue().getTrackerImportParams());
+  }
 }

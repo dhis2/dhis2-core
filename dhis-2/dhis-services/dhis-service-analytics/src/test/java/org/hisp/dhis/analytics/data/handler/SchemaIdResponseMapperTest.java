@@ -50,7 +50,6 @@ import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -67,498 +66,544 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class SchemaIdResponseMapperTest
-{
-    private SchemaIdResponseMapper schemaIdResponseMapper;
-
-    @BeforeEach
-    public void setUp()
-    {
-        schemaIdResponseMapper = new SchemaIdResponseMapper();
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
-        theDataQueryParams.setOutputIdScheme( NAME );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getName() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getName() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getName() ) ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getName() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getName() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getName() ) ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
-        theDataQueryParams.setOutputIdScheme( CODE );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getCode() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getCode() ) ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
-        theDataQueryParams.setOutputIdScheme( UUID );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub );
-        theDataQueryParams.setOutputIdScheme( UUID );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet()
-    {
-        List<DataElement> dataElementsStub = stubDataElements();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubDataElementQueryParams( dataElementsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputDataElementIdScheme( NAME );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementsStub.get( 0 );
-        DataElement dataElementB = dataElementsStub.get( 1 );
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getName() ) ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getName() ) ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputDataElementIdScheme( CODE );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getCode() ) ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputDataElementIdScheme( UUID );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputDataElementIdScheme( UID );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputOrgUnitIdScheme( NAME );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getName() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputOrgUnitIdScheme( CODE );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getCode() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputOrgUnitIdScheme( UUID );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( periodIsoDate ), is( periodStub.getUid() ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputOrgUnitIdScheme( UID );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputIdScheme( NAME );
-
-        // Overriding output id schema and setting CODE for Org Unit
-        theDataQueryParams.setOutputOrgUnitIdScheme( CODE );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getCode() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getName() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getName() ) ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getName() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getName() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getName() ) ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputIdScheme( NAME );
-
-        // Overriding output id schema and setting CODE for Data
-        // Element/Operands
-        theDataQueryParams.setOutputDataElementIdScheme( CODE );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getName() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getName() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getCode() ) ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-    }
-
-    @Test
-    void testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet()
-    {
-        List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
-        OrganisationUnit orUnitStub = stubOrgUnit();
-        Period periodStub = stubPeriod();
-        DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
-            DATA_VALUE_SET );
-        theDataQueryParams.setOutputIdScheme( NAME );
-
-        // Overriding output id schema and setting CODE for Data
-        // Element/Operands
-        theDataQueryParams.setOutputDataElementIdScheme( CODE );
-
-        // Overriding output id schema and setting ID for Org Unit
-        theDataQueryParams.setOutputOrgUnitIdScheme( ID );
-
-        Map<String, String> responseMap = schemaIdResponseMapper.getSchemeIdResponseMap( theDataQueryParams );
-
-        String orgUnitUid = orUnitStub.getUid();
-        String periodIsoDate = periodStub.getIsoDate();
-        DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
-
-        assertThat( responseMap.get( orgUnitUid ), is( equalTo( valueOf( orUnitStub.getId() ) ) ) );
-        assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getName() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getCode() ) ) );
-        assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
-    }
-
-    private DataQueryParams stubQueryParams( List<DataElementOperand> dataElementOperands,
-        OrganisationUnit organisationUnit, Period period )
-    {
-        return stubQueryParams( dataElementOperands, organisationUnit, period, null );
-    }
-
-    private DataQueryParams stubQueryParams( List<DataElementOperand> dataElementOperands,
-        OrganisationUnit organisationUnit, Period period, OutputFormat outputFormat )
-    {
-        return newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DATA_X, dataElementOperands ) )
-            .addDimension(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList( organisationUnit ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, PERIOD,
-                newArrayList( period ) ) )
-            .withOutputFormat( outputFormat )
-            .build();
-    }
-
-    private DataQueryParams stubDataElementQueryParams( List<DataElement> dataElements,
-        OrganisationUnit organisationUnit, Period period, OutputFormat outputFormat )
-    {
-        return newBuilder()
-            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DATA_X, dataElements ) )
-            .addDimension(
-                new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList( organisationUnit ) ) )
-            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, PERIOD,
-                newArrayList( period ) ) )
-            .withOutputFormat( outputFormat )
-            .build();
-    }
-
-    private Period stubPeriod()
-    {
-        Period period = getPeriodFromIsoString( "202010" );
-        period.setUid( "pe" );
-        period.setName( "October 2020" );
-
-        return period;
-    }
-
-    private List<DataElementOperand> stubDataElementOperands()
-    {
-        DataElement dataElementA = new DataElement( "NameA" );
-        dataElementA.setUid( "uid1234567A" );
-        dataElementA.setCode( "CodeA" );
-
-        DataElement dataElementB = new DataElement( "NameB" );
-        dataElementB.setUid( "uid1234567B" );
-        dataElementB.setCode( "CodeB" );
-
-        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-        categoryOptionCombo.setName( "NameC" );
-        categoryOptionCombo.setUid( "uid1234567C" );
-        categoryOptionCombo.setCode( "CodeC" );
-
-        DataElementOperand dataElementOperandA = new DataElementOperand( dataElementA, categoryOptionCombo );
-        DataElementOperand dataElementOperandB = new DataElementOperand( dataElementB, categoryOptionCombo );
-
-        return newArrayList( dataElementOperandA, dataElementOperandB );
-    }
-
-    private List<DataElement> stubDataElements()
-    {
-        DataElement dataElementA = new DataElement( "NameA" );
-        dataElementA.setUid( "uid1234567A" );
-        dataElementA.setCode( "CodeA" );
-
-        DataElement dataElementB = new DataElement( "NameB" );
-        dataElementB.setUid( "uid1234567B" );
-        dataElementB.setCode( "CodeB" );
-
-        return newArrayList( dataElementA, dataElementB );
-    }
-
-    private OrganisationUnit stubOrgUnit()
-    {
-        OrganisationUnit organisationUnit = new OrganisationUnit();
-        organisationUnit.setName( "OrgUnitA" );
-        organisationUnit.setShortName( "ShortOrgUnitA" );
-        organisationUnit.setUid( "org1234567A" );
-        organisationUnit.setCode( "CodeA" );
-        organisationUnit.setId( 1 );
-
-        return organisationUnit;
-    }
+@ExtendWith(MockitoExtension.class)
+class SchemaIdResponseMapperTest {
+  private SchemaIdResponseMapper schemaIdResponseMapper;
+
+  @BeforeEach
+  public void setUp() {
+    schemaIdResponseMapper = new SchemaIdResponseMapper();
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub);
+    theDataQueryParams.setOutputIdScheme(NAME);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getName())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getName())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getName())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getName())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub);
+    theDataQueryParams.setOutputIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getCode())));
+    assertThat(responseMap.get(periodIsoDate), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub);
+    theDataQueryParams.setOutputIdScheme(UUID);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(emptyOrNullString()));
+    assertThat(responseMap.get(periodIsoDate), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub);
+    theDataQueryParams.setOutputIdScheme(UUID);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(emptyOrNullString()));
+    assertThat(responseMap.get(periodIsoDate), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet() {
+    List<DataElement> dataElementsStub = stubDataElements();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubDataElementQueryParams(dataElementsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputDataElementIdScheme(NAME);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementsStub.get(0);
+    DataElement dataElementB = dataElementsStub.get(1);
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getUid())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getUid())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getName())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getName())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputDataElementIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getUid())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getUid())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputDataElementIdScheme(UUID);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getUid())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getUid())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputDataElementIdScheme(UID);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getUid())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getUid())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputOrgUnitIdScheme(NAME);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getUid())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputOrgUnitIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getCode())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getUid())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputOrgUnitIdScheme(UUID);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(emptyOrNullString()));
+    assertThat(responseMap.get(periodIsoDate), is(periodStub.getUid()));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputOrgUnitIdScheme(UID);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getUid())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getUid())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(dataElementB.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+    assertThat(responseMap.get(categoryOptionComboC.getUid()), is(emptyOrNullString()));
+  }
+
+  @Test
+  void
+      testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputIdScheme(NAME);
+
+    // Overriding output id schema and setting CODE for Org Unit
+    theDataQueryParams.setOutputOrgUnitIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getCode())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getName())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getName())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getName())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getName())));
+  }
+
+  @Test
+  void
+      testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputIdScheme(NAME);
+
+    // Overriding output id schema and setting CODE for Data
+    // Element/Operands
+    theDataQueryParams.setOutputDataElementIdScheme(CODE);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(orUnitStub.getName())));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+  }
+
+  @Test
+  void
+      testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet() {
+    List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+    OrganisationUnit orUnitStub = stubOrgUnit();
+    Period periodStub = stubPeriod();
+    DataQueryParams theDataQueryParams =
+        stubQueryParams(dataElementOperandsStub, orUnitStub, periodStub, DATA_VALUE_SET);
+    theDataQueryParams.setOutputIdScheme(NAME);
+
+    // Overriding output id schema and setting CODE for Data
+    // Element/Operands
+    theDataQueryParams.setOutputDataElementIdScheme(CODE);
+
+    // Overriding output id schema and setting ID for Org Unit
+    theDataQueryParams.setOutputOrgUnitIdScheme(ID);
+
+    Map<String, String> responseMap =
+        schemaIdResponseMapper.getSchemeIdResponseMap(theDataQueryParams);
+
+    String orgUnitUid = orUnitStub.getUid();
+    String periodIsoDate = periodStub.getIsoDate();
+    DataElement dataElementA = dataElementOperandsStub.get(0).getDataElement();
+    DataElement dataElementB = dataElementOperandsStub.get(1).getDataElement();
+    CategoryOptionCombo categoryOptionComboC =
+        dataElementOperandsStub.get(0).getCategoryOptionCombo();
+
+    assertThat(responseMap.get(orgUnitUid), is(equalTo(valueOf(orUnitStub.getId()))));
+    assertThat(responseMap.get(periodIsoDate), is(equalTo(periodStub.getName())));
+    assertThat(responseMap.get(dataElementA.getUid()), is(equalTo(dataElementA.getCode())));
+    assertThat(responseMap.get(dataElementB.getUid()), is(equalTo(dataElementB.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+    assertThat(
+        responseMap.get(categoryOptionComboC.getUid()),
+        is(equalTo(categoryOptionComboC.getCode())));
+  }
+
+  private DataQueryParams stubQueryParams(
+      List<DataElementOperand> dataElementOperands,
+      OrganisationUnit organisationUnit,
+      Period period) {
+    return stubQueryParams(dataElementOperands, organisationUnit, period, null);
+  }
+
+  private DataQueryParams stubQueryParams(
+      List<DataElementOperand> dataElementOperands,
+      OrganisationUnit organisationUnit,
+      Period period,
+      OutputFormat outputFormat) {
+    return newBuilder()
+        .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dataElementOperands))
+        .addDimension(
+            new BaseDimensionalObject(
+                ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList(organisationUnit)))
+        .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, newArrayList(period)))
+        .withOutputFormat(outputFormat)
+        .build();
+  }
+
+  private DataQueryParams stubDataElementQueryParams(
+      List<DataElement> dataElements,
+      OrganisationUnit organisationUnit,
+      Period period,
+      OutputFormat outputFormat) {
+    return newBuilder()
+        .addDimension(new BaseDimensionalObject(DATA_X_DIM_ID, DATA_X, dataElements))
+        .addDimension(
+            new BaseDimensionalObject(
+                ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList(organisationUnit)))
+        .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, newArrayList(period)))
+        .withOutputFormat(outputFormat)
+        .build();
+  }
+
+  private Period stubPeriod() {
+    Period period = getPeriodFromIsoString("202010");
+    period.setUid("pe");
+    period.setName("October 2020");
+
+    return period;
+  }
+
+  private List<DataElementOperand> stubDataElementOperands() {
+    DataElement dataElementA = new DataElement("NameA");
+    dataElementA.setUid("uid1234567A");
+    dataElementA.setCode("CodeA");
+
+    DataElement dataElementB = new DataElement("NameB");
+    dataElementB.setUid("uid1234567B");
+    dataElementB.setCode("CodeB");
+
+    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+    categoryOptionCombo.setName("NameC");
+    categoryOptionCombo.setUid("uid1234567C");
+    categoryOptionCombo.setCode("CodeC");
+
+    DataElementOperand dataElementOperandA =
+        new DataElementOperand(dataElementA, categoryOptionCombo);
+    DataElementOperand dataElementOperandB =
+        new DataElementOperand(dataElementB, categoryOptionCombo);
+
+    return newArrayList(dataElementOperandA, dataElementOperandB);
+  }
+
+  private List<DataElement> stubDataElements() {
+    DataElement dataElementA = new DataElement("NameA");
+    dataElementA.setUid("uid1234567A");
+    dataElementA.setCode("CodeA");
+
+    DataElement dataElementB = new DataElement("NameB");
+    dataElementB.setUid("uid1234567B");
+    dataElementB.setCode("CodeB");
+
+    return newArrayList(dataElementA, dataElementB);
+  }
+
+  private OrganisationUnit stubOrgUnit() {
+    OrganisationUnit organisationUnit = new OrganisationUnit();
+    organisationUnit.setName("OrgUnitA");
+    organisationUnit.setShortName("ShortOrgUnitA");
+    organisationUnit.setUid("org1234567A");
+    organisationUnit.setCode("CodeA");
+    organisationUnit.setId(1);
+
+    return organisationUnit;
+  }
 }

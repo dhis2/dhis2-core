@@ -41,26 +41,26 @@ import org.hisp.dhis.tracker.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-class UpdatableFieldsValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
-        ProgramStage programStage = programStageInstance.getProgramStage();
-        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+class UpdatableFieldsValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent(event.getEvent());
+    ProgramStage programStage = programStageInstance.getProgramStage();
+    ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
-            "programStage" );
-        reporter.addErrorIf(
-            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
-            event, E1128, "enrollment" );
-    }
+    reporter.addErrorIf(
+        () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
+    reporter.addErrorIf(
+        () ->
+            event.getEnrollment() != null
+                && !event.getEnrollment().equals(programInstance.getUid()),
+        event,
+        E1128,
+        "enrollment");
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy == TrackerImportStrategy.UPDATE;
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == TrackerImportStrategy.UPDATE;
+  }
 }

@@ -31,8 +31,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -41,65 +41,59 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AtomicModeTests
-    extends TrackerNtiApiTest
-{
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions.loginAsSuperUser();
-    }
+public class AtomicModeTests extends TrackerNtiApiTest {
+  @BeforeAll
+  public void beforeAll() {
+    loginActions.loginAsSuperUser();
+  }
 
-    @Test
-    public void shouldNotImportWhenErrorsWithoutAtomicMode()
-        throws Exception
-    {
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().add( "atomicMode=ALL" ) );
+  @Test
+  public void shouldNotImportWhenErrorsWithoutAtomicMode() throws Exception {
+    TrackerApiResponse response =
+        trackerActions.postAndGetJobReport(
+            createWrongPayload(), new QueryParamsBuilder().add("atomicMode=ALL"));
 
-        response.validate()
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 3 ) );
+    response.validate().body("status", equalTo("ERROR")).body("stats.ignored", equalTo(3));
 
-        response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "errorCode", containsInAnyOrder( "E1121", "E4014" ) );
-    }
+    response
+        .validateErrorReport()
+        .body("", hasSize(2))
+        .body("errorCode", containsInAnyOrder("E1121", "E4014"));
+  }
 
-    @Test
-    public void shouldImportWhenErrorsWithAtomicMode()
-        throws Exception
-    {
-        TrackerApiResponse response = trackerActions
-            .postAndGetJobReport( createWrongPayload(), new QueryParamsBuilder().addAll( "atomicMode=OBJECT" ) );
+  @Test
+  public void shouldImportWhenErrorsWithAtomicMode() throws Exception {
+    TrackerApiResponse response =
+        trackerActions.postAndGetJobReport(
+            createWrongPayload(), new QueryParamsBuilder().addAll("atomicMode=OBJECT"));
 
-        response.validate()
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.ignored", equalTo( 2 ) )
-            .body( "stats.created", equalTo( 1 ) );
+    response
+        .validate()
+        .body("status", equalTo("OK"))
+        .body("stats.ignored", equalTo(2))
+        .body("stats.created", equalTo(1));
 
-        response.validateErrorReport()
-            .body( "", hasSize( 2 ) )
-            .body( "errorCode", containsInAnyOrder( "E1121", "E4014" ) );
-    }
+    response
+        .validateErrorReport()
+        .body("", hasSize(2))
+        .body("errorCode", containsInAnyOrder("E1121", "E4014"));
+  }
 
-    private JsonObject createWrongPayload()
-        throws Exception
-    {
-        JsonObject object = new JsonFileReader(
-            new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
-                .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v" )
-                .get( JsonObject.class );
+  private JsonObject createWrongPayload() throws Exception {
+    JsonObject object =
+        new JsonFileReader(
+                new File("src/test/resources/tracker/importer/teis/teisAndRelationship.json"))
+            .replaceStringsWithIds("JjZ2Nwds92v", "JjZ2Nwds93v")
+            .get(JsonObject.class);
 
-        object = JsonObjectBuilder.jsonObject( object )
-            .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
+    object =
+        JsonObjectBuilder.jsonObject(object)
+            .addPropertyByJsonPath("trackedEntities[0].trackedEntityType", "")
             .build();
 
-        return object;
-    }
+    return object;
+  }
 }

@@ -29,10 +29,7 @@ package org.hisp.dhis.sharing;
 
 import org.hisp.dhis.dashboard.Dashboard;
 
-public interface CascadeSharingService
-{
-    /**
-     * Cascade sharing form given {@link Dashboard} to all of its DashboardItems
-     */
-    CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
+public interface CascadeSharingService {
+  /** Cascade sharing form given {@link Dashboard} to all of its DashboardItems */
+  CascadeSharingReport cascadeSharing(Dashboard dashboard, CascadeSharingParameters parameters);
 }

@@ -28,25 +28,22 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import lombok.Getter;
-
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
 /**
- * Used when Import is used in
- * {@link org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode#VALIDATE}
- * and resulting report has errors while the method performing the validation
- * does return a different type than {@link ImportReport}.
+ * Used when Import is used in {@link
+ * org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode#VALIDATE} and resulting report has
+ * errors while the method performing the validation does return a different type than {@link
+ * ImportReport}.
  *
  * @author Jan Bernitt
  */
 @Getter
-public class MetadataValidationException extends MetadataImportException
-{
-    private final transient ImportReport report;
+public class MetadataValidationException extends MetadataImportException {
+  private final transient ImportReport report;
 
-    public MetadataValidationException( ImportReport report, String message )
-    {
-        super( message );
-        this.report = report;
-    }
+  public MetadataValidationException(ImportReport report, String message) {
+    super(message);
+    this.report = report;
+  }
 }

@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -42,132 +41,118 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class RandomPatternValueGeneratorTest
-{
-    @Test
-    void shouldGenerateRandomInteger()
-    {
-        generatedValuesShouldMatchPattern( "#", RANDOM_GENERATION_CHUNK );
-    }
+class RandomPatternValueGeneratorTest {
+  @Test
+  void shouldGenerateRandomInteger() {
+    generatedValuesShouldMatchPattern("#", RANDOM_GENERATION_CHUNK);
+  }
 
-    @Test
-    void shouldGenerateRandomIntegers()
-    {
-        generatedValuesShouldMatchPattern( "#####", RANDOM_GENERATION_CHUNK * 2 + 1 );
-    }
+  @Test
+  void shouldGenerateRandomIntegers() {
+    generatedValuesShouldMatchPattern("#####", RANDOM_GENERATION_CHUNK * 2 + 1);
+  }
 
-    @Test
-    void shouldGenerateRandomLowerCases()
-    {
-        generatedValuesShouldMatchPattern( "xxxxx", RANDOM_GENERATION_CHUNK );
-    }
+  @Test
+  void shouldGenerateRandomLowerCases() {
+    generatedValuesShouldMatchPattern("xxxxx", RANDOM_GENERATION_CHUNK);
+  }
 
-    @Test
-    void shouldGenerateRandomUpperCases()
-    {
-        generatedValuesShouldMatchPattern( "XXXXX", RANDOM_GENERATION_CHUNK );
-    }
+  @Test
+  void shouldGenerateRandomUpperCases() {
+    generatedValuesShouldMatchPattern("XXXXX", RANDOM_GENERATION_CHUNK);
+  }
 
-    @Test
-    void shouldGenerateRandomMixedUpperLoweCaseLetters()
-    {
-        generatedValuesShouldMatchPattern( "xxxXXX", RANDOM_GENERATION_CHUNK );
-    }
+  @Test
+  void shouldGenerateRandomMixedUpperLoweCaseLetters() {
+    generatedValuesShouldMatchPattern("xxxXXX", RANDOM_GENERATION_CHUNK);
+  }
 
-    @Test
-    void shouldGenerateRandomMixedLettersAndIntegers()
-    {
-        generatedValuesShouldMatchPattern( "xx###", RANDOM_GENERATION_CHUNK * 3 );
-    }
+  @Test
+  void shouldGenerateRandomMixedLettersAndIntegers() {
+    generatedValuesShouldMatchPattern("xx###", RANDOM_GENERATION_CHUNK * 3);
+  }
 
-    @Test
-    void shouldGenerateRandomAll()
-    {
-        generatedValuesShouldMatchPattern( "***XXX###", RANDOM_GENERATION_CHUNK * 3 );
-    }
+  @Test
+  void shouldGenerateRandomAll() {
+    generatedValuesShouldMatchPattern("***XXX###", RANDOM_GENERATION_CHUNK * 3);
+  }
 
-    @Test
-    void shouldGenerateMixed()
-    {
-        generatedValuesShouldMatchPattern( "XXxx##*", RANDOM_GENERATION_CHUNK * 3 );
-    }
+  @Test
+  void shouldGenerateMixed() {
+    generatedValuesShouldMatchPattern("XXxx##*", RANDOM_GENERATION_CHUNK * 3);
+  }
 
-    @Test
-    void shouldGenerateFromLongSegment()
-    {
-        generatedValuesShouldMatchPattern( "x".repeat( 50 ), RANDOM_GENERATION_CHUNK );
-    }
+  @Test
+  void shouldGenerateFromLongSegment() {
+    generatedValuesShouldMatchPattern("x".repeat(50), RANDOM_GENERATION_CHUNK);
+  }
 
-    /**
-     * Both a performance and a quality of randomness test. This should be fast
-     * and still produce decent randomness.
-     */
-    @Test
-    void shouldGenerateSufficientlyDifferentValues()
-    {
-        int n = 100000;
-        List<String> values = generateRandomValues( "xxXX##**xxXX", n );
-        assertTrue( new HashSet<>( values ).size() > values.size() / 2,
-            "at least half the values should be unique" );
-    }
+  /**
+   * Both a performance and a quality of randomness test. This should be fast and still produce
+   * decent randomness.
+   */
+  @Test
+  void shouldGenerateSufficientlyDifferentValues() {
+    int n = 100000;
+    List<String> values = generateRandomValues("xxXX##**xxXX", n);
+    assertTrue(
+        new HashSet<>(values).size() > values.size() / 2,
+        "at least half the values should be unique");
+  }
 
-    /**
-     * Generates values matching the pattern and asserts the generated values
-     * match.
-     *
-     * @param pattern generation and check pattern
-     * @param expectedCount number of expected generated values
-     */
-    private void generatedValuesShouldMatchPattern( String pattern, int expectedCount )
-    {
-        assertMatchesPattern( pattern, expectedCount,
-            generateRandomValues( pattern, RANDOM_GENERATION_CHUNK ) );
-    }
+  /**
+   * Generates values matching the pattern and asserts the generated values match.
+   *
+   * @param pattern generation and check pattern
+   * @param expectedCount number of expected generated values
+   */
+  private void generatedValuesShouldMatchPattern(String pattern, int expectedCount) {
+    assertMatchesPattern(
+        pattern, expectedCount, generateRandomValues(pattern, RANDOM_GENERATION_CHUNK));
+  }
 
-    private void assertMatchesPattern( String expectedPattern, int expectedCount, List<String> actualValues )
-    {
-        for ( String actualValue : actualValues )
-        {
-            int length = expectedPattern.length();
-            assertEquals( length, actualValue.length(), "value has not same length as the pattern" );
-            for ( int i = 0; i < length; i++ )
-            {
-                char expected = expectedPattern.charAt( i );
-                char actual = actualValue.charAt( i );
-                switch ( expected )
-                {
-                case 'x':
-                    assertTrue( isLowerCaseLetter( actual ) );
-                    break;
-                case 'X':
-                    assertTrue( isUpperCaseLetter( actual ) );
-                    break;
-                case '#':
-                    assertTrue( isDigit( actual ) );
-                    break;
-                case '*':
-                    assertTrue( isDigit( actual ) || isLowerCaseLetter( actual ) || isUpperCaseLetter( actual ) );
-                    break;
-                default:
-                    throw new IllegalArgumentException( "expected pattern contains invalid character: " + expected );
-                }
-            }
+  private void assertMatchesPattern(
+      String expectedPattern, int expectedCount, List<String> actualValues) {
+    for (String actualValue : actualValues) {
+      int length = expectedPattern.length();
+      assertEquals(length, actualValue.length(), "value has not same length as the pattern");
+      for (int i = 0; i < length; i++) {
+        char expected = expectedPattern.charAt(i);
+        char actual = actualValue.charAt(i);
+        switch (expected) {
+          case 'x':
+            assertTrue(isLowerCaseLetter(actual));
+            break;
+          case 'X':
+            assertTrue(isUpperCaseLetter(actual));
+            break;
+          case '#':
+            assertTrue(isDigit(actual));
+            break;
+          case '*':
+            assertTrue(isDigit(actual) || isLowerCaseLetter(actual) || isUpperCaseLetter(actual));
+            break;
+          default:
+            throw new IllegalArgumentException(
+                "expected pattern contains invalid character: " + expected);
         }
-        assertEquals( expectedCount, actualValues.size(), "number of generated values is different from the expected" );
+      }
     }
+    assertEquals(
+        expectedCount,
+        actualValues.size(),
+        "number of generated values is different from the expected");
+  }
 
-    private boolean isDigit( char actual )
-    {
-        return actual >= '0' && actual <= '9';
-    }
+  private boolean isDigit(char actual) {
+    return actual >= '0' && actual <= '9';
+  }
 
-    private boolean isUpperCaseLetter( char actual )
-    {
-        return actual >= 'A' && actual <= 'Z';
-    }
+  private boolean isUpperCaseLetter(char actual) {
+    return actual >= 'A' && actual <= 'Z';
+  }
 
-    private boolean isLowerCaseLetter( char actual )
-    {
-        return actual >= 'a' && actual <= 'z';
-    }
+  private boolean isLowerCaseLetter(char actual) {
+    return actual >= 'a' && actual <= 'z';
+  }
 }

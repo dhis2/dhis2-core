@@ -34,33 +34,24 @@ import java.util.regex.Pattern;
 /**
  * @author Stian Sandvold
  */
-public class DateMethodType
-    extends BaseMethodType
-{
-    DateMethodType( Pattern pattern )
-    {
-        super( pattern );
+public class DateMethodType extends BaseMethodType {
+  DateMethodType(Pattern pattern) {
+    super(pattern);
+  }
+
+  @Override
+  public boolean validateText(String format, String text) {
+    try {
+      new SimpleDateFormat(format).parse(text);
+    } catch (ParseException e) {
+      return false;
     }
 
-    @Override
-    public boolean validateText( String format, String text )
-    {
-        try
-        {
-            new SimpleDateFormat( format ).parse( text );
-        }
-        catch ( ParseException e )
-        {
-            return false;
-        }
+    return true;
+  }
 
-        return true;
-    }
-
-    @Override
-    public String getValueRegex( String format )
-    {
-        return String.format( ".{%d}", format.length() );
-    }
-
+  @Override
+  public String getValueRegex(String format) {
+    return String.format(".{%d}", format.length());
+  }
 }

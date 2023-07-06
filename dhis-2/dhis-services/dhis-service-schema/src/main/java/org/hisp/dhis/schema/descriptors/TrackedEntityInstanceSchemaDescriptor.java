@@ -34,20 +34,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityInstanceSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "trackedEntityInstance";
+public class TrackedEntityInstanceSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "trackedEntityInstance";
 
-    public static final String PLURAL = "trackedEntityInstances";
+  public static final String PLURAL = "trackedEntityInstances";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( TrackedEntityInstance.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(TrackedEntityInstance.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
+    return schema;
+  }
 }

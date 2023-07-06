@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -58,142 +57,129 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class SetMandatoryFieldExecutorTest extends DhisConvenienceTest
-{
-    private final static String ACTIVE_EVENT_ID = "EventUid";
+@ExtendWith(MockitoExtension.class)
+class SetMandatoryFieldExecutorTest extends DhisConvenienceTest {
+  private static final String ACTIVE_EVENT_ID = "EventUid";
 
-    private final static String COMPLETED_EVENT_ID = "CompletedEventUid";
+  private static final String COMPLETED_EVENT_ID = "CompletedEventUid";
 
-    private final static String DATA_ELEMENT_ID = "DataElementId";
+  private static final String DATA_ELEMENT_ID = "DataElementId";
 
-    private final static String DATA_ELEMENT_VALUE = "1.0";
+  private static final String DATA_ELEMENT_VALUE = "1.0";
 
-    private final static String RULE_UID = "Rule uid";
+  private static final String RULE_UID = "Rule uid";
 
-    private static ProgramStage programStage;
+  private static ProgramStage programStage;
 
-    private static DataElement dataElement;
+  private static DataElement dataElement;
 
-    private final SetMandatoryFieldExecutor executor = new SetMandatoryFieldExecutor( RULE_UID,
-        DATA_ELEMENT_ID );
+  private final SetMandatoryFieldExecutor executor =
+      new SetMandatoryFieldExecutor(RULE_UID, DATA_ELEMENT_ID);
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @BeforeEach
-    void setUpTest()
-    {
-        programStage = createProgramStage( 'A', 0 );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        dataElement = createDataElement( 'A' );
-        dataElement.setUid( DATA_ELEMENT_ID );
-        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStage,
-            dataElement, 0 );
-        programStage.setProgramStageDataElements( Set.of( programStageDataElementA ) );
+  @BeforeEach
+  void setUpTest() {
+    programStage = createProgramStage('A', 0);
+    programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    dataElement = createDataElement('A');
+    dataElement.setUid(DATA_ELEMENT_ID);
+    ProgramStageDataElement programStageDataElementA =
+        createProgramStageDataElement(programStage, dataElement, 0);
+    programStage.setProgramStageDataElements(Set.of(programStageDataElementA));
 
-        bundle = TrackerBundle.builder().build();
-        bundle.setPreheat( preheat );
-    }
+    bundle = TrackerBundle.builder().build();
+    bundle.setPreheat(preheat);
+  }
 
-    @Test
-    void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollment()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
-            .thenReturn( programStage );
-        bundle.setEvents( List.of( getEventWithMandatoryValueSet() ) );
+  @Test
+  void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollment() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    bundle.setEvents(List.of(getEventWithMandatoryValueSet()));
 
-        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
-            getEventWithMandatoryValueSet() );
+    Optional<ProgramRuleIssue> error =
+        executor.executeRuleAction(bundle, getEventWithMandatoryValueSet());
 
-        assertTrue( error.isEmpty() );
-    }
+    assertTrue(error.isEmpty());
+  }
 
-    @Test
-    void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollmentsUsingIdSchemeCode()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .dataElementIdScheme( TrackerIdSchemeParam.CODE )
+  @Test
+  void shouldReturnNoErrorWhenMandatoryFieldIsPresentForEnrollmentsUsingIdSchemeCode() {
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder().dataElementIdScheme(TrackerIdSchemeParam.CODE).build();
+    when(preheat.getIdSchemes()).thenReturn(idSchemes);
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    bundle.setEvents(List.of(getEventWithMandatoryValueSet(idSchemes)));
+
+    Optional<ProgramRuleIssue> error =
+        executor.executeRuleAction(bundle, getEventWithMandatoryValueSet(idSchemes));
+
+    assertTrue(error.isEmpty());
+  }
+
+  @Test
+  void testValidateWithErrorMandatoryFieldsForEvents() {
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(preheat.getDataElement(DATA_ELEMENT_ID)).thenReturn(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    bundle.setEvents(List.of(getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet()));
+
+    Optional<ProgramRuleIssue> error =
+        executor.executeRuleAction(bundle, getEventWithMandatoryValueSet());
+    assertTrue(error.isEmpty());
+
+    error = executor.executeRuleAction(bundle, getEventWithMandatoryValueNOTSet());
+
+    assertFalse(error.isEmpty());
+    assertEquals(error(RULE_UID, E1301, dataElement.getUid()), error.get());
+  }
+
+  private Event getEventWithMandatoryValueSet(TrackerIdSchemeParams idSchemes) {
+    return Event.builder()
+        .event(ACTIVE_EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .programStage(idSchemes.toMetadataIdentifier(programStage))
+        .dataValues(getActiveEventDataValues(idSchemes))
+        .build();
+  }
+
+  private Event getEventWithMandatoryValueSet() {
+    return Event.builder()
+        .event(ACTIVE_EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .programStage(MetadataIdentifier.ofUid(programStage))
+        .dataValues(getActiveEventDataValues())
+        .build();
+  }
+
+  private Event getEventWithMandatoryValueNOTSet() {
+    return Event.builder()
+        .event(COMPLETED_EVENT_ID)
+        .status(EventStatus.ACTIVE)
+        .programStage(MetadataIdentifier.ofUid(programStage))
+        .build();
+  }
+
+  private Set<DataValue> getActiveEventDataValues(TrackerIdSchemeParams idSchemes) {
+    DataValue dataValue =
+        DataValue.builder()
+            .value(DATA_ELEMENT_VALUE)
+            .dataElement(idSchemes.toMetadataIdentifier(dataElement))
             .build();
-        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
-            .thenReturn( programStage );
-        bundle.setEvents( List.of( getEventWithMandatoryValueSet( idSchemes ) ) );
+    return Set.of(dataValue);
+  }
 
-        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
-            getEventWithMandatoryValueSet( idSchemes ) );
-
-        assertTrue( error.isEmpty() );
-    }
-
-    @Test
-    void testValidateWithErrorMandatoryFieldsForEvents()
-    {
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
-            .thenReturn( programStage );
-        bundle.setEvents( List.of( getEventWithMandatoryValueSet(), getEventWithMandatoryValueNOTSet() ) );
-
-        Optional<ProgramRuleIssue> error = executor.executeRuleAction( bundle,
-            getEventWithMandatoryValueSet() );
-        assertTrue( error.isEmpty() );
-
-        error = executor.executeRuleAction( bundle, getEventWithMandatoryValueNOTSet() );
-
-        assertFalse( error.isEmpty() );
-        assertEquals( error( RULE_UID, E1301, dataElement.getUid() ), error.get() );
-    }
-
-    private Event getEventWithMandatoryValueSet( TrackerIdSchemeParams idSchemes )
-    {
-        return Event.builder()
-            .event( ACTIVE_EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .dataValues( getActiveEventDataValues( idSchemes ) )
+  private Set<DataValue> getActiveEventDataValues() {
+    DataValue dataValue =
+        DataValue.builder()
+            .value(DATA_ELEMENT_VALUE)
+            .dataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_ID))
             .build();
-    }
-
-    private Event getEventWithMandatoryValueSet()
-    {
-        return Event.builder()
-            .event( ACTIVE_EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .programStage( MetadataIdentifier.ofUid( programStage ) )
-            .dataValues( getActiveEventDataValues() )
-            .build();
-    }
-
-    private Event getEventWithMandatoryValueNOTSet()
-    {
-        return Event.builder()
-            .event( COMPLETED_EVENT_ID )
-            .status( EventStatus.ACTIVE )
-            .programStage( MetadataIdentifier.ofUid( programStage ) )
-            .build();
-    }
-
-    private Set<DataValue> getActiveEventDataValues( TrackerIdSchemeParams idSchemes )
-    {
-        DataValue dataValue = DataValue.builder()
-            .value( DATA_ELEMENT_VALUE )
-            .dataElement( idSchemes.toMetadataIdentifier( dataElement ) )
-            .build();
-        return Set.of( dataValue );
-    }
-
-    private Set<DataValue> getActiveEventDataValues()
-    {
-        DataValue dataValue = DataValue.builder()
-            .value( DATA_ELEMENT_VALUE )
-            .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
-            .build();
-        return Set.of( dataValue );
-    }
+    return Set.of(dataValue);
+  }
 }

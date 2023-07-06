@@ -48,122 +48,164 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataValueSetControllerTest extends DhisControllerConvenienceTest
-{
+class DataValueSetControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPostJsonDataValueSet()
-    {
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/38/dataValueSets/", "{}" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostJsonDataValueSet() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        POST("/38/dataValueSets/", "{}").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostJsonDataValueSet_Async()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated dataValueImport",
-            POST( "/dataValueSets?async=true", "{}" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostJsonDataValueSet_Async() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated dataValueImport",
+        POST("/dataValueSets?async=true", "{}").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostJsonDataValueSet_Pre38()
-    {
-        JsonImportSummary summary = POST( "/37/dataValueSets/", "{}" ).content( HttpStatus.OK )
-            .as( JsonImportSummary.class );
-        assertEquals( "ImportSummary", summary.getResponseType() );
-        assertEquals( "SUCCESS", summary.getStatus() );
-    }
+  @Test
+  void testPostJsonDataValueSet_Pre38() {
+    JsonImportSummary summary =
+        POST("/37/dataValueSets/", "{}").content(HttpStatus.OK).as(JsonImportSummary.class);
+    assertEquals("ImportSummary", summary.getResponseType());
+    assertEquals("SUCCESS", summary.getStatus());
+  }
 
-    @Test
-    void testPostAdxDataValueSet()
-    {
-        String content = POST( "/38/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
-            ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
-        assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
-    }
+  @Test
+  void testPostAdxDataValueSet() {
+    String content =
+        POST(
+                "/38/dataValueSets/",
+                Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
+                ContentType(CONTENT_TYPE_XML_ADX),
+                Accept(CONTENT_TYPE_XML))
+            .content(APPLICATION_XML.toString());
+    assertTrue(content.contains("httpStatusCode=\"200\""));
+  }
 
-    @Test
-    void testPostAdxDataValueSet_Async()
-    {
-        String content = POST( "/dataValueSets?async=true", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
-            ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
-        assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
-        assertTrue( content.contains( "Initiated dataValueImport" ) );
-    }
+  @Test
+  void testPostAdxDataValueSet_Async() {
+    String content =
+        POST(
+                "/dataValueSets?async=true",
+                Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
+                ContentType(CONTENT_TYPE_XML_ADX),
+                Accept(CONTENT_TYPE_XML))
+            .content(APPLICATION_XML.toString());
+    assertTrue(content.contains("httpStatusCode=\"200\""));
+    assertTrue(content.contains("Initiated dataValueImport"));
+  }
 
-    @Test
-    void testPostAdxDataValueSet_Pre38()
-    {
-        HttpResponse response = POST( "/37/dataValueSets/", Body( "<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>" ),
-            ContentType( CONTENT_TYPE_XML_ADX ), Accept( CONTENT_TYPE_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<importSummary " ) );
-    }
+  @Test
+  void testPostAdxDataValueSet_Pre38() {
+    HttpResponse response =
+        POST(
+            "/37/dataValueSets/",
+            Body("<adx xmlns=\"urn:ihe:qrph:adx:2015\"></adx>"),
+            ContentType(CONTENT_TYPE_XML_ADX),
+            Accept(CONTENT_TYPE_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    assertTrue(response.content(APPLICATION_XML.toString()).startsWith("<importSummary "));
+  }
 
-    @Test
-    void testPostDxf2DataValueSet()
-    {
-        String content = POST( "/38/dataValueSets/",
-            Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
-            ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
-        assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
-    }
+  @Test
+  void testPostDxf2DataValueSet() {
+    String content =
+        POST(
+                "/38/dataValueSets/",
+                Body("<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>"),
+                ContentType(APPLICATION_XML),
+                Accept(CONTENT_TYPE_XML))
+            .content(APPLICATION_XML.toString());
+    assertTrue(content.contains("httpStatusCode=\"200\""));
+  }
 
-    @Test
-    void testPostDxf2DataValueSet_Async()
-    {
-        String content = POST( "/dataValueSets?async=true",
-            Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
-            ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) ).content( APPLICATION_XML.toString() );
-        assertTrue( content.contains( "httpStatusCode=\"200\"" ) );
-        assertTrue( content.contains( "Initiated dataValueImport" ) );
-    }
+  @Test
+  void testPostDxf2DataValueSet_Async() {
+    String content =
+        POST(
+                "/dataValueSets?async=true",
+                Body("<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>"),
+                ContentType(APPLICATION_XML),
+                Accept(CONTENT_TYPE_XML))
+            .content(APPLICATION_XML.toString());
+    assertTrue(content.contains("httpStatusCode=\"200\""));
+    assertTrue(content.contains("Initiated dataValueImport"));
+  }
 
-    @Test
-    void testPostDxf2DataValueSet_Pre38()
-    {
-        HttpResponse response = POST( "/37/dataValueSets/",
-            Body( "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>" ),
-            ContentType( APPLICATION_XML ), Accept( CONTENT_TYPE_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( APPLICATION_XML.toString() ).startsWith( "<importSummary " ) );
-    }
+  @Test
+  void testPostDxf2DataValueSet_Pre38() {
+    HttpResponse response =
+        POST(
+            "/37/dataValueSets/",
+            Body("<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\"></dataValueSet>"),
+            ContentType(APPLICATION_XML),
+            Accept(CONTENT_TYPE_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    assertTrue(response.content(APPLICATION_XML.toString()).startsWith("<importSummary "));
+  }
 
-    @Test
-    void testPostCsvDataValueSet()
-    {
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/38/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostCsvDataValueSet() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        POST("/38/dataValueSets/", Body("abc"), ContentType("application/csv"))
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostCsvDataValueSet_Async()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated dataValueImport",
-            POST( "/dataValueSets?async=true", Body( "abc" ), ContentType( "application/csv" ) )
-                .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostCsvDataValueSet_Async() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated dataValueImport",
+        POST("/dataValueSets?async=true", Body("abc"), ContentType("application/csv"))
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostCsvDataValueSet_Pre38()
-    {
-        JsonImportSummary summary = POST( "/37/dataValueSets/", Body( "abc" ), ContentType( "application/csv" ) )
-            .content( HttpStatus.OK ).as( JsonImportSummary.class );
-        assertEquals( "ImportSummary", summary.getResponseType() );
-        assertEquals( "SUCCESS", summary.getStatus() );
-    }
+  @Test
+  void testPostCsvDataValueSet_Pre38() {
+    JsonImportSummary summary =
+        POST("/37/dataValueSets/", Body("abc"), ContentType("application/csv"))
+            .content(HttpStatus.OK)
+            .as(JsonImportSummary.class);
+    assertEquals("ImportSummary", summary.getResponseType());
+    assertEquals("SUCCESS", summary.getStatus());
+  }
 
-    @Test
-    void testGetDataValueSetJson()
-    {
-        String ouId = assertStatus( HttpStatus.CREATED, POST( "/organisationUnits/",
-            "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}" ) );
-        String dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" ) );
-        JsonWebMessage response = GET(
-            "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}", "OU1",
-            dsId )
-                .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
-        assertEquals( String.format( "User is not allowed to view org unit: `%s`", ouId ), response.getMessage() );
-    }
+  @Test
+  void testGetDataValueSetJson() {
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}"));
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}"));
+    JsonWebMessage response =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}",
+                "OU1",
+                dsId)
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    assertEquals(
+        String.format("User is not allowed to view org unit: `%s`", ouId), response.getMessage());
+  }
 }

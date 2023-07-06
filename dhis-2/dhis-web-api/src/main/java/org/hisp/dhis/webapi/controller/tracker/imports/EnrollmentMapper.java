@@ -34,20 +34,20 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipMapper.class,
-    AttributeMapper.class,
-    NoteMapper.class,
-    EventMapper.class,
-    InstantMapper.class,
-    UserMapper.class,
-    MetadataIdentifierMapper.class
-} )
-interface EnrollmentMapper extends DomainMapper<Enrollment, org.hisp.dhis.tracker.domain.Enrollment>
-{
-    @Mapping( target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier" )
-    @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Enrollment from( Enrollment enrollment,
-        @Context TrackerIdSchemeParams idSchemeParams );
-
+@Mapper(
+    uses = {
+      RelationshipMapper.class,
+      AttributeMapper.class,
+      NoteMapper.class,
+      EventMapper.class,
+      InstantMapper.class,
+      UserMapper.class,
+      MetadataIdentifierMapper.class
+    })
+interface EnrollmentMapper
+    extends DomainMapper<Enrollment, org.hisp.dhis.tracker.domain.Enrollment> {
+  @Mapping(target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier")
+  @Mapping(target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier")
+  org.hisp.dhis.tracker.domain.Enrollment from(
+      Enrollment enrollment, @Context TrackerIdSchemeParams idSchemeParams);
 }

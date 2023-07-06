@@ -28,29 +28,21 @@
 package org.hisp.dhis.dxf2.events.importer;
 
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
-
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class EventImporterUserService
-{
+public class EventImporterUserService {
 
-    @Nonnull
-    @Delegate
-    private final CurrentUserService currentUserService;
+  @Nonnull @Delegate private final CurrentUserService currentUserService;
 
-    @Nonnull
-    private final UsernameSupplier usernameSupplier;
+  @Nonnull private final UsernameSupplier usernameSupplier;
 
-    public String getAuditUsername()
-    {
-        return usernameSupplier.get();
-    }
-
+  public String getAuditUsername() {
+    return usernameSupplier.get();
+  }
 }

@@ -28,39 +28,33 @@
 package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.validation.ValidationCode;
 
 /**
- * A single issue from rule engine that can be either be a Warning or an Error.
- *
- * @Author Enrico Colasante
+ * A single issue from rule engine that can be either be a Warning or an Error. @Author Enrico
+ * Colasante
  */
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @EqualsAndHashCode
-public class ProgramRuleIssue
-{
-    private final String ruleUid;
+public class ProgramRuleIssue {
+  private final String ruleUid;
 
-    private final ValidationCode issueCode;
+  private final ValidationCode issueCode;
 
-    private final List<String> args;
+  private final List<String> args;
 
-    private final IssueType issueType;
+  private final IssueType issueType;
 
-    public static ProgramRuleIssue error( String ruleUid, ValidationCode issueCode, String... args )
-    {
-        return new ProgramRuleIssue( ruleUid, issueCode, List.of( args ), IssueType.ERROR );
-    }
+  public static ProgramRuleIssue error(String ruleUid, ValidationCode issueCode, String... args) {
+    return new ProgramRuleIssue(ruleUid, issueCode, List.of(args), IssueType.ERROR);
+  }
 
-    public static ProgramRuleIssue warning( String ruleUid, ValidationCode issueCode, String... args )
-    {
-        return new ProgramRuleIssue( ruleUid, issueCode, List.of( args ), IssueType.WARNING );
-    }
+  public static ProgramRuleIssue warning(String ruleUid, ValidationCode issueCode, String... args) {
+    return new ProgramRuleIssue(ruleUid, issueCode, List.of(args), IssueType.WARNING);
+  }
 }

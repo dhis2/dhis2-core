@@ -27,42 +27,37 @@
  */
 package org.hisp.dhis.trackerdataview;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.LinkedHashSet;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Zubair Asghar
  */
-
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
-public class TrackerDataView implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Builder.Default
-    private LinkedHashSet<String> attributes = new LinkedHashSet<>();
+@JacksonXmlRootElement(namespace = DxfNamespaces.DXF_2_0)
+public class TrackerDataView implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Builder.Default
+  private LinkedHashSet<String> attributes = new LinkedHashSet<>();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Builder.Default
-    private LinkedHashSet<String> dataElements = new LinkedHashSet<>();
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Builder.Default
+  private LinkedHashSet<String> dataElements = new LinkedHashSet<>();
 }

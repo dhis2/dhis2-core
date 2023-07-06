@@ -27,48 +27,41 @@
  */
 package org.hisp.dhis.monitoring.prometheus.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 import io.prometheus.client.CollectorRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
-public class PrometheusMonitoringConfig
-{
-    @Bean
-    public Clock micrometerClock()
-    {
-        return Clock.SYSTEM;
-    }
+public class PrometheusMonitoringConfig {
+  @Bean
+  public Clock micrometerClock() {
+    return Clock.SYSTEM;
+  }
 
-    @Bean
-    public PrometheusProperties defaultProperties()
-    {
-        return new PrometheusProperties();
-    }
+  @Bean
+  public PrometheusProperties defaultProperties() {
+    return new PrometheusProperties();
+  }
 
-    @Bean
-    public PrometheusConfig prometheusConfig( PrometheusProperties prometheusProperties )
-    {
-        return new PrometheusPropertiesConfigAdapter( prometheusProperties );
-    }
+  @Bean
+  public PrometheusConfig prometheusConfig(PrometheusProperties prometheusProperties) {
+    return new PrometheusPropertiesConfigAdapter(prometheusProperties);
+  }
 
-    @Bean
-    public PrometheusMeterRegistry prometheusMeterRegistry( PrometheusConfig prometheusConfig,
-        CollectorRegistry collectorRegistry, Clock clock )
-    {
-        return new PrometheusMeterRegistry( prometheusConfig, collectorRegistry, clock );
-    }
+  @Bean
+  public PrometheusMeterRegistry prometheusMeterRegistry(
+      PrometheusConfig prometheusConfig, CollectorRegistry collectorRegistry, Clock clock) {
+    return new PrometheusMeterRegistry(prometheusConfig, collectorRegistry, clock);
+  }
 
-    @Bean
-    public CollectorRegistry collectorRegistry()
-    {
-        return new CollectorRegistry( true );
-    }
+  @Bean
+  public CollectorRegistry collectorRegistry() {
+    return new CollectorRegistry(true);
+  }
 }

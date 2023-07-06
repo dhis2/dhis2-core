@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -42,25 +41,22 @@ import org.springframework.stereotype.Component;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @Component
-public class TrackedEntityInstanceSyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy
-{
-    public TrackedEntityInstanceSyncStrategyImpl( TrackedEntityInstanceService trackedEntityInstanceService,
-        AsyncTaskExecutor taskExecutor )
-    {
-        super( trackedEntityInstanceService, taskExecutor );
-    }
+public class TrackedEntityInstanceSyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy {
+  public TrackedEntityInstanceSyncStrategyImpl(
+      TrackedEntityInstanceService trackedEntityInstanceService, AsyncTaskExecutor taskExecutor) {
+    super(trackedEntityInstanceService, taskExecutor);
+  }
 
-    @Override
-    public ImportSummaries mergeOrDeleteTrackedEntityInstances(
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest )
-        throws IOException,
-        BadRequestException
-    {
-        List<TrackedEntityInstance> trackedEntityInstances = getTrackedEntityInstancesListByMediaType(
-            trackerEntityInstanceRequest.getMediaType(), trackerEntityInstanceRequest.getInputStream() );
+  @Override
+  public ImportSummaries mergeOrDeleteTrackedEntityInstances(
+      TrackerEntityInstanceRequest trackerEntityInstanceRequest)
+      throws IOException, BadRequestException {
+    List<TrackedEntityInstance> trackedEntityInstances =
+        getTrackedEntityInstancesListByMediaType(
+            trackerEntityInstanceRequest.getMediaType(),
+            trackerEntityInstanceRequest.getInputStream());
 
-        return trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( trackedEntityInstances,
-            trackerEntityInstanceRequest.getImportOptions(), null );
-    }
-
+    return trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances(
+        trackedEntityInstances, trackerEntityInstanceRequest.getImportOptions(), null);
+  }
 }

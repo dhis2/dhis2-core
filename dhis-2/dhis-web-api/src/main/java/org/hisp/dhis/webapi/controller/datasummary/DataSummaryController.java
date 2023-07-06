@@ -46,21 +46,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author Joao Antunes
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @Controller
-@RequestMapping( value = DataSummaryController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSummaryController
-{
-    public static final String RESOURCE_PATH = "/dataSummary";
+@RequestMapping(value = DataSummaryController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataSummaryController {
+  public static final String RESOURCE_PATH = "/dataSummary";
 
-    @Autowired
-    private DataStatisticsService dataStatisticsService;
+  @Autowired private DataStatisticsService dataStatisticsService;
 
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    public @ResponseBody DataSummary getStatistics()
-    {
-        return dataStatisticsService.getSystemStatisticsSummary();
-    }
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  public @ResponseBody DataSummary getStatistics() {
+    return dataStatisticsService.getSystemStatisticsSummary();
+  }
 }

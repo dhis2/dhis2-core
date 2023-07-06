@@ -34,7 +34,6 @@ import java.io.PrintWriter;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.EndpointTracker;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -44,45 +43,35 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class CoverageLoggerExtension
-    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
-{
-    private static Logger logger = Logger.getLogger( CoverageLoggerExtension.class.getName() );
+    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource {
+  private static Logger logger = Logger.getLogger(CoverageLoggerExtension.class.getName());
 
-    @Override
-    public void beforeAll( ExtensionContext context )
-        throws Exception
-    {
-        context.getRoot().getStore( GLOBAL ).put( "CoverageLoggerExtension", this );
+  @Override
+  public void beforeAll(ExtensionContext context) throws Exception {
+    context.getRoot().getStore(GLOBAL).put("CoverageLoggerExtension", this);
+  }
 
+  @Override
+  public void close() throws Throwable {
+    if (!CollectionUtils.isEmpty(EndpointTracker.getCoverageList())) {
+      logger.info("Writing coverage information");
+      File csvOutputFile = new File("coverage.csv");
+      try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+        EndpointTracker.getCoverageList().stream()
+            .filter(
+                p ->
+                    !p.getMethod().equalsIgnoreCase("DELETE")
+                        && !p.getUrl().contains("/tracker//jobs"))
+            .map(this::toCsvRow)
+            .forEach(pw::println);
+      }
     }
+  }
 
-    @Override
-    public void close()
-        throws Throwable
-    {
-        if ( !CollectionUtils.isEmpty( EndpointTracker.getCoverageList() ) )
-        {
-            logger.info( "Writing coverage information" );
-            File csvOutputFile = new File( "coverage.csv" );
-            try ( PrintWriter pw = new PrintWriter( csvOutputFile ) )
-            {
-                EndpointTracker.getCoverageList().stream()
-                    .filter( p -> !p.getMethod().equalsIgnoreCase( "DELETE" ) &&
-                        !p.getUrl().contains( "/tracker//jobs" ) )
-                    .map( this::toCsvRow )
-                    .forEach( pw::println );
-            }
-
-        }
-
-    }
-
-    public String toCsvRow( EndpointTracker.Coverage coverage )
-    {
-        return Stream.of( coverage.getMethod(), coverage.getUrl(), coverage.getOccurrences().toString() )
-            .map( value -> value.replaceAll( "\"", "\"\"" ) )
-            .map( value -> Stream.of( "\"", "," ).anyMatch( value::contains ) ? "\"" + value + "\"" : value )
-            .collect( Collectors.joining( "," ) );
-    }
-
+  public String toCsvRow(EndpointTracker.Coverage coverage) {
+    return Stream.of(coverage.getMethod(), coverage.getUrl(), coverage.getOccurrences().toString())
+        .map(value -> value.replaceAll("\"", "\"\""))
+        .map(value -> Stream.of("\"", ",").anyMatch(value::contains) ? "\"" + value + "\"" : value)
+        .collect(Collectors.joining(","));
+  }
 }

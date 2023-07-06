@@ -31,31 +31,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.function.Supplier;
-
 import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 
-public class Assertions
-{
+public class Assertions {
 
-    public static void assertNoImportErrors( ImportReport report )
-    {
-        assertNotNull( report );
-        assertEquals( Status.OK, report.getStatus(), errorMessage( report ) );
-    }
+  public static void assertNoImportErrors(ImportReport report) {
+    assertNotNull(report);
+    assertEquals(Status.OK, report.getStatus(), errorMessage(report));
+  }
 
-    private static Supplier<String> errorMessage( ImportReport report )
-    {
-        return () -> {
-            StringBuilder msg = new StringBuilder( "Expected import with status OK, instead got:\n" );
-            report.getValidationReport().getErrors()
-                .forEach( e -> {
-                    msg.append( e.getErrorCode() );
-                    msg.append( ": " );
-                    msg.append( e.getMessage() );
-                    msg.append( '\n' );
-                } );
-            return msg.toString();
-        };
-    }
+  private static Supplier<String> errorMessage(ImportReport report) {
+    return () -> {
+      StringBuilder msg = new StringBuilder("Expected import with status OK, instead got:\n");
+      report
+          .getValidationReport()
+          .getErrors()
+          .forEach(
+              e -> {
+                msg.append(e.getErrorCode());
+                msg.append(": ");
+                msg.append(e.getMessage());
+                msg.append('\n');
+              });
+      return msg.toString();
+    };
+  }
 }

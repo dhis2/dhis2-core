@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -49,48 +48,42 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest
-{
+class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest {
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/te_program_with_tea_encryption_metadata.json" );
-        injectAdminUser();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/te_program_with_tea_encryption_metadata.json");
+    injectAdminUser();
+  }
 
-    @Test
-    void testTrackedEntityProgramAttributeEncryptedValue()
-        throws IOException
-    {
-        ImportReport importReport = trackerImportService
-            .importTracker( fromJson( "tracker/te_program_with_tea_encryption_data.json" ) );
-        assertNoErrors( importReport );
+  @Test
+  void testTrackedEntityProgramAttributeEncryptedValue() throws IOException {
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            fromJson("tracker/te_program_with_tea_encryption_data.json"));
+    assertNoErrors(importReport);
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
 
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
-        // not really a great test, but we are using a random seed for salt, so
-        // it changes on every run... we might want to
-        // add another EncryptionConfig test profile
-        RowCallbackHandler handler = resultSet -> assertNotNull( resultSet.getString( "encryptedvalue" ) );
-        jdbcTemplate.query( "select * from trackedentityattributevalue where encryptedvalue is not null ", handler );
-    }
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(5, attributeValues.size());
+    // not really a great test, but we are using a random seed for salt, so
+    // it changes on every run... we might want to
+    // add another EncryptionConfig test profile
+    RowCallbackHandler handler = resultSet -> assertNotNull(resultSet.getString("encryptedvalue"));
+    jdbcTemplate.query(
+        "select * from trackedentityattributevalue where encryptedvalue is not null ", handler);
+  }
 }
