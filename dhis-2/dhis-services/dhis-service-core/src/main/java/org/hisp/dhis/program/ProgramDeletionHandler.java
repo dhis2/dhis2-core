@@ -34,7 +34,6 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,119 +49,101 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramDeletionHandler" )
-public class ProgramDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( Program.class );
+@Component("org.hisp.dhis.program.ProgramDeletionHandler")
+public class ProgramDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(Program.class);
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    public ProgramDeletionHandler( ProgramService programService, IdentifiableObjectManager idObjectManager,
-        CategoryService categoryService )
-    {
-        checkNotNull( programService );
-        checkNotNull( idObjectManager );
-        checkNotNull( categoryService );
+  public ProgramDeletionHandler(
+      ProgramService programService,
+      IdentifiableObjectManager idObjectManager,
+      CategoryService categoryService) {
+    checkNotNull(programService);
+    checkNotNull(idObjectManager);
+    checkNotNull(categoryService);
 
-        this.programService = programService;
-        this.idObjectManager = idObjectManager;
-        this.categoryService = categoryService;
+    this.programService = programService;
+    this.idObjectManager = idObjectManager;
+    this.categoryService = categoryService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(UserRole.class, this::deleteUserRole);
+    whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
+    whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
+    whenDeleting(DataEntryForm.class, this::deleteDataEntryForm);
+  }
+
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    CategoryCombo defaultCategoryCombo =
+        categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
+
+    Collection<Program> programs = idObjectManager.getAllNoAcl(Program.class);
+
+    for (Program program : programs) {
+      if (program != null && categoryCombo.equals(program.getCategoryCombo())) {
+        program.setCategoryCombo(defaultCategoryCombo);
+        idObjectManager.updateNoAcl(program);
+      }
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( UserRole.class, this::deleteUserRole );
-        whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );
-        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
-        whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
+  private void deleteOrganisationUnit(OrganisationUnit unit) {
+    for (Program program : unit.getPrograms()) {
+      program.getOrganisationUnits().remove(unit);
+      idObjectManager.updateNoAcl(program);
     }
+  }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        CategoryCombo defaultCategoryCombo = categoryService
-            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+  private void deleteUserRole(UserRole group) {
+    Collection<Program> programs = idObjectManager.getAllNoAcl(Program.class);
 
-        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+    for (Program program : programs) {
+      if (program.getUserRoles().remove(group)) {
+        idObjectManager.updateNoAcl(program);
+      }
+    }
+  }
 
-        for ( Program program : programs )
-        {
-            if ( program != null && categoryCombo.equals( program.getCategoryCombo() ) )
-            {
-                program.setCategoryCombo( defaultCategoryCombo );
-                idObjectManager.updateNoAcl( program );
-            }
+  private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
+    Collection<Program> programs = programService.getProgramsByTrackedEntityType(trackedEntityType);
+
+    return (programs != null && !programs.isEmpty()) ? VETO : ACCEPT;
+  }
+
+  private void deleteTrackedEntityAttribute(TrackedEntityAttribute trackedEntityAttribute) {
+    Collection<Program> programs = idObjectManager.getAllNoAcl(Program.class);
+
+    for (Program program : programs) {
+      List<ProgramTrackedEntityAttribute> removeList = new ArrayList<>();
+
+      for (ProgramTrackedEntityAttribute programAttribute : program.getProgramAttributes()) {
+        if (programAttribute.getAttribute().equals(trackedEntityAttribute)) {
+          removeList.add(programAttribute);
         }
+      }
+
+      if (!removeList.isEmpty()) {
+        program.getProgramAttributes().removeAll(removeList);
+        idObjectManager.updateNoAcl(program);
+      }
     }
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit unit )
-    {
-        for ( Program program : unit.getPrograms() )
-        {
-            program.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( program );
-        }
+  private void deleteDataEntryForm(DataEntryForm dataEntryForm) {
+    List<Program> associatedPrograms = programService.getProgramsByDataEntryForm(dataEntryForm);
+
+    for (Program program : associatedPrograms) {
+      program.setDataEntryForm(null);
+      idObjectManager.updateNoAcl(program);
     }
-
-    private void deleteUserRole( UserRole group )
-    {
-        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-
-        for ( Program program : programs )
-        {
-            if ( program.getUserRoles().remove( group ) )
-            {
-                idObjectManager.updateNoAcl( program );
-            }
-        }
-    }
-
-    private DeletionVeto allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        Collection<Program> programs = programService.getProgramsByTrackedEntityType( trackedEntityType );
-
-        return (programs != null && !programs.isEmpty()) ? VETO : ACCEPT;
-    }
-
-    private void deleteTrackedEntityAttribute( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
-
-        for ( Program program : programs )
-        {
-            List<ProgramTrackedEntityAttribute> removeList = new ArrayList<>();
-
-            for ( ProgramTrackedEntityAttribute programAttribute : program.getProgramAttributes() )
-            {
-                if ( programAttribute.getAttribute().equals( trackedEntityAttribute ) )
-                {
-                    removeList.add( programAttribute );
-                }
-            }
-
-            if ( !removeList.isEmpty() )
-            {
-                program.getProgramAttributes().removeAll( removeList );
-                idObjectManager.updateNoAcl( program );
-            }
-        }
-    }
-
-    private void deleteDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        List<Program> associatedPrograms = programService.getProgramsByDataEntryForm( dataEntryForm );
-
-        for ( Program program : associatedPrograms )
-        {
-            program.setDataEntryForm( null );
-            idObjectManager.updateNoAcl( program );
-        }
-    }
+  }
 }

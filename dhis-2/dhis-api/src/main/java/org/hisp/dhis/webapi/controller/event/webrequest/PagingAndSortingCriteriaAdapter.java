@@ -36,12 +36,10 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
@@ -51,116 +49,88 @@ import org.apache.commons.collections4.CollectionUtils;
  */
 @Data
 @Slf4j
-@NoArgsConstructor( access = AccessLevel.PROTECTED )
-public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria
-{
-    /**
-     * Page number to return.
-     */
-    private Integer page;
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria, SortingCriteria {
+  /** Page number to return. */
+  private Integer page;
 
-    /**
-     * Page size.
-     */
-    private Integer pageSize = DEFAULT_PAGE_SIZE;
+  /** Page size. */
+  private Integer pageSize = DEFAULT_PAGE_SIZE;
 
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private boolean totalPages;
+  /** Indicates whether to include the total number of pages in the paging response. */
+  private boolean totalPages;
 
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private Boolean skipPaging;
+  /** Indicates whether paging should be skipped. */
+  private Boolean skipPaging;
 
-    /**
-     * order params
-     */
-    private List<OrderCriteria> order;
+  /** order params */
+  private List<OrderCriteria> order;
 
-    /**
-     * TODO: legacy flag can be removed when new tracker will have it's own
-     * services. All new tracker export Criteria class extending this, will
-     * override isLegacy returning false, so that it's true only for older ones.
-     */
-    private boolean isLegacy = true;
+  /**
+   * TODO: legacy flag can be removed when new tracker will have it's own services. All new tracker
+   * export Criteria class extending this, will override isLegacy returning false, so that it's true
+   * only for older ones.
+   */
+  private boolean isLegacy = true;
 
-    private final Function<List<OrderCriteria>, List<OrderCriteria>> dtoNameToDatabaseNameTranslator = orderCriteria -> CollectionUtils
-        .emptyIfNull( orderCriteria )
-        .stream()
-        .filter( Objects::nonNull )
-        .map( oc -> OrderCriteria.of(
-            translateField( oc.getField(), isLegacy() )
-                .orElse( oc.getField() ),
-            oc.getDirection() ) )
-        .collect( Collectors.toList() );
+  private final Function<List<OrderCriteria>, List<OrderCriteria>> dtoNameToDatabaseNameTranslator =
+      orderCriteria ->
+          CollectionUtils.emptyIfNull(orderCriteria).stream()
+              .filter(Objects::nonNull)
+              .map(
+                  oc ->
+                      OrderCriteria.of(
+                          translateField(oc.getField(), isLegacy()).orElse(oc.getField()),
+                          oc.getDirection()))
+              .collect(Collectors.toList());
 
-    public boolean isPagingRequest()
-    {
-        return !toBooleanDefaultIfNull( isSkipPaging(), false );
+  public boolean isPagingRequest() {
+    return !toBooleanDefaultIfNull(isSkipPaging(), false);
+  }
+
+  public Boolean isSkipPaging() {
+    return skipPaging;
+  }
+
+  @Override
+  public List<OrderCriteria> getOrder() {
+    if (getAllowedOrderingFields().isEmpty()) {
+      return dtoNameToDatabaseNameTranslator.apply(order);
     }
 
-    public Boolean isSkipPaging()
-    {
-        return skipPaging;
-    }
+    Map<Boolean, List<OrderCriteria>> orderCriteriaPartitionedByAllowance =
+        CollectionUtils.emptyIfNull(order).stream().collect(partitioningBy(this::isAllowed));
 
-    @Override
-    public List<OrderCriteria> getOrder()
-    {
-        if ( getAllowedOrderingFields().isEmpty() )
-        {
-            return dtoNameToDatabaseNameTranslator.apply( order );
-        }
+    CollectionUtils.emptyIfNull(orderCriteriaPartitionedByAllowance.get(false))
+        .forEach(disallowedOrderFieldConsumer());
 
-        Map<Boolean, List<OrderCriteria>> orderCriteriaPartitionedByAllowance = CollectionUtils.emptyIfNull( order )
-            .stream()
-            .collect(
-                partitioningBy( this::isAllowed ) );
+    return dtoNameToDatabaseNameTranslator.apply(orderCriteriaPartitionedByAllowance.get(true));
+  }
 
-        CollectionUtils.emptyIfNull( orderCriteriaPartitionedByAllowance.get( false ) )
-            .forEach( disallowedOrderFieldConsumer() );
+  private boolean isAllowed(OrderCriteria orderCriteria) {
+    return getAllowedOrderingFields().contains(orderCriteria.getField());
+  }
 
-        return dtoNameToDatabaseNameTranslator.apply( orderCriteriaPartitionedByAllowance.get( true ) );
-    }
+  protected Consumer<OrderCriteria> disallowedOrderFieldConsumer() {
+    return orderCriteria ->
+        log.warn("Ordering by " + orderCriteria.getField() + " is not supported");
+  }
 
-    private boolean isAllowed( OrderCriteria orderCriteria )
-    {
-        return getAllowedOrderingFields().contains( orderCriteria.getField() );
-    }
+  public boolean isSortingRequest() {
+    return !CollectionUtils.emptyIfNull(getOrder()).isEmpty();
+  }
 
-    protected Consumer<OrderCriteria> disallowedOrderFieldConsumer()
-    {
-        return orderCriteria -> log.warn( "Ordering by " + orderCriteria.getField() + " is not supported" );
-    }
+  /** Returns the page number, falls back to default value of 1 if not specified. */
+  public int getPageWithDefault() {
+    return page != null && page > 0 ? page : DEFAULT_PAGE;
+  }
 
-    public boolean isSortingRequest()
-    {
-        return !CollectionUtils.emptyIfNull( getOrder() ).isEmpty();
-    }
+  /** Returns the page size, falls back to default value of 50 if not specified. */
+  public int getPageSizeWithDefault() {
+    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+  }
 
-    /**
-     * Returns the page number, falls back to default value of 1 if not
-     * specified.
-     */
-    public int getPageWithDefault()
-    {
-        return page != null && page > 0 ? page : DEFAULT_PAGE;
-    }
-
-    /**
-     * Returns the page size, falls back to default value of 50 if not
-     * specified.
-     */
-    public int getPageSizeWithDefault()
-    {
-        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-    }
-
-    public interface EntityNameSupplier
-    {
-        String getEntityName();
-    }
+  public interface EntityNameSupplier {
+    String getEntityName();
+  }
 }

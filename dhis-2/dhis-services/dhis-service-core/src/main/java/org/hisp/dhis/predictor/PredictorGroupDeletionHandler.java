@@ -36,31 +36,25 @@ import org.springframework.stereotype.Component;
 /**
  * @author Jim Grace
  */
-@Component( "org.hisp.dhis.predictor.PredictorGroupDeletionHandler" )
-public class PredictorGroupDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.predictor.PredictorGroupDeletionHandler")
+public class PredictorGroupDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public PredictorGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
+  public PredictorGroupDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
 
-        this.idObjectManager = idObjectManager;
+    this.idObjectManager = idObjectManager;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(Predictor.class, this::deletePredictor);
+  }
+
+  private void deletePredictor(Predictor predictor) {
+    for (PredictorGroup group : predictor.getGroups()) {
+      group.getMembers().remove(predictor);
+      idObjectManager.updateNoAcl(group);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( Predictor.class, this::deletePredictor );
-    }
-
-    private void deletePredictor( Predictor predictor )
-    {
-        for ( PredictorGroup group : predictor.getGroups() )
-        {
-            group.getMembers().remove( predictor );
-            idObjectManager.updateNoAcl( group );
-        }
-    }
+  }
 }

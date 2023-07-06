@@ -28,20 +28,19 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.List;
-
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackedEntityAttributeValueAuditService
-{
-    void addTrackedEntityAttributeValueAudit( TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit );
+public interface TrackedEntityAttributeValueAuditService {
+  void addTrackedEntityAttributeValueAudit(
+      TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit);
 
-    List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
-        TrackedEntityAttributeValueAuditQueryParams params );
+  List<TrackedEntityAttributeValueAudit> getTrackedEntityAttributeValueAudits(
+      TrackedEntityAttributeValueAuditQueryParams params);
 
-    int countTrackedEntityAttributeValueAudits( TrackedEntityAttributeValueAuditQueryParams params );
+  int countTrackedEntityAttributeValueAudits(TrackedEntityAttributeValueAuditQueryParams params);
 
-    void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance trackedEntityInstance );
+  void deleteTrackedEntityAttributeValueAudits(TrackedEntityInstance trackedEntityInstance);
 }

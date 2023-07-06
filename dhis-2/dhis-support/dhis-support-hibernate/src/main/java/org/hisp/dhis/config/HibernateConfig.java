@@ -30,9 +30,7 @@ package org.hisp.dhis.config;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
-
 import javax.sql.DataSource;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.DefaultHibernateCacheManager;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -58,73 +56,73 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Configuration
 @EnableTransactionManagement
-public class HibernateConfig
-{
-    @Bean( "hibernateConfigurationProvider" )
-    public HibernateConfigurationProvider hibernateConfigurationProvider( DhisConfigurationProvider dhisConfig )
-    {
-        DefaultHibernateConfigurationProvider hibernateConfigurationProvider = new DefaultHibernateConfigurationProvider();
-        hibernateConfigurationProvider.setConfigProvider( dhisConfig );
-        return hibernateConfigurationProvider;
-    }
+public class HibernateConfig {
+  @Bean("hibernateConfigurationProvider")
+  public HibernateConfigurationProvider hibernateConfigurationProvider(
+      DhisConfigurationProvider dhisConfig) {
+    DefaultHibernateConfigurationProvider hibernateConfigurationProvider =
+        new DefaultHibernateConfigurationProvider();
+    hibernateConfigurationProvider.setConfigProvider(dhisConfig);
+    return hibernateConfigurationProvider;
+  }
 
-    @Bean
-    @DependsOn( "flyway" )
-    public LocalSessionFactoryBean sessionFactory( DataSource dataSource,
-        @Qualifier( "hibernateConfigurationProvider" ) HibernateConfigurationProvider hibernateConfigurationProvider )
-    {
-        Objects.requireNonNull( dataSource );
-        Objects.requireNonNull( hibernateConfigurationProvider );
+  @Bean
+  @DependsOn("flyway")
+  public LocalSessionFactoryBean sessionFactory(
+      DataSource dataSource,
+      @Qualifier("hibernateConfigurationProvider")
+          HibernateConfigurationProvider hibernateConfigurationProvider) {
+    Objects.requireNonNull(dataSource);
+    Objects.requireNonNull(hibernateConfigurationProvider);
 
-        Properties hibernateProperties = hibernateConfigurationProvider.getConfiguration().getProperties();
-        Objects.requireNonNull( hibernateProperties );
+    Properties hibernateProperties =
+        hibernateConfigurationProvider.getConfiguration().getProperties();
+    Objects.requireNonNull(hibernateProperties);
 
-        List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
-        List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
+    List<Resource> jarResources = hibernateConfigurationProvider.getJarResources();
+    List<Resource> directoryResources = hibernateConfigurationProvider.getDirectoryResources();
 
-        LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
-        sessionFactory.setDataSource( dataSource );
-        sessionFactory.setMappingJarLocations( jarResources.toArray( new Resource[0] ) );
-        sessionFactory.setMappingDirectoryLocations( directoryResources.toArray( new Resource[0] ) );
-        sessionFactory.setAnnotatedClasses( DeletedObject.class );
-        sessionFactory.setHibernateProperties( hibernateProperties );
+    LocalSessionFactoryBean sessionFactory = new LocalSessionFactoryBean();
+    sessionFactory.setDataSource(dataSource);
+    sessionFactory.setMappingJarLocations(jarResources.toArray(new Resource[0]));
+    sessionFactory.setMappingDirectoryLocations(directoryResources.toArray(new Resource[0]));
+    sessionFactory.setAnnotatedClasses(DeletedObject.class);
+    sessionFactory.setHibernateProperties(hibernateProperties);
 
-        return sessionFactory;
-    }
+    return sessionFactory;
+  }
 
-    @Bean
-    public HibernateTransactionManager hibernateTransactionManager( DataSource dataSource,
-        SessionFactory sessionFactory )
-    {
-        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory( sessionFactory );
-        transactionManager.setDataSource( dataSource );
+  @Bean
+  public HibernateTransactionManager hibernateTransactionManager(
+      DataSource dataSource, SessionFactory sessionFactory) {
+    HibernateTransactionManager transactionManager = new HibernateTransactionManager();
+    transactionManager.setSessionFactory(sessionFactory);
+    transactionManager.setDataSource(dataSource);
 
-        return transactionManager;
-    }
+    return transactionManager;
+  }
 
-    @Bean
-    public TransactionTemplate transactionTemplate( HibernateTransactionManager transactionManager )
-    {
-        return new TransactionTemplate( transactionManager );
-    }
+  @Bean
+  public TransactionTemplate transactionTemplate(HibernateTransactionManager transactionManager) {
+    return new TransactionTemplate(transactionManager);
+  }
 
-    @Bean
-    public DefaultHibernateCacheManager cacheManager( SessionFactory sessionFactory )
-    {
-        DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
-        cacheManager.setSessionFactory( sessionFactory );
-        return cacheManager;
-    }
+  @Bean
+  public DefaultHibernateCacheManager cacheManager(SessionFactory sessionFactory) {
+    DefaultHibernateCacheManager cacheManager = new DefaultHibernateCacheManager();
+    cacheManager.setSessionFactory(sessionFactory);
+    return cacheManager;
+  }
 
-    @Bean
-    public DbmsManager dbmsManager( JdbcTemplate jdbcTemplate, SessionFactory sessionFactory,
-        DefaultHibernateCacheManager cacheManager )
-    {
-        HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
-        hibernateDbmsManager.setCacheManager( cacheManager );
-        hibernateDbmsManager.setSessionFactory( sessionFactory );
-        hibernateDbmsManager.setJdbcTemplate( jdbcTemplate );
-        return hibernateDbmsManager;
-    }
+  @Bean
+  public DbmsManager dbmsManager(
+      JdbcTemplate jdbcTemplate,
+      SessionFactory sessionFactory,
+      DefaultHibernateCacheManager cacheManager) {
+    HibernateDbmsManager hibernateDbmsManager = new HibernateDbmsManager();
+    hibernateDbmsManager.setCacheManager(cacheManager);
+    hibernateDbmsManager.setSessionFactory(sessionFactory);
+    hibernateDbmsManager.setJdbcTemplate(jdbcTemplate);
+    return hibernateDbmsManager;
+  }
 }

@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -52,57 +51,53 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Olav Hansen
  */
-class ObjectBundleServiceImportReportModeTest extends TransactionalIntegrationTest
-{
+class ObjectBundleServiceImportReportModeTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        renderService = _renderService;
-        userService = _userService;
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    renderService = _renderService;
+    userService = _userService;
+  }
 
-    @Test
-    void testImportReportModeErrorNotOwner()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_no_defaults.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        assertFalse( objectBundleValidationService.validate( bundle ).hasErrorReports() );
-        objectBundleService.commit( bundle );
-        metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_update_not_owner.json" ).getInputStream(), RenderFormat.JSON );
-        params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setImportReportMode( ImportReportMode.ERRORS_NOT_OWNER );
-        params.setObjects( metadata );
-        bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        assertTrue( validate.hasErrorReports() );
-        assertEquals( 4, validate.getErrorReportsCount() );
-        validate.forEachErrorReport( errorReport -> assertEquals( ErrorCode.E5006, errorReport.getErrorCode(),
-            "Invalid error code, expected E5006" ) );
-    }
+  @Test
+  void testImportReportModeErrorNotOwner() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/metadata_no_defaults.json").getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    assertFalse(objectBundleValidationService.validate(bundle).hasErrorReports());
+    objectBundleService.commit(bundle);
+    metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/metadata_update_not_owner.json").getInputStream(),
+            RenderFormat.JSON);
+    params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE_AND_UPDATE);
+    params.setImportReportMode(ImportReportMode.ERRORS_NOT_OWNER);
+    params.setObjects(metadata);
+    bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
+    assertTrue(validate.hasErrorReports());
+    assertEquals(4, validate.getErrorReportsCount());
+    validate.forEachErrorReport(
+        errorReport ->
+            assertEquals(
+                ErrorCode.E5006, errorReport.getErrorCode(), "Invalid error code, expected E5006"));
+  }
 }

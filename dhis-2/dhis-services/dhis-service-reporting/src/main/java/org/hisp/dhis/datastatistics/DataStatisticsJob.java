@@ -30,7 +30,6 @@ package org.hisp.dhis.datastatistics;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -42,36 +41,30 @@ import org.springframework.stereotype.Component;
  * @author Julie Hill Roa
  */
 @Slf4j
-@Component( "dataStatisticsJob" )
-public class DataStatisticsJob implements Job
-{
-    private final DataStatisticsService dataStatisticsService;
+@Component("dataStatisticsJob")
+public class DataStatisticsJob implements Job {
+  private final DataStatisticsService dataStatisticsService;
 
-    public DataStatisticsJob( DataStatisticsService dataStatisticsService )
-    {
-        checkNotNull( dataStatisticsService );
-        this.dataStatisticsService = dataStatisticsService;
+  public DataStatisticsJob(DataStatisticsService dataStatisticsService) {
+    checkNotNull(dataStatisticsService);
+    this.dataStatisticsService = dataStatisticsService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_STATISTICS;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    long id = dataStatisticsService.saveDataStatisticsSnapshot();
+
+    if (id > 0) {
+      log.info("Saved data statistics snapshot");
     }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.DATA_STATISTICS;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        long id = dataStatisticsService.saveDataStatisticsSnapshot();
-
-        if ( id > 0 )
-        {
-            log.info( "Saved data statistics snapshot" );
-        }
-    }
-
+  }
 }

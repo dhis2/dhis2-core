@@ -32,82 +32,70 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.i18n.I18nFormat;
 
 /**
- * A legend is a graphical presentation of data contained in a map layer. This
- * class works as helper for LegendSet when it comes to drawing the actual
- * legend using java graphics. A legend has a height, but the actual width is
- * not defined.
+ * A legend is a graphical presentation of data contained in a map layer. This class works as helper
+ * for LegendSet when it comes to drawing the actual legend using java graphics. A legend has a
+ * height, but the actual width is not defined.
  *
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>
  */
-public class Legend
-{
-    public static final Font TITLE_FONT = new Font( "title", Font.BOLD, 12 );
+public class Legend {
+  public static final Font TITLE_FONT = new Font("title", Font.BOLD, 12);
 
-    public static final Font PLAIN_FONT = new Font( "plain", Font.PLAIN, 11 );
+  public static final Font PLAIN_FONT = new Font("plain", Font.PLAIN, 11);
 
-    private InternalMapLayer mapLayer;
+  private InternalMapLayer mapLayer;
 
-    private List<LegendItem> legendItems;
+  private List<LegendItem> legendItems;
 
-    private static final int HEADER_HEIGHT = 50;
+  private static final int HEADER_HEIGHT = 50;
 
-    public Legend( InternalMapLayer mapLayer )
-    {
-        this.mapLayer = mapLayer;
-        this.legendItems = new ArrayList<>();
+  public Legend(InternalMapLayer mapLayer) {
+    this.mapLayer = mapLayer;
+    this.legendItems = new ArrayList<>();
 
-        for ( Interval interval : mapLayer.getIntervalSet().getIntervals() )
-        {
-            addLegendItem( new LegendItem( interval ) );
-        }
+    for (Interval interval : mapLayer.getIntervalSet().getIntervals()) {
+      addLegendItem(new LegendItem(interval));
+    }
+  }
+
+  public void draw(Graphics2D g, I18nFormat format) {
+    g.setColor(Color.BLACK);
+    g.setFont(PLAIN_FONT);
+    g.drawString(mapLayer.getName(), 0, 15);
+    g.drawString(format.formatPeriod(mapLayer.getPeriod()) + "", 0, 35);
+
+    g.translate(0, HEADER_HEIGHT);
+
+    for (LegendItem legendItem : legendItems) {
+      legendItem.draw(g);
+      g.translate(0, legendItem.getHeight());
+    }
+  }
+
+  public int getHeight() {
+    int height = 0;
+
+    for (LegendItem legendItem : legendItems) {
+      height += legendItem.getHeight();
     }
 
-    public void draw( Graphics2D g, I18nFormat format )
-    {
-        g.setColor( Color.BLACK );
-        g.setFont( PLAIN_FONT );
-        g.drawString( mapLayer.getName(), 0, 15 );
-        g.drawString( format.formatPeriod( mapLayer.getPeriod() ) + "", 0, 35 );
+    return HEADER_HEIGHT + height;
+  }
 
-        g.translate( 0, HEADER_HEIGHT );
+  public List<LegendItem> getLegendItems() {
+    return legendItems;
+  }
 
-        for ( LegendItem legendItem : legendItems )
-        {
-            legendItem.draw( g );
-            g.translate( 0, legendItem.getHeight() );
-        }
-    }
+  public void addLegendItem(LegendItem legendItem) {
+    legendItems.add(legendItem);
+  }
 
-    public int getHeight()
-    {
-        int height = 0;
-
-        for ( LegendItem legendItem : legendItems )
-        {
-            height += legendItem.getHeight();
-        }
-
-        return HEADER_HEIGHT + height;
-    }
-
-    public List<LegendItem> getLegendItems()
-    {
-        return legendItems;
-    }
-
-    public void addLegendItem( LegendItem legendItem )
-    {
-        legendItems.add( legendItem );
-    }
-
-    @Override
-    public String toString()
-    {
-        return legendItems != null ? legendItems.toString() : "[No legend items]";
-    }
+  @Override
+  public String toString() {
+    return legendItems != null ? legendItems.toString() : "[No legend items]";
+  }
 }

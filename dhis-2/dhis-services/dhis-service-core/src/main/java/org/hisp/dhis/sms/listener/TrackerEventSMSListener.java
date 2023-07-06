@@ -28,7 +28,6 @@
 package org.hisp.dhis.sms.listener;
 
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,88 +56,103 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component( "org.hisp.dhis.sms.listener.TrackerEventSMSListener" )
+@Component("org.hisp.dhis.sms.listener.TrackerEventSMSListener")
 @Transactional
-public class TrackerEventSMSListener
-    extends
-    CompressionSMSListener
-{
+public class TrackerEventSMSListener extends CompressionSMSListener {
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    private final ProgramInstanceService programInstanceService;
+  private final ProgramInstanceService programInstanceService;
 
-    public TrackerEventSMSListener( IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
-        ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        ProgramStageService programStageService, ProgramInstanceService programInstanceService,
-        IdentifiableObjectManager identifiableObjectManager )
-    {
-        super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
-            identifiableObjectManager );
+  public TrackerEventSMSListener(
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      UserService userService,
+      TrackedEntityTypeService trackedEntityTypeService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      ProgramService programService,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      DataElementService dataElementService,
+      ProgramStageInstanceService programStageInstanceService,
+      ProgramStageService programStageService,
+      ProgramInstanceService programInstanceService,
+      IdentifiableObjectManager identifiableObjectManager) {
+    super(
+        incomingSmsService,
+        smsSender,
+        userService,
+        trackedEntityTypeService,
+        trackedEntityAttributeService,
+        programService,
+        organisationUnitService,
+        categoryService,
+        dataElementService,
+        programStageInstanceService,
+        identifiableObjectManager);
 
-        this.programStageService = programStageService;
-        this.programInstanceService = programInstanceService;
+    this.programStageService = programStageService;
+    this.programInstanceService = programInstanceService;
+  }
+
+  @Override
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+      throws SMSProcessingException {
+    TrackerEventSmsSubmission subm = (TrackerEventSmsSubmission) submission;
+
+    Uid ouid = subm.getOrgUnit();
+    Uid stageid = subm.getProgramStage();
+    Uid enrolmentid = subm.getEnrollment();
+    Uid aocid = subm.getAttributeOptionCombo();
+
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
+    User user = userService.getUser(subm.getUserId().getUid());
+
+    ProgramInstance programInstance =
+        programInstanceService.getProgramInstance(enrolmentid.getUid());
+
+    if (programInstance == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_ENROLL.set(enrolmentid));
     }
 
-    @Override
-    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
-        throws SMSProcessingException
-    {
-        TrackerEventSmsSubmission subm = (TrackerEventSmsSubmission) submission;
+    ProgramStage programStage = programStageService.getProgramStage(stageid.getUid());
 
-        Uid ouid = subm.getOrgUnit();
-        Uid stageid = subm.getProgramStage();
-        Uid enrolmentid = subm.getEnrollment();
-        Uid aocid = subm.getAttributeOptionCombo();
-
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
-        User user = userService.getUser( subm.getUserId().getUid() );
-
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.getUid() );
-
-        if ( programInstance == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( enrolmentid ) );
-        }
-
-        ProgramStage programStage = programStageService.getProgramStage( stageid.getUid() );
-
-        if ( programStage == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_STAGE.set( stageid ) );
-        }
-
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
-
-        if ( aoc == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
-        }
-
-        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
-            aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
-            subm.getCoordinates() );
-        if ( !errorUIDs.isEmpty() )
-        {
-            return SmsResponse.WARN_DVERR.setList( errorUIDs );
-        }
-        else if ( subm.getValues() == null || subm.getValues().isEmpty() )
-        {
-            // TODO: Should we save the event if there are no data values?
-            return SmsResponse.WARN_DVEMPTY;
-        }
-
-        return SmsResponse.SUCCESS;
+    if (programStage == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_STAGE.set(stageid));
     }
 
-    @Override
-    protected boolean handlesType( SubmissionType type )
-    {
-        return (type == SubmissionType.TRACKER_EVENT);
+    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid.getUid());
+
+    if (aoc == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
     }
 
+    List<Object> errorUIDs =
+        saveNewEvent(
+            subm.getEvent().getUid(),
+            orgUnit,
+            programStage,
+            programInstance,
+            sms,
+            aoc,
+            user,
+            subm.getValues(),
+            subm.getEventStatus(),
+            subm.getEventDate(),
+            subm.getDueDate(),
+            subm.getCoordinates());
+    if (!errorUIDs.isEmpty()) {
+      return SmsResponse.WARN_DVERR.setList(errorUIDs);
+    } else if (subm.getValues() == null || subm.getValues().isEmpty()) {
+      // TODO: Should we save the event if there are no data values?
+      return SmsResponse.WARN_DVEMPTY;
+    }
+
+    return SmsResponse.SUCCESS;
+  }
+
+  @Override
+  protected boolean handlesType(SubmissionType type) {
+    return (type == SubmissionType.TRACKER_EVENT);
+  }
 }

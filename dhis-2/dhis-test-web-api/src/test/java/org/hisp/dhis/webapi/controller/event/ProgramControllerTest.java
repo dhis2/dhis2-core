@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import com.google.common.net.HttpHeaders;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.node.NodeUtils;
@@ -48,73 +48,60 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.google.common.net.HttpHeaders;
-
 /**
  * Unit tests for {@link ProgramController}.
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class ProgramControllerTest
-{
+@ExtendWith(MockitoExtension.class)
+class ProgramControllerTest {
 
-    @Mock
-    private ContextService contextService;
+  @Mock private ContextService contextService;
 
-    @Mock
-    private MetadataExportService exportService;
+  @Mock private MetadataExportService exportService;
 
-    @Mock
-    private ProgramService service;
+  @Mock private ProgramService service;
 
-    @Mock
-    private Program program;
+  @Mock private Program program;
 
-    @InjectMocks
-    private ProgramController controller;
+  @InjectMocks private ProgramController controller;
 
-    @Test
-    public void getWithDependencies()
-        throws Exception
-    {
-        getWithDependencies( false );
+  @Test
+  public void getWithDependencies() throws Exception {
+    getWithDependencies(false);
+  }
+
+  @Test
+  void getWithDependenciesAsDownload() throws Exception {
+    getWithDependencies(true);
+  }
+
+  private void getWithDependencies(boolean download) throws Exception {
+    final Map<String, List<String>> parameterValuesMap = new HashMap<>();
+    final MetadataExportParams exportParams = new MetadataExportParams();
+    final RootNode rootNode = NodeUtils.createMetadata();
+
+    Mockito.when(service.getProgram(Mockito.eq("88dshgdga"))).thenReturn(program);
+    Mockito.when(contextService.getParameterValuesMap()).thenReturn(parameterValuesMap);
+    Mockito.when(exportService.getParamsFromMap(Mockito.same(parameterValuesMap)))
+        .thenReturn(exportParams);
+    Mockito.when(
+            exportService.getMetadataWithDependenciesAsNode(
+                Mockito.same(program), Mockito.same(exportParams)))
+        .thenReturn(rootNode);
+
+    final ResponseEntity<RootNode> responseEntity =
+        controller.getProgramWithDependencies("88dshgdga", download);
+    Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    Assertions.assertSame(rootNode, responseEntity.getBody());
+
+    if (download) {
+      Assertions.assertEquals(
+          "attachment; filename=metadata",
+          responseEntity.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+    } else {
+      Assertions.assertFalse(
+          responseEntity.getHeaders().containsKey(HttpHeaders.CONTENT_DISPOSITION));
     }
-
-    @Test
-    void getWithDependenciesAsDownload()
-        throws Exception
-    {
-        getWithDependencies( true );
-    }
-
-    private void getWithDependencies( boolean download )
-        throws Exception
-    {
-        final Map<String, List<String>> parameterValuesMap = new HashMap<>();
-        final MetadataExportParams exportParams = new MetadataExportParams();
-        final RootNode rootNode = NodeUtils.createMetadata();
-
-        Mockito.when( service.getProgram( Mockito.eq( "88dshgdga" ) ) ).thenReturn( program );
-        Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
-        Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
-        Mockito
-            .when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( program ),
-                Mockito.same( exportParams ) ) )
-            .thenReturn( rootNode );
-
-        final ResponseEntity<RootNode> responseEntity = controller.getProgramWithDependencies( "88dshgdga", download );
-        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assertions.assertSame( rootNode, responseEntity.getBody() );
-
-        if ( download )
-        {
-            Assertions.assertEquals( "attachment; filename=metadata",
-                responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
-        }
-        else
-        {
-            Assertions.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
-        }
-    }
+  }
 }

@@ -31,18 +31,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-class ImportConflictTest
-{
+class ImportConflictTest {
 
-    @Test
-    void testImportConflictObjectCanBeNull()
-    {
-        new ImportConflict( null, "message" );
-    }
+  @Test
+  void testImportConflictObjectCanBeNull() {
+    new ImportConflict(null, "message");
+  }
 
-    @Test
-    void testImportConflictMessageCantBeNull()
-    {
-        assertThrows( NullPointerException.class, () -> new ImportConflict( "whatever", null ) );
-    }
+  @Test
+  void testImportConflictMessageCantBeNull() {
+    assertThrows(NullPointerException.class, () -> new ImportConflict("whatever", null));
+  }
 }

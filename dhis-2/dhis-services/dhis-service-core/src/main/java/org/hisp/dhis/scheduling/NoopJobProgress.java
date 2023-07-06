@@ -28,79 +28,66 @@
 package org.hisp.dhis.scheduling;
 
 /**
- * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance
- * when no actual flow control and tracking is wanted. For example in test
- * context or in manual runs of operations that would generally support the
- * tracking though the {@link JobProgress} abstraction.
+ * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance when no actual flow
+ * control and tracking is wanted. For example in test context or in manual runs of operations that
+ * would generally support the tracking though the {@link JobProgress} abstraction.
  *
  * @author Jan Bernitt
  */
-public class NoopJobProgress implements JobProgress
-{
-    public static final JobProgress INSTANCE = new NoopJobProgress();
+public class NoopJobProgress implements JobProgress {
+  public static final JobProgress INSTANCE = new NoopJobProgress();
 
-    private NoopJobProgress()
-    {
-        // hide
-    }
+  private NoopJobProgress() {
+    // hide
+  }
 
-    @Override
-    public boolean isCancellationRequested()
-    {
-        return false;
-    }
+  @Override
+  public boolean isCancellationRequested() {
+    return false;
+  }
 
-    @Override
-    public void startingProcess( String description )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void startingProcess(String description) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void completedProcess( String summary )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void completedProcess(String summary) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void failedProcess( String error )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void failedProcess(String error) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void startingStage( String description, int workItems )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void startingStage(String description, int workItems) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void completedStage( String summary )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void completedStage(String summary) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void failedStage( String error )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void failedStage(String error) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void startingWorkItem( String description )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void startingWorkItem(String description) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void completedWorkItem( String summary )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void completedWorkItem(String summary) {
+    // as the name said we do nothing
+  }
 
-    @Override
-    public void failedWorkItem( String error )
-    {
-        // as the name said we do nothing
-    }
+  @Override
+  public void failedWorkItem(String error) {
+    // as the name said we do nothing
+  }
 }

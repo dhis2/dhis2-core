@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.sync;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -44,51 +43,47 @@ import org.springframework.stereotype.Component;
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Slf4j
-@Component( "eventProgramsDataSyncJob" )
-public class EventProgramsDataSynchronizationJob extends SynchronizationJob
-{
-    private final Notifier notifier;
+@Component("eventProgramsDataSyncJob")
+public class EventProgramsDataSynchronizationJob extends SynchronizationJob {
+  private final Notifier notifier;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    private final DataSynchronizationWithPaging eventSync;
+  private final DataSynchronizationWithPaging eventSync;
 
-    private final SynchronizationManager synchronizationManager;
+  private final SynchronizationManager synchronizationManager;
 
-    public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
-        EventSynchronization eventSync, SynchronizationManager synchronizationManager )
-    {
-        checkNotNull( notifier );
-        checkNotNull( messageService );
-        checkNotNull( eventSync );
+  public EventProgramsDataSynchronizationJob(
+      Notifier notifier,
+      MessageService messageService,
+      EventSynchronization eventSync,
+      SynchronizationManager synchronizationManager) {
+    checkNotNull(notifier);
+    checkNotNull(messageService);
+    checkNotNull(eventSync);
 
-        this.notifier = notifier;
-        this.messageService = messageService;
-        this.eventSync = eventSync;
-        this.synchronizationManager = synchronizationManager;
+    this.notifier = notifier;
+    this.messageService = messageService;
+    this.eventSync = eventSync;
+    this.synchronizationManager = synchronizationManager;
+  }
+
+  @Override
+  public JobType getJobType() {
+    return JobType.EVENT_PROGRAMS_DATA_SYNC;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    try {
+      EventProgramsDataSynchronizationJobParameters jobParameters =
+          (EventProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
+      eventSync.synchronizeData(jobParameters.getPageSize());
+      notifier.notify(jobConfiguration, "Event programs data sync successful");
+    } catch (Exception e) {
+      log.error("Event programs data sync failed.", e);
+      notifier.notify(jobConfiguration, "Event programs data sync failed: " + e.getMessage());
+      messageService.sendSystemErrorNotification("Event programs data sync failed", e);
     }
-
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.EVENT_PROGRAMS_DATA_SYNC;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        try
-        {
-            EventProgramsDataSynchronizationJobParameters jobParameters = (EventProgramsDataSynchronizationJobParameters) jobConfiguration
-                .getJobParameters();
-            eventSync.synchronizeData( jobParameters.getPageSize() );
-            notifier.notify( jobConfiguration, "Event programs data sync successful" );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Event programs data sync failed.", e );
-            notifier.notify( jobConfiguration, "Event programs data sync failed: " + e.getMessage() );
-            messageService.sendSystemErrorNotification( "Event programs data sync failed", e );
-        }
-    }
+  }
 }

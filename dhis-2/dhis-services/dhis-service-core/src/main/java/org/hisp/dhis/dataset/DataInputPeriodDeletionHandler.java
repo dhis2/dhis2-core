@@ -39,32 +39,26 @@ import org.springframework.stereotype.Component;
 /**
  * @author Stian Sandvold
  */
-@Component( "org.hisp.dhis.dataset.DataInputPeriodDeletionHandler" )
-public class DataInputPeriodDeletionHandler
-    extends DeletionHandler
-{
+@Component("org.hisp.dhis.dataset.DataInputPeriodDeletionHandler")
+public class DataInputPeriodDeletionHandler extends DeletionHandler {
 
-    private static final DeletionVeto VETO = new DeletionVeto( DataInputPeriod.class );
+  private static final DeletionVeto VETO = new DeletionVeto(DataInputPeriod.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public DataInputPeriodDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
+  public DataInputPeriodDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( Period.class, this::allowDeletePeriod );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(Period.class, this::allowDeletePeriod);
+  }
 
-    private DeletionVeto allowDeletePeriod( Period period )
-    {
-        String sql = "SELECT COUNT(*) FROM datainputperiod where periodid=" + period.getId();
+  private DeletionVeto allowDeletePeriod(Period period) {
+    String sql = "SELECT COUNT(*) FROM datainputperiod where periodid=" + period.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
-
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

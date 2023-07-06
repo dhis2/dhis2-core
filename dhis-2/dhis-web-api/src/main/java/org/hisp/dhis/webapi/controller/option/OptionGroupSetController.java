@@ -36,10 +36,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
 @Controller
-@RequestMapping( value = OptionGroupSetSchemaDescriptor.API_ENDPOINT )
-public class OptionGroupSetController
-    extends AbstractCrudController<OptionGroupSet>
-{
-}
+@RequestMapping(value = OptionGroupSetSchemaDescriptor.API_ENDPOINT)
+public class OptionGroupSetController extends AbstractCrudController<OptionGroupSet> {}

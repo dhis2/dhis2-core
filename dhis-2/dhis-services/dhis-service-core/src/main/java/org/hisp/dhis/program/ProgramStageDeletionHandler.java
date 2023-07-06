@@ -32,7 +32,6 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
 import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -43,60 +42,53 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.program.ProgramStageDeletionHandler" )
-public class ProgramStageDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramStage.class );
+@Component("org.hisp.dhis.program.ProgramStageDeletionHandler")
+public class ProgramStageDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(ProgramStage.class);
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public ProgramStageDeletionHandler( ProgramStageService programStageService, JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( programStageService );
-        checkNotNull( jdbcTemplate );
-        this.programStageService = programStageService;
-        this.jdbcTemplate = jdbcTemplate;
+  public ProgramStageDeletionHandler(
+      ProgramStageService programStageService, JdbcTemplate jdbcTemplate) {
+    checkNotNull(programStageService);
+    checkNotNull(jdbcTemplate);
+    this.programStageService = programStageService;
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(Program.class, this::deleteProgram);
+    whenDeleting(DataEntryForm.class, this::deleteDataEntryForm);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
+
+  private void deleteProgram(Program program) {
+    Iterator<ProgramStage> iterator = program.getProgramStages().iterator();
+
+    while (iterator.hasNext()) {
+      ProgramStage programStage = iterator.next();
+      iterator.remove();
+      programStageService.deleteProgramStage(programStage);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( Program.class, this::deleteProgram );
-        whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
+  private void deleteDataEntryForm(DataEntryForm dataEntryForm) {
+    List<ProgramStage> associatedProgramStages =
+        programStageService.getProgramStagesByDataEntryForm(dataEntryForm);
+
+    for (ProgramStage programStage : associatedProgramStages) {
+      programStage.setDataEntryForm(null);
+      programStageService.updateProgramStage(programStage);
     }
+  }
 
-    private void deleteProgram( Program program )
-    {
-        Iterator<ProgramStage> iterator = program.getProgramStages().iterator();
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    String sql =
+        "SELECT COUNT(*) FROM programstagedataelement WHERE dataelementid=" + dataElement.getId();
 
-        while ( iterator.hasNext() )
-        {
-            ProgramStage programStage = iterator.next();
-            iterator.remove();
-            programStageService.deleteProgramStage( programStage );
-        }
-    }
-
-    private void deleteDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        List<ProgramStage> associatedProgramStages = programStageService
-            .getProgramStagesByDataEntryForm( dataEntryForm );
-
-        for ( ProgramStage programStage : associatedProgramStages )
-        {
-            programStage.setDataEntryForm( null );
-            programStageService.updateProgramStage( programStage );
-        }
-    }
-
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "SELECT COUNT(*) FROM programstagedataelement WHERE dataelementid=" + dataElement.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

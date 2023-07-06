@@ -34,24 +34,23 @@ import org.hisp.dhis.feedback.ErrorReport;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PreheatErrorReport extends ErrorReport
-{
-    private final PreheatIdentifier preheatIdentifier;
+public class PreheatErrorReport extends ErrorReport {
+  private final PreheatIdentifier preheatIdentifier;
 
-    public PreheatErrorReport( PreheatIdentifier preheatIdentifier, Class<?> mainKlass, ErrorCode errorCode,
-        Object... args )
-    {
-        super( mainKlass, errorCode, args );
-        this.preheatIdentifier = preheatIdentifier;
-    }
+  public PreheatErrorReport(
+      PreheatIdentifier preheatIdentifier,
+      Class<?> mainKlass,
+      ErrorCode errorCode,
+      Object... args) {
+    super(mainKlass, errorCode, args);
+    this.preheatIdentifier = preheatIdentifier;
+  }
 
-    public PreheatIdentifier getPreheatIdentifier()
-    {
-        return preheatIdentifier;
-    }
+  public PreheatIdentifier getPreheatIdentifier() {
+    return preheatIdentifier;
+  }
 
-    public IdentifiableObject getObjectReference()
-    {
-        return value != null ? (IdentifiableObject) value : null;
-    }
+  public IdentifiableObject getObjectReference() {
+    return value != null ? (IdentifiableObject) value : null;
+  }
 }

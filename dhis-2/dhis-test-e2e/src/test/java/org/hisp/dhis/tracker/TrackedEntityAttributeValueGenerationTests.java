@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -52,66 +51,69 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackedEntityAttributeValueGenerationTests
-    extends TrackerApiTest
-{
-    private RestApiActions trackedEntityAttributeActions;
+public class TrackedEntityAttributeValueGenerationTests extends TrackerApiTest {
+  private RestApiActions trackedEntityAttributeActions;
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        trackedEntityAttributeActions = new RestApiActions( "/trackedEntityAttributes" );
+  @BeforeAll
+  public void beforeAll() {
+    trackedEntityAttributeActions = new RestApiActions("/trackedEntityAttributes");
 
-        new LoginActions().loginAsSuperUser();
-    }
+    new LoginActions().loginAsSuperUser();
+  }
 
-    private Stream<Arguments> shouldGenerateAttributeValues()
-    {
-        ApiResponse response = trackedEntityAttributeActions
-            .get( new QueryParamsBuilder().add( "filter", "generated:eq:true" )
-                .add( "filter", "pattern:!like:()" )
-                .add( "fields", "id,pattern" ) );
+  private Stream<Arguments> shouldGenerateAttributeValues() {
+    ApiResponse response =
+        trackedEntityAttributeActions.get(
+            new QueryParamsBuilder()
+                .add("filter", "generated:eq:true")
+                .add("filter", "pattern:!like:()")
+                .add("fields", "id,pattern"));
 
-        List<HashMap> attributes = response.extractList( "trackedEntityAttributes" );
+    List<HashMap> attributes = response.extractList("trackedEntityAttributes");
 
-        List<Arguments> arguments = new ArrayList<>();
+    List<Arguments> arguments = new ArrayList<>();
 
-        attributes.forEach( att -> {
-            arguments
-                .add( Arguments.of( att.get( "id" ), att.get( "pattern" ).toString().replaceAll( "[+,\" ]", "" ) ) );
-        } );
+    attributes.forEach(
+        att -> {
+          arguments.add(
+              Arguments.of(att.get("id"), att.get("pattern").toString().replaceAll("[+,\" ]", "")));
+        });
 
-        return arguments.stream();
-    }
+    return arguments.stream();
+  }
 
-    @MethodSource
-    @ParameterizedTest( name = "/generate value for TEA with pattern {1}" )
-    public void shouldGenerateAttributeValues( String uid, String pattern )
-    {
-        int numberOfDigitsInPattern = StringUtils.countMatches( pattern, "#" );
+  @MethodSource
+  @ParameterizedTest(name = "/generate value for TEA with pattern {1}")
+  public void shouldGenerateAttributeValues(String uid, String pattern) {
+    int numberOfDigitsInPattern = StringUtils.countMatches(pattern, "#");
 
-        trackedEntityAttributeActions.get( uid + "/generate" )
-            .validate()
-            .statusCode( 200 )
-            .body( "key", equalTo( pattern ) )
-            .body( "value", describedAs( "Generated value should end with " + numberOfDigitsInPattern + " digits",
-                matchesPattern( String.format( ".*\\d{%d}$", numberOfDigitsInPattern ) ) ) );
-    }
+    trackedEntityAttributeActions
+        .get(uid + "/generate")
+        .validate()
+        .statusCode(200)
+        .body("key", equalTo(pattern))
+        .body(
+            "value",
+            describedAs(
+                "Generated value should end with " + numberOfDigitsInPattern + " digits",
+                matchesPattern(String.format(".*\\d{%d}$", numberOfDigitsInPattern))));
+  }
 
-    @Test
-    public void shouldGenerateAttributeValueWithOrgUnitCode()
-    {
-        String ouCode = "OU_559";
-        String attribute = trackedEntityAttributeActions
-            .get( new QueryParamsBuilder().add( "filter", "pattern:like:ORG_UNIT_CODE()" ) )
-            .extractString( "trackedEntityAttributes.id[0]" );
-
-        assertNotNull( attribute, "Tracked entity attribute with pattern containing OU_CODE was not found" );
+  @Test
+  public void shouldGenerateAttributeValueWithOrgUnitCode() {
+    String ouCode = "OU_559";
+    String attribute =
         trackedEntityAttributeActions
-            .get( attribute + "/generate", new QueryParamsBuilder().add( "ORG_UNIT_CODE", ouCode ) )
-            .validate()
-            .statusCode( 200 )
-            .body( "key", startsWith( ouCode ) )
-            .body( "value", startsWith( ouCode ) );
-    }
+            .get(new QueryParamsBuilder().add("filter", "pattern:like:ORG_UNIT_CODE()"))
+            .extractString("trackedEntityAttributes.id[0]");
+
+    assertNotNull(
+        attribute, "Tracked entity attribute with pattern containing OU_CODE was not found");
+    trackedEntityAttributeActions
+        .get(attribute + "/generate", new QueryParamsBuilder().add("ORG_UNIT_CODE", ouCode))
+        .validate()
+        .statusCode(200)
+        .body("key", startsWith(ouCode))
+        .body("value", startsWith(ouCode));
+  }
 }

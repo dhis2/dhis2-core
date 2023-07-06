@@ -28,29 +28,25 @@
 package org.hisp.dhis.eventchart;
 
 import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
- * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
- *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
- *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationService.
- *
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL. WE SHOULD AVOID
+ *     CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW FEATURES SHOULD BE ADDED ON TOP OF
+ *     EventVisualizationService.
  * @author Lars Helge Overland
  */
 @Deprecated
-public interface EventChartService
-    extends AnalyticalObjectService<EventChart>
-{
-    long saveEventChart( EventChart eventChart );
+public interface EventChartService extends AnalyticalObjectService<EventChart> {
+  long saveEventChart(EventChart eventChart);
 
-    void updateEventChart( EventChart eventChart );
+  void updateEventChart(EventChart eventChart);
 
-    EventChart getEventChart( long id );
+  EventChart getEventChart(long id);
 
-    EventChart getEventChart( String uid );
+  EventChart getEventChart(String uid);
 
-    void deleteEventChart( EventChart eventChart );
+  void deleteEventChart(EventChart eventChart);
 
-    List<EventChart> getAllEventCharts();
+  List<EventChart> getAllEventCharts();
 }

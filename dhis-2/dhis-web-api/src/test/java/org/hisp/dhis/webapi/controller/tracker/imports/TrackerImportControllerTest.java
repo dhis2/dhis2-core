@@ -45,7 +45,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.HashMap;
 import java.util.LinkedList;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
@@ -78,308 +77,298 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@ExtendWith( MockitoExtension.class )
-class TrackerImportControllerTest
-{
+@ExtendWith(MockitoExtension.class)
+class TrackerImportControllerTest {
 
-    private final static String ENDPOINT = "/" + TrackerControllerSupport.RESOURCE_PATH;
+  private static final String ENDPOINT = "/" + TrackerControllerSupport.RESOURCE_PATH;
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Mock
-    private DefaultTrackerImportService trackerImportService;
+  @Mock private DefaultTrackerImportService trackerImportService;
 
-    @Mock
-    private TrackerImporter importStrategy;
+  @Mock private TrackerImporter importStrategy;
 
-    @Mock
-    private CsvEventService<Event> csvEventService;
+  @Mock private CsvEventService<Event> csvEventService;
 
-    @Mock
-    private Notifier notifier;
+  @Mock private Notifier notifier;
 
-    private RenderService renderService;
+  private RenderService renderService;
 
-    @BeforeEach
-    public void setUp()
-    {
-        renderService = new DefaultRenderService( JacksonObjectMapperConfig.jsonMapper,
+  @BeforeEach
+  public void setUp() {
+    renderService =
+        new DefaultRenderService(
+            JacksonObjectMapperConfig.jsonMapper,
             JacksonObjectMapperConfig.xmlMapper,
-            mock( SchemaService.class ) );
+            mock(SchemaService.class));
 
-        // Controller under test
-        final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
-            csvEventService, new DefaultContextService(), notifier );
+    // Controller under test
+    final TrackerImportController controller =
+        new TrackerImportController(
+            importStrategy,
+            trackerImportService,
+            csvEventService,
+            new DefaultContextService(),
+            notifier);
 
-        mockMvc = MockMvcBuilders.standaloneSetup( controller )
-            .setControllerAdvice( new CrudControllerAdvice() )
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(controller)
+            .setControllerAdvice(new CrudControllerAdvice())
             .build();
+  }
+
+  @Test
+  void verifyAsync() throws Exception {
+
+    // Then
+    mockMvc
+        .perform(
+            post(ENDPOINT)
+                .content("{}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value(TRACKER_JOB_ADDED))
+        .andExpect(content().contentType("application/json"));
+  }
+
+  @Test
+  void verifyAsyncForCsv() throws Exception {
+
+    // Then
+    mockMvc
+        .perform(post(ENDPOINT).content("{}").contentType("text/csv"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").value(TRACKER_JOB_ADDED))
+        .andExpect(content().contentType("application/json"));
+
+    verify(csvEventService).readEvents(any(), eq(true));
+    verify(importStrategy).importTracker(any());
+  }
+
+  @Test
+  void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk() throws Exception {
+    // When
+    when(importStrategy.importTracker(any()))
+        .thenReturn(
+            TrackerImportReport.withImportCompleted(
+                TrackerStatus.OK,
+                TrackerBundleReport.builder().status(TrackerStatus.OK).build(),
+                new TrackerValidationReport(),
+                new TrackerTimingsStats(),
+                new HashMap<>()));
+
+    // Then
+    String contentAsString =
+        mockMvc
+            .perform(
+                post(ENDPOINT + "?async=false")
+                    .content("{}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").doesNotExist())
+            .andExpect(content().contentType("application/json"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    verify(importStrategy).importTracker(any());
+
+    try {
+      renderService.fromJson(contentAsString, TrackerImportReport.class);
+    } catch (Exception e) {
+      fail("response content : " + contentAsString + "\n" + " is not of TrackerImportReport type");
     }
+  }
 
-    @Test
-    void verifyAsync()
-        throws Exception
-    {
+  @Test
+  void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk() throws Exception {
+    // When
+    when(importStrategy.importTracker(any()))
+        .thenReturn(
+            TrackerImportReport.withImportCompleted(
+                TrackerStatus.OK,
+                TrackerBundleReport.builder().status(TrackerStatus.OK).build(),
+                new TrackerValidationReport(),
+                new TrackerTimingsStats(),
+                new HashMap<>()));
 
-        // Then
-        mockMvc.perform( post( ENDPOINT )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() )
-            .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
-            .andExpect( content().contentType( "application/json" ) );
+    // Then
+    String contentAsString =
+        mockMvc
+            .perform(
+                post(ENDPOINT + "?async=false&skipFirst=true")
+                    .content("{}")
+                    .contentType("text/csv"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").doesNotExist())
+            .andExpect(content().contentType("application/json"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    verify(csvEventService).readEvents(any(), eq(true));
+    verify(importStrategy).importTracker(any());
+
+    try {
+      renderService.fromJson(contentAsString, TrackerImportReport.class);
+    } catch (Exception e) {
+      fail("response content : " + contentAsString + "\n" + " is not of TrackerImportReport type");
     }
+  }
 
-    @Test
-    void verifyAsyncForCsv()
-        throws Exception
-    {
+  @Test
+  void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError() throws Exception {
+    String errorMessage = "errorMessage";
+    // When
+    when(importStrategy.importTracker(any()))
+        .thenReturn(
+            TrackerImportReport.withError(
+                "errorMessage", new TrackerValidationReport(), new TrackerTimingsStats()));
 
-        // Then
-        mockMvc.perform( post( ENDPOINT )
-            .content( "{}" )
-            .contentType( "text/csv" ) )
-            .andExpect( status().isOk() )
-            .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
-            .andExpect( content().contentType( "application/json" ) );
+    // Then
+    String contentAsString =
+        mockMvc
+            .perform(
+                post(ENDPOINT + "?async=false")
+                    .content("{}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(errorMessage))
+            .andExpect(content().contentType("application/json"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
+    verify(importStrategy).importTracker(any());
+
+    try {
+      renderService.fromJson(contentAsString, TrackerImportReport.class);
+    } catch (Exception e) {
+      fail("response content : " + contentAsString + "\n" + " is not of TrackerImportReport type");
     }
+  }
 
-    @Test
-    void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk()
-        throws Exception
-    {
-        // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+  @Test
+  void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError() throws Exception {
+    String errorMessage = "errorMessage";
+    // When
+    when(importStrategy.importTracker(any()))
+        .thenReturn(
+            TrackerImportReport.withError(
+                "errorMessage", new TrackerValidationReport(), new TrackerTimingsStats()));
+
+    // Then
+    String contentAsString =
+        mockMvc
+            .perform(
+                post(ENDPOINT + "?async=false&skipFirst=true")
+                    .content("{}")
+                    .contentType("text/csv"))
+            .andExpect(status().isConflict())
+            .andExpect(jsonPath("$.message").value(errorMessage))
+            .andExpect(content().contentType("application/json"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    verify(csvEventService).readEvents(any(), eq(true));
+    verify(importStrategy).importTracker(any());
+
+    try {
+      renderService.fromJson(contentAsString, TrackerImportReport.class);
+    } catch (Exception e) {
+      fail("response content : " + contentAsString + "\n" + " is not of TrackerImportReport type");
+    }
+  }
+
+  @Test
+  void verifyShouldFindJob() throws Exception {
+    String uid = CodeGenerator.generateUid();
+    // When
+    when(notifier.getNotificationsByJobId(JobType.TRACKER_IMPORT_JOB, uid))
+        .thenReturn(new LinkedList<>(singletonList(new Notification())));
+
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/jobs/" + uid)
+                .content("{}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message").doesNotExist())
+        .andExpect(jsonPath("$").isArray())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$.[0].uid").isNotEmpty())
+        .andExpect(content().contentType("application/json"))
+        .andReturn()
+        .getResponse()
+        .getContentAsString();
+
+    verify(notifier).getNotificationsByJobId(JobType.TRACKER_IMPORT_JOB, uid);
+  }
+
+  @Test
+  void verifyShouldFindJobReport() throws Exception {
+    String uid = CodeGenerator.generateUid();
+
+    TrackerImportReport trackerImportReport =
+        TrackerImportReport.withImportCompleted(
             TrackerStatus.OK,
-            TrackerBundleReport.builder()
-                .status( TrackerStatus.OK )
-                .build(),
+            TrackerBundleReport.builder().status(TrackerStatus.OK).build(),
             new TrackerValidationReport(),
             new TrackerTimingsStats(),
-            new HashMap<>() ) );
+            new HashMap<>());
 
-        // Then
-        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() )
-            .andExpect( jsonPath( "$.message" ).doesNotExist() )
-            .andExpect( content().contentType( "application/json" ) )
+    // When
+    when(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid))
+        .thenReturn(trackerImportReport);
+
+    when(trackerImportService.buildImportReport(any(), any())).thenReturn(trackerImportReport);
+
+    // Then
+    String contentAsString =
+        mockMvc
+            .perform(
+                get(ENDPOINT + "/jobs/" + uid + "/report")
+                    .content("{}")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").doesNotExist())
+            .andExpect(content().contentType("application/json"))
             .andReturn()
             .getResponse()
             .getContentAsString();
 
-        verify( importStrategy ).importTracker( any() );
+    verify(notifier).getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid);
+    verify(trackerImportService).buildImportReport(any(), any());
 
-        try
-        {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
-        }
-        catch ( Exception e )
-        {
-            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
-        }
+    try {
+      renderService.fromJson(contentAsString, TrackerImportReport.class);
+    } catch (Exception e) {
+      fail("response content : " + contentAsString + "\n" + " is not of TrackerImportReport type");
     }
+  }
 
-    @Test
-    void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk()
-        throws Exception
-    {
-        // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
-            TrackerStatus.OK,
-            TrackerBundleReport.builder()
-                .status( TrackerStatus.OK )
-                .build(),
-            new TrackerValidationReport(),
-            new TrackerTimingsStats(),
-            new HashMap<>() ) );
+  @Test
+  void verifyShouldThrowWhenJobReportNotFound() throws Exception {
+    String uid = CodeGenerator.generateUid();
 
-        // Then
-        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false&skipFirst=true" )
-            .content( "{}" )
-            .contentType( "text/csv" ) )
-            .andExpect( status().isOk() )
-            .andExpect( jsonPath( "$.message" ).doesNotExist() )
-            .andExpect( content().contentType( "application/json" ) )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
+    // When
+    when(notifier.getJobSummaryByJobId(JobType.TRACKER_IMPORT_JOB, uid)).thenReturn(null);
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
-
-        try
-        {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
-        }
-        catch ( Exception e )
-        {
-            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
-        }
-    }
-
-    @Test
-    void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
-        throws Exception
-    {
-        String errorMessage = "errorMessage";
-        // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
-            new TrackerValidationReport(),
-            new TrackerTimingsStats() ) );
-
-        // Then
-        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isConflict() )
-            .andExpect( jsonPath( "$.message" ).value( errorMessage ) )
-            .andExpect( content().contentType( "application/json" ) )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        verify( importStrategy ).importTracker( any() );
-
-        try
-        {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
-        }
-        catch ( Exception e )
-        {
-            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
-        }
-    }
-
-    @Test
-    void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError()
-        throws Exception
-    {
-        String errorMessage = "errorMessage";
-        // When
-        when( importStrategy.importTracker( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
-            new TrackerValidationReport(),
-            new TrackerTimingsStats() ) );
-
-        // Then
-        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false&skipFirst=true" )
-            .content( "{}" )
-            .contentType( "text/csv" ) )
-            .andExpect( status().isConflict() )
-            .andExpect( jsonPath( "$.message" ).value( errorMessage ) )
-            .andExpect( content().contentType( "application/json" ) )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        verify( csvEventService ).readEvents( any(), eq( true ) );
-        verify( importStrategy ).importTracker( any() );
-
-        try
-        {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
-        }
-        catch ( Exception e )
-        {
-            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
-        }
-    }
-
-    @Test
-    void verifyShouldFindJob()
-        throws Exception
-    {
-        String uid = CodeGenerator.generateUid();
-        // When
-        when( notifier.getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .thenReturn( new LinkedList<>( singletonList( new Notification() ) ) );
-
-        // Then
-        mockMvc.perform( get( ENDPOINT + "/jobs/" + uid )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() )
-            .andExpect( jsonPath( "$.message" ).doesNotExist() )
-            .andExpect( jsonPath( "$" ).isArray() )
-            .andExpect( jsonPath( "$", hasSize( 1 ) ) )
-            .andExpect( jsonPath( "$.[0].uid" ).isNotEmpty() )
-            .andExpect( content().contentType( "application/json" ) )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        verify( notifier ).getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid );
-    }
-
-    @Test
-    void verifyShouldFindJobReport()
-        throws Exception
-    {
-        String uid = CodeGenerator.generateUid();
-
-        TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted(
-            TrackerStatus.OK,
-            TrackerBundleReport.builder()
-                .status( TrackerStatus.OK )
-                .build(),
-            new TrackerValidationReport(),
-            new TrackerTimingsStats(),
-            new HashMap<>() );
-
-        // When
-        when( notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .thenReturn( trackerImportReport );
-
-        when( trackerImportService.buildImportReport( any(), any() ) ).thenReturn( trackerImportReport );
-
-        // Then
-        String contentAsString = mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() )
-            .andExpect( jsonPath( "$.message" ).doesNotExist() )
-            .andExpect( content().contentType( "application/json" ) )
-            .andReturn()
-            .getResponse()
-            .getContentAsString();
-
-        verify( notifier ).getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
-        verify( trackerImportService ).buildImportReport( any(), any() );
-
-        try
-        {
-            renderService.fromJson( contentAsString, TrackerImportReport.class );
-        }
-        catch ( Exception e )
-        {
-            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
-        }
-    }
-
-    @Test
-    void verifyShouldThrowWhenJobReportNotFound()
-        throws Exception
-    {
-        String uid = CodeGenerator.generateUid();
-
-        // When
-        when( notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .thenReturn( null );
-
-        // Then
-        mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
-            .content( "{}" )
-            .contentType( MediaType.APPLICATION_JSON )
-            .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
-    }
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/jobs/" + uid + "/report")
+                .content("{}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof NotFoundException));
+  }
 }

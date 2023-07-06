@@ -30,41 +30,34 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.user.UserSettingDeletionHandler" )
-public class UserSettingDeletionHandler
-    extends DeletionHandler
-{
-    private final UserSettingService userSettingService;
+@Component("org.hisp.dhis.user.UserSettingDeletionHandler")
+public class UserSettingDeletionHandler extends DeletionHandler {
+  private final UserSettingService userSettingService;
 
-    public UserSettingDeletionHandler( UserSettingService userSettingService )
-    {
-        checkNotNull( userSettingService );
+  public UserSettingDeletionHandler(UserSettingService userSettingService) {
+    checkNotNull(userSettingService);
 
-        this.userSettingService = userSettingService;
+    this.userSettingService = userSettingService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+  }
+
+  private void deleteUser(User user) {
+    Iterator<UserSetting> settings = userSettingService.getUserSettings(user).iterator();
+
+    while (settings.hasNext()) {
+      UserSetting setting = settings.next();
+      settings.remove();
+      userSettingService.deleteUserSetting(setting);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-    }
-
-    private void deleteUser( User user )
-    {
-        Iterator<UserSetting> settings = userSettingService.getUserSettings( user ).iterator();
-
-        while ( settings.hasNext() )
-        {
-            UserSetting setting = settings.next();
-            settings.remove();
-            userSettingService.deleteUserSetting( setting );
-        }
-    }
+  }
 }

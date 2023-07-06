@@ -30,7 +30,6 @@ package org.hisp.dhis.security;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.system.util.SecurityUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -46,56 +45,56 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-@Service( "userDetailsService" )
-public class DefaultUserDetailsService
-    implements UserDetailsService
-{
-    public static final String ID = UserDetailsService.class.getName();
+@Service("userDetailsService")
+public class DefaultUserDetailsService implements UserDetailsService {
+  public static final String ID = UserDetailsService.class.getName();
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final SecurityService securityService;
+  private final SecurityService securityService;
 
-    public DefaultUserDetailsService( UserService userService, SecurityService securityService )
-    {
-        checkNotNull( userService );
-        checkNotNull( securityService );
+  public DefaultUserDetailsService(UserService userService, SecurityService securityService) {
+    checkNotNull(userService);
+    checkNotNull(securityService);
 
-        this.userService = userService;
-        this.securityService = securityService;
+    this.userService = userService;
+    this.securityService = securityService;
+  }
+
+  // -------------------------------------------------------------------------
+  // UserDetailsService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public UserDetails loadUserByUsername(String username)
+      throws UsernameNotFoundException, DataAccessException {
+    User user = userService.getUserByUsername(username);
+
+    boolean enabled = !user.isDisabled();
+    boolean credentialsNonExpired = userService.userNonExpired(user);
+    boolean accountNonLocked = !securityService.isLocked(user.getUsername());
+    boolean accountNonExpired = !userService.isAccountExpired(user);
+
+    if (ObjectUtils.anyIsFalse(
+        enabled, credentialsNonExpired, accountNonLocked, accountNonExpired)) {
+      log.debug(
+          String.format(
+              "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
+              username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked));
     }
 
-    // -------------------------------------------------------------------------
-    // UserDetailsService implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
-    {
-        User user = userService.getUserByUsername( username );
-
-        boolean enabled = !user.isDisabled();
-        boolean credentialsNonExpired = userService.userNonExpired( user );
-        boolean accountNonLocked = !securityService.isLocked( user.getUsername() );
-        boolean accountNonExpired = !userService.isAccountExpired( user );
-
-        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
-        {
-            log.debug( String.format(
-                "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, user non-expired: %b, account non-locked: %b",
-                username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
-        }
-
-        return new org.springframework.security.core.userdetails.User( user.getUsername(),
-            user.getPassword(),
-            enabled, accountNonExpired, credentialsNonExpired, accountNonLocked,
-            SecurityUtils.getGrantedAuthorities( user ) );
-    }
+    return new org.springframework.security.core.userdetails.User(
+        user.getUsername(),
+        user.getPassword(),
+        enabled,
+        accountNonExpired,
+        credentialsNonExpired,
+        accountNonLocked,
+        SecurityUtils.getGrantedAuthorities(user));
+  }
 }

@@ -31,9 +31,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,22 +48,21 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = CategoryOptionSchemaDescriptor.API_ENDPOINT)
 @RequiredArgsConstructor
-public class CategoryOptionController extends AbstractCrudController<CategoryOption>
-{
-    private final CategoryService categoryService;
+public class CategoryOptionController extends AbstractCrudController<CategoryOption> {
+  private final CategoryService categoryService;
 
-    @ResponseBody
-    @GetMapping( value = "orgUnits" )
-    public Map<String, Collection<String>> getOrgUnitsAssociations(
-        @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
-    {
-        return Optional.ofNullable( categoryOptionsUids )
-            .filter( CollectionUtils::isNotEmpty )
-            .map( categoryService::getCategoryOptionOrganisationUnitsAssociations )
-            .map( SetValuedMap::asMap )
-            .orElseThrow( () -> new IllegalArgumentException( "At least one categoryOption uid must be specified" ) );
-    }
-
+  @ResponseBody
+  @GetMapping(value = "orgUnits")
+  public Map<String, Collection<String>> getOrgUnitsAssociations(
+      @RequestParam(value = "categoryOptions") Set<String> categoryOptionsUids) {
+    return Optional.ofNullable(categoryOptionsUids)
+        .filter(CollectionUtils::isNotEmpty)
+        .map(categoryService::getCategoryOptionOrganisationUnitsAssociations)
+        .map(SetValuedMap::asMap)
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException("At least one categoryOption uid must be specified"));
+  }
 }

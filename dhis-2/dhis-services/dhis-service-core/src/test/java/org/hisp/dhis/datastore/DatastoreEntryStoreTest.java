@@ -39,83 +39,72 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Stian Sandvold.
  */
-class DatastoreEntryStoreTest extends DhisSpringTest
-{
+class DatastoreEntryStoreTest extends DhisSpringTest {
 
-    @Autowired
-    private DatastoreStore store;
+  @Autowired private DatastoreStore store;
 
-    @Test
-    void testAddKeyJsonValue()
-    {
-        DatastoreEntry entry = addEntry( "A", "1" );
-        assertNotNull( entry );
-        assertEquals( entry, store.get( entry.getId() ) );
-    }
+  @Test
+  void testAddKeyJsonValue() {
+    DatastoreEntry entry = addEntry("A", "1");
+    assertNotNull(entry);
+    assertEquals(entry, store.get(entry.getId()));
+  }
 
-    @Test
-    void testAddKeyJsonValuesAndGetNamespaces()
-    {
-        addEntry( "A", "1" );
-        addEntry( "B", "1" );
-        assertContainsOnly( store.getNamespaces(), "A", "B" );
-    }
+  @Test
+  void testAddKeyJsonValuesAndGetNamespaces() {
+    addEntry("A", "1");
+    addEntry("B", "1");
+    assertContainsOnly(store.getNamespaces(), "A", "B");
+  }
 
-    @Test
-    void testAddKeyJsonValuesAndGetKeysFromNamespace()
-    {
-        addEntry( "A", "1" );
-        addEntry( "A", "2" );
-        addEntry( "B", "1" );
-        assertContainsOnly( store.getKeysInNamespace( "A" ), "1", "2" );
-    }
+  @Test
+  void testAddKeyJsonValuesAndGetKeysFromNamespace() {
+    addEntry("A", "1");
+    addEntry("A", "2");
+    addEntry("B", "1");
+    assertContainsOnly(store.getKeysInNamespace("A"), "1", "2");
+  }
 
-    @Test
-    void testAddKeyJsonValueAndGetKeyJsonValue()
-    {
-        DatastoreEntry entryA = addEntry( "A", "1" );
-        assertEquals( store.getEntry( "A", "1" ), entryA );
-    }
+  @Test
+  void testAddKeyJsonValueAndGetKeyJsonValue() {
+    DatastoreEntry entryA = addEntry("A", "1");
+    assertEquals(store.getEntry("A", "1"), entryA);
+  }
 
-    @Test
-    void testGetKeyJsonValuesByNamespace()
-    {
-        DatastoreEntry entryA1 = addEntry( "A", "1" );
-        DatastoreEntry entryA2 = addEntry( "A", "2" );
-        DatastoreEntry entryA3 = addEntry( "A", "3" );
-        DatastoreEntry entryB1 = addEntry( "B", "1" );
-        assertContainsOnly( store.getEntryByNamespace( "A" ), entryA1, entryA2, entryA3 );
-        assertFalse( store.getEntryByNamespace( "A" ).contains( entryB1 ) );
-    }
+  @Test
+  void testGetKeyJsonValuesByNamespace() {
+    DatastoreEntry entryA1 = addEntry("A", "1");
+    DatastoreEntry entryA2 = addEntry("A", "2");
+    DatastoreEntry entryA3 = addEntry("A", "3");
+    DatastoreEntry entryB1 = addEntry("B", "1");
+    assertContainsOnly(store.getEntryByNamespace("A"), entryA1, entryA2, entryA3);
+    assertFalse(store.getEntryByNamespace("A").contains(entryB1));
+  }
 
-    @Test
-    void testCountKeysInNamespace()
-    {
-        addEntry( "A", "1" );
-        addEntry( "A", "2" );
-        addEntry( "A", "3" );
-        addEntry( "B", "1" );
-        assertEquals( 3, store.countKeysInNamespace( "A" ) );
-        assertEquals( 1, store.countKeysInNamespace( "B" ) );
-        assertEquals( 0, store.countKeysInNamespace( "C" ) );
-    }
+  @Test
+  void testCountKeysInNamespace() {
+    addEntry("A", "1");
+    addEntry("A", "2");
+    addEntry("A", "3");
+    addEntry("B", "1");
+    assertEquals(3, store.countKeysInNamespace("A"));
+    assertEquals(1, store.countKeysInNamespace("B"));
+    assertEquals(0, store.countKeysInNamespace("C"));
+  }
 
-    @Test
-    void deleteNamespace()
-    {
-        addEntry( "A", "1" );
-        addEntry( "A", "3" );
-        addEntry( "B", "1" );
-        addEntry( "C", "1" );
-        store.deleteNamespace( "A" );
-        assertContainsOnly( store.getNamespaces(), "B", "C" );
-    }
+  @Test
+  void deleteNamespace() {
+    addEntry("A", "1");
+    addEntry("A", "3");
+    addEntry("B", "1");
+    addEntry("C", "1");
+    store.deleteNamespace("A");
+    assertContainsOnly(store.getNamespaces(), "B", "C");
+  }
 
-    private DatastoreEntry addEntry( String ns, String key )
-    {
-        DatastoreEntry entry = new DatastoreEntry( ns, key );
-        store.save( entry );
-        return entry;
-    }
-
+  private DatastoreEntry addEntry(String ns, String key) {
+    DatastoreEntry entry = new DatastoreEntry(ns, key);
+    store.save(entry);
+    return entry;
+  }
 }

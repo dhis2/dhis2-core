@@ -27,137 +27,126 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
  * @author Nguyen Hong Duc
  */
-@JacksonXmlRootElement( localName = "userRole", namespace = DxfNamespaces.DXF_2_0 )
-public class UserRole
-    extends BaseIdentifiableObject implements MetadataObject
-{
-    public static final String AUTHORITY_ALL = "ALL";
+@JacksonXmlRootElement(localName = "userRole", namespace = DxfNamespaces.DXF_2_0)
+public class UserRole extends BaseIdentifiableObject implements MetadataObject {
+  public static final String AUTHORITY_ALL = "ALL";
 
-    private static final String[] CRITICAL_AUTHS = { "ALL", "F_SCHEDULING_ADMIN", "F_SYSTEM_SETTING",
-        "F_SQLVIEW_PUBLIC_ADD", "F_SQLVIEW_PRIVATE_ADD", "F_SQLVIEW_DELETE",
-        "F_USERROLE_PUBLIC_ADD", "F_USERROLE_PRIVATE_ADD", "F_USERROLE_DELETE" };
+  private static final String[] CRITICAL_AUTHS = {
+    "ALL",
+    "F_SCHEDULING_ADMIN",
+    "F_SYSTEM_SETTING",
+    "F_SQLVIEW_PUBLIC_ADD",
+    "F_SQLVIEW_PRIVATE_ADD",
+    "F_SQLVIEW_DELETE",
+    "F_USERROLE_PUBLIC_ADD",
+    "F_USERROLE_PRIVATE_ADD",
+    "F_USERROLE_DELETE"
+  };
 
-    /**
-     * Required and unique.
-     */
-    private String description;
+  /** Required and unique. */
+  private String description;
 
-    private Set<String> authorities = new HashSet<>();
+  private Set<String> authorities = new HashSet<>();
 
-    private Set<User> members = new HashSet<>();
+  private Set<User> members = new HashSet<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public UserRole()
-    {
-        setAutoFields();
+  public UserRole() {
+    setAutoFields();
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void addUser(User user) {
+    members.add(user);
+    user.getUserRoles().add(this);
+  }
+
+  public void removeUser(User useer) {
+    members.remove(useer);
+    useer.getUserRoles().remove(this);
+  }
+
+  public boolean isSuper() {
+    return authorities != null && authorities.contains(AUTHORITY_ALL);
+  }
+
+  public boolean hasCriticalAuthorities() {
+    return authorities != null
+        && CollectionUtils.containsAny(authorities, Sets.newHashSet(CRITICAL_AUTHS));
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "authorities", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "authority", namespace = DxfNamespaces.DXF_2_0)
+  public Set<String> getAuthorities() {
+    return authorities;
+  }
+
+  public void setAuthorities(Set<String> authorities) {
+    this.authorities = authorities;
+  }
+
+  public Set<User> getMembers() {
+    return members;
+  }
+
+  public void setMembers(Set<User> members) {
+    this.members = members;
+  }
+
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "users", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "userObject", namespace = DxfNamespaces.DXF_2_0)
+  public List<User> getUsers() {
+    List<User> users = new ArrayList<>();
+
+    for (User user : members) {
+      if (user != null) {
+        users.add(user);
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public void addUser( User user )
-    {
-        members.add( user );
-        user.getUserRoles().add( this );
-    }
-
-    public void removeUser( User useer )
-    {
-        members.remove( useer );
-        useer.getUserRoles().remove( this );
-    }
-
-    public boolean isSuper()
-    {
-        return authorities != null && authorities.contains( AUTHORITY_ALL );
-    }
-
-    public boolean hasCriticalAuthorities()
-    {
-        return authorities != null && CollectionUtils.containsAny( authorities, Sets.newHashSet( CRITICAL_AUTHS ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "authorities", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "authority", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getAuthorities()
-    {
-        return authorities;
-    }
-
-    public void setAuthorities( Set<String> authorities )
-    {
-        this.authorities = authorities;
-    }
-
-    public Set<User> getMembers()
-    {
-        return members;
-    }
-
-    public void setMembers( Set<User> members )
-    {
-        this.members = members;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "users", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "userObject", namespace = DxfNamespaces.DXF_2_0 )
-    public List<User> getUsers()
-    {
-        List<User> users = new ArrayList<>();
-
-        for ( User user : members )
-        {
-            if ( user != null )
-            {
-                users.add( user );
-            }
-        }
-
-        return users;
-    }
+    return users;
+  }
 }

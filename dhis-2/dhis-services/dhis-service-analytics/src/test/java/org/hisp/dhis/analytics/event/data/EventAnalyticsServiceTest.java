@@ -33,12 +33,13 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
@@ -71,273 +72,269 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * Tests aggregation of data in event analytics tables.
  *
  * @author Henning Haakonsen
  */
-class EventAnalyticsServiceTest extends IntegrationTestBase
-{
+class EventAnalyticsServiceTest extends IntegrationTestBase {
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    private Program programA;
+  private Program programA;
 
-    @Autowired
-    private List<AnalyticsTableService> analyticsTableServices;
+  @Autowired private List<AnalyticsTableService> analyticsTableServices;
 
-    @Autowired
-    private EventAnalyticsService eventAnalyticsService;
+  @Autowired private EventAnalyticsService eventAnalyticsService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
+  @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+  @Autowired private ProgramInstanceService programInstanceService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Override
-    public void setUpTest()
-    {
-        userService = _userService;
-        // Common stubbed data
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        ouC.setOpeningDate( getDate( 2016, 4, 10 ) );
-        ouC.setClosedDate( null );
-        OrganisationUnit ouD = createOrganisationUnit( 'D' );
-        ouD.setOpeningDate( getDate( 2016, 12, 10 ) );
-        ouD.setClosedDate( null );
-        OrganisationUnit ouE = createOrganisationUnit( 'E' );
-        AnalyticsTestUtils.configureHierarchy( ouA, ouB, ouC, ouD, ouE );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-        idObjectManager.save( ouD );
-        idObjectManager.save( ouE );
+  @Override
+  public void setUpTest() {
+    userService = _userService;
+    // Common stubbed data
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    ouC.setOpeningDate(getDate(2016, 4, 10));
+    ouC.setClosedDate(null);
+    OrganisationUnit ouD = createOrganisationUnit('D');
+    ouD.setOpeningDate(getDate(2016, 12, 10));
+    ouD.setClosedDate(null);
+    OrganisationUnit ouE = createOrganisationUnit('E');
+    AnalyticsTestUtils.configureHierarchy(ouA, ouB, ouC, ouD, ouE);
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+    idObjectManager.save(ouC);
+    idObjectManager.save(ouD);
+    idObjectManager.save(ouE);
+  }
+
+  @Override
+  public void tearDownTest() {
+    for (AnalyticsTableService service : analyticsTableServices) {
+      service.dropTables();
     }
+  }
 
-    @Override
-    public void tearDownTest()
-    {
-        for ( AnalyticsTableService service : analyticsTableServices )
-        {
-            service.dropTables();
-        }
-    }
+  /**
+   * To create a new test that needs the analytics table populated:
+   *
+   * <p>
+   *
+   * <ul>
+   *   <li>Make new EventQueryParam.
+   *   <li>Add to 'eventQueryParams' map.
+   *   <li>Add HashMap<String, Double> with expected output to results map.
+   * </ul>
+   */
+  @Test
+  void testGridAggregation() throws IOException {
+    // Given
+    // Stubbed events data
+    stubAnalyticsEventsData();
+    // Events data from CSV file
+    List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath("csv/eventData.csv", true);
+    parseEventData(eventDataLines);
+    // The generated analytics tables
+    analyticsTableGenerator.generateTables(
+        AnalyticsTableUpdateParams.newBuilder().build(), NoopJobProgress.INSTANCE);
+    // The user
+    createAndInjectAdminUser();
+    // All events in program A - 2017
+    EventQueryParams events_2017_params =
+        new EventQueryParams.Builder()
+            .withOrganisationUnits(Lists.newArrayList(ouA))
+            .withStartDate(getDate(2017, 1, 1))
+            .withEndDate(getDate(2017, 12, 31))
+            .withProgram(programA)
+            .build();
+    // The results
+    Map<String, Number> events_2017_keyValue = new HashMap<>();
+    events_2017_keyValue.put("ouabcdefghA", 6.0);
+    // When
+    Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData(events_2017_params);
+    // Then
+    AnalyticsTestUtils.assertResultGrid(
+        "events_2017", aggregatedDataValueGrid, events_2017_keyValue);
+  }
 
-    /**
-     * <p>
-     * To create a new test that needs the analytics table populated:
-     * <p>
-     * <ul>
-     * <li>Make new EventQueryParam.</li>
-     * <li>Add to 'eventQueryParams' map.</li>
-     * <li>Add HashMap<String, Double> with expected output to results map.</li>
-     * </ul>
-     */
-    @Test
-    void testGridAggregation()
-        throws IOException
-    {
-        // Given
-        // Stubbed events data
-        stubAnalyticsEventsData();
-        // Events data from CSV file
-        List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath( "csv/eventData.csv", true );
-        parseEventData( eventDataLines );
-        // The generated analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
-            NoopJobProgress.INSTANCE );
-        // The user
-        createAndInjectAdminUser();
-        // All events in program A - 2017
-        EventQueryParams events_2017_params = new EventQueryParams.Builder()
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).withStartDate( getDate( 2017, 1, 1 ) )
-            .withEndDate( getDate( 2017, 12, 31 ) ).withProgram( programA ).build();
-        // The results
-        Map<String, Number> events_2017_keyValue = new HashMap<>();
-        events_2017_keyValue.put( "ouabcdefghA", 6.0 );
-        // When
-        Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( events_2017_params );
-        // Then
-        AnalyticsTestUtils.assertResultGrid( "events_2017", aggregatedDataValueGrid, events_2017_keyValue );
-    }
+  @Test
+  void testDimensionRestrictionSuccessfully() {
+    // Given
+    // A program
+    Program aProgram = createProgram('B', null, null, Sets.newHashSet(ouA, ouB), null);
+    aProgram.setUid("aProgram123");
+    idObjectManager.save(aProgram);
+    // The category options
+    CategoryOption coA = createCategoryOption('A');
+    CategoryOption coB = createCategoryOption('B');
+    categoryService.addCategoryOption(coA);
+    categoryService.addCategoryOption(coB);
+    // The categories
+    Category caA = createCategory('A', coA);
+    Category caB = createCategory('B', coB);
+    categoryService.addCategory(caA);
+    categoryService.addCategory(caB);
+    // The constraints
+    Set<Category> catDimensionConstraints = Sets.newHashSet(caA, caB);
+    // The user
+    User user = createUser("A", "F_VIEW_EVENT_ANALYTICS");
+    user.setCatDimensionConstraints(catDimensionConstraints);
+    userService.addUser(user);
+    enableDataSharing(user, aProgram, AccessStringHelper.DATA_READ_WRITE);
+    idObjectManager.update(user);
+    injectSecurityContext(user);
+    // All events in program B - 2017
+    EventQueryParams events_2017_params =
+        new EventQueryParams.Builder()
+            .withOrganisationUnits(Lists.newArrayList(ouA))
+            .withStartDate(getDate(2017, 1, 1))
+            .withEndDate(getDate(2017, 12, 31))
+            .withProgram(aProgram)
+            .build();
+    // When
+    Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData(events_2017_params);
+    // Then
+    boolean noCategoryRestrictionExceptionIsThrown = true;
+    assertThat(aggregatedDataValueGrid, is(notNullValue()));
+    assert (noCategoryRestrictionExceptionIsThrown);
+  }
 
-    @Test
-    void testDimensionRestrictionSuccessfully()
-    {
-        // Given
-        // A program
-        Program aProgram = createProgram( 'B', null, null, Sets.newHashSet( ouA, ouB ), null );
-        aProgram.setUid( "aProgram123" );
-        idObjectManager.save( aProgram );
-        // The category options
-        CategoryOption coA = createCategoryOption( 'A' );
-        CategoryOption coB = createCategoryOption( 'B' );
-        categoryService.addCategoryOption( coA );
-        categoryService.addCategoryOption( coB );
-        // The categories
-        Category caA = createCategory( 'A', coA );
-        Category caB = createCategory( 'B', coB );
-        categoryService.addCategory( caA );
-        categoryService.addCategory( caB );
-        // The constraints
-        Set<Category> catDimensionConstraints = Sets.newHashSet( caA, caB );
-        // The user
-        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
-        user.setCatDimensionConstraints( catDimensionConstraints );
-        userService.addUser( user );
-        enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
-        idObjectManager.update( user );
-        injectSecurityContext( user );
-        // All events in program B - 2017
-        EventQueryParams events_2017_params = new EventQueryParams.Builder()
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).withStartDate( getDate( 2017, 1, 1 ) )
-            .withEndDate( getDate( 2017, 12, 31 ) ).withProgram( aProgram ).build();
-        // When
-        Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( events_2017_params );
-        // Then
-        boolean noCategoryRestrictionExceptionIsThrown = true;
-        assertThat( aggregatedDataValueGrid, is( notNullValue() ) );
-        assert (noCategoryRestrictionExceptionIsThrown);
-    }
+  @Test
+  void testDimensionRestrictionWhenUserCannotReadCategoryOptions() {
+    // Given
+    // A program
+    Program aProgram = createProgram('B', null, null, Sets.newHashSet(ouA, ouB), null);
+    aProgram.setUid("aProgram123");
+    idObjectManager.save(aProgram);
+    // The category options
+    CategoryOption coA = createCategoryOption('A');
+    CategoryOption coB = createCategoryOption('B');
+    coA.getSharing().setOwner("cannotRead");
+    coB.getSharing().setOwner("cannotRead");
+    categoryService.addCategoryOption(coA);
+    categoryService.addCategoryOption(coB);
+    // The categories
+    Category caA = createCategory('A', coA);
+    Category caB = createCategory('B', coB);
+    categoryService.addCategory(caA);
+    categoryService.addCategory(caB);
+    removeUserAccess(coA);
+    removeUserAccess(coB);
+    categoryService.updateCategoryOption(coA);
+    categoryService.updateCategoryOption(coB);
+    // The constraints
+    Set<Category> catDimensionConstraints = Sets.newHashSet(caA, caB);
+    // The user
+    User user = createUser("A", "F_VIEW_EVENT_ANALYTICS");
+    user.setCatDimensionConstraints(catDimensionConstraints);
+    userService.addUser(user);
+    enableDataSharing(user, aProgram, AccessStringHelper.DATA_READ_WRITE);
+    idObjectManager.update(user);
+    injectSecurityContext(user);
+    // All events in program B - 2017
+    EventQueryParams events_2017_params =
+        new EventQueryParams.Builder()
+            .withOrganisationUnits(Lists.newArrayList(ouA))
+            .withStartDate(getDate(2017, 1, 1))
+            .withEndDate(getDate(2017, 12, 31))
+            .withProgram(aProgram)
+            .build();
+    // Then
+    Throwable exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> eventAnalyticsService.getAggregatedEventData(events_2017_params));
+    assertThat(
+        exception.getMessage(),
+        containsString(
+            "Current user is constrained by a dimension but has access to no dimension items"));
+  }
 
-    @Test
-    void testDimensionRestrictionWhenUserCannotReadCategoryOptions()
-    {
-        // Given
-        // A program
-        Program aProgram = createProgram( 'B', null, null, Sets.newHashSet( ouA, ouB ), null );
-        aProgram.setUid( "aProgram123" );
-        idObjectManager.save( aProgram );
-        // The category options
-        CategoryOption coA = createCategoryOption( 'A' );
-        CategoryOption coB = createCategoryOption( 'B' );
-        coA.getSharing().setOwner( "cannotRead" );
-        coB.getSharing().setOwner( "cannotRead" );
-        categoryService.addCategoryOption( coA );
-        categoryService.addCategoryOption( coB );
-        // The categories
-        Category caA = createCategory( 'A', coA );
-        Category caB = createCategory( 'B', coB );
-        categoryService.addCategory( caA );
-        categoryService.addCategory( caB );
-        removeUserAccess( coA );
-        removeUserAccess( coB );
-        categoryService.updateCategoryOption( coA );
-        categoryService.updateCategoryOption( coB );
-        // The constraints
-        Set<Category> catDimensionConstraints = Sets.newHashSet( caA, caB );
-        // The user
-        User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
-        user.setCatDimensionConstraints( catDimensionConstraints );
-        userService.addUser( user );
-        enableDataSharing( user, aProgram, AccessStringHelper.DATA_READ_WRITE );
-        idObjectManager.update( user );
-        injectSecurityContext( user );
-        // All events in program B - 2017
-        EventQueryParams events_2017_params = new EventQueryParams.Builder()
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).withStartDate( getDate( 2017, 1, 1 ) )
-            .withEndDate( getDate( 2017, 12, 31 ) ).withProgram( aProgram ).build();
-        // Then
-        Throwable exception = assertThrows( IllegalQueryException.class,
-            () -> eventAnalyticsService.getAggregatedEventData( events_2017_params ) );
-        assertThat( exception.getMessage(),
-            containsString( "Current user is constrained by a dimension but has access to no dimension items" ) );
+  // -------------------------------------------------------------------------
+  // Internal Logic
+  // -------------------------------------------------------------------------
+  private void parseEventData(List<String[]> lines) {
+    String storedBy = "johndoe";
+    for (String[] line : lines) {
+      Event event = new Event();
+      event.setProgram(line[0]);
+      event.setProgramStage(line[1]);
+      DataValue dataValue = new DataValue();
+      dataValue.setDataElement(line[2]);
+      dataValue.setValue(line[6]);
+      dataValue.setStoredBy(storedBy);
+      event.setEventDate(line[3]);
+      event.setOrgUnit(line[4]);
+      event.setDataValues(Sets.newHashSet(dataValue));
+      event.setCompletedDate(line[3]);
+      event.setTrackedEntityInstance(line[5]);
+      event.setStatus(EventStatus.COMPLETED);
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Internal Logic
-    // -------------------------------------------------------------------------
-    private void parseEventData( List<String[]> lines )
-    {
-        String storedBy = "johndoe";
-        for ( String[] line : lines )
-        {
-            Event event = new Event();
-            event.setProgram( line[0] );
-            event.setProgramStage( line[1] );
-            DataValue dataValue = new DataValue();
-            dataValue.setDataElement( line[2] );
-            dataValue.setValue( line[6] );
-            dataValue.setStoredBy( storedBy );
-            event.setEventDate( line[3] );
-            event.setOrgUnit( line[4] );
-            event.setDataValues( Sets.newHashSet( dataValue ) );
-            event.setCompletedDate( line[3] );
-            event.setTrackedEntityInstance( line[5] );
-            event.setStatus( EventStatus.COMPLETED );
-        }
-    }
-
-    private void stubAnalyticsEventsData()
-    {
-        Period peJan = createPeriod( "2017-01" );
-        Period peFeb = createPeriod( "2017-02" );
-        Period peMar = createPeriod( "2017-03" );
-        Period peApril = createPeriod( "2017-04" );
-        periodService.addPeriod( peJan );
-        periodService.addPeriod( peFeb );
-        periodService.addPeriod( peMar );
-        periodService.addPeriod( peApril );
-        DataElement deA = createDataElement( 'A' );
-        DataElement deB = createDataElement( 'B' );
-        DataElement deC = createDataElement( 'C' );
-        DataElement deD = createDataElement( 'D' );
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        programA = createProgram( 'A', null, null, Sets.newHashSet( ouA, ouB ), null );
-        programA.setUid( "programA123" );
-        idObjectManager.save( programA );
-        ProgramStage psA = createProgramStage( 'A', 0 );
-        psA.setUid( "programStgA" );
-        psA.addDataElement( deA, 0 );
-        psA.addDataElement( deB, 1 );
-        idObjectManager.save( psA );
-        ProgramStage psB = createProgramStage( 'B', 0 );
-        psB.setUid( "programStgB" );
-        psB.addDataElement( deA, 0 );
-        psB.addDataElement( deB, 1 );
-        idObjectManager.save( psB );
-        ProgramStage psC = createProgramStage( 'C', 0 );
-        psC.setUid( "programStgC" );
-        psC.addDataElement( deA, 0 );
-        psC.addDataElement( deB, 1 );
-        idObjectManager.save( psC );
-        programA.getProgramStages().add( psA );
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        idObjectManager.save( trackedEntityType );
-        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( ouA );
-        maleA.setUid( "person1234A" );
-        org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance( ouB );
-        femaleB.setUid( "person1234B" );
-        maleA.setTrackedEntityType( trackedEntityType );
-        femaleB.setTrackedEntityType( trackedEntityType );
-        idObjectManager.save( maleA );
-        idObjectManager.save( femaleB );
-        programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, ouA );
-        programInstanceService.enrollTrackedEntityInstance( femaleB, programA, null, null, ouA );
-    }
+  private void stubAnalyticsEventsData() {
+    Period peJan = createPeriod("2017-01");
+    Period peFeb = createPeriod("2017-02");
+    Period peMar = createPeriod("2017-03");
+    Period peApril = createPeriod("2017-04");
+    periodService.addPeriod(peJan);
+    periodService.addPeriod(peFeb);
+    periodService.addPeriod(peMar);
+    periodService.addPeriod(peApril);
+    DataElement deA = createDataElement('A');
+    DataElement deB = createDataElement('B');
+    DataElement deC = createDataElement('C');
+    DataElement deD = createDataElement('D');
+    dataElementService.addDataElement(deA);
+    dataElementService.addDataElement(deB);
+    dataElementService.addDataElement(deC);
+    dataElementService.addDataElement(deD);
+    programA = createProgram('A', null, null, Sets.newHashSet(ouA, ouB), null);
+    programA.setUid("programA123");
+    idObjectManager.save(programA);
+    ProgramStage psA = createProgramStage('A', 0);
+    psA.setUid("programStgA");
+    psA.addDataElement(deA, 0);
+    psA.addDataElement(deB, 1);
+    idObjectManager.save(psA);
+    ProgramStage psB = createProgramStage('B', 0);
+    psB.setUid("programStgB");
+    psB.addDataElement(deA, 0);
+    psB.addDataElement(deB, 1);
+    idObjectManager.save(psB);
+    ProgramStage psC = createProgramStage('C', 0);
+    psC.setUid("programStgC");
+    psC.addDataElement(deA, 0);
+    psC.addDataElement(deB, 1);
+    idObjectManager.save(psC);
+    programA.getProgramStages().add(psA);
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    idObjectManager.save(trackedEntityType);
+    org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance(ouA);
+    maleA.setUid("person1234A");
+    org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance(ouB);
+    femaleB.setUid("person1234B");
+    maleA.setTrackedEntityType(trackedEntityType);
+    femaleB.setTrackedEntityType(trackedEntityType);
+    idObjectManager.save(maleA);
+    idObjectManager.save(femaleB);
+    programInstanceService.enrollTrackedEntityInstance(maleA, programA, null, null, ouA);
+    programInstanceService.enrollTrackedEntityInstance(femaleB, programA, null, null, ouA);
+  }
 }

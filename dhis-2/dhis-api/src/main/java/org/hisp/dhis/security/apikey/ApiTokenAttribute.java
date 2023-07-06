@@ -27,31 +27,30 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = IpAllowedList.class, name = "IpAllowedList" ),
-    @JsonSubTypes.Type( value = RefererAllowedList.class, name = "RefererAllowedList" ),
-    @JsonSubTypes.Type( value = MethodAllowedList.class, name = "MethodAllowedList" ) } )
-@JacksonXmlRootElement( localName = "apiTokenAttribute", namespace = DxfNamespaces.DXF_2_0 )
-public abstract class ApiTokenAttribute implements Serializable
-{
-    @JsonProperty
-    protected final String type;
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "type")
+@JsonSubTypes({
+  @JsonSubTypes.Type(value = IpAllowedList.class, name = "IpAllowedList"),
+  @JsonSubTypes.Type(value = RefererAllowedList.class, name = "RefererAllowedList"),
+  @JsonSubTypes.Type(value = MethodAllowedList.class, name = "MethodAllowedList")
+})
+@JacksonXmlRootElement(localName = "apiTokenAttribute", namespace = DxfNamespaces.DXF_2_0)
+public abstract class ApiTokenAttribute implements Serializable {
+  @JsonProperty protected final String type;
 
-    protected ApiTokenAttribute( String type )
-    {
-        this.type = type;
-    }
+  protected ApiTokenAttribute(String type) {
+    this.type = type;
+  }
 }

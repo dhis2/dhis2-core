@@ -35,7 +35,6 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -60,70 +59,81 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Markus Bekken
  */
-public abstract class AbstractEventJdbcTableManager
-    extends AbstractJdbcTableManager
-{
-    protected static final String STORED_BY_COL_NAME = "storedby";
+public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
+  protected static final String STORED_BY_COL_NAME = "storedby";
 
-    protected static final String CREATED_BY_COL_USER_NAME = "createdbyusername";
+  protected static final String CREATED_BY_COL_USER_NAME = "createdbyusername";
 
-    protected static final String CREATED_BY_COL_NAME = "createdbyname";
+  protected static final String CREATED_BY_COL_NAME = "createdbyname";
 
-    protected static final String CREATED_BY_COL_LAST_NAME = "createdbylastname";
+  protected static final String CREATED_BY_COL_LAST_NAME = "createdbylastname";
 
-    protected static final String CREATED_BY_COL_DISPLAY_LAST_NAME = "createdbydisplayname";
+  protected static final String CREATED_BY_COL_DISPLAY_LAST_NAME = "createdbydisplayname";
 
-    protected static final String LAST_UPDATED_BY_COL_USER_NAME = "lastupdatedbyusername";
+  protected static final String LAST_UPDATED_BY_COL_USER_NAME = "lastupdatedbyusername";
 
-    protected static final String LAST_UPDATED_BY_COL_NAME = "lastupdatedbyname";
+  protected static final String LAST_UPDATED_BY_COL_NAME = "lastupdatedbyname";
 
-    protected static final String LAST_UPDATED_BY_COL_LAST_NAME = "lastupdatedbylastname";
+  protected static final String LAST_UPDATED_BY_COL_LAST_NAME = "lastupdatedbylastname";
 
-    protected static final String LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME = "lastupdatedbydisplayname";
+  protected static final String LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME = "lastupdatedbydisplayname";
 
-    public AbstractEventJdbcTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings,
-        PeriodDataProvider periodDataProvider )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings, periodDataProvider );
-    }
+  public AbstractEventJdbcTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      StatementBuilder statementBuilder,
+      PartitionManager partitionManager,
+      DatabaseInfo databaseInfo,
+      JdbcTemplate jdbcTemplate,
+      AnalyticsExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        statementBuilder,
+        partitionManager,
+        databaseInfo,
+        jdbcTemplate,
+        analyticsExportSettings,
+        periodDataProvider);
+  }
 
-    /**
-     * This method will extract/compose the display name, based on the tracker
-     * JSON objects living in the 'originColumn'. This method will return the
-     * display name respecting these rules:
-     *
-     * If (last name, firs tname and username) are populated => Last name, first
-     * name (username)
-     *
-     * If (only username is populated) => username
-     *
-     * If (only first name is populated) => first name
-     *
-     * If (only last name is populated) => last name
-     *
-     * If (only last name and first name are populated) => last name, first name
-     *
-     * If (only last name and username are populated) => last name (username)
-     *
-     * If (only first name and username are populated) => first name (username)
-     *
-     * @param originColumn the original column from where the JSON values are
-     *        extracted from
-     * @param tablePrefix the prefix of the tracker table
-     * @param columnAlias the alias of this column in the analytics database
-     * @return the trimmed display name
-     */
-    protected static String getDisplayName( final String originColumn, final String tablePrefix,
-        final String columnAlias )
-    {
-        return ("case"
+  /**
+   * This method will extract/compose the display name, based on the tracker JSON objects living in
+   * the 'originColumn'. This method will return the display name respecting these rules:
+   *
+   * <p>If (last name, firs tname and username) are populated => Last name, first name (username)
+   *
+   * <p>If (only username is populated) => username
+   *
+   * <p>If (only first name is populated) => first name
+   *
+   * <p>If (only last name is populated) => last name
+   *
+   * <p>If (only last name and first name are populated) => last name, first name
+   *
+   * <p>If (only last name and username are populated) => last name (username)
+   *
+   * <p>If (only first name and username are populated) => first name (username)
+   *
+   * @param originColumn the original column from where the JSON values are extracted from
+   * @param tablePrefix the prefix of the tracker table
+   * @param columnAlias the alias of this column in the analytics database
+   * @return the trimmed display name
+   */
+  protected static String getDisplayName(
+      final String originColumn, final String tablePrefix, final String columnAlias) {
+    return ("case"
             // If all are empty, return null
             + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
             + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
@@ -169,149 +179,140 @@ public abstract class AbstractEventJdbcTableManager
             // If has all columns populated, return surname + firstName +
             // username
             + " else concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')') end"
-            + " as {alias}").replaceAll( "\\{column}", originColumn )
-                .replaceAll( "\\{prefix}", tablePrefix )
-                .replaceAll( "\\{alias}", columnAlias );
+            + " as {alias}")
+        .replaceAll("\\{column}", originColumn)
+        .replaceAll("\\{prefix}", tablePrefix)
+        .replaceAll("\\{alias}", columnAlias);
+  }
+
+  protected final String getNumericClause() {
+    return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+  }
+
+  protected final String getDateClause() {
+    return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+  }
+
+  protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
+    return NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+  }
+
+  /**
+   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   *
+   * @param valueType the value type to represent as database column type.
+   */
+  protected String getSelectClause(ValueType valueType, String columnName) {
+    if (valueType.isDecimal()) {
+      return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
+    } else if (valueType.isInteger()) {
+      return "cast(" + columnName + " as bigint)";
+    } else if (valueType.isBoolean()) {
+      return "case when "
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 else null end";
+    } else if (valueType.isDate()) {
+      return "cast(" + columnName + " as timestamp)";
+    } else if (valueType.isGeo() && databaseInfo.isSpatialSupport()) {
+      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+    } else if (valueType.isOrganisationUnit()) {
+      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
+    } else {
+      return columnName;
+    }
+  }
+
+  @Override
+  public String validState() {
+    // Data values might be '{}' / empty object if data values existed
+    // and were removed later
+
+    final String sql =
+        "select programstageinstanceid "
+            + "from programstageinstance "
+            + "where eventdatavalues != '{}' limit 1;";
+
+    boolean hasData = jdbcTemplate.queryForRowSet(sql).next();
+
+    if (!hasData) {
+      return "No events exist, not updating event analytics tables";
     }
 
-    protected final String getNumericClause()
-    {
-        return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    return null;
+  }
+
+  @Override
+  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+    throw new IllegalStateException("This method should never be invoked");
+  }
+
+  /**
+   * Populates the given analytics table partition using the given columns and join statement.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
+   * @param fromClause the SQL from clause.
+   */
+  protected void populateTableInternal(
+      AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause) {
+    final String tableName = partition.getTempTableName();
+
+    String sql = "insert into " + partition.getTempTableName() + " (";
+
+    validateDimensionColumns(columns);
+
+    for (AnalyticsTableColumn col : columns) {
+      sql += col.getName() + ",";
     }
 
-    protected final String getDateClause()
-    {
-        return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+    sql = TextUtils.removeLastComma(sql) + ") select ";
+
+    for (AnalyticsTableColumn col : columns) {
+      sql += col.getAlias() + ",";
     }
 
-    protected final boolean skipIndex( ValueType valueType, boolean hasOptionSet )
-    {
-        return NO_INDEX_VAL_TYPES.contains( valueType ) && !hasOptionSet;
+    sql = TextUtils.removeLastComma(sql) + " ";
+
+    sql += fromClause;
+
+    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+  }
+
+  protected List<AnalyticsTableColumn> addTrackedEntityAttributes(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
+      ColumnDataType dataType =
+          getColumnType(attribute.getValueType(), databaseInfo.isSpatialSupport());
+      String dataClause =
+          attribute.isNumericType()
+              ? getNumericClause()
+              : attribute.isDateType() ? getDateClause() : "";
+      String select = getSelectClause(attribute.getValueType(), "value");
+      boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+
+      String sql =
+          "(select "
+              + select
+              + " "
+              + "from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+              + "and trackedentityattributeid="
+              + attribute.getId()
+              + dataClause
+              + ")"
+              + getClosingParentheses(select)
+              + " as "
+              + quote(attribute.getUid());
+
+      columns.add(
+          new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
+              .withSkipIndex(skipIndex));
     }
 
-    /**
-     * Returns the select clause, potentially with a cast statement, based on
-     * the given value type.
-     *
-     * @param valueType the value type to represent as database column type.
-     */
-    protected String getSelectClause( ValueType valueType, String columnName )
-    {
-        if ( valueType.isDecimal() )
-        {
-            return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
-        }
-        else if ( valueType.isInteger() )
-        {
-            return "cast(" + columnName + " as bigint)";
-        }
-        else if ( valueType.isBoolean() )
-        {
-            return "case when " + columnName + " = 'true' then 1 when " +
-                columnName + " = 'false' then 0 else null end";
-        }
-        else if ( valueType.isDate() )
-        {
-            return "cast(" + columnName + " as timestamp)";
-        }
-        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
-        {
-            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" +
-                columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-        }
-        else if ( valueType.isOrganisationUnit() )
-        {
-            return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
-        }
-        else
-        {
-            return columnName;
-        }
-    }
-
-    @Override
-    public String validState()
-    {
-        // Data values might be '{}' / empty object if data values existed
-        // and were removed later
-
-        final String sql = "select programstageinstanceid " +
-            "from programstageinstance " +
-            "where eventdatavalues != '{}' limit 1;";
-
-        boolean hasData = jdbcTemplate.queryForRowSet( sql ).next();
-
-        if ( !hasData )
-        {
-            return "No events exist, not updating event analytics tables";
-        }
-
-        return null;
-    }
-
-    @Override
-    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
-    {
-        throw new IllegalStateException( "This method should never be invoked" );
-    }
-
-    /**
-     * Populates the given analytics table partition using the given columns and
-     * join statement.
-     *
-     * @param partition the {@link AnalyticsTablePartition}.
-     * @param columns the list of {@link AnalyticsTableColumn}.
-     * @param fromClause the SQL from clause.
-     */
-    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns,
-        String fromClause )
-    {
-        final String tableName = partition.getTempTableName();
-
-        String sql = "insert into " + partition.getTempTableName() + " (";
-
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getName() + ",";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + ") select ";
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getAlias() + ",";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + " ";
-
-        sql += fromClause;
-
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
-    }
-
-    protected List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
-        {
-            ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
-            String dataClause = attribute.isNumericType() ? getNumericClause()
-                : attribute.isDateType() ? getDateClause() : "";
-            String select = getSelectClause( attribute.getValueType(), "value" );
-            boolean skipIndex = skipIndex( attribute.getValueType(), attribute.hasOptionSet() );
-
-            String sql = "(select " + select + " " +
-                "from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" +
-                getClosingParentheses( select ) + " as " + quote( attribute.getUid() );
-
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql )
-                .withSkipIndex( skipIndex ) );
-        }
-
-        return columns;
-    }
+    return columns;
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
 import javax.sql.DataSource;
-
 import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.UserService;
@@ -52,48 +51,41 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of
- * {@link JsonResponse}, with JWT token
+ * Base class for convenient testing of the web API on basis of {@link JsonResponse}, with JWT token
  *
  * @author Morten Svanæs
  */
-@ExtendWith( SpringExtension.class )
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration( classes = { JwtConfigProviderConfiguration.class, WebMvcConfig.class } )
-@ActiveProfiles( "test-h2" )
+@ContextConfiguration(classes = {JwtConfigProviderConfiguration.class, WebMvcConfig.class})
+@ActiveProfiles("test-h2")
 @Transactional
-public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcControllerTest
-{
+public abstract class DhisControllerWithJwtTokenAuthTest extends DhisMockMvcControllerTest {
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    private FilterChainProxy springSecurityFilterChain;
+  @Autowired private FilterChainProxy springSecurityFilterChain;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    protected MockMvc mvc;
+  protected MockMvc mvc;
 
-    @Autowired
-    private DataSource dataSource;
+  @Autowired private DataSource dataSource;
 
-    @BeforeEach
-    final void setup()
-        throws Exception
-    {
-        userService = _userService;
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
+  @BeforeEach
+  final void setup() throws Exception {
+    userService = _userService;
+    mvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .addFilter(springSecurityFilterChain)
             .build();
-        TestUtils.executeStartupRoutines( webApplicationContext );
-        H2SqlFunction.registerH2Functions( dataSource );
-    }
+    TestUtils.executeStartupRoutines(webApplicationContext);
+    H2SqlFunction.registerH2Functions(dataSource);
+  }
 
-    @Override
-    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
-    {
-        return failOnException(
-            () -> new HttpResponse( toResponse( mvc.perform( request ).andReturn().getResponse() ) ) );
-    }
+  @Override
+  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
+    return failOnException(
+        () -> new HttpResponse(toResponse(mvc.perform(request).andReturn().getResponse())));
+  }
 }

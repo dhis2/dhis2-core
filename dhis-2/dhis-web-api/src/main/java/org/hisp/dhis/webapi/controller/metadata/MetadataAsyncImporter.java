@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.metadata;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -47,62 +46,51 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-@Scope( "prototype" )
+@Scope("prototype")
 @Slf4j
-public class MetadataAsyncImporter extends SecurityContextRunnable
-{
-    @Autowired
-    private MetadataImportService metadataImportService;
+public class MetadataAsyncImporter extends SecurityContextRunnable {
+  @Autowired private MetadataImportService metadataImportService;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private Notifier notifier;
+  @Autowired private Notifier notifier;
 
-    private MetadataImportParams params;
+  private MetadataImportParams params;
 
-    @Override
-    public void call()
-    {
-        // This is to fix LazyInitializationException
-        if ( params.getUser() != null )
-        {
-            params.setUser( manager.get( User.class, params.getUser().getUid() ) );
-        }
-
-        if ( params.getOverrideUser() != null )
-        {
-            params.setOverrideUser( manager.get( User.class, params.getOverrideUser().getUid() ) );
-        }
-
-        metadataImportService.importMetadata( params );
+  @Override
+  public void call() {
+    // This is to fix LazyInitializationException
+    if (params.getUser() != null) {
+      params.setUser(manager.get(User.class, params.getUser().getUid()));
     }
 
-    @Override
-    public void before()
-    {
-        DbmsUtils.bindSessionToThread( sessionFactory );
+    if (params.getOverrideUser() != null) {
+      params.setOverrideUser(manager.get(User.class, params.getOverrideUser().getUid()));
     }
 
-    @Override
-    public void after()
-    {
-        DbmsUtils.unbindSessionFromThread( sessionFactory );
-    }
+    metadataImportService.importMetadata(params);
+  }
 
-    @Override
-    public void handleError( Throwable ex )
-    {
-        log.error( DebugUtils.getStackTrace( ex ) );
-        notifier.notify( params.getId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
-    }
+  @Override
+  public void before() {
+    DbmsUtils.bindSessionToThread(sessionFactory);
+  }
 
-    public void setParams( MetadataImportParams params )
-    {
-        this.params = params;
-    }
+  @Override
+  public void after() {
+    DbmsUtils.unbindSessionFromThread(sessionFactory);
+  }
+
+  @Override
+  public void handleError(Throwable ex) {
+    log.error(DebugUtils.getStackTrace(ex));
+    notifier.notify(
+        params.getId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true);
+  }
+
+  public void setParams(MetadataImportParams params) {
+    this.params = params;
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.Set;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.user.UserAccess;
@@ -39,48 +38,54 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserGroupAccessMapper.class, UserAccessMapper.class, ProgramMapper.class,
-    TrackedEntityInstanceMapper.class, OrganisationUnitMapper.class } )
-public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
-{
-    ProgramInstanceMapper INSTANCE = Mappers.getMapper( ProgramInstanceMapper.class );
+@Mapper(
+    uses = {
+      DebugMapper.class,
+      UserGroupAccessMapper.class,
+      UserAccessMapper.class,
+      ProgramMapper.class,
+      TrackedEntityInstanceMapper.class,
+      OrganisationUnitMapper.class
+    })
+public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance> {
+  ProgramInstanceMapper INSTANCE = Mappers.getMapper(ProgramInstanceMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccessesPi" )
-    @Mapping( target = "userAccesses", qualifiedByName = "userAccessesPi" )
-    @Mapping( target = "program", qualifiedByName = "program" )
-    @Mapping( target = "entityInstance" )
-    @Mapping( target = "organisationUnit" )
-    @Mapping( target = "created" )
-    @Mapping( target = "incidentDate" )
-    @Mapping( target = "enrollmentDate" )
-    @Mapping( target = "comments" )
-    @Mapping( target = "deleted" )
-    @Mapping( target = "createdByUserInfo" )
-    @Mapping( target = "lastUpdatedByUserInfo" )
-    ProgramInstance map( ProgramInstance programInstance );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "user")
+  @Mapping(target = "publicAccess")
+  @Mapping(target = "externalAccess")
+  @Mapping(target = "userGroupAccesses", qualifiedByName = "userGroupAccessesPi")
+  @Mapping(target = "userAccesses", qualifiedByName = "userAccessesPi")
+  @Mapping(target = "program", qualifiedByName = "program")
+  @Mapping(target = "entityInstance")
+  @Mapping(target = "organisationUnit")
+  @Mapping(target = "created")
+  @Mapping(target = "incidentDate")
+  @Mapping(target = "enrollmentDate")
+  @Mapping(target = "comments")
+  @Mapping(target = "deleted")
+  @Mapping(target = "createdByUserInfo")
+  @Mapping(target = "lastUpdatedByUserInfo")
+  ProgramInstance map(ProgramInstance programInstance);
 
-    @Named( "userGroupAccessesPi" )
-    Set<UserGroupAccess> userGroupAccesses( Set<UserGroupAccess> userGroupAccesses );
+  @Named("userGroupAccessesPi")
+  Set<UserGroupAccess> userGroupAccesses(Set<UserGroupAccess> userGroupAccesses);
 
-    @Named( "userAccessesPi" )
-    Set<UserAccess> mapUserAccessProgramInstance( Set<UserAccess> userAccesses );
+  @Named("userAccessesPi")
+  Set<UserAccess> mapUserAccessProgramInstance(Set<UserAccess> userAccesses);
 
-    @Named( "program" )
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "programType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "accessLevel" )
-    Program mapProgram( Program p );
+  @Named("program")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "trackedEntityType")
+  @Mapping(target = "programType")
+  @Mapping(target = "sharing")
+  @Mapping(target = "accessLevel")
+  Program mapProgram(Program p);
 }

@@ -27,55 +27,44 @@
  */
 package org.hisp.dhis.commons.jackson.domain;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import lombok.Builder;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import lombok.Builder;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen
  */
-@JsonRootName( value = "root", namespace = DxfNamespaces.DXF_2_0 )
-public class JsonRoot
-{
-    @Builder.Default
-    private final Map<String, Object> properties = new LinkedHashMap<>();
+@JsonRootName(value = "root", namespace = DxfNamespaces.DXF_2_0)
+public class JsonRoot {
+  @Builder.Default private final Map<String, Object> properties = new LinkedHashMap<>();
 
-    public JsonRoot()
-    {
-    }
+  public JsonRoot() {}
 
-    public JsonRoot( String property, List<? extends JsonNode> nodes )
-    {
-        setProperty( property, nodes );
-    }
+  public JsonRoot(String property, List<? extends JsonNode> nodes) {
+    setProperty(property, nodes);
+  }
 
-    public static JsonRoot of( String property, List<? extends JsonNode> nodes )
-    {
-        return new JsonRoot( property, nodes );
-    }
+  public static JsonRoot of(String property, List<? extends JsonNode> nodes) {
+    return new JsonRoot(property, nodes);
+  }
 
-    @JsonAnySetter
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public JsonRoot setProperty( String property, Object value )
-    {
-        this.properties.put( property, value );
-        return this;
-    }
+  @JsonAnySetter
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  public JsonRoot setProperty(String property, Object value) {
+    this.properties.put(property, value);
+    return this;
+  }
 
-    @JsonAnyGetter
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Map<String, Object> getProperties()
-    {
-        return this.properties;
-    }
+  @JsonAnyGetter
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Map<String, Object> getProperties() {
+    return this.properties;
+  }
 }

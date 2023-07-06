@@ -30,6 +30,8 @@ package org.hisp.dhis.jsonpatch;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -43,129 +45,157 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen
  */
-class JsonPatchManagerTest extends IntegrationTestBase
-{
+class JsonPatchManagerTest extends IntegrationTestBase {
 
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Autowired
-    private JsonPatchManager jsonPatchManager;
+  @Autowired private JsonPatchManager jsonPatchManager;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Test
-    void testSimpleAddPatchNoPersist()
-        throws Exception
-    {
-        Constant constant = createConstant( 'A', 1.0d );
-        assertEquals( "ConstantA", constant.getName() );
-        assertEquals( constant.getValue(), 0, 1.0d );
-        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"updated\"},"
-            + "{\"op\": \"add\", \"path\": \"/value\", \"value\": 5.0}" + "]", JsonPatch.class );
-        assertNotNull( patch );
-        Constant patchedConstant = jsonPatchManager.apply( patch, constant );
-        assertEquals( "ConstantA", constant.getName() );
-        assertEquals( constant.getValue(), 0, 1.0d );
-        assertEquals( "updated", patchedConstant.getName() );
-        assertEquals( patchedConstant.getValue(), 0, 5.0d );
-    }
+  @Test
+  void testSimpleAddPatchNoPersist() throws Exception {
+    Constant constant = createConstant('A', 1.0d);
+    assertEquals("ConstantA", constant.getName());
+    assertEquals(constant.getValue(), 0, 1.0d);
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "["
+                + "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"updated\"},"
+                + "{\"op\": \"add\", \"path\": \"/value\", \"value\": 5.0}"
+                + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    Constant patchedConstant = jsonPatchManager.apply(patch, constant);
+    assertEquals("ConstantA", constant.getName());
+    assertEquals(constant.getValue(), 0, 1.0d);
+    assertEquals("updated", patchedConstant.getName());
+    assertEquals(patchedConstant.getValue(), 0, 5.0d);
+  }
 
-    @Test
-    void testSimpleAddPatch()
-        throws Exception
-    {
-        Constant constant = createConstant( 'A', 1.0d );
-        assertEquals( "ConstantA", constant.getName() );
-        assertEquals( constant.getValue(), 0, 1.0d );
-        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"updated\"},"
-            + "{\"op\": \"add\", \"path\": \"/value\", \"value\": 5.0}" + "]", JsonPatch.class );
-        assertNotNull( patch );
-        Constant patchedConstant = jsonPatchManager.apply( patch, constant );
-        patchedConstant.setUid( CodeGenerator.generateUid() );
-        assertEquals( "ConstantA", constant.getName() );
-        assertEquals( constant.getValue(), 0, 1.0d );
-        assertEquals( "updated", patchedConstant.getName() );
-        assertEquals( patchedConstant.getValue(), 0, 5.0d );
-    }
+  @Test
+  void testSimpleAddPatch() throws Exception {
+    Constant constant = createConstant('A', 1.0d);
+    assertEquals("ConstantA", constant.getName());
+    assertEquals(constant.getValue(), 0, 1.0d);
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "["
+                + "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"updated\"},"
+                + "{\"op\": \"add\", \"path\": \"/value\", \"value\": 5.0}"
+                + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    Constant patchedConstant = jsonPatchManager.apply(patch, constant);
+    patchedConstant.setUid(CodeGenerator.generateUid());
+    assertEquals("ConstantA", constant.getName());
+    assertEquals(constant.getValue(), 0, 1.0d);
+    assertEquals("updated", patchedConstant.getName());
+    assertEquals(patchedConstant.getValue(), 0, 5.0d);
+  }
 
-    @Test
-    void testCollectionAddPatchNoPersist()
-        throws Exception
-    {
-        DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
-        assertEquals( "DataElementGroupA", dataElementGroup.getName() );
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementGroup.getMembers().add( dataElementA );
-        dataElementGroup.getMembers().add( dataElementB );
-        assertEquals( 2, dataElementGroup.getMembers().size() );
-        JsonPatch patch = jsonMapper.readValue(
-            "[" + "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"updated\"},"
-                + "{\"op\": \"add\", \"path\": \"/dataElements/-\", \"value\": {\"id\": \"my-uid\"}}" + "]",
-            JsonPatch.class );
-        assertNotNull( patch );
-        DataElementGroup patchedDataElementGroup = jsonPatchManager.apply( patch, dataElementGroup );
-        assertEquals( "DataElementGroupA", dataElementGroup.getName() );
-        assertEquals( 2, dataElementGroup.getMembers().size() );
-        assertEquals( "updated", patchedDataElementGroup.getName() );
-        assertEquals( 3, patchedDataElementGroup.getMembers().size() );
-    }
+  @Test
+  void testCollectionAddPatchNoPersist() throws Exception {
+    DataElementGroup dataElementGroup = createDataElementGroup('A');
+    assertEquals("DataElementGroupA", dataElementGroup.getName());
+    DataElement dataElementA = createDataElement('A');
+    DataElement dataElementB = createDataElement('B');
+    dataElementGroup.getMembers().add(dataElementA);
+    dataElementGroup.getMembers().add(dataElementB);
+    assertEquals(2, dataElementGroup.getMembers().size());
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "["
+                + "{\"op\": \"add\", \"path\": \"/name\", \"value\": \"updated\"},"
+                + "{\"op\": \"add\", \"path\": \"/dataElements/-\", \"value\": {\"id\": \"my-uid\"}}"
+                + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    DataElementGroup patchedDataElementGroup = jsonPatchManager.apply(patch, dataElementGroup);
+    assertEquals("DataElementGroupA", dataElementGroup.getName());
+    assertEquals(2, dataElementGroup.getMembers().size());
+    assertEquals("updated", patchedDataElementGroup.getName());
+    assertEquals(3, patchedDataElementGroup.getMembers().size());
+  }
 
-    @Test
-    void testAddAndReplaceSharingUser()
-        throws JsonProcessingException,
-        JsonPatchException
-    {
-        User userA = createUser( 'A' );
-        manager.save( userA );
-        DataElement dataElementA = createDataElement( 'A' );
-        manager.save( dataElementA );
-        assertEquals( 0, dataElementA.getSharing().getUsers().size() );
-        JsonPatch patch = jsonMapper.readValue(
-            "[" + "{\"op\": \"add\", \"path\": \"/sharing/users\", \"value\": " + "{" + "\"" + userA.getUid()
-                + "\": { \"access\":\"rw------\",\"id\": \"" + userA.getUid() + "\" }" + "}" + "}" + "]",
-            JsonPatch.class );
-        assertNotNull( patch );
-        DataElement patchedDE = jsonPatchManager.apply( patch, dataElementA );
-        assertEquals( 1, patchedDE.getSharing().getUsers().size() );
-        assertEquals( "rw------", patchedDE.getSharing().getUsers().get( userA.getUid() ).getAccess() );
-        JsonPatch replacedPatch = jsonMapper.readValue(
-            "[" + "{\"op\": \"replace\", \"path\": \"/sharing/users\", \"value\": " + "{" + "\"" + userA.getUid()
-                + "\": { \"access\":\"r-------\",\"id\": \"" + userA.getUid() + "\" }" + "}" + "}" + "]",
-            JsonPatch.class );
-        DataElement replacePatchedDE = jsonPatchManager.apply( replacedPatch, patchedDE );
-        assertEquals( 1, replacePatchedDE.getSharing().getUsers().size() );
-        assertEquals( "r-------", replacePatchedDE.getSharing().getUsers().get( userA.getUid() ).getAccess() );
-    }
+  @Test
+  void testAddAndReplaceSharingUser() throws JsonProcessingException, JsonPatchException {
+    User userA = createUser('A');
+    manager.save(userA);
+    DataElement dataElementA = createDataElement('A');
+    manager.save(dataElementA);
+    assertEquals(0, dataElementA.getSharing().getUsers().size());
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "["
+                + "{\"op\": \"add\", \"path\": \"/sharing/users\", \"value\": "
+                + "{"
+                + "\""
+                + userA.getUid()
+                + "\": { \"access\":\"rw------\",\"id\": \""
+                + userA.getUid()
+                + "\" }"
+                + "}"
+                + "}"
+                + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    DataElement patchedDE = jsonPatchManager.apply(patch, dataElementA);
+    assertEquals(1, patchedDE.getSharing().getUsers().size());
+    assertEquals("rw------", patchedDE.getSharing().getUsers().get(userA.getUid()).getAccess());
+    JsonPatch replacedPatch =
+        jsonMapper.readValue(
+            "["
+                + "{\"op\": \"replace\", \"path\": \"/sharing/users\", \"value\": "
+                + "{"
+                + "\""
+                + userA.getUid()
+                + "\": { \"access\":\"r-------\",\"id\": \""
+                + userA.getUid()
+                + "\" }"
+                + "}"
+                + "}"
+                + "]",
+            JsonPatch.class);
+    DataElement replacePatchedDE = jsonPatchManager.apply(replacedPatch, patchedDE);
+    assertEquals(1, replacePatchedDE.getSharing().getUsers().size());
+    assertEquals(
+        "r-------", replacePatchedDE.getSharing().getUsers().get(userA.getUid()).getAccess());
+  }
 
-    @Test
-    void testAddAndRemoveSharingUser()
-        throws JsonProcessingException,
-        JsonPatchException
-    {
-        User userA = createUser( 'A' );
-        manager.save( userA );
-        DataElement dataElementA = createDataElement( 'A' );
-        manager.save( dataElementA );
-        assertEquals( 0, dataElementA.getSharing().getUsers().size() );
-        JsonPatch patch = jsonMapper.readValue(
-            "[" + "{\"op\": \"add\", \"path\": \"/sharing/users\", \"value\": " + "{" + "\"" + userA.getUid()
-                + "\": { \"access\":\"rw------\",\"id\": \"" + userA.getUid() + "\" }" + "}" + "}" + "]",
-            JsonPatch.class );
-        assertNotNull( patch );
-        DataElement patchedDE = jsonPatchManager.apply( patch, dataElementA );
-        assertEquals( 1, patchedDE.getSharing().getUsers().size() );
-        assertEquals( "rw------", patchedDE.getSharing().getUsers().get( userA.getUid() ).getAccess() );
-        JsonPatch removePatch = jsonMapper.readValue(
-            "[" + "{\"op\": \"remove\", \"path\": \"/sharing/users/" + userA.getUid() + "\" } ]", JsonPatch.class );
-        DataElement removedPatchedDE = jsonPatchManager.apply( removePatch, patchedDE );
-        assertEquals( 0, removedPatchedDE.getSharing().getUsers().size() );
-    }
+  @Test
+  void testAddAndRemoveSharingUser() throws JsonProcessingException, JsonPatchException {
+    User userA = createUser('A');
+    manager.save(userA);
+    DataElement dataElementA = createDataElement('A');
+    manager.save(dataElementA);
+    assertEquals(0, dataElementA.getSharing().getUsers().size());
+    JsonPatch patch =
+        jsonMapper.readValue(
+            "["
+                + "{\"op\": \"add\", \"path\": \"/sharing/users\", \"value\": "
+                + "{"
+                + "\""
+                + userA.getUid()
+                + "\": { \"access\":\"rw------\",\"id\": \""
+                + userA.getUid()
+                + "\" }"
+                + "}"
+                + "}"
+                + "]",
+            JsonPatch.class);
+    assertNotNull(patch);
+    DataElement patchedDE = jsonPatchManager.apply(patch, dataElementA);
+    assertEquals(1, patchedDE.getSharing().getUsers().size());
+    assertEquals("rw------", patchedDE.getSharing().getUsers().get(userA.getUid()).getAccess());
+    JsonPatch removePatch =
+        jsonMapper.readValue(
+            "[" + "{\"op\": \"remove\", \"path\": \"/sharing/users/" + userA.getUid() + "\" } ]",
+            JsonPatch.class);
+    DataElement removedPatchedDE = jsonPatchManager.apply(removePatch, patchedDE);
+    assertEquals(0, removedPatchedDE.getSharing().getUsers().size());
+  }
 }

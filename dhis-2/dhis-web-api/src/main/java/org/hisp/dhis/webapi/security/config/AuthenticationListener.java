@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.security.config;
 
 import java.util.Objects;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
@@ -53,93 +51,83 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class AuthenticationListener
-{
-    @Autowired
-    private SecurityService securityService;
+public class AuthenticationListener {
+  @Autowired private SecurityService securityService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private DhisConfigurationProvider config;
+  @Autowired private DhisConfigurationProvider config;
 
-    @EventListener
-    public void handleAuthenticationFailure( AbstractAuthenticationFailureEvent event )
-    {
-        Authentication auth = event.getAuthentication();
-        String username = event.getAuthentication().getName();
+  @EventListener
+  public void handleAuthenticationFailure(AbstractAuthenticationFailureEvent event) {
+    Authentication auth = event.getAuthentication();
+    String username = event.getAuthentication().getName();
 
-        Object details = auth.getDetails();
+    Object details = auth.getDetails();
 
-        if ( details != null && TwoFactorWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
-        {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
+    if (details != null
+        && TwoFactorWebAuthenticationDetails.class.isAssignableFrom(details.getClass())) {
+      TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
 
-            log.debug( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
-        }
-
-        if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( auth.getClass() ) )
-        {
-            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
-            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-
-            if ( principal != null )
-            {
-                username = principal.getUser().getUsername();
-            }
-
-            WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
-            String remoteAddress = tokenDetails.getRemoteAddress();
-
-            log.debug( String.format( "OIDC login attempt failed for remote IP: %s", remoteAddress ) );
-        }
-
-        securityService.registerFailedLogin( username );
+      log.debug(String.format("Login attempt failed for remote IP: %s", authDetails.getIp()));
     }
 
-    @EventListener( { InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class } )
-    public void handleAuthenticationSuccess( AbstractAuthenticationEvent event )
-    {
-        Authentication auth = event.getAuthentication();
-        String username = event.getAuthentication().getName();
+    if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+      OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
+      DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
 
-        Object details = auth.getDetails();
+      if (principal != null) {
+        username = principal.getUser().getUsername();
+      }
 
-        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
-        {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
+      WebAuthenticationDetails tokenDetails =
+          (WebAuthenticationDetails) authenticationToken.getDetails();
+      String remoteAddress = tokenDetails.getRemoteAddress();
 
-            log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
-        }
-
-        if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( auth.getClass() ) )
-        {
-            OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
-            DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
-            username = principal.getUser().getUsername();
-
-            WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
-            String remoteAddress = tokenDetails.getRemoteAddress();
-
-            log.debug( String.format( "OIDC login attempt succeeded for remote IP: %s", remoteAddress ) );
-        }
-
-        registerSuccessfulLogin( username );
+      log.debug(String.format("OIDC login attempt failed for remote IP: %s", remoteAddress));
     }
 
-    private void registerSuccessfulLogin( String username )
-    {
-        User user = userService.getUserByUsername( username );
+    securityService.registerFailedLogin(username);
+  }
 
-        boolean readOnly = config.isReadOnlyMode();
+  @EventListener({InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class})
+  public void handleAuthenticationSuccess(AbstractAuthenticationEvent event) {
+    Authentication auth = event.getAuthentication();
+    String username = event.getAuthentication().getName();
 
-        if ( Objects.nonNull( user ) && !readOnly )
-        {
-            user.updateLastLogin();
-            userService.updateUser( user );
-        }
+    Object details = auth.getDetails();
 
-        securityService.registerSuccessfulLogin( username );
+    if (TwoFactorWebAuthenticationDetails.class.isAssignableFrom(details.getClass())) {
+      TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
+
+      log.debug(String.format("Login attempt succeeded for remote IP: %s", authDetails.getIp()));
     }
+
+    if (OAuth2LoginAuthenticationToken.class.isAssignableFrom(auth.getClass())) {
+      OAuth2LoginAuthenticationToken authenticationToken = (OAuth2LoginAuthenticationToken) auth;
+      DhisOidcUser principal = (DhisOidcUser) authenticationToken.getPrincipal();
+      username = principal.getUser().getUsername();
+
+      WebAuthenticationDetails tokenDetails =
+          (WebAuthenticationDetails) authenticationToken.getDetails();
+      String remoteAddress = tokenDetails.getRemoteAddress();
+
+      log.debug(String.format("OIDC login attempt succeeded for remote IP: %s", remoteAddress));
+    }
+
+    registerSuccessfulLogin(username);
+  }
+
+  private void registerSuccessfulLogin(String username) {
+    User user = userService.getUserByUsername(username);
+
+    boolean readOnly = config.isReadOnlyMode();
+
+    if (Objects.nonNull(user) && !readOnly) {
+      user.updateLastLogin();
+      userService.updateUser(user);
+    }
+
+    securityService.registerSuccessfulLogin(username);
+  }
 }

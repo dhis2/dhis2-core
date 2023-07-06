@@ -28,11 +28,9 @@
 package org.hisp.dhis.webapi.handler;
 
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -44,41 +42,35 @@ import org.springframework.security.web.authentication.ExceptionMappingAuthentic
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class CustomExceptionMappingAuthenticationFailureHandler
-    extends ExceptionMappingAuthenticationFailureHandler
-{
-    private I18nManager i18nManager;
+    extends ExceptionMappingAuthenticationFailureHandler {
+  private I18nManager i18nManager;
 
-    public CustomExceptionMappingAuthenticationFailureHandler( I18nManager i18nManager )
-    {
-        this.i18nManager = i18nManager;
+  public CustomExceptionMappingAuthenticationFailureHandler(I18nManager i18nManager) {
+    this.i18nManager = i18nManager;
+  }
+
+  @Override
+  public void onAuthenticationFailure(
+      HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
+      throws IOException, ServletException {
+
+    final String username = request.getParameter("j_username");
+
+    request.getSession().setAttribute("username", username);
+
+    I18n i18n = i18nManager.getI18n();
+
+    if (ExceptionUtils.indexOfThrowable(exception, LockedException.class) != -1) {
+      request
+          .getSession()
+          .setAttribute(
+              "LOGIN_FAILED_MESSAGE", i18n.getString("authentication.message.account.locked"));
+    } else {
+      request
+          .getSession()
+          .setAttribute("LOGIN_FAILED_MESSAGE", i18n.getString("wrong_username_or_password"));
     }
 
-    @Override
-    public void onAuthenticationFailure(
-        HttpServletRequest request,
-        HttpServletResponse response,
-        AuthenticationException exception )
-        throws IOException,
-        ServletException
-    {
-
-        final String username = request.getParameter( "j_username" );
-
-        request.getSession().setAttribute( "username", username );
-
-        I18n i18n = i18nManager.getI18n();
-
-        if ( ExceptionUtils.indexOfThrowable( exception, LockedException.class ) != -1 )
-        {
-            request.getSession()
-                .setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "authentication.message.account.locked" ) );
-        }
-        else
-        {
-            request.getSession()
-                .setAttribute( "LOGIN_FAILED_MESSAGE", i18n.getString( "wrong_username_or_password" ) );
-        }
-
-        super.onAuthenticationFailure( request, response, exception );
-    }
+    super.onAuthenticationFailure(request, response, exception);
+  }
 }

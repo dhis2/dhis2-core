@@ -40,7 +40,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -62,139 +61,133 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 /**
  * @author Luciano Fiandesio
  */
-abstract class EventAnalyticsTest
-{
+abstract class EventAnalyticsTest {
 
-    @Mock
-    protected SqlRowSet rowSet;
+  @Mock protected SqlRowSet rowSet;
 
-    protected ProgramStage programStage;
+  protected ProgramStage programStage;
 
-    protected ProgramStage programStageWithRepeatableParams;
+  protected ProgramStage programStageWithRepeatableParams;
 
-    protected Program programA;
+  protected Program programA;
 
-    protected Program programB;
+  protected Program programB;
 
-    protected DataElement dataElementA;
+  protected DataElement dataElementA;
 
-    @BeforeEach
-    void setUpData()
-    {
-        programA = createProgram( 'A' );
-        programB = createProgram( 'B' );
-        programStage = createProgramStage( 'B', programA );
-        programStageWithRepeatableParams = createProgramStage( 'C', programB );
-        programStageWithRepeatableParams.setRepeatable( true );
-        dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
-        dataElementA.setUid( "fWIAEtYVEGk" );
+  @BeforeEach
+  void setUpData() {
+    programA = createProgram('A');
+    programB = createProgram('B');
+    programStage = createProgramStage('B', programA);
+    programStageWithRepeatableParams = createProgramStage('C', programB);
+    programStageWithRepeatableParams.setRepeatable(true);
+    dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
+    dataElementA.setUid("fWIAEtYVEGk");
+  }
+
+  protected EventQueryParams createRequestParams(
+      ProgramIndicator programIndicator, RelationshipType relationshipType) {
+    EventQueryParams.Builder params = new EventQueryParams.Builder(_createRequestParams());
+    params.addItem(
+        new QueryItem(
+            programIndicator,
+            programIndicator.getProgram(),
+            null,
+            ValueType.NUMBER,
+            programIndicator.getAggregationType(),
+            null,
+            relationshipType));
+    return params.build();
+  }
+
+  protected EventQueryParams createRequestParamsWithFilter(
+      ProgramStage withProgramStage, ValueType withQueryItemValueType) {
+    return createRequestParamsWithFilter(
+        withProgramStage, withQueryItemValueType, QueryOperator.GT, "10");
+  }
+
+  protected EventQueryParams createRequestParamsWithFilter(
+      ProgramStage withProgramStage,
+      ValueType withQueryItemValueType,
+      QueryOperator withOperator,
+      String withQueryFilter) {
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(withProgramStage, withQueryItemValueType));
+    QueryItem queryItem = params.build().getItems().get(0);
+    queryItem.addFilter(new QueryFilter(withOperator, withQueryFilter));
+    return params.build();
+  }
+
+  protected EventQueryParams createRequestParams() {
+    return _createRequestParams();
+  }
+
+  protected EventQueryParams createRequestParams(ValueType queryItemValueType) {
+    return createRequestParams(null, queryItemValueType);
+  }
+
+  protected EventQueryParams createRequestParams(ProgramStage withProgramStage) {
+    return createRequestParams(withProgramStage, null);
+  }
+
+  protected EventQueryParams createRequestParams(QueryItem queryItem) {
+    EventQueryParams.Builder params = new EventQueryParams.Builder(_createRequestParams());
+    params.addItem(queryItem);
+    return params.build();
+  }
+
+  private EventQueryParams _createRequestParams() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ouA.setPath("/" + ouA.getUid());
+    EventQueryParams.Builder params = new EventQueryParams.Builder();
+    params.withPeriods(getList(createPeriod("2000Q1")), "monthly");
+    params.withOrganisationUnits(getList(ouA));
+    params.withTableName(getTableName() + "_" + programA.getUid());
+    params.withProgram(programA);
+    return params.build();
+  }
+
+  protected EventQueryParams createRequestParamsWithStatuses() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ouA.setPath("/" + ouA.getUid());
+    EventQueryParams.Builder params = new EventQueryParams.Builder();
+    params.withPeriods(getList(createPeriod("2000Q1")), "monthly");
+    params.withOrganisationUnits(getList(ouA));
+    params.withTableName(getTableName() + "_" + programA.getUid());
+    params.withProgram(programA);
+    params.withProgramStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
+    params.withEventStatuses(new LinkedHashSet<>(List.of(SCHEDULE)));
+    return params.build();
+  }
+
+  protected EventQueryParams createRequestParams(
+      ProgramStage withProgramStage, ValueType withQueryItemValueType) {
+    EventQueryParams.Builder params = new EventQueryParams.Builder(_createRequestParams());
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
+    params.withProgram(programA);
+    if (withProgramStage != null) {
+      params.withProgramStage(programStage);
     }
-
-    protected EventQueryParams createRequestParams( ProgramIndicator programIndicator,
-        RelationshipType relationshipType )
-    {
-        EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
-        params.addItem( new QueryItem( programIndicator, programIndicator.getProgram(), null, ValueType.NUMBER,
-            programIndicator.getAggregationType(), null, relationshipType ) );
-        return params.build();
+    if (withQueryItemValueType != null) {
+      QueryItem queryItem = new QueryItem(dio);
+      if (withProgramStage != null) {
+        queryItem.setProgramStage(programStage);
+      }
+      queryItem.setProgram(programA);
+      queryItem.setValueType(withQueryItemValueType);
+      params.addItem(queryItem);
     }
+    return params.build();
+  }
 
-    protected EventQueryParams createRequestParamsWithFilter( ProgramStage withProgramStage,
-        ValueType withQueryItemValueType )
-    {
-        return createRequestParamsWithFilter( withProgramStage, withQueryItemValueType, QueryOperator.GT, "10" );
-    }
+  void mockEmptyRowSet() {
+    when(rowSet.next()).thenReturn(false);
+  }
 
-    protected EventQueryParams createRequestParamsWithFilter( ProgramStage withProgramStage,
-        ValueType withQueryItemValueType, QueryOperator withOperator, String withQueryFilter )
-    {
-        EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( withProgramStage, withQueryItemValueType ) );
-        QueryItem queryItem = params.build().getItems().get( 0 );
-        queryItem.addFilter( new QueryFilter( withOperator, withQueryFilter ) );
-        return params.build();
-    }
+  String getTable(String uid) {
+    return getTableName() + "_" + uid;
+  }
 
-    protected EventQueryParams createRequestParams()
-    {
-        return _createRequestParams();
-    }
-
-    protected EventQueryParams createRequestParams( ValueType queryItemValueType )
-    {
-        return createRequestParams( null, queryItemValueType );
-    }
-
-    protected EventQueryParams createRequestParams( ProgramStage withProgramStage )
-    {
-        return createRequestParams( withProgramStage, null );
-    }
-
-    protected EventQueryParams createRequestParams( QueryItem queryItem )
-    {
-        EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
-        params.addItem( queryItem );
-        return params.build();
-    }
-
-    private EventQueryParams _createRequestParams()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        ouA.setPath( "/" + ouA.getUid() );
-        EventQueryParams.Builder params = new EventQueryParams.Builder();
-        params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
-        params.withOrganisationUnits( getList( ouA ) );
-        params.withTableName( getTableName() + "_" + programA.getUid() );
-        params.withProgram( programA );
-        return params.build();
-    }
-
-    protected EventQueryParams createRequestParamsWithStatuses()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        ouA.setPath( "/" + ouA.getUid() );
-        EventQueryParams.Builder params = new EventQueryParams.Builder();
-        params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
-        params.withOrganisationUnits( getList( ouA ) );
-        params.withTableName( getTableName() + "_" + programA.getUid() );
-        params.withProgram( programA );
-        params.withProgramStatuses( new LinkedHashSet<>( List.of( ACTIVE, COMPLETED ) ) );
-        params.withEventStatuses( new LinkedHashSet<>( List.of( SCHEDULE ) ) );
-        return params.build();
-    }
-
-    protected EventQueryParams createRequestParams( ProgramStage withProgramStage, ValueType withQueryItemValueType )
-    {
-        EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
-        params.withProgram( programA );
-        if ( withProgramStage != null )
-        {
-            params.withProgramStage( programStage );
-        }
-        if ( withQueryItemValueType != null )
-        {
-            QueryItem queryItem = new QueryItem( dio );
-            if ( withProgramStage != null )
-            {
-                queryItem.setProgramStage( programStage );
-            }
-            queryItem.setProgram( programA );
-            queryItem.setValueType( withQueryItemValueType );
-            params.addItem( queryItem );
-        }
-        return params.build();
-    }
-
-    void mockEmptyRowSet()
-    {
-        when( rowSet.next() ).thenReturn( false );
-    }
-
-    String getTable( String uid )
-    {
-        return getTableName() + "_" + uid;
-    }
-
-    abstract String getTableName();
+  abstract String getTableName();
 }

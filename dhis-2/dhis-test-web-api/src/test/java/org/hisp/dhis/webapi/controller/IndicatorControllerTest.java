@@ -32,26 +32,30 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.indicator.IndicatorController} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.indicator.IndicatorController} using (mocked)
+ * REST requests.
  *
  * @author Jan Bernitt
  */
-class IndicatorControllerTest extends DhisControllerConvenienceTest
-{
+class IndicatorControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetExpressionDescription()
-    {
-        assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/indicators/expression/description", "70" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testGetExpressionDescription() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Valid",
+        POST("/indicators/expression/description", "70").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testGetExpressionDescription_MalformedExpression()
-    {
-        assertWebMessage( "OK", 200, "ERROR", "Expression is not well-formed",
-            POST( "/indicators/expression/description", "illegal" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testGetExpressionDescription_MalformedExpression() {
+    assertWebMessage(
+        "OK",
+        200,
+        "ERROR",
+        "Expression is not well-formed",
+        POST("/indicators/expression/description", "illegal").content(HttpStatus.OK));
+  }
 }

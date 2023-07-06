@@ -48,53 +48,49 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 
-public interface DimensionsServiceCommon
-{
+public interface DimensionsServiceCommon {
 
-    Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
-        IMAGE,
-        FILE_RESOURCE,
-        TRACKER_ASSOCIATE );
+  Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES =
+      Set.of(IMAGE, FILE_RESOURCE, TRACKER_ASSOCIATE);
 
-    Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = Set.of(
-        NUMBER,
-        UNIT_INTERVAL,
-        PERCENTAGE,
-        INTEGER,
-        INTEGER_POSITIVE,
-        INTEGER_NEGATIVE,
-        INTEGER_ZERO_OR_POSITIVE,
-        BOOLEAN,
-        TRUE_ONLY );
+  Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES =
+      Set.of(
+          NUMBER,
+          UNIT_INTERVAL,
+          PERCENTAGE,
+          INTEGER,
+          INTEGER_POSITIVE,
+          INTEGER_NEGATIVE,
+          INTEGER_ZERO_OR_POSITIVE,
+          BOOLEAN,
+          TRUE_ONLY);
 
-    Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
-        OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
-        OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
+  Map<OperationType, Predicate<ValueType>> OPERATION_FILTER =
+      Map.of(
+          OperationType.QUERY,
+          not(QUERY_DISALLOWED_VALUE_TYPES::contains),
+          OperationType.AGGREGATE,
+          AGGREGATE_ALLOWED_VALUE_TYPES::contains);
 
-    enum OperationType
-    {
-        QUERY,
-        AGGREGATE
-    }
+  enum OperationType {
+    QUERY,
+    AGGREGATE
+  }
 
-    default List<BaseIdentifiableObject> collectDimensions(
-        Collection<Collection<? extends BaseIdentifiableObject>> dimensionCollections )
-    {
-        return dimensionCollections.stream()
-            .flatMap( Collection::stream )
-            .collect( Collectors.toList() );
-    }
+  default List<BaseIdentifiableObject> collectDimensions(
+      Collection<Collection<? extends BaseIdentifiableObject>> dimensionCollections) {
+    return dimensionCollections.stream().flatMap(Collection::stream).collect(Collectors.toList());
+  }
 
-    default <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
-        DimensionsServiceCommon.OperationType operationType,
-        Collection<T> elements, Function<T, ValueType> valueTypeProvider )
-    {
-        return elements.stream()
-            .filter( t -> OPERATION_FILTER.get( operationType ).test( valueTypeProvider.apply( t ) ) )
-            .collect( Collectors.toList() );
-    }
+  default <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
+      DimensionsServiceCommon.OperationType operationType,
+      Collection<T> elements,
+      Function<T, ValueType> valueTypeProvider) {
+    return elements.stream()
+        .filter(t -> OPERATION_FILTER.get(operationType).test(valueTypeProvider.apply(t)))
+        .collect(Collectors.toList());
+  }
 }

@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
-
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -63,284 +62,293 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class DataValidatorTest
-{
+@ExtendWith(MockitoExtension.class)
+class DataValidatorTest {
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private DataSetService dataSetService;
+  @Mock private DataSetService dataSetService;
 
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private DataValueService dataValueService;
+  @Mock private DataValueService dataValueService;
 
-    @Mock
-    private InputUtils inputUtils;
+  @Mock private InputUtils inputUtils;
 
-    @Mock
-    private FileResourceService fileResourceService;
+  @Mock private FileResourceService fileResourceService;
 
-    @Mock
-    private CalendarService calendarService;
+  @Mock private CalendarService calendarService;
 
-    @Mock
-    private AggregateAccessManager accessManager;
+  @Mock private AggregateAccessManager accessManager;
 
-    @Mock
-    private DataValidator dataValidator;
+  @Mock private DataValidator dataValidator;
 
-    private Period periodJan;
+  private Period periodJan;
 
-    private Period periodFeb;
+  private Period periodFeb;
 
-    private Period periodMar;
+  private Period periodMar;
 
-    private DataSet dataSetA;
+  private DataSet dataSetA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private CategoryOption categoryOptionA;
+  private CategoryOption categoryOptionA;
 
-    private CategoryOptionCombo optionComboA;
+  private CategoryOptionCombo optionComboA;
 
-    private Date jan15;
+  private Date jan15;
 
-    private Date feb15;
+  private Date feb15;
 
-    @BeforeEach
-    public void setUp()
-    {
-        dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService,
-            idObjectManager, dataValueService, inputUtils, fileResourceService, calendarService, accessManager );
+  @BeforeEach
+  public void setUp() {
+    dataValidator =
+        new DataValidator(
+            categoryService,
+            organisationUnitService,
+            dataSetService,
+            idObjectManager,
+            dataValueService,
+            inputUtils,
+            fileResourceService,
+            calendarService,
+            accessManager);
 
-        periodJan = createPeriod( "202001" );
-        periodFeb = createPeriod( "202002" );
-        periodMar = createPeriod( "202003" );
+    periodJan = createPeriod("202001");
+    periodFeb = createPeriod("202002");
+    periodMar = createPeriod("202003");
 
-        dataSetA = new DataSet( "dataSet", new MonthlyPeriodType() );
-        dataElementA = new DataElement();
-        categoryOptionA = new CategoryOption();
-        optionComboA = new CategoryOptionCombo();
+    dataSetA = new DataSet("dataSet", new MonthlyPeriodType());
+    dataElementA = new DataElement();
+    categoryOptionA = new CategoryOption();
+    optionComboA = new CategoryOptionCombo();
 
-        dataSetA.addDataSetElement( dataElementA );
-        dataElementA.getDataSetElements().addAll( dataSetA.getDataSetElements() );
+    dataSetA.addDataSetElement(dataElementA);
+    dataElementA.getDataSetElements().addAll(dataSetA.getDataSetElements());
 
-        optionComboA.addCategoryOption( categoryOptionA );
+    optionComboA.addCategoryOption(categoryOptionA);
 
-        jan15 = getDate( 2020, 1, 15 );
-        feb15 = getDate( 2020, 2, 15 );
-    }
+    jan15 = getDate(2020, 1, 15);
+    feb15 = getDate(2020, 2, 15);
+  }
 
-    /**
-     * Creates a date.
-     *
-     * @param year the year.
-     * @param month the month.
-     * @param day the day of month.
-     * @return a date.
-     */
-    public static Date getDate( int year, int month, int day )
-    {
-        LocalDateTime dateTime = new LocalDateTime( year, month, day, 0, 0 );
-        return dateTime.toDate();
-    }
+  /**
+   * Creates a date.
+   *
+   * @param year the year.
+   * @param month the month.
+   * @param day the day of month.
+   * @return a date.
+   */
+  public static Date getDate(int year, int month, int day) {
+    LocalDateTime dateTime = new LocalDateTime(year, month, day, 0, 0);
+    return dateTime.toDate();
+  }
 
-    /**
-     * @param isoPeriod the ISO period string.
-     */
-    public static Period createPeriod( String isoPeriod )
-    {
-        return PeriodType.getPeriodFromIsoString( isoPeriod );
-    }
+  /**
+   * @param isoPeriod the ISO period string.
+   */
+  public static Period createPeriod(String isoPeriod) {
+    return PeriodType.getPeriodFromIsoString(isoPeriod);
+  }
 
-    @Test
-    void testValidateAttributeOptionComboWithValidData()
-    {
-        // Initially
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, null, dataElementA );
+  @Test
+  void testValidateAttributeOptionComboWithValidData() {
+    // Initially
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, dataSetA, dataElementA);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, dataSetA, null);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, null, dataElementA);
 
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA );
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodFeb, dataSetA, dataElementA);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodMar, dataSetA, dataElementA);
 
-        // Given
-        categoryOptionA.setStartDate( jan15 );
-
-        // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, null, dataElementA );
-
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA );
-
-        // And given
-        categoryOptionA.setEndDate( jan15 );
-
-        // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, null, dataElementA );
-
-        // And given
-        dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
-
-        // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, dataElementA );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, dataSetA, null );
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA );
-    }
-
-    @Test
-    void testGetMissingDataElement()
-    {
-        final String uid = CodeGenerator.generateUid();
-
-        when( idObjectManager.get( DataElement.class, uid ) ).thenReturn( null );
-
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataValidator.getAndValidateDataElement( uid ) );
-
-        assertEquals( ErrorCode.E1100, ex.getErrorCode() );
-    }
-
-    @Test
-    void testInvalidPeriod()
-    {
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataValidator.getAndValidatePeriod( "502" ) );
-
-        assertEquals( ErrorCode.E1101, ex.getErrorCode() );
-    }
-
-    @Test
-    void testGetMissingOrgUnit()
-    {
-        final String uid = CodeGenerator.generateUid();
-
-        when( idObjectManager.get( OrganisationUnit.class, uid ) ).thenReturn( null );
-
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataValidator.getAndValidateOrganisationUnit( uid ) );
-
-        assertEquals( ErrorCode.E1102, ex.getErrorCode() );
-    }
-
-    @Test
-    void testValidateAttributeOptionComboWithEarlyData()
-    {
-        // Given
-        categoryOptionA.setStartDate( feb15 );
-
-        // Then
-
-        assertThrows( IllegalQueryException.class,
-            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA ) );
-    }
-
-    @Test
-    void testValidateAttributeOptionComboWithLateData()
-    {
-        // Given
-        categoryOptionA.setEndDate( jan15 );
-
-        // Then
-
-        assertThrows( IllegalQueryException.class,
-            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA ) );
-    }
-
-    @Test
-    void testValidateAttributeOptionComboWithLateAdjustedData()
-    {
-        // Given
-        categoryOptionA.setEndDate( jan15 );
-        dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
-
-        // Then
-
-        assertThrows( IllegalQueryException.class,
-            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA ) );
-    }
-
-    @Test
-    void validateBooleanDataValueWhenValuesAreAcceptableTrue()
-    {
-        // Given
-        final DataElement aBooleanTypeDataElement = new DataElement();
-        final String normalizedBooleanValue = "true";
-        aBooleanTypeDataElement.setValueType( BOOLEAN );
-
-        // Then
-        String aBooleanDataValue = "true";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "1";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "t";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "True";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "TRUE";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-    }
-
-    @Test
-    void validateBooleanDataValueWhenValuesAreAcceptableFalse()
-    {
-        // Given
-        final DataElement aBooleanTypeDataElement = new DataElement();
-        final String normalizedBooleanValue = "false";
-        aBooleanTypeDataElement.setValueType( BOOLEAN );
-
-        // Then
-        String aBooleanDataValue = "false";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "0";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "f";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "False";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-
-        aBooleanDataValue = "FALSE";
-        aBooleanDataValue = dataValidator.validateAndNormalizeDataValue( aBooleanDataValue, aBooleanTypeDataElement );
-        assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
-    }
-
-    @Test
-    void validateBooleanDataValueWhenValueIsNotValid()
-    {
-        // Given
-        String anInvalidBooleanValue = "InvalidValue";
-        final DataElement aBooleanTypeDataElement = new DataElement();
-        aBooleanTypeDataElement.setValueType( BOOLEAN );
-
-        assertThrows( IllegalQueryException.class,
-            () -> dataValidator.validateAndNormalizeDataValue( anInvalidBooleanValue, aBooleanTypeDataElement ) );
-    }
+    // Given
+    categoryOptionA.setStartDate(jan15);
+
+    // Then
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, dataSetA, dataElementA);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, dataSetA, null);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, null, dataElementA);
+
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodFeb, dataSetA, dataElementA);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodMar, dataSetA, dataElementA);
+
+    // And given
+    categoryOptionA.setEndDate(jan15);
+
+    // Then
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, dataSetA, dataElementA);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, dataSetA, null);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodJan, null, dataElementA);
+
+    // And given
+    dataSetA.setOpenPeriodsAfterCoEndDate(1);
+
+    // Then
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodFeb, dataSetA, dataElementA);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodFeb, dataSetA, null);
+    dataValidator.validateAttributeOptionCombo(optionComboA, periodFeb, null, dataElementA);
+  }
+
+  @Test
+  void testGetMissingDataElement() {
+    final String uid = CodeGenerator.generateUid();
+
+    when(idObjectManager.get(DataElement.class, uid)).thenReturn(null);
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class, () -> dataValidator.getAndValidateDataElement(uid));
+
+    assertEquals(ErrorCode.E1100, ex.getErrorCode());
+  }
+
+  @Test
+  void testInvalidPeriod() {
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> dataValidator.getAndValidatePeriod("502"));
+
+    assertEquals(ErrorCode.E1101, ex.getErrorCode());
+  }
+
+  @Test
+  void testGetMissingOrgUnit() {
+    final String uid = CodeGenerator.generateUid();
+
+    when(idObjectManager.get(OrganisationUnit.class, uid)).thenReturn(null);
+
+    IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class, () -> dataValidator.getAndValidateOrganisationUnit(uid));
+
+    assertEquals(ErrorCode.E1102, ex.getErrorCode());
+  }
+
+  @Test
+  void testValidateAttributeOptionComboWithEarlyData() {
+    // Given
+    categoryOptionA.setStartDate(feb15);
+
+    // Then
+
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            dataValidator.validateAttributeOptionCombo(
+                optionComboA, periodJan, dataSetA, dataElementA));
+  }
+
+  @Test
+  void testValidateAttributeOptionComboWithLateData() {
+    // Given
+    categoryOptionA.setEndDate(jan15);
+
+    // Then
+
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            dataValidator.validateAttributeOptionCombo(
+                optionComboA, periodFeb, null, dataElementA));
+  }
+
+  @Test
+  void testValidateAttributeOptionComboWithLateAdjustedData() {
+    // Given
+    categoryOptionA.setEndDate(jan15);
+    dataSetA.setOpenPeriodsAfterCoEndDate(1);
+
+    // Then
+
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            dataValidator.validateAttributeOptionCombo(
+                optionComboA, periodMar, dataSetA, dataElementA));
+  }
+
+  @Test
+  void validateBooleanDataValueWhenValuesAreAcceptableTrue() {
+    // Given
+    final DataElement aBooleanTypeDataElement = new DataElement();
+    final String normalizedBooleanValue = "true";
+    aBooleanTypeDataElement.setValueType(BOOLEAN);
+
+    // Then
+    String aBooleanDataValue = "true";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "1";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "t";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "True";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "TRUE";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+  }
+
+  @Test
+  void validateBooleanDataValueWhenValuesAreAcceptableFalse() {
+    // Given
+    final DataElement aBooleanTypeDataElement = new DataElement();
+    final String normalizedBooleanValue = "false";
+    aBooleanTypeDataElement.setValueType(BOOLEAN);
+
+    // Then
+    String aBooleanDataValue = "false";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "0";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "f";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "False";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+
+    aBooleanDataValue = "FALSE";
+    aBooleanDataValue =
+        dataValidator.validateAndNormalizeDataValue(aBooleanDataValue, aBooleanTypeDataElement);
+    assertThat(aBooleanDataValue, is(normalizedBooleanValue));
+  }
+
+  @Test
+  void validateBooleanDataValueWhenValueIsNotValid() {
+    // Given
+    String anInvalidBooleanValue = "InvalidValue";
+    final DataElement aBooleanTypeDataElement = new DataElement();
+    aBooleanTypeDataElement.setValueType(BOOLEAN);
+
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            dataValidator.validateAndNormalizeDataValue(
+                anInvalidBooleanValue, aBooleanTypeDataElement));
+  }
 }

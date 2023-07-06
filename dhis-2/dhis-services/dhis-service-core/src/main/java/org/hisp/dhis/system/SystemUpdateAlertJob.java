@@ -32,7 +32,6 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_UPDATE_NOTIFIC
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
@@ -46,49 +45,42 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@Component( "systemUpdateAlertJob" )
+@Component("systemUpdateAlertJob")
 @AllArgsConstructor
-public class SystemUpdateAlertJob implements Job
-{
-    @NonNull
-    private DhisConfigurationProvider dhisConfig;
+public class SystemUpdateAlertJob implements Job {
+  @NonNull private DhisConfigurationProvider dhisConfig;
 
-    @NonNull
-    private final SystemUpdateService systemUpdateService;
+  @NonNull private final SystemUpdateService systemUpdateService;
 
-    @NonNull
-    private final Notifier notifier;
+  @NonNull private final Notifier notifier;
 
-    @NonNull
-    private final MessageService messageService;
+  @NonNull private final MessageService messageService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.SYSTEM_VERSION_UPDATE_CHECK;
+  @Override
+  public JobType getJobType() {
+    return JobType.SYSTEM_VERSION_UPDATE_CHECK;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    boolean systemUpdateNotificationsEnabled =
+        dhisConfig.isEnabled(SYSTEM_UPDATE_NOTIFICATIONS_ENABLED);
+
+    if (!systemUpdateNotificationsEnabled) {
+      log.info(
+          String.format(
+              "%s aborted. System update alerts are disabled",
+              "messageSystemSoftwareUpdateAvailableJob"));
+      return;
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        boolean systemUpdateNotificationsEnabled = dhisConfig.isEnabled( SYSTEM_UPDATE_NOTIFICATIONS_ENABLED );
-
-        if ( !systemUpdateNotificationsEnabled )
-        {
-            log.info( String.format( "%s aborted. System update alerts are disabled",
-                "messageSystemSoftwareUpdateAvailableJob" ) );
-            return;
-        }
-
-        try
-        {
-            systemUpdateService.sendMessageForEachVersion( SystemUpdateService.getLatestNewerThanCurrent() );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Failed to fetch latest versions.", e );
-            notifier.notify( jobConfiguration, "Fetch latest software updates failed: " + e.getMessage() );
-            messageService.sendSystemErrorNotification( "Fetch latest software updates failed", e );
-        }
+    try {
+      systemUpdateService.sendMessageForEachVersion(
+          SystemUpdateService.getLatestNewerThanCurrent());
+    } catch (Exception e) {
+      log.error("Failed to fetch latest versions.", e);
+      notifier.notify(jobConfiguration, "Fetch latest software updates failed: " + e.getMessage());
+      messageService.sendSystemErrorNotification("Fetch latest software updates failed", e);
     }
+  }
 }

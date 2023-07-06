@@ -29,6 +29,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Sets;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -45,118 +46,110 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class TrackerOrgUnitMergeHandlerTest extends DhisSpringTest
-{
+class TrackerOrgUnitMergeHandlerTest extends DhisSpringTest {
 
-    @Autowired
-    private TrackedEntityInstanceService teiService;
+  @Autowired private TrackedEntityInstanceService teiService;
 
-    @Autowired
-    private ProgramInstanceService piService;
+  @Autowired private ProgramInstanceService piService;
 
-    @Autowired
-    private ProgramStageInstanceService psiService;
+  @Autowired private ProgramStageInstanceService psiService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private TrackerOrgUnitMergeHandler mergeHandler;
+  @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    private ProgramStage psA;
+  private ProgramStage psA;
 
-    private Program prA;
+  private Program prA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    private TrackedEntityInstance teiA;
+  private TrackedEntityInstance teiA;
 
-    private TrackedEntityInstance teiB;
+  private TrackedEntityInstance teiB;
 
-    private TrackedEntityInstance teiC;
+  private TrackedEntityInstance teiC;
 
-    private ProgramInstance piA;
+  private ProgramInstance piA;
 
-    private ProgramInstance piB;
+  private ProgramInstance piB;
 
-    private ProgramInstance piC;
+  private ProgramInstance piC;
 
-    private ProgramStageInstance psiA;
+  private ProgramStageInstance psiA;
 
-    private ProgramStageInstance psiB;
+  private ProgramStageInstance psiB;
 
-    private ProgramStageInstance psiC;
+  private ProgramStageInstance psiC;
 
-    @Override
-    public void setUpTest()
-    {
-        prA = createProgram( 'A', Sets.newHashSet(), ouA );
-        idObjectManager.save( prA );
-        psA = createProgramStage( 'A', prA );
-        idObjectManager.save( psA );
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-        teiA = createTrackedEntityInstance( 'A', ouA );
-        teiB = createTrackedEntityInstance( 'B', ouB );
-        teiC = createTrackedEntityInstance( 'C', ouC );
-        teiService.addTrackedEntityInstance( teiA );
-        teiService.addTrackedEntityInstance( teiB );
-        teiService.addTrackedEntityInstance( teiC );
-        piA = createProgramInstance( prA, teiA, ouA );
-        piB = createProgramInstance( prA, teiB, ouB );
-        piC = createProgramInstance( prA, teiC, ouA );
-        piService.addProgramInstance( piA );
-        piService.addProgramInstance( piB );
-        piService.addProgramInstance( piC );
-        psiA = new ProgramStageInstance( piA, psA, ouA );
-        psiB = new ProgramStageInstance( piB, psA, ouB );
-        psiC = new ProgramStageInstance( piC, psA, ouA );
-        psiService.addProgramStageInstance( psiA );
-        psiService.addProgramStageInstance( psiB );
-        psiService.addProgramStageInstance( psiC );
-    }
+  @Override
+  public void setUpTest() {
+    prA = createProgram('A', Sets.newHashSet(), ouA);
+    idObjectManager.save(prA);
+    psA = createProgramStage('A', prA);
+    idObjectManager.save(psA);
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+    idObjectManager.save(ouC);
+    teiA = createTrackedEntityInstance('A', ouA);
+    teiB = createTrackedEntityInstance('B', ouB);
+    teiC = createTrackedEntityInstance('C', ouC);
+    teiService.addTrackedEntityInstance(teiA);
+    teiService.addTrackedEntityInstance(teiB);
+    teiService.addTrackedEntityInstance(teiC);
+    piA = createProgramInstance(prA, teiA, ouA);
+    piB = createProgramInstance(prA, teiB, ouB);
+    piC = createProgramInstance(prA, teiC, ouA);
+    piService.addProgramInstance(piA);
+    piService.addProgramInstance(piB);
+    piService.addProgramInstance(piC);
+    psiA = new ProgramStageInstance(piA, psA, ouA);
+    psiB = new ProgramStageInstance(piB, psA, ouB);
+    psiC = new ProgramStageInstance(piC, psA, ouA);
+    psiService.addProgramStageInstance(psiA);
+    psiService.addProgramStageInstance(psiB);
+    psiService.addProgramStageInstance(psiC);
+  }
 
-    @Test
-    void testMigrateProgramInstances()
-    {
-        assertEquals( 2, getProgramInstanceCount( ouA ) );
-        assertEquals( 1, getProgramInstanceCount( ouB ) );
-        assertEquals( 0, getProgramInstanceCount( ouC ) );
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
-            .withTarget( ouC ).build();
-        mergeHandler.mergeProgramInstances( request );
-        assertEquals( 0, getProgramInstanceCount( ouA ) );
-        assertEquals( 0, getProgramInstanceCount( ouB ) );
-        assertEquals( 3, getProgramInstanceCount( ouC ) );
-    }
+  @Test
+  void testMigrateProgramInstances() {
+    assertEquals(2, getProgramInstanceCount(ouA));
+    assertEquals(1, getProgramInstanceCount(ouB));
+    assertEquals(0, getProgramInstanceCount(ouC));
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    mergeHandler.mergeProgramInstances(request);
+    assertEquals(0, getProgramInstanceCount(ouA));
+    assertEquals(0, getProgramInstanceCount(ouB));
+    assertEquals(3, getProgramInstanceCount(ouC));
+  }
 
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getProgramInstanceCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from ProgramInstance pi where pi.organisationUnit = :target" )
-            .setParameter( "target", target ).uniqueResult();
-    }
+  /**
+   * Test migrate HQL update statement with an HQL select statement to ensure the updated rows are
+   * visible by the current transaction.
+   *
+   * @param target the {@link OrganisationUnit}
+   * @return the count of interpretations.
+   */
+  private long getProgramInstanceCount(OrganisationUnit target) {
+    return (Long)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery(
+                "select count(*) from ProgramInstance pi where pi.organisationUnit = :target")
+            .setParameter("target", target)
+            .uniqueResult();
+  }
 }

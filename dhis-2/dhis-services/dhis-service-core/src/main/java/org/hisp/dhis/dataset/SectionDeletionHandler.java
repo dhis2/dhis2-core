@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -42,56 +41,43 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  * @version $Id$
  */
-@Component( "org.hisp.dhis.dataset.SectionDeletionHandler" )
-public class SectionDeletionHandler
-    extends DeletionHandler
-{
-    private final SectionService sectionService;
+@Component("org.hisp.dhis.dataset.SectionDeletionHandler")
+public class SectionDeletionHandler extends DeletionHandler {
+  private final SectionService sectionService;
 
-    public SectionDeletionHandler( SectionService sectionService )
-    {
-        checkNotNull( sectionService );
-        this.sectionService = sectionService;
+  public SectionDeletionHandler(SectionService sectionService) {
+    checkNotNull(sectionService);
+    this.sectionService = sectionService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+  }
+
+  private void deleteDataElement(DataElement dataElement) {
+    for (Section section : sectionService.getAllSections()) {
+      List<DataElementOperand> operandsToRemove =
+          section.getGreyedFields().stream()
+              .filter(operand -> operand.getDataElement().equals(dataElement))
+              .collect(Collectors.toList());
+
+      operandsToRemove.stream().forEach(operand -> section.getGreyedFields().remove(operand));
+
+      if (section.getDataElements().remove(dataElement) || !operandsToRemove.isEmpty()) {
+        sectionService.updateSection(section);
+      }
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( DataSet.class, this::deleteDataSet );
+  private void deleteDataSet(DataSet dataSet) {
+    Iterator<Section> iterator = dataSet.getSections().iterator();
+
+    while (iterator.hasNext()) {
+      Section section = iterator.next();
+      iterator.remove();
+      sectionService.deleteSection(section);
     }
-
-    private void deleteDataElement( DataElement dataElement )
-    {
-        for ( Section section : sectionService.getAllSections() )
-        {
-            List<DataElementOperand> operandsToRemove = section
-                .getGreyedFields()
-                .stream()
-                .filter( operand -> operand.getDataElement().equals( dataElement ) )
-                .collect( Collectors.toList() );
-
-            operandsToRemove
-                .stream()
-                .forEach( operand -> section.getGreyedFields().remove( operand ) );
-
-            if ( section.getDataElements().remove( dataElement ) || !operandsToRemove.isEmpty() )
-            {
-                sectionService.updateSection( section );
-            }
-
-        }
-    }
-
-    private void deleteDataSet( DataSet dataSet )
-    {
-        Iterator<Section> iterator = dataSet.getSections().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            Section section = iterator.next();
-            iterator.remove();
-            sectionService.deleteSection( section );
-        }
-    }
+  }
 }

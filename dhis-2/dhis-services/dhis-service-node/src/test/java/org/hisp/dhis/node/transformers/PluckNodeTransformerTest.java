@@ -28,7 +28,6 @@
 package org.hisp.dhis.node.transformers;
 
 import java.util.Collections;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -52,91 +51,95 @@ import org.mockito.junit.jupiter.MockitoExtension;
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class PluckNodeTransformerTest
-{
-    private final PluckNodeTransformer transformer = new PluckNodeTransformer();
+@ExtendWith(MockitoExtension.class)
+class PluckNodeTransformerTest {
+  private final PluckNodeTransformer transformer = new PluckNodeTransformer();
 
-    @Mock
-    private SessionFactory sessionFactory;
+  @Mock private SessionFactory sessionFactory;
 
-    private SchemaService schemaService;
+  private SchemaService schemaService;
 
-    private CollectionNode collectionNode;
+  private CollectionNode collectionNode;
 
-    @BeforeEach
-    public void setUp()
-    {
-        schemaService = new DefaultSchemaService(
-            new DefaultPropertyIntrospectorService( new JacksonPropertyIntrospector() ), sessionFactory );
+  @BeforeEach
+  public void setUp() {
+    schemaService =
+        new DefaultSchemaService(
+            new DefaultPropertyIntrospectorService(new JacksonPropertyIntrospector()),
+            sessionFactory);
 
-        collectionNode = new CollectionNode( "organisationUnits", 2 );
-        collectionNode.setNamespace( "testUrn" );
-        collectionNode
-            .setProperty( schemaService.getDynamicSchema( CategoryOption.class ).getProperty( "organisationUnits" ) );
+    collectionNode = new CollectionNode("organisationUnits", 2);
+    collectionNode.setNamespace("testUrn");
+    collectionNode.setProperty(
+        schemaService.getDynamicSchema(CategoryOption.class).getProperty("organisationUnits"));
 
-        ComplexNode complexNode = new ComplexNode( "organisationUnit" );
-        SimpleNode simpleNode = new SimpleNode( "id",
-            schemaService.getDynamicSchema( Category.class ).getProperty( "id" ), "abc1" );
-        complexNode.addChild( simpleNode );
-        simpleNode = new SimpleNode( "name", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ),
-            "OU 1" );
-        complexNode.addChild( simpleNode );
-        collectionNode.addChild( complexNode );
+    ComplexNode complexNode = new ComplexNode("organisationUnit");
+    SimpleNode simpleNode =
+        new SimpleNode(
+            "id", schemaService.getDynamicSchema(Category.class).getProperty("id"), "abc1");
+    complexNode.addChild(simpleNode);
+    simpleNode =
+        new SimpleNode(
+            "name", schemaService.getDynamicSchema(Category.class).getProperty("id"), "OU 1");
+    complexNode.addChild(simpleNode);
+    collectionNode.addChild(complexNode);
 
-        complexNode = new ComplexNode( "organisationUnit" );
-        simpleNode = new SimpleNode( "id", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ),
-            "abc2" );
-        complexNode.addChild( simpleNode );
-        simpleNode = new SimpleNode( "name", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ),
-            "OU 2" );
-        complexNode.addChild( simpleNode );
-        collectionNode.addChild( complexNode );
-    }
+    complexNode = new ComplexNode("organisationUnit");
+    simpleNode =
+        new SimpleNode(
+            "id", schemaService.getDynamicSchema(Category.class).getProperty("id"), "abc2");
+    complexNode.addChild(simpleNode);
+    simpleNode =
+        new SimpleNode(
+            "name", schemaService.getDynamicSchema(Category.class).getProperty("id"), "OU 2");
+    complexNode.addChild(simpleNode);
+    collectionNode.addChild(complexNode);
+  }
 
-    @Test
-    void name()
-    {
-        Assertions.assertEquals( "pluck", transformer.name() );
-    }
+  @Test
+  void name() {
+    Assertions.assertEquals("pluck", transformer.name());
+  }
 
-    @Test
-    void withoutArg()
-    {
-        Node result = transformer.transform( collectionNode, null );
-        Assertions.assertTrue( result instanceof CollectionNode );
+  @Test
+  void withoutArg() {
+    Node result = transformer.transform(collectionNode, null);
+    Assertions.assertTrue(result instanceof CollectionNode);
 
-        CollectionNode collection = (CollectionNode) result;
-        Assertions.assertEquals( "organisationUnits", collection.getName() );
-        Assertions.assertEquals( "testUrn", collection.getNamespace() );
-        Assertions.assertEquals( 2, collection.getUnorderedChildren().size() );
+    CollectionNode collection = (CollectionNode) result;
+    Assertions.assertEquals("organisationUnits", collection.getName());
+    Assertions.assertEquals("testUrn", collection.getNamespace());
+    Assertions.assertEquals(2, collection.getUnorderedChildren().size());
 
-        Assertions.assertEquals( "id", collection.getUnorderedChildren().get( 0 ).getName() );
-        Assertions.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
-        Assertions.assertEquals( "abc1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
+    Assertions.assertEquals("id", collection.getUnorderedChildren().get(0).getName());
+    Assertions.assertTrue(collection.getUnorderedChildren().get(0) instanceof SimpleNode);
+    Assertions.assertEquals(
+        "abc1", ((SimpleNode) collection.getUnorderedChildren().get(0)).getValue());
 
-        Assertions.assertEquals( "id", collection.getUnorderedChildren().get( 1 ).getName() );
-        Assertions.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
-        Assertions.assertEquals( "abc2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
-    }
+    Assertions.assertEquals("id", collection.getUnorderedChildren().get(1).getName());
+    Assertions.assertTrue(collection.getUnorderedChildren().get(1) instanceof SimpleNode);
+    Assertions.assertEquals(
+        "abc2", ((SimpleNode) collection.getUnorderedChildren().get(1)).getValue());
+  }
 
-    @Test
-    void withArg()
-    {
-        Node result = transformer.transform( collectionNode, Collections.singletonList( "name" ) );
-        Assertions.assertTrue( result instanceof CollectionNode );
+  @Test
+  void withArg() {
+    Node result = transformer.transform(collectionNode, Collections.singletonList("name"));
+    Assertions.assertTrue(result instanceof CollectionNode);
 
-        CollectionNode collection = (CollectionNode) result;
-        Assertions.assertEquals( "organisationUnits", collection.getName() );
-        Assertions.assertEquals( "testUrn", collection.getNamespace() );
-        Assertions.assertEquals( 2, collection.getUnorderedChildren().size() );
+    CollectionNode collection = (CollectionNode) result;
+    Assertions.assertEquals("organisationUnits", collection.getName());
+    Assertions.assertEquals("testUrn", collection.getNamespace());
+    Assertions.assertEquals(2, collection.getUnorderedChildren().size());
 
-        Assertions.assertEquals( "name", collection.getUnorderedChildren().get( 0 ).getName() );
-        Assertions.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
-        Assertions.assertEquals( "OU 1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
+    Assertions.assertEquals("name", collection.getUnorderedChildren().get(0).getName());
+    Assertions.assertTrue(collection.getUnorderedChildren().get(0) instanceof SimpleNode);
+    Assertions.assertEquals(
+        "OU 1", ((SimpleNode) collection.getUnorderedChildren().get(0)).getValue());
 
-        Assertions.assertEquals( "name", collection.getUnorderedChildren().get( 1 ).getName() );
-        Assertions.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
-        Assertions.assertEquals( "OU 2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
-    }
+    Assertions.assertEquals("name", collection.getUnorderedChildren().get(1).getName());
+    Assertions.assertTrue(collection.getUnorderedChildren().get(1) instanceof SimpleNode);
+    Assertions.assertEquals(
+        "OU 2", ((SimpleNode) collection.getUnorderedChildren().get(1)).getValue());
+  }
 }

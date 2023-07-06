@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -68,171 +67,150 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = TrackedEntityAttributeSchemaDescriptor.API_ENDPOINT)
 public class TrackedEntityAttributeController
-    extends AbstractCrudController<TrackedEntityAttribute>
-{
+    extends AbstractCrudController<TrackedEntityAttribute> {
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    private TextPatternService textPatternService;
+  @Autowired private TextPatternService textPatternService;
 
-    @Autowired
-    private ReservedValueService reservedValueService;
+  @Autowired private ReservedValueService reservedValueService;
 
-    @Autowired
-    private ContextService context;
+  @Autowired private ContextService context;
 
-    @GetMapping( value = "/{id}/generateAndReserve", produces = {
-        ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-    public @ResponseBody List<ReservedValue> generateAndReserveValues(
-        @RequestParam( required = false, defaultValue = "1" ) Integer numberToReserve,
-        @RequestParam( required = false, defaultValue = "60" ) Integer expiration,
-        @PathVariable String id )
-        throws WebMessageException
-    {
-        return reserve( id, numberToReserve, expiration );
+  @GetMapping(
+      value = "/{id}/generateAndReserve",
+      produces = {ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT})
+  @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+  public @ResponseBody List<ReservedValue> generateAndReserveValues(
+      @RequestParam(required = false, defaultValue = "1") Integer numberToReserve,
+      @RequestParam(required = false, defaultValue = "60") Integer expiration,
+      @PathVariable String id)
+      throws WebMessageException {
+    return reserve(id, numberToReserve, expiration);
+  }
+
+  /**
+   * This method is legacy and will do the same as generateAndReserveValues, but with only 3 days
+   * expiration. The use-case for this endpoint is to get a single id when filling in the form, so
+   * we assume the form is submitted within 3 days. generateAndReserveValues is designed to account
+   * for offline devices that need to reserve ids in batches for a longer period of time.
+   *
+   * @param id
+   * @return The id generated
+   * @throws WebMessageException
+   */
+  @GetMapping("/{id}/generate")
+  @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+  public @ResponseBody ReservedValue legacyQueryTrackedEntityInstancesJson(
+      @PathVariable String id,
+      @RequestParam(required = false, defaultValue = "3") Integer expiration)
+      throws WebMessageException {
+    return reserve(id, 1, expiration).get(0);
+  }
+
+  @GetMapping("/{id}/requiredValues")
+  @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+  public @ResponseBody Map<String, List<String>> getRequiredValues(@PathVariable String id)
+      throws WebMessageException {
+    TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute(id);
+
+    return textPatternService.getRequiredValues(trackedEntityAttribute.getTextPattern());
+  }
+
+  // Helpers
+
+  private List<ReservedValue> reserve(String id, int numberToReserve, int daysToLive)
+      throws WebMessageException {
+    if (numberToReserve > 1000 || numberToReserve < 1) {
+      throw new WebMessageException(
+          badRequest("You can only reserve between 1 and 1000 values in a single request."));
     }
 
-    /**
-     * This method is legacy and will do the same as generateAndReserveValues,
-     * but with only 3 days expiration. The use-case for this endpoint is to get
-     * a single id when filling in the form, so we assume the form is submitted
-     * within 3 days. generateAndReserveValues is designed to account for
-     * offline devices that need to reserve ids in batches for a longer period
-     * of time.
-     *
-     * @param id
-     * @return The id generated
-     * @throws WebMessageException
-     */
-    @GetMapping( "/{id}/generate" )
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-    public @ResponseBody ReservedValue legacyQueryTrackedEntityInstancesJson(
-        @PathVariable String id,
-        @RequestParam( required = false, defaultValue = "3" ) Integer expiration )
-        throws WebMessageException
-    {
-        return reserve( id, 1, expiration ).get( 0 );
+    TrackedEntityAttribute attribute = getTrackedEntityAttribute(id);
+
+    Map<String, List<String>> params = context.getParameterValuesMap();
+
+    Map<String, String> values = getRequiredValues(attribute, params);
+
+    Date expiration = DateUtils.addDays(new Date(), daysToLive);
+
+    try {
+      List<ReservedValue> result =
+          reservedValueService.reserve(attribute, numberToReserve, values, expiration);
+
+      if (result.isEmpty()) {
+        throw new WebMessageException(
+            conflict(
+                "Unable to reserve id. This may indicate that there are too few available ids left."));
+      }
+
+      return result;
+    } catch (ReserveValueException ex) {
+      throw new WebMessageException(conflict(ex.getMessage()));
+    } catch (TextPatternGenerationException ex) {
+      throw new WebMessageException(error(ex.getMessage()));
+    }
+  }
+
+  private Map<String, String> getRequiredValues(
+      TrackedEntityAttribute attr, Map<String, List<String>> values) throws WebMessageException {
+    List<String> requiredValues =
+        textPatternService.getRequiredValues(attr.getTextPattern()).get("REQUIRED");
+
+    Map<String, String> result =
+        values.entrySet().stream()
+            .filter((entry) -> requiredValues.contains(entry.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, (entry) -> entry.getValue().get(0)));
+
+    requiredValues.removeAll(result.keySet());
+
+    if (requiredValues.size() > 0) {
+      throw new WebMessageException(
+          conflict(
+              "Missing required values: "
+                  + StringUtils.collectionToCommaDelimitedString(requiredValues)));
     }
 
-    @GetMapping( "/{id}/requiredValues" )
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-    public @ResponseBody Map<String, List<String>> getRequiredValues( @PathVariable String id )
-        throws WebMessageException
-    {
-        TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttribute( id );
+    return result;
+  }
 
-        return textPatternService.getRequiredValues( trackedEntityAttribute.getTextPattern() );
+  @Override
+  protected void forceFiltering(final WebOptions webOptions, final List<String> filters) {
+    if (webOptions == null || !webOptions.isTrue("indexableOnly")) {
+      return;
     }
 
-    // Helpers
-
-    private List<ReservedValue> reserve( String id, int numberToReserve, int daysToLive )
-        throws WebMessageException
-    {
-        if ( numberToReserve > 1000 || numberToReserve < 1 )
-        {
-            throw new WebMessageException(
-                badRequest( "You can only reserve between 1 and 1000 values in a single request." ) );
-        }
-
-        TrackedEntityAttribute attribute = getTrackedEntityAttribute( id );
-
-        Map<String, List<String>> params = context.getParameterValuesMap();
-
-        Map<String, String> values = getRequiredValues( attribute, params );
-
-        Date expiration = DateUtils.addDays( new Date(), daysToLive );
-
-        try
-        {
-            List<ReservedValue> result = reservedValueService
-                .reserve( attribute, numberToReserve, values, expiration );
-
-            if ( result.isEmpty() )
-            {
-                throw new WebMessageException(
-                    conflict( "Unable to reserve id. This may indicate that there are too few available ids left." ) );
-            }
-
-            return result;
-        }
-        catch ( ReserveValueException ex )
-        {
-            throw new WebMessageException( conflict( ex.getMessage() ) );
-        }
-        catch ( TextPatternGenerationException ex )
-        {
-            throw new WebMessageException( error( ex.getMessage() ) );
-        }
+    if (filters.stream().anyMatch(f -> f.startsWith("id:"))) {
+      throw new IllegalArgumentException(
+          "indexableOnly parameter cannot be set if a separate filter for id is specified");
     }
 
-    private Map<String, String> getRequiredValues( TrackedEntityAttribute attr, Map<String, List<String>> values )
-        throws WebMessageException
-    {
-        List<String> requiredValues = textPatternService
-            .getRequiredValues( attr.getTextPattern() )
-            .get( "REQUIRED" );
+    Set<TrackedEntityAttribute> indexableTeas =
+        trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
-        Map<String, String> result = values.entrySet().stream()
-            .filter( ( entry ) -> requiredValues.contains( entry.getKey() ) )
-            .collect( Collectors.toMap( Map.Entry::getKey, ( entry ) -> entry.getValue().get( 0 ) ) );
+    StringBuilder sb = new StringBuilder("id:in:");
+    sb.append(
+        indexableTeas.stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.joining(",", "[", "]")));
 
-        requiredValues.removeAll( result.keySet() );
+    filters.add(sb.toString());
+  }
 
-        if ( requiredValues.size() > 0 )
-        {
-            throw new WebMessageException( conflict(
-                "Missing required values: " + StringUtils.collectionToCommaDelimitedString( requiredValues ) ) );
-        }
+  private TrackedEntityAttribute getTrackedEntityAttribute(String id) throws WebMessageException {
+    TrackedEntityAttribute trackedEntityAttribute =
+        trackedEntityAttributeService.getTrackedEntityAttribute(id);
 
-        return result;
+    if (trackedEntityAttribute == null) {
+      throw new WebMessageException(notFound(TrackedEntityAttribute.class, id));
     }
 
-    @Override
-    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
-    {
-        if ( webOptions == null || !webOptions.isTrue( "indexableOnly" ) )
-        {
-            return;
-        }
-
-        if ( filters.stream().anyMatch( f -> f.startsWith( "id:" ) ) )
-        {
-            throw new IllegalArgumentException(
-                "indexableOnly parameter cannot be set if a separate filter for id is specified" );
-        }
-
-        Set<TrackedEntityAttribute> indexableTeas = trackedEntityAttributeService
-            .getAllTrigramIndexableTrackedEntityAttributes();
-
-        StringBuilder sb = new StringBuilder( "id:in:" );
-        sb.append( indexableTeas.stream().map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.joining( ",", "[", "]" ) ) );
-
-        filters.add( sb.toString() );
+    if (trackedEntityAttribute.getTextPattern() == null) {
+      throw new WebMessageException(badRequest("Attribute does not contain pattern."));
     }
 
-    private TrackedEntityAttribute getTrackedEntityAttribute( String id )
-        throws WebMessageException
-    {
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
-
-        if ( trackedEntityAttribute == null )
-        {
-            throw new WebMessageException( notFound( TrackedEntityAttribute.class, id ) );
-        }
-
-        if ( trackedEntityAttribute.getTextPattern() == null )
-        {
-            throw new WebMessageException( badRequest( "Attribute does not contain pattern." ) );
-        }
-
-        return trackedEntityAttribute;
-    }
-
+    return trackedEntityAttribute;
+  }
 }

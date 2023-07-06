@@ -30,9 +30,10 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -47,78 +48,74 @@ import org.junit.jupiter.api.Test;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramOrgUnitCheckTest extends BaseValidationTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ProgramOrgUnitCheckTest extends BaseValidationTest {
 
-    private ProgramOrgUnitCheck rule;
+  private ProgramOrgUnitCheck rule;
 
-    @BeforeEach
-    void setUp()
-    {
-        rule = new ProgramOrgUnitCheck();
-    }
+  @BeforeEach
+  void setUp() {
+    rule = new ProgramOrgUnitCheck();
+  }
 
-    @Test
-    void verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit()
-    {
-        verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( "ABCDE", IdScheme.CODE );
-        verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( CodeGenerator.generateUid(), IdScheme.UID );
-        verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( "100", IdScheme.ID );
-        verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( "LOPEZ", IdScheme.NAME );
-    }
+  @Test
+  void verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit() {
+    verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit("ABCDE", IdScheme.CODE);
+    verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit(
+        CodeGenerator.generateUid(), IdScheme.UID);
+    verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit("100", IdScheme.ID);
+    verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit("LOPEZ", IdScheme.NAME);
+  }
 
-    private void verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( String orgUnitId, IdScheme scheme )
-    {
-        // assign a UID to the event's org unit
-        event.setOrgUnit( orgUnitId );
-        // Prepare data
-        Program program = createProgram( 'P' );
-        program.setId( 1 );
-        OrganisationUnit ou = new OrganisationUnit();
-        ou.setId( 1 );
-        ou.setUid( orgUnitId );
-        when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
-        when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( ImmutableMap.of( 1L, ImmutableList.of( 1L ) ) );
-        ProgramInstance pi = new ProgramInstance();
-        pi.setProgram( program );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        programInstanceMap.put( event.getUid(), pi );
-        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
-        importOptions.setOrgUnitIdScheme( scheme.name() );
-        when( workContext.getImportOptions() ).thenReturn( importOptions );
-        // method under test
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertNoError( summary );
-    }
+  private void verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit(
+      String orgUnitId, IdScheme scheme) {
+    // assign a UID to the event's org unit
+    event.setOrgUnit(orgUnitId);
+    // Prepare data
+    Program program = createProgram('P');
+    program.setId(1);
+    OrganisationUnit ou = new OrganisationUnit();
+    ou.setId(1);
+    ou.setUid(orgUnitId);
+    when(workContext.getOrganisationUnitMap()).thenReturn(ImmutableMap.of(event.getUid(), ou));
+    when(workContext.getProgramWithOrgUnitsMap())
+        .thenReturn(ImmutableMap.of(1L, ImmutableList.of(1L)));
+    ProgramInstance pi = new ProgramInstance();
+    pi.setProgram(program);
+    Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
+    programInstanceMap.put(event.getUid(), pi);
+    when(workContext.getProgramInstanceMap()).thenReturn(programInstanceMap);
+    ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+    importOptions.setOrgUnitIdScheme(scheme.name());
+    when(workContext.getImportOptions()).thenReturn(importOptions);
+    // method under test
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertNoError(summary);
+  }
 
-    @Test
-    void failWhenProgramHasNoOrgUnitMatchingEventOrgUnit()
-    {
-        // assign a UID to the event's org unit
-        event.setOrgUnit( CodeGenerator.generateUid() );
-        // Prepare data
-        Program program = createProgram( 'P' );
-        program.setId( 1 );
-        OrganisationUnit ou = new OrganisationUnit();
-        ou.setId( 1 );
-        ou.setUid( event.getOrgUnit() );
-        when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
-        when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( new HashMap<>() );
-        ProgramInstance pi = new ProgramInstance();
-        pi.setProgram( program );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        programInstanceMap.put( event.getUid(), pi );
-        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-        // method under test
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event, "Program is not assigned to this Organisation Unit: " + event.getOrgUnit() );
-    }
+  @Test
+  void failWhenProgramHasNoOrgUnitMatchingEventOrgUnit() {
+    // assign a UID to the event's org unit
+    event.setOrgUnit(CodeGenerator.generateUid());
+    // Prepare data
+    Program program = createProgram('P');
+    program.setId(1);
+    OrganisationUnit ou = new OrganisationUnit();
+    ou.setId(1);
+    ou.setUid(event.getOrgUnit());
+    when(workContext.getOrganisationUnitMap()).thenReturn(ImmutableMap.of(event.getUid(), ou));
+    when(workContext.getProgramWithOrgUnitsMap()).thenReturn(new HashMap<>());
+    ProgramInstance pi = new ProgramInstance();
+    pi.setProgram(program);
+    Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
+    programInstanceMap.put(event.getUid(), pi);
+    when(workContext.getProgramInstanceMap()).thenReturn(programInstanceMap);
+    // method under test
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertHasError(
+        summary, event, "Program is not assigned to this Organisation Unit: " + event.getOrgUnit());
+  }
 }

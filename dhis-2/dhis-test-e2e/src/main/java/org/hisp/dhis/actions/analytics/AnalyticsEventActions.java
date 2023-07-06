@@ -34,47 +34,40 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AnalyticsEventActions
-    extends RestApiActions
-{
-    public AnalyticsEventActions()
-    {
-        super( "/analytics/events" );
-    }
+public class AnalyticsEventActions extends RestApiActions {
+  public AnalyticsEventActions() {
+    super("/analytics/events");
+  }
 
-    public AnalyticsEventActions( String endpoint )
-    {
-        super( "/analytics/events" + endpoint );
-    }
+  public AnalyticsEventActions(String endpoint) {
+    super("/analytics/events" + endpoint);
+  }
 
-    public AnalyticsEventActions query()
-    {
-        return new AnalyticsEventActions( "/query" );
-    }
+  public AnalyticsEventActions query() {
+    return new AnalyticsEventActions("/query");
+  }
 
-    public AnalyticsEventActions aggregate()
-    {
-        return new AnalyticsEventActions( "/aggregate" );
-    }
+  public AnalyticsEventActions aggregate() {
+    return new AnalyticsEventActions("/aggregate");
+  }
 
-    public ApiResponse getDimensions( String programStage )
-    {
-        return this.get( "/dimensions", new QueryParamsBuilder()
-            .add( "programStageId", programStage ) ).validateStatus( 200 );
-    }
+  public ApiResponse getDimensions(String programStage) {
+    return this.get("/dimensions", new QueryParamsBuilder().add("programStageId", programStage))
+        .validateStatus(200);
+  }
 
-    public ApiResponse getDimensions( String programStage, QueryParamsBuilder queryParamsBuilder )
-    {
-        queryParamsBuilder.add( "programStageId", programStage );
+  public ApiResponse getDimensions(String programStage, QueryParamsBuilder queryParamsBuilder) {
+    queryParamsBuilder.add("programStageId", programStage);
 
-        return this.get( "/dimensions", queryParamsBuilder ).validateStatus( 200 );
-    }
+    return this.get("/dimensions", queryParamsBuilder).validateStatus(200);
+  }
 
-    public ApiResponse getDimensionsByDimensionType( String programStage, String dimensionType )
-    {
-        return this.get( "/dimensions", new QueryParamsBuilder()
-            .add( "programStageId", programStage )
-            .add( "filter", "dimensionType:eq:" + dimensionType ) ).validateStatus( 200 );
-    }
-
+  public ApiResponse getDimensionsByDimensionType(String programStage, String dimensionType) {
+    return this.get(
+            "/dimensions",
+            new QueryParamsBuilder()
+                .add("programStageId", programStage)
+                .add("filter", "dimensionType:eq:" + dimensionType))
+        .validateStatus(200);
+  }
 }

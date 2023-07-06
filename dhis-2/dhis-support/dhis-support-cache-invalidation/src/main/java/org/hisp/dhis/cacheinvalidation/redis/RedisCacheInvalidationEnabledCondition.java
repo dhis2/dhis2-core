@@ -35,22 +35,18 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class RedisCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
-
-        return getConfiguration().isEnabled( ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED );
+public class RedisCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (isTestRun(context)) {
+      return false;
     }
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
+    return getConfiguration().isEnabled(ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED);
+  }
+
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
+  }
 }

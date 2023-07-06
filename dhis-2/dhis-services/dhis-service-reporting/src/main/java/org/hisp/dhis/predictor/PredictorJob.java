@@ -39,34 +39,30 @@ import org.springframework.stereotype.Component;
 /**
  * @author Henning Håkonsen
  */
-@Component( "predictorJob" )
-public class PredictorJob implements Job
-{
-    private final PredictionService predictionService;
+@Component("predictorJob")
+public class PredictorJob implements Job {
+  private final PredictionService predictionService;
 
-    public PredictorJob( PredictionService predictionService )
-    {
-        checkNotNull( predictionService );
+  public PredictorJob(PredictionService predictionService) {
+    checkNotNull(predictionService);
 
-        this.predictionService = predictionService;
+    this.predictionService = predictionService;
+  }
+
+  @Override
+  public JobType getJobType() {
+    return JobType.PREDICTOR;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    PredictorJobParameters predictorJobParameters =
+        (PredictorJobParameters) jobConfiguration.getJobParameters();
+
+    if (predictorJobParameters == null) {
+      throw new IllegalStateException("No job parameters present in predictor job");
     }
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.PREDICTOR;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        PredictorJobParameters predictorJobParameters = (PredictorJobParameters) jobConfiguration.getJobParameters();
-
-        if ( predictorJobParameters == null )
-        {
-            throw new IllegalStateException( "No job parameters present in predictor job" );
-        }
-
-        predictionService.predictJob( predictorJobParameters, null );
-    }
+    predictionService.predictJob(predictorJobParameters, null);
+  }
 }

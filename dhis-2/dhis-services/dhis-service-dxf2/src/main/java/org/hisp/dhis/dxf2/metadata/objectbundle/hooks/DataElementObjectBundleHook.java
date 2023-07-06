@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -37,23 +36,21 @@ import org.hisp.dhis.textpattern.TextPatternParser;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataElementObjectBundleHook extends AbstractObjectBundleHook<DataElement>
-{
-    @Override
-    public void validate( DataElement dataElement, ObjectBundle bundle, Consumer<ErrorReport> addReports )
-    {
-        if ( dataElement.getFieldMask() != null )
-        {
-            try
-            {
-                TextPatternParser.parse( "\"" + dataElement.getFieldMask() + "\"" );
-            }
-            catch ( TextPatternParser.TextPatternParsingException ex )
-            {
-                addReports.accept( new ErrorReport( DataElement.class, ErrorCode.E4019, dataElement.getFieldMask(),
-                    "Not a valid TextPattern 'TEXT' segment" ) );
-            }
-        }
-
+public class DataElementObjectBundleHook extends AbstractObjectBundleHook<DataElement> {
+  @Override
+  public void validate(
+      DataElement dataElement, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    if (dataElement.getFieldMask() != null) {
+      try {
+        TextPatternParser.parse("\"" + dataElement.getFieldMask() + "\"");
+      } catch (TextPatternParser.TextPatternParsingException ex) {
+        addReports.accept(
+            new ErrorReport(
+                DataElement.class,
+                ErrorCode.E4019,
+                dataElement.getFieldMask(),
+                "Not a valid TextPattern 'TEXT' segment"));
+      }
     }
+  }
 }

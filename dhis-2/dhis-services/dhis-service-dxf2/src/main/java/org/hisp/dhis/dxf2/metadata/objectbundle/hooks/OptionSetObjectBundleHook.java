@@ -28,40 +28,36 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Objects;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OptionSetObjectBundleHook extends AbstractObjectBundleHook<OptionSet>
-{
-    @Override
-    public void postCreate( OptionSet optionSet, ObjectBundle bundle )
-    {
-        updateOption( optionSet );
+public class OptionSetObjectBundleHook extends AbstractObjectBundleHook<OptionSet> {
+  @Override
+  public void postCreate(OptionSet optionSet, ObjectBundle bundle) {
+    updateOption(optionSet);
+  }
+
+  @Override
+  public void postUpdate(OptionSet persistedObject, ObjectBundle bundle) {
+    updateOption(persistedObject);
+  }
+
+  private void updateOption(OptionSet optionSet) {
+    if (optionSet.getOptions() == null || optionSet.getOptions().isEmpty()) {
+      return;
     }
 
-    @Override
-    public void postUpdate( OptionSet persistedObject, ObjectBundle bundle )
-    {
-        updateOption( persistedObject );
-    }
+    optionSet.getOptions().stream()
+        .filter(Objects::nonNull)
+        .forEach(
+            option -> {
+              if (option.getOptionSet() == null) {
+                option.setOptionSet(optionSet);
+              }
+            });
 
-    private void updateOption( OptionSet optionSet )
-    {
-        if ( optionSet.getOptions() == null || optionSet.getOptions().isEmpty() )
-        {
-            return;
-        }
-
-        optionSet.getOptions().stream().filter( Objects::nonNull ).forEach( option -> {
-            if ( option.getOptionSet() == null )
-            {
-                option.setOptionSet( optionSet );
-            }
-        } );
-
-        sessionFactory.getCurrentSession().refresh( optionSet );
-    }
+    sessionFactory.getCurrentSession().refresh(optionSet);
+  }
 }

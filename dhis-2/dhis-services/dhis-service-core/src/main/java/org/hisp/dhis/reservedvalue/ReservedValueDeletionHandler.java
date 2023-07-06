@@ -33,26 +33,22 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" )
-public class ReservedValueDeletionHandler extends DeletionHandler
-{
+@Component("org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler")
+public class ReservedValueDeletionHandler extends DeletionHandler {
 
-    private final ReservedValueService reservedValueService;
+  private final ReservedValueService reservedValueService;
 
-    public ReservedValueDeletionHandler( ReservedValueService reservedValueService )
-    {
-        checkNotNull( reservedValueService );
-        this.reservedValueService = reservedValueService;
-    }
+  public ReservedValueDeletionHandler(ReservedValueService reservedValueService) {
+    checkNotNull(reservedValueService);
+    this.reservedValueService = reservedValueService;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
+  }
 
-    private void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        reservedValueService.deleteReservedValueByUid( attribute.getUid() );
-    }
+  private void deleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    reservedValueService.deleteReservedValueByUid(attribute.getUid());
+  }
 }

@@ -29,11 +29,10 @@ package org.hisp.dhis.dataanalysis;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Lists;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -48,121 +47,130 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" )
-public class MinMaxOutlierAnalysisService
-    implements MinMaxDataAnalysisService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService")
+public class MinMaxOutlierAnalysisService implements MinMaxDataAnalysisService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final DataAnalysisStore dataAnalysisStore;
+  private final DataAnalysisStore dataAnalysisStore;
 
-    private final MinMaxDataElementService minMaxDataElementService;
+  private final MinMaxDataElementService minMaxDataElementService;
 
-    private final BatchHandlerFactory batchHandlerFactory;
+  private final BatchHandlerFactory batchHandlerFactory;
 
-    public MinMaxOutlierAnalysisService( DataAnalysisStore dataAnalysisStore,
-        MinMaxDataElementService minMaxDataElementService, BatchHandlerFactory batchHandlerFactory )
-    {
-        checkNotNull( dataAnalysisStore );
-        checkNotNull( minMaxDataElementService );
-        checkNotNull( batchHandlerFactory );
+  public MinMaxOutlierAnalysisService(
+      DataAnalysisStore dataAnalysisStore,
+      MinMaxDataElementService minMaxDataElementService,
+      BatchHandlerFactory batchHandlerFactory) {
+    checkNotNull(dataAnalysisStore);
+    checkNotNull(minMaxDataElementService);
+    checkNotNull(batchHandlerFactory);
 
-        this.dataAnalysisStore = dataAnalysisStore;
-        this.minMaxDataElementService = minMaxDataElementService;
-        this.batchHandlerFactory = batchHandlerFactory;
+    this.dataAnalysisStore = dataAnalysisStore;
+    this.minMaxDataElementService = minMaxDataElementService;
+    this.batchHandlerFactory = batchHandlerFactory;
+  }
+
+  // -------------------------------------------------------------------------
+  // DataAnalysisService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public List<DeflatedDataValue> analyse(
+      Collection<OrganisationUnit> parents,
+      Collection<DataElement> dataElements,
+      Collection<Period> periods,
+      Double stdDevFactor,
+      Date from) {
+    Set<DataElement> elements =
+        dataElements.stream()
+            .filter(de -> de.getValueType().isNumeric())
+            .collect(Collectors.toSet());
+    Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+
+    for (DataElement dataElement : elements) {
+      categoryOptionCombos.addAll(dataElement.getCategoryOptionCombos());
     }
 
-    // -------------------------------------------------------------------------
-    // DataAnalysisService implementation
-    // -------------------------------------------------------------------------
+    log.debug(
+        "Starting min-max analysis, no of data elements: "
+            + elements.size()
+            + ", no of parent org units: "
+            + parents.size());
 
-    @Override
-    public List<DeflatedDataValue> analyse( Collection<OrganisationUnit> parents,
-        Collection<DataElement> dataElements, Collection<Period> periods, Double stdDevFactor, Date from )
-    {
-        Set<DataElement> elements = dataElements.stream()
-            .filter( de -> de.getValueType().isNumeric() )
-            .collect( Collectors.toSet() );
-        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+    return dataAnalysisStore.getMinMaxViolations(
+        elements, categoryOptionCombos, periods, parents, MAX_OUTLIERS);
+  }
 
-        for ( DataElement dataElement : elements )
-        {
-            categoryOptionCombos.addAll( dataElement.getCategoryOptionCombos() );
+  @Override
+  public void generateMinMaxValues(
+      OrganisationUnit parent, Collection<DataElement> dataElements, Double stdDevFactor) {
+    log.info(
+        "Starting min-max value generation, no of data elements: "
+            + dataElements.size()
+            + ", parent: "
+            + parent.getUid());
+
+    Date from = new DateTime(1, 1, 1, 1, 1).toDate();
+
+    minMaxDataElementService.removeMinMaxDataElements(dataElements, parent);
+
+    log.debug("Deleted existing min-max values");
+
+    List<String> parentPaths = Lists.newArrayList(parent.getPath());
+
+    BatchHandler<MinMaxDataElement> batchHandler =
+        batchHandlerFactory.createBatchHandler(MinMaxDataElementBatchHandler.class).init();
+
+    for (DataElement dataElement : dataElements) {
+      if (dataElement.getValueType().isNumeric()) {
+        Set<CategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
+
+        List<DataAnalysisMeasures> measuresList =
+            dataAnalysisStore.getDataAnalysisMeasures(
+                dataElement, categoryOptionCombos, parentPaths, from);
+
+        for (DataAnalysisMeasures measures : measuresList) {
+          int min =
+              (int)
+                  Math.round(
+                      MathUtils.getLowBound(
+                          measures.getStandardDeviation(), stdDevFactor, measures.getAverage()));
+          int max =
+              (int)
+                  Math.round(
+                      MathUtils.getHighBound(
+                          measures.getStandardDeviation(), stdDevFactor, measures.getAverage()));
+
+          switch (dataElement.getValueType()) {
+            case INTEGER_POSITIVE:
+            case INTEGER_ZERO_OR_POSITIVE:
+              min = Math.max(0, min); // Cannot be < 0
+              break;
+            case INTEGER_NEGATIVE:
+              max = Math.min(0, max); // Cannot be > 0
+              break;
+          }
+
+          OrganisationUnit orgUnit = new OrganisationUnit();
+          orgUnit.setId(measures.getOrgUnitId());
+
+          CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+          categoryOptionCombo.setId(measures.getCategoryOptionComboId());
+
+          batchHandler.addObject(
+              new MinMaxDataElement(dataElement, orgUnit, categoryOptionCombo, min, max, true));
         }
-
-        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: "
-            + parents.size() );
-
-        return dataAnalysisStore.getMinMaxViolations( elements, categoryOptionCombos, periods, parents, MAX_OUTLIERS );
+      }
     }
 
-    @Override
-    public void generateMinMaxValues( OrganisationUnit parent, Collection<DataElement> dataElements,
-        Double stdDevFactor )
-    {
-        log.info( "Starting min-max value generation, no of data elements: " + dataElements.size() + ", parent: "
-            + parent.getUid() );
+    log.info("Min-max value generation done");
 
-        Date from = new DateTime( 1, 1, 1, 1, 1 ).toDate();
-
-        minMaxDataElementService.removeMinMaxDataElements( dataElements, parent );
-
-        log.debug( "Deleted existing min-max values" );
-
-        List<String> parentPaths = Lists.newArrayList( parent.getPath() );
-
-        BatchHandler<MinMaxDataElement> batchHandler = batchHandlerFactory
-            .createBatchHandler( MinMaxDataElementBatchHandler.class ).init();
-
-        for ( DataElement dataElement : dataElements )
-        {
-            if ( dataElement.getValueType().isNumeric() )
-            {
-                Set<CategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
-
-                List<DataAnalysisMeasures> measuresList = dataAnalysisStore.getDataAnalysisMeasures( dataElement,
-                    categoryOptionCombos, parentPaths, from );
-
-                for ( DataAnalysisMeasures measures : measuresList )
-                {
-                    int min = (int) Math.round(
-                        MathUtils.getLowBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
-                    int max = (int) Math.round( MathUtils.getHighBound( measures.getStandardDeviation(), stdDevFactor,
-                        measures.getAverage() ) );
-
-                    switch ( dataElement.getValueType() )
-                    {
-                    case INTEGER_POSITIVE:
-                    case INTEGER_ZERO_OR_POSITIVE:
-                        min = Math.max( 0, min ); // Cannot be < 0
-                        break;
-                    case INTEGER_NEGATIVE:
-                        max = Math.min( 0, max ); // Cannot be > 0
-                        break;
-                    }
-
-                    OrganisationUnit orgUnit = new OrganisationUnit();
-                    orgUnit.setId( measures.getOrgUnitId() );
-
-                    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-                    categoryOptionCombo.setId( measures.getCategoryOptionComboId() );
-
-                    batchHandler.addObject(
-                        new MinMaxDataElement( dataElement, orgUnit, categoryOptionCombo, min, max, true ) );
-                }
-            }
-        }
-
-        log.info( "Min-max value generation done" );
-
-        batchHandler.flush();
-    }
+    batchHandler.flush();
+  }
 }

@@ -30,7 +30,4 @@ package org.hisp.dhis.config;
 /**
  * @author Luciano Fiandesio
  */
-public class PostgresDhisConfigurationProvider
-    extends H2DhisConfigurationProvider
-{
-}
+public class PostgresDhisConfigurationProvider extends H2DhisConfigurationProvider {}

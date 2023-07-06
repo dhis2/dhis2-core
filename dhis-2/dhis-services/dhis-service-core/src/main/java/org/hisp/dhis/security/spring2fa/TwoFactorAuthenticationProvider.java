@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.spring2fa;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
@@ -54,115 +53,105 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
-{
-    @Autowired
-    private UserService userService;
+public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider {
+  @Autowired private UserService userService;
 
-    @Autowired
-    private SecurityService securityService;
+  @Autowired private SecurityService securityService;
 
-    @Autowired
-    public TwoFactorAuthenticationProvider( @Qualifier( "userDetailsService" ) UserDetailsService detailsService,
-        PasswordEncoder passwordEncoder )
-    {
-        setUserDetailsService( detailsService );
-        setPasswordEncoder( passwordEncoder );
+  @Autowired
+  public TwoFactorAuthenticationProvider(
+      @Qualifier("userDetailsService") UserDetailsService detailsService,
+      PasswordEncoder passwordEncoder) {
+    setUserDetailsService(detailsService);
+    setPasswordEncoder(passwordEncoder);
+  }
+
+  @Override
+  public Authentication authenticate(Authentication auth) throws AuthenticationException {
+    log.debug(String.format("Login attempt: %s", auth.getName()));
+
+    String username = auth.getName();
+
+    User user = userService.getUserWithEagerFetchAuthorities(username);
+
+    if (user == null) {
+      throw new BadCredentialsException("Invalid username or password");
     }
 
-    @Override
-    public Authentication authenticate( Authentication auth )
-        throws AuthenticationException
-    {
-        log.debug( String.format( "Login attempt: %s", auth.getName() ) );
-
-        String username = auth.getName();
-
-        User user = userService.getUserWithEagerFetchAuthorities( username );
-
-        if ( user == null )
-        {
-            throw new BadCredentialsException( "Invalid username or password" );
-        }
-
-        if ( user.isExternalAuth() )
-        {
-            log.info(
-                String.format( "User '%s' is using external authentication, password login attempt aborted",
-                    username ) );
-            throw new BadCredentialsException( "Invalid login method, user is using external authentication." );
-        }
-
-        // Initialize all required properties of user credentials since these
-        // will become detached
-        user.getAllAuthorities();
-
-        // -------------------------------------------------------------------------
-        // Check two-factor authentication
-        // -------------------------------------------------------------------------
-
-        if ( user.isTwoFA() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
-        {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
-
-            // -------------------------------------------------------------------------
-            // Check whether account is locked due to multiple failed login
-            // attempts
-            // -------------------------------------------------------------------------
-
-            if ( authDetails == null )
-            {
-                log.info( "Missing authentication details in authentication request." );
-                throw new PreAuthenticatedCredentialsNotFoundException(
-                    "Missing authentication details in authentication request." );
-            }
-
-            String ip = authDetails.getIp();
-            String code = StringUtils.deleteWhitespace( authDetails.getCode() );
-
-            if ( securityService.isLocked( username ) )
-            {
-                log.debug( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
-
-                throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
-            }
-
-            if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( user, code ) )
-            {
-                log.debug(
-                    String.format( "Two-factor authentication failure for user: %s", user.getUsername() ) );
-
-                throw new BadCredentialsException( "Invalid verification code" );
-            }
-        }
-        else if ( user.isTwoFA() && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) )
-        {
-            throw new BadCredentialsException( "Can't authenticate non form based login with 2FA enabled" );
-        }
-
-        // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using User as
-        // principal
-        // -------------------------------------------------------------------------
-
-        Authentication result = super.authenticate( auth );
-
-        // Put detached state of the user credentials into the session as user
-        // must not be updated during session execution
-        user = SerializationUtils.clone( user );
-
-        // Initialize cached authorities
-
-        user.isSuper();
-        user.getAllAuthorities();
-
-        return new UsernamePasswordAuthenticationToken( user, result.getCredentials(),
-            result.getAuthorities() );
+    if (user.isExternalAuth()) {
+      log.info(
+          String.format(
+              "User '%s' is using external authentication, password login attempt aborted",
+              username));
+      throw new BadCredentialsException(
+          "Invalid login method, user is using external authentication.");
     }
 
-    @Override
-    public boolean supports( Class<?> authentication )
-    {
-        return authentication.equals( UsernamePasswordAuthenticationToken.class );
+    // Initialize all required properties of user credentials since these
+    // will become detached
+    user.getAllAuthorities();
+
+    // -------------------------------------------------------------------------
+    // Check two-factor authentication
+    // -------------------------------------------------------------------------
+
+    if (user.isTwoFA() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) {
+      TwoFactorWebAuthenticationDetails authDetails =
+          (TwoFactorWebAuthenticationDetails) auth.getDetails();
+
+      // -------------------------------------------------------------------------
+      // Check whether account is locked due to multiple failed login
+      // attempts
+      // -------------------------------------------------------------------------
+
+      if (authDetails == null) {
+        log.info("Missing authentication details in authentication request.");
+        throw new PreAuthenticatedCredentialsNotFoundException(
+            "Missing authentication details in authentication request.");
+      }
+
+      String ip = authDetails.getIp();
+      String code = StringUtils.deleteWhitespace(authDetails.getCode());
+
+      if (securityService.isLocked(username)) {
+        log.debug(String.format("Temporary lockout for user: %s and IP: %s", username, ip));
+
+        throw new LockedException(String.format("IP is temporarily locked: %s", ip));
+      }
+
+      if (!LongValidator.getInstance().isValid(code) || !SecurityUtils.verify(user, code)) {
+        log.debug(
+            String.format("Two-factor authentication failure for user: %s", user.getUsername()));
+
+        throw new BadCredentialsException("Invalid verification code");
+      }
+    } else if (user.isTwoFA()
+        && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails)) {
+      throw new BadCredentialsException("Can't authenticate non form based login with 2FA enabled");
     }
+
+    // -------------------------------------------------------------------------
+    // Delegate authentication downstream, using User as
+    // principal
+    // -------------------------------------------------------------------------
+
+    Authentication result = super.authenticate(auth);
+
+    // Put detached state of the user credentials into the session as user
+    // must not be updated during session execution
+    user = SerializationUtils.clone(user);
+
+    // Initialize cached authorities
+
+    user.isSuper();
+    user.getAllAuthorities();
+
+    return new UsernamePasswordAuthenticationToken(
+        user, result.getCredentials(), result.getAuthorities());
+  }
+
+  @Override
+  public boolean supports(Class<?> authentication) {
+    return authentication.equals(UsernamePasswordAuthenticationToken.class);
+  }
 }

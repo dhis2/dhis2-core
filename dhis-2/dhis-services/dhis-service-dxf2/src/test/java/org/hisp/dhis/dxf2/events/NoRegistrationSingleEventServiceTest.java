@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Date;
 import java.util.HashSet;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -60,133 +59,125 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
-{
+class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private EventService eventService;
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+  @Autowired private ProgramInstanceService programInstanceService;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+  @Autowired private ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private Program programA;
+  private Program programA;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  @Override
+  public boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
-        organisationUnitA = createOrganisationUnit( 'A' );
-        identifiableObjectManager.save( organisationUnitA );
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setValueType( ValueType.INTEGER );
-        identifiableObjectManager.save( dataElementA );
-        programStageA = createProgramStage( 'A', 0 );
-        identifiableObjectManager.save( programStageA );
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        identifiableObjectManager.save( programA );
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA );
-        programStageDataElement.setProgramStage( programStageA );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-        programStageA.getProgramStageDataElements().add( programStageDataElement );
-        programStageA.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
-        identifiableObjectManager.update( programStageA );
-        identifiableObjectManager.update( programA );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstanceService.addProgramInstance( programInstance );
-        identifiableObjectManager.update( programA );
-        createUserAndInjectSecurityContext( true );
-        identifiableObjectManager.flush();
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
+    organisationUnitA = createOrganisationUnit('A');
+    identifiableObjectManager.save(organisationUnitA);
+    dataElementA = createDataElement('A');
+    dataElementA.setValueType(ValueType.INTEGER);
+    identifiableObjectManager.save(dataElementA);
+    programStageA = createProgramStage('A', 0);
+    identifiableObjectManager.save(programStageA);
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    identifiableObjectManager.save(programA);
+    ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElementA);
+    programStageDataElement.setProgramStage(programStageA);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElement);
+    programStageA.getProgramStageDataElements().add(programStageDataElement);
+    programStageA.setProgram(programA);
+    programA.getProgramStages().add(programStageA);
+    identifiableObjectManager.update(programStageA);
+    identifiableObjectManager.update(programA);
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setProgram(programA);
+    programInstance.setIncidentDate(new Date());
+    programInstance.setEnrollmentDate(new Date());
+    programInstanceService.addProgramInstance(programInstance);
+    identifiableObjectManager.update(programA);
+    createUserAndInjectSecurityContext(true);
+    identifiableObjectManager.flush();
+  }
 
-    @Test
-    void testGetPersonsByProgramStageInstance()
-    {
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        ProgramStageInstance programStageInstance = programStageInstanceService
-            .getProgramStageInstance( importSummary.getReference() );
-        assertNotNull( programStageInstance );
-        assertNotNull( eventService.getEvent( programStageInstance, EventParams.FALSE ) );
-    }
+  @Test
+  void testGetPersonsByProgramStageInstance() {
+    Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertNotNull(importSummary.getReference());
+    ProgramStageInstance programStageInstance =
+        programStageInstanceService.getProgramStageInstance(importSummary.getReference());
+    assertNotNull(programStageInstance);
+    assertNotNull(eventService.getEvent(programStageInstance, EventParams.FALSE));
+  }
 
-    @Test
-    void testGetEventByUid()
-    {
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-    }
+  @Test
+  void testGetEventByUid() {
+    Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertNotNull(importSummary.getReference());
+    assertNotNull(
+        programStageInstanceService.getProgramStageInstance(importSummary.getReference()));
+  }
 
-    @Test
-    void testSaveEvent()
-    {
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertEquals( 0, importSummary.getConflictCount() );
-        assertNotNull( importSummary.getReference() );
-        event = eventService
-            .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ),
-                EventParams.FALSE );
-        assertNotNull( event );
-        assertEquals( 1, event.getDataValues().size() );
-    }
+  @Test
+  void testSaveEvent() {
+    Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertEquals(0, importSummary.getConflictCount());
+    assertNotNull(importSummary.getReference());
+    event =
+        eventService.getEvent(
+            programStageInstanceService.getProgramStageInstance(importSummary.getReference()),
+            EventParams.FALSE);
+    assertNotNull(event);
+    assertEquals(1, event.getDataValues().size());
+  }
 
-    @Test
-    void testDeleteEvent()
-    {
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
-        ImportSummary importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertNotNull( importSummary.getReference() );
-        assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-        eventService.deleteEvent( event.getEvent() );
-        assertNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-    }
+  @Test
+  void testDeleteEvent() {
+    Event event =
+        createEvent(programA.getUid(), programStageA.getUid(), organisationUnitA.getUid());
+    ImportSummary importSummary = eventService.addEvent(event, null, false);
+    assertEquals(ImportStatus.SUCCESS, importSummary.getStatus());
+    assertNotNull(importSummary.getReference());
+    assertNotNull(
+        programStageInstanceService.getProgramStageInstance(importSummary.getReference()));
+    eventService.deleteEvent(event.getEvent());
+    assertNull(programStageInstanceService.getProgramStageInstance(importSummary.getReference()));
+  }
 
-    private Event createEvent( String program, String programStage, String orgUnit )
-    {
-        Event event = new Event();
-        event.setProgram( program );
-        event.setProgramStage( programStage );
-        event.setOrgUnit( orgUnit );
-        event.setEventDate( "2013-01-01" );
-        event.getDataValues().add( new DataValue( dataElementA.getUid(), "10" ) );
-        return event;
-    }
+  private Event createEvent(String program, String programStage, String orgUnit) {
+    Event event = new Event();
+    event.setProgram(program);
+    event.setProgramStage(programStage);
+    event.setOrgUnit(orgUnit);
+    event.setEventDate("2013-01-01");
+    event.getDataValues().add(new DataValue(dataElementA.getUid(), "10"));
+    return event;
+  }
 }

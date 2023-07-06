@@ -30,30 +30,27 @@ package org.hisp.dhis.analytics;
 /**
  * @author Lars Helge Overland
  */
-public enum ColumnDataType
-{
-    CHARACTER_11( "character(11)" ),
-    VARCHAR_50( "varchar(50)" ),
-    VARCHAR_255( "varchar(255)" ),
-    TEXT( "text" ),
-    DATE( "date" ),
-    TIMESTAMP( "timestamp" ),
-    INTEGER( "integer" ),
-    BIGINT( "bigint" ),
-    DOUBLE( "double precision" ),
-    BOOLEAN( "boolean" ),
-    GEOMETRY( "geometry" ),
-    GEOMETRY_POINT( "geometry(Point, 4326)" );
+public enum ColumnDataType {
+  CHARACTER_11("character(11)"),
+  VARCHAR_50("varchar(50)"),
+  VARCHAR_255("varchar(255)"),
+  TEXT("text"),
+  DATE("date"),
+  TIMESTAMP("timestamp"),
+  INTEGER("integer"),
+  BIGINT("bigint"),
+  DOUBLE("double precision"),
+  BOOLEAN("boolean"),
+  GEOMETRY("geometry"),
+  GEOMETRY_POINT("geometry(Point, 4326)");
 
-    String value;
+  String value;
 
-    ColumnDataType( String value )
-    {
-        this.value = value;
-    }
+  ColumnDataType(String value) {
+    this.value = value;
+  }
 
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

@@ -46,59 +46,63 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramInstanceRepeatableStageCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
-        ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = null;
+public class ProgramInstanceRepeatableStageCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+    ProgramStage programStage = ctx.getProgramStage(scheme, event.getProgramStage());
+    ProgramInstance programInstance = ctx.getProgramInstanceMap().get(event.getUid());
+    Program program = ctx.getProgramsMap().get(event.getProgram());
+    TrackedEntityInstance tei = null;
 
-        if ( program.isRegistration() )
-        {
-            tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
-        }
-
-        /*
-         * ProgramInstance should never be null. If it's null, the
-         * ProgramInstanceCheck should report this anomaly.
-         */
-        // @formatter:off
-        if ( programInstance != null &&
-             tei != null &&
-             program.isRegistration() &&
-             !programStage.getRepeatable() &&
-             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programInstance.getId(), programStage.getId(), tei.getId() ) )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
-                    .incrementIgnored();
-        }
-        // @formatter:on
-
-        return success();
+    if (program.isRegistration()) {
+      tei = ctx.getTrackedEntityInstanceMap().get(event.getUid()).getLeft();
     }
 
-    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programInstanceId, long programStageId,
-        long trackedEntityInstanceId )
-    {
-        // @formatter:off
-        final String sql = "select exists( " +
-                "select * " +
-                "from programstageinstance psi " +
-                "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-                "where pi.programinstanceid = ? " +
-                "  and psi.programstageid = ? " +
-                "  and psi.deleted = false " +
-                "  and pi.trackedentityinstanceid = ? " +
-                "  and psi.status != 'SKIPPED'" +
-                ")";
-        // @formatter:on
-
-        return jdbcTemplate.queryForObject( sql, Boolean.class, programInstanceId, programStageId,
-            trackedEntityInstanceId );
+    /*
+     * ProgramInstance should never be null. If it's null, the
+     * ProgramInstanceCheck should report this anomaly.
+     */
+    // @formatter:off
+    if (programInstance != null
+        && tei != null
+        && program.isRegistration()
+        && !programStage.getRepeatable()
+        && hasProgramStageInstance(
+            ctx.getServiceDelegator().getJdbcTemplate(),
+            programInstance.getId(),
+            programStage.getId(),
+            tei.getId())) {
+      return new ImportSummary(
+              ImportStatus.ERROR, "Program stage is not repeatable and an event already exists")
+          .setReference(event.getEvent())
+          .incrementIgnored();
     }
+    // @formatter:on
+
+    return success();
+  }
+
+  private boolean hasProgramStageInstance(
+      JdbcTemplate jdbcTemplate,
+      long programInstanceId,
+      long programStageId,
+      long trackedEntityInstanceId) {
+    // @formatter:off
+    final String sql =
+        "select exists( "
+            + "select * "
+            + "from programstageinstance psi "
+            + "  join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+            + "where pi.programinstanceid = ? "
+            + "  and psi.programstageid = ? "
+            + "  and psi.deleted = false "
+            + "  and pi.trackedentityinstanceid = ? "
+            + "  and psi.status != 'SKIPPED'"
+            + ")";
+    // @formatter:on
+
+    return jdbcTemplate.queryForObject(
+        sql, Boolean.class, programInstanceId, programStageId, trackedEntityInstanceId);
+  }
 }

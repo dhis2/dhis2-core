@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "numberType", namespace = DxfNamespaces.DXF_2_0 )
-public enum NumberType
-{
-    VALUE,
-    ROW_PERCENTAGE,
-    COLUMN_PERCENTAGE;
+@JacksonXmlRootElement(localName = "numberType", namespace = DxfNamespaces.DXF_2_0)
+public enum NumberType {
+  VALUE,
+  ROW_PERCENTAGE,
+  COLUMN_PERCENTAGE;
 }

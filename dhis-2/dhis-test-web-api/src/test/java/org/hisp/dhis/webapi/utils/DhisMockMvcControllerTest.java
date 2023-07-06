@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.WebClient;
@@ -49,101 +48,84 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
  *
  * @author Jan Bernitt
  */
-public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest implements WebClient
-{
+public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest implements WebClient {
 
-    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
-        JsonResponse actual )
-    {
-        return assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
+  public static JsonWebMessage assertWebMessage(
+      String httpStatus, int httpStatusCode, String status, String message, JsonResponse actual) {
+    return assertWebMessage(
+        httpStatus, httpStatusCode, status, message, actual.as(JsonWebMessage.class));
+  }
+
+  public static JsonWebMessage assertWebMessage(
+      String httpStatus, int httpStatusCode, String status, String message, JsonWebMessage actual) {
+    assertTrue(
+        actual.has("httpStatusCode", "httpStatus", "status"),
+        "response appears to be something other than a WebMessage: " + actual.toString());
+    assertEquals(httpStatusCode, actual.getHttpStatusCode(), "unexpected HTTP status code");
+    assertEquals(httpStatus, actual.getHttpStatus(), "unexpected HTTP status");
+    assertEquals(status, actual.getStatus(), "unexpected status");
+    assertEquals(message, actual.getMessage(), "unexpected message");
+    return actual;
+  }
+
+  public static ResponseAdapter toResponse(MockHttpServletResponse response) {
+    return new MockMvcResponseAdapter(response);
+  }
+
+  @Override
+  public HttpResponse webRequest(
+      HttpMethod method, String url, List<Header> headers, MediaType contentType, String content) {
+    return webRequest(buildMockRequest(method, url, headers, contentType, content));
+  }
+
+  protected MockHttpServletRequestBuilder buildMockRequest(
+      HttpMethod method, String url, List<Header> headers, MediaType contentType, String content) {
+    MockHttpServletRequestBuilder request = MockMvcRequestBuilders.request(method, url);
+    for (Header header : headers) {
+      request.header(header.getName(), header.getValue());
+    }
+    if (contentType != null) {
+      request.contentType(contentType);
+    }
+    if (content != null) {
+      request.content(content);
     }
 
-    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
-        JsonWebMessage actual )
-    {
-        assertTrue( actual.has( "httpStatusCode", "httpStatus", "status" ),
-            "response appears to be something other than a WebMessage: " + actual.toString() );
-        assertEquals( httpStatusCode, actual.getHttpStatusCode(), "unexpected HTTP status code" );
-        assertEquals( httpStatus, actual.getHttpStatus(), "unexpected HTTP status" );
-        assertEquals( status, actual.getStatus(), "unexpected status" );
-        assertEquals( message, actual.getMessage(), "unexpected message" );
-        return actual;
-    }
+    return request;
+  }
 
-    public static ResponseAdapter toResponse( MockHttpServletResponse response )
-    {
-        return new MockMvcResponseAdapter( response );
+  protected abstract HttpResponse webRequest(MockHttpServletRequestBuilder request);
+
+  private static class MockMvcResponseAdapter implements ResponseAdapter {
+
+    private final MockHttpServletResponse response;
+
+    MockMvcResponseAdapter(MockHttpServletResponse response) {
+      this.response = response;
     }
 
     @Override
-    public HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
-        String content )
-    {
-        return webRequest( buildMockRequest( method, url, headers, contentType, content ) );
+    public int getStatus() {
+      return response.getStatus();
     }
 
-    protected MockHttpServletRequestBuilder buildMockRequest( HttpMethod method, String url, List<Header> headers,
-        MediaType contentType,
-        String content )
-    {
-        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.request( method, url );
-        for ( Header header : headers )
-        {
-            request.header( header.getName(), header.getValue() );
-        }
-        if ( contentType != null )
-        {
-            request.contentType( contentType );
-        }
-        if ( content != null )
-        {
-            request.content( content );
-        }
-
-        return request;
+    @Override
+    public String getContent() {
+      try {
+        return response.getContentAsString(StandardCharsets.UTF_8);
+      } catch (UnsupportedEncodingException ex) {
+        throw new RuntimeException(ex);
+      }
     }
 
-    protected abstract HttpResponse webRequest( MockHttpServletRequestBuilder request );
-
-    private static class MockMvcResponseAdapter implements ResponseAdapter
-    {
-
-        private final MockHttpServletResponse response;
-
-        MockMvcResponseAdapter( MockHttpServletResponse response )
-        {
-            this.response = response;
-        }
-
-        @Override
-        public int getStatus()
-        {
-            return response.getStatus();
-        }
-
-        @Override
-        public String getContent()
-        {
-            try
-            {
-                return response.getContentAsString( StandardCharsets.UTF_8 );
-            }
-            catch ( UnsupportedEncodingException ex )
-            {
-                throw new RuntimeException( ex );
-            }
-        }
-
-        @Override
-        public String getErrorMessage()
-        {
-            return response.getErrorMessage();
-        }
-
-        @Override
-        public String getHeader( String name )
-        {
-            return response.getHeader( name );
-        }
+    @Override
+    public String getErrorMessage() {
+      return response.getErrorMessage();
     }
+
+    @Override
+    public String getHeader(String name) {
+      return response.getHeader(name);
+    }
+  }
 }

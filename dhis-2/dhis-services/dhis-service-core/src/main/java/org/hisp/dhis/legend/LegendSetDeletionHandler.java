@@ -35,32 +35,25 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.legend.LegendSetDeletionHandler" )
-public class LegendSetDeletionHandler
-    extends DeletionHandler
-{
-    private final LegendSetService legendSetService;
+@Component("org.hisp.dhis.legend.LegendSetDeletionHandler")
+public class LegendSetDeletionHandler extends DeletionHandler {
+  private final LegendSetService legendSetService;
 
-    public LegendSetDeletionHandler( LegendSetService legendSetService )
-    {
-        checkNotNull( legendSetService );
-        this.legendSetService = legendSetService;
-    }
+  public LegendSetDeletionHandler(LegendSetService legendSetService) {
+    checkNotNull(legendSetService);
+    this.legendSetService = legendSetService;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( Legend.class, this::deleteLegend );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(Legend.class, this::deleteLegend);
+  }
 
-    private void deleteLegend( Legend legend )
-    {
-        for ( LegendSet legendSet : legendSetService.getAllLegendSets() )
-        {
-            if ( legendSet.getLegends().remove( legend ) )
-            {
-                legendSetService.updateLegendSet( legendSet );
-            }
-        }
+  private void deleteLegend(Legend legend) {
+    for (LegendSet legendSet : legendSetService.getAllLegendSets()) {
+      if (legendSet.getLegends().remove(legend)) {
+        legendSetService.updateLegendSet(legendSet);
+      }
     }
+  }
 }

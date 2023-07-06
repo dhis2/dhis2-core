@@ -39,45 +39,40 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.user.UserLookupController}
- * API.
+ * Tests the {@link org.hisp.dhis.webapi.controller.user.UserLookupController} API.
  *
  * @author Jan Bernitt
  */
-class UserLookupControllerTest extends DhisControllerConvenienceTest
-{
+class UserLookupControllerTest extends DhisControllerConvenienceTest {
 
-    private String roleId;
+  private String roleId;
 
-    @BeforeEach
-    void setUp()
-    {
-        User john = switchToNewUser( "John" );
-        User paul = switchToNewUser( "Paul" );
-        User george = switchToNewUser( "George" );
-        User ringo = switchToNewUser( "Ringo" );
-        switchToSuperuser();
-        roleId = assertStatus( HttpStatus.CREATED, POST( "/userRoles", "{'name':'common'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + john.getUid() ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + paul.getUid() ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + george.getUid() ) );
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + ringo.getUid() ) );
-    }
+  @BeforeEach
+  void setUp() {
+    User john = switchToNewUser("John");
+    User paul = switchToNewUser("Paul");
+    User george = switchToNewUser("George");
+    User ringo = switchToNewUser("Ringo");
+    switchToSuperuser();
+    roleId = assertStatus(HttpStatus.CREATED, POST("/userRoles", "{'name':'common'}"));
+    assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + john.getUid()));
+    assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + paul.getUid()));
+    assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + george.getUid()));
+    assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + ringo.getUid()));
+  }
 
-    /**
-     * This test makes sure a user having the same role as users in the system
-     * can see those users.
-     */
-    @Test
-    void testLookUpUsers()
-    {
-        User tester = switchToNewUser( "tester" );
-        switchToSuperuser();
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + tester.getUid() ) );
-        switchContextToUser( tester );
-        JsonArray matches = GET( "/userLookup?query=John" ).content().getArray( "users" );
-        assertEquals( 1, matches.size() );
-        JsonUser user = matches.get( 0, JsonUser.class );
-        assertEquals( "John", user.getFirstName() );
-    }
+  /**
+   * This test makes sure a user having the same role as users in the system can see those users.
+   */
+  @Test
+  void testLookUpUsers() {
+    User tester = switchToNewUser("tester");
+    switchToSuperuser();
+    assertStatus(HttpStatus.NO_CONTENT, POST("/userRoles/" + roleId + "/users/" + tester.getUid()));
+    switchContextToUser(tester);
+    JsonArray matches = GET("/userLookup?query=John").content().getArray("users");
+    assertEquals(1, matches.size());
+    JsonUser user = matches.get(0, JsonUser.class);
+    assertEquals("John", user.getFirstName());
+  }
 }

@@ -27,80 +27,67 @@
  */
 package org.hisp.dhis.render;
 
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
+import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class DeserializeTest
-{
-    private String a;
+class DeserializeTest {
+  private String a;
 
-    private String b;
+  private String b;
 
-    private String c;
+  private String c;
 
-    private Date d;
+  private Date d;
 
-    public DeserializeTest()
-    {
-    }
+  public DeserializeTest() {}
 
-    @JsonProperty
-    public String getA()
-    {
-        return a;
-    }
+  @JsonProperty
+  public String getA() {
+    return a;
+  }
 
-    public void setA( String a )
-    {
-        this.a = a;
-    }
+  public void setA(String a) {
+    this.a = a;
+  }
 
-    @JsonProperty
-    public String getB()
-    {
-        return b;
-    }
+  @JsonProperty
+  public String getB() {
+    return b;
+  }
 
-    public void setB( String b )
-    {
-        this.b = b;
-    }
+  public void setB(String b) {
+    this.b = b;
+  }
 
-    @JsonProperty
-    public String getC()
-    {
-        return c;
-    }
+  @JsonProperty
+  public String getC() {
+    return c;
+  }
 
-    public void setC( String c )
-    {
-        this.c = c;
-    }
+  public void setC(String c) {
+    this.c = c;
+  }
 
-    @JsonProperty
-    public Date getD()
-    {
-        return d;
-    }
+  @JsonProperty
+  public Date getD() {
+    return d;
+  }
 
-    public void setD( Date d )
-    {
-        this.d = d;
-    }
+  public void setD(Date d) {
+    this.d = d;
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "a", a )
-            .add( "b", b )
-            .add( "c", c )
-            .add( "d", d )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("a", a)
+        .add("b", b)
+        .add("c", c)
+        .add("d", d)
+        .toString();
+  }
 }

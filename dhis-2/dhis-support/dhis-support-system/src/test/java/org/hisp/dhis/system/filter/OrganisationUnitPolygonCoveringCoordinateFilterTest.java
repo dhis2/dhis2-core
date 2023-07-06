@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.utils.TestResourceUtils;
@@ -42,48 +41,42 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-class OrganisationUnitPolygonCoveringCoordinateFilterTest
-{
+class OrganisationUnitPolygonCoveringCoordinateFilterTest {
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private OrganisationUnitPolygonCoveringCoordinateFilter filter;
+  private OrganisationUnitPolygonCoveringCoordinateFilter filter;
 
-    private String DOWNTOWN_OSLO;
+  private String DOWNTOWN_OSLO;
 
-    @BeforeEach
-    void setUp()
-        throws IOException
-    {
-        organisationUnit = new OrganisationUnit();
-        DOWNTOWN_OSLO = TestResourceUtils.getFileContent( "gis/downtownOslo.json" );
-    }
+  @BeforeEach
+  void setUp() throws IOException {
+    organisationUnit = new OrganisationUnit();
+    DOWNTOWN_OSLO = TestResourceUtils.getFileContent("gis/downtownOslo.json");
+  }
 
-    @Test
-    void verifyFilterExcludesOrgUnitWithoutGeometry()
-    {
-        filter = new OrganisationUnitPolygonCoveringCoordinateFilter( 1, 1.1 );
-        organisationUnit.setGeometry( null );
-        assertFalse( filter.retain( organisationUnit ) );
-    }
+  @Test
+  void verifyFilterExcludesOrgUnitWithoutGeometry() {
+    filter = new OrganisationUnitPolygonCoveringCoordinateFilter(1, 1.1);
+    organisationUnit.setGeometry(null);
+    assertFalse(filter.retain(organisationUnit));
+  }
 
-    @Test
-    void verifyFilterExcludesOrgUnitFallingOutsidePolygon()
-        throws IOException
-    {
-        filter = new OrganisationUnitPolygonCoveringCoordinateFilter( 10.758833885192871, 59.91530028312405 );
-        Geometry ouGeometry = new GeometryJSON().read( DOWNTOWN_OSLO );
-        organisationUnit.setGeometry( ouGeometry );
-        assertFalse( filter.retain( organisationUnit ) );
-    }
+  @Test
+  void verifyFilterExcludesOrgUnitFallingOutsidePolygon() throws IOException {
+    filter =
+        new OrganisationUnitPolygonCoveringCoordinateFilter(10.758833885192871, 59.91530028312405);
+    Geometry ouGeometry = new GeometryJSON().read(DOWNTOWN_OSLO);
+    organisationUnit.setGeometry(ouGeometry);
+    assertFalse(filter.retain(organisationUnit));
+  }
 
-    @Test
-    void verifyFilterIncludesOrgUnitFallingInsidePolygon()
-        throws IOException
-    {
-        filter = new OrganisationUnitPolygonCoveringCoordinateFilter( 10.746517181396484, 59.91080384720672 );
-        Geometry ouGeometry = new GeometryJSON().read( DOWNTOWN_OSLO );
-        organisationUnit.setGeometry( ouGeometry );
-        assertTrue( filter.retain( organisationUnit ) );
-    }
+  @Test
+  void verifyFilterIncludesOrgUnitFallingInsidePolygon() throws IOException {
+    filter =
+        new OrganisationUnitPolygonCoveringCoordinateFilter(10.746517181396484, 59.91080384720672);
+    Geometry ouGeometry = new GeometryJSON().read(DOWNTOWN_OSLO);
+    organisationUnit.setGeometry(ouGeometry);
+    assertTrue(filter.retain(organisationUnit));
+  }
 }

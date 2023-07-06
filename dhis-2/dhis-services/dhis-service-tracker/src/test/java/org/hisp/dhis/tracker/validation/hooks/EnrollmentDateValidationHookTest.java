@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -54,124 +53,113 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class EnrollmentDateValidationHookTest
-{
+@ExtendWith(MockitoExtension.class)
+class EnrollmentDateValidationHookTest {
 
-    private EnrollmentDateValidationHook hookToTest;
+  private EnrollmentDateValidationHook hookToTest;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    public void setUp()
-    {
-        hookToTest = new EnrollmentDateValidationHook();
+  @BeforeEach
+  public void setUp() {
+    hookToTest = new EnrollmentDateValidationHook();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .build();
-    }
+    bundle = TrackerBundle.builder().preheat(preheat).build();
+  }
 
-    @Test
-    void testMandatoryDatesMustBePresent()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
-        enrollment.setOccurredAt( Instant.now() );
+  @Test
+  void testMandatoryDatesMustBePresent() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(CodeGenerator.generateUid());
+    enrollment.setOccurredAt(Instant.now());
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
-    }
+    hasTrackerError(reporter, E1025, ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void testDatesMustNotBeInTheFuture()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
-        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
+  @Test
+  void testDatesMustNotBeInTheFuture() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(CodeGenerator.generateUid());
+    final Instant dateInTheFuture = Instant.now().plus(Duration.ofDays(2));
 
-        enrollment.setOccurredAt( dateInTheFuture );
-        enrollment.setEnrolledAt( dateInTheFuture );
+    enrollment.setOccurredAt(dateInTheFuture);
+    enrollment.setEnrolledAt(dateInTheFuture);
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
-        hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
-    }
+    hasTrackerError(reporter, E1020, ENROLLMENT, enrollment.getUid());
+    hasTrackerError(reporter, E1021, ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( CodeGenerator.generateUid() );
-        final Instant today = Instant.now().plus( Duration.ofMinutes( 1 ) );
+  @Test
+  void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setProgram(CodeGenerator.generateUid());
+    final Instant today = Instant.now().plus(Duration.ofMinutes(1));
 
-        enrollment.setOccurredAt( today );
-        enrollment.setEnrolledAt( today );
+    enrollment.setOccurredAt(today);
+    enrollment.setEnrolledAt(today);
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testDatesCanBeInTheFuture()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
-        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-        enrollment.setOccurredAt( dateInTheFuture );
-        enrollment.setEnrolledAt( dateInTheFuture );
+  @Test
+  void testDatesCanBeInTheFuture() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(CodeGenerator.generateUid());
+    final Instant dateInTheFuture = Instant.now().plus(Duration.ofDays(2));
+    enrollment.setOccurredAt(dateInTheFuture);
+    enrollment.setEnrolledAt(dateInTheFuture);
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        Program program = new Program();
-        program.setSelectEnrollmentDatesInFuture( true );
-        program.setSelectIncidentDatesInFuture( true );
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
+    Program program = new Program();
+    program.setSelectEnrollmentDatesInFuture(true);
+    program.setSelectIncidentDatesInFuture(true);
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(program);
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testFailOnMissingOccurredAtDate()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( CodeGenerator.generateUid() );
+  @Test
+  void testFailOnMissingOccurredAtDate() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(CodeGenerator.generateUid());
 
-        enrollment.setEnrolledAt( Instant.now() );
+    enrollment.setEnrolledAt(Instant.now());
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        Program program = new Program();
-        program.setDisplayIncidentDate( true );
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
+    Program program = new Program();
+    program.setDisplayIncidentDate(true);
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(program);
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
-    }
-
+    hasTrackerError(reporter, E1023, ENROLLMENT, enrollment.getUid());
+  }
 }

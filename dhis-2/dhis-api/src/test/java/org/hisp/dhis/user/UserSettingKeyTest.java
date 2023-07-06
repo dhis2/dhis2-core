@@ -36,20 +36,21 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class UserSettingKeyTest
-{
+class UserSettingKeyTest {
 
-    @Test
-    void getAsRealClassEnum()
-    {
-        Assertions.assertSame( DisplayProperty.SHORTNAME,
-            UserSettingKey.getAsRealClass( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName" ) );
-    }
+  @Test
+  void getAsRealClassEnum() {
+    Assertions.assertSame(
+        DisplayProperty.SHORTNAME,
+        UserSettingKey.getAsRealClass(
+            UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName"));
+  }
 
-    @Test
-    void getAsRealClassOther()
-    {
-        Assertions.assertSame( "Test Layout",
-            UserSettingKey.getAsRealClass( UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout" ) );
-    }
+  @Test
+  void getAsRealClassOther() {
+    Assertions.assertSame(
+        "Test Layout",
+        UserSettingKey.getAsRealClass(
+            UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout"));
+  }
 }

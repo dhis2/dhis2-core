@@ -30,42 +30,38 @@ package org.hisp.dhis.sms;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.ScheduledFuture;
-
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.sms.SmsPublisher" )
-public class SmsPublisher
-{
-    private final MessageQueue messageQueue;
+@Component("org.hisp.dhis.sms.SmsPublisher")
+public class SmsPublisher {
+  private final MessageQueue messageQueue;
 
-    private final SmsConsumerThread smsConsumer;
+  private final SmsConsumerThread smsConsumer;
 
-    private final TaskScheduler taskScheduler;
+  private final TaskScheduler taskScheduler;
 
-    public SmsPublisher( MessageQueue messageQueue, SmsConsumerThread smsConsumer, TaskScheduler taskScheduler )
-    {
+  public SmsPublisher(
+      MessageQueue messageQueue, SmsConsumerThread smsConsumer, TaskScheduler taskScheduler) {
 
-        checkNotNull( messageQueue );
-        checkNotNull( smsConsumer );
-        checkNotNull( taskScheduler );
+    checkNotNull(messageQueue);
+    checkNotNull(smsConsumer);
+    checkNotNull(taskScheduler);
 
-        this.messageQueue = messageQueue;
-        this.smsConsumer = smsConsumer;
-        this.taskScheduler = taskScheduler;
-    }
+    this.messageQueue = messageQueue;
+    this.smsConsumer = smsConsumer;
+    this.taskScheduler = taskScheduler;
+  }
 
-    private ScheduledFuture<?> future;
+  private ScheduledFuture<?> future;
 
-    public void start()
-    {
-        messageQueue.initialize();
+  public void start() {
+    messageQueue.initialize();
 
-        future = taskScheduler.scheduleWithFixedDelay( smsConsumer::spawnSmsConsumer, 5000 );
-    }
+    future = taskScheduler.scheduleWithFixedDelay(smsConsumer::spawnSmsConsumer, 5000);
+  }
 
-    public void stop()
-    {
-        future.cancel( true );
-    }
+  public void stop() {
+    future.cancel(true);
+  }
 }

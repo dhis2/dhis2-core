@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,73 +37,63 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Abyot Asalefew
  */
-@Service( "org.hisp.dhis.program.ProgramStageService" )
-public class DefaultProgramStageService
-    implements ProgramStageService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.program.ProgramStageService")
+public class DefaultProgramStageService implements ProgramStageService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final ProgramStageStore programStageStore;
+  private final ProgramStageStore programStageStore;
 
-    public DefaultProgramStageService( ProgramStageStore programStageStore )
-    {
-        checkNotNull( programStageStore );
-        this.programStageStore = programStageStore;
-    }
+  public DefaultProgramStageService(ProgramStageStore programStageStore) {
+    checkNotNull(programStageStore);
+    this.programStageStore = programStageStore;
+  }
 
-    // -------------------------------------------------------------------------
-    // ProgramStage implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramStage implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long saveProgramStage( ProgramStage programStage )
-    {
-        programStageStore.save( programStage );
-        return programStage.getId();
-    }
+  @Override
+  @Transactional
+  public long saveProgramStage(ProgramStage programStage) {
+    programStageStore.save(programStage);
+    return programStage.getId();
+  }
 
-    @Override
-    @Transactional
-    public void deleteProgramStage( ProgramStage programStage )
-    {
-        programStageStore.delete( programStage );
-    }
+  @Override
+  @Transactional
+  public void deleteProgramStage(ProgramStage programStage) {
+    programStageStore.delete(programStage);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramStage getProgramStage( long id )
-    {
-        return programStageStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramStage getProgramStage(long id) {
+    return programStageStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramStage getProgramStage( String uid )
-    {
-        return programStageStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramStage getProgramStage(String uid) {
+    return programStageStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramStage> getProgramStagesByDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        return programStageStore.getByDataEntryForm( dataEntryForm );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramStage> getProgramStagesByDataEntryForm(DataEntryForm dataEntryForm) {
+    return programStageStore.getByDataEntryForm(dataEntryForm);
+  }
 
-    @Override
-    @Transactional
-    public void updateProgramStage( ProgramStage programStage )
-    {
-        programStageStore.update( programStage );
-    }
+  @Override
+  @Transactional
+  public void updateProgramStage(ProgramStage programStage) {
+    programStageStore.update(programStage);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramStage> getProgramStagesByProgram( Program program )
-    {
-        return programStageStore.getByProgram( program );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramStage> getProgramStagesByProgram(Program program) {
+    return programStageStore.getByProgram(program);
+  }
 }

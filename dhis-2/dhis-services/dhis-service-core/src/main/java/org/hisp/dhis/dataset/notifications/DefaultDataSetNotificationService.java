@@ -29,14 +29,15 @@ package org.hisp.dhis.dataset.notifications;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -67,531 +68,532 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
-/**
- * Created by zubair on 04.07.17.
- */
-
+/** Created by zubair on 04.07.17. */
 @Slf4j
-@Service( "org.hisp.dhis.dataset.notifications.DataSetNotificationService" )
+@Service("org.hisp.dhis.dataset.notifications.DataSetNotificationService")
 @Transactional
-public class DefaultDataSetNotificationService
-    implements DataSetNotificationService
-{
-    private static final String SUMMARY_TEXT = "Organisation units : %d" + TextUtils.LN + "Period : %s" + TextUtils.LN
-        + "DataSet : %s";
+public class DefaultDataSetNotificationService implements DataSetNotificationService {
+  private static final String SUMMARY_TEXT =
+      "Organisation units : %d" + TextUtils.LN + "Period : %s" + TextUtils.LN + "DataSet : %s";
 
-    private static final String SUMMARY_SUBJECT = " DataSet Summary";
+  private static final String SUMMARY_SUBJECT = " DataSet Summary";
 
-    private static final String PENDING = "Pending";
+  private static final String PENDING = "Pending";
 
-    private static final String OVERDUE = "Overdue";
+  private static final String OVERDUE = "Overdue";
 
-    private static final String TEXT_SEPARATOR = TextUtils.LN + TextUtils.LN;
+  private static final String TEXT_SEPARATOR = TextUtils.LN + TextUtils.LN;
 
-    private final ImmutableMap<DeliveryChannel, BiFunction<Set<OrganisationUnit>, ProgramMessageRecipients, ProgramMessageRecipients>> RECIPIENT_MAPPER = new ImmutableMap.Builder<DeliveryChannel, BiFunction<Set<OrganisationUnit>, ProgramMessageRecipients, ProgramMessageRecipients>>()
-        .put( DeliveryChannel.SMS, this::resolvePhoneNumbers )
-        .put( DeliveryChannel.EMAIL, this::resolveEmails )
-        .build();
+  private final ImmutableMap<
+          DeliveryChannel,
+          BiFunction<Set<OrganisationUnit>, ProgramMessageRecipients, ProgramMessageRecipients>>
+      RECIPIENT_MAPPER =
+          new ImmutableMap.Builder<
+                  DeliveryChannel,
+                  BiFunction<
+                      Set<OrganisationUnit>, ProgramMessageRecipients, ProgramMessageRecipients>>()
+              .put(DeliveryChannel.SMS, this::resolvePhoneNumbers)
+              .put(DeliveryChannel.EMAIL, this::resolveEmails)
+              .build();
 
-    private final ImmutableMap<Boolean, Function<DataSetNotificationTemplate, Integer>> DAYS_RESOLVER = new ImmutableMap.Builder<Boolean, Function<DataSetNotificationTemplate, Integer>>()
-        .put( false, DataSetNotificationTemplate::getRelativeScheduledDays ) // Overdue
-                                                                             // reminder
-        .put( true, template -> template.getRelativeScheduledDays() * -1 ) // Future
-                                                                           // reminder
-        .build();
+  private final ImmutableMap<Boolean, Function<DataSetNotificationTemplate, Integer>>
+      DAYS_RESOLVER =
+          new ImmutableMap.Builder<Boolean, Function<DataSetNotificationTemplate, Integer>>()
+              .put(false, DataSetNotificationTemplate::getRelativeScheduledDays) // Overdue
+              // reminder
+              .put(true, template -> template.getRelativeScheduledDays() * -1) // Future
+              // reminder
+              .build();
 
-    private final ImmutableMap<DeliveryChannel, Predicate<OrganisationUnit>> VALIDATOR = new ImmutableMap.Builder<DeliveryChannel, Predicate<OrganisationUnit>>()
-        .put( DeliveryChannel.SMS, ou -> ou.getPhoneNumber() != null && !ou.getPhoneNumber().isEmpty() ) // Valid
-                                                                                                         // Ou
-                                                                                                         // phoneNumber
-        .put( DeliveryChannel.EMAIL, ou -> ou.getEmail() != null && !ou.getEmail().isEmpty() ) // Valid
-                                                                                               // Ou
-                                                                                               // Email
-        .build();
+  private final ImmutableMap<DeliveryChannel, Predicate<OrganisationUnit>> VALIDATOR =
+      new ImmutableMap.Builder<DeliveryChannel, Predicate<OrganisationUnit>>()
+          .put(
+              DeliveryChannel.SMS,
+              ou -> ou.getPhoneNumber() != null && !ou.getPhoneNumber().isEmpty()) // Valid
+          // Ou
+          // phoneNumber
+          .put(
+              DeliveryChannel.EMAIL,
+              ou -> ou.getEmail() != null && !ou.getEmail().isEmpty()) // Valid
+          // Ou
+          // Email
+          .build();
 
-    private final BiFunction<SendStrategy, Set<DataSetNotificationTemplate>, Set<DataSetNotificationTemplate>> SEGREGATOR = (
-        s, t ) -> t.stream()
-            .filter( f -> s.equals( f.getSendStrategy() ) )
-            .collect( Collectors.toSet() );
+  private final BiFunction<
+          SendStrategy, Set<DataSetNotificationTemplate>, Set<DataSetNotificationTemplate>>
+      SEGREGATOR =
+          (s, t) ->
+              t.stream().filter(f -> s.equals(f.getSendStrategy())).collect(Collectors.toSet());
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final DataSetNotificationTemplateService dsntService;
+  private final DataSetNotificationTemplateService dsntService;
 
-    private final MessageService internalMessageService;
+  private final MessageService internalMessageService;
 
-    private final ProgramMessageService externalMessageService;
+  private final ProgramMessageService externalMessageService;
 
-    private final NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
+  private final NotificationMessageRenderer<CompleteDataSetRegistration> renderer;
 
-    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+  private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    public DefaultDataSetNotificationService( DataSetNotificationTemplateService dsntService,
-        MessageService internalMessageService, ProgramMessageService externalMessageService,
-        NotificationMessageRenderer<CompleteDataSetRegistration> renderer,
-        CompleteDataSetRegistrationService completeDataSetRegistrationService, PeriodService periodService,
-        CategoryService categoryService, I18nManager i18nManager, OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( dsntService );
-        checkNotNull( internalMessageService );
-        checkNotNull( externalMessageService );
-        checkNotNull( renderer );
-        checkNotNull( completeDataSetRegistrationService );
-        checkNotNull( periodService );
-        checkNotNull( categoryService );
-        checkNotNull( i18nManager );
-        checkNotNull( organisationUnitService );
+  @Autowired
+  public DefaultDataSetNotificationService(
+      DataSetNotificationTemplateService dsntService,
+      MessageService internalMessageService,
+      ProgramMessageService externalMessageService,
+      NotificationMessageRenderer<CompleteDataSetRegistration> renderer,
+      CompleteDataSetRegistrationService completeDataSetRegistrationService,
+      PeriodService periodService,
+      CategoryService categoryService,
+      I18nManager i18nManager,
+      OrganisationUnitService organisationUnitService) {
+    checkNotNull(dsntService);
+    checkNotNull(internalMessageService);
+    checkNotNull(externalMessageService);
+    checkNotNull(renderer);
+    checkNotNull(completeDataSetRegistrationService);
+    checkNotNull(periodService);
+    checkNotNull(categoryService);
+    checkNotNull(i18nManager);
+    checkNotNull(organisationUnitService);
 
-        this.dsntService = dsntService;
-        this.internalMessageService = internalMessageService;
-        this.externalMessageService = externalMessageService;
-        this.renderer = renderer;
-        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
-        this.periodService = periodService;
-        this.categoryService = categoryService;
-        this.i18nManager = i18nManager;
-        this.organisationUnitService = organisationUnitService;
+    this.dsntService = dsntService;
+    this.internalMessageService = internalMessageService;
+    this.externalMessageService = externalMessageService;
+    this.renderer = renderer;
+    this.completeDataSetRegistrationService = completeDataSetRegistrationService;
+    this.periodService = periodService;
+    this.categoryService = categoryService;
+    this.i18nManager = i18nManager;
+    this.organisationUnitService = organisationUnitService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void sendScheduledDataSetNotificationsForDay(Date day) {
+    List<MessageBatch> batches = new ArrayList<>();
+
+    List<DataSetNotificationTemplate> scheduledTemplates =
+        dsntService.getScheduledNotifications(NotificationTrigger.SCHEDULED_DAYS_DUE_DATE);
+
+    if (scheduledTemplates == null || scheduledTemplates.isEmpty()) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    Map<SendStrategy, Set<DataSetNotificationTemplate>> sendStrategySetMap =
+        createMapBasedOnStrategy(scheduledTemplates);
 
-    @Override
-    public void sendScheduledDataSetNotificationsForDay( Date day )
-    {
-        List<MessageBatch> batches = new ArrayList<>();
+    batches.add(
+        createBatchForSingleNotifications(
+            sendStrategySetMap.getOrDefault(SendStrategy.SINGLE_NOTIFICATION, Sets.newHashSet())));
+    batches.add(
+        createBatchForSummaryNotifications(
+            sendStrategySetMap.getOrDefault(SendStrategy.COLLECTIVE_SUMMARY, Sets.newHashSet())));
 
-        List<DataSetNotificationTemplate> scheduledTemplates = dsntService
-            .getScheduledNotifications( NotificationTrigger.SCHEDULED_DAYS_DUE_DATE );
+    batches.parallelStream().forEach(this::sendAll);
+  }
 
-        if ( scheduledTemplates == null || scheduledTemplates.isEmpty() )
-        {
-            return;
+  @Override
+  public void sendCompleteDataSetNotifications(CompleteDataSetRegistration registration) {
+    if (registration == null) {
+      return;
+    }
+
+    List<DataSetNotificationTemplate> templates =
+        dsntService.getCompleteNotifications(registration.getDataSet());
+
+    if (templates == null || templates.isEmpty()) {
+      log.info("No template found");
+      return;
+    }
+
+    MessageBatch batch =
+        createMessageBatch(
+            createBatchForCompletionNotifications(registration, Sets.newHashSet(templates)));
+
+    sendAll(batch);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private Map<SendStrategy, Set<DataSetNotificationTemplate>> createMapBasedOnStrategy(
+      List<DataSetNotificationTemplate> templates) {
+    Map<SendStrategy, Set<DataSetNotificationTemplate>> sendStrategySetMap = new HashMap<>();
+
+    Stream.of(SendStrategy.values())
+        .forEach(
+            ss -> sendStrategySetMap.put(ss, SEGREGATOR.apply(ss, Sets.newHashSet(templates))));
+
+    return sendStrategySetMap;
+  }
+
+  private MessageBatch createBatchForSummaryNotifications(
+      Set<DataSetNotificationTemplate> templates) {
+    MessageBatch batch = new MessageBatch();
+
+    String messageText = "";
+
+    boolean summaryCreated = false;
+
+    Long pendingOus;
+
+    for (DataSetNotificationTemplate template : templates) {
+      DhisMessage dhisMessage = new DhisMessage();
+
+      for (DataSet dataSet : template.getDataSets()) {
+        if (isValidForSending(getDataSetPeriod(dataSet), template)) {
+          summaryCreated = true;
+
+          pendingOus =
+              dataSet.getSources().stream()
+                  .filter(ou -> !isCompleted(createRespectiveRegistrationObject(dataSet, ou)))
+                  .count();
+
+          messageText +=
+              String.format(
+                      SUMMARY_TEXT,
+                      pendingOus,
+                      getPeriodString(dataSet.getPeriodType().createPeriod()),
+                      dataSet.getName())
+                  + TEXT_SEPARATOR;
         }
+      }
 
-        Map<SendStrategy, Set<DataSetNotificationTemplate>> sendStrategySetMap = createMapBasedOnStrategy(
-            scheduledTemplates );
+      if (summaryCreated) {
+        dhisMessage.message = new NotificationMessage(createSubjectString(template), messageText);
 
-        batches.add( createBatchForSingleNotifications(
-            sendStrategySetMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, Sets.newHashSet() ) ) );
-        batches.add( createBatchForSummaryNotifications(
-            sendStrategySetMap.getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, Sets.newHashSet() ) ) );
+        dhisMessage.recipients = resolveInternalRecipients(template);
 
-        batches.parallelStream().forEach( this::sendAll );
+        batch.dhisMessages.add(dhisMessage);
+
+        messageText = "";
+      }
     }
 
-    @Override
-    public void sendCompleteDataSetNotifications( CompleteDataSetRegistration registration )
-    {
-        if ( registration == null )
-        {
-            return;
+    log.info(String.format("%d summary dataset notifications created.", batch.dhisMessages.size()));
+
+    return batch;
+  }
+
+  private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>>
+      createBatchForCompletionNotifications(
+          CompleteDataSetRegistration registration, Set<DataSetNotificationTemplate> templates) {
+    List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList =
+        new ArrayList<>();
+
+    for (DataSetNotificationTemplate template : templates) {
+      Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
+
+      mapper.put(registration, template);
+
+      dataSetMapList.add(mapper);
+    }
+
+    return dataSetMapList;
+  }
+
+  private String createSubjectString(DataSetNotificationTemplate template) {
+    return template.getRelativeScheduledDays() < 0
+        ? PENDING + SUMMARY_SUBJECT
+        : OVERDUE + SUMMARY_SUBJECT;
+  }
+
+  private Period getDataSetPeriod(DataSet dataSet) {
+    Period period = dataSet.getPeriodType().createPeriod();
+
+    return periodService.getPeriod(
+        period.getStartDate(), period.getEndDate(), period.getPeriodType());
+  }
+
+  private CompleteDataSetRegistration createRespectiveRegistrationObject(
+      DataSet dataSet, OrganisationUnit ou) {
+    Period period = dataSet.getPeriodType().createPeriod();
+
+    CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
+    registration.setDataSet(dataSet);
+    registration.setPeriod(
+        periodService.getPeriod(
+            period.getStartDate(), period.getEndDate(), period.getPeriodType()));
+    registration.setPeriodName(getPeriodString(registration.getPeriod()));
+    registration.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
+    registration.setSource(ou);
+
+    return registration;
+  }
+
+  private String getPeriodString(Period period) {
+    I18nFormat format = i18nManager.getI18nFormat();
+
+    return format.formatPeriod(period);
+  }
+
+  private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> createGroupedByMapper(
+      Set<DataSetNotificationTemplate> templates) {
+    List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList =
+        new ArrayList<>();
+
+    for (DataSetNotificationTemplate template : templates) {
+      Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
+
+      Set<DataSet> dataSets = template.getDataSets();
+
+      for (DataSet dataSet : dataSets) {
+        mapper.putAll(
+            dataSet.getSources().stream()
+                .map(ou -> createRespectiveRegistrationObject(dataSet, ou))
+                .filter(r -> isScheduledNow(r, template))
+                .collect(Collectors.toMap(r -> r, t -> template)));
+      }
+
+      dataSetMapList.add(mapper);
+    }
+
+    return dataSetMapList;
+  }
+
+  private boolean isScheduledNow(
+      CompleteDataSetRegistration registration, DataSetNotificationTemplate template) {
+    return !isCompleted(registration) && isValidForSending(registration.getPeriod(), template);
+  }
+
+  private boolean isCompleted(CompleteDataSetRegistration registration) {
+    CompleteDataSetRegistration completed =
+        completeDataSetRegistrationService.getCompleteDataSetRegistration(
+            registration.getDataSet(),
+            registration.getPeriod(),
+            registration.getSource(),
+            registration.getAttributeOptionCombo());
+
+    return completed != null && completed.getCompleted();
+  }
+
+  private boolean isValidForSending(Period period, DataSetNotificationTemplate template) {
+    int daysToCompare;
+
+    Date dueDate = period.getEndDate();
+
+    daysToCompare = DAYS_RESOLVER.get(template.getRelativeScheduledDays() < 0).apply(template);
+
+    return DateUtils.daysBetween(new Date(), dueDate) == daysToCompare;
+  }
+
+  private ProgramMessageRecipients resolvePhoneNumbers(
+      Set<OrganisationUnit> ous, ProgramMessageRecipients pmr) {
+    pmr.setPhoneNumbers(
+        ous.stream().map(OrganisationUnit::getPhoneNumber).collect(Collectors.toSet()));
+
+    return pmr;
+  }
+
+  private ProgramMessageRecipients resolveEmails(
+      Set<OrganisationUnit> ous, ProgramMessageRecipients pmr) {
+    pmr.setEmailAddresses(ous.stream().map(OrganisationUnit::getEmail).collect(Collectors.toSet()));
+
+    return pmr;
+  }
+
+  private MessageBatch createBatchForSingleNotifications(
+      Set<DataSetNotificationTemplate> templates) {
+    List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList =
+        createGroupedByMapper(templates);
+
+    return createMessageBatch(dataSetMapList);
+  }
+
+  private MessageBatch createMessageBatch(
+      List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> pairs) {
+    MessageBatch batch = new MessageBatch();
+
+    for (Map<CompleteDataSetRegistration, DataSetNotificationTemplate> pair : pairs) {
+      for (Map.Entry<CompleteDataSetRegistration, DataSetNotificationTemplate> entry :
+          pair.entrySet()) {
+        if (entry.getValue().getNotificationRecipient().isExternalRecipient()) {
+          batch.programMessages.add(createProgramMessage(entry.getValue(), entry.getKey()));
+        } else {
+          batch.dhisMessages.add(createDhisMessage(entry.getValue(), entry.getKey()));
         }
-
-        List<DataSetNotificationTemplate> templates = dsntService.getCompleteNotifications( registration.getDataSet() );
-
-        if ( templates == null || templates.isEmpty() )
-        {
-            log.info( "No template found" );
-            return;
-        }
-
-        MessageBatch batch = createMessageBatch(
-            createBatchForCompletionNotifications( registration, Sets.newHashSet( templates ) ) );
-
-        sendAll( batch );
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    log.info(
+        String.format("Number of SINGLE notifications created: %d", batch.totalMessageCount()));
 
-    private Map<SendStrategy, Set<DataSetNotificationTemplate>> createMapBasedOnStrategy(
-        List<DataSetNotificationTemplate> templates )
-    {
-        Map<SendStrategy, Set<DataSetNotificationTemplate>> sendStrategySetMap = new HashMap<>();
+    return batch;
+  }
 
-        Stream.of( SendStrategy.values() )
-            .forEach( ss -> sendStrategySetMap.put( ss, SEGREGATOR.apply( ss, Sets.newHashSet( templates ) ) ) );
+  private ProgramMessage createProgramMessage(
+      DataSetNotificationTemplate template, CompleteDataSetRegistration registration) {
+    NotificationMessage message = renderer.render(registration, template);
 
-        return sendStrategySetMap;
+    ProgramMessageRecipients recipients;
+
+    if (template.getDataSetNotificationTrigger().isScheduled()) {
+      recipients = resolveExternalRecipientsForSchedule(template, registration);
+    } else {
+      recipients = resolveExternalRecipients(template, registration);
     }
 
-    private MessageBatch createBatchForSummaryNotifications( Set<DataSetNotificationTemplate> templates )
-    {
-        MessageBatch batch = new MessageBatch();
-
-        String messageText = "";
-
-        boolean summaryCreated = false;
-
-        Long pendingOus;
-
-        for ( DataSetNotificationTemplate template : templates )
-        {
-            DhisMessage dhisMessage = new DhisMessage();
-
-            for ( DataSet dataSet : template.getDataSets() )
-            {
-                if ( isValidForSending( getDataSetPeriod( dataSet ), template ) )
-                {
-                    summaryCreated = true;
-
-                    pendingOus = dataSet.getSources().stream()
-                        .filter( ou -> !isCompleted( createRespectiveRegistrationObject( dataSet, ou ) ) ).count();
-
-                    messageText += String.format( SUMMARY_TEXT, pendingOus,
-                        getPeriodString( dataSet.getPeriodType().createPeriod() ), dataSet.getName() ) + TEXT_SEPARATOR;
-                }
-            }
-
-            if ( summaryCreated )
-            {
-                dhisMessage.message = new NotificationMessage( createSubjectString( template ), messageText );
-
-                dhisMessage.recipients = resolveInternalRecipients( template );
-
-                batch.dhisMessages.add( dhisMessage );
-
-                messageText = "";
-            }
-        }
-
-        log.info( String.format( "%d summary dataset notifications created.", batch.dhisMessages.size() ) );
-
-        return batch;
-    }
-
-    private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> createBatchForCompletionNotifications(
-        CompleteDataSetRegistration registration,
-        Set<DataSetNotificationTemplate> templates )
-    {
-        List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = new ArrayList<>();
-
-        for ( DataSetNotificationTemplate template : templates )
-        {
-            Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
-
-            mapper.put( registration, template );
-
-            dataSetMapList.add( mapper );
-        }
-
-        return dataSetMapList;
-    }
-
-    private String createSubjectString( DataSetNotificationTemplate template )
-    {
-        return template.getRelativeScheduledDays() < 0 ? PENDING + SUMMARY_SUBJECT : OVERDUE + SUMMARY_SUBJECT;
-    }
-
-    private Period getDataSetPeriod( DataSet dataSet )
-    {
-        Period period = dataSet.getPeriodType().createPeriod();
-
-        return periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() );
-    }
-
-    private CompleteDataSetRegistration createRespectiveRegistrationObject( DataSet dataSet, OrganisationUnit ou )
-    {
-        Period period = dataSet.getPeriodType().createPeriod();
-
-        CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
-        registration.setDataSet( dataSet );
-        registration
-            .setPeriod( periodService.getPeriod( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
-        registration.setPeriodName( getPeriodString( registration.getPeriod() ) );
-        registration.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
-        registration.setSource( ou );
-
-        return registration;
-    }
-
-    private String getPeriodString( Period period )
-    {
-        I18nFormat format = i18nManager.getI18nFormat();
-
-        return format.formatPeriod( period );
-    }
-
-    private List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> createGroupedByMapper(
-        Set<DataSetNotificationTemplate> templates )
-    {
-        List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = new ArrayList<>();
-
-        for ( DataSetNotificationTemplate template : templates )
-        {
-            Map<CompleteDataSetRegistration, DataSetNotificationTemplate> mapper = new HashMap<>();
-
-            Set<DataSet> dataSets = template.getDataSets();
-
-            for ( DataSet dataSet : dataSets )
-            {
-                mapper.putAll( dataSet.getSources().stream()
-                    .map( ou -> createRespectiveRegistrationObject( dataSet, ou ) )
-                    .filter( r -> isScheduledNow( r, template ) )
-                    .collect( Collectors.toMap( r -> r, t -> template ) ) );
-            }
-
-            dataSetMapList.add( mapper );
-        }
-
-        return dataSetMapList;
-    }
-
-    private boolean isScheduledNow( CompleteDataSetRegistration registration, DataSetNotificationTemplate template )
-    {
-        return !isCompleted( registration ) && isValidForSending( registration.getPeriod(), template );
-    }
-
-    private boolean isCompleted( CompleteDataSetRegistration registration )
-    {
-        CompleteDataSetRegistration completed = completeDataSetRegistrationService.getCompleteDataSetRegistration(
-            registration.getDataSet(), registration.getPeriod(), registration.getSource(),
-            registration.getAttributeOptionCombo() );
-
-        return completed != null && completed.getCompleted();
-    }
-
-    private boolean isValidForSending( Period period, DataSetNotificationTemplate template )
-    {
-        int daysToCompare;
-
-        Date dueDate = period.getEndDate();
-
-        daysToCompare = DAYS_RESOLVER.get( template.getRelativeScheduledDays() < 0 ).apply( template );
-
-        return DateUtils.daysBetween( new Date(), dueDate ) == daysToCompare;
-    }
-
-    private ProgramMessageRecipients resolvePhoneNumbers( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
-    {
-        pmr.setPhoneNumbers( ous.stream().map( OrganisationUnit::getPhoneNumber ).collect( Collectors.toSet() ) );
-
-        return pmr;
-    }
-
-    private ProgramMessageRecipients resolveEmails( Set<OrganisationUnit> ous, ProgramMessageRecipients pmr )
-    {
-        pmr.setEmailAddresses( ous.stream().map( OrganisationUnit::getEmail ).collect( Collectors.toSet() ) );
-
-        return pmr;
-    }
-
-    private MessageBatch createBatchForSingleNotifications( Set<DataSetNotificationTemplate> templates )
-    {
-        List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> dataSetMapList = createGroupedByMapper(
-            templates );
-
-        return createMessageBatch( dataSetMapList );
-    }
-
-    private MessageBatch createMessageBatch( List<Map<CompleteDataSetRegistration, DataSetNotificationTemplate>> pairs )
-    {
-        MessageBatch batch = new MessageBatch();
-
-        for ( Map<CompleteDataSetRegistration, DataSetNotificationTemplate> pair : pairs )
-        {
-            for ( Map.Entry<CompleteDataSetRegistration, DataSetNotificationTemplate> entry : pair.entrySet() )
-            {
-                if ( entry.getValue().getNotificationRecipient().isExternalRecipient() )
-                {
-                    batch.programMessages.add( createProgramMessage( entry.getValue(), entry.getKey() ) );
-                }
-                else
-                {
-                    batch.dhisMessages.add( createDhisMessage( entry.getValue(), entry.getKey() ) );
-                }
-            }
-        }
-
-        log.info( String.format( "Number of SINGLE notifications created: %d", batch.totalMessageCount() ) );
-
-        return batch;
-    }
-
-    private ProgramMessage createProgramMessage( DataSetNotificationTemplate template,
-        CompleteDataSetRegistration registration )
-    {
-        NotificationMessage message = renderer.render( registration, template );
-
-        ProgramMessageRecipients recipients;
-
-        if ( template.getDataSetNotificationTrigger().isScheduled() )
-        {
-            recipients = resolveExternalRecipientsForSchedule( template, registration );
-        }
-        else
-        {
-            recipients = resolveExternalRecipients( template, registration );
-        }
-
-        ProgramMessage programMessage = ProgramMessage.builder().subject( message.getSubject() )
-            .text( message.getMessage() )
-            .recipients( recipients )
+    ProgramMessage programMessage =
+        ProgramMessage.builder()
+            .subject(message.getSubject())
+            .text(message.getMessage())
+            .recipients(recipients)
             .build();
 
-        programMessage.setDeliveryChannels( template.getDeliveryChannels() );
+    programMessage.setDeliveryChannels(template.getDeliveryChannels());
 
-        return programMessage;
+    return programMessage;
+  }
+
+  private DhisMessage createDhisMessage(
+      DataSetNotificationTemplate template, CompleteDataSetRegistration registration) {
+    DhisMessage dhisMessage = new DhisMessage();
+
+    dhisMessage.message = renderer.render(registration, template);
+    dhisMessage.recipients = resolveInternalRecipients(template, registration);
+
+    return dhisMessage;
+  }
+
+  private ProgramMessageRecipients resolveExternalRecipientsForSchedule(
+      DataSetNotificationTemplate template, CompleteDataSetRegistration registration) {
+    ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+
+    for (DeliveryChannel channel : template.getDeliveryChannels()) {
+      Set<OrganisationUnit> ous =
+          registration.getDataSet().getSources().stream()
+              .filter(ou -> VALIDATOR.get(channel).test(ou))
+              .collect(Collectors.toSet());
+
+      recipients = RECIPIENT_MAPPER.get(channel).apply(ous, recipients);
     }
 
-    private DhisMessage createDhisMessage( DataSetNotificationTemplate template,
-        CompleteDataSetRegistration registration )
-    {
-        DhisMessage dhisMessage = new DhisMessage();
+    return recipients;
+  }
 
-        dhisMessage.message = renderer.render( registration, template );
-        dhisMessage.recipients = resolveInternalRecipients( template, registration );
+  private ProgramMessageRecipients resolveExternalRecipients(
+      DataSetNotificationTemplate template, CompleteDataSetRegistration registration) {
+    ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
-        return dhisMessage;
+    OrganisationUnit ou = registration.getSource();
+
+    for (DeliveryChannel channel : template.getDeliveryChannels()) {
+      if (VALIDATOR.get(channel).test(ou)) {
+        recipients = RECIPIENT_MAPPER.get(channel).apply(Sets.newHashSet(ou), recipients);
+      } else {
+        log.error(
+            String.format("DataSet notification not sent due to invalid %s recipient", channel));
+
+        throw new IllegalArgumentException(String.format("Invalid %s recipient", channel));
+      }
     }
 
-    private ProgramMessageRecipients resolveExternalRecipientsForSchedule( DataSetNotificationTemplate template,
-        CompleteDataSetRegistration registration )
-    {
-        ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+    return recipients;
+  }
 
-        for ( DeliveryChannel channel : template.getDeliveryChannels() )
-        {
-            Set<OrganisationUnit> ous = registration.getDataSet().getSources().stream()
-                .filter( ou -> VALIDATOR.get( channel ).test( ou ) ).collect( Collectors.toSet() );
+  private Set<User> resolveInternalRecipients(DataSetNotificationTemplate template) {
+    UserGroup userGroup = template.getRecipientUserGroup();
 
-            recipients = RECIPIENT_MAPPER.get( channel ).apply( ous, recipients );
-        }
-
-        return recipients;
+    if (userGroup == null) {
+      return Sets.newHashSet();
     }
 
-    private ProgramMessageRecipients resolveExternalRecipients( DataSetNotificationTemplate template,
-        CompleteDataSetRegistration registration )
-    {
-        ProgramMessageRecipients recipients = new ProgramMessageRecipients();
+    return userGroup.getMembers();
+  }
 
-        OrganisationUnit ou = registration.getSource();
+  private Set<User> resolveInternalRecipients(
+      DataSetNotificationTemplate template, CompleteDataSetRegistration registration) {
+    UserGroup userGroup = template.getRecipientUserGroup();
 
-        for ( DeliveryChannel channel : template.getDeliveryChannels() )
-        {
-            if ( VALIDATOR.get( channel ).test( ou ) )
-            {
-                recipients = RECIPIENT_MAPPER.get( channel ).apply( Sets.newHashSet( ou ), recipients );
-            }
-            else
-            {
-                log.error( String.format( "DataSet notification not sent due to invalid %s recipient", channel ) );
+    Set<User> users = Sets.newHashSet();
 
-                throw new IllegalArgumentException( String.format( "Invalid %s recipient", channel ) );
-            }
-        }
-
-        return recipients;
+    if (userGroup == null || registration == null) {
+      return users;
     }
 
-    private Set<User> resolveInternalRecipients( DataSetNotificationTemplate template )
-    {
-        UserGroup userGroup = template.getRecipientUserGroup();
+    users =
+        userGroup.getMembers().stream()
+            .filter(
+                user ->
+                    organisationUnitService.isInUserHierarchy(
+                        registration.getSource().getUid(), user.getOrganisationUnits()))
+            .collect(Collectors.toSet());
 
-        if ( userGroup == null )
-        {
-            return Sets.newHashSet();
-        }
+    return users;
+  }
 
-        return userGroup.getMembers();
+  private void sendInternalDhisMessages(List<DhisMessage> messages) {
+    messages.forEach(
+        m ->
+            internalMessageService.sendMessage(
+                new MessageConversationParams.Builder(
+                        m.recipients,
+                        null,
+                        m.message.getSubject(),
+                        m.message.getMessage(),
+                        MessageType.SYSTEM,
+                        null)
+                    .build()));
+  }
+
+  private void sendProgramMessages(List<ProgramMessage> messages) {
+    if (messages.isEmpty()) {
+      return;
     }
 
-    private Set<User> resolveInternalRecipients( DataSetNotificationTemplate template,
-        CompleteDataSetRegistration registration )
-    {
-        UserGroup userGroup = template.getRecipientUserGroup();
+    log.info(String.format("Dispatching %d ProgramMessages", messages.size()));
 
-        Set<User> users = Sets.newHashSet();
+    BatchResponseStatus status = externalMessageService.sendMessages(messages);
 
-        if ( userGroup == null || registration == null )
-        {
-            return users;
-        }
+    log.debug(
+        String.format("Resulting status from ProgramMessageService:\n %s", status.toString()));
+  }
 
-        users = userGroup.getMembers().stream()
-            .filter( user -> organisationUnitService.isInUserHierarchy( registration.getSource().getUid(),
-                user.getOrganisationUnits() ) )
-            .collect( Collectors.toSet() );
+  private void sendAll(MessageBatch messageBatch) {
+    sendInternalDhisMessages(messageBatch.dhisMessages);
+    sendProgramMessages(messageBatch.programMessages);
+  }
 
-        return users;
+  // -------------------------------------------------------------------------
+  // Internal classes
+  // -------------------------------------------------------------------------
+
+  private static class DhisMessage {
+    NotificationMessage message;
+
+    Set<User> recipients;
+  }
+
+  private static class MessageBatch {
+    List<DhisMessage> dhisMessages = new ArrayList<>();
+
+    List<ProgramMessage> programMessages = new ArrayList<>();
+
+    MessageBatch(MessageBatch... batches) {
+      for (MessageBatch batch : batches) {
+        dhisMessages.addAll(batch.dhisMessages);
+        programMessages.addAll(batch.programMessages);
+      }
     }
 
-    private void sendInternalDhisMessages( List<DhisMessage> messages )
-    {
-        messages.forEach( m -> internalMessageService.sendMessage(
-            new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(),
-                MessageType.SYSTEM, null )
-                    .build() ) );
+    int totalMessageCount() {
+      return dhisMessages.size() + programMessages.size();
     }
-
-    private void sendProgramMessages( List<ProgramMessage> messages )
-    {
-        if ( messages.isEmpty() )
-        {
-            return;
-        }
-
-        log.info( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
-
-        BatchResponseStatus status = externalMessageService.sendMessages( messages );
-
-        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );
-    }
-
-    private void sendAll( MessageBatch messageBatch )
-    {
-        sendInternalDhisMessages( messageBatch.dhisMessages );
-        sendProgramMessages( messageBatch.programMessages );
-    }
-
-    // -------------------------------------------------------------------------
-    // Internal classes
-    // -------------------------------------------------------------------------
-
-    private static class DhisMessage
-    {
-        NotificationMessage message;
-
-        Set<User> recipients;
-    }
-
-    private static class MessageBatch
-    {
-        List<DhisMessage> dhisMessages = new ArrayList<>();
-
-        List<ProgramMessage> programMessages = new ArrayList<>();
-
-        MessageBatch( MessageBatch... batches )
-        {
-            for ( MessageBatch batch : batches )
-            {
-                dhisMessages.addAll( batch.dhisMessages );
-                programMessages.addAll( batch.programMessages );
-            }
-        }
-
-        int totalMessageCount()
-        {
-            return dhisMessages.size() + programMessages.size();
-        }
-    }
+  }
 }

@@ -40,32 +40,28 @@ import org.springframework.stereotype.Component;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Component( "org.hisp.dhis.dimension.DataDimensionItemDeletionHandler" )
-public class DataDimensionItemDeletionHandler
-    extends DeletionHandler
-{
+@Component("org.hisp.dhis.dimension.DataDimensionItemDeletionHandler")
+public class DataDimensionItemDeletionHandler extends DeletionHandler {
 
-    private static final DeletionVeto VETO = new DeletionVeto( DataDimensionItem.class );
+  private static final DeletionVeto VETO = new DeletionVeto(DataDimensionItem.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public DataDimensionItemDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
+  public DataDimensionItemDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid="
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql =
+        "SELECT COUNT(*) FROM datadimensionitem where dataelementoperand_categoryoptioncomboid="
             + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

@@ -33,27 +33,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-@Service( "org.hisp.dhis.program.ProgramOwnershipHistoryService" )
+@Service("org.hisp.dhis.program.ProgramOwnershipHistoryService")
 @Transactional
-public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramOwnershipHistoryStore programOwnershipHistoryStore;
+  @Autowired private ProgramOwnershipHistoryStore programOwnershipHistoryStore;
 
-    // -------------------------------------------------------------------------
-    // ProgramOwnershipHistoryService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramOwnershipHistoryService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory )
-    {
-        programOwnershipHistoryStore.addProgramOwnershipHistory( programOwnershipHistory );
-    }
-
+  @Override
+  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
+    programOwnershipHistoryStore.addProgramOwnershipHistory(programOwnershipHistory);
+  }
 }

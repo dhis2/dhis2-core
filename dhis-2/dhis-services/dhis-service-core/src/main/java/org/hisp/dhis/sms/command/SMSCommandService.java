@@ -29,34 +29,32 @@ package org.hisp.dhis.sms.command;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.parse.ParserType;
 
-public interface SMSCommandService
-{
-    List<SMSCommand> getSMSCommands();
+public interface SMSCommandService {
+  List<SMSCommand> getSMSCommands();
 
-    SMSCommand getSMSCommand( long id );
+  SMSCommand getSMSCommand(long id);
 
-    void save( SMSCommand cmd );
+  void save(SMSCommand cmd);
 
-    void delete( SMSCommand cmd );
+  void delete(SMSCommand cmd);
 
-    List<SMSCommand> getJ2MESMSCommands();
+  List<SMSCommand> getJ2MESMSCommands();
 
-    SMSCommand getSMSCommand( String commandName, ParserType parserType );
+  SMSCommand getSMSCommand(String commandName, ParserType parserType);
 
-    void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId );
+  void addSpecialCharacterSet(Set<SMSSpecialCharacter> specialCharacters, long commandId);
 
-    void addSmsCodes( Set<SMSCode> codes, long commandId );
+  void addSmsCodes(Set<SMSCode> codes, long commandId);
 
-    void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId );
+  void deleteSpecialCharacterSet(Set<SMSSpecialCharacter> specialCharacters, long commandId);
 
-    void deleteCodeSet( Set<SMSCode> codes, long commandId );
+  void deleteCodeSet(Set<SMSCode> codes, long commandId);
 
-    int countDataSetSmsCommands( DataSet dataSet );
+  int countDataSetSmsCommands(DataSet dataSet);
 
-    SMSCommand getSMSCommand( String name );
+  SMSCommand getSMSCommand(String name);
 }

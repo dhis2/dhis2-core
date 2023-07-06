@@ -32,22 +32,18 @@ import org.hisp.dhis.webapi.WebSnippet;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 
 /**
- * A simple {@link WebSnippet} that returns a "random" users ID. This is most
- * likely the admin user, as this is the only existing users in many test
- * scenarios.
+ * A simple {@link WebSnippet} that returns a "random" users ID. This is most likely the admin user,
+ * as this is the only existing users in many test scenarios.
  *
  * @author Jan Bernitt
  */
-public class SomeUserId extends WebSnippet<String>
-{
-    public SomeUserId( WebClient client )
-    {
-        super( client );
-    }
+public class SomeUserId extends WebSnippet<String> {
+  public SomeUserId(WebClient client) {
+    super(client);
+  }
 
-    @Override
-    protected String run()
-    {
-        return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
-    }
+  @Override
+  protected String run() {
+    return GET("/users/").content().getList("users", JsonUser.class).get(0).getId();
+  }
 }

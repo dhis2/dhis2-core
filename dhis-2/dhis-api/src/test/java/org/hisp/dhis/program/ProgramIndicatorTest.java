@@ -35,16 +35,14 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class ProgramIndicatorTest
-{
+class ProgramIndicatorTest {
 
-    @Test
-    void testHasFilter()
-    {
-        ProgramIndicator pi = new ProgramIndicator();
-        assertFalse( pi.hasFilter() );
-        pi.setFilter( "true" );
-        assertTrue( pi.hasFilter() );
-    }
-    // TODO: write more tests
+  @Test
+  void testHasFilter() {
+    ProgramIndicator pi = new ProgramIndicator();
+    assertFalse(pi.hasFilter());
+    pi.setFilter("true");
+    assertTrue(pi.hasFilter());
+  }
+  // TODO: write more tests
 }

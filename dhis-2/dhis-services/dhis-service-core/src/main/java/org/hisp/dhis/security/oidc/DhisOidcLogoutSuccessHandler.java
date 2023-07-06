@@ -29,13 +29,12 @@ package org.hisp.dhis.security.oidc;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
 
+import com.google.common.base.Strings;
 import java.io.IOException;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -43,40 +42,31 @@ import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInit
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.Strings;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
-{
-    private OidcClientInitiatedLogoutSuccessHandler handler;
+public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
+  private OidcClientInitiatedLogoutSuccessHandler handler;
 
-    @Autowired
-    private DhisOidcProviderRepository dhisOidcProviderRepository;
+  @Autowired private DhisOidcProviderRepository dhisOidcProviderRepository;
 
-    @Autowired
-    public DhisConfigurationProvider dhisConfigurationProvider;
+  @Autowired public DhisConfigurationProvider dhisConfigurationProvider;
 
-    @PostConstruct
-    public void init()
-    {
-        String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
-        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
-        if ( !Strings.isNullOrEmpty( logoutUri ) )
-        {
-            this.handler.setPostLogoutRedirectUri( logoutUri );
-            this.handler.setDefaultTargetUrl( logoutUri );
-        }
+  @PostConstruct
+  public void init() {
+    String logoutUri = dhisConfigurationProvider.getProperty(OIDC_LOGOUT_REDIRECT_URL);
+    this.handler = new OidcClientInitiatedLogoutSuccessHandler(dhisOidcProviderRepository);
+    if (!Strings.isNullOrEmpty(logoutUri)) {
+      this.handler.setPostLogoutRedirectUri(logoutUri);
+      this.handler.setDefaultTargetUrl(logoutUri);
     }
+  }
 
-    @Override
-    public void onLogoutSuccess( HttpServletRequest request, HttpServletResponse response,
-        Authentication authentication )
-        throws IOException,
-        ServletException
-    {
-        handler.onLogoutSuccess( request, response, authentication );
-    }
+  @Override
+  public void onLogoutSuccess(
+      HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+      throws IOException, ServletException {
+    handler.onLogoutSuccess(request, response, authentication);
+  }
 }

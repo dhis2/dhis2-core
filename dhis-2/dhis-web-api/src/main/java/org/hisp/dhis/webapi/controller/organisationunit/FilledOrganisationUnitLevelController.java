@@ -30,13 +30,12 @@ package org.hisp.dhis.webapi.controller.organisationunit;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.Metadata;
@@ -56,59 +55,51 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Lars Helge Overland
  */
 @Controller
 @RequiredArgsConstructor
-@RequestMapping( value = "/filledOrganisationUnitLevels" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class FilledOrganisationUnitLevelController
-{
-    private final ObjectMapper jsonMapper;
+@RequestMapping(value = "/filledOrganisationUnitLevels")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class FilledOrganisationUnitLevelController {
+  private final ObjectMapper jsonMapper;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody ResponseEntity<List<ObjectNode>> getList(
-        @RequestParam( defaultValue = "*" ) List<String> fields )
-    {
-        List<OrganisationUnitLevel> organisationUnitLevels = organisationUnitService.getFilledOrganisationUnitLevels();
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody ResponseEntity<List<ObjectNode>> getList(
+      @RequestParam(defaultValue = "*") List<String> fields) {
+    List<OrganisationUnitLevel> organisationUnitLevels =
+        organisationUnitService.getFilledOrganisationUnitLevels();
 
-        FieldFilterParams<OrganisationUnitLevel> params = FieldFilterParams.of( organisationUnitLevels, fields );
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
+    FieldFilterParams<OrganisationUnitLevel> params =
+        FieldFilterParams.of(organisationUnitLevels, fields);
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(params);
 
-        return ResponseEntity.ok( objectNodes );
+    return ResponseEntity.ok(objectNodes);
+  }
+
+  @PostMapping(consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.CREATED)
+  public void setList(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    Metadata metadata = jsonMapper.readValue(request.getInputStream(), Metadata.class);
+
+    List<OrganisationUnitLevel> levels = metadata.getOrganisationUnitLevels();
+
+    for (OrganisationUnitLevel level : levels) {
+      if (level.getLevel() <= 0) {
+        throw new WebMessageException(conflict("Level must be greater than zero"));
+      }
+
+      if (StringUtils.isBlank(level.getName())) {
+        throw new WebMessageException(conflict("Name must be specified"));
+      }
+
+      organisationUnitService.addOrUpdateOrganisationUnitLevel(
+          new OrganisationUnitLevel(level.getLevel(), level.getName(), level.getOfflineLevels()));
     }
-
-    @PostMapping( consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.CREATED )
-    public void setList( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        Metadata metadata = jsonMapper.readValue( request.getInputStream(), Metadata.class );
-
-        List<OrganisationUnitLevel> levels = metadata.getOrganisationUnitLevels();
-
-        for ( OrganisationUnitLevel level : levels )
-        {
-            if ( level.getLevel() <= 0 )
-            {
-                throw new WebMessageException( conflict( "Level must be greater than zero" ) );
-            }
-
-            if ( StringUtils.isBlank( level.getName() ) )
-            {
-                throw new WebMessageException( conflict( "Name must be specified" ) );
-            }
-
-            organisationUnitService.addOrUpdateOrganisationUnitLevel(
-                new OrganisationUnitLevel( level.getLevel(), level.getName(), level.getOfflineLevels() ) );
-        }
-    }
+  }
 }

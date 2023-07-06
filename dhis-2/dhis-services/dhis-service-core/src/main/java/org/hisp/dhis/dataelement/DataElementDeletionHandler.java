@@ -32,7 +32,6 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -48,98 +47,84 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.dataelement.DataElementDeletionHandler" )
-public class DataElementDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataElement.class );
+@Component("org.hisp.dhis.dataelement.DataElementDeletionHandler")
+public class DataElementDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataElement.class);
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public DataElementDeletionHandler( IdentifiableObjectManager idObjectManager, CategoryService categoryService,
-        JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( categoryService );
-        checkNotNull( jdbcTemplate );
+  public DataElementDeletionHandler(
+      IdentifiableObjectManager idObjectManager,
+      CategoryService categoryService,
+      JdbcTemplate jdbcTemplate) {
+    checkNotNull(idObjectManager);
+    checkNotNull(categoryService);
+    checkNotNull(jdbcTemplate);
 
-        this.idObjectManager = idObjectManager;
-        this.categoryService = categoryService;
-        this.jdbcTemplate = jdbcTemplate;
+    this.idObjectManager = idObjectManager;
+    this.categoryService = categoryService;
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenDeleting(DataElementGroup.class, this::deleteDataElementGroup);
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+    whenVetoing(OptionSet.class, this::allowDeleteOptionSet);
+  }
+
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    CategoryCombo defaultCategoryCombo =
+        categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
+
+    for (DataElement dataElement : idObjectManager.getAllNoAcl(DataElement.class)) {
+      if (dataElement != null && dataElement.getCategoryCombo().equals(categoryCombo)) {
+        dataElement.setCategoryCombo(defaultCategoryCombo);
+
+        idObjectManager.updateNoAcl(dataElement);
+      }
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenDeleting( DataElementGroup.class, this::deleteDataElementGroup );
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
-        whenVetoing( OptionSet.class, this::allowDeleteOptionSet );
+  private void deleteDataSet(DataSet dataSet) {
+    Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
+
+    while (elements.hasNext()) {
+      DataSetElement element = elements.next();
+      elements.remove();
+
+      dataSet.removeDataSetElement(element);
+      idObjectManager.updateNoAcl(element.getDataElement());
     }
+  }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        CategoryCombo defaultCategoryCombo = categoryService
-            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+  private void deleteDataElementGroup(DataElementGroup group) {
+    for (DataElement element : group.getMembers()) {
+      element.getGroups().remove(group);
+      idObjectManager.updateNoAcl(element);
+    }
+  }
 
-        for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
-        {
-            if ( dataElement != null && dataElement.getCategoryCombo().equals( categoryCombo ) )
-            {
-                dataElement.setCategoryCombo( defaultCategoryCombo );
-
-                idObjectManager.updateNoAcl( dataElement );
-            }
+  private void deleteLegendSet(LegendSet legendSet) {
+    for (DataElement element : idObjectManager.getAllNoAcl(DataElement.class)) {
+      for (LegendSet ls : element.getLegendSets()) {
+        if (legendSet.equals(ls)) {
+          element.getLegendSets().remove(ls);
+          idObjectManager.updateNoAcl(element);
         }
+      }
     }
+  }
 
-    private void deleteDataSet( DataSet dataSet )
-    {
-        Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
+  private DeletionVeto allowDeleteOptionSet(OptionSet optionSet) {
+    String sql = "SELECT COUNT(*) FROM dataelement WHERE optionsetid = " + optionSet.getId();
 
-        while ( elements.hasNext() )
-        {
-            DataSetElement element = elements.next();
-            elements.remove();
-
-            dataSet.removeDataSetElement( element );
-            idObjectManager.updateNoAcl( element.getDataElement() );
-        }
-    }
-
-    private void deleteDataElementGroup( DataElementGroup group )
-    {
-        for ( DataElement element : group.getMembers() )
-        {
-            element.getGroups().remove( group );
-            idObjectManager.updateNoAcl( element );
-        }
-    }
-
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        for ( DataElement element : idObjectManager.getAllNoAcl( DataElement.class ) )
-        {
-            for ( LegendSet ls : element.getLegendSets() )
-            {
-                if ( legendSet.equals( ls ) )
-                {
-                    element.getLegendSets().remove( ls );
-                    idObjectManager.updateNoAcl( element );
-                }
-            }
-        }
-    }
-
-    private DeletionVeto allowDeleteOptionSet( OptionSet optionSet )
-    {
-        String sql = "SELECT COUNT(*) FROM dataelement WHERE optionsetid = " + optionSet.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

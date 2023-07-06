@@ -28,16 +28,12 @@
 package org.hisp.dhis.dxf2.events.importer.delete.postprocess;
 
 import lombok.Getter;
-
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.dxf2.events.importer.audit.AbstractEventAuditPostProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EventDeleteAuditPostProcessor extends AbstractEventAuditPostProcessor
-{
+public class EventDeleteAuditPostProcessor extends AbstractEventAuditPostProcessor {
 
-    @Getter
-    private final AuditType auditType = AuditType.DELETE;
-
+  @Getter private final AuditType auditType = AuditType.DELETE;
 }

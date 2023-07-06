@@ -33,7 +33,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataanalysis.MinMaxDataAnalysisService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -65,86 +64,75 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Joao Antunes
  */
 @Controller
-@RequestMapping( value = MinMaxValueController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class MinMaxValueController
-{
-    public static final String RESOURCE_PATH = "/minMaxValues";
+@RequestMapping(value = MinMaxValueController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class MinMaxValueController {
+  public static final String RESOURCE_PATH = "/minMaxValues";
 
-    @Autowired
-    private MinMaxDataElementService minMaxDataElementService;
+  @Autowired private MinMaxDataElementService minMaxDataElementService;
 
-    @Autowired
-    private MinMaxDataAnalysisService minMaxDataAnalysisService;
+  @Autowired private MinMaxDataAnalysisService minMaxDataAnalysisService;
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    @PostMapping( consumes = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void generateMinMaxValue( @RequestBody MinMaxValueParams minMaxValueParams )
-        throws WebMessageException
-    {
-        List<String> dataSets = minMaxValueParams.getDataSets();
-        String organisationUnitId = minMaxValueParams.getOrganisationUnit();
+  @PostMapping(consumes = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void generateMinMaxValue(@RequestBody MinMaxValueParams minMaxValueParams)
+      throws WebMessageException {
+    List<String> dataSets = minMaxValueParams.getDataSets();
+    String organisationUnitId = minMaxValueParams.getOrganisationUnit();
 
-        if ( dataSets == null || dataSets.isEmpty() )
-        {
-            throw new WebMessageException( conflict( " No datasets defined" ) );
-        }
-
-        OrganisationUnit organisationUnit = this.organisationUnitService.getOrganisationUnit( organisationUnitId );
-        if ( organisationUnit == null )
-        {
-            throw new WebMessageException( conflict( " No valid organisation unit" ) );
-        }
-
-        Collection<DataElement> dataElements = new HashSet<>();
-
-        for ( String dataSetId : dataSets )
-        {
-            DataSet dataSet = this.dataSetService.getDataSet( dataSetId );
-            dataElements.addAll( dataSet.getDataElements() );
-        }
-
-        Double factor = this.systemSettingManager.getSystemSetting( SettingKey.FACTOR_OF_DEVIATION, Double.class );
-
-        this.minMaxDataAnalysisService.generateMinMaxValues( organisationUnit, dataElements, factor );
+    if (dataSets == null || dataSets.isEmpty()) {
+      throw new WebMessageException(conflict(" No datasets defined"));
     }
 
-    @DeleteMapping( "/{ou}" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeMinMaxValue( @PathVariable( "ou" ) String organisationUnitId,
-        @RequestParam( "ds" ) List<String> dataSetIds )
-        throws WebMessageException
-    {
-        if ( dataSetIds == null || dataSetIds.isEmpty() )
-        {
-            throw new WebMessageException( conflict( " No datasets defined" ) );
-        }
-
-        OrganisationUnit organisationUnit = this.organisationUnitService.getOrganisationUnit( organisationUnitId );
-        if ( organisationUnit == null )
-        {
-            throw new WebMessageException( conflict( " No valid organisation unit" ) );
-        }
-
-        Collection<DataElement> dataElements = new HashSet<>();
-
-        for ( String dataSetId : dataSetIds )
-        {
-            DataSet dataSet = this.dataSetService.getDataSet( dataSetId );
-            dataElements.addAll( dataSet.getDataElements() );
-        }
-
-        minMaxDataElementService.removeMinMaxDataElements( dataElements, organisationUnit );
+    OrganisationUnit organisationUnit =
+        this.organisationUnitService.getOrganisationUnit(organisationUnitId);
+    if (organisationUnit == null) {
+      throw new WebMessageException(conflict(" No valid organisation unit"));
     }
+
+    Collection<DataElement> dataElements = new HashSet<>();
+
+    for (String dataSetId : dataSets) {
+      DataSet dataSet = this.dataSetService.getDataSet(dataSetId);
+      dataElements.addAll(dataSet.getDataElements());
+    }
+
+    Double factor =
+        this.systemSettingManager.getSystemSetting(SettingKey.FACTOR_OF_DEVIATION, Double.class);
+
+    this.minMaxDataAnalysisService.generateMinMaxValues(organisationUnit, dataElements, factor);
+  }
+
+  @DeleteMapping("/{ou}")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_GENERATE_MIN_MAX_VALUES')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeMinMaxValue(
+      @PathVariable("ou") String organisationUnitId, @RequestParam("ds") List<String> dataSetIds)
+      throws WebMessageException {
+    if (dataSetIds == null || dataSetIds.isEmpty()) {
+      throw new WebMessageException(conflict(" No datasets defined"));
+    }
+
+    OrganisationUnit organisationUnit =
+        this.organisationUnitService.getOrganisationUnit(organisationUnitId);
+    if (organisationUnit == null) {
+      throw new WebMessageException(conflict(" No valid organisation unit"));
+    }
+
+    Collection<DataElement> dataElements = new HashSet<>();
+
+    for (String dataSetId : dataSetIds) {
+      DataSet dataSet = this.dataSetService.getDataSet(dataSetId);
+      dataElements.addAll(dataSet.getDataElements());
+    }
+
+    minMaxDataElementService.removeMinMaxDataElements(dataElements, organisationUnit);
+  }
 }

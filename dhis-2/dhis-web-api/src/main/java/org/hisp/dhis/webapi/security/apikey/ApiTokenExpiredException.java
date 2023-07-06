@@ -30,10 +30,8 @@ package org.hisp.dhis.webapi.security.apikey;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenExpiredException extends ApiTokenAuthenticationException
-{
-    public ApiTokenExpiredException( String error )
-    {
-        super( ApiTokenErrors.invalidToken( error ) );
-    }
+public class ApiTokenExpiredException extends ApiTokenAuthenticationException {
+  public ApiTokenExpiredException(String error) {
+    super(ApiTokenErrors.invalidToken(error));
+  }
 }

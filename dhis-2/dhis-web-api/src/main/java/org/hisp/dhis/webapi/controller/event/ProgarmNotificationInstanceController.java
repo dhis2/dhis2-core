@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -51,77 +50,76 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Zubair Asghar
  */
-
 @Controller
-@RequestMapping( value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProgarmNotificationInstanceController
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@RequestMapping(value = ProgramNotificationInstanceSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ProgarmNotificationInstanceController {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final ProgramNotificationInstanceService programNotificationInstanceService;
+  private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    private final ProgramInstanceService programInstanceService;
+  private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+  private final ProgramStageInstanceService programStageInstanceService;
 
-    private final ContextService contextService;
+  private final ContextService contextService;
 
-    private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-    public ProgarmNotificationInstanceController(
-        ProgramNotificationInstanceService programNotificationInstanceService,
-        ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, ContextService contextService,
-        FieldFilterService fieldFilterService )
-    {
-        this.programNotificationInstanceService = programNotificationInstanceService;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
-        this.contextService = contextService;
-        this.fieldFilterService = fieldFilterService;
+  public ProgarmNotificationInstanceController(
+      ProgramNotificationInstanceService programNotificationInstanceService,
+      ProgramInstanceService programInstanceService,
+      ProgramStageInstanceService programStageInstanceService,
+      ContextService contextService,
+      FieldFilterService fieldFilterService) {
+    this.programNotificationInstanceService = programNotificationInstanceService;
+    this.programInstanceService = programInstanceService;
+    this.programStageInstanceService = programStageInstanceService;
+    this.contextService = contextService;
+    this.fieldFilterService = fieldFilterService;
+  }
+
+  // -------------------------------------------------------------------------
+  // GET
+  // -------------------------------------------------------------------------
+
+  @PreAuthorize("hasRole('ALL')")
+  @GetMapping(produces = {"application/json"})
+  public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
+      @RequestParam(required = false) String programInstance,
+      @RequestParam(required = false) String programStageInstance,
+      @RequestParam(required = false) Date scheduledAt,
+      @RequestParam(required = false) boolean skipPaging,
+      @RequestParam(required = false, defaultValue = "0") int page,
+      @RequestParam(required = false, defaultValue = "50") int pageSize) {
+    ProgramNotificationInstanceParam params =
+        ProgramNotificationInstanceParam.builder()
+            .programInstance(programInstanceService.getProgramInstance(programInstance))
+            .programStageInstance(
+                programStageInstanceService.getProgramStageInstance(programStageInstance))
+            .skipPaging(skipPaging)
+            .page(page)
+            .pageSize(pageSize)
+            .scheduledAt(scheduledAt)
+            .build();
+
+    PagingWrapper<ProgramNotificationInstance> instancePagingWrapper = new PagingWrapper<>();
+
+    if (!skipPaging) {
+      long total = programNotificationInstanceService.countProgramNotificationInstances(params);
+
+      instancePagingWrapper =
+          instancePagingWrapper.withPager(
+              PagingWrapper.Pager.builder().page(page).pageSize(pageSize).total(total).build());
     }
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+    programNotificationInstanceService.validateQueryParameters(params);
 
-    @PreAuthorize( "hasRole('ALL')" )
-    @GetMapping( produces = { "application/json" } )
-    public @ResponseBody PagingWrapper<ProgramNotificationInstance> getScheduledMessage(
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
-        @RequestParam( required = false ) Date scheduledAt,
-        @RequestParam( required = false ) boolean skipPaging,
-        @RequestParam( required = false, defaultValue = "0" ) int page,
-        @RequestParam( required = false, defaultValue = "50" ) int pageSize )
-    {
-        ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
-            .programInstance( programInstanceService.getProgramInstance( programInstance ) )
-            .programStageInstance( programStageInstanceService.getProgramStageInstance( programStageInstance ) )
-            .skipPaging( skipPaging )
-            .page( page )
-            .pageSize( pageSize )
-            .scheduledAt( scheduledAt ).build();
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(params);
 
-        PagingWrapper<ProgramNotificationInstance> instancePagingWrapper = new PagingWrapper<>();
-
-        if ( !skipPaging )
-        {
-            long total = programNotificationInstanceService.countProgramNotificationInstances( params );
-
-            instancePagingWrapper = instancePagingWrapper.withPager(
-                PagingWrapper.Pager.builder().page( page ).pageSize( pageSize )
-                    .total( total ).build() );
-        }
-
-        programNotificationInstanceService.validateQueryParameters( params );
-
-        List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( params );
-
-        return instancePagingWrapper.withInstances( instances );
-    }
+    return instancePagingWrapper.withInstances(instances);
+  }
 }

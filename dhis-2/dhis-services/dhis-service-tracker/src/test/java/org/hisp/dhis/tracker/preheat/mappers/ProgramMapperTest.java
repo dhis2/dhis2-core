@@ -36,35 +36,32 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.Test;
 
-class ProgramMapperTest extends DhisConvenienceTest
-{
+class ProgramMapperTest extends DhisConvenienceTest {
 
-    @Test
-    void testCategoryComboIsSetForDefaultCategoryCombos()
-    {
+  @Test
+  void testCategoryComboIsSetForDefaultCategoryCombos() {
 
-        Program program = new Program();
-        CategoryCombo cc = createCategoryCombo( 'A' );
-        cc.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        assertTrue( cc.isDefault(), "tests rely on this CC being the default one" );
-        program.setCategoryCombo( cc );
+    Program program = new Program();
+    CategoryCombo cc = createCategoryCombo('A');
+    cc.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    assertTrue(cc.isDefault(), "tests rely on this CC being the default one");
+    program.setCategoryCombo(cc);
 
-        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
+    Program mappedProgram = ProgramMapper.INSTANCE.map(program);
 
-        assertEquals( cc, mappedProgram.getCategoryCombo() );
-    }
+    assertEquals(cc, mappedProgram.getCategoryCombo());
+  }
 
-    @Test
-    void testCategoryComboIsSetForNonDefaultCategoryCombos()
-    {
+  @Test
+  void testCategoryComboIsSetForNonDefaultCategoryCombos() {
 
-        Program program = new Program();
-        CategoryCombo cc = createCategoryCombo( 'A' );
-        assertFalse( cc.isDefault(), "tests rely on this CC NOT being the default one" );
-        program.setCategoryCombo( cc );
+    Program program = new Program();
+    CategoryCombo cc = createCategoryCombo('A');
+    assertFalse(cc.isDefault(), "tests rely on this CC NOT being the default one");
+    program.setCategoryCombo(cc);
 
-        Program mappedProgram = ProgramMapper.INSTANCE.map( program );
+    Program mappedProgram = ProgramMapper.INSTANCE.map(program);
 
-        assertEquals( cc, mappedProgram.getCategoryCombo() );
-    }
+    assertEquals(cc, mappedProgram.getCategoryCombo());
+  }
 }

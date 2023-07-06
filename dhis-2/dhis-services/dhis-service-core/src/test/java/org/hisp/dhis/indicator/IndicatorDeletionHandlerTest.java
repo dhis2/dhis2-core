@@ -45,152 +45,140 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class IndicatorDeletionHandlerTest
-    extends DhisSpringTest
-{
-    @Autowired
-    private IdentifiableObjectManager manager;
+class IndicatorDeletionHandlerTest extends DhisSpringTest {
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private Indicator indicator;
+  private Indicator indicator;
 
-    @Override
-    public void setUpTest()
-    {
-        userService = _userService;
+  @Override
+  public void setUpTest() {
+    userService = _userService;
 
-        IndicatorType type = new IndicatorType( "Type", 1, true );
-        manager.save( type );
+    IndicatorType type = new IndicatorType("Type", 1, true);
+    manager.save(type);
 
-        indicator = createIndicator( 'A', type );
-        manager.save( indicator );
-    }
+    indicator = createIndicator('A', type);
+    manager.save(indicator);
+  }
 
-    @Test
-    void testAllowDeleteIndicatorType()
-    {
-        IndicatorType typeA = new IndicatorType( "TypeA", 1, true );
-        IndicatorType typeB = new IndicatorType( "TypeB", 1, true );
+  @Test
+  void testAllowDeleteIndicatorType() {
+    IndicatorType typeA = new IndicatorType("TypeA", 1, true);
+    IndicatorType typeB = new IndicatorType("TypeB", 1, true);
 
-        manager.save( typeA );
-        manager.save( typeB );
+    manager.save(typeA);
+    manager.save(typeB);
 
-        indicator.setIndicatorType( typeB );
-        manager.update( indicator );
+    indicator.setIndicatorType(typeB);
+    manager.update(indicator);
 
-        manager.delete( typeA );
-        assertThrows( DeleteNotAllowedException.class, () -> manager.delete( typeB ) );
-    }
+    manager.delete(typeA);
+    assertThrows(DeleteNotAllowedException.class, () -> manager.delete(typeB));
+  }
 
-    @Test
-    void testDeleteIndicatorGroup()
-    {
-        IndicatorGroup groupA = createIndicatorGroup( 'A' );
-        groupA.addIndicator( indicator );
-        manager.save( groupA );
+  @Test
+  void testDeleteIndicatorGroup() {
+    IndicatorGroup groupA = createIndicatorGroup('A');
+    groupA.addIndicator(indicator);
+    manager.save(groupA);
 
-        assertTrue( indicator.getGroups().contains( groupA ) );
+    assertTrue(indicator.getGroups().contains(groupA));
 
-        manager.delete( groupA );
+    manager.delete(groupA);
 
-        assertFalse( indicator.getGroups().contains( groupA ) );
-    }
+    assertFalse(indicator.getGroups().contains(groupA));
+  }
 
-    @Test
-    void testDeleteDataSet()
-    {
-        PeriodType monthly = PeriodType.getPeriodTypeByName( "Monthly" );
-        monthly = periodService.reloadPeriodType( monthly );
+  @Test
+  void testDeleteDataSet() {
+    PeriodType monthly = PeriodType.getPeriodTypeByName("Monthly");
+    monthly = periodService.reloadPeriodType(monthly);
 
-        DataSet setA = createDataSet( 'A', monthly );
-        setA.addIndicator( indicator );
-        manager.save( setA );
+    DataSet setA = createDataSet('A', monthly);
+    setA.addIndicator(indicator);
+    manager.save(setA);
 
-        assertTrue( indicator.getDataSets().contains( setA ) );
+    assertTrue(indicator.getDataSets().contains(setA));
 
-        manager.delete( setA );
+    manager.delete(setA);
 
-        assertFalse( indicator.getDataSets().contains( setA ) );
-    }
+    assertFalse(indicator.getDataSets().contains(setA));
+  }
 
-    @Test
-    void testDeleteLegendSet()
-    {
-        LegendSet setA = createLegendSet( 'A' );
-        manager.save( setA );
+  @Test
+  void testDeleteLegendSet() {
+    LegendSet setA = createLegendSet('A');
+    manager.save(setA);
 
-        indicator.getLegendSets().add( setA );
-        manager.update( indicator );
+    indicator.getLegendSets().add(setA);
+    manager.update(indicator);
 
-        assertTrue( indicator.getLegendSets().contains( setA ) );
+    assertTrue(indicator.getLegendSets().contains(setA));
 
-        manager.delete( setA );
+    manager.delete(setA);
 
-        assertFalse( indicator.getLegendSets().contains( setA ) );
-    }
+    assertFalse(indicator.getLegendSets().contains(setA));
+  }
 
-    @Test
-    void testAllowDeleteDataElement()
-    {
-        DataElement elementA = createDataElement( 'A' );
-        DataElement elementB = createDataElement( 'B' );
-        DataElement elementC = createDataElement( 'C' );
+  @Test
+  void testAllowDeleteDataElement() {
+    DataElement elementA = createDataElement('A');
+    DataElement elementB = createDataElement('B');
+    DataElement elementC = createDataElement('C');
 
-        manager.save( elementA );
-        manager.save( elementB );
-        manager.save( elementC );
+    manager.save(elementA);
+    manager.save(elementB);
+    manager.save(elementC);
 
-        indicator.setNumerator( "#{" + elementB.getUid() + "}" );
-        indicator.setDenominator( "#{" + elementC.getUid() + "}" );
-        manager.update( indicator );
+    indicator.setNumerator("#{" + elementB.getUid() + "}");
+    indicator.setDenominator("#{" + elementC.getUid() + "}");
+    manager.update(indicator);
 
-        manager.delete( elementA );
-        assertThrows( DeleteNotAllowedException.class, () -> manager.delete( elementB ) );
-        assertThrows( DeleteNotAllowedException.class, () -> manager.delete( elementC ) );
-    }
+    manager.delete(elementA);
+    assertThrows(DeleteNotAllowedException.class, () -> manager.delete(elementB));
+    assertThrows(DeleteNotAllowedException.class, () -> manager.delete(elementC));
+  }
 
-    @Test
-    void testAllowDeleteCategoryCombo()
-    {
-        CategoryCombo comboA = createCategoryCombo( 'A' );
-        CategoryCombo comboB = createCategoryCombo( 'B' );
-        CategoryCombo comboC = createCategoryCombo( 'C' );
+  @Test
+  void testAllowDeleteCategoryCombo() {
+    CategoryCombo comboA = createCategoryCombo('A');
+    CategoryCombo comboB = createCategoryCombo('B');
+    CategoryCombo comboC = createCategoryCombo('C');
 
-        manager.save( comboA );
-        manager.save( comboB );
-        manager.save( comboC );
+    manager.save(comboA);
+    manager.save(comboB);
+    manager.save(comboC);
 
-        CategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
-        CategoryOptionCombo cocB = createCategoryOptionCombo( 'B' );
-        CategoryOptionCombo cocC = createCategoryOptionCombo( 'C' );
+    CategoryOptionCombo cocA = createCategoryOptionCombo('A');
+    CategoryOptionCombo cocB = createCategoryOptionCombo('B');
+    CategoryOptionCombo cocC = createCategoryOptionCombo('C');
 
-        cocA.setCategoryCombo( comboA );
-        cocB.setCategoryCombo( comboB );
-        cocC.setCategoryCombo( comboC );
+    cocA.setCategoryCombo(comboA);
+    cocB.setCategoryCombo(comboB);
+    cocC.setCategoryCombo(comboC);
 
-        manager.save( cocA );
-        manager.save( cocB );
-        manager.save( cocC );
+    manager.save(cocA);
+    manager.save(cocB);
+    manager.save(cocC);
 
-        comboA.getOptionCombos().add( cocA );
-        comboB.getOptionCombos().add( cocB );
-        comboC.getOptionCombos().add( cocC );
+    comboA.getOptionCombos().add(cocA);
+    comboB.getOptionCombos().add(cocB);
+    comboC.getOptionCombos().add(cocC);
 
-        manager.update( comboA );
-        manager.update( comboB );
-        manager.update( comboC );
+    manager.update(comboA);
+    manager.update(comboB);
+    manager.update(comboC);
 
-        indicator.setNumerator( "#{abcdefghijk." + cocB.getUid() + "}" );
-        indicator.setDenominator( "#{abcdefghijk." + cocC.getUid() + "}" );
-        manager.update( indicator );
+    indicator.setNumerator("#{abcdefghijk." + cocB.getUid() + "}");
+    indicator.setDenominator("#{abcdefghijk." + cocC.getUid() + "}");
+    manager.update(indicator);
 
-        manager.delete( comboA );
-        assertThrows( DeleteNotAllowedException.class, () -> manager.delete( comboB ) );
-        assertThrows( DeleteNotAllowedException.class, () -> manager.delete( comboC ) );
-    }
+    manager.delete(comboA);
+    assertThrows(DeleteNotAllowedException.class, () -> manager.delete(comboB));
+    assertThrows(DeleteNotAllowedException.class, () -> manager.delete(comboC));
+  }
 }

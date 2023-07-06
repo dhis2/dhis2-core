@@ -30,10 +30,10 @@ package org.hisp.dhis.tracker.job;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -43,49 +43,52 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Zubair Asghar
  */
-class TrackerSideEffectDataBundleTest
-{
+class TrackerSideEffectDataBundleTest {
 
-    @Test
-    void testSideEffectDataBundleForEnrollment()
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( "test-enrollment" );
-        Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
-        enrollmentRuleEffects.put( enrollment.getEnrollment(), Lists.newArrayList() );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .enrollmentRuleEffects( enrollmentRuleEffects ).accessedBy( "testUser" )
-            .importStrategy( TrackerImportStrategy.CREATE ).object( programInstance.getUid() )
-            .klass( ProgramInstance.class ).build();
-        assertEquals( programInstance.getUid(), bundle.getObject() );
-        assertEquals( ProgramInstance.class, bundle.getKlass() );
-        assertTrue( bundle.getEnrollmentRuleEffects().containsKey( "test-enrollment" ) );
-        assertTrue( bundle.getEventRuleEffects().isEmpty() );
-        assertEquals( TrackerImportStrategy.CREATE, bundle.getImportStrategy() );
-        assertEquals( MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType() );
-    }
+  @Test
+  void testSideEffectDataBundleForEnrollment() {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment("test-enrollment");
+    Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
+    enrollmentRuleEffects.put(enrollment.getEnrollment(), Lists.newArrayList());
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setAutoFields();
+    TrackerSideEffectDataBundle bundle =
+        TrackerSideEffectDataBundle.builder()
+            .enrollmentRuleEffects(enrollmentRuleEffects)
+            .accessedBy("testUser")
+            .importStrategy(TrackerImportStrategy.CREATE)
+            .object(programInstance.getUid())
+            .klass(ProgramInstance.class)
+            .build();
+    assertEquals(programInstance.getUid(), bundle.getObject());
+    assertEquals(ProgramInstance.class, bundle.getKlass());
+    assertTrue(bundle.getEnrollmentRuleEffects().containsKey("test-enrollment"));
+    assertTrue(bundle.getEventRuleEffects().isEmpty());
+    assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
+    assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
+  }
 
-    @Test
-    void testSideEffectDataBundleForEvent()
-    {
-        Event event = new Event();
-        event.setEvent( "test-event" );
-        Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
-        eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
-        TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().eventRuleEffects( eventRuleEffects )
-            .object( programStageInstance.getUid() ).klass( ProgramStageInstance.class ).build();
-        assertEquals( programStageInstance.getUid(), bundle.getObject() );
-        assertEquals( ProgramStageInstance.class, bundle.getKlass() );
-        assertTrue( bundle.getEventRuleEffects().containsKey( "test-event" ) );
-        assertTrue( bundle.getEnrollmentRuleEffects().isEmpty() );
-    }
+  @Test
+  void testSideEffectDataBundleForEvent() {
+    Event event = new Event();
+    event.setEvent("test-event");
+    Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
+    eventRuleEffects.put(event.getEvent(), Lists.newArrayList());
+    ProgramStageInstance programStageInstance = new ProgramStageInstance();
+    programStageInstance.setAutoFields();
+    TrackerSideEffectDataBundle bundle =
+        TrackerSideEffectDataBundle.builder()
+            .eventRuleEffects(eventRuleEffects)
+            .object(programStageInstance.getUid())
+            .klass(ProgramStageInstance.class)
+            .build();
+    assertEquals(programStageInstance.getUid(), bundle.getObject());
+    assertEquals(ProgramStageInstance.class, bundle.getKlass());
+    assertTrue(bundle.getEventRuleEffects().containsKey("test-event"));
+    assertTrue(bundle.getEnrollmentRuleEffects().isEmpty());
+  }
 }

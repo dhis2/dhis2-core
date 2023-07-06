@@ -30,9 +30,8 @@ package org.hisp.dhis.feedback;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum Status
-{
-    OK,
-    WARNING,
-    ERROR
+public enum Status {
+  OK,
+  WARNING,
+  ERROR
 }

@@ -36,11 +36,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.sql.DataSource;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -63,107 +62,101 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class JdbcEventStoreTest
-{
-    private JdbcEventStore subject;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class JdbcEventStoreTest {
+  private JdbcEventStore subject;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private IdentifiableObjectManager manager;
+  @Mock private IdentifiableObjectManager manager;
 
-    @Mock
-    protected SqlRowSet rowSet;
+  @Mock protected SqlRowSet rowSet;
 
-    @Mock
-    private Environment env;
+  @Mock private Environment env;
 
-    @Mock
-    private EventStore eventStore;
+  @Mock private EventStore eventStore;
 
-    @Mock
-    private SkipLockedProvider skipLockedProvider;
+  @Mock private SkipLockedProvider skipLockedProvider;
 
-    @BeforeEach
-    public void setUp()
-    {
-        when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
+  @BeforeEach
+  public void setUp() {
+    when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
 
-        when( jdbcTemplate.getDataSource() ).thenReturn( mock( DataSource.class ) );
+    when(jdbcTemplate.getDataSource()).thenReturn(mock(DataSource.class));
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
-            manager, env, eventStore, skipLockedProvider );
-    }
+    ObjectMapper objectMapper = new ObjectMapper();
+    subject =
+        new JdbcEventStore(
+            new PostgreSQLStatementBuilder(),
+            jdbcTemplate,
+            objectMapper,
+            currentUserService,
+            manager,
+            env,
+            eventStore,
+            skipLockedProvider);
+  }
 
-    @Test
-    void verifyEventDataValuesAreProcessedOnceForEachPSI()
-    {
-        mockRowSet();
-        EventSearchParams eventSearchParams = new EventSearchParams();
+  @Test
+  void verifyEventDataValuesAreProcessedOnceForEachPSI() {
+    mockRowSet();
+    EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, new ArrayList<>() );
-        assertThat( rows, hasSize( 1 ) );
-        verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
-    }
+    List<EventRow> rows = subject.getEventRows(eventSearchParams, new ArrayList<>());
+    assertThat(rows, hasSize(1));
+    verify(rowSet, times(4)).getString("psi_eventdatavalues");
+  }
 
-    @Test
-    void verifyNullOrganisationUnitsIsHandled()
-    {
-        mockRowSet();
-        EventSearchParams eventSearchParams = new EventSearchParams();
+  @Test
+  void verifyNullOrganisationUnitsIsHandled() {
+    mockRowSet();
+    EventSearchParams eventSearchParams = new EventSearchParams();
 
-        List<EventRow> rows = subject.getEventRows( eventSearchParams, null );
-        assertThat( rows, hasSize( 1 ) );
-        verify( rowSet, times( 4 ) ).getString( "psi_eventdatavalues" );
-    }
+    List<EventRow> rows = subject.getEventRows(eventSearchParams, null);
+    assertThat(rows, hasSize(1));
+    verify(rowSet, times(4)).getString("psi_eventdatavalues");
+  }
 
-    @Test
-    void shouldUpdateEventsWhenDateFieldsAreNotSet()
-    {
-        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
-        ProgramStageInstance psi = new ProgramStageInstance( new ProgramInstance(), new ProgramStage(),
-            new OrganisationUnit() );
-        psi.setStatus( EventStatus.ACTIVE );
-        psi.setAttributeOptionCombo( new CategoryOptionCombo() );
-        programStageInstances.add( psi );
+  @Test
+  void shouldUpdateEventsWhenDateFieldsAreNotSet() {
+    List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+    ProgramStageInstance psi =
+        new ProgramStageInstance(new ProgramInstance(), new ProgramStage(), new OrganisationUnit());
+    psi.setStatus(EventStatus.ACTIVE);
+    psi.setAttributeOptionCombo(new CategoryOptionCombo());
+    programStageInstances.add(psi);
 
-        List<ProgramStageInstance> instances = subject.updateEvents( programStageInstances );
+    List<ProgramStageInstance> instances = subject.updateEvents(programStageInstances);
 
-        assertNotEmpty( instances );
-    }
+    assertNotEmpty(instances);
+  }
 
-    private void mockRowSet()
-    {
-        // Simulate 3 rows
-        when( rowSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
+  private void mockRowSet() {
+    // Simulate 3 rows
+    when(rowSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
 
-        when( rowSet.getString( "psi_uid" ) ).thenReturn( "iuDUBa26aHN" );
-        when( rowSet.getString( "ps_identifier" ) ).thenReturn( "PsUID000001" );
-        when( rowSet.getString( "p_identifier" ) ).thenReturn( "PrgUID00001" );
-        when( rowSet.getString( "ou_identifier" ) ).thenReturn( "OuUID000001" );
-        when( rowSet.getString( "tei_uid" ) ).thenReturn( "iuXUBa26aHN" );
-        when( rowSet.getString( "tei_ou" ) ).thenReturn( "" );
-        when( rowSet.getString( "tei_ou_name" ) ).thenReturn( "Ngelehun CHC" );
-        when( rowSet.getString( "tei_created" ) ).thenReturn( "2019-06-14 09:57:09.69" );
+    when(rowSet.getString("psi_uid")).thenReturn("iuDUBa26aHN");
+    when(rowSet.getString("ps_identifier")).thenReturn("PsUID000001");
+    when(rowSet.getString("p_identifier")).thenReturn("PrgUID00001");
+    when(rowSet.getString("ou_identifier")).thenReturn("OuUID000001");
+    when(rowSet.getString("tei_uid")).thenReturn("iuXUBa26aHN");
+    when(rowSet.getString("tei_ou")).thenReturn("");
+    when(rowSet.getString("tei_ou_name")).thenReturn("Ngelehun CHC");
+    when(rowSet.getString("tei_created")).thenReturn("2019-06-14 09:57:09.69");
 
-        when( rowSet.getBoolean( "tei_inactive" ) ).thenReturn( false );
-        when( rowSet.getBoolean( "psi_deleted" ) ).thenReturn( false );
+    when(rowSet.getBoolean("tei_inactive")).thenReturn(false);
+    when(rowSet.getBoolean("psi_deleted")).thenReturn(false);
 
-        when( rowSet.getString( "p_type" ) ).thenReturn( "with_registration" );
+    when(rowSet.getString("p_type")).thenReturn("with_registration");
 
-        when( rowSet.getString( "psi_eventdatavalues" ) ).thenReturn(
-            "{\"hUQ5Hfcx1JA\": {\"value\": \"g8upMTyEZGZ\", \"created\": \"2019-06-14T09:57:30.564\", \"storedBy\": \"admin\", \"lastUpdated\": \"2019-06-14T09:57:30.564\", \"providedElsewhere\": false}}" );
-    }
+    when(rowSet.getString("psi_eventdatavalues"))
+        .thenReturn(
+            "{\"hUQ5Hfcx1JA\": {\"value\": \"g8upMTyEZGZ\", \"created\": \"2019-06-14T09:57:30.564\", \"storedBy\": \"admin\", \"lastUpdated\": \"2019-06-14T09:57:30.564\", \"providedElsewhere\": false}}");
+  }
 }

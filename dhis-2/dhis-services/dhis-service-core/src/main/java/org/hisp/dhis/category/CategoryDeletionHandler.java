@@ -36,40 +36,32 @@ import org.springframework.stereotype.Component;
 /**
  * @author Dang Duy Hieu
  */
-@Component( "org.hisp.dhis.category.CategoryDeletionHandler" )
-public class CategoryDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.category.CategoryDeletionHandler")
+public class CategoryDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public CategoryDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
-    }
+  public CategoryDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
+    this.idObjectManager = idObjectManager;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(CategoryOption.class, this::deleteCategoryOption);
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+  }
 
-    private void deleteCategoryOption( CategoryOption categoryOption )
-    {
-        for ( Category category : categoryOption.getCategories() )
-        {
-            category.getCategoryOptions().remove( categoryOption );
-            idObjectManager.updateNoAcl( category );
-        }
+  private void deleteCategoryOption(CategoryOption categoryOption) {
+    for (Category category : categoryOption.getCategories()) {
+      category.getCategoryOptions().remove(categoryOption);
+      idObjectManager.updateNoAcl(category);
     }
+  }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        for ( Category category : categoryCombo.getCategories() )
-        {
-            category.getCategoryCombos().remove( categoryCombo );
-            idObjectManager.updateNoAcl( category );
-        }
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    for (Category category : categoryCombo.getCategories()) {
+      category.getCategoryCombos().remove(categoryCombo);
+      idObjectManager.updateNoAcl(category);
     }
+  }
 }

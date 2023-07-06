@@ -33,101 +33,94 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class EventDataQueryRequestTest
-{
+public class EventDataQueryRequestTest {
 
-    public static boolean[] totalPagesFlags()
-    {
-        return new boolean[] { false, true };
-    }
+  public static boolean[] totalPagesFlags() {
+    return new boolean[] {false, true};
+  }
 
-    @Test
-    void testDimensionRefactoringOnlyWhenQuery()
-    {
-        EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
-        criteria.setIncidentDate( "YESTERDAY" );
-        criteria.setDimension( Set.of( "pe:TODAY" ) );
+  @Test
+  void testDimensionRefactoringOnlyWhenQuery() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setIncidentDate("YESTERDAY");
+    criteria.setDimension(Set.of("pe:TODAY"));
 
-        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( criteria )
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(eventDataQueryRequest.getDimension(), Set.of("pe:TODAY"));
+
+    eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
             .build();
 
-        assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY" ) );
+    assertEquals(eventDataQueryRequest.getDimension(), Set.of("pe:TODAY;YESTERDAY:INCIDENT_DATE"));
 
-        eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
+    criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setIncidentDate("TODAY");
+    criteria.setDimension(new HashSet<>());
+
+    eventDataQueryRequest = EventDataQueryRequest.builder().fromCriteria(criteria).build();
+
+    assertEquals(Collections.emptySet(), eventDataQueryRequest.getDimension());
+
+    eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
             .build();
 
-        assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY;YESTERDAY:INCIDENT_DATE" ) );
+    assertEquals(eventDataQueryRequest.getDimension(), Set.of("pe:TODAY:INCIDENT_DATE"));
+  }
 
-        criteria = new EventsAnalyticsQueryCriteria();
-        criteria.setIncidentDate( "TODAY" );
-        criteria.setDimension( new HashSet<>() );
+  @Test
+  void testEventsQueryMultiOptionsAreCorrectlyParsed() {
+    EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
+    criteria.setEnrollmentDate("202111,2021;TODAY");
+    criteria.setEventDate("LAST_YEAR");
+    criteria.setDimension(new HashSet<>(Set.of("pe:LAST_MONTH")));
 
-        eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( criteria )
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EventsAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
             .build();
 
-        assertEquals( Collections.emptySet(), eventDataQueryRequest.getDimension() );
+    assertEquals(
+        eventDataQueryRequest.getDimension(),
+        Set.of(
+            "pe:LAST_MONTH;LAST_YEAR:EVENT_DATE;202111:ENROLLMENT_DATE;2021:ENROLLMENT_DATE;TODAY:ENROLLMENT_DATE"));
+  }
 
-        eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
+  @Test
+  void testEnrollmentMultiOptionsAreCorrectlyParsed() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setIncidentDate("202111,2021;TODAY");
+    criteria.setEnrollmentDate("LAST_YEAR");
+    criteria.setDimension(new HashSet<>(Set.of("pe:LAST_MONTH")));
+
+    EventDataQueryRequest eventDataQueryRequest =
+        EventDataQueryRequest.builder()
+            .fromCriteria((EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction(QUERY))
             .build();
 
-        assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY:INCIDENT_DATE" ) );
+    assertEquals(
+        eventDataQueryRequest.getDimension(),
+        Set.of(
+            "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE"));
+  }
 
-    }
+  @ParameterizedTest
+  @MethodSource(value = "totalPagesFlags")
+  void totalPagesShouldBeSameInCriteriaAndRequestWhenCalled(boolean totalPages) {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
 
-    @Test
-    void testEventsQueryMultiOptionsAreCorrectlyParsed()
-    {
-        EventsAnalyticsQueryCriteria criteria = new EventsAnalyticsQueryCriteria();
-        criteria.setEnrollmentDate( "202111,2021;TODAY" );
-        criteria.setEventDate( "LAST_YEAR" );
-        criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
+    criteria.setTotalPages(totalPages);
 
-        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
-            .build();
-
-        assertEquals( eventDataQueryRequest.getDimension(),
-            Set.of(
-                "pe:LAST_MONTH;LAST_YEAR:EVENT_DATE;202111:ENROLLMENT_DATE;2021:ENROLLMENT_DATE;TODAY:ENROLLMENT_DATE" ) );
-
-    }
-
-    @Test
-    void testEnrollmentMultiOptionsAreCorrectlyParsed()
-    {
-        EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
-        criteria.setIncidentDate( "202111,2021;TODAY" );
-        criteria.setEnrollmentDate( "LAST_YEAR" );
-        criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
-
-        EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
-            .build();
-
-        assertEquals( eventDataQueryRequest.getDimension(),
-            Set.of(
-                "pe:LAST_MONTH;LAST_YEAR:ENROLLMENT_DATE;202111:INCIDENT_DATE;2021:INCIDENT_DATE;TODAY:INCIDENT_DATE" ) );
-    }
-
-    @ParameterizedTest
-    @MethodSource( value = "totalPagesFlags" )
-    void totalPagesShouldBeSameInCriteriaAndRequestWhenCalled( boolean totalPages )
-    {
-        EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
-
-        criteria.setTotalPages( totalPages );
-
-        assertEquals( EventDataQueryRequest.builder()
-            .fromCriteria( criteria )
-            .build().isTotalPages(), totalPages );
-    }
+    assertEquals(
+        EventDataQueryRequest.builder().fromCriteria(criteria).build().isTotalPages(), totalPages);
+  }
 }

@@ -32,7 +32,6 @@ import org.hisp.dhis.tracker.domain.User;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface UserMapper extends DomainMapper<UserInfoSnapshot, User>
-{
-    User from( UserInfoSnapshot snapshot );
+public interface UserMapper extends DomainMapper<UserInfoSnapshot, User> {
+  User from(UserInfoSnapshot snapshot);
 }

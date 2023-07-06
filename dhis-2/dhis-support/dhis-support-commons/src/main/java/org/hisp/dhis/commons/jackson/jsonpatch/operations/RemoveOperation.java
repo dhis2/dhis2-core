@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch.operations;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
@@ -37,52 +34,44 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 
 /**
  * Removes a value (can be a item in a list, or just a plain property).
  *
  * @author Morten Olav Hansen
  */
-public class RemoveOperation extends JsonPatchOperation
-{
-    @JsonCreator
-    public RemoveOperation( @JsonProperty( "path" ) JsonPointer path )
-    {
-        super( "remove", path );
+public class RemoveOperation extends JsonPatchOperation {
+  @JsonCreator
+  public RemoveOperation(@JsonProperty("path") JsonPointer path) {
+    super("remove", path);
+  }
+
+  @Override
+  public JsonNode apply(JsonNode node) throws JsonPatchException {
+    if (path == JsonPointer.empty()) {
+      return MissingNode.getInstance();
     }
 
-    @Override
-    public JsonNode apply( JsonNode node )
-        throws JsonPatchException
-    {
-        if ( path == JsonPointer.empty() )
-        {
-            return MissingNode.getInstance();
-        }
-
-        if ( !nodePathExists( node ) )
-        {
-            return node;
-        }
-
-        final JsonNode parentNode = node.at( path.head() );
-        final String rawToken = path.last().getMatchingProperty();
-
-        if ( parentNode.isObject() )
-        {
-            ((ObjectNode) parentNode).remove( rawToken );
-        }
-        else if ( parentNode.isArray() )
-        {
-            ((ArrayNode) parentNode).remove( Integer.parseInt( rawToken ) );
-        }
-
-        return node;
+    if (!nodePathExists(node)) {
+      return node;
     }
 
-    private boolean nodePathExists( JsonNode node )
-    {
-        final JsonNode found = node.at( path );
-        return !found.isMissingNode();
+    final JsonNode parentNode = node.at(path.head());
+    final String rawToken = path.last().getMatchingProperty();
+
+    if (parentNode.isObject()) {
+      ((ObjectNode) parentNode).remove(rawToken);
+    } else if (parentNode.isArray()) {
+      ((ArrayNode) parentNode).remove(Integer.parseInt(rawToken));
     }
+
+    return node;
+  }
+
+  private boolean nodePathExists(JsonNode node) {
+    final JsonNode found = node.at(path);
+    return !found.isMissingNode();
+  }
 }

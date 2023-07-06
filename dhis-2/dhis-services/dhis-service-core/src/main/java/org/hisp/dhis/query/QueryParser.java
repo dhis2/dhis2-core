@@ -28,39 +28,33 @@
 package org.hisp.dhis.query;
 
 import java.util.List;
-
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface QueryParser
-{
-    /**
-     * Parses filter expressions, need 2 or 3 components depending on operator.
-     * i.e. for null you can use "name:null" which checks to see if property
-     * name is null i.e. for eq you can use "name:eq:ANC" which check to see if
-     * property name is equal to ANC
-     * <p>
-     * The general syntax is "propertyName:operatorName:<Value to check against
-     * if needed>"
-     *
-     * @param klass Class type to query for
-     * @param filters List of filters to add to Query
-     * @param rootJunction Root junction to use (defaults to AND)
-     * @return Query instance based on Schema of klass and filters list
-     * @throws QueryParserException
-     */
-    Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction )
-        throws QueryParserException;
+public interface QueryParser {
+  /**
+   * Parses filter expressions, need 2 or 3 components depending on operator. i.e. for null you can
+   * use "name:null" which checks to see if property name is null i.e. for eq you can use
+   * "name:eq:ANC" which check to see if property name is equal to ANC
+   *
+   * <p>The general syntax is "propertyName:operatorName:<Value to check against if needed>"
+   *
+   * @param klass Class type to query for
+   * @param filters List of filters to add to Query
+   * @param rootJunction Root junction to use (defaults to AND)
+   * @return Query instance based on Schema of klass and filters list
+   * @throws QueryParserException
+   */
+  Query parse(Class<?> klass, List<String> filters, Junction.Type rootJunction)
+      throws QueryParserException;
 
-    Query parse( Class<?> klass, List<String> filters )
-        throws QueryParserException;
+  Query parse(Class<?> klass, List<String> filters) throws QueryParserException;
 
-    Property getProperty( Schema schema, String path )
-        throws QueryParserException;
+  Property getProperty(Schema schema, String path) throws QueryParserException;
 
-    Restriction getRestriction( Schema schema, String path, String operator, Object arg )
-        throws QueryParserException;
+  Restriction getRestriction(Schema schema, String path, String operator, Object arg)
+      throws QueryParserException;
 }

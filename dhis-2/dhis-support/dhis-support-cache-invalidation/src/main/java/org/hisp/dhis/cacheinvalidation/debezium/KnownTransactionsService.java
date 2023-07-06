@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.cacheinvalidation.debezium;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import java.util.concurrent.TimeUnit;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.FlushMode;
 import org.hibernate.event.spi.AbstractEvent;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -38,76 +38,65 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-
 /**
- * Service responsible for registering local transaction ID in a lookup table.
- * The hash table is a {@link Cache<Long,Boolean>} with a lifetime of:
- * {@link KnownTransactionsService#LOCAL_TXID_CACHE_TIME_MIN}
+ * Service responsible for registering local transaction ID in a lookup table. The hash table is a
+ * {@link Cache<Long,Boolean>} with a lifetime of: {@link
+ * KnownTransactionsService#LOCAL_TXID_CACHE_TIME_MIN}
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
-public class KnownTransactionsService
-{
-    public static final int LOCAL_TXID_CACHE_TIME_MIN = 15;
+public class KnownTransactionsService {
+  public static final int LOCAL_TXID_CACHE_TIME_MIN = 15;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
+  @Autowired private DhisConfigurationProvider dhisConfig;
 
-    private Cache<Long, Boolean> applicationTransactions;
+  private Cache<Long, Boolean> applicationTransactions;
 
-    public void registerEvent( AbstractEvent event )
-    {
-        if ( !dhisConfig.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) )
-        {
-            return;
-        }
-
-        try
-        {
-            Number txId = (Number) event.getSession().createNativeQuery( "SELECT txid_current()" )
-                .setFlushMode( FlushMode.MANUAL )
-                .getSingleResult();
-
-            registerTransactionId( txId.longValue() );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Failed to register Hibernate session event!", e );
-        }
+  public void registerEvent(AbstractEvent event) {
+    if (!dhisConfig.isEnabled(ConfigurationKey.DEBEZIUM_ENABLED)) {
+      return;
     }
 
-    public void registerTransactionId( long txId )
-    {
-        if ( dhisConfig.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) )
-        {
-            log.debug( "Register local txId=" + txId );
-            buildIfNull();
-            applicationTransactions.put( txId, true );
-        }
-    }
+    try {
+      Number txId =
+          (Number)
+              event
+                  .getSession()
+                  .createNativeQuery("SELECT txid_current()")
+                  .setFlushMode(FlushMode.MANUAL)
+                  .getSingleResult();
 
-    private void buildIfNull()
-    {
-        if ( applicationTransactions == null )
-        {
-            applicationTransactions = CacheBuilder.newBuilder()
-                .expireAfterAccess( LOCAL_TXID_CACHE_TIME_MIN, TimeUnit.MINUTES )
-                .build();
-        }
+      registerTransactionId(txId.longValue());
+    } catch (Exception e) {
+      log.error("Failed to register Hibernate session event!", e);
     }
+  }
 
-    public boolean isKnown( long txId )
-    {
-        buildIfNull();
-        return Boolean.TRUE.equals( applicationTransactions.getIfPresent( txId ) );
+  public void registerTransactionId(long txId) {
+    if (dhisConfig.isEnabled(ConfigurationKey.DEBEZIUM_ENABLED)) {
+      log.debug("Register local txId=" + txId);
+      buildIfNull();
+      applicationTransactions.put(txId, true);
     }
+  }
 
-    public Long size()
-    {
-        return applicationTransactions.size();
+  private void buildIfNull() {
+    if (applicationTransactions == null) {
+      applicationTransactions =
+          CacheBuilder.newBuilder()
+              .expireAfterAccess(LOCAL_TXID_CACHE_TIME_MIN, TimeUnit.MINUTES)
+              .build();
     }
+  }
+
+  public boolean isKnown(long txId) {
+    buildIfNull();
+    return Boolean.TRUE.equals(applicationTransactions.getIfPresent(txId));
+  }
+
+  public Long size() {
+    return applicationTransactions.size();
+  }
 }

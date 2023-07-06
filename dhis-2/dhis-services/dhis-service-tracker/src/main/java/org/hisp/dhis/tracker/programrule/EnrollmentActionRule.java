@@ -29,11 +29,9 @@ package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
 import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.tracker.domain.Attribute;
@@ -41,52 +39,40 @@ import org.hisp.dhis.tracker.domain.Attribute;
 @Getter
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class EnrollmentActionRule
-    implements ActionRule
-{
-    private final String ruleUid;
+public class EnrollmentActionRule implements ActionRule {
+  private final String ruleUid;
 
-    private final String enrollment;
+  private final String enrollment;
 
-    private final String data;
+  private final String data;
 
-    private final String field;
+  private final String field;
 
-    private final AttributeType attributeType;
+  private final AttributeType attributeType;
 
-    private String content;
+  private String content;
 
-    private final List<Attribute> attributes;
+  private final List<Attribute> attributes;
 
-    public String getValue()
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        if ( !StringUtils.isEmpty( content ) )
-        {
-            stringBuilder.append( data );
-        }
-        if ( !StringUtils.isEmpty( stringBuilder.toString() ) )
-        {
-            stringBuilder.append( " " );
-        }
-        if ( !StringUtils.isEmpty( data ) )
-        {
-            stringBuilder.append( data );
-        }
-        return stringBuilder.toString();
+  public String getValue() {
+    StringBuilder stringBuilder = new StringBuilder();
+    if (!StringUtils.isEmpty(content)) {
+      stringBuilder.append(data);
+    }
+    if (!StringUtils.isEmpty(stringBuilder.toString())) {
+      stringBuilder.append(" ");
+    }
+    if (!StringUtils.isEmpty(data)) {
+      stringBuilder.append(data);
+    }
+    return stringBuilder.toString();
+  }
+
+  public Optional<Attribute> getAttribute() {
+    if (attributeType.equals(AttributeType.TRACKED_ENTITY_ATTRIBUTE)) {
+      return getAttributes().stream().filter(at -> at.getAttribute().equals(field)).findAny();
     }
 
-    public Optional<Attribute> getAttribute()
-    {
-        if ( attributeType.equals( AttributeType.TRACKED_ENTITY_ATTRIBUTE ) )
-        {
-            return getAttributes()
-                .stream()
-                .filter( at -> at.getAttribute().equals( field ) )
-                .findAny();
-        }
-
-        return Optional.empty();
-
-    }
+    return Optional.empty();
+  }
 }

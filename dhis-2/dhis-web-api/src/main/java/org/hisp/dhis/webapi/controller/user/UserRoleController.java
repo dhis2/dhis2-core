@@ -30,9 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.List;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -59,90 +57,85 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = UserRoleSchemaDescriptor.API_ENDPOINT )
-public class UserRoleController
-    extends AbstractCrudController<UserRole>
-{
-    @Autowired
-    private UserService userService;
+@RequestMapping(value = UserRoleSchemaDescriptor.API_ENDPOINT)
+public class UserRoleController extends AbstractCrudController<UserRole> {
+  @Autowired private UserService userService;
 
-    @Override
-    protected List<UserRole> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders )
-        throws QueryParserException
-    {
-        List<UserRole> entityList = super.getEntityList( metadata, options, filters, orders );
+  @Override
+  protected List<UserRole> getEntityList(
+      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      throws QueryParserException {
+    List<UserRole> entityList = super.getEntityList(metadata, options, filters, orders);
 
-        if ( options.getOptions().containsKey( "canIssue" )
-            && Boolean.parseBoolean( options.getOptions().get( "canIssue" ) ) )
-        {
-            userService.canIssueFilter( entityList );
-        }
-
-        return entityList;
+    if (options.getOptions().containsKey("canIssue")
+        && Boolean.parseBoolean(options.getOptions().get("canIssue"))) {
+      userService.canIssueFilter(entityList);
     }
 
-    @RequestMapping( value = "/{id}/users/{userId}", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void addUserToRole( @PathVariable( value = "id" ) String pvId, @PathVariable( "userId" ) String pvUserId,
-        @CurrentUser User currentUser, HttpServletResponse response )
-        throws WebMessageException
-    {
-        UserRole userRole = userService.getUserRole( pvId );
+    return entityList;
+  }
 
-        if ( userRole == null )
-        {
-            throw new WebMessageException( notFound( "UserRole does not exist: " + pvId ) );
-        }
+  @RequestMapping(
+      value = "/{id}/users/{userId}",
+      method = {RequestMethod.POST, RequestMethod.PUT})
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void addUserToRole(
+      @PathVariable(value = "id") String pvId,
+      @PathVariable("userId") String pvUserId,
+      @CurrentUser User currentUser,
+      HttpServletResponse response)
+      throws WebMessageException {
+    UserRole userRole = userService.getUserRole(pvId);
 
-        User user = userService.getUser( pvUserId );
-
-        if ( user == null )
-        {
-            throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
-        }
-
-        if ( !aclService.canUpdate( currentUser, userRole ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !user.getUserRoles().contains( userRole ) )
-        {
-            user.getUserRoles().add( userRole );
-            userService.updateUser( user );
-        }
+    if (userRole == null) {
+      throw new WebMessageException(notFound("UserRole does not exist: " + pvId));
     }
 
-    @DeleteMapping( "/{id}/users/{userId}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeUserFromRole( @PathVariable( value = "id" ) String pvId,
-        @PathVariable( "userId" ) String pvUserId, @CurrentUser User currentUser, HttpServletResponse response )
-        throws WebMessageException
-    {
-        UserRole userRole = userService.getUserRole( pvId );
+    User user = userService.getUser(pvUserId);
 
-        if ( userRole == null )
-        {
-            throw new WebMessageException( notFound( "UserRole does not exist: " + pvId ) );
-        }
-
-        User user = userService.getUser( pvUserId );
-
-        if ( user == null )
-        {
-            throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
-        }
-
-        if ( !aclService.canUpdate( currentUser, userRole ) )
-        {
-            throw new DeleteAccessDeniedException( "You don't have the proper permissions to delete this object." );
-        }
-
-        if ( user.getUserRoles().contains( userRole ) )
-        {
-            user.getUserRoles().remove( userRole );
-            userService.updateUser( user );
-        }
+    if (user == null) {
+      throw new WebMessageException(notFound("User does not exist: " + pvId));
     }
+
+    if (!aclService.canUpdate(currentUser, userRole)) {
+      throw new UpdateAccessDeniedException(
+          "You don't have the proper permissions to update this object.");
+    }
+
+    if (!user.getUserRoles().contains(userRole)) {
+      user.getUserRoles().add(userRole);
+      userService.updateUser(user);
+    }
+  }
+
+  @DeleteMapping("/{id}/users/{userId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeUserFromRole(
+      @PathVariable(value = "id") String pvId,
+      @PathVariable("userId") String pvUserId,
+      @CurrentUser User currentUser,
+      HttpServletResponse response)
+      throws WebMessageException {
+    UserRole userRole = userService.getUserRole(pvId);
+
+    if (userRole == null) {
+      throw new WebMessageException(notFound("UserRole does not exist: " + pvId));
+    }
+
+    User user = userService.getUser(pvUserId);
+
+    if (user == null) {
+      throw new WebMessageException(notFound("User does not exist: " + pvId));
+    }
+
+    if (!aclService.canUpdate(currentUser, userRole)) {
+      throw new DeleteAccessDeniedException(
+          "You don't have the proper permissions to delete this object.");
+    }
+
+    if (user.getUserRoles().contains(userRole)) {
+      user.getUserRoles().remove(userRole);
+      userService.updateUser(user);
+    }
+  }
 }

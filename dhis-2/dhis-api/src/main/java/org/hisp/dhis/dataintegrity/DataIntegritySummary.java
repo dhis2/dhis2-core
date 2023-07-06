@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.io.Serializable;
-import java.util.Date;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import java.io.Serializable;
+import java.util.Date;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
  * The result data of a {@link DataIntegrityCheck#getRunSummaryCheck()} run.
@@ -43,21 +41,14 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  */
 @Getter
 @AllArgsConstructor
-public class DataIntegritySummary implements Serializable
-{
-    @JsonUnwrapped
-    private final DataIntegrityCheck check;
+public class DataIntegritySummary implements Serializable {
+  @JsonUnwrapped private final DataIntegrityCheck check;
 
-    @JsonProperty
-    private final Date finishedTime;
+  @JsonProperty private final Date finishedTime;
 
-    @JsonProperty
-    private final String error;
+  @JsonProperty private final String error;
 
-    @JsonProperty
-    private final int count;
+  @JsonProperty private final int count;
 
-    @JsonProperty
-    private final Double percentage;
-
+  @JsonProperty private final Double percentage;
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.datavalue;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,119 +40,116 @@ import org.hisp.dhis.period.Period;
  *
  * @author Torgeir Lorange Ostby
  */
-public interface DataValueStore
-{
-    String ID = DataValueStore.class.getName();
+public interface DataValueStore {
+  String ID = DataValueStore.class.getName();
 
-    /**
-     * Special {@see DeflatedDataValue} to signal "End of file" for queued DDVs.
-     */
-    public static final DeflatedDataValue END_OF_DDV_DATA = new DeflatedDataValue();
+  /** Special {@see DeflatedDataValue} to signal "End of file" for queued DDVs. */
+  public static final DeflatedDataValue END_OF_DDV_DATA = new DeflatedDataValue();
 
-    /**
-     * Timeout value for {@see DeflatedDataValue} queue, to prevent waiting
-     * forever if the other thread has aborted.
-     */
-    public static final int DDV_QUEUE_TIMEOUT_VALUE = 10;
+  /**
+   * Timeout value for {@see DeflatedDataValue} queue, to prevent waiting forever if the other
+   * thread has aborted.
+   */
+  public static final int DDV_QUEUE_TIMEOUT_VALUE = 10;
 
-    /**
-     * Timeout unit for {@see DeflatedDataValue} queue, to prevent waiting
-     * forever if the other thread has aborted.
-     */
-    public static final TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
+  /**
+   * Timeout unit for {@see DeflatedDataValue} queue, to prevent waiting forever if the other thread
+   * has aborted.
+   */
+  public static final TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
 
-    // -------------------------------------------------------------------------
-    // Basic DataValue
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Basic DataValue
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds a DataValue.
-     *
-     * @param dataValue the DataValue to add.
-     */
-    void addDataValue( DataValue dataValue );
+  /**
+   * Adds a DataValue.
+   *
+   * @param dataValue the DataValue to add.
+   */
+  void addDataValue(DataValue dataValue);
 
-    /**
-     * Updates a DataValue.
-     *
-     * @param dataValue the DataValue to update.
-     */
-    void updateDataValue( DataValue dataValue );
+  /**
+   * Updates a DataValue.
+   *
+   * @param dataValue the DataValue to update.
+   */
+  void updateDataValue(DataValue dataValue);
 
-    /**
-     * Deletes all data values for the given organisation unit.
-     *
-     * @param organisationUnit the organisation unit.
-     */
-    void deleteDataValues( OrganisationUnit organisationUnit );
+  /**
+   * Deletes all data values for the given organisation unit.
+   *
+   * @param organisationUnit the organisation unit.
+   */
+  void deleteDataValues(OrganisationUnit organisationUnit);
 
-    /**
-     * Deletes all data values for the given data element.
-     *
-     * @param dataElement the data element.
-     */
-    void deleteDataValues( DataElement dataElement );
+  /**
+   * Deletes all data values for the given data element.
+   *
+   * @param dataElement the data element.
+   */
+  void deleteDataValues(DataElement dataElement);
 
-    /**
-     * Returns a DataValue.
-     *
-     * @param dataElement the DataElement of the DataValue.
-     * @param period the Period of the DataValue.
-     * @param source the Source of the DataValue.
-     * @param categoryOptionCombo the category option combo.
-     * @param attributeOptionCombo the attribute option combo.
-     * @return the DataValue which corresponds to the given parameters, or null
-     *         if no match.
-     */
-    DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
+  /**
+   * Returns a DataValue.
+   *
+   * @param dataElement the DataElement of the DataValue.
+   * @param period the Period of the DataValue.
+   * @param source the Source of the DataValue.
+   * @param categoryOptionCombo the category option combo.
+   * @param attributeOptionCombo the attribute option combo.
+   * @return the DataValue which corresponds to the given parameters, or null if no match.
+   */
+  DataValue getDataValue(
+      DataElement dataElement,
+      Period period,
+      OrganisationUnit source,
+      CategoryOptionCombo categoryOptionCombo,
+      CategoryOptionCombo attributeOptionCombo);
 
-    /**
-     * Returns a soft deleted DataValue.
-     *
-     * @param dataValue the DataValue to use as parameters.
-     * @return the DataValue which corresponds to the given parameters, or null
-     *         if no match.
-     */
-    DataValue getSoftDeletedDataValue( DataValue dataValue );
+  /**
+   * Returns a soft deleted DataValue.
+   *
+   * @param dataValue the DataValue to use as parameters.
+   * @return the DataValue which corresponds to the given parameters, or null if no match.
+   */
+  DataValue getSoftDeletedDataValue(DataValue dataValue);
 
-    // -------------------------------------------------------------------------
-    // Collections of DataValues
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Collections of DataValues
+  // -------------------------------------------------------------------------
 
-    /**
-     * Returns data values for the given data export parameters.
-     *
-     * @param params the data export parameters.
-     * @return a list of data values.
-     */
-    List<DataValue> getDataValues( DataExportParams params );
+  /**
+   * Returns data values for the given data export parameters.
+   *
+   * @param params the data export parameters.
+   * @return a list of data values.
+   */
+  List<DataValue> getDataValues(DataExportParams params);
 
-    /**
-     * Returns all DataValues.
-     *
-     * @return a list of all DataValues.
-     */
-    List<DataValue> getAllDataValues();
+  /**
+   * Returns all DataValues.
+   *
+   * @return a list of all DataValues.
+   */
+  List<DataValue> getAllDataValues();
 
-    /**
-     * Returns deflated data values for the given data export parameters.
-     *
-     * @param params the data export parameters.
-     * @return a list of deflated data values.
-     */
-    List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params );
+  /**
+   * Returns deflated data values for the given data export parameters.
+   *
+   * @param params the data export parameters.
+   * @return a list of deflated data values.
+   */
+  List<DeflatedDataValue> getDeflatedDataValues(DataExportParams params);
 
-    /**
-     * Gets the number of DataValues which have been updated between the given
-     * start and end date. Either the start or end date can be null, but they
-     * cannot both be null.
-     *
-     * @param startDate the start date to compare against data value last
-     *        updated.
-     * @param endDate the end date to compare against data value last updated.
-     * @param includeDeleted whether to include deleted data values.
-     * @return the number of DataValues.
-     */
-    int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted );
+  /**
+   * Gets the number of DataValues which have been updated between the given start and end date.
+   * Either the start or end date can be null, but they cannot both be null.
+   *
+   * @param startDate the start date to compare against data value last updated.
+   * @param endDate the end date to compare against data value last updated.
+   * @param includeDeleted whether to include deleted data values.
+   * @return the number of DataValues.
+   */
+  int getDataValueCountLastUpdatedBetween(Date startDate, Date endDate, boolean includeDeleted);
 }

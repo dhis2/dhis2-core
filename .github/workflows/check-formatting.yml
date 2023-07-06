@@ -18,7 +18,10 @@ jobs:
           cache: maven
 
       - name: Check formatting in core
-        run: mvn speedy-spotless:check --batch-mode --no-transfer-progress --update-snapshots -q -f ./dhis-2/pom.xml
+        run: mvn spotless:check --threads 2C --batch-mode --no-transfer-progress -q -f ./dhis-2/pom.xml
 
       - name: Check formatting in web
-        run: mvn speedy-spotless:check --batch-mode --no-transfer-progress --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
+        run: mvn spotless:check --threads 2C --batch-mode --no-transfer-progress -q -f ./dhis-2/dhis-web/pom.xml
+
+      - name: Check formatting in e2e tests
+        run: mvn spotless:check --batch-mode --no-transfer-progress -q -f ./dhis-2/dhis-test-e2e/pom.xml

@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.util.Date;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -63,155 +62,146 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Jim Grace
  */
-@ExtendWith( MockitoExtension.class )
-class EventCategoryOptValidationHookTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class EventCategoryOptValidationHookTest extends DhisConvenienceTest {
 
-    @Mock
-    private I18nManager i18nManager;
+  @Mock private I18nManager i18nManager;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
+  private static final I18nFormat I18N_FORMAT = new MockI18nFormat();
 
-    private EventCategoryOptValidationHook hook;
+  private EventCategoryOptValidationHook hook;
 
-    private CategoryOption catOption;
+  private CategoryOption catOption;
 
-    private Category category;
+  private Category category;
 
-    private CategoryCombo catCombo;
+  private CategoryCombo catCombo;
 
-    private CategoryOptionCombo attOptionCombo;
+  private CategoryOptionCombo attOptionCombo;
 
-    private CategoryOption defaultCatOption;
+  private CategoryOption defaultCatOption;
 
-    private CategoryCombo defaultCatCombo;
+  private CategoryCombo defaultCatCombo;
 
-    private CategoryOptionCombo defaultCatOptionCombo;
+  private CategoryOptionCombo defaultCatOptionCombo;
 
-    private Program program;
+  private Program program;
 
-    private Event event;
+  private Event event;
 
-    private ValidationErrorReporter reporter;
+  private ValidationErrorReporter reporter;
 
-    private final Date ONE_YEAR_BEFORE_EVENT = getDate( 2020, 1, 1 );
+  private final Date ONE_YEAR_BEFORE_EVENT = getDate(2020, 1, 1);
 
-    private final Instant EVENT_INSTANT = getDate( 2021, 1, 1 ).toInstant();
+  private final Instant EVENT_INSTANT = getDate(2021, 1, 1).toInstant();
 
-    private final Date ONE_YEAR_AFTER_EVENT = getDate( 2022, 1, 1 );
+  private final Date ONE_YEAR_AFTER_EVENT = getDate(2022, 1, 1);
 
-    @BeforeEach
-    public void setUp()
-    {
-        initServices();
+  @BeforeEach
+  public void setUp() {
+    initServices();
 
-        hook = new EventCategoryOptValidationHook( i18nManager );
+    hook = new EventCategoryOptValidationHook(i18nManager);
 
-        catOption = createCategoryOption( 'A' );
+    catOption = createCategoryOption('A');
 
-        category = createCategory( 'A', catOption );
+    category = createCategory('A', catOption);
 
-        catCombo = createCategoryCombo( 'A', category );
+    catCombo = createCategoryCombo('A', category);
 
-        attOptionCombo = createCategoryOptionCombo( catCombo, catOption );
+    attOptionCombo = createCategoryOptionCombo(catCombo, catOption);
 
-        defaultCatCombo = new CategoryCombo();
-        defaultCatCombo.setName( DEFAULT_CATEGORY_COMBO_NAME );
+    defaultCatCombo = new CategoryCombo();
+    defaultCatCombo.setName(DEFAULT_CATEGORY_COMBO_NAME);
 
-        defaultCatOption = new CategoryOption();
-        defaultCatOption.setName( DEFAULT_NAME );
+    defaultCatOption = new CategoryOption();
+    defaultCatOption.setName(DEFAULT_NAME);
 
-        defaultCatOptionCombo = createCategoryOptionCombo( defaultCatCombo, defaultCatOption );
+    defaultCatOptionCombo = createCategoryOptionCombo(defaultCatCombo, defaultCatOption);
 
-        program = createProgram( 'A' );
-        program.setCategoryCombo( catCombo );
+    program = createProgram('A');
+    program.setCategoryCombo(catCombo);
 
-        event = new Event();
-        event.setEvent( CodeGenerator.generateUid() );
-        event.setProgram( program.getUid() );
-        event.setOccurredAt( EVENT_INSTANT );
+    event = new Event();
+    event.setEvent(CodeGenerator.generateUid());
+    event.setProgram(program.getUid());
+    event.setOccurredAt(EVENT_INSTANT);
 
-        User user = createUser( 'A' );
+    User user = createUser('A');
 
-        TrackerBundle bundle = TrackerBundle.builder()
-            .user( user )
-            .preheat( preheat )
-            .build();
+    TrackerBundle bundle = TrackerBundle.builder().user(user).preheat(preheat).build();
 
-        when( preheat.getProgram( program.getUid() ) )
-            .thenReturn( program );
-        when( i18nManager.getI18nFormat() ).thenReturn( I18N_FORMAT );
+    when(preheat.getProgram(program.getUid())).thenReturn(program);
+    when(i18nManager.getI18nFormat()).thenReturn(I18N_FORMAT);
 
-        reporter = new ValidationErrorReporter( bundle );
-    }
+    reporter = new ValidationErrorReporter(bundle);
+  }
 
-    @Test
-    void testDefaultCoc()
-    {
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultCatOptionCombo );
-        program.setCategoryCombo( defaultCatCombo );
+  @Test
+  void testDefaultCoc() {
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultCatOptionCombo);
+    program.setCategoryCombo(defaultCatCombo);
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testNoCategoryOptionDates()
-    {
-        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
+  @Test
+  void testNoCategoryOptionDates() {
+    when(preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()))
+        .thenReturn(attOptionCombo);
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testBetweenCategoryOptionDates()
-    {
-        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
-        catOption.setStartDate( ONE_YEAR_BEFORE_EVENT );
-        catOption.setEndDate( ONE_YEAR_AFTER_EVENT );
+  @Test
+  void testBetweenCategoryOptionDates() {
+    when(preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()))
+        .thenReturn(attOptionCombo);
+    catOption.setStartDate(ONE_YEAR_BEFORE_EVENT);
+    catOption.setEndDate(ONE_YEAR_AFTER_EVENT);
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testBeforeCategoryOptionStart()
-    {
-        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
-        catOption.setStartDate( ONE_YEAR_AFTER_EVENT );
+  @Test
+  void testBeforeCategoryOptionStart() {
+    when(preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()))
+        .thenReturn(attOptionCombo);
+    catOption.setStartDate(ONE_YEAR_AFTER_EVENT);
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        hasTrackerError( reporter, E1056, EVENT, event.getUid() );
-    }
+    hasTrackerError(reporter, E1056, EVENT, event.getUid());
+  }
 
-    @Test
-    void testAfterCategoryOptionEnd()
-    {
-        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
-        catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
+  @Test
+  void testAfterCategoryOptionEnd() {
+    when(preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()))
+        .thenReturn(attOptionCombo);
+    catOption.setEndDate(ONE_YEAR_BEFORE_EVENT);
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        hasTrackerError( reporter, E1057, EVENT, event.getUid() );
-    }
+    hasTrackerError(reporter, E1057, EVENT, event.getUid());
+  }
 
-    @Test
-    void testBeforeOpenDaysAfterCoEndDate()
-    {
-        when( preheat.getCategoryOptionCombo( event.getAttributeOptionCombo() ) ).thenReturn( attOptionCombo );
-        catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
-        program.setOpenDaysAfterCoEndDate( 400 );
+  @Test
+  void testBeforeOpenDaysAfterCoEndDate() {
+    when(preheat.getCategoryOptionCombo(event.getAttributeOptionCombo()))
+        .thenReturn(attOptionCombo);
+    catOption.setEndDate(ONE_YEAR_BEFORE_EVENT);
+    program.setOpenDaysAfterCoEndDate(400);
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 }

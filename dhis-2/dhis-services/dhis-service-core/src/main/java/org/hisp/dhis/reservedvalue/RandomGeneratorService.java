@@ -36,83 +36,67 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import lombok.AccessLevel;
 import lombok.Setter;
-
 import org.springframework.stereotype.Service;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
- *
- *         Generate random values from a pattern using BigInteger for numbers
- *         and random UUID for alphanumerics.
- *
- *         x = lower case
- *
- *         X = upper case
- *
- *         # = digit
- *
- *         * = digit or lower case or upper case
- *
- *         see {@link RandomPatternBuilder}
+ *     <p>Generate random values from a pattern using BigInteger for numbers and random UUID for
+ *     alphanumerics.
+ *     <p>x = lower case
+ *     <p>X = upper case
+ *     <p># = digit
+ *     <p>* = digit or lower case or upper case
+ *     <p>see {@link RandomPatternBuilder}
  */
 @Service
-@Setter( AccessLevel.PROTECTED )
-public class RandomGeneratorService implements Callable<List<String>>
-{
+@Setter(AccessLevel.PROTECTED)
+public class RandomGeneratorService implements Callable<List<String>> {
 
-    private String segmentParameter;
+  private String segmentParameter;
 
-    @Override
-    public List<String> call()
-        throws Exception
-    {
-        LinkedList<String> patterns = new LinkedList<>();
+  @Override
+  public List<String> call() throws Exception {
+    LinkedList<String> patterns = new LinkedList<>();
 
-        List<String> randomList = new ArrayList<>();
+    List<String> randomList = new ArrayList<>();
 
-        Pattern randomPattern = Pattern.compile( "[X]+|[x]+|[#]+|[*]+" );
-        Matcher matcher = randomPattern.matcher( segmentParameter );
-        SecureRandom secureRandom = new SecureRandom();
+    Pattern randomPattern = Pattern.compile("[X]+|[x]+|[#]+|[*]+");
+    Matcher matcher = randomPattern.matcher(segmentParameter);
+    SecureRandom secureRandom = new SecureRandom();
 
-        while ( matcher.find() )
-        {
-            patterns.add( segmentParameter.substring( matcher.start(), matcher.end() ) );
-        }
-
-        RandomPatternBuilder patternBuilder = new RandomPatternBuilder( segmentParameter );
-
-        for ( int j = 0; j < RANDOM_GENERATION_CHUNK; j++ )
-        {
-            for ( String pattern : patterns )
-            {
-                switch ( pattern.charAt( 0 ) )
-                {
-                case '*':
-                    patternBuilder.setForRandomAll( pattern );
-                    break;
-                case '#':
-                    patternBuilder.setForRandomDigits( pattern, secureRandom );
-                    break;
-                case 'X':
-                    patternBuilder.setForRandomUpperCase( pattern );
-                    break;
-                case 'x':
-                    patternBuilder.setForRandomLowerCase( pattern );
-                    break;
-                default:
-                    break;
-                }
-            }
-
-            patternBuilder.getPatternBuilders()
-                .forEach( pb -> randomList.add( pb.toString() ) );
-
-            patternBuilder.resetPatternBuilder();
-        }
-
-        return randomList;
+    while (matcher.find()) {
+      patterns.add(segmentParameter.substring(matcher.start(), matcher.end()));
     }
+
+    RandomPatternBuilder patternBuilder = new RandomPatternBuilder(segmentParameter);
+
+    for (int j = 0; j < RANDOM_GENERATION_CHUNK; j++) {
+      for (String pattern : patterns) {
+        switch (pattern.charAt(0)) {
+          case '*':
+            patternBuilder.setForRandomAll(pattern);
+            break;
+          case '#':
+            patternBuilder.setForRandomDigits(pattern, secureRandom);
+            break;
+          case 'X':
+            patternBuilder.setForRandomUpperCase(pattern);
+            break;
+          case 'x':
+            patternBuilder.setForRandomLowerCase(pattern);
+            break;
+          default:
+            break;
+        }
+      }
+
+      patternBuilder.getPatternBuilders().forEach(pb -> randomList.add(pb.toString()));
+
+      patternBuilder.resetPatternBuilder();
+    }
+
+    return randomList;
+  }
 }

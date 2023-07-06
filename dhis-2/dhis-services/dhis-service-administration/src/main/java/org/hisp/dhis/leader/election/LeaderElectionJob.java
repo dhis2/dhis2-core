@@ -39,28 +39,24 @@ import org.springframework.stereotype.Component;
  * @author Ameen Mohamed
  */
 @Component
-public class LeaderElectionJob implements Job
-{
-    private LeaderManager leaderManager;
+public class LeaderElectionJob implements Job {
+  private LeaderManager leaderManager;
 
-    public LeaderElectionJob( LeaderManager leaderManager )
-    {
-        this.leaderManager = leaderManager;
-    }
+  public LeaderElectionJob(LeaderManager leaderManager) {
+    this.leaderManager = leaderManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.LEADER_ELECTION;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.LEADER_ELECTION;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        leaderManager.electLeader();
-    }
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    leaderManager.electLeader();
+  }
 }

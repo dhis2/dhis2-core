@@ -50,52 +50,40 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = ProgramIndicatorSchemaDescriptor.API_ENDPOINT )
-public class ProgramIndicatorController
-    extends AbstractCrudController<ProgramIndicator>
-{
-    @Autowired
-    private ProgramIndicatorService programIndicatorService;
+@RequestMapping(value = ProgramIndicatorSchemaDescriptor.API_ENDPOINT)
+public class ProgramIndicatorController extends AbstractCrudController<ProgramIndicator> {
+  @Autowired private ProgramIndicatorService programIndicatorService;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage getExpressionDescription( @RequestBody String expression )
-    {
-        I18n i18n = i18nManager.getI18n();
-        try
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( programIndicatorService.getExpressionDescription( expression ) )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-        catch ( IllegalStateException e )
-        {
-            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
-                .setDescription( e.getMessage() )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+  @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage getExpressionDescription(@RequestBody String expression) {
+    I18n i18n = i18nManager.getI18n();
+    try {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(programIndicatorService.getExpressionDescription(expression))
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
+    } catch (IllegalStateException e) {
+      return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
+          .setDescription(e.getMessage())
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
     }
+  }
 
-    @PostMapping( value = "/filter/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage validateFilter( @RequestBody String expression )
-    {
-        I18n i18n = i18nManager.getI18n();
+  @PostMapping(value = "/filter/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage validateFilter(@RequestBody String expression) {
+    I18n i18n = i18nManager.getI18n();
 
-        try
-        {
-            return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( programIndicatorService.getFilterDescription( expression ) )
-                .setMessage( i18n.getString( ProgramIndicator.VALID ) );
-        }
-        catch ( IllegalStateException e )
-        {
-            return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
-                .setDescription( e.getMessage() )
-                .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
-        }
+    try {
+      return new DescriptiveWebMessage(Status.OK, HttpStatus.OK)
+          .setDescription(programIndicatorService.getFilterDescription(expression))
+          .setMessage(i18n.getString(ProgramIndicator.VALID));
+    } catch (IllegalStateException e) {
+      return new DescriptiveWebMessage(Status.ERROR, HttpStatus.OK)
+          .setDescription(e.getMessage())
+          .setMessage(i18n.getString(ProgramIndicator.EXPRESSION_NOT_VALID));
     }
+  }
 }

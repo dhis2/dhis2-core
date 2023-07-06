@@ -36,26 +36,21 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.message.MessageConversationDeletionHandler" )
-public class MessageConversationDeletionHandler
-    extends DeletionHandler
-{
-    private final MessageService messageService;
+@Component("org.hisp.dhis.message.MessageConversationDeletionHandler")
+public class MessageConversationDeletionHandler extends DeletionHandler {
+  private final MessageService messageService;
 
-    public MessageConversationDeletionHandler( MessageService messageService )
-    {
-        checkNotNull( messageService );
-        this.messageService = messageService;
-    }
+  public MessageConversationDeletionHandler(MessageService messageService) {
+    checkNotNull(messageService);
+    this.messageService = messageService;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+  }
 
-    private void deleteUser( User user )
-    {
-        messageService.deleteMessages( user );
-    }
+  private void deleteUser(User user) {
+    messageService.deleteMessages(user);
+  }
 }

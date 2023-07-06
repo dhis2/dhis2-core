@@ -32,18 +32,15 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar
  */
-public class DataValueUpdatedEvent extends ApplicationEvent
-{
-    private final String programStageInstance;
+public class DataValueUpdatedEvent extends ApplicationEvent {
+  private final String programStageInstance;
 
-    public DataValueUpdatedEvent( Object source, String programStageInstance )
-    {
-        super( source );
-        this.programStageInstance = programStageInstance;
-    }
+  public DataValueUpdatedEvent(Object source, String programStageInstance) {
+    super(source);
+    this.programStageInstance = programStageInstance;
+  }
 
-    public String getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
+  public String getProgramStageInstance() {
+    return programStageInstance;
+  }
 }

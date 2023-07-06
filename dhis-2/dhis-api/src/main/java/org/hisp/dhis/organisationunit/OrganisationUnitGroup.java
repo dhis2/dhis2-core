@@ -27,210 +27,177 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.coordinate.CoordinateObject;
-import org.hisp.dhis.common.coordinate.CoordinateUtils;
-import org.locationtech.jts.geom.Geometry;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
+import java.util.Set;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.coordinate.CoordinateObject;
+import org.hisp.dhis.common.coordinate.CoordinateUtils;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Kristian Nordal
  */
-@JacksonXmlRootElement( localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0 )
-public class OrganisationUnitGroup
-    extends BaseDimensionalItemObject
-    implements MetadataObject, CoordinateObject
-{
-    private String symbol;
+@JacksonXmlRootElement(localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0)
+public class OrganisationUnitGroup extends BaseDimensionalItemObject
+    implements MetadataObject, CoordinateObject {
+  private String symbol;
 
-    private String color;
+  private String color;
 
-    private Set<OrganisationUnit> members = new HashSet<>();
+  private Set<OrganisationUnit> members = new HashSet<>();
 
-    private Set<OrganisationUnitGroupSet> groupSets = new HashSet<>();
+  private Set<OrganisationUnitGroupSet> groupSets = new HashSet<>();
 
-    private Geometry geometry;
+  private Geometry geometry;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public OrganisationUnitGroup()
-    {
+  public OrganisationUnitGroup() {}
+
+  public OrganisationUnitGroup(String name) {
+    this.name = name;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public boolean addOrganisationUnit(OrganisationUnit organisationUnit) {
+    members.add(organisationUnit);
+    return organisationUnit.getGroups().add(this);
+  }
+
+  public void addOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    organisationUnits.forEach(this::addOrganisationUnit);
+  }
+
+  public boolean removeOrganisationUnit(OrganisationUnit organisationUnit) {
+    members.remove(organisationUnit);
+    return organisationUnit.getGroups().remove(this);
+  }
+
+  public void removeOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    organisationUnits.forEach(this::removeOrganisationUnit);
+  }
+
+  public void removeAllOrganisationUnits() {
+    for (OrganisationUnit organisationUnit : members) {
+      organisationUnit.getGroups().remove(this);
     }
 
-    public OrganisationUnitGroup( String name )
-    {
-        this.name = name;
+    members.clear();
+  }
+
+  public void updateOrganisationUnits(Set<OrganisationUnit> updates) {
+    for (OrganisationUnit unit : new HashSet<>(members)) {
+      if (!updates.contains(unit)) {
+        removeOrganisationUnit(unit);
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public boolean addOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        members.add( organisationUnit );
-        return organisationUnit.getGroups().add( this );
+    for (OrganisationUnit unit : updates) {
+      addOrganisationUnit(unit);
     }
+  }
 
-    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        organisationUnits.forEach( this::addOrganisationUnit );
-    }
+  public boolean hasSymbol() {
+    return symbol != null && !symbol.trim().isEmpty();
+  }
 
-    public boolean removeOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        members.remove( organisationUnit );
-        return organisationUnit.getGroups().remove( this );
-    }
+  // -------------------------------------------------------------------------
+  // DimensionalItemObject
+  // -------------------------------------------------------------------------
 
-    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        organisationUnits.forEach( this::removeOrganisationUnit );
-    }
+  @Override
+  public DimensionItemType getDimensionItemType() {
+    return DimensionItemType.ORGANISATION_UNIT_GROUP;
+  }
 
-    public void removeAllOrganisationUnits()
-    {
-        for ( OrganisationUnit organisationUnit : members )
-        {
-            organisationUnit.getGroups().remove( this );
-        }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-        members.clear();
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getSymbol() {
+    return symbol;
+  }
 
-    public void updateOrganisationUnits( Set<OrganisationUnit> updates )
-    {
-        for ( OrganisationUnit unit : new HashSet<>( members ) )
-        {
-            if ( !updates.contains( unit ) )
-            {
-                removeOrganisationUnit( unit );
-            }
-        }
+  public void setSymbol(String symbol) {
+    this.symbol = symbol;
+  }
 
-        for ( OrganisationUnit unit : updates )
-        {
-            addOrganisationUnit( unit );
-        }
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getColor() {
+    return color;
+  }
 
-    public boolean hasSymbol()
-    {
-        return symbol != null && !symbol.trim().isEmpty();
-    }
+  public void setColor(String color) {
+    this.color = color;
+  }
 
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
+  @JsonProperty("organisationUnits")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
+  public Set<OrganisationUnit> getMembers() {
+    return members;
+  }
 
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.ORGANISATION_UNIT_GROUP;
-    }
+  public void setMembers(Set<OrganisationUnit> members) {
+    this.members = members;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
+  public Set<OrganisationUnitGroupSet> getGroupSets() {
+    return groupSets;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSymbol()
-    {
-        return symbol;
-    }
+  public void setGroupSets(Set<OrganisationUnitGroupSet> groupSets) {
+    this.groupSets = groupSets;
+  }
 
-    public void setSymbol( String symbol )
-    {
-        this.symbol = symbol;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Geometry getGeometry() {
+    return geometry;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getColor()
-    {
-        return color;
-    }
+  public void setGeometry(Geometry geometry) {
+    this.geometry = geometry;
+  }
 
-    public void setColor( String color )
-    {
-        this.color = color;
-    }
+  @Override
+  public boolean hasDescendantsWithCoordinates() {
+    return CoordinateUtils.hasDescendantsWithCoordinates(members);
+  }
 
-    @JsonProperty( "organisationUnits" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnit> getMembers()
-    {
-        return members;
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FeatureType getFeatureType() {
 
-    public void setMembers( Set<OrganisationUnit> members )
-    {
-        this.members = members;
-    }
+    return geometry != null ? FeatureType.getTypeFromName(this.geometry.getGeometryType()) : null;
+  }
 
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnitGroupSet> getGroupSets()
-    {
-        return groupSets;
-    }
+  @Override
+  public String getCoordinates() {
+    return extractCoordinates(this.geometry);
+  }
 
-    public void setGroupSets( Set<OrganisationUnitGroupSet> groupSets )
-    {
-        this.groupSets = groupSets;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Geometry getGeometry()
-    {
-        return geometry;
-    }
-
-    public void setGeometry( Geometry geometry )
-    {
-        this.geometry = geometry;
-    }
-
-    @Override
-    public boolean hasDescendantsWithCoordinates()
-    {
-        return CoordinateUtils.hasDescendantsWithCoordinates( members );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FeatureType getFeatureType()
-    {
-
-        return geometry != null ? FeatureType.getTypeFromName( this.geometry.getGeometryType() ) : null;
-    }
-
-    @Override
-    public String getCoordinates()
-    {
-        return extractCoordinates( this.geometry );
-    }
-
-    @Override
-    public boolean hasCoordinates()
-    {
-        return this.geometry != null;
-    }
+  @Override
+  public boolean hasCoordinates() {
+    return this.geometry != null;
+  }
 }

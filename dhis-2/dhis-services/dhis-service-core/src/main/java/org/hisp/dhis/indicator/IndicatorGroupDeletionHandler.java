@@ -36,31 +36,25 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.indicator.IndicatorGroupDeletionHandler" )
-public class IndicatorGroupDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.indicator.IndicatorGroupDeletionHandler")
+public class IndicatorGroupDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public IndicatorGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
+  public IndicatorGroupDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
 
-        this.idObjectManager = idObjectManager;
+    this.idObjectManager = idObjectManager;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(Indicator.class, this::deleteIndicator);
+  }
+
+  private void deleteIndicator(Indicator indicator) {
+    for (IndicatorGroup group : indicator.getGroups()) {
+      group.getMembers().remove(indicator);
+      idObjectManager.updateNoAcl(group);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( Indicator.class, this::deleteIndicator );
-    }
-
-    private void deleteIndicator( Indicator indicator )
-    {
-        for ( IndicatorGroup group : indicator.getGroups() )
-        {
-            group.getMembers().remove( indicator );
-            idObjectManager.updateNoAcl( group );
-        }
-    }
+  }
 }

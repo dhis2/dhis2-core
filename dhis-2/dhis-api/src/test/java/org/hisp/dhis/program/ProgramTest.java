@@ -36,31 +36,29 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class ProgramTest
-{
+class ProgramTest {
 
-    @Test
-    void testGetAnalyticsDataElements()
-    {
-        DataElement deA = new DataElement( "DataElementA" );
-        deA.setAutoFields();
-        DataElement deB = new DataElement( "DataElementA" );
-        deB.setAutoFields();
-        Program prA = new Program( "ProgramA" );
-        prA.setAutoFields();
-        ProgramStage psA = new ProgramStage( "ProgramStageA", prA );
-        psA.setAutoFields();
-        prA.getProgramStages().add( psA );
-        ProgramStageDataElement psdeA = new ProgramStageDataElement( psA, deA );
-        psdeA.setSkipAnalytics( false );
-        ProgramStageDataElement psdeB = new ProgramStageDataElement( psA, deB );
-        psdeB.setSkipAnalytics( true );
-        psA.getProgramStageDataElements().add( psdeA );
-        psA.getProgramStageDataElements().add( psdeB );
-        assertEquals( 2, prA.getDataElements().size() );
-        assertTrue( prA.getDataElements().contains( deA ) );
-        assertTrue( prA.getDataElements().contains( deB ) );
-        assertEquals( 1, prA.getAnalyticsDataElements().size() );
-        assertTrue( prA.getDataElements().contains( deA ) );
-    }
+  @Test
+  void testGetAnalyticsDataElements() {
+    DataElement deA = new DataElement("DataElementA");
+    deA.setAutoFields();
+    DataElement deB = new DataElement("DataElementA");
+    deB.setAutoFields();
+    Program prA = new Program("ProgramA");
+    prA.setAutoFields();
+    ProgramStage psA = new ProgramStage("ProgramStageA", prA);
+    psA.setAutoFields();
+    prA.getProgramStages().add(psA);
+    ProgramStageDataElement psdeA = new ProgramStageDataElement(psA, deA);
+    psdeA.setSkipAnalytics(false);
+    ProgramStageDataElement psdeB = new ProgramStageDataElement(psA, deB);
+    psdeB.setSkipAnalytics(true);
+    psA.getProgramStageDataElements().add(psdeA);
+    psA.getProgramStageDataElements().add(psdeB);
+    assertEquals(2, prA.getDataElements().size());
+    assertTrue(prA.getDataElements().contains(deA));
+    assertTrue(prA.getDataElements().contains(deB));
+    assertEquals(1, prA.getAnalyticsDataElements().size());
+    assertTrue(prA.getDataElements().contains(deA));
+  }
 }

@@ -29,12 +29,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Map;
 import java.util.function.Consumer;
-
 import javax.annotation.Nonnull;
-
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -48,50 +45,45 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-
 @Slf4j
-@Component( "programRuleActionObjectBundle" )
-public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleAction>
-{
-    @NonNull
-    private final Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap;
+@Component("programRuleActionObjectBundle")
+public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleAction> {
+  @NonNull
+  private final Map<ProgramRuleActionType, ProgramRuleActionValidator>
+      programRuleActionValidatorMap;
 
-    @Nonnull
-    private final ProgramRuleActionValidationContextLoader contextLoader;
+  @Nonnull private final ProgramRuleActionValidationContextLoader contextLoader;
 
-    public ProgramRuleActionObjectBundleHook(
-        @NonNull Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap,
-        @Nonnull ProgramRuleActionValidationContextLoader contextLoader )
-    {
-        this.programRuleActionValidatorMap = programRuleActionValidatorMap;
-        this.contextLoader = contextLoader;
+  public ProgramRuleActionObjectBundleHook(
+      @NonNull Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap,
+      @Nonnull ProgramRuleActionValidationContextLoader contextLoader) {
+    this.programRuleActionValidatorMap = programRuleActionValidatorMap;
+    this.contextLoader = contextLoader;
+  }
+
+  @Override
+  public void validate(
+      ProgramRuleAction programRuleAction, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    ProgramRuleActionValidationResult validationResult =
+        validateProgramRuleAction(programRuleAction, bundle);
+
+    if (!validationResult.isValid()) {
+      addReports.accept(validationResult.getErrorReport());
     }
+  }
 
-    @Override
-    public void validate( ProgramRuleAction programRuleAction, ObjectBundle bundle, Consumer<ErrorReport> addReports )
-    {
-        ProgramRuleActionValidationResult validationResult = validateProgramRuleAction( programRuleAction, bundle );
+  private ProgramRuleActionValidationResult validateProgramRuleAction(
+      ProgramRuleAction ruleAction, ObjectBundle bundle) {
+    ProgramRuleActionValidationResult validationResult;
 
-        if ( !validationResult.isValid() )
-        {
-            addReports.accept( validationResult.getErrorReport() );
-        }
-    }
+    ProgramRuleActionValidationContext validationContext =
+        contextLoader.load(bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction);
 
-    private ProgramRuleActionValidationResult validateProgramRuleAction( ProgramRuleAction ruleAction,
-        ObjectBundle bundle )
-    {
-        ProgramRuleActionValidationResult validationResult;
+    ProgramRuleActionValidator validator =
+        programRuleActionValidatorMap.get(ruleAction.getProgramRuleActionType());
 
-        ProgramRuleActionValidationContext validationContext = contextLoader
-            .load( bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction );
+    validationResult = validator.validate(ruleAction, validationContext);
 
-        ProgramRuleActionValidator validator = programRuleActionValidatorMap
-            .get( ruleAction.getProgramRuleActionType() );
-
-        validationResult = validator.validate( ruleAction, validationContext );
-
-        return validationResult;
-
-    }
+    return validationResult;
+  }
 }

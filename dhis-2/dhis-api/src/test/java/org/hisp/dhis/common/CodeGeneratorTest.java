@@ -34,50 +34,44 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author bobj
  */
-class CodeGeneratorTest
-{
+class CodeGeneratorTest {
 
-    @Test
-    void testGetUid()
-    {
-        int numberOfCodes = 500;
-        Set<String> codes = new HashSet<>();
-        for ( int n = 0; n < numberOfCodes; ++n )
-        {
-            String code = CodeGenerator.generateUid();
-            // Test syntax
-            assertTrue( code.substring( 0, 1 ).matches( "[a-zA-Z]" ) );
-            assertTrue( code.matches( "[0-9a-zA-Z]{11}" ) );
-            // Test uniqueness
-            assertTrue( codes.add( code ) );
-        }
+  @Test
+  void testGetUid() {
+    int numberOfCodes = 500;
+    Set<String> codes = new HashSet<>();
+    for (int n = 0; n < numberOfCodes; ++n) {
+      String code = CodeGenerator.generateUid();
+      // Test syntax
+      assertTrue(code.substring(0, 1).matches("[a-zA-Z]"));
+      assertTrue(code.matches("[0-9a-zA-Z]{11}"));
+      // Test uniqueness
+      assertTrue(codes.add(code));
     }
+  }
 
-    @Test
-    void testUidIsValid()
-    {
-        assertTrue( CodeGenerator.isValidUid( "mq4jAnN6fg3" ) );
-        assertTrue( CodeGenerator.isValidUid( "QX4LpiTZmUH" ) );
-        assertTrue( CodeGenerator.isValidUid( "rT1hdSWjfDC" ) );
-        assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
-        assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
-        assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
-    }
+  @Test
+  void testUidIsValid() {
+    assertTrue(CodeGenerator.isValidUid("mq4jAnN6fg3"));
+    assertTrue(CodeGenerator.isValidUid("QX4LpiTZmUH"));
+    assertTrue(CodeGenerator.isValidUid("rT1hdSWjfDC"));
+    assertFalse(CodeGenerator.isValidUid("1T1hdSWjfDC"));
+    assertFalse(CodeGenerator.isValidUid("QX4LpiTZmUHg"));
+    assertFalse(CodeGenerator.isValidUid("1T1hdS_WjfD"));
+  }
 
-    @Test
-    void testGetRandomUrlToken()
-    {
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
-    }
+  @Test
+  void testGetRandomUrlToken() {
+    assertNotNull(CodeGenerator.getRandomUrlToken());
+    assertNotNull(CodeGenerator.getRandomUrlToken());
+    assertNotNull(CodeGenerator.getRandomUrlToken());
+    assertEquals(32, CodeGenerator.getRandomUrlToken().length());
+    assertEquals(32, CodeGenerator.getRandomUrlToken().length());
+    assertEquals(32, CodeGenerator.getRandomUrlToken().length());
+  }
 }

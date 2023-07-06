@@ -35,31 +35,26 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.dashboard.DashboardDeletionHandler" )
-public class DashboardDeletionHandler extends DeletionHandler
-{
-    private final DashboardService dashboardService;
+@Component("org.hisp.dhis.dashboard.DashboardDeletionHandler")
+public class DashboardDeletionHandler extends DeletionHandler {
+  private final DashboardService dashboardService;
 
-    public DashboardDeletionHandler( DashboardService dashboardService )
-    {
-        checkNotNull( dashboardService );
-        this.dashboardService = dashboardService;
+  public DashboardDeletionHandler(DashboardService dashboardService) {
+    checkNotNull(dashboardService);
+    this.dashboardService = dashboardService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(DashboardItem.class, this::deleteDashboardItem);
+  }
+
+  private void deleteDashboardItem(DashboardItem dashboardItem) {
+    Dashboard dashboard = dashboardService.getDashboardFromDashboardItem(dashboardItem);
+
+    if (dashboard != null) {
+      dashboard.getItems().remove(dashboardItem);
+      dashboardService.updateDashboard(dashboard);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( DashboardItem.class, this::deleteDashboardItem );
-    }
-
-    private void deleteDashboardItem( DashboardItem dashboardItem )
-    {
-        Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( dashboardItem );
-
-        if ( dashboard != null )
-        {
-            dashboard.getItems().remove( dashboardItem );
-            dashboardService.updateDashboard( dashboard );
-        }
-    }
+  }
 }

@@ -40,7 +40,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
@@ -77,191 +76,186 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class AnalyticsControllerTest
-{
-    private final static String ENDPOINT = "/analytics";
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class AnalyticsControllerTest {
+  private static final String ENDPOINT = "/analytics";
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Mock
-    private AnalyticsService analyticsService;
+  @Mock private AnalyticsService analyticsService;
 
-    @Mock
-    private ContextUtils contextUtils;
+  @Mock private ContextUtils contextUtils;
 
-    @Mock
-    private DimensionService dimensionService;
+  @Mock private DimensionService dimensionService;
 
-    @BeforeEach
-    public void setUp()
-    {
-        final DataQueryService dataQueryService = new DefaultDataQueryService(
-            mock( IdentifiableObjectManager.class ),
-            mock( OrganisationUnitService.class ),
+  @BeforeEach
+  public void setUp() {
+    final DataQueryService dataQueryService =
+        new DefaultDataQueryService(
+            mock(IdentifiableObjectManager.class),
+            mock(OrganisationUnitService.class),
             dimensionService,
-            mock( AnalyticsSecurityManager.class ),
-            mock( SystemSettingManager.class ),
-            mock( UserSettingService.class ),
-            mock( AclService.class ),
-            mock( CurrentUserService.class ),
-            mock( I18nManager.class ) );
+            mock(AnalyticsSecurityManager.class),
+            mock(SystemSettingManager.class),
+            mock(UserSettingService.class),
+            mock(AclService.class),
+            mock(CurrentUserService.class),
+            mock(I18nManager.class));
 
-        // Controller under test
-        final AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
-            contextUtils );
+    // Controller under test
+    final AnalyticsController controller =
+        new AnalyticsController(dataQueryService, analyticsService, contextUtils);
 
-        mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
-        // When
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "fbfJHSPpUQD" ) )
-            .thenReturn( new DataElement( "alfa" ) );
-        when( dimensionService.getDataDimensionalItemObject( IdScheme.UID, "cYeuwXTCPkU" ) )
-            .thenReturn( new DataElement( "beta" ) );
-        when( analyticsService.getAggregatedDataValues( Mockito.any( DataQueryParams.class ), Mockito.any(),
-            Mockito.any() ) )
-                .thenReturn( buildMockGrid() );
-    }
+    // When
+    when(dimensionService.getDataDimensionalItemObject(IdScheme.UID, "fbfJHSPpUQD"))
+        .thenReturn(new DataElement("alfa"));
+    when(dimensionService.getDataDimensionalItemObject(IdScheme.UID, "cYeuwXTCPkU"))
+        .thenReturn(new DataElement("beta"));
+    when(analyticsService.getAggregatedDataValues(
+            Mockito.any(DataQueryParams.class), Mockito.any(), Mockito.any()))
+        .thenReturn(buildMockGrid());
+  }
 
-    @Test
-    void verifyJsonRequest()
-        throws Exception
-    {
-        // Then
-        mockMvc.perform( get( ENDPOINT )
-            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
-            .param( "filter", "pe:2014Q1;2014Q2" ) )
-            .andExpect( status().isOk() )
-            .andExpect( jsonPath( "$" ).exists() )
-            .andExpect( content().contentType( "application/json" ) );
-    }
+  @Test
+  void verifyJsonRequest() throws Exception {
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT)
+                .param("dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU")
+                .param("filter", "pe:2014Q1;2014Q2"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").exists())
+        .andExpect(content().contentType("application/json"));
+  }
 
-    @Test
-    void verifyXmlRequest()
-        throws Exception
-    {
-        // Then
-        mockMvc.perform( get( ENDPOINT + ".xml" )
-            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
-            .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with xml payload
-            .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( startsWith( "<?xml version='1.0' encoding='UTF-8'?>" ) ) )
-            .andExpect( status().isOk() );
-    }
+  @Test
+  void verifyXmlRequest() throws Exception {
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT + ".xml")
+                .param("dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU")
+                .param("filter", "pe:2014Q1;2014Q2"))
+        // .andExpect( content().contentType( "application/xml" ) ) // Note:
+        // we do not
+        // send contentType with xml payload
+        .andExpect(content().string(notNullValue()))
+        .andExpect(content().string(startsWith("<?xml version='1.0' encoding='UTF-8'?>")))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    void verifyHtmlRequest()
-        throws Exception
-    {
-        // Then
-        mockMvc.perform( get( ENDPOINT + ".html" )
-            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
-            .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with html payload
-            .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( startsWith( "<div class=\"gridDiv\">" ) ) )
-            .andExpect( status().isOk() );
-    }
+  @Test
+  void verifyHtmlRequest() throws Exception {
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT + ".html")
+                .param("dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU")
+                .param("filter", "pe:2014Q1;2014Q2"))
+        // .andExpect( content().contentType( "application/xml" ) ) // Note:
+        // we do not
+        // send contentType with html payload
+        .andExpect(content().string(notNullValue()))
+        .andExpect(content().string(startsWith("<div class=\"gridDiv\">")))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    void verifyHtmlCssRequest()
-        throws Exception
-    {
-        // Then
-        mockMvc.perform( get( ENDPOINT + ".html+css" )
-            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
-            .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with html+css payload
-            .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( startsWith( "<style type=\"text/css\">" ) ) )
-            .andExpect( status().isOk() );
-    }
+  @Test
+  void verifyHtmlCssRequest() throws Exception {
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT + ".html+css")
+                .param("dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU")
+                .param("filter", "pe:2014Q1;2014Q2"))
+        // .andExpect( content().contentType( "application/xml" ) ) // Note:
+        // we do not
+        // send contentType with html+css payload
+        .andExpect(content().string(notNullValue()))
+        .andExpect(content().string(startsWith("<style type=\"text/css\">")))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    void verifyCsvRequest()
-        throws Exception
-    {
-        // Then
-        mockMvc.perform( get( ENDPOINT + ".csv" )
-            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
-            .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with csv payload
-            .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( "\"\",,,\nde1,ou2,pe1,3\n" +
-                "de2,ou3,pe2,5\n" ) )
-            .andExpect( status().isOk() );
-    }
+  @Test
+  void verifyCsvRequest() throws Exception {
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT + ".csv")
+                .param("dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU")
+                .param("filter", "pe:2014Q1;2014Q2"))
+        // .andExpect( content().contentType( "application/xml" ) ) // Note:
+        // we do not
+        // send contentType with csv payload
+        .andExpect(content().string(notNullValue()))
+        .andExpect(content().string("\"\",,,\nde1,ou2,pe1,3\n" + "de2,ou3,pe2,5\n"))
+        .andExpect(status().isOk());
+  }
 
-    @Test
-    void verifyXlsRequest()
-        throws Exception
-    {
-        // Then
-        final ResultActions resultActions = mockMvc.perform( get( ENDPOINT + ".xls" )
-            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
-            .param( "filter", "pe:2014Q1;2014Q2" ) )
+  @Test
+  void verifyXlsRequest() throws Exception {
+    // Then
+    final ResultActions resultActions =
+        mockMvc
+            .perform(
+                get(ENDPOINT + ".xls")
+                    .param("dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU")
+                    .param("filter", "pe:2014Q1;2014Q2"))
             // .andExpect( content().contentType( "application/xml" ) )
             // Note: we do not send contentType with xsl payload
-            .andExpect( status().isOk() );
+            .andExpect(status().isOk());
 
-        // Convert content to Excel sheet
-        final byte[] excel = resultActions.andReturn().getResponse().getContentAsByteArray();
-        InputStream is = new ByteArrayInputStream( excel );
-        Workbook book = WorkbookFactory.create( is );
-        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 0 ).getStringCellValue(), is( "de1" ) );
-        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 1 ).getStringCellValue(), is( "ou2" ) );
-        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 2 ).getStringCellValue(), is( "pe1" ) );
-        assertThat( book.getSheetAt( 0 ).getRow( 2 ).getCell( 3 ).getNumericCellValue(), is( 3.0 ) );
-    }
+    // Convert content to Excel sheet
+    final byte[] excel = resultActions.andReturn().getResponse().getContentAsByteArray();
+    InputStream is = new ByteArrayInputStream(excel);
+    Workbook book = WorkbookFactory.create(is);
+    assertThat(book.getSheetAt(0).getRow(2).getCell(0).getStringCellValue(), is("de1"));
+    assertThat(book.getSheetAt(0).getRow(2).getCell(1).getStringCellValue(), is("ou2"));
+    assertThat(book.getSheetAt(0).getRow(2).getCell(2).getStringCellValue(), is("pe1"));
+    assertThat(book.getSheetAt(0).getRow(2).getCell(3).getNumericCellValue(), is(3.0));
+  }
 
-    @Test
-    void verifyJrxmlRequest()
-        throws Exception
-    {
-        when( analyticsService.getAggregatedDataValues( Mockito.any( DataQueryParams.class ) ) )
-            .thenReturn( buildMockGrid() );
+  @Test
+  void verifyJrxmlRequest() throws Exception {
+    when(analyticsService.getAggregatedDataValues(Mockito.any(DataQueryParams.class)))
+        .thenReturn(buildMockGrid());
 
-        // Then
-        mockMvc.perform( get( ENDPOINT + ".jrxml" )
-            .param( "dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU" )
-            .param( "filter", "pe:2014Q1;2014Q2" ) )
-            // .andExpect( content().contentType( "application/xml" ) ) // Note:
-            // we do not
-            // send contentType with jrxml payload
-            .andExpect( content().string( notNullValue() ) )
-            .andExpect( content().string( startsWith( "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" ) ) )
-            .andExpect( status().isOk() );
-    }
+    // Then
+    mockMvc
+        .perform(
+            get(ENDPOINT + ".jrxml")
+                .param("dimension", "dx:fbfJHSPpUQD;cYeuwXTCPkU")
+                .param("filter", "pe:2014Q1;2014Q2"))
+        // .andExpect( content().contentType( "application/xml" ) ) // Note:
+        // we do not
+        // send contentType with jrxml payload
+        .andExpect(content().string(notNullValue()))
+        .andExpect(content().string(startsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")))
+        .andExpect(status().isOk());
+  }
 
-    private Grid buildMockGrid()
-    {
-        Grid grid = new ListGrid();
-        grid.addHeader( new GridHeader( "a" ) );
-        grid.addHeader( new GridHeader( "b" ) );
-        grid.addHeader( new GridHeader( "c" ) );
-        grid.addHeader( new GridHeader( "d" ) );
+  private Grid buildMockGrid() {
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("a"));
+    grid.addHeader(new GridHeader("b"));
+    grid.addHeader(new GridHeader("c"));
+    grid.addHeader(new GridHeader("d"));
 
-        grid.addRow();
-        grid.addValue( "de1" );
-        grid.addValue( "ou2" );
-        grid.addValue( "pe1" );
-        grid.addValue( 3 );
+    grid.addRow();
+    grid.addValue("de1");
+    grid.addValue("ou2");
+    grid.addValue("pe1");
+    grid.addValue(3);
 
-        grid.addRow();
-        grid.addValue( "de2" );
-        grid.addValue( "ou3" );
-        grid.addValue( "pe2" );
-        grid.addValue( 5 );
-        return grid;
-    }
+    grid.addRow();
+    grid.addValue("de2");
+    grid.addValue("ou3");
+    grid.addValue("pe2");
+    grid.addValue(5);
+    return grid;
+  }
 }

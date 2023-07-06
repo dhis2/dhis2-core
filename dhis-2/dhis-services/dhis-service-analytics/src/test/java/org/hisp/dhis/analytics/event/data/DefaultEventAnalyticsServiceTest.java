@@ -38,6 +38,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
@@ -60,113 +61,105 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
-
 /**
  * Unit tests for DefaultEventAnalyticsService.
  *
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class DefaultEventAnalyticsServiceTest
-{
+@ExtendWith(MockitoExtension.class)
+class DefaultEventAnalyticsServiceTest {
 
-    private DefaultEventAnalyticsService defaultEventAnalyticsService;
+  private DefaultEventAnalyticsService defaultEventAnalyticsService;
 
-    @Mock
-    private AnalyticsSecurityManager securityManager;
+  @Mock private AnalyticsSecurityManager securityManager;
 
-    @Mock
-    private EventQueryValidator eventQueryValidator;
+  @Mock private EventQueryValidator eventQueryValidator;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private EventAnalyticsManager eventAnalyticsManager;
+  @Mock private EventAnalyticsManager eventAnalyticsManager;
 
-    @Mock
-    private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
+  @Mock private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
-    @Mock
-    private EventDataQueryService eventDataQueryService;
+  @Mock private EventDataQueryService eventDataQueryService;
 
-    @Mock
-    private EventQueryPlanner queryPlanner;
+  @Mock private EventQueryPlanner queryPlanner;
 
-    @Mock
-    private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfo databaseInfo;
 
-    @Mock
-    private AnalyticsCache analyticsCache;
+  @Mock private AnalyticsCache analyticsCache;
 
-    @Mock
-    private SchemaIdResponseMapper schemaIdResponseMapper;
+  @Mock private SchemaIdResponseMapper schemaIdResponseMapper;
 
-    @BeforeEach
-    public void setUp()
-    {
-        defaultEventAnalyticsService = new DefaultEventAnalyticsService( dataElementService,
-            trackedEntityAttributeService, eventAnalyticsManager, eventDataQueryService, securityManager, queryPlanner,
-            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper );
-    }
+  @BeforeEach
+  public void setUp() {
+    defaultEventAnalyticsService =
+        new DefaultEventAnalyticsService(
+            dataElementService,
+            trackedEntityAttributeService,
+            eventAnalyticsManager,
+            eventDataQueryService,
+            securityManager,
+            queryPlanner,
+            eventQueryValidator,
+            databaseInfo,
+            analyticsCache,
+            enrollmentAnalyticsManager,
+            schemaIdResponseMapper);
+  }
 
-    @Test
-    void testOutputSchemeWhenSchemeIsSet()
-    {
-        // Given mock variables
-        final IdScheme codeScheme = IdScheme.CODE;
-        final OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
-        final Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
-        final EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, codeScheme );
+  @Test
+  void testOutputSchemeWhenSchemeIsSet() {
+    // Given mock variables
+    final IdScheme codeScheme = IdScheme.CODE;
+    final OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
+    final Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    final EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, codeScheme);
 
-        // Given mock calls
-        doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
-        when( securityManager.withUserConstraints( mockParams ) ).thenReturn( mockParams );
-        doNothing().when( eventQueryValidator ).validate( mockParams );
-        when( queryPlanner.planEventQuery( any( EventQueryParams.class ) ) ).thenReturn( mockParams );
+    // Given mock calls
+    doNothing().when(securityManager).decideAccessEventQuery(mockParams);
+    when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
+    doNothing().when(eventQueryValidator).validate(mockParams);
+    when(queryPlanner.planEventQuery(any(EventQueryParams.class))).thenReturn(mockParams);
 
-        // When
-        defaultEventAnalyticsService.getEvents( mockParams );
+    // When
+    defaultEventAnalyticsService.getEvents(mockParams);
 
-        // Then
-        verify( schemaIdResponseMapper, atMost( 1 ) ).getSchemeIdResponseMap( mockParams );
-    }
+    // Then
+    verify(schemaIdResponseMapper, atMost(1)).getSchemeIdResponseMap(mockParams);
+  }
 
-    @Test
-    void testOutputSchemeWhenNoSchemeIsSet()
-    {
-        // Given mock variables
-        final IdScheme noScheme = null;
-        final OrganisationUnit mockOrgUnit = createOrganisationUnit( 'A' );
-        final Program mockProgram = createProgram( 'A', null, null, Sets.newHashSet( mockOrgUnit ), null );
-        final EventQueryParams mockParams = mockEventQueryParams( mockOrgUnit, mockProgram, noScheme );
+  @Test
+  void testOutputSchemeWhenNoSchemeIsSet() {
+    // Given mock variables
+    final IdScheme noScheme = null;
+    final OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
+    final Program mockProgram = createProgram('A', null, null, Sets.newHashSet(mockOrgUnit), null);
+    final EventQueryParams mockParams = mockEventQueryParams(mockOrgUnit, mockProgram, noScheme);
 
-        // Given mock calls
-        doNothing().when( securityManager ).decideAccessEventQuery( mockParams );
-        when( securityManager.withUserConstraints( mockParams ) ).thenReturn( mockParams );
-        doNothing().when( eventQueryValidator ).validate( mockParams );
-        when( queryPlanner.planEventQuery( any( EventQueryParams.class ) ) ).thenReturn( mockParams );
+    // Given mock calls
+    doNothing().when(securityManager).decideAccessEventQuery(mockParams);
+    when(securityManager.withUserConstraints(mockParams)).thenReturn(mockParams);
+    doNothing().when(eventQueryValidator).validate(mockParams);
+    when(queryPlanner.planEventQuery(any(EventQueryParams.class))).thenReturn(mockParams);
 
-        // When
-        defaultEventAnalyticsService.getEvents( mockParams );
+    // When
+    defaultEventAnalyticsService.getEvents(mockParams);
 
-        // Then
-        verify( schemaIdResponseMapper, never() ).getSchemeIdResponseMap( mockParams );
-    }
+    // Then
+    verify(schemaIdResponseMapper, never()).getSchemeIdResponseMap(mockParams);
+  }
 
-    private EventQueryParams mockEventQueryParams( final OrganisationUnit mockOrgUnit, final Program mockProgram,
-        final IdScheme scheme )
-    {
-        return new EventQueryParams.Builder()
-            .withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" )
-            .withPartitions( new Partitions() )
-            .withOrganisationUnits( getList( mockOrgUnit ) )
-            .withProgram( mockProgram )
-            .withOutputIdScheme( scheme )
-            .build();
-    }
+  private EventQueryParams mockEventQueryParams(
+      final OrganisationUnit mockOrgUnit, final Program mockProgram, final IdScheme scheme) {
+    return new EventQueryParams.Builder()
+        .withPeriods(getList(createPeriod("2000Q1")), "monthly")
+        .withPartitions(new Partitions())
+        .withOrganisationUnits(getList(mockOrgUnit))
+        .withProgram(mockProgram)
+        .withOutputIdScheme(scheme)
+        .build();
+  }
 }

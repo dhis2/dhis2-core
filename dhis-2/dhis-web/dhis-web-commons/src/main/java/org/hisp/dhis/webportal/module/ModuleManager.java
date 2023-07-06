@@ -34,23 +34,22 @@ import java.util.List;
  * @author Torgeir Lorange Ostby
  * @version $Id: ModuleManager.java 4883 2008-04-12 13:12:54Z larshelg $
  */
-public interface ModuleManager
-{
-    Module getModuleByName( String name );
+public interface ModuleManager {
+  Module getModuleByName(String name);
 
-    Module getModuleByNamespace( String namespace );
+  Module getModuleByNamespace(String namespace);
 
-    boolean moduleExists( String name );
+  boolean moduleExists(String name);
 
-    List<Module> getMenuModules();
+  List<Module> getMenuModules();
 
-    List<Module> getAccessibleMenuModules();
+  List<Module> getAccessibleMenuModules();
 
-    List<Module> getAccessibleMenuModulesAndApps( String contextPath );
+  List<Module> getAccessibleMenuModulesAndApps(String contextPath);
 
-    Collection<Module> getAllModules();
+  Collection<Module> getAllModules();
 
-    Module getCurrentModule();
+  Module getCurrentModule();
 
-    void setCurrentModule( Module module );
+  void setCurrentModule(Module module);
 }

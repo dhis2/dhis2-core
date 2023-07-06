@@ -30,8 +30,11 @@ package org.hisp.dhis.dataelement;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -44,457 +47,380 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.OptionSet;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * This object can act both as a hydrated persisted object and as a wrapper
- * object (but not both at the same time).
- * <p>
- * This object implements IdentifiableObject but does not have any UID. Instead
- * the UID is generated based on the data element and category option combo
- * which this object is based on.
+ * This object can act both as a hydrated persisted object and as a wrapper object (but not both at
+ * the same time).
+ *
+ * <p>This object implements IdentifiableObject but does not have any UID. Instead the UID is
+ * generated based on the data element and category option combo which this object is based on.
  *
  * @author Abyot Asalefew
  */
-@JacksonXmlRootElement( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElementOperand
-    extends BaseDimensionalItemObject
-    implements EmbeddedObject, ValueTypedDimensionalItemObject
-{
-    public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+@JacksonXmlRootElement(localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0)
+public class DataElementOperand extends BaseDimensionalItemObject
+    implements EmbeddedObject, ValueTypedDimensionalItemObject {
+  public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
-    private static final String SPACE = " ";
+  private static final String SPACE = " ";
 
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Properties
+  // -------------------------------------------------------------------------
 
-    private DataElement dataElement;
+  private DataElement dataElement;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    private CategoryOptionCombo attributeOptionCombo;
+  private CategoryOptionCombo attributeOptionCombo;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DataElementOperand()
-    {
-        setAutoFields();
+  public DataElementOperand() {
+    setAutoFields();
+  }
+
+  public DataElementOperand(DataElement dataElement) {
+    this.dataElement = dataElement;
+  }
+
+  public DataElementOperand(DataElement dataElement, CategoryOptionCombo categoryOptionCombo) {
+    this.dataElement = dataElement;
+    this.categoryOptionCombo = categoryOptionCombo;
+  }
+
+  public DataElementOperand(
+      DataElement dataElement,
+      CategoryOptionCombo categoryOptionCombo,
+      CategoryOptionCombo attributeOptionCombo) {
+    this.dataElement = dataElement;
+    this.categoryOptionCombo = categoryOptionCombo;
+    this.attributeOptionCombo = attributeOptionCombo;
+  }
+
+  // -------------------------------------------------------------------------
+  // ValueTypedDimensionalItemObject
+  // -------------------------------------------------------------------------
+
+  @Override
+  public boolean hasOptionSet() {
+    return dataElement.hasOptionSet();
+  }
+
+  @Override
+  public OptionSet getOptionSet() {
+    return dataElement.getOptionSet();
+  }
+
+  @Override
+  public ValueType getValueType() {
+    return dataElement.getValueType();
+  }
+
+  // -------------------------------------------------------------------------
+  // DimensionalItemObject
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String getDimensionItem() {
+    return getDimensionItem(IdScheme.UID);
+  }
+
+  @Override
+  public String getDimensionItem(IdScheme idScheme) {
+    String item = null;
+
+    if (dataElement != null) {
+      item = dataElement.getPropertyValue(idScheme);
+
+      if (categoryOptionCombo != null) {
+        item += SEPARATOR + categoryOptionCombo.getPropertyValue(idScheme);
+      } else if (attributeOptionCombo != null) {
+        item += SEPARATOR + SYMBOL_WILDCARD;
+      }
+
+      if (attributeOptionCombo != null) {
+        item += SEPARATOR + attributeOptionCombo.getPropertyValue(idScheme);
+      }
     }
 
-    public DataElementOperand( DataElement dataElement )
-    {
-        this.dataElement = dataElement;
+    return item;
+  }
+
+  @Override
+  public DimensionItemType getDimensionItemType() {
+    return DimensionItemType.DATA_ELEMENT_OPERAND;
+  }
+
+  @Override
+  public AggregationType getAggregationType() {
+    return dataElement.getAggregationType();
+  }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String getUid() {
+    String uid = null;
+
+    if (dataElement != null) {
+      uid = dataElement.getUid();
     }
 
-    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo )
-    {
-        this.dataElement = dataElement;
-        this.categoryOptionCombo = categoryOptionCombo;
+    if (categoryOptionCombo != null && !categoryOptionCombo.isDefault()) {
+      uid += SEPARATOR + categoryOptionCombo.getUid();
     }
 
-    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo )
-    {
-        this.dataElement = dataElement;
-        this.categoryOptionCombo = categoryOptionCombo;
-        this.attributeOptionCombo = attributeOptionCombo;
+    return uid;
+  }
+
+  @Override
+  public String getName() {
+    if (name != null) {
+      return name;
     }
 
-    // -------------------------------------------------------------------------
-    // ValueTypedDimensionalItemObject
-    // -------------------------------------------------------------------------
+    String name = null;
 
-    @Override
-    public boolean hasOptionSet()
-    {
-        return dataElement.hasOptionSet();
+    if (dataElement != null) {
+      name = dataElement.getName();
     }
 
-    @Override
-    public OptionSet getOptionSet()
-    {
-        return dataElement.getOptionSet();
+    if (hasNonDefaultCategoryOptionCombo()) {
+      name += SPACE + categoryOptionCombo.getName();
+    } else if (hasNonDefaultAttributeOptionCombo()) {
+      name += SPACE + SYMBOL_WILDCARD;
     }
 
-    @Override
-    public ValueType getValueType()
-    {
-        return dataElement.getValueType();
+    if (hasNonDefaultAttributeOptionCombo()) {
+      name += SPACE + attributeOptionCombo.getName();
     }
 
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
+    return name;
+  }
 
-    @Override
-    public String getDimensionItem()
-    {
-        return getDimensionItem( IdScheme.UID );
+  @Override
+  public String getShortName() {
+    String shortName = null;
+
+    if (dataElement != null) {
+      shortName = dataElement.getShortName();
     }
 
-    @Override
-    public String getDimensionItem( IdScheme idScheme )
-    {
-        String item = null;
-
-        if ( dataElement != null )
-        {
-            item = dataElement.getPropertyValue( idScheme );
-
-            if ( categoryOptionCombo != null )
-            {
-                item += SEPARATOR + categoryOptionCombo.getPropertyValue( idScheme );
-            }
-            else if ( attributeOptionCombo != null )
-            {
-                item += SEPARATOR + SYMBOL_WILDCARD;
-            }
-
-            if ( attributeOptionCombo != null )
-            {
-                item += SEPARATOR + attributeOptionCombo.getPropertyValue( idScheme );
-            }
-        }
-
-        return item;
+    if (hasNonDefaultCategoryOptionCombo()) {
+      shortName += SPACE + categoryOptionCombo.getShortName();
+    } else if (hasNonDefaultAttributeOptionCombo()) {
+      shortName += SPACE + SYMBOL_WILDCARD;
     }
 
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.DATA_ELEMENT_OPERAND;
+    if (hasNonDefaultAttributeOptionCombo()) {
+      shortName += SPACE + attributeOptionCombo.getName();
     }
 
-    @Override
-    public AggregationType getAggregationType()
-    {
-        return dataElement.getAggregationType();
+    return shortName;
+  }
+
+  @Override
+  public String getDisplayShortName() {
+    String displayShortName = null;
+
+    if (dataElement != null) {
+      displayShortName = dataElement.getDisplayShortName();
     }
 
-    // -------------------------------------------------------------------------
-    // IdentifiableObject
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String getUid()
-    {
-        String uid = null;
-
-        if ( dataElement != null )
-        {
-            uid = dataElement.getUid();
-        }
-
-        if ( categoryOptionCombo != null && !categoryOptionCombo.isDefault() )
-        {
-            uid += SEPARATOR + categoryOptionCombo.getUid();
-        }
-
-        return uid;
+    if (hasNonDefaultCategoryOptionCombo()) {
+      displayShortName += SPACE + categoryOptionCombo.getDisplayShortName();
+    } else if (hasNonDefaultAttributeOptionCombo()) {
+      displayShortName += SPACE + SYMBOL_WILDCARD;
     }
 
-    @Override
-    public String getName()
-    {
-        if ( name != null )
-        {
-            return name;
-        }
-
-        String name = null;
-
-        if ( dataElement != null )
-        {
-            name = dataElement.getName();
-        }
-
-        if ( hasNonDefaultCategoryOptionCombo() )
-        {
-            name += SPACE + categoryOptionCombo.getName();
-        }
-        else if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            name += SPACE + SYMBOL_WILDCARD;
-        }
-
-        if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            name += SPACE + attributeOptionCombo.getName();
-        }
-
-        return name;
+    if (hasNonDefaultAttributeOptionCombo()) {
+      displayShortName += SPACE + attributeOptionCombo.getDisplayShortName();
     }
 
-    @Override
-    public String getShortName()
-    {
-        String shortName = null;
+    return displayShortName;
+  }
 
-        if ( dataElement != null )
-        {
-            shortName = dataElement.getShortName();
-        }
+  @Override
+  public String getDisplayName() {
+    String displayName = null;
 
-        if ( hasNonDefaultCategoryOptionCombo() )
-        {
-            shortName += SPACE + categoryOptionCombo.getShortName();
-        }
-        else if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            shortName += SPACE + SYMBOL_WILDCARD;
-        }
-
-        if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            shortName += SPACE + attributeOptionCombo.getName();
-        }
-
-        return shortName;
+    if (dataElement != null) {
+      displayName = dataElement.getDisplayName();
     }
 
-    @Override
-    public String getDisplayShortName()
-    {
-        String displayShortName = null;
-
-        if ( dataElement != null )
-        {
-            displayShortName = dataElement.getDisplayShortName();
-        }
-
-        if ( hasNonDefaultCategoryOptionCombo() )
-        {
-            displayShortName += SPACE + categoryOptionCombo.getDisplayShortName();
-        }
-        else if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            displayShortName += SPACE + SYMBOL_WILDCARD;
-        }
-
-        if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            displayShortName += SPACE + attributeOptionCombo.getDisplayShortName();
-        }
-
-        return displayShortName;
+    if (hasNonDefaultCategoryOptionCombo()) {
+      displayName += SPACE + categoryOptionCombo.getDisplayName();
+    } else if (hasNonDefaultAttributeOptionCombo()) {
+      displayName += SPACE + SYMBOL_WILDCARD;
     }
 
-    @Override
-    public String getDisplayName()
-    {
-        String displayName = null;
-
-        if ( dataElement != null )
-        {
-            displayName = dataElement.getDisplayName();
-        }
-
-        if ( hasNonDefaultCategoryOptionCombo() )
-        {
-            displayName += SPACE + categoryOptionCombo.getDisplayName();
-        }
-        else if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            displayName += SPACE + SYMBOL_WILDCARD;
-        }
-
-        if ( hasNonDefaultAttributeOptionCombo() )
-        {
-            displayName += SPACE + attributeOptionCombo.getDisplayName();
-        }
-
-        return displayName;
+    if (hasNonDefaultAttributeOptionCombo()) {
+      displayName += SPACE + attributeOptionCombo.getDisplayName();
     }
 
-    /**
-     * Creates a {@link DataElementOperand} instance from the given identifiers.
-     *
-     * @param dataElementUid the data element identifier.
-     * @param categoryOptionComboUid the category option combo identifier.
-     * @return a data element operand instance.
-     */
-    public static DataElementOperand instance( String dataElementUid, String categoryOptionComboUid )
-    {
-        DataElement de = new DataElement();
-        de.setUid( dataElementUid );
+    return displayName;
+  }
 
-        CategoryOptionCombo coc = null;
+  /**
+   * Creates a {@link DataElementOperand} instance from the given identifiers.
+   *
+   * @param dataElementUid the data element identifier.
+   * @param categoryOptionComboUid the category option combo identifier.
+   * @return a data element operand instance.
+   */
+  public static DataElementOperand instance(String dataElementUid, String categoryOptionComboUid) {
+    DataElement de = new DataElement();
+    de.setUid(dataElementUid);
 
-        if ( categoryOptionComboUid != null )
-        {
-            coc = new CategoryOptionCombo();
-            coc.setUid( categoryOptionComboUid );
-        }
+    CategoryOptionCombo coc = null;
 
-        return new DataElementOperand( de, coc );
+    if (categoryOptionComboUid != null) {
+      coc = new CategoryOptionCombo();
+      coc.setUid(categoryOptionComboUid);
     }
 
-    /**
-     * Indicates whether a category option combination exists which is different
-     * from default.
-     */
-    public boolean hasNonDefaultCategoryOptionCombo()
-    {
-        return categoryOptionCombo != null && !categoryOptionCombo.isDefault();
+    return new DataElementOperand(de, coc);
+  }
+
+  /** Indicates whether a category option combination exists which is different from default. */
+  public boolean hasNonDefaultCategoryOptionCombo() {
+    return categoryOptionCombo != null && !categoryOptionCombo.isDefault();
+  }
+
+  /** Indicates whether an attribute option combination exists which is different from default. */
+  public boolean hasNonDefaultAttributeOptionCombo() {
+    return attributeOptionCombo != null && !attributeOptionCombo.isDefault();
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters & setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DataElement getDataElement() {
+    return dataElement;
+  }
+
+  public void setDataElement(DataElement dataElement) {
+    this.dataElement = dataElement;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryOptionCombo getCategoryOptionCombo() {
+    return categoryOptionCombo;
+  }
+
+  public void setCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
+    this.categoryOptionCombo = categoryOptionCombo;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryOptionCombo getAttributeOptionCombo() {
+    return attributeOptionCombo;
+  }
+
+  public void setAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo) {
+    this.attributeOptionCombo = attributeOptionCombo;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode, equals and toString
+  // -------------------------------------------------------------------------
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+    DataElementOperand that = (DataElementOperand) o;
+    return Objects.equals(dataElement, that.dataElement)
+        && Objects.equals(categoryOptionCombo, that.categoryOptionCombo)
+        && Objects.equals(attributeOptionCombo, that.attributeOptionCombo);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), dataElement, categoryOptionCombo, attributeOptionCombo);
+  }
+
+  @Override
+  public String toString() {
+    return "{"
+        + "\"class\":\""
+        + getClass()
+        + "\", "
+        + "\"id\":\""
+        + id
+        + "\", "
+        + "\"uid\":\""
+        + uid
+        + "\", "
+        + "\"dataElement\":"
+        + dataElement
+        + ", "
+        + "\"categoryOptionCombo\":"
+        + categoryOptionCombo
+        + "\"attributeOptionCombo\":"
+        + attributeOptionCombo
+        + '}';
+  }
+
+  // -------------------------------------------------------------------------
+  // Option combination type
+  // -------------------------------------------------------------------------
+
+  public enum TotalType {
+    COC_ONLY(true, false, 1),
+    AOC_ONLY(false, true, 1),
+    COC_AND_AOC(true, true, 2),
+    NONE(false, false, 0);
+
+    private boolean coc;
+
+    private boolean aoc;
+
+    private int propertyCount;
+
+    TotalType() {}
+
+    TotalType(boolean coc, boolean aoc, int propertyCount) {
+      this.coc = coc;
+      this.aoc = aoc;
+      this.propertyCount = propertyCount;
     }
 
-    /**
-     * Indicates whether an attribute option combination exists which is
-     * different from default.
-     */
-    public boolean hasNonDefaultAttributeOptionCombo()
-    {
-        return attributeOptionCombo != null && !attributeOptionCombo.isDefault();
+    public boolean isCategoryOptionCombo() {
+      return coc;
     }
 
-    // -------------------------------------------------------------------------
-    // Getters & setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElement getDataElement()
-    {
-        return dataElement;
+    public boolean isAttributeOptionCombo() {
+      return aoc;
     }
 
-    public void setDataElement( DataElement dataElement )
-    {
-        this.dataElement = dataElement;
+    public int getPropertyCount() {
+      return propertyCount;
     }
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getCategoryOptionCombo()
-    {
-        return categoryOptionCombo;
+  public TotalType getTotalType() {
+    if (categoryOptionCombo != null && attributeOptionCombo != null) {
+      return TotalType.COC_AND_AOC;
+    } else if (categoryOptionCombo != null) {
+      return TotalType.COC_ONLY;
+    } else if (attributeOptionCombo != null) {
+      return TotalType.AOC_ONLY;
+    } else {
+      return TotalType.NONE;
     }
-
-    public void setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
-    {
-        this.categoryOptionCombo = categoryOptionCombo;
-    }
-
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getAttributeOptionCombo()
-    {
-        return attributeOptionCombo;
-    }
-
-    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
-    {
-        this.attributeOptionCombo = attributeOptionCombo;
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        if ( !super.equals( o ) )
-            return false;
-        DataElementOperand that = (DataElementOperand) o;
-        return Objects.equals( dataElement, that.dataElement ) &&
-            Objects.equals( categoryOptionCombo, that.categoryOptionCombo ) &&
-            Objects.equals( attributeOptionCombo, that.attributeOptionCombo );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( super.hashCode(), dataElement, categoryOptionCombo, attributeOptionCombo );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "{" +
-            "\"class\":\"" + getClass() + "\", " +
-            "\"id\":\"" + id + "\", " +
-            "\"uid\":\"" + uid + "\", " +
-            "\"dataElement\":" + dataElement + ", " +
-            "\"categoryOptionCombo\":" + categoryOptionCombo +
-            "\"attributeOptionCombo\":" + attributeOptionCombo +
-            '}';
-    }
-
-    // -------------------------------------------------------------------------
-    // Option combination type
-    // -------------------------------------------------------------------------
-
-    public enum TotalType
-    {
-        COC_ONLY( true, false, 1 ),
-        AOC_ONLY( false, true, 1 ),
-        COC_AND_AOC( true, true, 2 ),
-        NONE( false, false, 0 );
-
-        private boolean coc;
-
-        private boolean aoc;
-
-        private int propertyCount;
-
-        TotalType()
-        {
-        }
-
-        TotalType( boolean coc, boolean aoc, int propertyCount )
-        {
-            this.coc = coc;
-            this.aoc = aoc;
-            this.propertyCount = propertyCount;
-        }
-
-        public boolean isCategoryOptionCombo()
-        {
-            return coc;
-        }
-
-        public boolean isAttributeOptionCombo()
-        {
-            return aoc;
-        }
-
-        public int getPropertyCount()
-        {
-            return propertyCount;
-        }
-    }
-
-    public TotalType getTotalType()
-    {
-        if ( categoryOptionCombo != null && attributeOptionCombo != null )
-        {
-            return TotalType.COC_AND_AOC;
-        }
-        else if ( categoryOptionCombo != null )
-        {
-            return TotalType.COC_ONLY;
-        }
-        else if ( attributeOptionCombo != null )
-        {
-            return TotalType.AOC_ONLY;
-        }
-        else
-        {
-            return TotalType.NONE;
-        }
-    }
+  }
 }

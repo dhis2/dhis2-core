@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.workinglists;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
-
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.file.JsonFileReader;
@@ -40,86 +40,76 @@ import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiFiltersTest
-    extends TrackerApiTest
-{
-    private RestApiActions workingListActions;
+public class TeiFiltersTest extends TrackerApiTest {
+  private RestApiActions workingListActions;
 
-    private File workingListFile = new File( "src/test/resources/tracker/workinglists/trackedEntityFilters.json" );
+  private File workingListFile =
+      new File("src/test/resources/tracker/workinglists/trackedEntityFilters.json");
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        workingListActions = new RestApiActions( "/trackedEntityInstanceFilters" );
+  @BeforeAll
+  public void beforeAll() {
+    workingListActions = new RestApiActions("/trackedEntityInstanceFilters");
 
-        new LoginActions().loginAsSuperUser();
-    }
+    new LoginActions().loginAsSuperUser();
+  }
 
-    @Test
-    public void shouldImportTeiWorkingList()
-        throws IOException
-    {
-        JsonObject payload = new JsonFileReader( workingListFile )
-            .get();
+  @Test
+  public void shouldImportTeiWorkingList() throws IOException {
+    JsonObject payload = new JsonFileReader(workingListFile).get();
 
-        String uid = workingListActions.post( payload )
-            .validateStatus( 201 )
-            .extractUid();
+    String uid = workingListActions.post(payload).validateStatus(201).extractUid();
 
-        workingListActions.get( uid )
-            .validate()
-            .statusCode( 200 )
-            .body( "", matchesJSON( payload ) );
-    }
+    workingListActions.get(uid).validate().statusCode(200).body("", matchesJSON(payload));
+  }
 
-    @Test
-    public void shouldValidateAssignedUsersMode()
-        throws IOException
-    {
-        JsonObject payload = new JsonFileReader( workingListFile )
+  @Test
+  public void shouldValidateAssignedUsersMode() throws IOException {
+    JsonObject payload =
+        new JsonFileReader(workingListFile)
             .getAsObjectBuilder()
-            .addPropertyByJsonPath( "entityQueryCriteria.assignedUserMode", "PROVIDED" )
+            .addPropertyByJsonPath("entityQueryCriteria.assignedUserMode", "PROVIDED")
             .build();
 
-        workingListActions.post( payload )
-            .validate()
-            .statusCode( 409 )
-            .body( "message",
-                containsStringIgnoringCase( "Assigned Users cannot be empty with PROVIDED assigned user mode" ) );
-    }
+    workingListActions
+        .post(payload)
+        .validate()
+        .statusCode(409)
+        .body(
+            "message",
+            containsStringIgnoringCase(
+                "Assigned Users cannot be empty with PROVIDED assigned user mode"));
+  }
 
-    @Test
-    public void shouldValidateOrgUnitMode()
-        throws IOException
-    {
-        JsonObject payload = new JsonFileReader( workingListFile )
+  @Test
+  public void shouldValidateOrgUnitMode() throws IOException {
+    JsonObject payload =
+        new JsonFileReader(workingListFile)
             .getAsObjectBuilder()
-            .addPropertyByJsonPath( "entityQueryCriteria.ouMode", "SELECTED" )
+            .addPropertyByJsonPath("entityQueryCriteria.ouMode", "SELECTED")
             .build();
 
-        workingListActions.post( payload )
-            .validate()
-            .statusCode( 409 )
-            .body( "message",
-                containsStringIgnoringCase( "Organisation Unit cannot be empty with SELECTED org unit mode" ) );
+    workingListActions
+        .post(payload)
+        .validate()
+        .statusCode(409)
+        .body(
+            "message",
+            containsStringIgnoringCase(
+                "Organisation Unit cannot be empty with SELECTED org unit mode"));
+  }
 
-    }
+  @Test
+  public void shouldValidateAttribute() throws IOException {
+    JsonObject payload =
+        new JsonFileReader(workingListFile).replaceStringsWithIds("dIVt4l5vIOa").get();
 
-    @Test
-    public void shouldValidateAttribute()
-        throws IOException
-    {
-        JsonObject payload = new JsonFileReader( workingListFile )
-            .replaceStringsWithIds( "dIVt4l5vIOa" )
-            .get();
-
-        workingListActions.post( payload )
-            .validateStatus( 409 )
-            .validate().body( "message", containsStringIgnoringCase( "no tracked entity attribute found" ) );
-    }
+    workingListActions
+        .post(payload)
+        .validateStatus(409)
+        .validate()
+        .body("message", containsStringIgnoringCase("no tracked entity attribute found"));
+  }
 }

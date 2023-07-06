@@ -32,24 +32,28 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.validation.ValidationRuleController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.validation.ValidationRuleController} using
+ * (mocked) REST requests.
  */
-class ValidationRuleControllerTest extends DhisControllerConvenienceTest
-{
+class ValidationRuleControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetExpressionDescription()
-    {
-        assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/validationRules/expression/description", "70" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testGetExpressionDescription() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Valid",
+        POST("/validationRules/expression/description", "70").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testGetExpressionDescription_MalformedExpression()
-    {
-        assertWebMessage( "OK", 200, "ERROR", "Expression is not well-formed",
-            POST( "/validationRules/expression/description", "illegal" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testGetExpressionDescription_MalformedExpression() {
+    assertWebMessage(
+        "OK",
+        200,
+        "ERROR",
+        "Expression is not well-formed",
+        POST("/validationRules/expression/description", "illegal").content(HttpStatus.OK));
+  }
 }

@@ -47,8 +47,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.Collections;
-
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
@@ -79,484 +80,509 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class QueryItemLocatorTest
-{
+@ExtendWith(MockitoExtension.class)
+class QueryItemLocatorTest {
 
-    @Mock
-    private ProgramStageService programStageService;
+  @Mock private ProgramStageService programStageService;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private TrackedEntityAttributeService attributeService;
+  @Mock private TrackedEntityAttributeService attributeService;
 
-    @Mock
-    private ProgramIndicatorService programIndicatorService;
+  @Mock private ProgramIndicatorService programIndicatorService;
 
-    @Mock
-    private DataQueryService dataQueryService;
+  @Mock private DataQueryService dataQueryService;
 
-    @Mock
-    private LegendSetService legendSetService;
+  @Mock private LegendSetService legendSetService;
 
-    @Mock
-    private RelationshipTypeService relationshipTypeService;
+  @Mock private RelationshipTypeService relationshipTypeService;
 
-    private QueryItemLocator subject;
+  private QueryItemLocator subject;
 
-    private Program programA;
+  private Program programA;
 
-    private String dimension;
+  private String dimension;
 
-    private String programStageUid;
+  private String programStageUid;
 
-    @BeforeEach
-    public void setUp()
-    {
-        programA = createProgram( 'A' );
+  @BeforeEach
+  public void setUp() {
+    programA = createProgram('A');
 
-        dimension = CodeGenerator.generateUid();
-        programStageUid = CodeGenerator.generateUid();
+    dimension = CodeGenerator.generateUid();
+    programStageUid = CodeGenerator.generateUid();
 
-        subject = new DefaultQueryItemLocator( programStageService, dataElementService, attributeService,
-            programIndicatorService, legendSetService, relationshipTypeService, dataQueryService );
-    }
+    subject =
+        new DefaultQueryItemLocator(
+            programStageService,
+            dataElementService,
+            attributeService,
+            programIndicatorService,
+            legendSetService,
+            relationshipTypeService,
+            dataQueryService);
+  }
 
-    @Test
-    void verifyDynamicDimensionsDoesntThrowException()
-    {
-        String dimension = "dynamicDimension";
+  @Test
+  void verifyDynamicDimensionsDoesntThrowException() {
+    String dimension = "dynamicDimension";
 
-        when( dataQueryService.getDimension( dimension, Collections.emptyList(), null, Collections.emptyList(), null,
-            true, false, IdScheme.UID ) )
-                .thenReturn( new BaseDimensionalObject( dimension ) );
+    when(dataQueryService.getDimension(
+            dimension,
+            Collections.emptyList(),
+            null,
+            Collections.emptyList(),
+            null,
+            true,
+            false,
+            IdScheme.UID))
+        .thenReturn(new BaseDimensionalObject(dimension));
 
-        assertDoesNotThrow( () -> subject.getQueryItemFromDimension( dimension, programA, null ) );
-    }
+    assertDoesNotThrow(() -> subject.getQueryItemFromDimension(dimension, programA, null));
+  }
 
-    @Test
-    void verifyExceptionOnEmptyDimension()
-    {
-        assertThrows( IllegalQueryException.class,
-            () -> subject.getQueryItemFromDimension( "", programA, EventOutputType.ENROLLMENT ),
-            "Item identifier does not reference any data element, attribute or indicator part of the program" );
-    }
+  @Test
+  void verifyExceptionOnEmptyDimension() {
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension("", programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
 
-    @Test
-    void verifyExceptionOnEmptyProgram()
-    {
-        assertThrows( NullPointerException.class,
-            () -> subject.getQueryItemFromDimension( dimension, null, EventOutputType.ENROLLMENT ),
-            "Program can not be null" );
-    }
+  @Test
+  void verifyExceptionOnEmptyProgram() {
+    assertThrows(
+        NullPointerException.class,
+        () -> subject.getQueryItemFromDimension(dimension, null, EventOutputType.ENROLLMENT),
+        "Program can not be null");
+  }
 
-    @Test
-    void verifyDimensionReturnsDataElementForEventQuery()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
+  @Test
+  void verifyDimensionReturnsDataElementForEventQuery() {
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStageA, dataElementA, 1)));
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+    programA.setProgramStages(Sets.newHashSet(programStageA));
 
-        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
+    when(dataElementService.getDataElement(dimension)).thenReturn(dataElementA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension( dimension, programA, EventOutputType.EVENT );
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(dimension, programA, EventOutputType.EVENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( nullValue() ) );
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
 
-    }
+  @Test
+  void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram() {
+    // Arrange
+    DataElement iBelongDataElement = createDataElement('A');
+    ProgramStage programStageA = createProgramStage('A', programA);
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStageA, iBelongDataElement, 1)));
+    programA.setProgramStages(Sets.newHashSet(programStageA));
 
-    @Test
-    void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
-    {
-        // Arrange
-        DataElement iBelongDataElement = createDataElement( 'A' );
-        ProgramStage programStageA = createProgramStage( 'A', programA );
-        programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, iBelongDataElement, 1 ) ) );
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+    DataElement iDontBelongDataElement = createDataElement('B');
+    when(dataElementService.getDataElement(dimension)).thenReturn(iDontBelongDataElement);
 
-        DataElement iDontBelongDataElement = createDataElement( 'B' );
-        when( dataElementService.getDataElement( dimension ) ).thenReturn( iDontBelongDataElement );
+    // Act
+    // Assert
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension(dimension, programA, EventOutputType.EVENT));
+  }
 
-        // Act
-        // Assert
-        assertThrows( IllegalQueryException.class,
-            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.EVENT ) );
-    }
+  @Test
+  void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery() {
+    DataElement dataElementA = createDataElement('A');
 
-    @Test
-    void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStageA, dataElementA, 1)));
 
-        programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+    programA.setProgramStages(Sets.newHashSet(programStageA));
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+    when(dataElementService.getDataElement(dimension)).thenReturn(dataElementA);
 
-        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension(dimension, programA, EventOutputType.ENROLLMENT),
+        "Program stage is mandatory for data element dimensions in enrollment analytics queries");
+  }
 
-        assertThrows( IllegalQueryException.class,
-            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ),
-            "Program stage is mandatory for data element dimensions in enrollment analytics queries" );
-    }
+  @Test
+  void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndex() {
 
-    @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndex()
-    {
+    DataElement dataElementA = createDataElement('A');
 
-        DataElement dataElementA = createDataElement( 'A' );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    configureDimensionForQueryItem(dataElementA, programStageA);
 
-        configureDimensionForQueryItem( dataElementA, programStageA );
-
-        QueryItem queryItem = subject.getQueryItemFromDimension(
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
             programStageUid + "[-1]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT );
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
 
-    @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCount()
-    {
+  @Test
+  void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCount() {
 
-        DataElement dataElementA = createDataElement( 'A' );
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        configureDimensionForQueryItem( dataElementA, programStageA );
+    configureDimensionForQueryItem(dataElementA, programStageA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension(
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
             programStageUid + "[-1~1]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT );
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
 
-    @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndBothDates()
-    {
+  @Test
+  void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndBothDates() {
 
-        DataElement dataElementA = createDataElement( 'A' );
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        configureDimensionForQueryItem( dataElementA, programStageA );
+    configureDimensionForQueryItem(dataElementA, programStageA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension(
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
             programStageUid + "[-1~1~ 2022-01-01~ 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT );
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
 
-    @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndRelativePeriod()
-    {
+  @Test
+  void
+      verifyDimensionReturnsDataElementForEnrollmentQueryWithStartIndexAndCountAndRelativePeriod() {
 
-        DataElement dataElementA = createDataElement( 'A' );
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        configureDimensionForQueryItem( dataElementA, programStageA );
+    configureDimensionForQueryItem(dataElementA, programStageA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension(
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
             programStageUid + "[1~1~LAST_3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT );
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
 
-        assertThrows( IllegalQueryException.class, () -> subject.getQueryItemFromDimension(
-            programStageUid + "[-1~1~ LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT ) );
-    }
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            subject.getQueryItemFromDimension(
+                programStageUid + "[-1~1~ LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+                programA,
+                EventOutputType.ENROLLMENT));
+  }
 
-    @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartBothDates()
-    {
+  @Test
+  void verifyDimensionReturnsDataElementForEnrollmentQueryWithStartBothDates() {
 
-        DataElement dataElementA = createDataElement( 'A' );
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        configureDimensionForQueryItem( dataElementA, programStageA );
+    configureDimensionForQueryItem(dataElementA, programStageA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension(
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
             programStageUid + "[2022-01-01~ 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT );
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
 
-    @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithRelativePeriod()
-    {
+  @Test
+  void verifyDimensionReturnsDataElementForEnrollmentQueryWithRelativePeriod() {
 
-        DataElement dataElementA = createDataElement( 'A' );
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        configureDimensionForQueryItem( dataElementA, programStageA );
+    configureDimensionForQueryItem(dataElementA, programStageA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension(
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
             programStageUid + "[LAST_10_YEARS]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT );
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
 
-        assertThrows( IllegalQueryException.class, () -> subject.getQueryItemFromDimension(
-            programStageUid + "[LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT ) );
-    }
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            subject.getQueryItemFromDimension(
+                programStageUid + "[LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+                programA,
+                EventOutputType.ENROLLMENT));
+  }
 
-    @Test
-    void verifyDimensionReturnsDataElementForEnrollmentQueryWithAsterisk()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
+  @Test
+  void verifyDimensionReturnsDataElementForEnrollmentQueryWithAsterisk() {
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        configureDimensionForQueryItem( dataElementA, programStageA );
+    configureDimensionForQueryItem(dataElementA, programStageA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension(
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
             programStageUid + "[*]" + PROGRAMSTAGE_SEP + dimension,
-            programA, EventOutputType.ENROLLMENT );
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+  }
 
-    @Test
-    void verifyDimensionWithLegendSetReturnsDataElement()
-    {
-        String legendSetUid = CodeGenerator.generateUid();
+  @Test
+  void verifyDimensionWithLegendSetReturnsDataElement() {
+    String legendSetUid = CodeGenerator.generateUid();
 
-        DataElement dataElementA = createDataElement( 'A' );
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStageA, dataElementA, 1)));
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+    programA.setProgramStages(Sets.newHashSet(programStageA));
 
-        LegendSet legendSetA = createLegendSet( 'A' );
+    LegendSet legendSetA = createLegendSet('A');
 
-        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
-        when( legendSetService.getLegendSet( legendSetUid ) ).thenReturn( legendSetA );
+    when(dataElementService.getDataElement(dimension)).thenReturn(dataElementA);
+    when(legendSetService.getLegendSet(legendSetUid)).thenReturn(legendSetA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension( dimension + ITEM_SEP + legendSetUid, programA,
-            EventOutputType.EVENT );
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            dimension + ITEM_SEP + legendSetUid, programA, EventOutputType.EVENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( nullValue() ) );
-        assertThat( queryItem.getLegendSet(), is( legendSetA ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+    assertThat(queryItem.getLegendSet(), is(legendSetA));
+  }
 
-    @Test
-    void verifyDimensionWithLegendSetAndProgramStageReturnsDataElement()
-    {
-        String legendSetUid = CodeGenerator.generateUid();
+  @Test
+  void verifyDimensionWithLegendSetAndProgramStageReturnsDataElement() {
+    String legendSetUid = CodeGenerator.generateUid();
 
-        DataElement dataElementA = createDataElement( 'A' );
+    DataElement dataElementA = createDataElement('A');
 
-        ProgramStage programStageA = createProgramStage( 'A', programA );
+    ProgramStage programStageA = createProgramStage('A', programA);
 
-        programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, dataElementA, 1 ) ) );
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStageA, dataElementA, 1)));
 
-        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+    programA.setProgramStages(Sets.newHashSet(programStageA));
 
-        LegendSet legendSetA = createLegendSet( 'A' );
+    LegendSet legendSetA = createLegendSet('A');
 
-        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
-        when( legendSetService.getLegendSet( legendSetUid ) ).thenReturn( legendSetA );
-        when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
+    when(dataElementService.getDataElement(dimension)).thenReturn(dataElementA);
+    when(legendSetService.getLegendSet(legendSetUid)).thenReturn(legendSetA);
+    when(programStageService.getProgramStage(programStageUid)).thenReturn(programStageA);
 
-        // programStageUid.dimensionUid-legendSetUid
-        int stageOffset = -1256;
-        String withStageOffset = "[" + stageOffset + "]";
-        QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + withStageOffset + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA,
-            EventOutputType.ENROLLMENT );
+    // programStageUid.dimensionUid-legendSetUid
+    int stageOffset = -1256;
+    String withStageOffset = "[" + stageOffset + "]";
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            programStageUid
+                + withStageOffset
+                + PROGRAMSTAGE_SEP
+                + dimension
+                + ITEM_SEP
+                + legendSetUid,
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( dataElementA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( programStageA ) );
-        assertThat( queryItem.getLegendSet(), is( legendSetA ) );
-        assertThat( queryItem.getProgramStageOffset(), is( stageOffset ) );
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(dataElementA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(programStageA));
+    assertThat(queryItem.getLegendSet(), is(legendSetA));
+    assertThat(queryItem.getProgramStageOffset(), is(stageOffset));
 
-        verifyNoMoreInteractions( attributeService );
-        verifyNoMoreInteractions( programIndicatorService );
-    }
+    verifyNoMoreInteractions(attributeService);
+    verifyNoMoreInteractions(programIndicatorService);
+  }
 
-    @Test
-    void verifyDimensionReturnsTrackedEntityAttribute()
-    {
-        OptionSet optionSetA = createOptionSet( 'A' );
+  @Test
+  void verifyDimensionReturnsTrackedEntityAttribute() {
+    OptionSet optionSetA = createOptionSet('A');
 
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        trackedEntityAttribute.setUid( dimension );
-        trackedEntityAttribute.setOptionSet( optionSetA );
+    TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute('A');
+    trackedEntityAttribute.setUid(dimension);
+    trackedEntityAttribute.setOptionSet(optionSetA);
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA,
-            trackedEntityAttribute );
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
 
-        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+    programA.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
 
-        when( attributeService.getTrackedEntityAttribute( dimension ) ).thenReturn( trackedEntityAttribute );
+    when(attributeService.getTrackedEntityAttribute(dimension)).thenReturn(trackedEntityAttribute);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(dimension, programA, EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( trackedEntityAttribute ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( nullValue() ) );
-        assertThat( queryItem.getLegendSet(), is( nullValue() ) );
-        assertThat( queryItem.getOptionSet(), is( optionSetA ) );
-        verifyNoMoreInteractions( programIndicatorService );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(trackedEntityAttribute));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+    assertThat(queryItem.getLegendSet(), is(nullValue()));
+    assertThat(queryItem.getOptionSet(), is(optionSetA));
+    verifyNoMoreInteractions(programIndicatorService);
+  }
 
-    @Test
-    void verifyDimensionReturnsProgramIndicator()
-    {
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
-        programIndicatorA.setUid( dimension );
+  @Test
+  void verifyDimensionReturnsProgramIndicator() {
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+    programIndicatorA.setUid(dimension);
 
-        programA.setProgramIndicators( Sets.newHashSet( programIndicatorA ) );
-        when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-            .thenReturn( programIndicatorA );
+    programA.setProgramIndicators(Sets.newHashSet(programIndicatorA));
+    when(programIndicatorService.getProgramIndicatorByUid(programIndicatorA.getUid()))
+        .thenReturn(programIndicatorA);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT );
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(dimension, programA, EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( programIndicatorA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( nullValue() ) );
-        assertThat( queryItem.getLegendSet(), is( nullValue() ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(programIndicatorA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+    assertThat(queryItem.getLegendSet(), is(nullValue()));
+  }
 
-    @Test
-    void verifyDimensionReturnsProgramIndicatorWithRelationship()
-    {
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
-        programIndicatorA.setUid( dimension );
+  @Test
+  void verifyDimensionReturnsProgramIndicatorWithRelationship() {
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+    programIndicatorA.setUid(dimension);
 
-        RelationshipType relationshipType = createRelationshipType();
+    RelationshipType relationshipType = createRelationshipType();
 
-        programA.setProgramIndicators( Sets.newHashSet( programIndicatorA ) );
-        when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-            .thenReturn( programIndicatorA );
-        when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
+    programA.setProgramIndicators(Sets.newHashSet(programIndicatorA));
+    when(programIndicatorService.getProgramIndicatorByUid(programIndicatorA.getUid()))
+        .thenReturn(programIndicatorA);
+    when(relationshipTypeService.getRelationshipType(relationshipType.getUid()))
+        .thenReturn(relationshipType);
 
-        QueryItem queryItem = subject.getQueryItemFromDimension(
-            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension,
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( programIndicatorA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( nullValue() ) );
-        assertThat( queryItem.getLegendSet(), is( nullValue() ) );
-        assertThat( queryItem.getRelationshipType(), is( relationshipType ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(programIndicatorA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+    assertThat(queryItem.getLegendSet(), is(nullValue()));
+    assertThat(queryItem.getRelationshipType(), is(relationshipType));
+  }
 
-    @Test
-    void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted()
-    {
+  @Test
+  void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted() {
 
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
-        programIndicatorA.setUid( dimension );
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+    programIndicatorA.setUid(dimension);
 
-        when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-            .thenReturn( programIndicatorA );
+    when(programIndicatorService.getProgramIndicatorByUid(programIndicatorA.getUid()))
+        .thenReturn(programIndicatorA);
 
-        assertThrows( IllegalQueryException.class,
-            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ),
-            "Item identifier does not reference any data element, attribute or indicator part of the program" );
-    }
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension(dimension, programA, EventOutputType.ENROLLMENT),
+        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
 
-    @Test
-    void verifyForeignProgramIndicatorWithRelationshipIsAccepted()
-    {
+  @Test
+  void verifyForeignProgramIndicatorWithRelationshipIsAccepted() {
 
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
-        programIndicatorA.setUid( dimension );
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+    programIndicatorA.setUid(dimension);
 
-        RelationshipType relationshipType = createRelationshipType();
-        when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
-            .thenReturn( programIndicatorA );
-        when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
-        QueryItem queryItem = subject.getQueryItemFromDimension(
-            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+    RelationshipType relationshipType = createRelationshipType();
+    when(programIndicatorService.getProgramIndicatorByUid(programIndicatorA.getUid()))
+        .thenReturn(programIndicatorA);
+    when(relationshipTypeService.getRelationshipType(relationshipType.getUid()))
+        .thenReturn(relationshipType);
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension(
+            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension,
+            programA,
+            EventOutputType.ENROLLMENT);
 
-        assertThat( queryItem, is( notNullValue() ) );
-        assertThat( queryItem.getItem(), is( programIndicatorA ) );
-        assertThat( queryItem.getProgram(), is( programA ) );
-        assertThat( queryItem.getProgramStage(), is( nullValue() ) );
-        assertThat( queryItem.getLegendSet(), is( nullValue() ) );
-        assertThat( queryItem.getRelationshipType(), is( relationshipType ) );
-    }
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItem(), is(programIndicatorA));
+    assertThat(queryItem.getProgram(), is(programA));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+    assertThat(queryItem.getLegendSet(), is(nullValue()));
+    assertThat(queryItem.getRelationshipType(), is(relationshipType));
+  }
 
-    private RelationshipType createRelationshipType()
-    {
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( CodeGenerator.generateUid() );
-        return relationshipType;
-    }
+  private RelationshipType createRelationshipType() {
+    RelationshipType relationshipType = new RelationshipType();
+    relationshipType.setUid(CodeGenerator.generateUid());
+    return relationshipType;
+  }
 
-    private void configureDimensionForQueryItem( DataElement dataElement, ProgramStage programStage )
-    {
-        programStage.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStage, dataElement, 1 ) ) );
+  private void configureDimensionForQueryItem(DataElement dataElement, ProgramStage programStage) {
+    programStage.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStage, dataElement, 1)));
 
-        programA.setProgramStages( Sets.newHashSet( programStage ) );
+    programA.setProgramStages(Sets.newHashSet(programStage));
 
-        when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElement );
+    when(dataElementService.getDataElement(dimension)).thenReturn(dataElement);
 
-        when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStage );
-    }
-
+    when(programStageService.getProgramStage(programStageUid)).thenReturn(programStage);
+  }
 }

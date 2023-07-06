@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,9 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -59,170 +58,181 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Abyot Asalefew Gizaw
  */
-@Repository( "org.hisp.dhis.trackedentity.TrackedEntityAttributeStore" )
+@Repository("org.hisp.dhis.trackedentity.TrackedEntityAttributeStore")
 public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
-    implements TrackedEntityAttributeStore
-{
-    private final StatementBuilder statementBuilder;
+    implements TrackedEntityAttributeStore {
+  private final StatementBuilder statementBuilder;
 
-    public HibernateTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, StatementBuilder statementBuilder )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, aclService,
-            true );
-        this.statementBuilder = statementBuilder;
+  public HibernateTrackedEntityAttributeStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService,
+      StatementBuilder statementBuilder) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        TrackedEntityAttribute.class,
+        currentUserService,
+        aclService,
+        true);
+    this.statementBuilder = statementBuilder;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  public List<TrackedEntityAttribute> getByDisplayOnVisitSchedule(boolean displayOnVisitSchedule) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(
+                root -> builder.equal(root.get("displayOnVisitSchedule"), displayOnVisitSchedule)));
+  }
+
+  @Override
+  public List<TrackedEntityAttribute> getDisplayInListNoProgram() {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("displayInListNoProgram"), true)));
+  }
+
+  @Override
+  public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue(
+      TrackedEntityInstanceQueryParams params) {
+    // ---------------------------------------------------------------------
+    // Select clause
+    // ---------------------------------------------------------------------
+
+    SqlHelper hlp = new SqlHelper(true);
+
+    String hql = "select tei.uid from TrackedEntityInstance tei ";
+
+    if (params.hasOrganisationUnits()) {
+      String orgUnitUids =
+          params.getOrganisationUnits().stream()
+              .map(OrganisationUnit::getUid)
+              .collect(Collectors.joining(", ", "'", "'"));
+
+      hql += "inner join tei.organisationUnit as ou ";
+      hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+    for (QueryItem item : params.getAttributes()) {
+      for (QueryFilter filter : item.getFilters()) {
+        final String encodedFilter =
+            filter.getSqlFilter(
+                statementBuilder.encode(StringUtils.lowerCase(filter.getFilter()), false));
 
-    @Override
-    public List<TrackedEntityAttribute> getByDisplayOnVisitSchedule( boolean displayOnVisitSchedule )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        hql +=
+            hlp.whereAnd()
+                + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
+        hql += " and teav.attribute.uid='" + item.getItemId() + "'";
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "displayOnVisitSchedule" ), displayOnVisitSchedule ) ) );
-    }
-
-    @Override
-    public List<TrackedEntityAttribute> getDisplayInListNoProgram()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "displayInListNoProgram" ), true ) ) );
-    }
-
-    @Override
-    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue(
-        TrackedEntityInstanceQueryParams params )
-    {
-        // ---------------------------------------------------------------------
-        // Select clause
-        // ---------------------------------------------------------------------
-
-        SqlHelper hlp = new SqlHelper( true );
-
-        String hql = "select tei.uid from TrackedEntityInstance tei ";
-
-        if ( params.hasOrganisationUnits() )
-        {
-            String orgUnitUids = params.getOrganisationUnits().stream()
-                .map( OrganisationUnit::getUid )
-                .collect( Collectors.joining( ", ", "'", "'" ) );
-
-            hql += "inner join tei.organisationUnit as ou ";
-            hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
+        if (item.isNumeric()) {
+          hql += " and teav.plainValue " + filter.getSqlOperator() + encodedFilter + ")";
+        } else {
+          hql += " and lower(teav.plainValue) " + filter.getSqlOperator() + encodedFilter + ")";
         }
-
-        for ( QueryItem item : params.getAttributes() )
-        {
-            for ( QueryFilter filter : item.getFilters() )
-            {
-                final String encodedFilter = filter
-                    .getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
-
-                hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
-                hql += " and teav.attribute.uid='" + item.getItemId() + "'";
-
-                if ( item.isNumeric() )
-                {
-                    hql += " and teav.plainValue " + filter.getSqlOperator() + encodedFilter + ")";
-                }
-                else
-                {
-                    hql += " and lower(teav.plainValue) " + filter.getSqlOperator() + encodedFilter + ")";
-                }
-            }
-        }
-
-        if ( !params.isIncludeDeleted() )
-        {
-            hql += hlp.whereAnd() + " tei.deleted is false";
-        }
-
-        Query<String> query = getTypedQuery( hql );
-
-        Iterator<String> it = query.iterate();
-
-        if ( it.hasNext() )
-        {
-            return Optional.of( it.next() );
-        }
-
-        return Optional.empty();
+      }
     }
 
-    @Override
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
-    {
-        Query query = sessionFactory.getCurrentSession()
-            .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
-
-        Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>( query.list() );
-
-        return trackedEntityTypeAttributes.stream()
-            .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
-            .collect( Collectors.toSet() );
+    if (!params.isIncludeDeleted()) {
+      hql += hlp.whereAnd() + " tei.deleted is false";
     }
 
-    @Override
-    public Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes()
-    {
-        Set<TrackedEntityAttribute> result = new HashSet<>();
+    Query<String> query = getTypedQuery(hql);
 
-        Query programTeaQuery = sessionFactory.getCurrentSession()
-            .createQuery( "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true" );
-        Query tetypeAttributeQuery = sessionFactory.getCurrentSession()
+    Iterator<String> it = query.iterate();
+
+    if (it.hasNext()) {
+      return Optional.of(it.next());
+    }
+
+    return Optional.empty();
+  }
+
+  @Override
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
+    Query query =
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("select trackedEntityTypeAttributes from TrackedEntityType");
+
+    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>(query.list());
+
+    return trackedEntityTypeAttributes.stream()
+        .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes() {
+    Set<TrackedEntityAttribute> result = new HashSet<>();
+
+    Query programTeaQuery =
+        sessionFactory
+            .getCurrentSession()
             .createQuery(
-                "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true" );
-        Query uniqueAttributeQuery = sessionFactory.getCurrentSession()
-            .createQuery( "from TrackedEntityAttribute tea where tea.unique=true" );
+                "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true");
+    Query tetypeAttributeQuery =
+        sessionFactory
+            .getCurrentSession()
+            .createQuery(
+                "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true");
+    Query uniqueAttributeQuery =
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("from TrackedEntityAttribute tea where tea.unique=true");
 
-        List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
-        List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes = tetypeAttributeQuery.list();
-        List<TrackedEntityAttribute> uniqueAttributes = uniqueAttributeQuery.list();
+    List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
+    List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes =
+        tetypeAttributeQuery.list();
+    List<TrackedEntityAttribute> uniqueAttributes = uniqueAttributeQuery.list();
 
-        result.addAll( programSearchableTrackedEntityAttributes );
-        result.addAll( trackedEntityTypeSearchableAttributes );
-        result.addAll( uniqueAttributes );
+    result.addAll(programSearchableTrackedEntityAttributes);
+    result.addAll(trackedEntityTypeSearchableAttributes);
+    result.addAll(uniqueAttributes);
 
-        return result;
+    return result;
+  }
+
+  @Override
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
+    Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
+
+    Query query =
+        sessionFactory.getCurrentSession().createQuery("select p.programAttributes from Program p");
+
+    List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
+
+    for (ProgramTrackedEntityAttribute programTrackedEntityAttribute :
+        programTrackedEntityAttributes) {
+      if (!result.containsKey(programTrackedEntityAttribute.getProgram())) {
+        result.put(
+            programTrackedEntityAttribute.getProgram(),
+            Sets.newHashSet(programTrackedEntityAttribute.getAttribute()));
+      } else {
+        result
+            .get(programTrackedEntityAttribute.getProgram())
+            .add(programTrackedEntityAttribute.getAttribute());
+      }
     }
-
-    @Override
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
-    {
-        Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
-
-        Query query = sessionFactory.getCurrentSession().createQuery( "select p.programAttributes from Program p" );
-
-        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = query.list();
-
-        for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : programTrackedEntityAttributes )
-        {
-            if ( !result.containsKey( programTrackedEntityAttribute.getProgram() ) )
-            {
-                result.put( programTrackedEntityAttribute.getProgram(),
-                    Sets.newHashSet( programTrackedEntityAttribute.getAttribute() ) );
-            }
-            else
-            {
-                result.get( programTrackedEntityAttribute.getProgram() )
-                    .add( programTrackedEntityAttribute.getAttribute() );
-            }
-        }
-        return result;
-    }
+    return result;
+  }
 }

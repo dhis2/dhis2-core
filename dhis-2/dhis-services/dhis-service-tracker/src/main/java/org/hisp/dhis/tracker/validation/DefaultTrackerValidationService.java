@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.validation;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -49,84 +47,78 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DefaultTrackerValidationService
-    implements TrackerValidationService
-{
+public class DefaultTrackerValidationService implements TrackerValidationService {
 
-    @Qualifier( "validationHooks" )
-    private final List<TrackerValidationHook> validationHooks;
+  @Qualifier("validationHooks")
+  private final List<TrackerValidationHook> validationHooks;
 
-    @Qualifier( "ruleEngineValidationHooks" )
-    private final List<TrackerValidationHook> ruleEngineValidationHooks;
+  @Qualifier("ruleEngineValidationHooks")
+  private final List<TrackerValidationHook> ruleEngineValidationHooks;
 
-    @Override
-    public TrackerValidationReport validate( TrackerBundle bundle )
-    {
-        return validate( bundle, validationHooks );
+  @Override
+  public TrackerValidationReport validate(TrackerBundle bundle) {
+    return validate(bundle, validationHooks);
+  }
+
+  @Override
+  public TrackerValidationReport validateRuleEngine(TrackerBundle bundle) {
+    return validate(bundle, ruleEngineValidationHooks);
+  }
+
+  private TrackerValidationReport validate(
+      TrackerBundle bundle, List<TrackerValidationHook> hooks) {
+    TrackerValidationReport validationReport = new TrackerValidationReport();
+
+    User user = bundle.getUser();
+
+    if ((user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode()) {
+      log.warn(
+          "Skipping validation for metadata import by user '"
+              + bundle.getUsername()
+              + "'. Not recommended.");
+      return validationReport;
     }
 
-    @Override
-    public TrackerValidationReport validateRuleEngine( TrackerBundle bundle )
-    {
-        return validate( bundle, ruleEngineValidationHooks );
+    // Note that the bundle gets cloned internally, so the original bundle
+    // is always available
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+
+    try {
+      for (TrackerValidationHook hook : hooks) {
+        Timer hookTimer = Timer.startTimer();
+
+        hook.validate(reporter, bundle);
+
+        validationReport.addTiming(new Timing(hook.getClass().getName(), hookTimer.toString()));
+      }
+    } catch (ValidationFailFastException e) {
+      // exit early when in FAIL_FAST validation mode
     }
+    validationReport
+        .addErrors(reporter.getReportList())
+        .addWarnings(reporter.getWarningsReportList());
 
-    private TrackerValidationReport validate( TrackerBundle bundle, List<TrackerValidationHook> hooks )
-    {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
+    removeInvalidObjects(bundle, reporter);
 
-        User user = bundle.getUser();
+    return validationReport;
+  }
 
-        if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
-        {
-            log.warn( "Skipping validation for metadata import by user '" +
-                bundle.getUsername() + "'. Not recommended." );
-            return validationReport;
-        }
-
-        // Note that the bundle gets cloned internally, so the original bundle
-        // is always available
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
-        try
-        {
-            for ( TrackerValidationHook hook : hooks )
-            {
-                Timer hookTimer = Timer.startTimer();
-
-                hook.validate( reporter, bundle );
-
-                validationReport.addTiming( new Timing(
-                    hook.getClass().getName(),
-                    hookTimer.toString() ) );
-            }
-        }
-        catch ( ValidationFailFastException e )
-        {
-            // exit early when in FAIL_FAST validation mode
-        }
-        validationReport
-            .addErrors( reporter.getReportList() )
-            .addWarnings( reporter.getWarningsReportList() );
-
-        removeInvalidObjects( bundle, reporter );
-
-        return validationReport;
-    }
-
-    private void removeInvalidObjects( TrackerBundle bundle, ValidationErrorReporter reporter )
-    {
-        bundle.setEvents( bundle.getEvents().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
-        bundle.setEnrollments( bundle.getEnrollments().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
-        bundle.setTrackedEntities( bundle.getTrackedEntities().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
-        bundle.setRelationships( bundle.getRelationships().stream().filter(
-            e -> !reporter.isInvalid( e ) )
-            .collect( Collectors.toList() ) );
-    }
+  private void removeInvalidObjects(TrackerBundle bundle, ValidationErrorReporter reporter) {
+    bundle.setEvents(
+        bundle.getEvents().stream()
+            .filter(e -> !reporter.isInvalid(e))
+            .collect(Collectors.toList()));
+    bundle.setEnrollments(
+        bundle.getEnrollments().stream()
+            .filter(e -> !reporter.isInvalid(e))
+            .collect(Collectors.toList()));
+    bundle.setTrackedEntities(
+        bundle.getTrackedEntities().stream()
+            .filter(e -> !reporter.isInvalid(e))
+            .collect(Collectors.toList()));
+    bundle.setRelationships(
+        bundle.getRelationships().stream()
+            .filter(e -> !reporter.isInvalid(e))
+            .collect(Collectors.toList()));
+  }
 }

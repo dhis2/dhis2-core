@@ -32,7 +32,6 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public interface OrgUnitQueryPlanner
-{
-    List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params );
+public interface OrgUnitQueryPlanner {
+  List<OrgUnitQueryParams> planQuery(OrgUnitQueryParams params);
 }

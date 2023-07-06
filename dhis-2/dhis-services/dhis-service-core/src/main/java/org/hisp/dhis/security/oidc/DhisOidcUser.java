@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.oidc;
 
 import java.util.Map;
-
 import org.hisp.dhis.user.User;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
@@ -38,42 +37,34 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DhisOidcUser
-    extends DefaultOAuth2User
-    implements OidcUser
-{
-    private final OidcIdToken oidcIdToken;
+public class DhisOidcUser extends DefaultOAuth2User implements OidcUser {
+  private final OidcIdToken oidcIdToken;
 
-    private final User user;
+  private final User user;
 
-    public DhisOidcUser( User user, Map<String, Object> attributes, String nameAttributeKey,
-        OidcIdToken idToken )
-    {
-        super( user.getAuthorities(), attributes, nameAttributeKey );
-        this.oidcIdToken = idToken;
-        this.user = user;
-    }
+  public DhisOidcUser(
+      User user, Map<String, Object> attributes, String nameAttributeKey, OidcIdToken idToken) {
+    super(user.getAuthorities(), attributes, nameAttributeKey);
+    this.oidcIdToken = idToken;
+    this.user = user;
+  }
 
-    @Override
-    public Map<String, Object> getClaims()
-    {
-        return this.getAttributes();
-    }
+  @Override
+  public Map<String, Object> getClaims() {
+    return this.getAttributes();
+  }
 
-    @Override
-    public OidcUserInfo getUserInfo()
-    {
-        return null;
-    }
+  @Override
+  public OidcUserInfo getUserInfo() {
+    return null;
+  }
 
-    @Override
-    public OidcIdToken getIdToken()
-    {
-        return oidcIdToken;
-    }
+  @Override
+  public OidcIdToken getIdToken() {
+    return oidcIdToken;
+  }
 
-    public User getUser()
-    {
-        return user;
-    }
+  public User getUser() {
+    return user;
+  }
 }

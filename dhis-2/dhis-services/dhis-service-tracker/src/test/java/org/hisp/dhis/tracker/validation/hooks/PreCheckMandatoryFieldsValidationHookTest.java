@@ -66,328 +66,320 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class PreCheckMandatoryFieldsValidationHookTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class PreCheckMandatoryFieldsValidationHookTest {
 
-    private PreCheckMandatoryFieldsValidationHook validationHook;
+  private PreCheckMandatoryFieldsValidationHook validationHook;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validationHook = new PreCheckMandatoryFieldsValidationHook();
+  @BeforeEach
+  public void setUp() {
+    validationHook = new PreCheckMandatoryFieldsValidationHook();
 
-        when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( bundle.getPreheat() ).thenReturn( preheat );
-    }
+    when(bundle.getImportStrategy()).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(bundle.getValidationMode()).thenReturn(ValidationMode.FULL);
+    when(bundle.getPreheat()).thenReturn(preheat);
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccess()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
+  @Test
+  void verifyTrackedEntityValidationSuccess() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntityType(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( CodeGenerator.generateUid() )
-            .orgUnit( null )
+  @Test
+  void verifyTrackedEntityValidationFailsOnMissingOrgUnit() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntityType(CodeGenerator.generateUid())
+            .orgUnit(null)
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        assertMissingPropertyForTrackedEntity( reporter, trackedEntity.getUid(), "orgUnit" );
-    }
+    assertMissingPropertyForTrackedEntity(reporter, trackedEntity.getUid(), "orgUnit");
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .trackedEntityType( null )
-            .orgUnit( CodeGenerator.generateUid() )
+  @Test
+  void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .trackedEntityType(null)
+            .orgUnit(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        assertMissingPropertyForTrackedEntity( reporter, trackedEntity.getUid(), "trackedEntityType" );
-    }
+    assertMissingPropertyForTrackedEntity(reporter, trackedEntity.getUid(), "trackedEntityType");
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccess()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
-            .trackedEntity( CodeGenerator.generateUid() )
+  @Test
+  void verifyEnrollmentValidationSuccess() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .program(CodeGenerator.generateUid())
+            .trackedEntity(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsOnMissingTrackedEntity()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
-            .trackedEntity( null )
+  @Test
+  void verifyEnrollmentValidationFailsOnMissingTrackedEntity() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .program(CodeGenerator.generateUid())
+            .trackedEntity(null)
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
 
-        assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "trackedEntity" );
-    }
+    assertMissingPropertyForEnrollment(reporter, enrollment.getUid(), "trackedEntity");
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsOnMissingProgram()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .program( null )
-            .trackedEntity( CodeGenerator.generateUid() )
+  @Test
+  void verifyEnrollmentValidationFailsOnMissingProgram() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .program(null)
+            .trackedEntity(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
 
-        assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "program" );
-    }
+    assertMissingPropertyForEnrollment(reporter, enrollment.getUid(), "program");
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsOnMissingOrgUnit()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( null )
-            .program( CodeGenerator.generateUid() )
-            .trackedEntity( CodeGenerator.generateUid() )
+  @Test
+  void verifyEnrollmentValidationFailsOnMissingOrgUnit() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(null)
+            .program(CodeGenerator.generateUid())
+            .trackedEntity(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
 
-        assertMissingPropertyForEnrollment( reporter, enrollment.getUid(), "orgUnit" );
-    }
+    assertMissingPropertyForEnrollment(reporter, enrollment.getUid(), "orgUnit");
+  }
 
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+  @Test
+  void verifyEventValidationSuccess() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .programStage(CodeGenerator.generateUid())
+            .program(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyEventValidationFailsOnMissingProgram()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( CodeGenerator.generateUid() )
-            .program( null )
+  @Test
+  void verifyEventValidationFailsOnMissingProgram() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .programStage(CodeGenerator.generateUid())
+            .program(null)
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        assertMissingPropertyForEvent( reporter, event.getUid(), "program" );
-    }
+    assertMissingPropertyForEvent(reporter, event.getUid(), "program");
+  }
 
-    @Test
-    void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( CodeGenerator.generateUid() )
+  @Test
+  void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .programStage(CodeGenerator.generateUid())
             .build();
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( event.getProgramStage() );
-        when( preheat.getProgramStage( anyString() ) ).thenReturn( programStage );
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(event.getProgramStage());
+    when(preheat.getProgramStage(anyString())).thenReturn(programStage);
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        hasTrackerError( reporter, E1008, EVENT, event.getUid() );
-    }
+    assertTrue(reporter.hasErrors());
+    assertThat(reporter.getReportList(), hasSize(1));
+    hasTrackerError(reporter, E1008, EVENT, event.getUid());
+  }
 
-    @Test
-    void verifyEventValidationFailsOnMissingProgramStage()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() )
-            .programStage( null )
-            .program( CodeGenerator.generateUid() )
-            .build();
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-
-        assertMissingPropertyForEvent( reporter, event.getUid(), "programStage" );
-    }
-
-    @Test
-    void verifyEventValidationFailsOnMissingOrgUnit()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .orgUnit( null )
-            .programStage( CodeGenerator.generateUid() )
-            .program( CodeGenerator.generateUid() )
+  @Test
+  void verifyEventValidationFailsOnMissingProgramStage() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .programStage(null)
+            .program(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        assertMissingPropertyForEvent( reporter, event.getUid(), "orgUnit" );
-    }
+    assertMissingPropertyForEvent(reporter, event.getUid(), "programStage");
+  }
 
-    @Test
-    void verifyRelationshipValidationSuccess()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+  @Test
+  void verifyEventValidationFailsOnMissingOrgUnit() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .orgUnit(null)
+            .programStage(CodeGenerator.generateUid())
+            .program(CodeGenerator.generateUid())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertMissingPropertyForEvent(reporter, event.getUid(), "orgUnit");
+  }
 
-    @Test
-    void verifyRelationshipValidationFailsOnMissingFrom()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+  @Test
+  void verifyRelationshipValidationSuccess() {
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .relationshipType(CodeGenerator.generateUid())
+            .from(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
+            .to(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, relationship);
 
-        assertMissingPropertyForRelationship( reporter, relationship.getUid(), "from" );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyRelationshipValidationFailsOnMissingTo()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+  @Test
+  void verifyRelationshipValidationFailsOnMissingFrom() {
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .relationshipType(CodeGenerator.generateUid())
+            .to(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, relationship);
 
-        assertMissingPropertyForRelationship( reporter, relationship.getUid(), "to" );
-    }
+    assertMissingPropertyForRelationship(reporter, relationship.getUid(), "from");
+  }
 
-    @Test
-    void verifyRelationshipValidationFailsOnMissingRelationshipType()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .build() )
+  @Test
+  void verifyRelationshipValidationFailsOnMissingTo() {
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .relationshipType(CodeGenerator.generateUid())
+            .from(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, relationship);
 
-        assertMissingPropertyForRelationship( reporter, relationship.getUid(), "relationshipType" );
-    }
+    assertMissingPropertyForRelationship(reporter, relationship.getUid(), "to");
+  }
 
-    private void assertMissingPropertyForTrackedEntity( ValidationErrorReporter reporter, String uid, String property )
-    {
-        assertMissingProperty( reporter, TRACKED_ENTITY, "tracked entity", uid, property, TrackerErrorCode.E1121 );
-    }
+  @Test
+  void verifyRelationshipValidationFailsOnMissingRelationshipType() {
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
+            .to(RelationshipItem.builder().trackedEntity(trackedEntity()).build())
+            .build();
 
-    private void assertMissingPropertyForEnrollment( ValidationErrorReporter reporter, String uid, String property )
-    {
-        assertMissingProperty( reporter, ENROLLMENT, "enrollment", uid, property, TrackerErrorCode.E1122 );
-    }
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, relationship);
 
-    private void assertMissingPropertyForEvent( ValidationErrorReporter reporter, String uid, String property )
-    {
-        assertMissingProperty( reporter, EVENT, "event", uid, property, TrackerErrorCode.E1123 );
-    }
+    assertMissingPropertyForRelationship(reporter, relationship.getUid(), "relationshipType");
+  }
 
-    private void assertMissingPropertyForRelationship( ValidationErrorReporter reporter, String uid, String property )
-    {
-        assertMissingProperty( reporter, RELATIONSHIP, "relationship", uid, property, TrackerErrorCode.E1124 );
-    }
+  private void assertMissingPropertyForTrackedEntity(
+      ValidationErrorReporter reporter, String uid, String property) {
+    assertMissingProperty(
+        reporter, TRACKED_ENTITY, "tracked entity", uid, property, TrackerErrorCode.E1121);
+  }
 
-    private void assertMissingProperty( ValidationErrorReporter reporter, TrackerType type, String entity, String uid,
-        String property,
-        TrackerErrorCode errorCode )
-    {
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        hasTrackerError( reporter, errorCode, type, uid );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
-            is( "Missing required " + entity + " property: `" + property + "`." ) );
-    }
+  private void assertMissingPropertyForEnrollment(
+      ValidationErrorReporter reporter, String uid, String property) {
+    assertMissingProperty(
+        reporter, ENROLLMENT, "enrollment", uid, property, TrackerErrorCode.E1122);
+  }
 
-    private RelationshipItem.TrackedEntity trackedEntity()
-    {
-        return RelationshipItem.TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
-    }
+  private void assertMissingPropertyForEvent(
+      ValidationErrorReporter reporter, String uid, String property) {
+    assertMissingProperty(reporter, EVENT, "event", uid, property, TrackerErrorCode.E1123);
+  }
+
+  private void assertMissingPropertyForRelationship(
+      ValidationErrorReporter reporter, String uid, String property) {
+    assertMissingProperty(
+        reporter, RELATIONSHIP, "relationship", uid, property, TrackerErrorCode.E1124);
+  }
+
+  private void assertMissingProperty(
+      ValidationErrorReporter reporter,
+      TrackerType type,
+      String entity,
+      String uid,
+      String property,
+      TrackerErrorCode errorCode) {
+    assertTrue(reporter.hasErrors());
+    assertThat(reporter.getReportList(), hasSize(1));
+    hasTrackerError(reporter, errorCode, type, uid);
+    assertThat(
+        reporter.getReportList().get(0).getErrorMessage(),
+        is("Missing required " + entity + " property: `" + property + "`."));
+  }
+
+  private RelationshipItem.TrackedEntity trackedEntity() {
+    return RelationshipItem.TrackedEntity.builder()
+        .trackedEntity(CodeGenerator.generateUid())
+        .build();
+  }
 }

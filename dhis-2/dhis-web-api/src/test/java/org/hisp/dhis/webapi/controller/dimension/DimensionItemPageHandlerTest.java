@@ -45,7 +45,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -59,104 +58,95 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class DimensionItemPageHandlerTest
-{
+@ExtendWith(MockitoExtension.class)
+class DimensionItemPageHandlerTest {
 
-    @Mock
-    private LinkService linkService;
+  @Mock private LinkService linkService;
 
-    private DimensionItemPageHandler dimensionItemPageHandler;
+  private DimensionItemPageHandler dimensionItemPageHandler;
 
-    @BeforeEach
-    public void setUp()
-    {
-        dimensionItemPageHandler = new DimensionItemPageHandler( linkService );
-    }
+  @BeforeEach
+  public void setUp() {
+    dimensionItemPageHandler = new DimensionItemPageHandler(linkService);
+  }
 
-    @Test
-    void testAddPaginationToNodeWithSuccess()
-    {
-        // Given
-        final RootNode anyRootNode = new RootNode( "any" );
-        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
-        final String anyUid = "LFsZ8v5v7rq";
-        final int anyTotals = 12;
+  @Test
+  void testAddPaginationToNodeWithSuccess() {
+    // Given
+    final RootNode anyRootNode = new RootNode("any");
+    final WebOptions anyWebOptions = mockWebOptions(10, 1);
+    final String anyUid = "LFsZ8v5v7rq";
+    final int anyTotals = 12;
 
-        // When
-        dimensionItemPageHandler.addPaginationToNodeIfEnabled( anyRootNode, anyWebOptions,
-            anyUid, anyTotals );
+    // When
+    dimensionItemPageHandler.addPaginationToNodeIfEnabled(
+        anyRootNode, anyWebOptions, anyUid, anyTotals);
 
-        // Then
-        assertThat( anyRootNode, is( notNullValue() ) );
-        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
-        assertThat( anyRootNode.getChildren(), hasSize( 1 ) );
-        assertThat( anyRootNode.getChildren().get( 0 ).isComplex(), is( true ) );
-        verify( linkService, times( 1 ) ).generatePagerLinks( any( Pager.class ), anyString() );
-    }
+    // Then
+    assertThat(anyRootNode, is(notNullValue()));
+    assertThat(anyRootNode.getName(), is(equalTo("any")));
+    assertThat(anyRootNode.getChildren(), hasSize(1));
+    assertThat(anyRootNode.getChildren().get(0).isComplex(), is(true));
+    verify(linkService, times(1)).generatePagerLinks(any(Pager.class), anyString());
+  }
 
-    @Test
-    void testAddPaginationToNodeWhenPagingIsFalse()
-    {
-        // Given
-        final RootNode anyRootNode = new RootNode( "any" );
-        final WebOptions webOptionsNoPaging = mockWebOptionsWithPagingFlagFalse();
-        final String anyUid = "LFsZ8v5v7rq";
-        final int anyTotals = 12;
+  @Test
+  void testAddPaginationToNodeWhenPagingIsFalse() {
+    // Given
+    final RootNode anyRootNode = new RootNode("any");
+    final WebOptions webOptionsNoPaging = mockWebOptionsWithPagingFlagFalse();
+    final String anyUid = "LFsZ8v5v7rq";
+    final int anyTotals = 12;
 
-        // When
-        dimensionItemPageHandler.addPaginationToNodeIfEnabled( anyRootNode, webOptionsNoPaging,
-            anyUid, anyTotals );
+    // When
+    dimensionItemPageHandler.addPaginationToNodeIfEnabled(
+        anyRootNode, webOptionsNoPaging, anyUid, anyTotals);
 
-        // Then
-        assertThat( anyRootNode, is( notNullValue() ) );
-        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
-        assertThat( anyRootNode.getChildren(), is( empty() ) );
-        verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
-    }
+    // Then
+    assertThat(anyRootNode, is(notNullValue()));
+    assertThat(anyRootNode.getName(), is(equalTo("any")));
+    assertThat(anyRootNode.getChildren(), is(empty()));
+    verify(linkService, never()).generatePagerLinks(any(Pager.class), anyString());
+  }
 
-    @Test
-    void testAddPaginationToNodeWhenNoPagingIsSet()
-    {
-        // Given
-        final RootNode anyRootNode = new RootNode( "any" );
-        final WebOptions webOptionsNoPaging = mockWebOptionsWithNoPagingFlagSet();
-        final String anyUid = "LFsZ8v5v7rq";
-        final int anyTotals = 12;
+  @Test
+  void testAddPaginationToNodeWhenNoPagingIsSet() {
+    // Given
+    final RootNode anyRootNode = new RootNode("any");
+    final WebOptions webOptionsNoPaging = mockWebOptionsWithNoPagingFlagSet();
+    final String anyUid = "LFsZ8v5v7rq";
+    final int anyTotals = 12;
 
-        // When
-        dimensionItemPageHandler.addPaginationToNodeIfEnabled( anyRootNode, webOptionsNoPaging,
-            anyUid, anyTotals );
+    // When
+    dimensionItemPageHandler.addPaginationToNodeIfEnabled(
+        anyRootNode, webOptionsNoPaging, anyUid, anyTotals);
 
-        // Then
-        assertThat( anyRootNode, is( notNullValue() ) );
-        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
-        assertThat( anyRootNode.getChildren(), is( empty() ) );
-        verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
-    }
+    // Then
+    assertThat(anyRootNode, is(notNullValue()));
+    assertThat(anyRootNode.getName(), is(equalTo("any")));
+    assertThat(anyRootNode.getChildren(), is(empty()));
+    verify(linkService, never()).generatePagerLinks(any(Pager.class), anyString());
+  }
 
-    private WebOptions mockWebOptions( final int pageSize, final int pageNumber )
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
-        options.put( PAGE_SIZE, valueOf( pageSize ) );
-        options.put( PAGE, valueOf( pageNumber ) );
-        options.put( PAGING, "true" );
+  private WebOptions mockWebOptions(final int pageSize, final int pageNumber) {
+    final Map<String, String> options = new HashMap<>(0);
+    options.put(PAGE_SIZE, valueOf(pageSize));
+    options.put(PAGE, valueOf(pageNumber));
+    options.put(PAGING, "true");
 
-        return new WebOptions( options );
-    }
+    return new WebOptions(options);
+  }
 
-    private WebOptions mockWebOptionsWithPagingFlagFalse()
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
-        options.put( PAGING, "false" );
+  private WebOptions mockWebOptionsWithPagingFlagFalse() {
+    final Map<String, String> options = new HashMap<>(0);
+    options.put(PAGING, "false");
 
-        return new WebOptions( options );
-    }
+    return new WebOptions(options);
+  }
 
-    private WebOptions mockWebOptionsWithNoPagingFlagSet()
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
+  private WebOptions mockWebOptionsWithNoPagingFlagSet() {
+    final Map<String, String> options = new HashMap<>(0);
 
-        return new WebOptions( options );
-    }
+    return new WebOptions(options);
+  }
 }

@@ -30,129 +30,110 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public abstract class AggregatedValue
-{
-    public static final Double ZERO = 0d;
+public abstract class AggregatedValue {
+  public static final Double ZERO = 0d;
 
-    // ----------------------------------------------------------------------
-    // Properties
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // Properties
+  // ----------------------------------------------------------------------
 
-    protected long periodId;
+  protected long periodId;
 
-    protected long periodTypeId;
+  protected long periodTypeId;
 
-    protected long organisationUnitId;
+  protected long organisationUnitId;
 
-    protected long organisationUnitGroupId;
+  protected long organisationUnitGroupId;
 
-    protected int level;
+  protected int level;
 
-    protected double value;
+  protected double value;
 
-    protected transient String periodName;
+  protected transient String periodName;
 
-    protected transient String organisationUnitName;
+  protected transient String organisationUnitName;
 
-    protected transient double trendValue;
+  protected transient double trendValue;
 
-    // ----------------------------------------------------------------------
-    // Abstract methods
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // Abstract methods
+  // ----------------------------------------------------------------------
 
-    public abstract long getElementId();
+  public abstract long getElementId();
 
-    // ----------------------------------------------------------------------
-    // Getters and setters
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // Getters and setters
+  // ----------------------------------------------------------------------
 
-    public long getPeriodId()
-    {
-        return periodId;
-    }
+  public long getPeriodId() {
+    return periodId;
+  }
 
-    public void setPeriodId( long periodId )
-    {
-        this.periodId = periodId;
-    }
+  public void setPeriodId(long periodId) {
+    this.periodId = periodId;
+  }
 
-    public long getPeriodTypeId()
-    {
-        return periodTypeId;
-    }
+  public long getPeriodTypeId() {
+    return periodTypeId;
+  }
 
-    public void setPeriodTypeId( long periodTypeId )
-    {
-        this.periodTypeId = periodTypeId;
-    }
+  public void setPeriodTypeId(long periodTypeId) {
+    this.periodTypeId = periodTypeId;
+  }
 
-    public long getOrganisationUnitId()
-    {
-        return organisationUnitId;
-    }
+  public long getOrganisationUnitId() {
+    return organisationUnitId;
+  }
 
-    public void setOrganisationUnitId( long organisationUnitId )
-    {
-        this.organisationUnitId = organisationUnitId;
-    }
+  public void setOrganisationUnitId(long organisationUnitId) {
+    this.organisationUnitId = organisationUnitId;
+  }
 
-    public long getOrganisationUnitGroupId()
-    {
-        return organisationUnitGroupId;
-    }
+  public long getOrganisationUnitGroupId() {
+    return organisationUnitGroupId;
+  }
 
-    public void setOrganisationUnitGroupId( long organisationUnitGroupId )
-    {
-        this.organisationUnitGroupId = organisationUnitGroupId;
-    }
+  public void setOrganisationUnitGroupId(long organisationUnitGroupId) {
+    this.organisationUnitGroupId = organisationUnitGroupId;
+  }
 
-    public int getLevel()
-    {
-        return level;
-    }
+  public int getLevel() {
+    return level;
+  }
 
-    public void setLevel( int level )
-    {
-        this.level = level;
-    }
+  public void setLevel(int level) {
+    this.level = level;
+  }
 
-    public double getValue()
-    {
-        return value;
-    }
+  public double getValue() {
+    return value;
+  }
 
-    public void setValue( double value )
-    {
-        this.value = value;
-    }
+  public void setValue(double value) {
+    this.value = value;
+  }
 
-    public String getPeriodName()
-    {
-        return periodName;
-    }
+  public String getPeriodName() {
+    return periodName;
+  }
 
-    public void setPeriodName( String periodName )
-    {
-        this.periodName = periodName;
-    }
+  public void setPeriodName(String periodName) {
+    this.periodName = periodName;
+  }
 
-    public String getOrganisationUnitName()
-    {
-        return organisationUnitName;
-    }
+  public String getOrganisationUnitName() {
+    return organisationUnitName;
+  }
 
-    public void setOrganisationUnitName( String organisationUnitName )
-    {
-        this.organisationUnitName = organisationUnitName;
-    }
+  public void setOrganisationUnitName(String organisationUnitName) {
+    this.organisationUnitName = organisationUnitName;
+  }
 
-    public double getTrendValue()
-    {
-        return trendValue;
-    }
+  public double getTrendValue() {
+    return trendValue;
+  }
 
-    public void setTrendValue( double trendValue )
-    {
-        this.trendValue = trendValue;
-    }
+  public void setTrendValue(double trendValue) {
+    this.trendValue = trendValue;
+  }
 }

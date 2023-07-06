@@ -30,25 +30,21 @@ package org.hisp.dhis.dxf2.sync;
 /**
  * @author David Katuscak
  */
-public class SynchronizationResult
-{
-    public final SynchronizationStatus status;
+public class SynchronizationResult {
+  public final SynchronizationStatus status;
 
-    public final String message;
+  public final String message;
 
-    private SynchronizationResult( SynchronizationStatus status, String message )
-    {
-        this.status = status;
-        this.message = message;
-    }
+  private SynchronizationResult(SynchronizationStatus status, String message) {
+    this.status = status;
+    this.message = message;
+  }
 
-    public static SynchronizationResult newSuccessResultWithMessage( String message )
-    {
-        return new SynchronizationResult( SynchronizationStatus.SUCCESS, message );
-    }
+  public static SynchronizationResult newSuccessResultWithMessage(String message) {
+    return new SynchronizationResult(SynchronizationStatus.SUCCESS, message);
+  }
 
-    public static SynchronizationResult newFailureResultWithMessage( String message )
-    {
-        return new SynchronizationResult( SynchronizationStatus.FAILURE, message );
-    }
+  public static SynchronizationResult newFailureResultWithMessage(String message) {
+    return new SynchronizationResult(SynchronizationStatus.FAILURE, message);
+  }
 }

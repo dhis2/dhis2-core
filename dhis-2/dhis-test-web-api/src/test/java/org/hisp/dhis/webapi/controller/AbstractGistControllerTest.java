@@ -44,75 +44,98 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
-{
+abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    protected OrganisationUnitService organisationUnitService;
+  @Autowired protected OrganisationUnitService organisationUnitService;
 
-    protected String userGroupId;
+  protected String userGroupId;
 
-    protected String orgUnitId;
+  protected String orgUnitId;
 
-    protected String dataSetId;
+  protected String dataSetId;
 
-    @BeforeEach
-    void setUp()
-    {
-        userGroupId = assertStatus( HttpStatus.CREATED,
-            POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-        assertStatus( HttpStatus.OK, PATCH( "/users/{id}?importReportMode=ERRORS", getSuperuserUid(),
-            Body( "[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]" ) ) );
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
-        dataSetId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
-            "{'name':'set1', 'organisationUnits': [{'id':'" + orgUnitId + "'}], 'periodType':'Daily'}" ) );
+  @BeforeEach
+  void setUp() {
+    userGroupId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}"));
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}?importReportMode=ERRORS",
+            getSuperuserUid(),
+            Body("[{'op': 'add', 'path': '/birthday', 'value': '1980-12-12'}]")));
+    orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}"));
+    dataSetId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'set1', 'organisationUnits': [{'id':'"
+                    + orgUnitId
+                    + "'}], 'periodType':'Daily'}"));
+  }
+
+  protected final void createDataSetsForOrganisationUnit(
+      int count, String organisationUnitId, String namePrefix) {
+    for (int i = 0; i < count; i++) {
+      assertStatus(
+          HttpStatus.CREATED,
+          POST(
+              "/dataSets/",
+              "{'name':'"
+                  + namePrefix
+                  + i
+                  + "', 'organisationUnits': [{'id':'"
+                  + organisationUnitId
+                  + "'}], 'periodType':'Daily'}"));
     }
+  }
 
-    protected final void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )
-    {
-        for ( int i = 0; i < count; i++ )
-        {
-            assertStatus( HttpStatus.CREATED, POST( "/dataSets/", "{'name':'" + namePrefix + i
-                + "', 'organisationUnits': [{'id':'" + organisationUnitId + "'}], 'periodType':'Daily'}" ) );
-        }
+  protected final void createDataSetsForOrganisationUnit(
+      String organisationUnitId, String... names) {
+    for (String name : names) {
+      assertStatus(
+          HttpStatus.CREATED,
+          POST(
+              "/dataSets/",
+              "{'name':'"
+                  + name
+                  + "', 'organisationUnits': [{'id':'"
+                  + organisationUnitId
+                  + "'}], 'periodType':'Daily'}"));
     }
+  }
 
-    protected final void createDataSetsForOrganisationUnit( String organisationUnitId, String... names )
-    {
-        for ( String name : names )
-        {
-            assertStatus( HttpStatus.CREATED, POST( "/dataSets/", "{'name':'" + name
-                + "', 'organisationUnits': [{'id':'" + organisationUnitId + "'}], 'periodType':'Daily'}" ) );
-        }
-    }
+  static void assertHasPager(JsonObject response, int page, int pageSize) {
+    assertHasPager(response, page, pageSize, null);
+  }
 
-    static void assertHasPager( JsonObject response, int page, int pageSize )
-    {
-        assertHasPager( response, page, pageSize, null );
+  static void assertHasPager(JsonObject response, int page, int pageSize, Integer total) {
+    JsonObject pager = response.getObject("pager");
+    assertTrue(pager.exists(), "Pager is missing");
+    assertEquals(page, pager.getNumber("page").intValue());
+    assertEquals(pageSize, pager.getNumber("pageSize").intValue());
+    if (total != null) {
+      assertEquals(total.intValue(), pager.getNumber("total").intValue());
+      assertEquals(
+          (int) Math.ceil(total / (double) pageSize), pager.getNumber("pageCount").intValue());
     }
+  }
 
-    static void assertHasPager( JsonObject response, int page, int pageSize, Integer total )
-    {
-        JsonObject pager = response.getObject( "pager" );
-        assertTrue( pager.exists(), "Pager is missing" );
-        assertEquals( page, pager.getNumber( "page" ).intValue() );
-        assertEquals( pageSize, pager.getNumber( "pageSize" ).intValue() );
-        if ( total != null )
-        {
-            assertEquals( total.intValue(), pager.getNumber( "total" ).intValue() );
-            assertEquals( (int) Math.ceil( total / (double) pageSize ), pager.getNumber( "pageCount" ).intValue() );
-        }
-    }
-
-    /**
-     * The guest user will get the {@code Test_skipSharingCheck} authority so we
-     * do not get errors from the H2 database complaining that it does not
-     * support JSONB functions. Obviously this has an impact on the results
-     * which are not longer filter, the {@code sharing} is ignored.
-     */
-    protected final void switchToGuestUser()
-    {
-        switchToNewUser( "guest", "Test_skipSharingCheck" );
-    }
+  /**
+   * The guest user will get the {@code Test_skipSharingCheck} authority so we do not get errors
+   * from the H2 database complaining that it does not support JSONB functions. Obviously this has
+   * an impact on the results which are not longer filter, the {@code sharing} is ignored.
+   */
+  protected final void switchToGuestUser() {
+    switchToNewUser("guest", "Test_skipSharingCheck");
+  }
 }

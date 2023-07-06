@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.merge.orgunit;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.transaction.Transactional;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -47,8 +45,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * Main class for org unit merge.
  *
@@ -56,127 +52,117 @@ import com.google.common.collect.ImmutableList;
  */
 @Slf4j
 @Service
-public class DefaultOrgUnitMergeService
-    implements OrgUnitMergeService
-{
-    private final OrgUnitMergeValidator validator;
+public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
+  private final OrgUnitMergeValidator validator;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final ImmutableList<OrgUnitMergeHandler> handlers;
+  private final ImmutableList<OrgUnitMergeHandler> handlers;
 
-    public DefaultOrgUnitMergeService( OrgUnitMergeValidator validator,
-        IdentifiableObjectManager idObjectManager,
-        MetadataOrgUnitMergeHandler metadataHandler,
-        AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
-        DataOrgUnitMergeHandler dataHandler,
-        TrackerOrgUnitMergeHandler trackerHandler )
-    {
-        this.validator = validator;
-        this.idObjectManager = idObjectManager;
-        this.handlers = getMergeHandlers( metadataHandler,
-            analyticalObjectHandler, dataHandler, trackerHandler );
+  public DefaultOrgUnitMergeService(
+      OrgUnitMergeValidator validator,
+      IdentifiableObjectManager idObjectManager,
+      MetadataOrgUnitMergeHandler metadataHandler,
+      AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
+      DataOrgUnitMergeHandler dataHandler,
+      TrackerOrgUnitMergeHandler trackerHandler) {
+    this.validator = validator;
+    this.idObjectManager = idObjectManager;
+    this.handlers =
+        getMergeHandlers(metadataHandler, analyticalObjectHandler, dataHandler, trackerHandler);
+  }
+
+  @Override
+  @Transactional
+  public void merge(OrgUnitMergeRequest request) {
+    log.info("Org unit merge request: {}", request);
+
+    validator.validate(request);
+
+    handlers.forEach(handler -> handler.merge(request));
+
+    // Persistence framework will inspect and update associated objects
+
+    idObjectManager.update(request.getTarget());
+
+    handleDeleteSources(request);
+
+    log.info("Org unit merge operation done: {}", request);
+  }
+
+  @Override
+  public OrgUnitMergeRequest getFromQuery(OrgUnitMergeQuery query) {
+    Set<OrganisationUnit> sources =
+        query.getSources().stream().map(this::getAndVerifyOrgUnit).collect(Collectors.toSet());
+
+    OrganisationUnit target = idObjectManager.get(OrganisationUnit.class, query.getTarget());
+
+    return new OrgUnitMergeRequest.Builder()
+        .addSources(sources)
+        .withTarget(target)
+        .withDataValueMergeStrategy(query.getDataValueMergeStrategy())
+        .withDataApprovalMergeStrategy(query.getDataApprovalMergeStrategy())
+        .withDeleteSources(query.getDeleteSources())
+        .build();
+  }
+
+  // -------------------------------------------------------------------------
+  // Private methods
+  // -------------------------------------------------------------------------
+
+  private ImmutableList<OrgUnitMergeHandler> getMergeHandlers(
+      MetadataOrgUnitMergeHandler metadataHandler,
+      AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
+      DataOrgUnitMergeHandler dataHandler,
+      TrackerOrgUnitMergeHandler trackerHandler) {
+    return ImmutableList.<OrgUnitMergeHandler>builder()
+        .add((r) -> metadataHandler.mergeDataSets(r))
+        .add((r) -> metadataHandler.mergePrograms(r))
+        .add((r) -> metadataHandler.mergeOrgUnitGroups(r))
+        .add((r) -> metadataHandler.mergeCategoryOptions(r))
+        .add((r) -> metadataHandler.mergeOrganisationUnits(r))
+        .add((r) -> metadataHandler.mergeUsers(r))
+        .add((r) -> metadataHandler.mergeConfiguration(r))
+        .add((r) -> analyticalObjectHandler.mergeAnalyticalObjects(r))
+        .add((r) -> dataHandler.mergeDataValueAudits(r))
+        .add((r) -> dataHandler.mergeDataValues(r))
+        .add((r) -> dataHandler.mergeDataApprovalAudits(r))
+        .add((r) -> dataHandler.mergeDataApprovals(r))
+        .add((r) -> dataHandler.mergeLockExceptions(r))
+        .add((r) -> dataHandler.mergeValidationResults(r))
+        .add((r) -> dataHandler.mergeMinMaxDataElements(r))
+        .add((r) -> dataHandler.mergeInterpretations(r))
+        .add((r) -> trackerHandler.mergeProgramMessages(r))
+        .add((r) -> trackerHandler.mergeProgramInstances(r))
+        .add((r) -> trackerHandler.mergeTrackedEntityInstances(r))
+        .build();
+  }
+
+  /**
+   * Handles deletion of the source {@link OrganisationUnit}.
+   *
+   * @param request the {@link OrgUnitMergeRequest}.
+   */
+  private void handleDeleteSources(OrgUnitMergeRequest request) {
+    if (request.isDeleteSources()) {
+      Iterator<OrganisationUnit> sources = request.getSources().iterator();
+
+      while (sources.hasNext()) {
+        idObjectManager.delete(sources.next());
+      }
     }
+  }
 
-    @Override
-    @Transactional
-    public void merge( OrgUnitMergeRequest request )
-    {
-        log.info( "Org unit merge request: {}", request );
-
-        validator.validate( request );
-
-        handlers.forEach( handler -> handler.merge( request ) );
-
-        // Persistence framework will inspect and update associated objects
-
-        idObjectManager.update( request.getTarget() );
-
-        handleDeleteSources( request );
-
-        log.info( "Org unit merge operation done: {}", request );
-    }
-
-    @Override
-    public OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query )
-    {
-        Set<OrganisationUnit> sources = query.getSources().stream()
-            .map( this::getAndVerifyOrgUnit )
-            .collect( Collectors.toSet() );
-
-        OrganisationUnit target = idObjectManager.get( OrganisationUnit.class, query.getTarget() );
-
-        return new OrgUnitMergeRequest.Builder()
-            .addSources( sources )
-            .withTarget( target )
-            .withDataValueMergeStrategy( query.getDataValueMergeStrategy() )
-            .withDataApprovalMergeStrategy( query.getDataApprovalMergeStrategy() )
-            .withDeleteSources( query.getDeleteSources() )
-            .build();
-    }
-
-    // -------------------------------------------------------------------------
-    // Private methods
-    // -------------------------------------------------------------------------
-
-    private ImmutableList<OrgUnitMergeHandler> getMergeHandlers(
-        MetadataOrgUnitMergeHandler metadataHandler,
-        AnalyticalObjectOrgUnitMergeHandler analyticalObjectHandler,
-        DataOrgUnitMergeHandler dataHandler,
-        TrackerOrgUnitMergeHandler trackerHandler )
-    {
-        return ImmutableList.<OrgUnitMergeHandler> builder()
-            .add( ( r ) -> metadataHandler.mergeDataSets( r ) )
-            .add( ( r ) -> metadataHandler.mergePrograms( r ) )
-            .add( ( r ) -> metadataHandler.mergeOrgUnitGroups( r ) )
-            .add( ( r ) -> metadataHandler.mergeCategoryOptions( r ) )
-            .add( ( r ) -> metadataHandler.mergeOrganisationUnits( r ) )
-            .add( ( r ) -> metadataHandler.mergeUsers( r ) )
-            .add( ( r ) -> metadataHandler.mergeConfiguration( r ) )
-            .add( ( r ) -> analyticalObjectHandler.mergeAnalyticalObjects( r ) )
-            .add( ( r ) -> dataHandler.mergeDataValueAudits( r ) )
-            .add( ( r ) -> dataHandler.mergeDataValues( r ) )
-            .add( ( r ) -> dataHandler.mergeDataApprovalAudits( r ) )
-            .add( ( r ) -> dataHandler.mergeDataApprovals( r ) )
-            .add( ( r ) -> dataHandler.mergeLockExceptions( r ) )
-            .add( ( r ) -> dataHandler.mergeValidationResults( r ) )
-            .add( ( r ) -> dataHandler.mergeMinMaxDataElements( r ) )
-            .add( ( r ) -> dataHandler.mergeInterpretations( r ) )
-            .add( ( r ) -> trackerHandler.mergeProgramMessages( r ) )
-            .add( ( r ) -> trackerHandler.mergeProgramInstances( r ) )
-            .add( ( r ) -> trackerHandler.mergeTrackedEntityInstances( r ) )
-            .build();
-    }
-
-    /**
-     * Handles deletion of the source {@link OrganisationUnit}.
-     *
-     * @param request the {@link OrgUnitMergeRequest}.
-     */
-    private void handleDeleteSources( OrgUnitMergeRequest request )
-    {
-        if ( request.isDeleteSources() )
-        {
-            Iterator<OrganisationUnit> sources = request.getSources().iterator();
-
-            while ( sources.hasNext() )
-            {
-                idObjectManager.delete( sources.next() );
-            }
-        }
-    }
-
-    /**
-     * Retrieves the org unit with the given identifier. Throws an
-     * {@link IllegalQueryException} if it does not exist.
-     *
-     * @param uid the org unit identifier.
-     * @throws IllegalQueryException if the object is null.
-     */
-    private OrganisationUnit getAndVerifyOrgUnit( String uid )
-        throws IllegalQueryException
-    {
-        return ObjectUtils.throwIfNull( idObjectManager.get( OrganisationUnit.class, uid ),
-            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E1503, uid ) ) );
-    }
+  /**
+   * Retrieves the org unit with the given identifier. Throws an {@link IllegalQueryException} if it
+   * does not exist.
+   *
+   * @param uid the org unit identifier.
+   * @throws IllegalQueryException if the object is null.
+   */
+  private OrganisationUnit getAndVerifyOrgUnit(String uid) throws IllegalQueryException {
+    return ObjectUtils.throwIfNull(
+        idObjectManager.get(OrganisationUnit.class, uid),
+        () -> new IllegalQueryException(new ErrorMessage(ErrorCode.E1503, uid)));
+  }
 }

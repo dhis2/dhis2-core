@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.events.aggregates;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -44,62 +44,66 @@ import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+class TrackedEntityInstanceAggregateUserTest extends TrackerTest {
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-class TrackedEntityInstanceAggregateUserTest extends TrackerTest
-{
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
-    @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
+  @Autowired private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
-    @Autowired
-    private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Override
+  protected void setUpTest() throws Exception {
+    super.setUpTest();
+    setDependency(
+        CurrentUserServiceTarget.class,
+        CurrentUserServiceTarget::setCurrentUserService,
+        new MockCurrentUserService(null),
+        trackedEntityInstanceAggregate,
+        teiService,
+        trackedEntityInstanceService);
+  }
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        super.setUpTest();
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            new MockCurrentUserService( null ), trackedEntityInstanceAggregate, teiService,
-            trackedEntityInstanceService );
-    }
+  @Override
+  public void tearDownTest() {
+    setDependency(
+        CurrentUserServiceTarget.class,
+        CurrentUserServiceTarget::setCurrentUserService,
+        currentUserService,
+        trackedEntityInstanceAggregate,
+        teiService,
+        trackedEntityInstanceService);
+  }
 
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, trackedEntityInstanceAggregate, teiService, trackedEntityInstanceService );
-    }
-
-    @Test
-    void testFetchTrackedEntityInstances()
-    {
-        doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-        } );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( trackedEntityInstances, hasSize( 4 ) );
-        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
-        // Check further for explicit uid in param
-        queryParams.getTrackedEntityInstanceUids().addAll( trackedEntityInstances.stream().limit( 2 )
-            .map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toSet() ) );
-        final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( limitedTTrackedEntityInstances, hasSize( 2 ) );
-    }
+  @Test
+  void testFetchTrackedEntityInstances() {
+    doInTransaction(
+        () -> {
+          this.persistTrackedEntityInstance();
+          this.persistTrackedEntityInstance();
+          this.persistTrackedEntityInstance();
+          this.persistTrackedEntityInstance();
+        });
+    TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setTrackedEntityType(trackedEntityTypeA);
+    queryParams.setIncludeAllAttributes(true);
+    TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+    final List<TrackedEntityInstance> trackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(trackedEntityInstances, hasSize(4));
+    assertThat(trackedEntityInstances.get(0).getEnrollments(), hasSize(0));
+    // Check further for explicit uid in param
+    queryParams
+        .getTrackedEntityInstanceUids()
+        .addAll(
+            trackedEntityInstances.stream()
+                .limit(2)
+                .map(TrackedEntityInstance::getTrackedEntityInstance)
+                .collect(Collectors.toSet()));
+    final List<TrackedEntityInstance> limitedTTrackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(limitedTTrackedEntityInstances, hasSize(2));
+  }
 }

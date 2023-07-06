@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.importer.tei;
 
 import static org.hamcrest.CoreMatchers.*;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -43,80 +43,81 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiUpdateTests
-    extends TrackerNtiApiTest
-{
-    @BeforeAll
-    public void beforeAll()
-    {
+public class TeiUpdateTests extends TrackerNtiApiTest {
+  @BeforeAll
+  public void beforeAll() {
 
-        loginActions.loginAsSuperUser();
-    }
+    loginActions.loginAsSuperUser();
+  }
 
-    @Test
-    public void shouldNotUpdateImmutableProperties()
-        throws Exception
-    {
-        // arrange
-        String tei = importTei();
-        String trackedEntityType = new TrackedEntityTypeActions().create();
-        JsonObject body = trackerActions.getTrackedEntity( tei ).getBodyAsJsonBuilder()
-            .addProperty( "trackedEntity", tei )
-            .addProperty( "trackedEntityType", trackedEntityType )
-            .wrapIntoArray( "trackedEntities" );
+  @Test
+  public void shouldNotUpdateImmutableProperties() throws Exception {
+    // arrange
+    String tei = importTei();
+    String trackedEntityType = new TrackedEntityTypeActions().create();
+    JsonObject body =
+        trackerActions
+            .getTrackedEntity(tei)
+            .getBodyAsJsonBuilder()
+            .addProperty("trackedEntity", tei)
+            .addProperty("trackedEntityType", trackedEntityType)
+            .wrapIntoArray("trackedEntities");
 
-        // assert
-        trackerActions.postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) )
-            .validateErrorReport()
-            .body( "errorCode", Matchers.hasItem( "E1126" ) )
-            .body( "message", Matchers.hasItem( Matchers.containsString( "trackedEntityType" ) ) );
-    }
+    // assert
+    trackerActions
+        .postAndGetJobReport(body, new QueryParamsBuilder().add("importStrategy=UPDATE"))
+        .validateErrorReport()
+        .body("errorCode", Matchers.hasItem("E1126"))
+        .body("message", Matchers.hasItem(Matchers.containsString("trackedEntityType")));
+  }
 
-    @Test
-    public void shouldUpdateWithUpdateStrategy()
-        throws Exception
-    {
-        // arrange
-        String teiId = importTei();
+  @Test
+  public void shouldUpdateWithUpdateStrategy() throws Exception {
+    // arrange
+    String teiId = importTei();
 
-        JsonObject teiBody = trackerActions.getTrackedEntity( teiId ).getBody();
-        teiBody = JsonObjectBuilder.jsonObject( teiBody )
-            .addProperty( "trackedEntity", teiId )
-            .wrapIntoArray( "trackedEntities" );
+    JsonObject teiBody = trackerActions.getTrackedEntity(teiId).getBody();
+    teiBody =
+        JsonObjectBuilder.jsonObject(teiBody)
+            .addProperty("trackedEntity", teiId)
+            .wrapIntoArray("trackedEntities");
 
-        // act
-        ApiResponse response = trackerActions
-            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=UPDATE" ) );
+    // act
+    ApiResponse response =
+        trackerActions.postAndGetJobReport(
+            teiBody, new QueryParamsBuilder().add("importStrategy=UPDATE"));
 
-        // assert
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.updated", equalTo( 1 ) );
-    }
+    // assert
+    response
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("OK"))
+        .body("stats.updated", equalTo(1));
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "UPDATE", "DELETE" } )
-    public void shouldReturnErrorWhenTeiDoesntExist( String importStrategy )
-        throws Exception
-    {
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
+  @ParameterizedTest
+  @ValueSource(strings = {"UPDATE", "DELETE"})
+  public void shouldReturnErrorWhenTeiDoesntExist(String importStrategy) throws Exception {
+    JsonObject teiBody =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/tracker/importer/teis/tei.json"));
 
-        ApiResponse response = trackerActions
-            .postAndGetJobReport( teiBody,
-                new QueryParamsBuilder().add( String.format( "importStrategy=%s", importStrategy ) ) );
+    ApiResponse response =
+        trackerActions.postAndGetJobReport(
+            teiBody,
+            new QueryParamsBuilder().add(String.format("importStrategy=%s", importStrategy)));
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "validationReport.errorReports", notNullValue() )
-            .rootPath( "validationReport.errorReports[0]" )
-            .body( "errorCode", equalTo( "E1063" ) )
-            .body( "message", containsStringIgnoringCase( "does not exist" ) );
-    }
+    response
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("ERROR"))
+        .body("stats.ignored", equalTo(1))
+        .body("validationReport.errorReports", notNullValue())
+        .rootPath("validationReport.errorReports[0]")
+        .body("errorCode", equalTo("E1063"))
+        .body("message", containsStringIgnoringCase("does not exist"));
+  }
 }

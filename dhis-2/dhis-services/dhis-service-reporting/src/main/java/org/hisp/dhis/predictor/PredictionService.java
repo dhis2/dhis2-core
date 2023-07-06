@@ -29,56 +29,60 @@ package org.hisp.dhis.predictor;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 
 /**
  * @author Jim Grace
  */
-public interface PredictionService
-{
-    /**
-     * Executes a predictor job run
-     *
-     * @param predictorJobParameters parameters for the predictor job run
-     * @param jobId associated with the task running (for notifier)
-     * @return a summary of what was predicted
-     */
-    PredictionSummary predictJob( PredictorJobParameters predictorJobParameters, JobConfiguration jobId );
+public interface PredictionService {
+  /**
+   * Executes a predictor job run
+   *
+   * @param predictorJobParameters parameters for the predictor job run
+   * @param jobId associated with the task running (for notifier)
+   * @return a summary of what was predicted
+   */
+  PredictionSummary predictJob(
+      PredictorJobParameters predictorJobParameters, JobConfiguration jobId);
 
-    /**
-     * Executes predictors and/or predictor groups for a date range in a job
-     *
-     * @param startDate the start date of the predictor run
-     * @param endDate the end date of the predictor run
-     * @param predictors predictor(s) to run
-     * @param predictorGroups predictor group(s) to run
-     * @param jobId associated with the task running (for notifier)
-     * @return a summary of what was predicted
-     */
-    PredictionSummary predictTask( Date startDate, Date endDate,
-        List<String> predictors, List<String> predictorGroups, JobConfiguration jobId );
+  /**
+   * Executes predictors and/or predictor groups for a date range in a job
+   *
+   * @param startDate the start date of the predictor run
+   * @param endDate the end date of the predictor run
+   * @param predictors predictor(s) to run
+   * @param predictorGroups predictor group(s) to run
+   * @param jobId associated with the task running (for notifier)
+   * @return a summary of what was predicted
+   */
+  PredictionSummary predictTask(
+      Date startDate,
+      Date endDate,
+      List<String> predictors,
+      List<String> predictorGroups,
+      JobConfiguration jobId);
 
-    /**
-     * Executes predictors and/or predictor groups for a date range
-     *
-     * @param startDate the start date of the predictor run
-     * @param endDate the end date of the predictor run
-     * @param predictors predictor(s) to run
-     * @param predictorGroups predictor group(s) to run
-     * @return a summary of what was predicted
-     */
-    PredictionSummary predictAll( Date startDate, Date endDate,
-        List<String> predictors, List<String> predictorGroups );
+  /**
+   * Executes predictors and/or predictor groups for a date range
+   *
+   * @param startDate the start date of the predictor run
+   * @param endDate the end date of the predictor run
+   * @param predictors predictor(s) to run
+   * @param predictorGroups predictor group(s) to run
+   * @return a summary of what was predicted
+   */
+  PredictionSummary predictAll(
+      Date startDate, Date endDate, List<String> predictors, List<String> predictorGroups);
 
-    /**
-     * Executes a single predictor for a date range
-     *
-     * @param predictor the predictor to run
-     * @param startDate the start date of the predictor run
-     * @param endDate the end date of the predictor run
-     * @param predictionSummary the prediction summary to add to
-     */
-    void predict( Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary );
+  /**
+   * Executes a single predictor for a date range
+   *
+   * @param predictor the predictor to run
+   * @param startDate the start date of the predictor run
+   * @param endDate the end date of the predictor run
+   * @param predictionSummary the prediction summary to add to
+   */
+  void predict(
+      Predictor predictor, Date startDate, Date endDate, PredictionSummary predictionSummary);
 }

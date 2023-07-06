@@ -28,52 +28,50 @@
 package org.hisp.dhis.common;
 
 import java.util.Date;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Parameters for repeatable stage values
- */
+/** Parameters for repeatable stage values */
 @Getter
 @Setter
-@EqualsAndHashCode( of = { "startIndex", "count", "startDate", "endDate" } )
-public class RepeatableStageParams
-{
-    private int startIndex;
+@EqualsAndHashCode(of = {"startIndex", "count", "startDate", "endDate"})
+public class RepeatableStageParams {
+  private int startIndex;
 
-    private int count = 1;
+  private int count = 1;
 
-    // related to execution date
-    private Date startDate;
+  // related to execution date
+  private Date startDate;
 
-    // related to execution date
-    private Date endDate;
+  // related to execution date
+  private Date endDate;
 
-    private boolean defaultObject = true;
+  private boolean defaultObject = true;
 
-    private String dimension;
+  private String dimension;
 
-    /**
-     * to string
-     *
-     * @return string representation
-     */
-    @Override
-    public String toString()
-    {
-        return "startIndex:" + startIndex + " count:"
-            + (count == Integer.MAX_VALUE ? "all" : count)
-            + " startDate:" + startDate + " endDate: " + endDate;
-    }
+  /**
+   * to string
+   *
+   * @return string representation
+   */
+  @Override
+  public String toString() {
+    return "startIndex:"
+        + startIndex
+        + " count:"
+        + (count == Integer.MAX_VALUE ? "all" : count)
+        + " startDate:"
+        + startDate
+        + " endDate: "
+        + endDate;
+  }
 
-    /**
-     *
-     * @return true if value type should be considered as number
-     */
-    public boolean simpleStageValueExpected()
-    {
-        return count == 1;
-    }
+  /**
+   * @return true if value type should be considered as number
+   */
+  public boolean simpleStageValueExpected() {
+    return count == 1;
+  }
 }

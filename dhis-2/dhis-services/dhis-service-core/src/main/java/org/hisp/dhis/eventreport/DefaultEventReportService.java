@@ -30,7 +30,6 @@ package org.hisp.dhis.eventreport;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
@@ -41,72 +40,63 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.eventreport.EventReportService" )
-public class DefaultEventReportService
-    extends GenericAnalyticalObjectService<EventReport>
-    implements EventReportService
-{
-    private final HibernateAnalyticalObjectStore<EventReport> eventReportStore;
+@Service("org.hisp.dhis.eventreport.EventReportService")
+public class DefaultEventReportService extends GenericAnalyticalObjectService<EventReport>
+    implements EventReportService {
+  private final HibernateAnalyticalObjectStore<EventReport> eventReportStore;
 
-    public DefaultEventReportService(
-        @Qualifier( "org.hisp.dhis.eventreport.EventReportStore" ) HibernateAnalyticalObjectStore<EventReport> eventReportStore )
-    {
-        checkNotNull( eventReportStore );
+  public DefaultEventReportService(
+      @Qualifier("org.hisp.dhis.eventreport.EventReportStore")
+          HibernateAnalyticalObjectStore<EventReport> eventReportStore) {
+    checkNotNull(eventReportStore);
 
-        this.eventReportStore = eventReportStore;
-    }
+    this.eventReportStore = eventReportStore;
+  }
 
-    // -------------------------------------------------------------------------
-    // EventReportService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // EventReportService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional( readOnly = true )
-    protected AnalyticalObjectStore<EventReport> getAnalyticalObjectStore()
-    {
-        return eventReportStore;
-    }
+  @Override
+  @Transactional(readOnly = true)
+  protected AnalyticalObjectStore<EventReport> getAnalyticalObjectStore() {
+    return eventReportStore;
+  }
 
-    @Override
-    @Transactional
-    public long saveEventReport( EventReport report )
-    {
-        eventReportStore.save( report );
-        return report.getId();
-    }
+  @Override
+  @Transactional
+  public long saveEventReport(EventReport report) {
+    eventReportStore.save(report);
+    return report.getId();
+  }
 
-    @Override
-    @Transactional
-    public void updateEventReport( EventReport report )
-    {
-        eventReportStore.update( report );
-    }
+  @Override
+  @Transactional
+  public void updateEventReport(EventReport report) {
+    eventReportStore.update(report);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public EventReport getEventReport( long id )
-    {
-        return eventReportStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public EventReport getEventReport(long id) {
+    return eventReportStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public EventReport getEventReport( String uid )
-    {
-        return eventReportStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public EventReport getEventReport(String uid) {
+    return eventReportStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional
-    public void deleteEventReport( EventReport report )
-    {
-        eventReportStore.delete( report );
-    }
+  @Override
+  @Transactional
+  public void deleteEventReport(EventReport report) {
+    eventReportStore.delete(report);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<EventReport> getAllEventReports()
-    {
-        return eventReportStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<EventReport> getAllEventReports() {
+    return eventReportStore.getAll();
+  }
 }

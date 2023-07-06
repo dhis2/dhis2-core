@@ -27,317 +27,262 @@
  */
 package org.hisp.dhis.node;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
 import org.hisp.dhis.node.exception.InvalidTypeException;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @deprecated No new usage of this class and its children should happen, we should instead directly
+ *     use Jackson ObjectMappers or Jackson object factory if we need dynamically created objects.
  */
 @Deprecated
-public abstract class AbstractNode implements Node
-{
-    protected String name;
+public abstract class AbstractNode implements Node {
+  protected String name;
 
-    protected final NodeType nodeType;
+  protected final NodeType nodeType;
 
-    protected boolean metadata;
+  protected boolean metadata;
 
-    protected Node parent;
+  protected Node parent;
 
-    protected String namespace;
+  protected String namespace;
 
-    protected String comment;
+  protected String comment;
 
-    protected List<Node> children;
+  protected List<Node> children;
 
-    protected ImmutableList<Node> sortedChildren;
+  protected ImmutableList<Node> sortedChildren;
 
-    protected Property property;
+  protected Property property;
 
-    protected AbstractNode( String name, NodeType nodeType )
-    {
-        this.name = name;
-        this.nodeType = nodeType;
+  protected AbstractNode(String name, NodeType nodeType) {
+    this.name = name;
+    this.nodeType = nodeType;
+  }
+
+  protected AbstractNode(String name, NodeType nodeType, Property property) {
+    this.name = name;
+    this.nodeType = nodeType;
+    this.property = property;
+  }
+
+  protected AbstractNode(String name, NodeType nodeType, Property property, AbstractNode child) {
+    this.name = name;
+    this.nodeType = nodeType;
+    this.property = property;
+
+    if (child != null && child.getName() != null) {
+      children = Lists.newArrayList(child);
+      child.setParent(this);
+    }
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public NodeType getType() {
+    return nodeType;
+  }
+
+  @Override
+  public boolean isMetadata() {
+    return metadata;
+  }
+
+  public void setMetadata(boolean metadata) {
+    this.metadata = metadata;
+  }
+
+  @Override
+  public Node getParent() {
+    return parent;
+  }
+
+  protected void setParent(Node parent) {
+    this.parent = parent;
+  }
+
+  @Override
+  public boolean is(NodeType type) {
+    return type.equals(nodeType);
+  }
+
+  @Override
+  public boolean isSimple() {
+    return is(NodeType.SIMPLE);
+  }
+
+  @Override
+  public boolean isComplex() {
+    return is(NodeType.COMPLEX);
+  }
+
+  @Override
+  public boolean isCollection() {
+    return is(NodeType.COLLECTION);
+  }
+
+  @Override
+  public String getNamespace() {
+    return namespace;
+  }
+
+  public void setNamespace(String namespace) {
+    this.namespace = namespace;
+  }
+
+  @Override
+  public String getComment() {
+    return comment;
+  }
+
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
+
+  @Override
+  public Property getProperty() {
+    return property;
+  }
+
+  public void setProperty(Property property) {
+    this.property = property;
+  }
+
+  @Override
+  public boolean haveProperty() {
+    return property != null;
+  }
+
+  @Override
+  public <T extends Node> T addChild(T child) throws InvalidTypeException {
+    if (child == null || child.getName() == null) {
+      return null;
     }
 
-    protected AbstractNode( String name, NodeType nodeType, Property property )
-    {
-        this.name = name;
-        this.nodeType = nodeType;
-        this.property = property;
+    if (children == null) {
+      children = Lists.newArrayList();
     }
 
-    protected AbstractNode( String name, NodeType nodeType, Property property, AbstractNode child )
-    {
-        this.name = name;
-        this.nodeType = nodeType;
-        this.property = property;
+    children.add(child);
+    ((AbstractNode) child).setParent(this);
 
-        if ( child != null && child.getName() != null )
-        {
-            children = Lists.newArrayList( child );
-            child.setParent( this );
-        }
+    sortedChildren = null;
+
+    return child;
+  }
+
+  @Override
+  public <T extends Node> void removeChild(T child) {
+    if (children != null && children.contains(child)) {
+      children.remove(child);
     }
 
-    @Override
-    public String getName()
-    {
-        return name;
+    sortedChildren = null;
+  }
+
+  @Override
+  public <T extends Node> void addChildren(Iterable<T> children) {
+    for (Node child : children) {
+      addChild(child);
+    }
+  }
+
+  @Override
+  public List<Node> getUnorderedChildren() {
+    return children == null ? Collections.emptyList() : children;
+  }
+
+  @Override
+  public List<Node> getChildren() {
+    if (sortedChildren == null) {
+      final int size = children == null ? 0 : children.size();
+
+      if (size > 1) {
+        List<Node> clone = Lists.newArrayList(children);
+        Collections.sort(clone, OrderComparator.INSTANCE);
+        sortedChildren = ImmutableList.copyOf(clone);
+      } else if (size == 1) {
+        sortedChildren = ImmutableList.of(children.get(0));
+      } else {
+        sortedChildren = ImmutableList.of();
+      }
     }
 
-    public void setName( String name )
-    {
-        this.name = name;
+    return sortedChildren;
+  }
+
+  public void setChildren(List<Node> children) {
+    this.children = children;
+    this.sortedChildren = null;
+  }
+
+  @Override
+  public int getOrder() {
+    if (isSimple()) {
+      if (((SimpleNode) this).isAttribute()) {
+        return 10;
+      }
+
+      return 20;
+    } else if (isComplex()) {
+      return 30;
+    } else if (isCollection()) {
+      return 40;
     }
 
-    @Override
-    public NodeType getType()
-    {
-        return nodeType;
+    return Ordered.LOWEST_PRECEDENCE;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, nodeType, parent, namespace, comment, children);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    @Override
-    public boolean isMetadata()
-    {
-        return metadata;
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
 
-    public void setMetadata( boolean metadata )
-    {
-        this.metadata = metadata;
-    }
+    final AbstractNode other = (AbstractNode) obj;
 
-    @Override
-    public Node getParent()
-    {
-        return parent;
-    }
+    return Objects.equals(this.name, other.name)
+        && Objects.equals(this.nodeType, other.nodeType)
+        && Objects.equals(this.namespace, other.namespace)
+        && Objects.equals(this.comment, other.comment)
+        && Objects.equals(this.children, other.children);
+  }
 
-    protected void setParent( Node parent )
-    {
-        this.parent = parent;
-    }
-
-    @Override
-    public boolean is( NodeType type )
-    {
-        return type.equals( nodeType );
-    }
-
-    @Override
-    public boolean isSimple()
-    {
-        return is( NodeType.SIMPLE );
-    }
-
-    @Override
-    public boolean isComplex()
-    {
-        return is( NodeType.COMPLEX );
-    }
-
-    @Override
-    public boolean isCollection()
-    {
-        return is( NodeType.COLLECTION );
-    }
-
-    @Override
-    public String getNamespace()
-    {
-        return namespace;
-    }
-
-    public void setNamespace( String namespace )
-    {
-        this.namespace = namespace;
-    }
-
-    @Override
-    public String getComment()
-    {
-        return comment;
-    }
-
-    public void setComment( String comment )
-    {
-        this.comment = comment;
-    }
-
-    @Override
-    public Property getProperty()
-    {
-        return property;
-    }
-
-    public void setProperty( Property property )
-    {
-        this.property = property;
-    }
-
-    @Override
-    public boolean haveProperty()
-    {
-        return property != null;
-    }
-
-    @Override
-    public <T extends Node> T addChild( T child )
-        throws InvalidTypeException
-    {
-        if ( child == null || child.getName() == null )
-        {
-            return null;
-        }
-
-        if ( children == null )
-        {
-            children = Lists.newArrayList();
-        }
-
-        children.add( child );
-        ((AbstractNode) child).setParent( this );
-
-        sortedChildren = null;
-
-        return child;
-    }
-
-    @Override
-    public <T extends Node> void removeChild( T child )
-    {
-        if ( children != null && children.contains( child ) )
-        {
-            children.remove( child );
-        }
-
-        sortedChildren = null;
-    }
-
-    @Override
-    public <T extends Node> void addChildren( Iterable<T> children )
-    {
-        for ( Node child : children )
-        {
-            addChild( child );
-        }
-    }
-
-    @Override
-    public List<Node> getUnorderedChildren()
-    {
-        return children == null ? Collections.emptyList() : children;
-    }
-
-    @Override
-    public List<Node> getChildren()
-    {
-        if ( sortedChildren == null )
-        {
-            final int size = children == null ? 0 : children.size();
-
-            if ( size > 1 )
-            {
-                List<Node> clone = Lists.newArrayList( children );
-                Collections.sort( clone, OrderComparator.INSTANCE );
-                sortedChildren = ImmutableList.copyOf( clone );
-            }
-            else if ( size == 1 )
-            {
-                sortedChildren = ImmutableList.of( children.get( 0 ) );
-            }
-            else
-            {
-                sortedChildren = ImmutableList.of();
-            }
-        }
-
-        return sortedChildren;
-    }
-
-    public void setChildren( List<Node> children )
-    {
-        this.children = children;
-        this.sortedChildren = null;
-    }
-
-    @Override
-    public int getOrder()
-    {
-        if ( isSimple() )
-        {
-            if ( ((SimpleNode) this).isAttribute() )
-            {
-                return 10;
-            }
-
-            return 20;
-        }
-        else if ( isComplex() )
-        {
-            return 30;
-        }
-        else if ( isCollection() )
-        {
-            return 40;
-        }
-
-        return Ordered.LOWEST_PRECEDENCE;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( name, nodeType, parent, namespace, comment, children );
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
-
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-
-        final AbstractNode other = (AbstractNode) obj;
-
-        return Objects.equals( this.name, other.name ) &&
-            Objects.equals( this.nodeType, other.nodeType ) &&
-            Objects.equals( this.namespace, other.namespace ) &&
-            Objects.equals( this.comment, other.comment ) &&
-            Objects.equals( this.children, other.children );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "name", name )
-            .add( "nodeType", nodeType )
-            .add( "parent", (parent != null ? parent.getName() : null) )
-            .add( "namespace", namespace )
-            .add( "comment", comment )
-            .add( "children", children )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("name", name)
+        .add("nodeType", nodeType)
+        .add("parent", (parent != null ? parent.getName() : null))
+        .add("namespace", namespace)
+        .add("comment", comment)
+        .add("children", children)
+        .toString();
+  }
 }

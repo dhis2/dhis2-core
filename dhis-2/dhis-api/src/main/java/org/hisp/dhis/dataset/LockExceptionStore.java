@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataset;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -37,24 +36,22 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface LockExceptionStore
-    extends GenericStore<LockException>
-{
-    String ID = LockExceptionStore.class.getName();
+public interface LockExceptionStore extends GenericStore<LockException> {
+  String ID = LockExceptionStore.class.getName();
 
-    List<LockException> getAllOrderedName( int first, int max );
+  List<LockException> getAllOrderedName(int first, int max);
 
-    List<LockException> getCombinations();
+  List<LockException> getCombinations();
 
-    void deleteCombination( DataSet dataSet, Period period );
+  void deleteCombination(DataSet dataSet, Period period);
 
-    void deleteCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
+  void deleteCombination(DataSet dataSet, Period period, OrganisationUnit organisationUnit);
 
-    void delete( OrganisationUnit organisationUnit );
+  void delete(OrganisationUnit organisationUnit);
 
-    long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
+  long getCount(DataElement dataElement, Period period, OrganisationUnit organisationUnit);
 
-    long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
+  long getCount(DataSet dataSet, Period period, OrganisationUnit organisationUnit);
 
-    boolean anyExists();
+  boolean anyExists();
 }

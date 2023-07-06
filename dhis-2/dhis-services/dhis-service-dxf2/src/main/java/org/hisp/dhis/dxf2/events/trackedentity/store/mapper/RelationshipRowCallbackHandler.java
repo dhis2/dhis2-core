@@ -29,9 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -44,118 +42,96 @@ import org.hisp.dhis.util.DateUtils;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public class RelationshipRowCallbackHandler extends AbstractMapper<Relationship>
-{
-    @Override
-    public void processRow( ResultSet rs )
-        throws SQLException
-    {
-        final Relationship relationship = getRelationship( rs );
+public class RelationshipRowCallbackHandler extends AbstractMapper<Relationship> {
+  @Override
+  public void processRow(ResultSet rs) throws SQLException {
+    final Relationship relationship = getRelationship(rs);
 
-        this.items.put( extractUid( relationship.getFrom() ), relationship );
-        this.items.put( extractUid( relationship.getTo() ), relationship );
+    this.items.put(extractUid(relationship.getFrom()), relationship);
+    this.items.put(extractUid(relationship.getTo()), relationship);
+  }
+
+  @Override
+  Relationship getItem(ResultSet rs) {
+    return null;
+  }
+
+  @Override
+  String getKeyColumn() {
+    return null;
+  }
+
+  private String extractUid(RelationshipItem relationshipItem) {
+    if (relationshipItem.getTrackedEntityInstance() != null) {
+      return relationshipItem.getTrackedEntityInstance().getTrackedEntityInstance();
+    } else if (relationshipItem.getEnrollment() != null) {
+      return relationshipItem.getEnrollment().getEnrollment();
+    } else if (relationshipItem.getEvent() != null) {
+      return relationshipItem.getEvent().getEvent();
+    }
+    return null; // FIXME: throw exception?
+  }
+
+  private Relationship getRelationship(ResultSet rs) throws SQLException {
+    Relationship relationship = new Relationship();
+    relationship.setRelationship(rs.getString("rel_uid"));
+    relationship.setRelationshipType(rs.getString("reltype_uid"));
+    relationship.setRelationshipName(rs.getString("reltype_name"));
+    relationship.setFrom(createItem(rs.getString("from_uid")));
+    relationship.setTo(createItem(rs.getString("to_uid")));
+    relationship.setBidirectional(rs.getBoolean("reltype_bi"));
+    relationship.setCreated(DateUtils.getIso8601NoTz(rs.getTimestamp("created")));
+    relationship.setLastUpdated(DateUtils.getIso8601NoTz(rs.getTimestamp("lastupdated")));
+
+    return relationship;
+  }
+
+  /**
+   * The SQL query that generates the ResultSet used by this {@see RowCallbackHandler} fetches both
+   * sides of a relationship: since each side can be a Tracked Entity Instance, a Program Instance
+   * or a Program Stage Instance, the query adds an "hint" to the final result to help this Handler
+   * to correctly associate the type to the left or right side of the relationship. The
+   * "typeWithUid" variable contains the UID of the object and a string representing the type. E.g.
+   *
+   * <p>tei|dj3382832 psi|332983893
+   *
+   * <p>This function parses the string and extract the type and the uid, in order to instantiate
+   * the appropriate object and assign it to the {@see RelationshipItem}
+   *
+   * @param typeWithUid a String containing the object type and the UID of the object, separated by
+   *     | (pipe)
+   * @return a {@see RelationshipItem}
+   */
+  private RelationshipItem createItem(String typeWithUid) {
+    if (StringUtils.isEmpty(typeWithUid)) {
+      return new RelationshipItem();
+    }
+    RelationshipItem ri = new RelationshipItem();
+
+    final String type = typeWithUid.split("\\|")[0];
+    final String uid = typeWithUid.split("\\|")[1];
+
+    switch (type) {
+      case "tei":
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.clear();
+        tei.setTrackedEntityInstance(uid);
+        ri.setTrackedEntityInstance(tei);
+        break;
+      case "pi":
+        Enrollment pi = new Enrollment();
+        pi.setEnrollment(uid);
+        ri.setEnrollment(pi);
+        break;
+      case "psi":
+        Event psi = new Event();
+        psi.setEvent(uid);
+        ri.setEvent(psi);
+        break;
+      default:
+        log.warn("Expecting tei|psi|pi as type when fetching a relationship, got: " + type);
     }
 
-    @Override
-    Relationship getItem( ResultSet rs )
-    {
-        return null;
-    }
-
-    @Override
-    String getKeyColumn()
-    {
-        return null;
-    }
-
-    private String extractUid( RelationshipItem relationshipItem )
-    {
-        if ( relationshipItem.getTrackedEntityInstance() != null )
-        {
-            return relationshipItem.getTrackedEntityInstance().getTrackedEntityInstance();
-        }
-        else if ( relationshipItem.getEnrollment() != null )
-        {
-            return relationshipItem.getEnrollment().getEnrollment();
-        }
-        else if ( relationshipItem.getEvent() != null )
-        {
-            return relationshipItem.getEvent().getEvent();
-        }
-        return null; // FIXME: throw exception?
-    }
-
-    private Relationship getRelationship( ResultSet rs )
-        throws SQLException
-    {
-        Relationship relationship = new Relationship();
-        relationship.setRelationship( rs.getString( "rel_uid" ) );
-        relationship.setRelationshipType( rs.getString( "reltype_uid" ) );
-        relationship.setRelationshipName( rs.getString( "reltype_name" ) );
-        relationship.setFrom( createItem( rs.getString( "from_uid" ) ) );
-        relationship.setTo( createItem( rs.getString( "to_uid" ) ) );
-        relationship.setBidirectional( rs.getBoolean( "reltype_bi" ) );
-        relationship.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( "created" ) ) );
-        relationship.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( "lastupdated" ) ) );
-
-        return relationship;
-    }
-
-    /**
-     * The SQL query that generates the ResultSet used by this
-     * {@see RowCallbackHandler} fetches both sides of a relationship: since
-     * each side can be a Tracked Entity Instance, a Program Instance or a
-     * Program Stage Instance, the query adds an "hint" to the final result to
-     * help this Handler to correctly associate the type to the left or right
-     * side of the relationship. The "typeWithUid" variable contains the UID of
-     * the object and a string representing the type. E.g.
-     *
-     * tei|dj3382832 psi|332983893
-     *
-     * This function parses the string and extract the type and the uid, in
-     * order to instantiate the appropriate object and assign it to the
-     * {@see RelationshipItem}
-     *
-     * @param typeWithUid a String containing the object type and the UID of the
-     *        object, separated by | (pipe)
-     * @return a {@see RelationshipItem}
-     */
-    private RelationshipItem createItem( String typeWithUid )
-    {
-        if ( StringUtils.isEmpty( typeWithUid ) )
-        {
-            return new RelationshipItem();
-        }
-        RelationshipItem ri = new RelationshipItem();
-
-        final String type = typeWithUid.split( "\\|" )[0];
-        final String uid = typeWithUid.split( "\\|" )[1];
-
-        switch ( type )
-        {
-        case "tei":
-
-            TrackedEntityInstance tei = new TrackedEntityInstance();
-            tei.clear();
-            tei.setTrackedEntityInstance( uid );
-            ri.setTrackedEntityInstance( tei );
-            break;
-        case "pi":
-
-            Enrollment pi = new Enrollment();
-            pi.setEnrollment( uid );
-            ri.setEnrollment( pi );
-            break;
-        case "psi":
-
-            Event psi = new Event();
-            psi.setEvent( uid );
-            ri.setEvent( psi );
-            break;
-        default:
-            log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );
-        }
-
-        return ri;
-    }
+    return ri;
+  }
 }

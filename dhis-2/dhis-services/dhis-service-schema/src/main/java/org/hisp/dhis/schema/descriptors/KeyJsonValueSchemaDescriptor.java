@@ -34,21 +34,19 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataStore";
+public class KeyJsonValueSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataStore";
 
-    public static final String PLURAL = "dataStores";
+  public static final String PLURAL = "dataStores";
 
-    public static final String API_ENDPOINT = "/" + SINGULAR;
+  public static final String API_ENDPOINT = "/" + SINGULAR;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( DatastoreEntry.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 9060 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DatastoreEntry.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(9060);
 
-        return schema;
-    }
+    return schema;
+  }
 }

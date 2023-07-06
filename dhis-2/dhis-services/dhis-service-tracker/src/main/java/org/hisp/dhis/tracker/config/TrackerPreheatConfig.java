@@ -27,45 +27,40 @@
  */
 package org.hisp.dhis.tracker.config;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.preheat.supplier.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.collect.ImmutableList;
+@Configuration("trackerPreheatConfig")
+public class TrackerPreheatConfig {
+  private final List<Class<? extends PreheatSupplier>> preheatOrder =
+      ImmutableList.of(
+          ClassBasedSupplier.class,
+          TrackedEntityProgramInstanceSupplier.class,
+          ProgramInstanceSupplier.class,
+          ProgramInstancesWithAtLeastOneEventSupplier.class,
+          ProgramStageInstanceProgramStageMapSupplier.class,
+          ProgramOrgUnitsSupplier.class,
+          ProgramOwnerSupplier.class,
+          PeriodTypeSupplier.class,
+          UniqueAttributesSupplier.class,
+          UserSupplier.class,
+          UsernameValueTypeSupplier.class,
+          FileResourceSupplier.class,
+          EventCategoryOptionComboSupplier.class,
+          OrgUnitValueTypeSupplier.class);
 
-@Configuration( "trackerPreheatConfig" )
-public class TrackerPreheatConfig
-{
-    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
-        ClassBasedSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        ProgramOwnerSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        UsernameValueTypeSupplier.class,
-        FileResourceSupplier.class,
-        EventCategoryOptionComboSupplier.class,
-        OrgUnitValueTypeSupplier.class );
+  @Bean("preheatOrder")
+  public List<String> getPreheatOrder() {
+    return preheatOrder.stream().map(Class::getSimpleName).collect(Collectors.toList());
+  }
 
-    @Bean( "preheatOrder" )
-    public List<String> getPreheatOrder()
-    {
-        return preheatOrder.stream().map( Class::getSimpleName )
-            .collect( Collectors.toList() );
-    }
-
-    @Bean( "preheatStrategies" )
-    public Map<String, String> getPreheatStrategies()
-    {
-        return new PreheatStrategyScanner().scanSupplierStrategies();
-    }
+  @Bean("preheatStrategies")
+  public Map<String, String> getPreheatStrategies() {
+    return new PreheatStrategyScanner().scanSupplierStrategies();
+  }
 }

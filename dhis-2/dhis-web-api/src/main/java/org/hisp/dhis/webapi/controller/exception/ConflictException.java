@@ -33,13 +33,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 /**
  * @author Luca Cambi luca@dhis2.org
  */
-@ResponseStatus( HttpStatus.CONFLICT )
-public class ConflictException extends Exception
-{
+@ResponseStatus(HttpStatus.CONFLICT)
+public class ConflictException extends Exception {
 
-    public ConflictException( String message )
-    {
-        super( message );
-    }
-
+  public ConflictException(String message) {
+    super(message);
+  }
 }

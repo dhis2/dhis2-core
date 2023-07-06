@@ -30,12 +30,11 @@ package org.hisp.dhis.resourcetable;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -73,189 +72,184 @@ import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.resourcetable.ResourceTableService" )
+@Service("org.hisp.dhis.resourcetable.ResourceTableService")
 @AllArgsConstructor
-public class DefaultResourceTableService
-    implements ResourceTableService
-{
-    private final ResourceTableStore resourceTableStore;
+public class DefaultResourceTableService implements ResourceTableService {
+  private final ResourceTableStore resourceTableStore;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    private final SqlViewService sqlViewService;
+  private final SqlViewService sqlViewService;
 
-    private final DataApprovalLevelService dataApprovalLevelService;
+  private final DataApprovalLevelService dataApprovalLevelService;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private final StatementBuilder statementBuilder;
+  private final StatementBuilder statementBuilder;
 
-    private final AnalyticsExportSettings analyticsExportSettings;
+  private final AnalyticsExportSettings analyticsExportSettings;
 
-    private final PeriodDataProvider periodDataProvider;
+  private final PeriodDataProvider periodDataProvider;
 
-    @Override
-    @Transactional
-    public void generateOrganisationUnitStructures()
-    {
-        resourceTableStore.generateResourceTable( new OrganisationUnitStructureResourceTable(
-            null, organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableType() ) );
+  @Override
+  @Transactional
+  public void generateOrganisationUnitStructures() {
+    resourceTableStore.generateResourceTable(
+        new OrganisationUnitStructureResourceTable(
+            null,
+            organisationUnitService,
+            organisationUnitService.getNumberOfOrganisationalLevels(),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateDataSetOrganisationUnitCategoryTable() {
+    resourceTableStore.generateResourceTable(
+        new DataSetOrganisationUnitCategoryResourceTable(
+            idObjectManager.getAllNoAcl(DataSet.class),
+            categoryService.getDefaultCategoryOptionCombo(),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateCategoryOptionComboNames() {
+    resourceTableStore.generateResourceTable(
+        new CategoryOptionComboNameResourceTable(
+            idObjectManager.getAllNoAcl(CategoryCombo.class),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateDataElementGroupSetTable() {
+    resourceTableStore.generateResourceTable(
+        new DataElementGroupSetResourceTable(
+            idObjectManager.getDataDimensionsNoAcl(DataElementGroupSet.class),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateIndicatorGroupSetTable() {
+    resourceTableStore.generateResourceTable(
+        new IndicatorGroupSetResourceTable(
+            idObjectManager.getAllNoAcl(IndicatorGroupSet.class),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateOrganisationUnitGroupSetTable() {
+    resourceTableStore.generateResourceTable(
+        new OrganisationUnitGroupSetResourceTable(
+            idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class),
+            statementBuilder.supportsPartialIndexes(),
+            organisationUnitService.getNumberOfOrganisationalLevels(),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateCategoryTable() {
+    resourceTableStore.generateResourceTable(
+        new CategoryResourceTable(
+            idObjectManager.getDataDimensionsNoAcl(Category.class),
+            idObjectManager.getDataDimensionsNoAcl(CategoryOptionGroupSet.class),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateDataElementTable() {
+    resourceTableStore.generateResourceTable(
+        new DataElementResourceTable(
+            idObjectManager.getAllNoAcl(DataElement.class),
+            analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  public void generateDatePeriodTable() {
+    resourceTableStore.generateResourceTable(
+        new DatePeriodResourceTable(
+            periodDataProvider.getAvailableYears(), analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generatePeriodTable() {
+    resourceTableStore.generateResourceTable(
+        new PeriodResourceTable(
+            periodService.getAllPeriods(), analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  @Transactional
+  public void generateCategoryOptionComboTable() {
+    resourceTableStore.generateResourceTable(
+        new CategoryOptionComboResourceTable(null, analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  public void generateDataApprovalRemapLevelTable() {
+    resourceTableStore.generateResourceTable(
+        new DataApprovalRemapLevelResourceTable(null, analyticsExportSettings.getTableType()));
+  }
+
+  @Override
+  public void generateDataApprovalMinLevelTable() {
+    List<OrganisationUnitLevel> orgUnitLevels =
+        Lists.newArrayList(dataApprovalLevelService.getOrganisationUnitApprovalLevels());
+
+    if (orgUnitLevels.size() > 0) {
+      resourceTableStore.generateResourceTable(
+          new DataApprovalMinLevelResourceTable(
+              orgUnitLevels, analyticsExportSettings.getTableType()));
     }
+  }
 
-    @Override
-    @Transactional
-    public void generateDataSetOrganisationUnitCategoryTable()
-    {
-        resourceTableStore.generateResourceTable( new DataSetOrganisationUnitCategoryResourceTable(
-            idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultCategoryOptionCombo(),
-            analyticsExportSettings.getTableType() ) );
-    }
+  // -------------------------------------------------------------------------
+  // SQL Views. Each view is created/dropped in separate transactions so that
+  // process continues even if individual operations fail.
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void generateCategoryOptionComboNames()
-    {
-        resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable(
-            idObjectManager.getAllNoAcl( CategoryCombo.class ), analyticsExportSettings.getTableType() ) );
-    }
+  @Override
+  public void createAllSqlViews(JobProgress progress) {
+    List<SqlView> nonQueryViews =
+        new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
+            .stream().sorted().filter(view -> !view.isQuery()).collect(toList());
 
-    @Override
-    @Transactional
-    public void generateDataElementGroupSetTable()
-    {
-        resourceTableStore.generateResourceTable( new DataElementGroupSetResourceTable(
-            idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ),
-            analyticsExportSettings.getTableType() ) );
-    }
+    progress.startingStage("Create SQL views", nonQueryViews.size());
+    progress.runStage(
+        nonQueryViews,
+        SqlView::getViewName,
+        view -> {
+          try {
+            sqlViewService.createViewTable(view);
+          } catch (IllegalQueryException ex) {
+            log.warn(
+                String.format(
+                    "Ignoring SQL view which failed validation: %s, %s, message: %s",
+                    view.getUid(), view.getName(), ex.getMessage()));
+          }
+        });
+  }
 
-    @Override
-    @Transactional
-    public void generateIndicatorGroupSetTable()
-    {
-        resourceTableStore.generateResourceTable( new IndicatorGroupSetResourceTable(
-            idObjectManager.getAllNoAcl( IndicatorGroupSet.class ), analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    @Transactional
-    public void generateOrganisationUnitGroupSetTable()
-    {
-        resourceTableStore.generateResourceTable( new OrganisationUnitGroupSetResourceTable(
-            idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ),
-            statementBuilder.supportsPartialIndexes(), organisationUnitService.getNumberOfOrganisationalLevels(),
-            analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    @Transactional
-    public void generateCategoryTable()
-    {
-        resourceTableStore.generateResourceTable( new CategoryResourceTable(
-            idObjectManager.getDataDimensionsNoAcl( Category.class ),
-            idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ),
-            analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    @Transactional
-    public void generateDataElementTable()
-    {
-        resourceTableStore.generateResourceTable( new DataElementResourceTable(
-            idObjectManager.getAllNoAcl( DataElement.class ), analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    public void generateDatePeriodTable()
-    {
-        resourceTableStore
-            .generateResourceTable( new DatePeriodResourceTable( periodDataProvider.getAvailableYears(),
-                analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    @Transactional
-    public void generatePeriodTable()
-    {
-        resourceTableStore
-            .generateResourceTable(
-                new PeriodResourceTable( periodService.getAllPeriods(), analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    @Transactional
-    public void generateCategoryOptionComboTable()
-    {
-        resourceTableStore.generateResourceTable(
-            new CategoryOptionComboResourceTable( null, analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    public void generateDataApprovalRemapLevelTable()
-    {
-        resourceTableStore.generateResourceTable(
-            new DataApprovalRemapLevelResourceTable( null, analyticsExportSettings.getTableType() ) );
-    }
-
-    @Override
-    public void generateDataApprovalMinLevelTable()
-    {
-        List<OrganisationUnitLevel> orgUnitLevels = Lists.newArrayList(
-            dataApprovalLevelService.getOrganisationUnitApprovalLevels() );
-
-        if ( orgUnitLevels.size() > 0 )
-        {
-            resourceTableStore
-                .generateResourceTable(
-                    new DataApprovalMinLevelResourceTable( orgUnitLevels, analyticsExportSettings.getTableType() ) );
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // SQL Views. Each view is created/dropped in separate transactions so that
-    // process continues even if individual operations fail.
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void createAllSqlViews( JobProgress progress )
-    {
-        List<SqlView> nonQueryViews = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() ).stream()
-            .sorted()
-            .filter( view -> !view.isQuery() )
-            .collect( toList() );
-
-        progress.startingStage( "Create SQL views", nonQueryViews.size() );
-        progress.runStage( nonQueryViews, SqlView::getViewName, view -> {
-            try
-            {
-                sqlViewService.createViewTable( view );
-            }
-            catch ( IllegalQueryException ex )
-            {
-                log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s",
-                    view.getUid(), view.getName(), ex.getMessage() ) );
-            }
-        } );
-    }
-
-    @Override
-    public void dropAllSqlViews( JobProgress progress )
-    {
-        List<SqlView> nonQueryViews = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() ).stream()
-            .filter( view -> !view.isQuery() )
-            .sorted( reverseOrder() )
-            .collect( toList() );
-        progress.startingStage( "Drop SQL views", nonQueryViews.size() );
-        progress.runStage( nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable );
-    }
+  @Override
+  public void dropAllSqlViews(JobProgress progress) {
+    List<SqlView> nonQueryViews =
+        new ArrayList<>(sqlViewService.getAllSqlViewsNoAcl())
+            .stream().filter(view -> !view.isQuery()).sorted(reverseOrder()).collect(toList());
+    progress.startingStage("Drop SQL views", nonQueryViews.size());
+    progress.runStage(nonQueryViews, SqlView::getViewName, sqlViewService::dropViewTable);
+  }
 }

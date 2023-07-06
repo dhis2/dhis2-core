@@ -31,10 +31,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
@@ -48,184 +46,125 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String query;
+public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapter {
+  private String query;
 
-    private Set<String> attribute;
+  private Set<String> attribute;
 
-    private Set<String> filter;
+  private Set<String> filter;
 
-    /**
-     * Semicolon-delimited list of Organizational Unit UIDs
-     */
-    private String ou;
+  /** Semicolon-delimited list of Organizational Unit UIDs */
+  private String ou;
 
-    /**
-     * Selection mode for the specified organisation units, default is
-     * ACCESSIBLE.
-     */
-    private OrganisationUnitSelectionMode ouMode;
+  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
+  private OrganisationUnitSelectionMode ouMode;
 
-    /**
-     * a Program UID for which instances in the response must be enrolled in.
-     */
-    private String program;
+  /** a Program UID for which instances in the response must be enrolled in. */
+  private String program;
 
-    /**
-     * The {@see ProgramStatus} of the Tracked Entity Instance in the given
-     * program.
-     */
-    private ProgramStatus programStatus;
+  /** The {@see ProgramStatus} of the Tracked Entity Instance in the given program. */
+  private ProgramStatus programStatus;
 
-    /**
-     * Indicates whether the Tracked Entity Instance is marked for follow up for
-     * the specified Program.
-     */
-    private Boolean followUp;
+  /**
+   * Indicates whether the Tracked Entity Instance is marked for follow up for the specified
+   * Program.
+   */
+  private Boolean followUp;
 
-    /**
-     * Start date for last updated.
-     */
-    private Date lastUpdatedStartDate;
+  /** Start date for last updated. */
+  private Date lastUpdatedStartDate;
 
-    /**
-     * End date for last updated.
-     */
-    private Date lastUpdatedEndDate;
+  /** End date for last updated. */
+  private Date lastUpdatedEndDate;
 
-    /**
-     * The last updated duration filter.
-     */
-    private String lastUpdatedDuration;
+  /** The last updated duration filter. */
+  private String lastUpdatedDuration;
 
-    /**
-     * The given Program start date.
-     */
-    private Date programStartDate;
+  /** The given Program start date. */
+  private Date programStartDate;
 
-    /**
-     * The given Program end date.
-     */
-    private Date programEndDate;
+  /** The given Program end date. */
+  private Date programEndDate;
 
-    /**
-     * Start date for enrollment in the given program.
-     */
-    private Date programEnrollmentStartDate;
+  /** Start date for enrollment in the given program. */
+  private Date programEnrollmentStartDate;
 
-    /**
-     * End date for enrollment in the given program.
-     */
-    private Date programEnrollmentEndDate;
+  /** End date for enrollment in the given program. */
+  private Date programEnrollmentEndDate;
 
-    /**
-     * Start date for incident in the given program.
-     */
-    private Date programIncidentStartDate;
+  /** Start date for incident in the given program. */
+  private Date programIncidentStartDate;
 
-    /**
-     * End date for incident in the given program.
-     */
-    private Date programIncidentEndDate;
+  /** End date for incident in the given program. */
+  private Date programIncidentEndDate;
 
-    /**
-     * Only returns Tracked Entity Instances of this type.
-     */
-    private String trackedEntityType;
+  /** Only returns Tracked Entity Instances of this type. */
+  private String trackedEntityType;
 
-    /**
-     * Semicolon-delimited list of Tracked Entity Instance UIDs
-     */
-    private String trackedEntityInstance;
+  /** Semicolon-delimited list of Tracked Entity Instance UIDs */
+  private String trackedEntityInstance;
 
-    /**
-     * Selection mode for user assignment of events.
-     */
-    private AssignedUserSelectionMode assignedUserMode;
+  /** Selection mode for user assignment of events. */
+  private AssignedUserSelectionMode assignedUserMode;
 
-    /**
-     * Semicolon-delimited list of user UIDs to filter based on events assigned
-     * to the users.
-     */
-    private String assignedUser;
+  /** Semicolon-delimited list of user UIDs to filter based on events assigned to the users. */
+  private String assignedUser;
 
-    /**
-     * Program Stage UID, used for filtering TEIs based on the selected Program
-     * Stage
-     */
-    private String programStage;
+  /** Program Stage UID, used for filtering TEIs based on the selected Program Stage */
+  private String programStage;
 
-    /**
-     * Status of any events in the specified program.
-     */
-    private EventStatus eventStatus;
+  /** Status of any events in the specified program. */
+  private EventStatus eventStatus;
 
-    /**
-     * Start date for Event for the given Program.
-     */
-    private Date eventStartDate;
+  /** Start date for Event for the given Program. */
+  private Date eventStartDate;
 
-    /**
-     * End date for Event for the given Program.
-     */
-    private Date eventEndDate;
+  /** End date for Event for the given Program. */
+  private Date eventEndDate;
 
-    /**
-     * Indicates whether not to include meta data in the response.
-     */
-    private boolean skipMeta;
+  /** Indicates whether not to include meta data in the response. */
+  private boolean skipMeta;
 
-    /**
-     * Indicates whether to include soft-deleted elements
-     */
-    private boolean includeDeleted;
+  /** Indicates whether to include soft-deleted elements */
+  private boolean includeDeleted;
 
-    /**
-     * Indicates whether to include all TEI attributes
-     */
-    private boolean includeAllAttributes;
+  /** Indicates whether to include all TEI attributes */
+  private boolean includeAllAttributes;
 
-    /**
-     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
-     * is a potentialDuplicate or not
-     */
-    private Boolean potentialDuplicate;
+  /**
+   * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a
+   * potentialDuplicate or not
+   */
+  private Boolean potentialDuplicate;
 
-    /**
-     * The file name in case of exporting as file
-     */
-    private String attachment;
+  /** The file name in case of exporting as file */
+  private String attachment;
 
-    public Set<String> getOrgUnits()
-    {
-        return ou != null ? TextUtils.splitToSet( ou, TextUtils.SEMICOLON ) : new HashSet<>();
+  public Set<String> getOrgUnits() {
+    return ou != null ? TextUtils.splitToSet(ou, TextUtils.SEMICOLON) : new HashSet<>();
+  }
+
+  public Set<String> getAssignedUsers() {
+    Set<String> assignedUsers = new HashSet<>();
+
+    if (assignedUser != null && !assignedUser.isEmpty()) {
+      assignedUsers =
+          TextUtils.splitToSet(assignedUser, TextUtils.SEMICOLON).stream()
+              .filter(CodeGenerator::isValidUid)
+              .collect(Collectors.toSet());
     }
 
-    public Set<String> getAssignedUsers()
-    {
-        Set<String> assignedUsers = new HashSet<>();
+    return assignedUsers;
+  }
 
-        if ( assignedUser != null && !assignedUser.isEmpty() )
-        {
-            assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
-                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
-        }
+  public boolean hasTrackedEntityInstance() {
+    return StringUtils.isNotEmpty(this.trackedEntityInstance);
+  }
 
-        return assignedUsers;
+  public Set<String> getTrackedEntityInstances() {
+    if (hasTrackedEntityInstance()) {
+      return TextUtils.splitToSet(trackedEntityInstance, TextUtils.SEMICOLON);
     }
-
-    public boolean hasTrackedEntityInstance()
-    {
-        return StringUtils.isNotEmpty( this.trackedEntityInstance );
-    }
-
-    public Set<String> getTrackedEntityInstances()
-    {
-        if ( hasTrackedEntityInstance() )
-        {
-            return TextUtils.splitToSet( trackedEntityInstance, TextUtils.SEMICOLON );
-        }
-        return new HashSet<>();
-    }
+    return new HashSet<>();
+  }
 }

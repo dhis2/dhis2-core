@@ -34,7 +34,6 @@ import static org.mockito.Mockito.when;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -49,54 +48,51 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-abstract class AbstractSupplierTest<T>
-{
-    @Mock
-    protected NamedParameterJdbcTemplate jdbcTemplate;
+@ExtendWith(MockitoExtension.class)
+abstract class AbstractSupplierTest<T> {
+  @Mock protected NamedParameterJdbcTemplate jdbcTemplate;
 
-    @Mock
-    protected ResultSet mockResultSet;
+  @Mock protected ResultSet mockResultSet;
 
-    @Captor
-    protected ArgumentCaptor<String> sql;
+  @Captor protected ArgumentCaptor<String> sql;
 
-    public void mockResultSetExtractor( ResultSet resultSetMock )
-    {
-        when( jdbcTemplate.query( sql.capture(), any( MapSqlParameterSource.class ), any( ResultSetExtractor.class ) ) )
-            .thenAnswer( (Answer<Map<String, T>>) invocationOnMock -> {
-                // Fetch the method arguments
-                Object[] args = invocationOnMock.getArguments();
+  public void mockResultSetExtractor(ResultSet resultSetMock) {
+    when(jdbcTemplate.query(
+            sql.capture(), any(MapSqlParameterSource.class), any(ResultSetExtractor.class)))
+        .thenAnswer(
+            (Answer<Map<String, T>>)
+                invocationOnMock -> {
+                  // Fetch the method arguments
+                  Object[] args = invocationOnMock.getArguments();
 
-                // Fetch the row mapper instance from the arguments
-                ResultSetExtractor<Map<String, T>> rm = (ResultSetExtractor<Map<String, T>>) args[2];
+                  // Fetch the row mapper instance from the arguments
+                  ResultSetExtractor<Map<String, T>> rm =
+                      (ResultSetExtractor<Map<String, T>>) args[2];
 
-                // Invoke the row mapper
-                return rm.extractData( resultSetMock );
+                  // Invoke the row mapper
+                  return rm.extractData(resultSetMock);
+                });
+  }
 
-            } );
-    }
+  public void mockResultSetExtractorWithoutParameters(ResultSet resultSetMock) {
+    when(jdbcTemplate.query(anyString(), any(ResultSetExtractor.class)))
+        .thenAnswer(
+            (Answer<Map<String, T>>)
+                invocationOnMock -> {
+                  // Fetch the method arguments
+                  Object[] args = invocationOnMock.getArguments();
 
-    public void mockResultSetExtractorWithoutParameters( ResultSet resultSetMock )
-    {
-        when( jdbcTemplate.query( anyString(), any( ResultSetExtractor.class ) ) )
-            .thenAnswer( (Answer<Map<String, T>>) invocationOnMock -> {
-                // Fetch the method arguments
-                Object[] args = invocationOnMock.getArguments();
+                  // Fetch the row mapper instance from the arguments
+                  ResultSetExtractor<Map<String, T>> rm =
+                      (ResultSetExtractor<Map<String, T>>) args[1];
 
-                // Fetch the row mapper instance from the arguments
-                ResultSetExtractor<Map<String, T>> rm = (ResultSetExtractor<Map<String, T>>) args[1];
+                  // Invoke the row mapper
+                  return rm.extractData(resultSetMock);
+                });
+  }
 
-                // Invoke the row mapper
-                return rm.extractData( resultSetMock );
-
-            } );
-    }
-
-    @BeforeEach
-    protected void setUpMock()
-        throws SQLException
-    {
-        when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
-    }
+  @BeforeEach
+  protected void setUpMock() throws SQLException {
+    when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+  }
 }

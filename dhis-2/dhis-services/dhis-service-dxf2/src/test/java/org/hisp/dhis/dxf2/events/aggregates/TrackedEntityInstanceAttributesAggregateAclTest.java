@@ -31,10 +31,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -50,103 +51,103 @@ import org.hisp.dhis.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
-{
+class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest {
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
+  @Autowired private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
-    @Autowired
-    private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
+  @Autowired private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        super.setUpTest();
-        User user = createUser( "testUser" );
-        setUserAuthorityToNonSuper( user );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            new MockCurrentUserService( user ), trackedEntityInstanceAggregate, teiService,
-            trackedEntityInstanceService );
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    super.setUpTest();
+    User user = createUser("testUser");
+    setUserAuthorityToNonSuper(user);
+    setDependency(
+        CurrentUserServiceTarget.class,
+        CurrentUserServiceTarget::setCurrentUserService,
+        new MockCurrentUserService(user),
+        trackedEntityInstanceAggregate,
+        teiService,
+        trackedEntityInstanceService);
+  }
 
-    @Override
-    public void tearDownTest()
-    {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, trackedEntityInstanceAggregate, teiService, trackedEntityInstanceService );
-    }
+  @Override
+  public void tearDownTest() {
+    setDependency(
+        CurrentUserServiceTarget.class,
+        CurrentUserServiceTarget::setCurrentUserService,
+        currentUserService,
+        trackedEntityInstanceAggregate,
+        teiService,
+        trackedEntityInstanceService);
+  }
 
-    @Test
-    void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType()
-    {
-        doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-        } );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( trackedEntityInstances, hasSize( 0 ) );
-    }
+  @Test
+  void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType() {
+    doInTransaction(
+        () -> {
+          this.persistTrackedEntityInstance();
+          this.persistTrackedEntityInstance();
+          this.persistTrackedEntityInstance();
+          this.persistTrackedEntityInstance();
+        });
+    TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setTrackedEntityType(trackedEntityTypeA);
+    queryParams.setIncludeAllAttributes(true);
+    TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+    final List<TrackedEntityInstance> trackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(trackedEntityInstances, hasSize(0));
+  }
 
-    @Test
-    void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
-    {
-        final String tetUid = CodeGenerator.generateUid();
-        doInTransaction( () -> {
-            TrackedEntityType trackedEntityTypeZ = createTrackedEntityType( 'Z' );
-            trackedEntityTypeZ.setUid( tetUid );
-            trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );
-            trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeZ );
-            // When saving the trackedEntityType using addTrackedEntityType, the
-            // public access value is ignored
-            // therefore we need to update the previously saved TeiType
-            final TrackedEntityType trackedEntityType = trackedEntityTypeService
-                .getTrackedEntityType( trackedEntityTypeZ.getUid() );
-            trackedEntityType.setPublicAccess( DATA_READ );
-            trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-            this.persistTrackedEntityInstance( ImmutableMap.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntityInstance( ImmutableMap.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-        } );
-        final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( tetUid );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityType );
-        queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( trackedEntityInstances, hasSize( 2 ) );
-    }
+  @Test
+  void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType() {
+    final String tetUid = CodeGenerator.generateUid();
+    doInTransaction(
+        () -> {
+          TrackedEntityType trackedEntityTypeZ = createTrackedEntityType('Z');
+          trackedEntityTypeZ.setUid(tetUid);
+          trackedEntityTypeZ.setName("TrackedEntityTypeZ" + trackedEntityTypeZ.getUid());
+          trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeZ);
+          // When saving the trackedEntityType using addTrackedEntityType, the
+          // public access value is ignored
+          // therefore we need to update the previously saved TeiType
+          final TrackedEntityType trackedEntityType =
+              trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeZ.getUid());
+          trackedEntityType.setPublicAccess(DATA_READ);
+          trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+          this.persistTrackedEntityInstance(
+              ImmutableMap.of("trackedEntityType", trackedEntityType));
+          this.persistTrackedEntityInstance(
+              ImmutableMap.of("trackedEntityType", trackedEntityType));
+          this.persistTrackedEntityInstance();
+          this.persistTrackedEntityInstance();
+        });
+    final TrackedEntityType trackedEntityType =
+        trackedEntityTypeService.getTrackedEntityType(tetUid);
+    TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setTrackedEntityType(trackedEntityType);
+    queryParams.setIncludeAllAttributes(true);
+    TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+    final List<TrackedEntityInstance> trackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(trackedEntityInstances, hasSize(2));
+  }
 
-    protected void setUserAuthorityToNonSuper( User user )
-    {
-        UserRole userRole = new UserRole();
-        userRole.setName( "UserRole_" + user.getUsername() );
-        userRole.setUid( CodeGenerator.generateUid() );
-        userRole.setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
-        user.setUserRoles( Sets.newHashSet( userRole ) );
-    }
+  protected void setUserAuthorityToNonSuper(User user) {
+    UserRole userRole = new UserRole();
+    userRole.setName("UserRole_" + user.getUsername());
+    userRole.setUid(CodeGenerator.generateUid());
+    userRole.setAuthorities(new HashSet<>(Collections.singletonList("user")));
+    user.setUserRoles(Sets.newHashSet(userRole));
+  }
 }

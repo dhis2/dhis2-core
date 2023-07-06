@@ -31,9 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,161 +44,136 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for retrieving information about the currently authenticated user.
- * <p>
- * Note that most methods are transactional, except for retrieving current
- * UserInfo.
+ *
+ * <p>Note that most methods are transactional, except for retrieving current UserInfo.
  *
  * @author Torgeir Lorange Ostby
  */
-@Service( "org.hisp.dhis.user.CurrentUserService" )
+@Service("org.hisp.dhis.user.CurrentUserService")
 @Slf4j
-public class DefaultCurrentUserService
-    extends AbstractSpringSecurityCurrentUserService
-{
-    /**
-     * Cache contains Set of UserGroup UID for each user. Key is username. This
-     * will be used for ACL check in
-     * {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
-     */
-    private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+public class DefaultCurrentUserService extends AbstractSpringSecurityCurrentUserService {
+  /**
+   * Cache contains Set of UserGroup UID for each user. Key is username. This will be used for ACL
+   * check in {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
+   */
+  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final UserStore userStore;
+  private final UserStore userStore;
 
-    public DefaultCurrentUserService( CacheProvider cacheProvider,
-        @Lazy UserStore userStore )
-    {
-        checkNotNull( cacheProvider );
-        checkNotNull( userStore );
+  public DefaultCurrentUserService(CacheProvider cacheProvider, @Lazy UserStore userStore) {
+    checkNotNull(cacheProvider);
+    checkNotNull(userStore);
 
-        this.userStore = userStore;
-        this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+    this.userStore = userStore;
+    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+  }
+
+  // -------------------------------------------------------------------------
+  // CurrentUserService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public User getCurrentUser() {
+    String username = getCurrentUsername();
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || authentication.getPrincipal() == null) {
+      return null;
     }
 
-    // -------------------------------------------------------------------------
-    // CurrentUserService implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public User getCurrentUser()
-    {
-        String username = getCurrentUsername();
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if ( authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() == null )
-        {
-            return null;
-        }
-
-        if ( username == null )
-        {
-            throw new IllegalStateException( "No current user" );
-        }
-
-        User user = userStore.getUserByUsername( username );
-        if ( user == null )
-        {
-            log.debug( "User is NULL, this should only happen at startup!" );
-            return null;
-        }
-
-        user.getAllAuthorities();
-        return user;
+    if (username == null) {
+      throw new IllegalStateException("No current user");
     }
 
-    @Override
-    public Long getUserId( String username )
-    {
-        User user = userStore.getUserByUsername( username );
-
-        return user != null ? user.getId() : null;
+    User user = userStore.getUserByUsername(username);
+    if (user == null) {
+      log.debug("User is NULL, this should only happen at startup!");
+      return null;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public boolean currentUserIsSuper()
-    {
-        User user = getCurrentUser();
+    user.getAllAuthorities();
+    return user;
+  }
 
-        return user != null && user.isSuper();
+  @Override
+  public Long getUserId(String username) {
+    User user = userStore.getUserByUsername(username);
+
+    return user != null ? user.getId() : null;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean currentUserIsSuper() {
+    User user = getCurrentUser();
+
+    return user != null && user.isSuper();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<OrganisationUnit> getCurrentUserOrganisationUnits() {
+    User user = getCurrentUser();
+
+    return user != null ? new HashSet<>(user.getOrganisationUnits()) : new HashSet<>();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean currentUserIsAuthorized(String auth) {
+    User user = getCurrentUser();
+
+    return user != null && user.isAuthorized(auth);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
+    User currentUser = getCurrentUser();
+
+    if (currentUser == null) {
+      return null;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
-    {
-        User user = getCurrentUser();
+    return currentUserGroupInfoCache.get(currentUser.getUsername(), this::getCurrentUserGroupsInfo);
+  }
 
-        return user != null ? new HashSet<>( user.getOrganisationUnits() ) : new HashSet<>();
+  @Override
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupsInfo(User userInfo) {
+    if (userInfo == null) {
+      return null;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public boolean currentUserIsAuthorized( String auth )
-    {
-        User user = getCurrentUser();
+    return currentUserGroupInfoCache.get(userInfo.getUsername(), this::getCurrentUserGroupsInfo);
+  }
 
-        return user != null && user.isAuthorized( auth );
+  @Override
+  public void invalidateUserGroupCache(String username) {
+    try {
+      currentUserGroupInfoCache.invalidate(username);
+    } catch (NullPointerException exception) {
+      // Ignore if key doesn't exist
+    }
+  }
+
+  private CurrentUserGroupInfo getCurrentUserGroupsInfo(String username) {
+    if (username == null) {
+      return null;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo()
-    {
-        User currentUser = getCurrentUser();
-
-        if ( currentUser == null )
-        {
-            return null;
-        }
-
-        return currentUserGroupInfoCache
-            .get( currentUser.getUsername(), this::getCurrentUserGroupsInfo );
+    User currentUser = getCurrentUser();
+    if (currentUser == null) {
+      log.warn("User is null, this should only happen at startup!");
+      return null;
     }
-
-    @Override
-    @Transactional( readOnly = true )
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo( User userInfo )
-    {
-        if ( userInfo == null )
-        {
-            return null;
-        }
-
-        return currentUserGroupInfoCache
-            .get( userInfo.getUsername(), this::getCurrentUserGroupsInfo );
-    }
-
-    @Override
-    public void invalidateUserGroupCache( String username )
-    {
-        try
-        {
-            currentUserGroupInfoCache.invalidate( username );
-        }
-        catch ( NullPointerException exception )
-        {
-            // Ignore if key doesn't exist
-        }
-    }
-
-    private CurrentUserGroupInfo getCurrentUserGroupsInfo( String username )
-    {
-        if ( username == null )
-        {
-            return null;
-        }
-
-        User currentUser = getCurrentUser();
-        if ( currentUser == null )
-        {
-            log.warn( "User is null, this should only happen at startup!" );
-            return null;
-        }
-        return userStore.getCurrentUserGroupInfo( currentUser.getId() );
-    }
+    return userStore.getCurrentUserGroupInfo(currentUser.getId());
+  }
 }

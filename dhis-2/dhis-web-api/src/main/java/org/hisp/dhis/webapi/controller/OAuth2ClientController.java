@@ -36,8 +36,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = OAuth2ClientSchemaDescriptor.API_ENDPOINT )
-public class OAuth2ClientController
-    extends AbstractCrudController<OAuth2Client>
-{
-}
+@RequestMapping(value = OAuth2ClientSchemaDescriptor.API_ENDPOINT)
+public class OAuth2ClientController extends AbstractCrudController<OAuth2Client> {}

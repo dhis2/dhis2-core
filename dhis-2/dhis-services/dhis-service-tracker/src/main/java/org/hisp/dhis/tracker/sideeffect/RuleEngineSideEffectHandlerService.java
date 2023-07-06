@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.sideeffect;
 
 import java.util.List;
-
 import org.hisp.dhis.tracker.job.TrackerRuleEngineMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
@@ -36,26 +35,22 @@ import org.springframework.stereotype.Service;
 /**
  * @author Zubair Asghar
  */
-
 @Service
-public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService
-{
-    private final TrackerRuleEngineMessageManager ruleEngineMessageManager;
+public class RuleEngineSideEffectHandlerService implements SideEffectHandlerService {
+  private final TrackerRuleEngineMessageManager ruleEngineMessageManager;
 
-    public RuleEngineSideEffectHandlerService( TrackerRuleEngineMessageManager ruleEngineMessageManager )
-    {
-        this.ruleEngineMessageManager = ruleEngineMessageManager;
-    }
+  public RuleEngineSideEffectHandlerService(
+      TrackerRuleEngineMessageManager ruleEngineMessageManager) {
+    this.ruleEngineMessageManager = ruleEngineMessageManager;
+  }
 
-    @Override
-    public void handleSideEffect( TrackerSideEffectDataBundle sideEffectDataBundle )
-    {
-        ruleEngineMessageManager.addJob( sideEffectDataBundle );
-    }
+  @Override
+  public void handleSideEffect(TrackerSideEffectDataBundle sideEffectDataBundle) {
+    ruleEngineMessageManager.addJob(sideEffectDataBundle);
+  }
 
-    @Override
-    public void handleSideEffects( List<TrackerSideEffectDataBundle> sideEffectDataBundles )
-    {
-        sideEffectDataBundles.forEach( this::handleSideEffect );
-    }
+  @Override
+  public void handleSideEffects(List<TrackerSideEffectDataBundle> sideEffectDataBundles) {
+    sideEffectDataBundles.forEach(this::handleSideEffect);
+  }
 }

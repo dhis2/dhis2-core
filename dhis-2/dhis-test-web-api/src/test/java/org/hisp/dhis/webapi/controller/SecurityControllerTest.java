@@ -32,18 +32,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.security.SecurityController}
- * sing (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.security.SecurityController} sing (mocked) REST
+ * requests.
  *
  * @author Jan Bernitt
  */
-class SecurityControllerTest extends DhisControllerConvenienceTest
-{
+class SecurityControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testAuthenticate2FA()
-    {
-        assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
-            GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );
-    }
+  @Test
+  void testAuthenticate2FA() {
+    assertWebMessage(
+        "Unauthorized",
+        401,
+        "ERROR",
+        "2FA code not authenticated",
+        GET("/2fa/authenticate?code=xyz").content(HttpStatus.UNAUTHORIZED));
+  }
 }

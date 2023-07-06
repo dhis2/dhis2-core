@@ -28,18 +28,15 @@
 package org.hisp.dhis.analytics.dimension;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
-public interface DimensionMapper
-{
-    DimensionResponse map( BaseIdentifiableObject dimension, String prefix );
+public interface DimensionMapper {
+  DimensionResponse map(BaseIdentifiableObject dimension, String prefix);
 
-    Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
+  Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
 
-    default boolean supports( BaseIdentifiableObject dimension )
-    {
-        return getSupportedClasses().contains( HibernateProxyUtils.getRealClass( dimension ) );
-    }
+  default boolean supports(BaseIdentifiableObject dimension) {
+    return getSupportedClasses().contains(HibernateProxyUtils.getRealClass(dimension));
+  }
 }

@@ -44,9 +44,7 @@ import java.net.URLConnection;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -62,131 +60,118 @@ import org.springframework.web.client.RestTemplate;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.apphub.AppHubService" )
-public class DefaultAppHubService
-    implements AppHubService
-{
-    private final RestTemplate restTemplate;
+@Service("org.hisp.dhis.apphub.AppHubService")
+public class DefaultAppHubService implements AppHubService {
+  private final RestTemplate restTemplate;
 
-    private final AppManager appManager;
+  private final AppManager appManager;
 
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    public DefaultAppHubService( RestTemplate restTemplate, AppManager appManager,
-        DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        checkNotNull( restTemplate );
-        checkNotNull( appManager );
-        checkNotNull( dhisConfigurationProvider );
-        this.restTemplate = restTemplate;
-        this.appManager = appManager;
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
+  public DefaultAppHubService(
+      RestTemplate restTemplate,
+      AppManager appManager,
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    checkNotNull(restTemplate);
+    checkNotNull(appManager);
+    checkNotNull(dhisConfigurationProvider);
+    this.restTemplate = restTemplate;
+    this.appManager = appManager;
+    this.dhisConfigurationProvider = dhisConfigurationProvider;
+  }
+
+  @Override
+  public String getAppHubApiResponse(String apiVersion, String query) throws URISyntaxException {
+    validateApiVersion(apiVersion);
+    validateQuery(query);
+
+    apiVersion = sanitizeQuery(apiVersion);
+    query = sanitizeQuery(query);
+
+    String appHubApiUrl = dhisConfigurationProvider.getProperty(ConfigurationKey.APPHUB_API_URL);
+
+    log.info(
+        "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'",
+        appHubApiUrl,
+        apiVersion,
+        query);
+
+    String url = String.format("%s/%s/%s", appHubApiUrl, apiVersion, query);
+
+    log.info("App Hub proxy request URL: '{}'", url);
+
+    ResponseEntity<String> response =
+        restTemplate.exchange(new URI(url), HttpMethod.GET, getJsonRequestEntity(), String.class);
+
+    return response.getBody();
+  }
+
+  @Override
+  public List<WebApp> getAppHub() {
+    String appHubApiUrl = dhisConfigurationProvider.getProperty(ConfigurationKey.APPHUB_API_URL);
+    String allAppsUrl = appHubApiUrl + "/apps";
+
+    WebApp[] apps = restTemplate.getForObject(allAppsUrl, WebApp[].class);
+
+    return Arrays.asList(apps);
+  }
+
+  @Override
+  public AppStatus installAppFromAppHub(String id) {
+    if (id == null) {
+      return AppStatus.NOT_FOUND;
     }
 
-    @Override
-    public String getAppHubApiResponse( String apiVersion, String query )
-        throws URISyntaxException
-    {
-        validateApiVersion( apiVersion );
-        validateQuery( query );
+    try {
+      Optional<AppVersion> webAppVersion = getWebAppVersion(id);
 
-        apiVersion = sanitizeQuery( apiVersion );
-        query = sanitizeQuery( query );
+      if (webAppVersion.isPresent()) {
+        AppVersion version = webAppVersion.get();
 
-        String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
+        URL url = new URL(version.getDownloadUrl());
 
-        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, apiVersion,
-            query );
+        String filename = version.getFilename();
 
-        String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
+        return appManager.installApp(getFile(url), filename);
+      }
 
-        log.info( "App Hub proxy request URL: '{}'", url );
+      log.info(String.format("No version found for id %s", id));
 
-        ResponseEntity<String> response = restTemplate.exchange( new URI( url ), HttpMethod.GET, getJsonRequestEntity(),
-            String.class );
-
-        return response.getBody();
+      return AppStatus.NOT_FOUND;
+    } catch (IOException ex) {
+      throw new RuntimeException("Failed to install app", ex);
     }
+  }
 
-    @Override
-    public List<WebApp> getAppHub()
-    {
-        String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
-        String allAppsUrl = appHubApiUrl + "/apps";
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-        WebApp[] apps = restTemplate.getForObject( allAppsUrl, WebApp[].class );
-
-        return Arrays.asList( apps );
-    }
-
-    @Override
-    public AppStatus installAppFromAppHub( String id )
-    {
-        if ( id == null )
-        {
-            return AppStatus.NOT_FOUND;
+  private Optional<AppVersion> getWebAppVersion(String id) {
+    for (WebApp app : getAppHub()) {
+      for (AppVersion version : app.getVersions()) {
+        if (id.equals(version.getId())) {
+          return Optional.of(version);
         }
-
-        try
-        {
-            Optional<AppVersion> webAppVersion = getWebAppVersion( id );
-
-            if ( webAppVersion.isPresent() )
-            {
-                AppVersion version = webAppVersion.get();
-
-                URL url = new URL( version.getDownloadUrl() );
-
-                String filename = version.getFilename();
-
-                return appManager.installApp( getFile( url ), filename );
-            }
-
-            log.info( String.format( "No version found for id %s", id ) );
-
-            return AppStatus.NOT_FOUND;
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to install app", ex );
-        }
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return Optional.empty();
+  }
 
-    private Optional<AppVersion> getWebAppVersion( String id )
-    {
-        for ( WebApp app : getAppHub() )
-        {
-            for ( AppVersion version : app.getVersions() )
-            {
-                if ( id.equals( version.getId() ) )
-                {
-                    return Optional.of( version );
-                }
-            }
-        }
+  private static File getFile(URL url) throws IOException {
+    URLConnection connection = url.openConnection();
 
-        return Optional.empty();
-    }
+    BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
 
-    private static File getFile( URL url )
-        throws IOException
-    {
-        URLConnection connection = url.openConnection();
+    File tempFile = File.createTempFile("dhis", null);
 
-        BufferedInputStream in = new BufferedInputStream( connection.getInputStream() );
+    tempFile.deleteOnExit();
 
-        File tempFile = File.createTempFile( "dhis", null );
+    FileOutputStream out = new FileOutputStream(tempFile);
 
-        tempFile.deleteOnExit();
+    IOUtils.copy(in, out);
 
-        FileOutputStream out = new FileOutputStream( tempFile );
-
-        IOUtils.copy( in, out );
-
-        return tempFile;
-    }
+    return tempFile;
+  }
 }

@@ -30,9 +30,7 @@ package org.hisp.dhis.program.notification;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -42,94 +40,85 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Zubair Asghar
  */
-
 @Slf4j
-@Service( "org.hisp.dhis.program.notification.ProgramNotificationInstanceService" )
+@Service("org.hisp.dhis.program.notification.ProgramNotificationInstanceService")
 public class DefaultProgramNotificationInstanceService
-    implements ProgramNotificationInstanceService
-{
-    private final ProgramNotificationInstanceStore notificationInstanceStore;
+    implements ProgramNotificationInstanceService {
+  private final ProgramNotificationInstanceStore notificationInstanceStore;
 
-    private final ProgramInstanceService programInstanceService;
+  private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+  private final ProgramStageInstanceService programStageInstanceService;
 
-    public DefaultProgramNotificationInstanceService( ProgramNotificationInstanceStore notificationInstanceStore,
-        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
-    {
+  public DefaultProgramNotificationInstanceService(
+      ProgramNotificationInstanceStore notificationInstanceStore,
+      ProgramInstanceService programInstanceService,
+      ProgramStageInstanceService programStageInstanceService) {
 
-        checkNotNull( notificationInstanceStore );
-        checkNotNull( programInstanceService );
-        checkNotNull( programStageInstanceService );
-        this.notificationInstanceStore = notificationInstanceStore;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
+    checkNotNull(notificationInstanceStore);
+    checkNotNull(programInstanceService);
+    checkNotNull(programStageInstanceService);
+    this.notificationInstanceStore = notificationInstanceStore;
+    this.programInstanceService = programInstanceService;
+    this.programStageInstanceService = programStageInstanceService;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramNotificationInstance> getProgramNotificationInstances(
+      ProgramNotificationInstanceParam programNotificationInstanceParam) {
+    return notificationInstanceStore.getProgramNotificationInstances(
+        programNotificationInstanceParam);
+  }
+
+  @Override
+  public Long countProgramNotificationInstances(ProgramNotificationInstanceParam params) {
+    return notificationInstanceStore.countProgramNotificationInstances(params);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void validateQueryParameters(ProgramNotificationInstanceParam params) {
+    if (params.hasProgramInstance()) {
+      if (!programInstanceService.programInstanceExists(params.getProgramInstance().getUid())) {
+        throw new IllegalQueryException(
+            String.format(
+                "Program instance %s does not exist", params.getProgramInstance().getUid()));
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramNotificationInstance> getProgramNotificationInstances(
-        ProgramNotificationInstanceParam programNotificationInstanceParam )
-    {
-        return notificationInstanceStore.getProgramNotificationInstances( programNotificationInstanceParam );
+    if (params.hasProgramStageInstance()) {
+      if (!programStageInstanceService.programStageInstanceExists(
+          params.getProgramStageInstance().getUid())) {
+        throw new IllegalQueryException(
+            String.format(
+                "Program stage instance %s does not exist",
+                params.getProgramStageInstance().getUid()));
+      }
     }
+  }
 
-    @Override
-    public Long countProgramNotificationInstances( ProgramNotificationInstanceParam params )
-    {
-        return notificationInstanceStore.countProgramNotificationInstances( params );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramNotificationInstance get(long programNotificationInstance) {
+    return notificationInstanceStore.get(programNotificationInstance);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public void validateQueryParameters( ProgramNotificationInstanceParam params )
-    {
-        if ( params.hasProgramInstance() )
-        {
-            if ( !programInstanceService.programInstanceExists( params.getProgramInstance().getUid() ) )
-            {
-                throw new IllegalQueryException(
-                    String.format( "Program instance %s does not exist", params.getProgramInstance().getUid() ) );
-            }
+  @Override
+  @Transactional
+  public void save(ProgramNotificationInstance programNotificationInstance) {
+    notificationInstanceStore.save(programNotificationInstance);
+  }
 
-        }
+  @Override
+  @Transactional
+  public void update(ProgramNotificationInstance programNotificationInstance) {
+    notificationInstanceStore.update(programNotificationInstance);
+  }
 
-        if ( params.hasProgramStageInstance() )
-        {
-            if ( !programStageInstanceService.programStageInstanceExists( params.getProgramStageInstance().getUid() ) )
-            {
-                throw new IllegalQueryException(
-                    String.format( "Program stage instance %s does not exist",
-                        params.getProgramStageInstance().getUid() ) );
-            }
-        }
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramNotificationInstance get( long programNotificationInstance )
-    {
-        return notificationInstanceStore.get( programNotificationInstance );
-    }
-
-    @Override
-    @Transactional
-    public void save( ProgramNotificationInstance programNotificationInstance )
-    {
-        notificationInstanceStore.save( programNotificationInstance );
-    }
-
-    @Override
-    @Transactional
-    public void update( ProgramNotificationInstance programNotificationInstance )
-    {
-        notificationInstanceStore.update( programNotificationInstance );
-    }
-
-    @Override
-    @Transactional
-    public void delete( ProgramNotificationInstance programNotificationInstance )
-    {
-        notificationInstanceStore.delete( programNotificationInstance );
-    }
+  @Override
+  @Transactional
+  public void delete(ProgramNotificationInstance programNotificationInstance) {
+    notificationInstanceStore.delete(programNotificationInstance);
+  }
 }

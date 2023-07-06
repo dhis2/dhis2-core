@@ -32,64 +32,54 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.sms.MessageQueue" )
-public class DatabaseSupportedInternalMemoryMessageQueue
-    implements MessageQueue
-{
-    private List<IncomingSms> queue = new ArrayList<>();
+@Component("org.hisp.dhis.sms.MessageQueue")
+public class DatabaseSupportedInternalMemoryMessageQueue implements MessageQueue {
+  private List<IncomingSms> queue = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final IncomingSmsService incomingSmsService;
+  private final IncomingSmsService incomingSmsService;
 
-    public DatabaseSupportedInternalMemoryMessageQueue( IncomingSmsService incomingSmsService )
-    {
-        checkNotNull( incomingSmsService );
-        this.incomingSmsService = incomingSmsService;
+  public DatabaseSupportedInternalMemoryMessageQueue(IncomingSmsService incomingSmsService) {
+    checkNotNull(incomingSmsService);
+    this.incomingSmsService = incomingSmsService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void put(IncomingSms message) {
+    queue.add(message);
+  }
+
+  @Override
+  public IncomingSms get() {
+    if (queue != null && queue.size() > 0) {
+      return queue.get(0);
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    return null;
+  }
 
-    @Override
-    public void put( IncomingSms message )
-    {
-        queue.add( message );
+  @Override
+  public void remove(IncomingSms message) {
+    queue.remove(message);
+  }
+
+  @Override
+  public void initialize() {
+    Collection<IncomingSms> messages = incomingSmsService.getAllUnparsedMessages();
+
+    if (messages != null) {
+      queue.addAll(messages);
     }
-
-    @Override
-    public IncomingSms get()
-    {
-        if ( queue != null && queue.size() > 0 )
-        {
-            return queue.get( 0 );
-        }
-
-        return null;
-    }
-
-    @Override
-    public void remove( IncomingSms message )
-    {
-        queue.remove( message );
-    }
-
-    @Override
-    public void initialize()
-    {
-        Collection<IncomingSms> messages = incomingSmsService.getAllUnparsedMessages();
-
-        if ( messages != null )
-        {
-            queue.addAll( messages );
-        }
-    }
+  }
 }

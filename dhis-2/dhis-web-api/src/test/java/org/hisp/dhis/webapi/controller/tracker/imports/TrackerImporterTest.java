@@ -40,54 +40,47 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class TrackerImporterTest
-{
-    @InjectMocks
-    DefaultTrackerImporter defaultTrackerImporter;
+@ExtendWith(MockitoExtension.class)
+class TrackerImporterTest {
+  @InjectMocks DefaultTrackerImporter defaultTrackerImporter;
 
-    @Mock
-    TrackerAsyncImporter asyncImporter;
+  @Mock TrackerAsyncImporter asyncImporter;
 
-    @Mock
-    TrackerSyncImporter syncImporter;
+  @Mock TrackerSyncImporter syncImporter;
 
-    @Mock
-    ContextService contextService;
+  @Mock ContextService contextService;
 
-    @Test
-    void shouldImportAsync()
-    {
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest
-            .builder()
-            .contextService( contextService )
-            .userUid( "userUid" )
-            .uid( "uid" )
-            .trackerBundleParams( TrackerBundleParams.builder().build() )
-            .isAsync( true )
+  @Test
+  void shouldImportAsync() {
+    TrackerImportRequest trackerImportRequest =
+        TrackerImportRequest.builder()
+            .contextService(contextService)
+            .userUid("userUid")
+            .uid("uid")
+            .trackerBundleParams(TrackerBundleParams.builder().build())
+            .isAsync(true)
             .build();
 
-        defaultTrackerImporter.importTracker( trackerImportRequest );
+    defaultTrackerImporter.importTracker(trackerImportRequest);
 
-        verify( asyncImporter ).importTracker( any(), any(), eq( "uid" ) );
-        verify( syncImporter, times( 0 ) ).importTracker( any(), any() );
-    }
+    verify(asyncImporter).importTracker(any(), any(), eq("uid"));
+    verify(syncImporter, times(0)).importTracker(any(), any());
+  }
 
-    @Test
-    void shouldImportSync()
-    {
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest
-            .builder()
-            .contextService( contextService )
-            .userUid( "userUid" )
-            .uid( "uid" )
-            .trackerBundleParams( TrackerBundleParams.builder().build() )
-            .trackerBundleReportMode( TrackerBundleReportMode.ERRORS )
+  @Test
+  void shouldImportSync() {
+    TrackerImportRequest trackerImportRequest =
+        TrackerImportRequest.builder()
+            .contextService(contextService)
+            .userUid("userUid")
+            .uid("uid")
+            .trackerBundleParams(TrackerBundleParams.builder().build())
+            .trackerBundleReportMode(TrackerBundleReportMode.ERRORS)
             .build();
 
-        defaultTrackerImporter.importTracker( trackerImportRequest );
+    defaultTrackerImporter.importTracker(trackerImportRequest);
 
-        verify( asyncImporter, times( 0 ) ).importTracker( any(), any(), any() );
-        verify( syncImporter ).importTracker( any(), eq( TrackerBundleReportMode.ERRORS ) );
-    }
+    verify(asyncImporter, times(0)).importTracker(any(), any(), any());
+    verify(syncImporter).importTracker(any(), eq(TrackerBundleReportMode.ERRORS));
+  }
 }

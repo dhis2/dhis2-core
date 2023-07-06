@@ -35,30 +35,28 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = DebugMapper.class )
-public interface RelationshipMapper extends PreheatMapper<Relationship>
-{
-    RelationshipMapper INSTANCE = Mappers.getMapper( RelationshipMapper.class );
+@Mapper(uses = DebugMapper.class)
+public interface RelationshipMapper extends PreheatMapper<Relationship> {
+  RelationshipMapper INSTANCE = Mappers.getMapper(RelationshipMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "relationshipType", qualifiedByName = "typeMapper" )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "from" )
-    @Mapping( target = "to" )
-    @Mapping( target = "created" )
-    @Mapping( target = "createdBy" )
-    @Mapping( target = "lastUpdated" )
-    @Mapping( target = "lastUpdatedBy" )
-    Relationship map( Relationship relationship );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "relationshipType", qualifiedByName = "typeMapper")
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "from")
+  @Mapping(target = "to")
+  @Mapping(target = "created")
+  @Mapping(target = "createdBy")
+  @Mapping(target = "lastUpdated")
+  @Mapping(target = "lastUpdatedBy")
+  Relationship map(Relationship relationship);
 
-    @Named( "typeMapper" )
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "bidirectional" )
-    RelationshipType mapType( RelationshipType type );
-
+  @Named("typeMapper")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "bidirectional")
+  RelationshipType mapType(RelationshipType type);
 }

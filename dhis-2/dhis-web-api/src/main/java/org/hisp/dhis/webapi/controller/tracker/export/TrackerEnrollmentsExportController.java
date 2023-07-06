@@ -30,14 +30,13 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
@@ -61,87 +60,79 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 @RestController
-@RequestMapping( value = RESOURCE_PATH + "/" + TrackerEnrollmentsExportController.ENROLLMENTS )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = RESOURCE_PATH + "/" + TrackerEnrollmentsExportController.ENROLLMENTS)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
-public class TrackerEnrollmentsExportController
-{
-    protected static final String ENROLLMENTS = "enrollments";
+public class TrackerEnrollmentsExportController {
+  protected static final String ENROLLMENTS = "enrollments";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
+  private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
-    private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
+  private static final EnrollmentMapper ENROLLMENT_MAPPER =
+      Mappers.getMapper(EnrollmentMapper.class);
 
-    @NonNull
-    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+  @NonNull private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
-    @NonNull
-    private final EnrollmentService enrollmentService;
+  @NonNull private final EnrollmentService enrollmentService;
 
-    @NonNull
-    private final FieldFilterService fieldFilterService;
+  @NonNull private final FieldFilterService fieldFilterService;
 
-    private final EnrollmentFieldsParamMapper fieldsMapper;
+  private final EnrollmentFieldsParamMapper fieldsMapper;
 
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getInstances(
-        TrackerEnrollmentCriteria trackerEnrollmentCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-    {
-        PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  PagingWrapper<ObjectNode> getInstances(
+      TrackerEnrollmentCriteria trackerEnrollmentCriteria,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
+    List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
-            .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
+    EnrollmentParams enrollmentParams =
+        fieldsMapper.map(fields).withIncludeDeleted(trackerEnrollmentCriteria.isIncludeDeleted());
 
-        if ( trackerEnrollmentCriteria.getEnrollment() == null )
-        {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( trackerEnrollmentCriteria );
+    if (trackerEnrollmentCriteria.getEnrollment() == null) {
+      ProgramInstanceQueryParams params =
+          enrollmentCriteriaMapper.getFromUrl(trackerEnrollmentCriteria);
 
-            Enrollments enrollments = enrollmentService.getEnrollments( params );
+      Enrollments enrollments = enrollmentService.getEnrollments(params);
 
-            if ( trackerEnrollmentCriteria.isPagingRequest() )
-            {
-                pagingWrapper = pagingWrapper.withPager(
-                    PagingWrapper.Pager.fromLegacy( trackerEnrollmentCriteria, enrollments.getPager() ) );
-            }
+      if (trackerEnrollmentCriteria.isPagingRequest()) {
+        pagingWrapper =
+            pagingWrapper.withPager(
+                PagingWrapper.Pager.fromLegacy(trackerEnrollmentCriteria, enrollments.getPager()));
+      }
 
-            enrollmentList = enrollments.getEnrollments();
+      enrollmentList = enrollments.getEnrollments();
 
-        }
-        else
-        {
-            Set<String> enrollmentIds = TextUtils.splitToSet( trackerEnrollmentCriteria.getEnrollment(),
-                TextUtils.SEMICOLON );
-            enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )
-                    .collect( Collectors.toList() )
-                : Collections.emptyList();
-        }
-
-        List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( ENROLLMENT_MAPPER.fromCollection( enrollmentList ), fields );
-        return pagingWrapper.withInstances( objectNodes );
+    } else {
+      Set<String> enrollmentIds =
+          TextUtils.splitToSet(trackerEnrollmentCriteria.getEnrollment(), TextUtils.SEMICOLON);
+      enrollmentList =
+          enrollmentIds != null
+              ? enrollmentIds.stream()
+                  .map(e -> enrollmentService.getEnrollment(e, enrollmentParams))
+                  .collect(Collectors.toList())
+              : Collections.emptyList();
     }
 
-    @GetMapping( value = "{id}" )
-    public ResponseEntity<ObjectNode> getEnrollmentById(
-        @PathVariable String id,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws NotFoundException
-    {
-        EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
+    List<ObjectNode> objectNodes =
+        fieldFilterService.toObjectNodes(ENROLLMENT_MAPPER.fromCollection(enrollmentList), fields);
+    return pagingWrapper.withInstances(objectNodes);
+  }
 
-        Enrollment enrollment = ENROLLMENT_MAPPER
-            .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
-        if ( enrollment == null )
-        {
-            throw new NotFoundException( "Enrollment", id );
-        }
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
+  @GetMapping(value = "{id}")
+  public ResponseEntity<ObjectNode> getEnrollmentById(
+      @PathVariable String id,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields)
+      throws NotFoundException {
+    EnrollmentParams enrollmentParams = fieldsMapper.map(fields);
+
+    Enrollment enrollment =
+        ENROLLMENT_MAPPER.from(enrollmentService.getEnrollment(id, enrollmentParams));
+    if (enrollment == null) {
+      throw new NotFoundException("Enrollment", id);
     }
+    return ResponseEntity.ok(fieldFilterService.toObjectNode(enrollment, fields));
+  }
 }

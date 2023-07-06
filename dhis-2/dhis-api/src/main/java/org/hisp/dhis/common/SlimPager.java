@@ -36,34 +36,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Represents a light version of the Pager object. This should be used in cases
- * where we do not need to represent page count and total of pages.
+ * Represents a light version of the Pager object. This should be used in cases where we do not need
+ * to represent page count and total of pages.
  */
-@JsonIgnoreProperties( value = { "total", "pageCount" } )
-@JsonInclude( NON_NULL )
-public class SlimPager extends Pager
-{
-    public static final int FIRST_PAGE = 1;
+@JsonIgnoreProperties(value = {"total", "pageCount"})
+@JsonInclude(NON_NULL)
+public class SlimPager extends Pager {
+  public static final int FIRST_PAGE = 1;
 
-    private Boolean lastPage;
+  private Boolean lastPage;
 
-    public SlimPager( final int page, final int pageSize, final Boolean lastPage )
-    {
-        // Total is always ZERO, as the main goal of this object it to never
-        // count the total of pages.
-        force( page, pageSize );
-        this.lastPage = lastPage;
-    }
+  public SlimPager(final int page, final int pageSize, final Boolean lastPage) {
+    // Total is always ZERO, as the main goal of this object it to never
+    // count the total of pages.
+    force(page, pageSize);
+    this.lastPage = lastPage;
+  }
 
-    /**
-     * Store a boolean value to indicate if this is the last page or not.
-     *
-     * @return true if this is the last page, false otherwise
-     */
-    @JsonProperty( "isLastPage" )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    public Boolean isLastPage()
-    {
-        return lastPage;
-    }
+  /**
+   * Store a boolean value to indicate if this is the last page or not.
+   *
+   * @return true if this is the last page, false otherwise
+   */
+  @JsonProperty("isLastPage")
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  public Boolean isLastPage() {
+    return lastPage;
+  }
 }

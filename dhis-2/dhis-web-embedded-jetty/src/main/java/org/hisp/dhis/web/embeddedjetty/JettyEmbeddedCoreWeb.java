@@ -31,11 +31,9 @@ import static org.springframework.security.web.context.AbstractSecurityWebApplic
 
 import java.security.Security;
 import java.util.EnumSet;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletRegistration;
-
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -48,99 +46,93 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
 
-public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
-{
-    private static final int DEFAULT_HTTP_PORT = 9080;
+public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
+  private static final int DEFAULT_HTTP_PORT = 9080;
 
-    private static final String SERVER_HOSTNAME_OR_IP = "localhost";
+  private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
-    private static final Long elapsedSinceStart = System.currentTimeMillis();
+  private static final Long elapsedSinceStart = System.currentTimeMillis();
 
-    public JettyEmbeddedCoreWeb()
-        throws Exception
-    {
-        super();
-    }
+  public JettyEmbeddedCoreWeb() throws Exception {
+    super();
+  }
 
-    public static void main( String[] args )
-        throws Exception
-    {
-        Security.setProperty( "crypto.policy", "unlimited" );
-        Security.setProperty( "networkaddress.cache.ttl", "FOREVER" );
-        Security.setProperty( "networkaddress.cache.negative.ttl", "10" );
+  public static void main(String[] args) throws Exception {
+    Security.setProperty("crypto.policy", "unlimited");
+    Security.setProperty("networkaddress.cache.ttl", "FOREVER");
+    Security.setProperty("networkaddress.cache.negative.ttl", "10");
 
-        setDefaultPropertyValue( "jetty.host", SERVER_HOSTNAME_OR_IP );
-        setDefaultPropertyValue( "jetty.http.port", String.valueOf( DEFAULT_HTTP_PORT ) );
+    setDefaultPropertyValue("jetty.host", SERVER_HOSTNAME_OR_IP);
+    setDefaultPropertyValue("jetty.http.port", String.valueOf(DEFAULT_HTTP_PORT));
 
-        /**
-         * This property is very import, this will instruct Spring to use
-         * special Spring config classes adapted to running in embedded Jetty.
-         *
-         * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
-         */
-        setDefaultPropertyValue( "spring.profiles.active", "embeddedJetty" );
+    /**
+     * This property is very import, this will instruct Spring to use special Spring config classes
+     * adapted to running in embedded Jetty.
+     *
+     * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
+     */
+    setDefaultPropertyValue("spring.profiles.active", "embeddedJetty");
 
-        JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
-        jettyEmbeddedCoreWeb.printBanner( "DHIS2 API Server" );
-        jettyEmbeddedCoreWeb.startJetty();
-    }
+    JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
+    jettyEmbeddedCoreWeb.printBanner("DHIS2 API Server");
+    jettyEmbeddedCoreWeb.startJetty();
+  }
 
-    public static Long getElapsedMsSinceStart()
-    {
-        return System.currentTimeMillis() - elapsedSinceStart;
-    }
+  public static Long getElapsedMsSinceStart() {
+    return System.currentTimeMillis() - elapsedSinceStart;
+  }
 
-    public ServletContextHandler getServletContextHandler()
-    {
-        ServletContextHandler contextHandler = new ServletContextHandler( ServletContextHandler.SESSIONS );
-        contextHandler.setErrorHandler( null );
+  public ServletContextHandler getServletContextHandler() {
+    ServletContextHandler contextHandler =
+        new ServletContextHandler(ServletContextHandler.SESSIONS);
+    contextHandler.setErrorHandler(null);
 
-        AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
-        contextHandler.addEventListener( new ContextLoaderListener( webApplicationContext ) );
+    AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
+    contextHandler.addEventListener(new ContextLoaderListener(webApplicationContext));
 
-        StartupListener startupListener = new StartupListener();
-        contextHandler.addEventListener( startupListener );
-        contextHandler.addEventListener( new HttpSessionEventPublisher() );
+    StartupListener startupListener = new StartupListener();
+    contextHandler.addEventListener(startupListener);
+    contextHandler.addEventListener(new HttpSessionEventPublisher());
 
-        // Spring Security Filter
-        contextHandler.addFilter(
-            new FilterHolder( new DelegatingFilterProxy( DEFAULT_FILTER_NAME ) ),
-            "/*",
-            EnumSet.allOf( DispatcherType.class ) );
+    // Spring Security Filter
+    contextHandler.addFilter(
+        new FilterHolder(new DelegatingFilterProxy(DEFAULT_FILTER_NAME)),
+        "/*",
+        EnumSet.allOf(DispatcherType.class));
 
-        ContextHandler.Context context = contextHandler.getServletContext();
+    ContextHandler.Context context = contextHandler.getServletContext();
 
-        DispatcherServlet servlet = new DispatcherServlet( webApplicationContext );
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
 
-        ServletRegistration.Dynamic dispatcher = context.addServlet( "dispatcher", servlet );
-        dispatcher.setAsyncSupported( true );
-        dispatcher.setLoadOnStartup( 1 );
-        dispatcher.addMapping( "/api/*" );
-        dispatcher.addMapping( "/uaa/*" );
+    ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
+    dispatcher.setAsyncSupported(true);
+    dispatcher.setLoadOnStartup(1);
+    dispatcher.addMapping("/api/*");
+    dispatcher.addMapping("/uaa/*");
 
-        FilterRegistration.Dynamic openSessionInViewFilter = context.addFilter( "openSessionInViewFilter",
-            OpenSessionInViewFilter.class );
-        openSessionInViewFilter.setInitParameter( "sessionFactoryBeanName", "sessionFactory" );
-        openSessionInViewFilter.addMappingForUrlPatterns( null, false, "/*" );
-        openSessionInViewFilter.addMappingForServletNames( null, false, "dispatcher" );
+    FilterRegistration.Dynamic openSessionInViewFilter =
+        context.addFilter("openSessionInViewFilter", OpenSessionInViewFilter.class);
+    openSessionInViewFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
+    openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
+    openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
 
-        FilterRegistration.Dynamic characterEncodingFilter = context.addFilter( "characterEncodingFilter",
-            CharacterEncodingFilter.class );
-        characterEncodingFilter.setInitParameter( "encoding", "UTF-8" );
-        characterEncodingFilter.setInitParameter( "forceEncoding", "true" );
-        characterEncodingFilter.addMappingForUrlPatterns( null, false, "/*" );
-        characterEncodingFilter.addMappingForServletNames( null, false, "dispatcher" );
+    FilterRegistration.Dynamic characterEncodingFilter =
+        context.addFilter("characterEncodingFilter", CharacterEncodingFilter.class);
+    characterEncodingFilter.setInitParameter("encoding", "UTF-8");
+    characterEncodingFilter.setInitParameter("forceEncoding", "true");
+    characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
+    characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
-        context.addFilter( "RequestIdentifierFilter", new DelegatingFilterProxy( "requestIdentifierFilter" ) )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    context
+        .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
 
-        return contextHandler;
-    }
+    return contextHandler;
+  }
 
-    private static AnnotationConfigWebApplicationContext getWebApplicationContext()
-    {
-        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.register( SpringConfiguration.class );
-        return context;
-    }
+  private static AnnotationConfigWebApplicationContext getWebApplicationContext() {
+    AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+    context.register(SpringConfiguration.class);
+    return context;
+  }
 }

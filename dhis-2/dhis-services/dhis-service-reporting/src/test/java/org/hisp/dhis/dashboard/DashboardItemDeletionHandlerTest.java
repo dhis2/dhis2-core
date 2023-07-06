@@ -56,212 +56,194 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Jim Grace
  */
-class DashboardItemDeletionHandlerTest extends DhisSpringTest
-{
+class DashboardItemDeletionHandlerTest extends DhisSpringTest {
 
-    @Autowired
-    private DashboardService dashboardService;
+  @Autowired private DashboardService dashboardService;
 
-    @Autowired
-    private VisualizationService visualizationService;
+  @Autowired private VisualizationService visualizationService;
 
-    @Autowired
-    private EventVisualizationService eventVisualizationService;
+  @Autowired private EventVisualizationService eventVisualizationService;
 
-    @Autowired
-    private MappingService mappingService;
+  @Autowired private MappingService mappingService;
 
-    @Autowired
-    private EventReportService eventReportService;
+  @Autowired private EventReportService eventReportService;
 
-    @Autowired
-    private EventChartService eventChartService;
+  @Autowired private EventChartService eventChartService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private ReportService reportService;
+  @Autowired private ReportService reportService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private DocumentService documentService;
+  @Autowired private DocumentService documentService;
 
-    private Dashboard dashboard;
+  private Dashboard dashboard;
 
-    private DashboardItem dashboardItem;
+  private DashboardItem dashboardItem;
 
-    private Program program;
+  private Program program;
 
-    @Override
-    public void setUpTest()
-    {
-        userService = _userService;
-        dashboardItem = new DashboardItem();
-        dashboard = new Dashboard( "A" );
-        dashboard.getItems().add( dashboardItem );
-        program = createProgram( 'A' );
-    }
+  @Override
+  public void setUpTest() {
+    userService = _userService;
+    dashboardItem = new DashboardItem();
+    dashboard = new Dashboard("A");
+    dashboard.getItems().add(dashboardItem);
+    program = createProgram('A');
+  }
 
-    @Test
-    void testDeleteVisualization()
-    {
-        Visualization visualization = createVisualization( 'A' );
-        visualizationService.save( visualization );
-        dashboardItem.setVisualization( visualization );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getVisualizationDashboardItems( visualization ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        visualizationService.delete( visualization );
-        assertEquals( 0, dashboardService.getVisualizationDashboardItems( visualization ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteVisualization() {
+    Visualization visualization = createVisualization('A');
+    visualizationService.save(visualization);
+    dashboardItem.setVisualization(visualization);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(1, dashboardService.getVisualizationDashboardItems(visualization).size());
+    assertEquals(1, dashboard.getItemCount());
+    visualizationService.delete(visualization);
+    assertEquals(0, dashboardService.getVisualizationDashboardItems(visualization).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 
-    @Test
-    void testDeleteEventVisualization()
-    {
-        programService.addProgram( program );
-        EventVisualization eventVisualization = createEventVisualization( 'A', program );
-        eventVisualizationService.save( eventVisualization );
-        dashboardItem.setEventVisualization( eventVisualization );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getEventVisualizationDashboardItems( eventVisualization ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        eventVisualizationService.delete( eventVisualization );
-        assertEquals( 0, dashboardService.getEventVisualizationDashboardItems( eventVisualization ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteEventVisualization() {
+    programService.addProgram(program);
+    EventVisualization eventVisualization = createEventVisualization('A', program);
+    eventVisualizationService.save(eventVisualization);
+    dashboardItem.setEventVisualization(eventVisualization);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(
+        1, dashboardService.getEventVisualizationDashboardItems(eventVisualization).size());
+    assertEquals(1, dashboard.getItemCount());
+    eventVisualizationService.delete(eventVisualization);
+    assertEquals(
+        0, dashboardService.getEventVisualizationDashboardItems(eventVisualization).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 
-    @Test
-    void testDeleteEventChart()
-    {
-        programService.addProgram( program );
-        EventChart eventChart = new EventChart( "A" );
-        eventChart.setProgram( program );
-        eventChart.setType( EventVisualizationType.COLUMN );
-        eventChartService.saveEventChart( eventChart );
-        dashboardItem.setEventChart( eventChart );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getEventChartDashboardItems( eventChart ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        eventChartService.deleteEventChart( eventChart );
-        assertEquals( 0, dashboardService.getEventChartDashboardItems( eventChart ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteEventChart() {
+    programService.addProgram(program);
+    EventChart eventChart = new EventChart("A");
+    eventChart.setProgram(program);
+    eventChart.setType(EventVisualizationType.COLUMN);
+    eventChartService.saveEventChart(eventChart);
+    dashboardItem.setEventChart(eventChart);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(1, dashboardService.getEventChartDashboardItems(eventChart).size());
+    assertEquals(1, dashboard.getItemCount());
+    eventChartService.deleteEventChart(eventChart);
+    assertEquals(0, dashboardService.getEventChartDashboardItems(eventChart).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 
-    @Test
-    void testDeleteMap()
-    {
-        Map map = new Map();
-        map.setName( "A" );
-        mappingService.addMap( map );
-        dashboardItem.setMap( map );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getMapDashboardItems( map ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        mappingService.deleteMap( map );
-        assertEquals( 0, dashboardService.getMapDashboardItems( map ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteMap() {
+    Map map = new Map();
+    map.setName("A");
+    mappingService.addMap(map);
+    dashboardItem.setMap(map);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(1, dashboardService.getMapDashboardItems(map).size());
+    assertEquals(1, dashboard.getItemCount());
+    mappingService.deleteMap(map);
+    assertEquals(0, dashboardService.getMapDashboardItems(map).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 
-    @Test
-    void testDeleteEventReport()
-    {
-        programService.addProgram( program );
-        EventReport eventReport = new EventReport( "A" );
-        eventReport.setProgram( program );
-        eventReport.setType( LINE_LIST );
-        eventReportService.saveEventReport( eventReport );
-        dashboardItem.setEventReport( eventReport );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getEventReportDashboardItems( eventReport ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        eventReportService.deleteEventReport( eventReport );
-        assertEquals( 0, dashboardService.getEventReportDashboardItems( eventReport ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteEventReport() {
+    programService.addProgram(program);
+    EventReport eventReport = new EventReport("A");
+    eventReport.setProgram(program);
+    eventReport.setType(LINE_LIST);
+    eventReportService.saveEventReport(eventReport);
+    dashboardItem.setEventReport(eventReport);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(1, dashboardService.getEventReportDashboardItems(eventReport).size());
+    assertEquals(1, dashboard.getItemCount());
+    eventReportService.deleteEventReport(eventReport);
+    assertEquals(0, dashboardService.getEventReportDashboardItems(eventReport).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 
-    @Test
-    void testDeleteUser()
-    {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        userService.addUser( userA );
-        userService.addUser( userB );
-        dashboardItem.getUsers().add( userA );
-        // Test removing duplicates
-        dashboardItem.getUsers().add( userA );
-        dashboardItem.getUsers().add( userB );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getUserDashboardItems( userA ).size() );
-        assertEquals( 1, dashboardService.getUserDashboardItems( userB ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        userService.deleteUser( userA );
-        assertEquals( 0, dashboardService.getUserDashboardItems( userA ).size() );
-        assertEquals( 1, dashboardService.getUserDashboardItems( userB ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        userService.deleteUser( userB );
-        assertEquals( 0, dashboardService.getUserDashboardItems( userA ).size() );
-        assertEquals( 0, dashboardService.getUserDashboardItems( userB ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteUser() {
+    User userA = createUser('A');
+    User userB = createUser('B');
+    userService.addUser(userA);
+    userService.addUser(userB);
+    dashboardItem.getUsers().add(userA);
+    // Test removing duplicates
+    dashboardItem.getUsers().add(userA);
+    dashboardItem.getUsers().add(userB);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(1, dashboardService.getUserDashboardItems(userA).size());
+    assertEquals(1, dashboardService.getUserDashboardItems(userB).size());
+    assertEquals(1, dashboard.getItemCount());
+    userService.deleteUser(userA);
+    assertEquals(0, dashboardService.getUserDashboardItems(userA).size());
+    assertEquals(1, dashboardService.getUserDashboardItems(userB).size());
+    assertEquals(1, dashboard.getItemCount());
+    userService.deleteUser(userB);
+    assertEquals(0, dashboardService.getUserDashboardItems(userA).size());
+    assertEquals(0, dashboardService.getUserDashboardItems(userB).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 
-    @Test
-    void testDeleteReport()
-    {
-        Report reportA = new Report();
-        Report reportB = new Report();
-        reportA.setName( "A" );
-        reportB.setName( "B" );
-        reportService.saveReport( reportA );
-        reportService.saveReport( reportB );
-        dashboardItem.getReports().add( reportA );
-        // Test removing duplicates
-        dashboardItem.getReports().add( reportA );
-        dashboardItem.getReports().add( reportB );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getReportDashboardItems( reportA ).size() );
-        assertEquals( 1, dashboardService.getReportDashboardItems( reportB ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        reportService.deleteReport( reportA );
-        assertEquals( 0, dashboardService.getReportDashboardItems( reportA ).size() );
-        assertEquals( 1, dashboardService.getReportDashboardItems( reportB ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        reportService.deleteReport( reportB );
-        assertEquals( 0, dashboardService.getReportDashboardItems( reportA ).size() );
-        assertEquals( 0, dashboardService.getReportDashboardItems( reportB ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteReport() {
+    Report reportA = new Report();
+    Report reportB = new Report();
+    reportA.setName("A");
+    reportB.setName("B");
+    reportService.saveReport(reportA);
+    reportService.saveReport(reportB);
+    dashboardItem.getReports().add(reportA);
+    // Test removing duplicates
+    dashboardItem.getReports().add(reportA);
+    dashboardItem.getReports().add(reportB);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(1, dashboardService.getReportDashboardItems(reportA).size());
+    assertEquals(1, dashboardService.getReportDashboardItems(reportB).size());
+    assertEquals(1, dashboard.getItemCount());
+    reportService.deleteReport(reportA);
+    assertEquals(0, dashboardService.getReportDashboardItems(reportA).size());
+    assertEquals(1, dashboardService.getReportDashboardItems(reportB).size());
+    assertEquals(1, dashboard.getItemCount());
+    reportService.deleteReport(reportB);
+    assertEquals(0, dashboardService.getReportDashboardItems(reportA).size());
+    assertEquals(0, dashboardService.getReportDashboardItems(reportB).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 
-    @Test
-    void testDeleteDocument()
-    {
-        Document documentA = new Document();
-        Document documentB = new Document();
-        documentA.setName( "A" );
-        documentB.setName( "B" );
-        documentA.setUrl( "UrlA.com" );
-        documentB.setUrl( "UrlB.com" );
-        documentService.saveDocument( documentA );
-        documentService.saveDocument( documentB );
-        dashboardItem.getResources().add( documentA );
-        // Test removing
-        dashboardItem.getResources().add( documentA );
-        // duplicates
-        dashboardItem.getResources().add( documentB );
-        dashboardService.saveDashboard( dashboard );
-        assertEquals( 1, dashboardService.getDocumentDashboardItems( documentA ).size() );
-        assertEquals( 1, dashboardService.getDocumentDashboardItems( documentB ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        documentService.deleteDocument( documentA );
-        assertEquals( 0, dashboardService.getDocumentDashboardItems( documentA ).size() );
-        assertEquals( 1, dashboardService.getDocumentDashboardItems( documentB ).size() );
-        assertEquals( 1, dashboard.getItemCount() );
-        documentService.deleteDocument( documentB );
-        assertEquals( 0, dashboardService.getDocumentDashboardItems( documentA ).size() );
-        assertEquals( 0, dashboardService.getDocumentDashboardItems( documentB ).size() );
-        assertEquals( 0, dashboard.getItemCount() );
-    }
+  @Test
+  void testDeleteDocument() {
+    Document documentA = new Document();
+    Document documentB = new Document();
+    documentA.setName("A");
+    documentB.setName("B");
+    documentA.setUrl("UrlA.com");
+    documentB.setUrl("UrlB.com");
+    documentService.saveDocument(documentA);
+    documentService.saveDocument(documentB);
+    dashboardItem.getResources().add(documentA);
+    // Test removing
+    dashboardItem.getResources().add(documentA);
+    // duplicates
+    dashboardItem.getResources().add(documentB);
+    dashboardService.saveDashboard(dashboard);
+    assertEquals(1, dashboardService.getDocumentDashboardItems(documentA).size());
+    assertEquals(1, dashboardService.getDocumentDashboardItems(documentB).size());
+    assertEquals(1, dashboard.getItemCount());
+    documentService.deleteDocument(documentA);
+    assertEquals(0, dashboardService.getDocumentDashboardItems(documentA).size());
+    assertEquals(1, dashboardService.getDocumentDashboardItems(documentB).size());
+    assertEquals(1, dashboard.getItemCount());
+    documentService.deleteDocument(documentB);
+    assertEquals(0, dashboardService.getDocumentDashboardItems(documentA).size());
+    assertEquals(0, dashboardService.getDocumentDashboardItems(documentB).size());
+    assertEquals(0, dashboard.getItemCount());
+  }
 }

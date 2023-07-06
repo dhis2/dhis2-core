@@ -30,20 +30,17 @@ package org.hisp.dhis.analytics;
 /**
  * @author Lars Helge Overland
  */
-public enum SortOrder
-{
-    ASC( "asc" ),
-    DESC( "desc" );
+public enum SortOrder {
+  ASC("asc"),
+  DESC("desc");
 
-    private String value;
+  private String value;
 
-    SortOrder( String value )
-    {
-        this.value = value;
-    }
+  SortOrder(String value) {
+    this.value = value;
+  }
 
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

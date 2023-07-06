@@ -27,64 +27,59 @@
  */
 package org.hisp.dhis.actions.tracker;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesActions
-    extends RestApiActions
-{
-    public PotentialDuplicatesActions()
-    {
-        super( "/potentialDuplicates" );
-    }
+public class PotentialDuplicatesActions extends RestApiActions {
+  public PotentialDuplicatesActions() {
+    super("/potentialDuplicates");
+  }
 
-    public String createAndValidatePotentialDuplicate( String teiA, String teiB, String status )
-    {
-        JsonObject object = new JsonObjectBuilder()
-            .addProperty( "original", teiA )
-            .addProperty( "duplicate", teiB )
-            .addProperty( "status", "OPEN" )
+  public String createAndValidatePotentialDuplicate(String teiA, String teiB, String status) {
+    JsonObject object =
+        new JsonObjectBuilder()
+            .addProperty("original", teiA)
+            .addProperty("duplicate", teiB)
+            .addProperty("status", "OPEN")
             .build();
 
-        String uid = this.post( object ).validateStatus( 200 ).extractUid();
+    String uid = this.post(object).validateStatus(200).extractUid();
 
-        if ( status.equals( "MERGED" ) )
-        {
-            this.autoMergePotentialDuplicate( uid ).validateStatus( 200 );
-        }
-
-        if ( status.equals( "INVALID" ) )
-        {
-            this.update( uid + "?status=INVALID", new JsonObjectBuilder().build() ).validateStatus( 200 );
-        }
-
-        return uid;
+    if (status.equals("MERGED")) {
+      this.autoMergePotentialDuplicate(uid).validateStatus(200);
     }
 
-    public ApiResponse postPotentialDuplicate( String teiA, String teiB, String status )
-    {
-        JsonObject object = new JsonObjectBuilder()
-            .addProperty( "original", teiA )
-            .addProperty( "duplicate", teiB )
-            .addProperty( "status", status )
+    if (status.equals("INVALID")) {
+      this.update(uid + "?status=INVALID", new JsonObjectBuilder().build()).validateStatus(200);
+    }
+
+    return uid;
+  }
+
+  public ApiResponse postPotentialDuplicate(String teiA, String teiB, String status) {
+    JsonObject object =
+        new JsonObjectBuilder()
+            .addProperty("original", teiA)
+            .addProperty("duplicate", teiB)
+            .addProperty("status", status)
             .build();
 
-        return this.post( object );
-    }
+    return this.post(object);
+  }
 
-    public ApiResponse manualMergePotentialDuplicate( String potentialDuplicate, JsonObject jsonObject )
-    {
-        return this.post( String.format( "/%s/merge?mergeStrategy=MANUAL", potentialDuplicate ), jsonObject );
-    }
+  public ApiResponse manualMergePotentialDuplicate(
+      String potentialDuplicate, JsonObject jsonObject) {
+    return this.post(
+        String.format("/%s/merge?mergeStrategy=MANUAL", potentialDuplicate), jsonObject);
+  }
 
-    public ApiResponse autoMergePotentialDuplicate( String potentialDuplicate )
-    {
-        return this.post( String.format( "/%s/merge?mergeStrategy=AUTO", potentialDuplicate ), new JsonObject() );
-    }
+  public ApiResponse autoMergePotentialDuplicate(String potentialDuplicate) {
+    return this.post(
+        String.format("/%s/merge?mergeStrategy=AUTO", potentialDuplicate), new JsonObject());
+  }
 }

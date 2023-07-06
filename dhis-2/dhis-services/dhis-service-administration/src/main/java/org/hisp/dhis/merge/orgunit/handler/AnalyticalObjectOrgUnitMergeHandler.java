@@ -29,9 +29,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.eventchart.EventChartService;
@@ -48,40 +46,37 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
-public class AnalyticalObjectOrgUnitMergeHandler
-{
-    private final VisualizationService visualizationService;
+public class AnalyticalObjectOrgUnitMergeHandler {
+  private final VisualizationService visualizationService;
 
-    private final MappingService mapViewService;
+  private final MappingService mapViewService;
 
-    private final EventReportService eventReportService;
+  private final EventReportService eventReportService;
 
-    private final EventChartService eventChartService;
+  private final EventChartService eventChartService;
 
-    public void mergeAnalyticalObjects( OrgUnitMergeRequest request )
-    {
-        mergeAnalyticalObject( visualizationService, request );
-        mergeAnalyticalObject( mapViewService, request );
-        mergeAnalyticalObject( eventReportService, request );
-        mergeAnalyticalObject( eventChartService, request );
-    }
+  public void mergeAnalyticalObjects(OrgUnitMergeRequest request) {
+    mergeAnalyticalObject(visualizationService, request);
+    mergeAnalyticalObject(mapViewService, request);
+    mergeAnalyticalObject(eventReportService, request);
+    mergeAnalyticalObject(eventChartService, request);
+  }
 
-    private <T extends AnalyticalObject> void mergeAnalyticalObject(
-        AnalyticalObjectService<T> service, OrgUnitMergeRequest request )
-    {
-        Set<T> objects = getAnalyticalObjects( service, request );
+  private <T extends AnalyticalObject> void mergeAnalyticalObject(
+      AnalyticalObjectService<T> service, OrgUnitMergeRequest request) {
+    Set<T> objects = getAnalyticalObjects(service, request);
 
-        objects.forEach( ao -> {
-            ao.getOrganisationUnits().add( request.getTarget() );
-            ao.getOrganisationUnits().removeAll( request.getSources() );
-        } );
-    }
+    objects.forEach(
+        ao -> {
+          ao.getOrganisationUnits().add(request.getTarget());
+          ao.getOrganisationUnits().removeAll(request.getSources());
+        });
+  }
 
-    private <T extends AnalyticalObject> Set<T> getAnalyticalObjects(
-        AnalyticalObjectService<T> service, OrgUnitMergeRequest request )
-    {
-        Set<T> objects = new HashSet<>();
-        request.getSources().forEach( ou -> objects.addAll( service.getAnalyticalObjects( ou ) ) );
-        return objects;
-    }
+  private <T extends AnalyticalObject> Set<T> getAnalyticalObjects(
+      AnalyticalObjectService<T> service, OrgUnitMergeRequest request) {
+    Set<T> objects = new HashSet<>();
+    request.getSources().forEach(ou -> objects.addAll(service.getAnalyticalObjects(ou)));
+    return objects;
+  }
 }

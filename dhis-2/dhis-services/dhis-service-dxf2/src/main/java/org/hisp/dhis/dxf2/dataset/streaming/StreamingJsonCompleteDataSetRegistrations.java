@@ -27,135 +27,103 @@
  */
 package org.hisp.dhis.dxf2.dataset.streaming;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.apache.commons.compress.utils.IOUtils;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-
 /**
  * @author Halvdan Hoem Grelland
  */
-public class StreamingJsonCompleteDataSetRegistrations
-    extends CompleteDataSetRegistrations
-{
-    private JsonGenerator jsonGenerator;
+public class StreamingJsonCompleteDataSetRegistrations extends CompleteDataSetRegistrations {
+  private JsonGenerator jsonGenerator;
 
-    private AtomicBoolean startedArray = new AtomicBoolean( false );
+  private AtomicBoolean startedArray = new AtomicBoolean(false);
 
-    public StreamingJsonCompleteDataSetRegistrations( OutputStream out )
-    {
-        try
-        {
-            jsonGenerator = JacksonObjectMapperConfig.staticJsonMapper().getFactory().createGenerator( out );
-        }
-        catch ( IOException e )
-        {
-            // Intentionally ignored
-        }
+  public StreamingJsonCompleteDataSetRegistrations(OutputStream out) {
+    try {
+      jsonGenerator =
+          JacksonObjectMapperConfig.staticJsonMapper().getFactory().createGenerator(out);
+    } catch (IOException e) {
+      // Intentionally ignored
+    }
+  }
+
+  @Override
+  public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance() {
+    if (!startedArray.getAndSet(true)) {
+      try {
+        jsonGenerator.writeArrayFieldStart(FIELD_COMPLETE_DATA_SET_REGISTRATIONS);
+      } catch (IOException ignored) {
+        startedArray.set(false);
+      }
     }
 
-    @Override
-    public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance()
-    {
-        if ( !startedArray.getAndSet( true ) )
-        {
-            try
-            {
-                jsonGenerator.writeArrayFieldStart( FIELD_COMPLETE_DATA_SET_REGISTRATIONS );
-            }
-            catch ( IOException ignored )
-            {
-                startedArray.set( false );
-            }
-        }
+    return new StreamingJsonCompleteDataSetRegistration(jsonGenerator);
+  }
 
-        return new StreamingJsonCompleteDataSetRegistration( jsonGenerator );
+  // --------------------------------------------------------------------------
+  // Logic
+  // --------------------------------------------------------------------------
+
+  @Override
+  public void open() {
+    try {
+      jsonGenerator.writeStartObject();
+    } catch (IOException ignored) {
+    }
+  }
+
+  @Override
+  public void close() {
+    if (jsonGenerator == null) {
+      return;
     }
 
-    // --------------------------------------------------------------------------
-    // Logic
-    // --------------------------------------------------------------------------
+    try {
+      if (startedArray.get()) {
+        jsonGenerator.writeEndArray();
+      }
 
-    @Override
-    public void open()
-    {
-        try
-        {
-            jsonGenerator.writeStartObject();
-        }
-        catch ( IOException ignored )
-        {
-        }
+      jsonGenerator.writeEndObject();
+    } catch (IOException ignored) {
+    } finally {
+      IOUtils.closeQuietly(jsonGenerator);
+    }
+  }
+
+  @Override
+  protected void writeField(String fieldName, String value) {
+    if (value == null) {
+      return;
     }
 
-    @Override
-    public void close()
-    {
-        if ( jsonGenerator == null )
-        {
-            return;
-        }
-
-        try
-        {
-            if ( startedArray.get() )
-            {
-                jsonGenerator.writeEndArray();
-            }
-
-            jsonGenerator.writeEndObject();
-        }
-        catch ( IOException ignored )
-        {
-        }
-        finally
-        {
-            IOUtils.closeQuietly( jsonGenerator );
-        }
+    try {
+      jsonGenerator.writeObjectField(fieldName, value);
+    } catch (IOException ignored) {
     }
+  }
 
-    @Override
-    protected void writeField( String fieldName, String value )
-    {
-        if ( value == null )
-        {
-            return;
-        }
+  // --------------------------------------------------------------------------
+  // Setters
+  // --------------------------------------------------------------------------
 
-        try
-        {
-            jsonGenerator.writeObjectField( fieldName, value );
-        }
-        catch ( IOException ignored )
-        {
-        }
-    }
+  @Override
+  public void setDataSetIdScheme(String dataSetIdScheme) {
+    writeField(FIELD_DATA_SET_ID_SCHEME, dataSetIdScheme);
+  }
 
-    // --------------------------------------------------------------------------
-    // Setters
-    // --------------------------------------------------------------------------
+  @Override
+  public void setOrgUnitIdScheme(String orgUnitIdScheme) {
+    writeField(FIELD_ORG_UNIT_ID_SCHEME, orgUnitIdScheme);
+  }
 
-    @Override
-    public void setDataSetIdScheme( String dataSetIdScheme )
-    {
-        writeField( FIELD_DATA_SET_ID_SCHEME, dataSetIdScheme );
-    }
-
-    @Override
-    public void setOrgUnitIdScheme( String orgUnitIdScheme )
-    {
-        writeField( FIELD_ORG_UNIT_ID_SCHEME, orgUnitIdScheme );
-    }
-
-    @Override
-    public void setAttributeOptionComboIdScheme( String attributeOptionComboIdScheme )
-    {
-        writeField( FIELD_ATTR_OPT_COMBO_ID_SCHEME, attributeOptionComboIdScheme );
-    }
+  @Override
+  public void setAttributeOptionComboIdScheme(String attributeOptionComboIdScheme) {
+    writeField(FIELD_ATTR_OPT_COMBO_ID_SCHEME, attributeOptionComboIdScheme);
+  }
 }

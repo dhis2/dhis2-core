@@ -33,19 +33,15 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * @author Abyot Asalefew Gizaw
  * @version $Id$
  */
-public interface RelationshipTypeStore
-    extends IdentifiableObjectStore<RelationshipType>
-{
-    String ID = RelationshipTypeStore.class.getName();
+public interface RelationshipTypeStore extends IdentifiableObjectStore<RelationshipType> {
+  String ID = RelationshipTypeStore.class.getName();
 
-    /**
-     * Retrieve a relationship
-     *
-     * @param aIsToB The A side
-     * @param bIsToA The B side
-     *
-     * @return RelationshipType
-     */
-    RelationshipType getRelationshipType( String aIsToB, String bIsToA );
-
+  /**
+   * Retrieve a relationship
+   *
+   * @param aIsToB The A side
+   * @param bIsToA The B side
+   * @return RelationshipType
+   */
+  RelationshipType getRelationshipType(String aIsToB, String bIsToA);
 }

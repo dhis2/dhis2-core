@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -42,75 +41,76 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat object a List of all Program Stages UIDs
- * that have at least ONE Program Stage Instance that is not logically deleted
- * ('deleted = true') and the status is not 'SKIPPED' among the Program Stages
- * and the Enrollments present in the payload
+ * This supplier adds to the pre-heat object a List of all Program Stages UIDs that have at least
+ * ONE Program Stage Instance that is not logically deleted ('deleted = true') and the status is not
+ * 'SKIPPED' among the Program Stages and the Enrollments present in the payload
  *
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramStageInstanceProgramStageMapSupplier
-    extends JdbcAbstractPreheatSupplier
-{
-    private static final String PS_UID = "programStageUid";
+public class ProgramStageInstanceProgramStageMapSupplier extends JdbcAbstractPreheatSupplier {
+  private static final String PS_UID = "programStageUid";
 
-    private static final String PI_UID = "programInstanceUid";
+  private static final String PI_UID = "programInstanceUid";
 
-    private static final String SQL = "select distinct ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
-        " from programinstance as pi " +
-        " join programstage as ps on pi.programid = ps.programid " +
-        " join programstageinstance as psi on pi.programinstanceid = psi.programinstanceid " +
-        " where psi.deleted = false " +
-        " and psi.status != 'SKIPPED' " +
-        " and ps.programstageid = psi.programstageid " +
-        " and ps.uid in (:programStageUids) " +
-        " and pi.uid in (:programInstanceUids) ";
+  private static final String SQL =
+      "select distinct ps.uid as "
+          + PS_UID
+          + ", pi.uid as "
+          + PI_UID
+          + " "
+          + " from programinstance as pi "
+          + " join programstage as ps on pi.programid = ps.programid "
+          + " join programstageinstance as psi on pi.programinstanceid = psi.programinstanceid "
+          + " where psi.deleted = false "
+          + " and psi.status != 'SKIPPED' "
+          + " and ps.programstageid = psi.programstageid "
+          + " and ps.uid in (:programStageUids) "
+          + " and pi.uid in (:programInstanceUids) ";
 
-    protected ProgramStageInstanceProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
+  protected ProgramStageInstanceProgramStageMapSupplier(JdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
+
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    if (params.getEvents().size() == 0) {
+      return;
     }
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        if ( params.getEvents().size() == 0 )
-        {
-            return;
-        }
-
-        List<String> notRepeatableProgramStageUids = params.getEvents().stream()
-            .map( Event::getProgramStage )
-            .filter( Objects::nonNull )
-            .map( ps -> (ProgramStage) preheat.get( ProgramStage.class, ps ) )
-            .filter( Objects::nonNull )
-            .filter( ps -> ps.getProgram().isRegistration() )
-            .filter( ps -> !ps.getRepeatable() )
-            .map( ProgramStage::getUid )
+    List<String> notRepeatableProgramStageUids =
+        params.getEvents().stream()
+            .map(Event::getProgramStage)
+            .filter(Objects::nonNull)
+            .map(ps -> (ProgramStage) preheat.get(ProgramStage.class, ps))
+            .filter(Objects::nonNull)
+            .filter(ps -> ps.getProgram().isRegistration())
+            .filter(ps -> !ps.getRepeatable())
+            .map(ProgramStage::getUid)
             .distinct()
-            .collect( Collectors.toList() );
+            .collect(Collectors.toList());
 
-        List<String> programInstanceUids = params.getEvents().stream()
-            .map( Event::getEnrollment )
-            .filter( Objects::nonNull )
+    List<String> programInstanceUids =
+        params.getEvents().stream()
+            .map(Event::getEnrollment)
+            .filter(Objects::nonNull)
             .distinct()
-            .collect( Collectors.toList() );
+            .collect(Collectors.toList());
 
-        if ( !notRepeatableProgramStageUids.isEmpty() && !programInstanceUids.isEmpty() )
-        {
-            List<Pair<String, String>> programStageWithEvents = new ArrayList<>();
+    if (!notRepeatableProgramStageUids.isEmpty() && !programInstanceUids.isEmpty()) {
+      List<Pair<String, String>> programStageWithEvents = new ArrayList<>();
 
-            MapSqlParameterSource parameters = new MapSqlParameterSource();
-            parameters.addValue( "programStageUids", notRepeatableProgramStageUids );
-            parameters.addValue( "programInstanceUids", programInstanceUids );
-            jdbcTemplate.query( SQL, parameters, rs -> {
+      MapSqlParameterSource parameters = new MapSqlParameterSource();
+      parameters.addValue("programStageUids", notRepeatableProgramStageUids);
+      parameters.addValue("programInstanceUids", programInstanceUids);
+      jdbcTemplate.query(
+          SQL,
+          parameters,
+          rs -> {
+            programStageWithEvents.add(Pair.of(rs.getString(PS_UID), rs.getString(PI_UID)));
+          });
 
-                programStageWithEvents.add( Pair.of( rs.getString( PS_UID ), rs.getString( PI_UID ) ) );
-
-            } );
-
-            preheat.setProgramStageWithEvents( programStageWithEvents );
-        }
+      preheat.setProgramStageWithEvents(programStageWithEvents);
     }
+  }
 }

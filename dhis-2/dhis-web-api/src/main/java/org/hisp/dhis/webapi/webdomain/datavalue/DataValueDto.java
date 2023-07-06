@@ -27,59 +27,45 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class DataValueDto
-{
-    @JsonProperty
-    private String dataElement;
+public class DataValueDto {
+  @JsonProperty private String dataElement;
 
-    @JsonProperty
-    private String period;
+  @JsonProperty private String period;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String categoryOptionCombo;
+  @JsonProperty private String categoryOptionCombo;
 
-    @JsonProperty
-    private DataValueCategoryDto attribute;
+  @JsonProperty private DataValueCategoryDto attribute;
 
-    @JsonProperty
-    private String dataSet;
+  @JsonProperty private String dataSet;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 
-    @JsonProperty
-    private String comment;
+  @JsonProperty private String comment;
 
-    @JsonProperty
-    private Boolean followUp;
+  @JsonProperty private Boolean followUp;
 
-    @JsonProperty
-    private Boolean force;
+  @JsonProperty private Boolean force;
 
-    public boolean isFollowUp()
-    {
-        return followUp != null && followUp;
-    }
+  public boolean isFollowUp() {
+    return followUp != null && followUp;
+  }
 
-    public boolean isForce()
-    {
-        return force != null && force;
-    }
+  public boolean isForce() {
+    return force != null && force;
+  }
 }

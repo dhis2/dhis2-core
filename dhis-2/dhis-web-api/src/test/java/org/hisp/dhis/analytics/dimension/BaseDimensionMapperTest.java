@@ -29,77 +29,68 @@ package org.hisp.dhis.analytics.dimension;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
+class BaseDimensionMapperTest {
 
-class BaseDimensionMapperTest
-{
+  public static final String UID = "uid";
 
-    public static final String UID = "uid";
+  public static final long ID = 100L;
 
-    public static final long ID = 100L;
+  public static final String NAME = "name";
 
-    public static final String NAME = "name";
+  public static final Date CREATED = new Date();
 
-    public static final Date CREATED = new Date();
+  public static final String CODE = "CODE";
 
-    public static final String CODE = "CODE";
+  public static final Date LAST_UPDATED = new Date();
 
-    public static final Date LAST_UPDATED = new Date();
+  public static final String SHORT_NAME = "shortName";
 
-    public static final String SHORT_NAME = "shortName";
-
-    private final BaseDimensionMapper mapper = new BaseDimensionMapper()
-    {
+  private final BaseDimensionMapper mapper =
+      new BaseDimensionMapper() {
         @Override
-        public Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses()
-        {
-            return Collections.emptySet();
+        public Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses() {
+          return Collections.emptySet();
         }
-    };
+      };
 
-    @Test
-    void testMapBaseIdentifiable()
-    {
+  @Test
+  void testMapBaseIdentifiable() {
 
-        asserter(
-            mapper,
-            BaseIdentifiableObject::new,
-            ImmutableList.of(
-                b -> b.setUid( UID ),
-                b -> b.setId( ID ),
-                b -> b.setName( NAME ),
-                b -> b.setCreated( CREATED ),
-                b -> b.setCode( CODE ),
-                b -> b.setLastUpdated( LAST_UPDATED ) ),
-            ImmutableList.of(
-                Pair.of( DimensionResponse::getId, UID ),
-                Pair.of( DimensionResponse::getUid, UID ),
-                Pair.of( DimensionResponse::getDisplayName, NAME ),
-                Pair.of( DimensionResponse::getCreated, CREATED ),
-                Pair.of( DimensionResponse::getCode, CODE ),
-                Pair.of( DimensionResponse::getLastUpdated, LAST_UPDATED ),
-                Pair.of( DimensionResponse::getName, NAME ) ) );
-    }
+    asserter(
+        mapper,
+        BaseIdentifiableObject::new,
+        ImmutableList.of(
+            b -> b.setUid(UID),
+            b -> b.setId(ID),
+            b -> b.setName(NAME),
+            b -> b.setCreated(CREATED),
+            b -> b.setCode(CODE),
+            b -> b.setLastUpdated(LAST_UPDATED)),
+        ImmutableList.of(
+            Pair.of(DimensionResponse::getId, UID),
+            Pair.of(DimensionResponse::getUid, UID),
+            Pair.of(DimensionResponse::getDisplayName, NAME),
+            Pair.of(DimensionResponse::getCreated, CREATED),
+            Pair.of(DimensionResponse::getCode, CODE),
+            Pair.of(DimensionResponse::getLastUpdated, LAST_UPDATED),
+            Pair.of(DimensionResponse::getName, NAME)));
+  }
 
-    @Test
-    void testMapBaseNameable()
-    {
-        asserter(
-            mapper,
-            BaseNameableObject::new,
-            ImmutableList.of(
-                b -> b.setShortName( SHORT_NAME ) ),
-            ImmutableList.of(
-                Pair.of( DimensionResponse::getDisplayShortName, SHORT_NAME ) ) );
-    }
-
+  @Test
+  void testMapBaseNameable() {
+    asserter(
+        mapper,
+        BaseNameableObject::new,
+        ImmutableList.of(b -> b.setShortName(SHORT_NAME)),
+        ImmutableList.of(Pair.of(DimensionResponse::getDisplayShortName, SHORT_NAME)));
+  }
 }

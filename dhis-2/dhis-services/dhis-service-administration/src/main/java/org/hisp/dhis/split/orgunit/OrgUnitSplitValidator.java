@@ -40,63 +40,50 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Service
-public class OrgUnitSplitValidator
-{
-    /**
-     * Validates the given {@link OrgUnitSplitRequest}. Throws
-     * {@link IllegalQueryException} if validation fails.
-     *
-     * @param request the {@link OrgUnitMergeRequest}.
-     * @throws IllegalQueryException if validation failed.
-     */
-    public void validate( OrgUnitSplitRequest request )
-        throws IllegalQueryException
-    {
-        ErrorMessage error = validateForErrorMessage( request );
+public class OrgUnitSplitValidator {
+  /**
+   * Validates the given {@link OrgUnitSplitRequest}. Throws {@link IllegalQueryException} if
+   * validation fails.
+   *
+   * @param request the {@link OrgUnitMergeRequest}.
+   * @throws IllegalQueryException if validation failed.
+   */
+  public void validate(OrgUnitSplitRequest request) throws IllegalQueryException {
+    ErrorMessage error = validateForErrorMessage(request);
 
-        if ( error != null )
-        {
-            throw new IllegalQueryException( error );
-        }
+    if (error != null) {
+      throw new IllegalQueryException(error);
+    }
+  }
+
+  /**
+   * Validates the given {@link OrgUnitSplitRequest}.
+   *
+   * @param request the {@link OrgUnitSplitRequest}.
+   * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
+   */
+  public ErrorMessage validateForErrorMessage(OrgUnitSplitRequest request) {
+    if (request.getSource() == null) {
+      return new ErrorMessage(ErrorCode.E1510);
+    }
+    if (request.getTargets().size() < 2) {
+      return new ErrorMessage(ErrorCode.E1511);
+    }
+    if (request.getTargets().contains(request.getSource())) {
+      return new ErrorMessage(ErrorCode.E1512);
+    }
+    if (request.getPrimaryTarget() == null) {
+      return new ErrorMessage(ErrorCode.E1513);
+    }
+    if (!request.getTargets().contains(request.getPrimaryTarget())) {
+      return new ErrorMessage(ErrorCode.E1514);
+    }
+    for (OrganisationUnit target : request.getTargets()) {
+      if (target.isDescendant(request.getSource())) {
+        return new ErrorMessage(ErrorCode.E1516, target.getUid());
+      }
     }
 
-    /**
-     * Validates the given {@link OrgUnitSplitRequest}.
-     *
-     * @param request the {@link OrgUnitSplitRequest}.
-     * @return an {@link ErrorMessage} if the validation failed, or null if
-     *         validation was successful.
-     */
-    public ErrorMessage validateForErrorMessage( OrgUnitSplitRequest request )
-    {
-        if ( request.getSource() == null )
-        {
-            return new ErrorMessage( ErrorCode.E1510 );
-        }
-        if ( request.getTargets().size() < 2 )
-        {
-            return new ErrorMessage( ErrorCode.E1511 );
-        }
-        if ( request.getTargets().contains( request.getSource() ) )
-        {
-            return new ErrorMessage( ErrorCode.E1512 );
-        }
-        if ( request.getPrimaryTarget() == null )
-        {
-            return new ErrorMessage( ErrorCode.E1513 );
-        }
-        if ( !request.getTargets().contains( request.getPrimaryTarget() ) )
-        {
-            return new ErrorMessage( ErrorCode.E1514 );
-        }
-        for ( OrganisationUnit target : request.getTargets() )
-        {
-            if ( target.isDescendant( request.getSource() ) )
-            {
-                return new ErrorMessage( ErrorCode.E1516, target.getUid() );
-            }
-        }
-
-        return null;
-    }
+    return null;
+  }
 }

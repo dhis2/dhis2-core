@@ -29,11 +29,11 @@ package org.hisp.dhis.dataset;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.MapMap;
@@ -52,198 +52,187 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
-@Service( "org.hisp.dhis.dataset.CompleteDataSetRegistrationService" )
+@Service("org.hisp.dhis.dataset.CompleteDataSetRegistrationService")
 public class DefaultCompleteDataSetRegistrationService
-    implements CompleteDataSetRegistrationService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    implements CompleteDataSetRegistrationService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
+  private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final DataSetNotificationEventPublisher notificationEventPublisher;
+  private final DataSetNotificationEventPublisher notificationEventPublisher;
 
-    private final AggregateAccessManager accessManager;
+  private final AggregateAccessManager accessManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    public DefaultCompleteDataSetRegistrationService( CompleteDataSetRegistrationStore completeDataSetRegistrationStore,
-        CategoryService categoryService, DataValueService dataValueService,
-        DataSetNotificationEventPublisher notificationEventPublisher, AggregateAccessManager accessManager,
-        CurrentUserService currentUserService, MessageService messageService )
-    {
+  public DefaultCompleteDataSetRegistrationService(
+      CompleteDataSetRegistrationStore completeDataSetRegistrationStore,
+      CategoryService categoryService,
+      DataValueService dataValueService,
+      DataSetNotificationEventPublisher notificationEventPublisher,
+      AggregateAccessManager accessManager,
+      CurrentUserService currentUserService,
+      MessageService messageService) {
 
-        checkNotNull( completeDataSetRegistrationStore );
-        checkNotNull( categoryService );
-        checkNotNull( dataValueService );
-        checkNotNull( notificationEventPublisher );
-        checkNotNull( accessManager );
-        checkNotNull( currentUserService );
-        checkNotNull( messageService );
+    checkNotNull(completeDataSetRegistrationStore);
+    checkNotNull(categoryService);
+    checkNotNull(dataValueService);
+    checkNotNull(notificationEventPublisher);
+    checkNotNull(accessManager);
+    checkNotNull(currentUserService);
+    checkNotNull(messageService);
 
-        this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
-        this.categoryService = categoryService;
-        this.dataValueService = dataValueService;
-        this.notificationEventPublisher = notificationEventPublisher;
-        this.accessManager = accessManager;
-        this.currentUserService = currentUserService;
-        this.messageService = messageService;
+    this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
+    this.categoryService = categoryService;
+    this.dataValueService = dataValueService;
+    this.notificationEventPublisher = notificationEventPublisher;
+    this.accessManager = accessManager;
+    this.currentUserService = currentUserService;
+    this.messageService = messageService;
+  }
+
+  public void setCompleteDataSetRegistrationStore(
+      CompleteDataSetRegistrationStore completeDataSetRegistrationStore) {
+    this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
+  }
+
+  // -------------------------------------------------------------------------
+  // CompleteDataSetRegistrationService
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    if (registration.getAttributeOptionCombo() == null) {
+      registration.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
     }
 
-    public void setCompleteDataSetRegistrationStore( CompleteDataSetRegistrationStore completeDataSetRegistrationStore )
-    {
-        this.completeDataSetRegistrationStore = completeDataSetRegistrationStore;
+    completeDataSetRegistrationStore.saveCompleteDataSetRegistration(registration);
+
+    if (registration.getDataSet().isNotifyCompletingUser()) {
+      messageService.sendCompletenessMessage(registration);
     }
 
-    // -------------------------------------------------------------------------
-    // CompleteDataSetRegistrationService
-    // -------------------------------------------------------------------------
+    notificationEventPublisher.publishEvent(registration);
+  }
 
-    @Override
-    @Transactional
-    public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration )
-    {
-        if ( registration.getAttributeOptionCombo() == null )
-        {
-            registration.setAttributeOptionCombo( categoryService.getDefaultCategoryOptionCombo() );
+  @Override
+  @Transactional
+  public void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    completeDataSetRegistrationStore.updateCompleteDataSetRegistration(registration);
+  }
+
+  @Override
+  @Transactional
+  public void deleteCompleteDataSetRegistration(CompleteDataSetRegistration registration) {
+    completeDataSetRegistrationStore.deleteCompleteDataSetRegistration(registration);
+  }
+
+  @Override
+  @Transactional
+  public void deleteCompleteDataSetRegistrations(List<CompleteDataSetRegistration> registrations) {
+    for (CompleteDataSetRegistration registration : registrations) {
+      completeDataSetRegistrationStore.deleteCompleteDataSetRegistration(registration);
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public CompleteDataSetRegistration getCompleteDataSetRegistration(
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit source,
+      CategoryOptionCombo attributeOptionCombo) {
+    return completeDataSetRegistrationStore.getCompleteDataSetRegistration(
+        dataSet, period, source, attributeOptionCombo);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations() {
+    return completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations();
+  }
+
+  @Override
+  @Transactional
+  public void deleteCompleteDataSetRegistrations(DataSet dataSet) {
+    completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations(dataSet);
+  }
+
+  @Override
+  @Transactional
+  public void deleteCompleteDataSetRegistrations(OrganisationUnit unit) {
+    completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations(unit);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataElementOperand> getMissingCompulsoryFields(
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo) {
+    List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
+
+    if (!dataSet.getCompulsoryDataElementOperands().isEmpty()) {
+      DataExportParams params = new DataExportParams();
+      params.setDataElementOperands(dataSet.getCompulsoryDataElementOperands());
+      params.setPeriods(Sets.newHashSet(period));
+      params.setAttributeOptionCombos(Sets.newHashSet(attributeOptionCombo));
+      params.setOrganisationUnits(Sets.newHashSet(organisationUnit));
+
+      List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues(params);
+
+      MapMapMap<Long, Long, Long, Boolean> dataPresent = new MapMapMap<>();
+
+      for (DeflatedDataValue dv : deflatedDataValues) {
+        dataPresent.putEntry(
+            dv.getSourceId(), dv.getDataElementId(), dv.getCategoryOptionComboId(), true);
+      }
+
+      User currentUser = currentUserService.getCurrentUser();
+
+      for (DataElementOperand deo : dataSet.getCompulsoryDataElementOperands()) {
+        List<String> errors = accessManager.canWrite(currentUser, deo);
+
+        if (!errors.isEmpty()) {
+          continue;
         }
 
-        completeDataSetRegistrationStore.saveCompleteDataSetRegistration( registration );
+        MapMap<Long, Long, Boolean> ouDataPresent = dataPresent.get(organisationUnit.getId());
 
-        if ( registration.getDataSet().isNotifyCompletingUser() )
-        {
-            messageService.sendCompletenessMessage( registration );
+        if (ouDataPresent != null) {
+          Map<Long, Boolean> deDataPresent = ouDataPresent.get(deo.getDataElement().getId());
+
+          if (deDataPresent != null
+              && (deo.getCategoryOptionCombo() == null
+                  || deDataPresent.get(deo.getCategoryOptionCombo().getId()) != null)) {
+            continue;
+          }
         }
 
-        notificationEventPublisher.publishEvent( registration );
+        missingDataElementOperands.add(deo);
+      }
     }
 
-    @Override
-    @Transactional
-    public void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration )
-    {
-        completeDataSetRegistrationStore.updateCompleteDataSetRegistration( registration );
-    }
+    return missingDataElementOperands;
+  }
 
-    @Override
-    @Transactional
-    public void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration )
-    {
-        completeDataSetRegistrationStore.deleteCompleteDataSetRegistration( registration );
-    }
-
-    @Override
-    @Transactional
-    public void deleteCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations )
-    {
-        for ( CompleteDataSetRegistration registration : registrations )
-        {
-            completeDataSetRegistrationStore.deleteCompleteDataSetRegistration( registration );
-        }
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo )
-    {
-        return completeDataSetRegistrationStore.getCompleteDataSetRegistration( dataSet, period, source,
-            attributeOptionCombo );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
-    {
-        return completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations();
-    }
-
-    @Override
-    @Transactional
-    public void deleteCompleteDataSetRegistrations( DataSet dataSet )
-    {
-        completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations( dataSet );
-    }
-
-    @Override
-    @Transactional
-    public void deleteCompleteDataSetRegistrations( OrganisationUnit unit )
-    {
-        completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations( unit );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
-    {
-        List<DataElementOperand> missingDataElementOperands = new ArrayList<>();
-
-        if ( !dataSet.getCompulsoryDataElementOperands().isEmpty() )
-        {
-            DataExportParams params = new DataExportParams();
-            params.setDataElementOperands( dataSet.getCompulsoryDataElementOperands() );
-            params.setPeriods( Sets.newHashSet( period ) );
-            params.setAttributeOptionCombos( Sets.newHashSet( attributeOptionCombo ) );
-            params.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
-
-            List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
-
-            MapMapMap<Long, Long, Long, Boolean> dataPresent = new MapMapMap<>();
-
-            for ( DeflatedDataValue dv : deflatedDataValues )
-            {
-                dataPresent.putEntry( dv.getSourceId(), dv.getDataElementId(), dv.getCategoryOptionComboId(), true );
-            }
-
-            User currentUser = currentUserService.getCurrentUser();
-
-            for ( DataElementOperand deo : dataSet.getCompulsoryDataElementOperands() )
-            {
-                List<String> errors = accessManager.canWrite( currentUser, deo );
-
-                if ( !errors.isEmpty() )
-                {
-                    continue;
-                }
-
-                MapMap<Long, Long, Boolean> ouDataPresent = dataPresent.get( organisationUnit.getId() );
-
-                if ( ouDataPresent != null )
-                {
-                    Map<Long, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
-
-                    if ( deDataPresent != null && (deo.getCategoryOptionCombo() == null
-                        || deDataPresent.get( deo.getCategoryOptionCombo().getId() ) != null) )
-                    {
-                        continue;
-                    }
-                }
-
-                missingDataElementOperands.add( deo );
-            }
-        }
-
-        return missingDataElementOperands;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
-    {
-        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter( lastUpdated );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public int getCompleteDataSetCountLastUpdatedAfter(Date lastUpdated) {
+    return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter(lastUpdated);
+  }
 }

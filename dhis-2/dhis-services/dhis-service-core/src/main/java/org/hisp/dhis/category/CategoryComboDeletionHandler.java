@@ -39,51 +39,42 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  * @version $Id$
  */
-@Component( "org.hisp.dhis.category.CategoryComboDeletionHandler" )
-public class CategoryComboDeletionHandler
-    extends
-    DeletionHandler
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.category.CategoryComboDeletionHandler")
+public class CategoryComboDeletionHandler extends DeletionHandler {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    public CategoryComboDeletionHandler( CategoryService categoryService, IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( categoryService );
-        checkNotNull( idObjectManager );
-        this.categoryService = categoryService;
-        this.idObjectManager = idObjectManager;
+  public CategoryComboDeletionHandler(
+      CategoryService categoryService, IdentifiableObjectManager idObjectManager) {
+    checkNotNull(categoryService);
+    checkNotNull(idObjectManager);
+    this.categoryService = categoryService;
+    this.idObjectManager = idObjectManager;
+  }
+
+  @Override
+  protected void register() {
+    whenVetoing(Category.class, this::allowDeleteCategory);
+    whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
+  }
+
+  private DeletionVeto allowDeleteCategory(Category category) {
+    for (CategoryCombo categoryCombo : categoryService.getAllCategoryCombos()) {
+      if (categoryCombo.getCategories().contains(category)) {
+        return new DeletionVeto(CategoryCombo.class, categoryCombo.getName());
+      }
     }
+    return ACCEPT;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( Category.class, this::allowDeleteCategory );
-        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
+  private void deleteCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
+    for (CategoryCombo categoryCombo : categoryService.getAllCategoryCombos()) {
+      categoryCombo.getOptionCombos().remove(categoryOptionCombo);
+      idObjectManager.updateNoAcl(categoryCombo);
     }
-
-    private DeletionVeto allowDeleteCategory( Category category )
-    {
-        for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
-        {
-            if ( categoryCombo.getCategories().contains( category ) )
-            {
-                return new DeletionVeto( CategoryCombo.class, categoryCombo.getName() );
-            }
-        }
-        return ACCEPT;
-    }
-
-    private void deleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
-    {
-        for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
-        {
-            categoryCombo.getOptionCombos().remove( categoryOptionCombo );
-            idObjectManager.updateNoAcl( categoryCombo );
-        }
-    }
+  }
 }

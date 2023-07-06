@@ -28,7 +28,6 @@
 package org.hisp.dhis.category;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -39,32 +38,26 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class CategoryOptionDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class CategoryOptionDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( Category.class, this::deleteCategory );
-        whenDeleting( OrganisationUnit.class, this::deleteOrgUnit );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(Category.class, this::deleteCategory);
+    whenDeleting(OrganisationUnit.class, this::deleteOrgUnit);
+  }
 
-    private void deleteOrgUnit( OrganisationUnit unit )
-    {
-        for ( CategoryOption option : unit.getCategoryOptions() )
-        {
-            option.getOrganisationUnits().remove( unit );
-            idObjectManager.updateNoAcl( option );
-        }
+  private void deleteOrgUnit(OrganisationUnit unit) {
+    for (CategoryOption option : unit.getCategoryOptions()) {
+      option.getOrganisationUnits().remove(unit);
+      idObjectManager.updateNoAcl(option);
     }
+  }
 
-    private void deleteCategory( Category category )
-    {
-        for ( CategoryOption option : category.getCategoryOptions() )
-        {
-            option.getCategories().remove( category );
-            idObjectManager.updateNoAcl( option );
-        }
+  private void deleteCategory(Category category) {
+    for (CategoryOption option : category.getCategoryOptions()) {
+      option.getCategories().remove(category);
+      idObjectManager.updateNoAcl(option);
     }
+  }
 }

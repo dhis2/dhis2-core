@@ -33,29 +33,26 @@ import org.hisp.dhis.system.util.Clock;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public abstract class DataSynchronizationWithPaging
-{
-    protected boolean syncResult = false;
+public abstract class DataSynchronizationWithPaging {
+  protected boolean syncResult = false;
 
-    protected Clock clock;
+  protected Clock clock;
 
-    protected int objectsToSynchronize;
+  protected int objectsToSynchronize;
 
-    protected SystemInstance instance;
+  protected SystemInstance instance;
 
-    protected int pages;
+  protected int pages;
 
-    public abstract SynchronizationResult synchronizeData( final int pageSize );
+  public abstract SynchronizationResult synchronizeData(final int pageSize);
 
-    protected void runSyncWithPaging( int pageSize )
-    {
-        syncResult = true;
+  protected void runSyncWithPaging(int pageSize) {
+    syncResult = true;
 
-        for ( int page = 1; page <= pages; page++ )
-        {
-            synchronizePage( page, pageSize );
-        }
+    for (int page = 1; page <= pages; page++) {
+      synchronizePage(page, pageSize);
     }
+  }
 
-    protected abstract void synchronizePage( int page, int pageSize );
+  protected abstract void synchronizePage(int page, int pageSize);
 }

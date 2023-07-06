@@ -31,10 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -53,60 +51,70 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class FileResourceSupplier extends AbstractPreheatSupplier
-{
-    @NonNull
-    private final FileResourceService fileResourceService;
+public class FileResourceSupplier extends AbstractPreheatSupplier {
+  @NonNull private final FileResourceService fileResourceService;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    List<TrackedEntityAttribute> attributes = preheat.getAll(TrackedEntityAttribute.class);
 
-        List<String> fileResourceAttributes = attributes.stream()
-            .filter( at -> at.getValueType().isFile() )
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+    List<String> fileResourceAttributes =
+        attributes.stream()
+            .filter(at -> at.getValueType().isFile())
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
 
-        List<DataElement> dataElements = preheat.getAll( DataElement.class );
+    List<DataElement> dataElements = preheat.getAll(DataElement.class);
 
-        List<String> fileResourceDataElements = dataElements.stream()
-            .filter( at -> at.getValueType().isFile() )
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+    List<String> fileResourceDataElements =
+        dataElements.stream()
+            .filter(at -> at.getValueType().isFile())
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
 
-        List<String> fileResourceIds = new ArrayList<>();
+    List<String> fileResourceIds = new ArrayList<>();
 
-        params.getTrackedEntities()
-            .forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
-        params.getEnrollments()
-            .forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
-        params.getEvents()
-            .forEach( en -> collectResourceIds( fileResourceDataElements, fileResourceIds, en.getDataValues() ) );
+    params
+        .getTrackedEntities()
+        .forEach(
+            te -> collectResourceIds(fileResourceAttributes, fileResourceIds, te.getAttributes()));
+    params
+        .getEnrollments()
+        .forEach(
+            en -> collectResourceIds(fileResourceAttributes, fileResourceIds, en.getAttributes()));
+    params
+        .getEvents()
+        .forEach(
+            en ->
+                collectResourceIds(fileResourceDataElements, fileResourceIds, en.getDataValues()));
 
-        List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
-        preheat.put( TrackerIdSchemeParam.UID, fileResources );
-    }
+    List<FileResource> fileResources = fileResourceService.getFileResources(fileResourceIds);
+    preheat.put(TrackerIdSchemeParam.UID, fileResources);
+  }
 
-    private void collectResourceIds( List<String> fileResourceAttributes, List<String> fileResourceIds,
-        List<Attribute> attributes )
-    {
-        attributes.forEach( at -> {
-            if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
-            {
-                fileResourceIds.add( at.getValue() );
-            }
-        } );
-    }
+  private void collectResourceIds(
+      List<String> fileResourceAttributes,
+      List<String> fileResourceIds,
+      List<Attribute> attributes) {
+    attributes.forEach(
+        at -> {
+          if (fileResourceAttributes.contains(at.getAttribute())
+              && !StringUtils.isEmpty(at.getValue())) {
+            fileResourceIds.add(at.getValue());
+          }
+        });
+  }
 
-    private void collectResourceIds( List<String> fileResourceDataElements, List<String> fileResourceIds,
-        Set<DataValue> dataElements )
-    {
-        dataElements.forEach( de -> {
-            if ( fileResourceDataElements.contains( de.getDataElement() ) && !StringUtils.isEmpty( de.getValue() ) )
-            {
-                fileResourceIds.add( de.getValue() );
-            }
-        } );
-    }
+  private void collectResourceIds(
+      List<String> fileResourceDataElements,
+      List<String> fileResourceIds,
+      Set<DataValue> dataElements) {
+    dataElements.forEach(
+        de -> {
+          if (fileResourceDataElements.contains(de.getDataElement())
+              && !StringUtils.isEmpty(de.getValue())) {
+            fileResourceIds.add(de.getValue());
+          }
+        });
+  }
 }

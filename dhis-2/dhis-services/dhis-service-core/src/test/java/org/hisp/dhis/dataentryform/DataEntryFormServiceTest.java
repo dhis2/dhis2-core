@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -51,144 +50,152 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Bharath
  */
-class DataEntryFormServiceTest extends DhisSpringTest
-{
+class DataEntryFormServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private DataEntryFormService dataEntryFormService;
+  @Autowired private DataEntryFormService dataEntryFormService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    private PeriodType periodType;
+  private PeriodType periodType;
 
-    private DataElement dataElement;
+  private DataElement dataElement;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    private I18n i18n;
+  private I18n i18n;
 
-    private String dataElementUid;
+  private String dataElementUid;
 
-    private String categoryOptionComboUid;
+  private String categoryOptionComboUid;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        periodType = new MonthlyPeriodType();
-        dataElement = createDataElement( 'A' );
-        dataElementService.addDataElement( dataElement );
-        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        dataElementUid = dataElement.getUid();
-        categoryOptionComboUid = categoryOptionCombo.getUid();
-        i18n = new MockI18n();
-    }
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() throws Exception {
+    periodType = new MonthlyPeriodType();
+    dataElement = createDataElement('A');
+    dataElementService.addDataElement(dataElement);
+    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    dataElementUid = dataElement.getUid();
+    categoryOptionComboUid = categoryOptionCombo.getUid();
+    i18n = new MockI18n();
+  }
 
-    // -------------------------------------------------------------------------
-    // DataEntryForm
-    // -------------------------------------------------------------------------
-    @Test
-    void testAddDataEntryForm()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        dataSetService.addDataSet( dataSetA );
-        DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
-        long dataEntryFormAid = dataEntryFormService.addDataEntryForm( dataEntryFormA );
-        dataEntryFormA = dataEntryFormService.getDataEntryForm( dataEntryFormAid );
-        assertEquals( dataEntryFormAid, dataEntryFormA.getId() );
-        assertEquals( "DataEntryFormA", dataEntryFormA.getName() );
-    }
+  // -------------------------------------------------------------------------
+  // DataEntryForm
+  // -------------------------------------------------------------------------
+  @Test
+  void testAddDataEntryForm() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    dataSetService.addDataSet(dataSetA);
+    DataEntryForm dataEntryFormA = createDataEntryForm('A');
+    long dataEntryFormAid = dataEntryFormService.addDataEntryForm(dataEntryFormA);
+    dataEntryFormA = dataEntryFormService.getDataEntryForm(dataEntryFormAid);
+    assertEquals(dataEntryFormAid, dataEntryFormA.getId());
+    assertEquals("DataEntryFormA", dataEntryFormA.getName());
+  }
 
-    @Test
-    void testUpdateDataEntryForm()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        dataSetService.addDataSet( dataSetA );
-        DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
-        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
-        dataEntryForm = dataEntryFormService.getDataEntryForm( id );
-        assertEquals( "DataEntryFormA", dataEntryForm.getName() );
-        dataEntryForm.setName( "DataEntryFormX" );
-        dataEntryFormService.updateDataEntryForm( dataEntryForm );
-        dataEntryForm = dataEntryFormService.getDataEntryForm( id );
-        assertEquals( dataEntryForm.getName(), "DataEntryFormX" );
-    }
+  @Test
+  void testUpdateDataEntryForm() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    dataSetService.addDataSet(dataSetA);
+    DataEntryForm dataEntryForm = createDataEntryForm('A');
+    long id = dataEntryFormService.addDataEntryForm(dataEntryForm);
+    dataEntryForm = dataEntryFormService.getDataEntryForm(id);
+    assertEquals("DataEntryFormA", dataEntryForm.getName());
+    dataEntryForm.setName("DataEntryFormX");
+    dataEntryFormService.updateDataEntryForm(dataEntryForm);
+    dataEntryForm = dataEntryFormService.getDataEntryForm(id);
+    assertEquals(dataEntryForm.getName(), "DataEntryFormX");
+  }
 
-    @Test
-    void testDeleteAndGetDataEntryForm()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        dataSetService.addDataSet( dataSetA );
-        DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
-        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
-        dataEntryForm = dataEntryFormService.getDataEntryForm( id );
-        assertNotNull( dataEntryFormService.getDataEntryForm( id ) );
-        dataEntryFormService.deleteDataEntryForm( dataEntryFormService.getDataEntryForm( id ) );
-        assertNull( dataEntryFormService.getDataEntryForm( id ) );
-    }
+  @Test
+  void testDeleteAndGetDataEntryForm() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    dataSetService.addDataSet(dataSetA);
+    DataEntryForm dataEntryForm = createDataEntryForm('A');
+    long id = dataEntryFormService.addDataEntryForm(dataEntryForm);
+    dataEntryForm = dataEntryFormService.getDataEntryForm(id);
+    assertNotNull(dataEntryFormService.getDataEntryForm(id));
+    dataEntryFormService.deleteDataEntryForm(dataEntryFormService.getDataEntryForm(id));
+    assertNull(dataEntryFormService.getDataEntryForm(id));
+  }
 
-    @Test
-    void testGetDataEntryFormByName()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        dataSetService.addDataSet( dataSetA );
-        DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
-        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
-        dataEntryForm = dataEntryFormService.getDataEntryForm( id );
-        assertEquals( dataEntryFormService.getDataEntryFormByName( "DataEntryFormA" ), dataEntryForm );
-        assertNull( dataEntryFormService.getDataEntryFormByName( "DataEntryFormX" ) );
-    }
+  @Test
+  void testGetDataEntryFormByName() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    dataSetService.addDataSet(dataSetA);
+    DataEntryForm dataEntryForm = createDataEntryForm('A');
+    long id = dataEntryFormService.addDataEntryForm(dataEntryForm);
+    dataEntryForm = dataEntryFormService.getDataEntryForm(id);
+    assertEquals(dataEntryFormService.getDataEntryFormByName("DataEntryFormA"), dataEntryForm);
+    assertNull(dataEntryFormService.getDataEntryFormByName("DataEntryFormX"));
+  }
 
-    @Test
-    void testGetAllDataEntryForms()
-    {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        dataSetService.addDataSet( dataSetA );
-        dataSetService.addDataSet( dataSetB );
-        DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
-        DataEntryForm dataEntryFormB = createDataEntryForm( 'B' );
-        dataEntryFormService.addDataEntryForm( dataEntryFormA );
-        dataEntryFormService.addDataEntryForm( dataEntryFormB );
-        List<DataEntryForm> dataEntryForms = dataEntryFormService.getAllDataEntryForms();
-        assertEquals( dataEntryForms.size(), 2 );
-        assertTrue( dataEntryForms.contains( dataEntryFormA ) );
-        assertTrue( dataEntryForms.contains( dataEntryFormB ) );
-    }
+  @Test
+  void testGetAllDataEntryForms() {
+    DataSet dataSetA = createDataSet('A', periodType);
+    DataSet dataSetB = createDataSet('B', periodType);
+    dataSetService.addDataSet(dataSetA);
+    dataSetService.addDataSet(dataSetB);
+    DataEntryForm dataEntryFormA = createDataEntryForm('A');
+    DataEntryForm dataEntryFormB = createDataEntryForm('B');
+    dataEntryFormService.addDataEntryForm(dataEntryFormA);
+    dataEntryFormService.addDataEntryForm(dataEntryFormB);
+    List<DataEntryForm> dataEntryForms = dataEntryFormService.getAllDataEntryForms();
+    assertEquals(dataEntryForms.size(), 2);
+    assertTrue(dataEntryForms.contains(dataEntryFormA));
+    assertTrue(dataEntryForms.contains(dataEntryFormB));
+  }
 
-    @Test
-    void testPrepareForSave()
-    {
-        String html = "<table><tr><td><input id=\"1434-11-val\" style=\"width:4em;text-align:center\" title=\"[ 1434 - Expected Births - 11 - (default) - int ]\" value=\"[ Expected Births - (default) ]\" /></td></tr></table>";
-        String expected = "<table><tr><td><input id=\"1434-11-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
-        String actual = dataEntryFormService.prepareDataEntryFormForSave( html );
-        assertEquals( expected, actual );
-    }
+  @Test
+  void testPrepareForSave() {
+    String html =
+        "<table><tr><td><input id=\"1434-11-val\" style=\"width:4em;text-align:center\" title=\"[ 1434 - Expected Births - 11 - (default) - int ]\" value=\"[ Expected Births - (default) ]\" /></td></tr></table>";
+    String expected =
+        "<table><tr><td><input id=\"1434-11-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
+    String actual = dataEntryFormService.prepareDataEntryFormForSave(html);
+    assertEquals(expected, actual);
+  }
 
-    @Test
-    void testPrepareForEdit()
-    {
-        String html = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid
+  @Test
+  void testPrepareForEdit() {
+    String html =
+        "<table><tr><td><input id=\""
+            + dataElementUid
+            + "-"
+            + categoryOptionComboUid
             + "-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
-        String title = "" + dataElementUid + " - " + dataElement.getName() + " - " + categoryOptionComboUid + " - "
-            + categoryOptionCombo.getName() + " - " + dataElement.getValueType();
-        String value = "[ " + dataElement.getName() + " " + categoryOptionCombo.getName() + " ]";
-        String expected = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid
-            + "-val\" style=\"width:4em;text-align:center\" title=\"" + title + "\" value=\"" + value
+    String title =
+        ""
+            + dataElementUid
+            + " - "
+            + dataElement.getName()
+            + " - "
+            + categoryOptionComboUid
+            + " - "
+            + categoryOptionCombo.getName()
+            + " - "
+            + dataElement.getValueType();
+    String value = "[ " + dataElement.getName() + " " + categoryOptionCombo.getName() + " ]";
+    String expected =
+        "<table><tr><td><input id=\""
+            + dataElementUid
+            + "-"
+            + categoryOptionComboUid
+            + "-val\" style=\"width:4em;text-align:center\" title=\""
+            + title
+            + "\" value=\""
+            + value
             + "\" /></td></tr></table>";
-        DataSet dsA = createDataSet( 'A', null );
-        DataEntryForm dfA = createDataEntryForm( 'A', html );
-        String actual = dataEntryFormService.prepareDataEntryFormForEdit( dfA, dsA, i18n );
-        assertEquals( expected.length(), actual.length() );
-    }
+    DataSet dsA = createDataSet('A', null);
+    DataEntryForm dfA = createDataEntryForm('A', html);
+    String actual = dataEntryFormService.prepareDataEntryFormForEdit(dfA, dsA, i18n);
+    assertEquals(expected.length(), actual.length());
+  }
 }

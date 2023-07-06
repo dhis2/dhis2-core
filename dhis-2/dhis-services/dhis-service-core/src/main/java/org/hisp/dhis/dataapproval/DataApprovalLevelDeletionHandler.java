@@ -30,7 +30,6 @@ package org.hisp.dhis.dataapproval;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -42,32 +41,30 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DataApprovalLevelDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
+public class DataApprovalLevelDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataApproval.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( CategoryOptionGroupSet.class, this::allowDeleteCategoryOptionGroupSet );
-        whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(CategoryOptionGroupSet.class, this::allowDeleteCategoryOptionGroupSet);
+    whenVetoing(DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow);
+  }
 
-    public DeletionVeto allowDeleteCategoryOptionGroupSet( CategoryOptionGroupSet categoryOptionGroupSet )
-    {
-        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid="
+  public DeletionVeto allowDeleteCategoryOptionGroupSet(
+      CategoryOptionGroupSet categoryOptionGroupSet) {
+    String sql =
+        "select count(*) from dataapprovallevel where categoryoptiongroupsetid="
             + categoryOptionGroupSet.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 
-    public DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
-    {
-        String sql = "select count(*) from dataapprovalworkflowlevels where workflowid=" + workflow.getId();
+  public DeletionVeto allowDeleteDataApprovalWorkflow(DataApprovalWorkflow workflow) {
+    String sql =
+        "select count(*) from dataapprovalworkflowlevels where workflowid=" + workflow.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

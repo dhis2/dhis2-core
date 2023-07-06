@@ -40,15 +40,23 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Jim Grace
  */
-@Repository( "org.hisp.dhis.dataapproval.DataApprovalWorkflowStore" )
+@Repository("org.hisp.dhis.dataapproval.DataApprovalWorkflowStore")
 public class HibernateDataApprovalWorkflowStore
     extends HibernateIdentifiableObjectStore<DataApprovalWorkflow>
-    implements DataApprovalWorkflowStore
-{
-    public HibernateDataApprovalWorkflowStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataApprovalWorkflow.class, currentUserService, aclService,
-            true );
-    }
+    implements DataApprovalWorkflowStore {
+  public HibernateDataApprovalWorkflowStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        DataApprovalWorkflow.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

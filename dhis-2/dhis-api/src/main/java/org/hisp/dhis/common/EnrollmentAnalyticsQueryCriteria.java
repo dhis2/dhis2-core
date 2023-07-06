@@ -29,11 +29,9 @@ package org.hisp.dhis.common;
 
 import java.util.Date;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -43,75 +41,67 @@ import org.hisp.dhis.program.ProgramStatus;
 @Getter
 @Setter
 @NoArgsConstructor
-public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
-{
-    private Date startDate;
+public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    /**
-     * Date interval for enrollment date;
-     */
-    private String enrollmentDate;
+  /** Date interval for enrollment date; */
+  private String enrollmentDate;
 
-    /**
-     * Time interval for incident date;
-     */
-    private String incidentDate;
+  /** Time interval for incident date; */
+  private String incidentDate;
 
-    /**
-     * Time interval for last updated date;
-     */
-    private String lastUpdated;
+  /** Time interval for last updated date; */
+  private String lastUpdated;
 
-    private String timeField;
+  private String timeField;
 
-    private Set<String> dimension;
+  private Set<String> dimension;
 
-    private Set<String> filter;
+  private Set<String> filter;
 
-    /**
-     * This parameter selects the headers to be returned as part of the
-     * response. The implementation for this Set will be LinkedHashSet as the
-     * ordering is important.
-     */
-    private Set<String> headers;
+  /**
+   * This parameter selects the headers to be returned as part of the response. The implementation
+   * for this Set will be LinkedHashSet as the ordering is important.
+   */
+  private Set<String> headers;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private Set<String> asc;
+  private Set<String> asc;
 
-    private Set<String> desc;
+  private Set<String> desc;
 
-    private boolean skipMeta;
+  private boolean skipMeta;
 
-    private boolean skipData;
+  private boolean skipData;
 
-    private boolean completedOnly;
+  private boolean completedOnly;
 
-    private boolean hierarchyMeta;
+  private boolean hierarchyMeta;
 
-    private boolean coordinatesOnly;
+  private boolean coordinatesOnly;
 
-    private boolean includeMetadataDetails;
+  private boolean includeMetadataDetails;
 
-    private IdScheme dataIdScheme;
+  private IdScheme dataIdScheme;
 
-    /**
-     * Identifier scheme to use for metadata items the query response, can be
-     * identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
-     */
-    private IdScheme outputIdScheme;
+  /**
+   * Identifier scheme to use for metadata items the query response, can be identifier, code or
+   * attributes. ( options: UID | CODE | ATTRIBUTE:<ID> )
+   */
+  private IdScheme outputIdScheme;
 
-    private Set<ProgramStatus> programStatus;
+  private Set<ProgramStatus> programStatus;
 
-    private DisplayProperty displayProperty;
+  private DisplayProperty displayProperty;
 
-    private Date relativePeriodDate;
+  private Date relativePeriodDate;
 
-    private String userOrgUnit;
+  private String userOrgUnit;
 
-    private String coordinateField;
+  private String coordinateField;
 
-    private SortOrder sortOrder;
+  private SortOrder sortOrder;
 }

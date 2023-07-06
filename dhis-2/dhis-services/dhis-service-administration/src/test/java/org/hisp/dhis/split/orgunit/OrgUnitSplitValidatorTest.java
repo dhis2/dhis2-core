@@ -39,89 +39,108 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitSplitValidatorTest
-{
+class OrgUnitSplitValidatorTest {
 
-    private OrgUnitSplitValidator validator;
+  private OrgUnitSplitValidator validator;
 
-    @BeforeEach
-    void before()
-    {
-        this.validator = new OrgUnitSplitValidator();
-    }
+  @BeforeEach
+  void before() {
+    this.validator = new OrgUnitSplitValidator();
+  }
 
-    @Test
-    void testValidateMissingSource()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().addTarget( ouA ).addTarget( ouB )
-            .withPrimaryTarget( ouA ).build();
-        assertEquals( ErrorCode.E1510, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
+  @Test
+  void testValidateMissingSource() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .addTarget(ouA)
+            .addTarget(ouB)
+            .withPrimaryTarget(ouA)
+            .build();
+    assertEquals(ErrorCode.E1510, validator.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void testValidateMissingTargets()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouB ).addTarget( ouA )
-            .withPrimaryTarget( ouA ).build();
-        assertEquals( ErrorCode.E1511, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
+  @Test
+  void testValidateMissingTargets() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouB)
+            .addTarget(ouA)
+            .withPrimaryTarget(ouA)
+            .build();
+    assertEquals(ErrorCode.E1511, validator.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void testValidateTargetIsSource()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouA )
-            .addTarget( ouB ).withPrimaryTarget( ouA ).build();
-        assertEquals( ErrorCode.E1512, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
+  @Test
+  void testValidateTargetIsSource() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouA)
+            .addTarget(ouB)
+            .withPrimaryTarget(ouA)
+            .build();
+    assertEquals(ErrorCode.E1512, validator.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void validateUndefinedPrimaryTarget()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).build();
-        assertEquals( ErrorCode.E1513, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
+  @Test
+  void validateUndefinedPrimaryTarget() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrganisationUnit ouC = createOrganisationUnit('C');
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder().withSource(ouA).addTarget(ouB).addTarget(ouC).build();
+    assertEquals(ErrorCode.E1513, validator.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void validatePrimaryTargetNotTarget()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        OrganisationUnit ouD = createOrganisationUnit( 'D' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouD ).build();
-        assertEquals( ErrorCode.E1514, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
+  @Test
+  void validatePrimaryTargetNotTarget() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrganisationUnit ouC = createOrganisationUnit('C');
+    OrganisationUnit ouD = createOrganisationUnit('D');
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouB)
+            .addTarget(ouC)
+            .withPrimaryTarget(ouD)
+            .build();
+    assertEquals(ErrorCode.E1514, validator.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void validateTargetIsDescendantOfSource()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C', ouA );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
-        assertEquals( ErrorCode.E1516, validator.validateForErrorMessage( request ).getErrorCode() );
-    }
+  @Test
+  void validateTargetIsDescendantOfSource() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrganisationUnit ouC = createOrganisationUnit('C', ouA);
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouB)
+            .addTarget(ouC)
+            .withPrimaryTarget(ouB)
+            .build();
+    assertEquals(ErrorCode.E1516, validator.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void validateSuccess()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
-        assertNull( validator.validateForErrorMessage( request ) );
-    }
+  @Test
+  void validateSuccess() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrganisationUnit ouC = createOrganisationUnit('C');
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouB)
+            .addTarget(ouC)
+            .withPrimaryTarget(ouB)
+            .build();
+    assertNull(validator.validateForErrorMessage(request));
+  }
 }

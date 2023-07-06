@@ -28,83 +28,81 @@
 package org.hisp.dhis.common;
 
 import java.util.List;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 
 /**
  * @author Lars Helge Overland
  */
-public interface GenericStore<T>
-{
-    /**
-     * Class of the object for this store.
-     */
-    Class<T> getClazz();
+public interface GenericStore<T> {
+  /** Class of the object for this store. */
+  Class<T> getClazz();
 
-    /**
-     * Saves the given object instance, with clear sharing set to true.
-     *
-     * @param object the object instance.
-     */
-    void save( T object );
+  /**
+   * Saves the given object instance, with clear sharing set to true.
+   *
+   * @param object the object instance.
+   */
+  void save(T object);
 
-    /**
-     * Updates the given object instance.
-     *
-     * @param object the object instance.
-     */
-    void update( T object );
+  /**
+   * Updates the given object instance.
+   *
+   * @param object the object instance.
+   */
+  void update(T object);
 
-    /**
-     * Removes the given object instance.
-     *
-     * @param object the object instance to delete.
-     */
-    void delete( T object );
+  /**
+   * Removes the given object instance.
+   *
+   * @param object the object instance to delete.
+   */
+  void delete(T object);
 
-    /**
-     * Retrieves the object with the given identifier. This method will first
-     * look in the current Session, then hit the database if not existing.
-     *
-     * @param id the object identifier.
-     * @return the object identified by the given identifier.
-     */
-    T get( long id );
+  /**
+   * Retrieves the object with the given identifier. This method will first look in the current
+   * Session, then hit the database if not existing.
+   *
+   * @param id the object identifier.
+   * @return the object identified by the given identifier.
+   */
+  T get(long id);
 
-    long countAllValuesByAttributes( List<Attribute> attributes );
+  long countAllValuesByAttributes(List<Attribute> attributes);
 
-    List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
+  List<AttributeValue> getAttributeValueByAttribute(Attribute attribute);
 
-    /**
-     * Gets the count of objects.
-     *
-     * @return the count of objects.
-     */
-    int getCount();
+  /**
+   * Gets the count of objects.
+   *
+   * @return the count of objects.
+   */
+  int getCount();
 
-    /**
-     * Retrieves a List of all objects.
-     *
-     * @return a List of all objects.
-     */
-    List<T> getAll();
+  /**
+   * Retrieves a List of all objects.
+   *
+   * @return a List of all objects.
+   */
+  List<T> getAll();
 
-    List<T> getByAttribute( Attribute attribute );
+  List<T> getByAttribute(Attribute attribute);
 
-    List<T> getByAttributeAndValue( Attribute attribute, String value );
+  List<T> getByAttributeAndValue(Attribute attribute, String value);
 
-    List<T> getAllByAttributes( List<Attribute> attributes );
+  List<T> getAllByAttributes(List<Attribute> attributes);
 
-    List<AttributeValue> getAllValuesByAttributes( List<Attribute> attributes );
+  List<AttributeValue> getAllValuesByAttributes(List<Attribute> attributes);
 
-    List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value );
+  List<AttributeValue> getAttributeValueByAttributeAndValue(Attribute attribute, String value);
 
-    List<T> getByAttributeValue( AttributeValue attributeValue );
+  List<T> getByAttributeValue(AttributeValue attributeValue);
 
-    <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );
+  <P extends IdentifiableObject> boolean isAttributeValueUnique(
+      P object, AttributeValue attributeValue);
 
-    <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value );
+  <P extends IdentifiableObject> boolean isAttributeValueUnique(
+      P object, Attribute attribute, String value);
 
-    List<T> getAllByAttributeAndValues( Attribute attribute, List<String> values );
+  List<T> getAllByAttributeAndValues(Attribute attribute, List<String> values);
 }

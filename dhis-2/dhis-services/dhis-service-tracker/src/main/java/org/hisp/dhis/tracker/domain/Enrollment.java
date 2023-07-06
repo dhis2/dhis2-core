@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.tracker.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.*;
-
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,94 +42,62 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Enrollment
-    implements TrackerDto
-{
-    @JsonProperty
-    private String enrollment;
+public class Enrollment implements TrackerDto {
+  @JsonProperty private String enrollment;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant createdAtClient;
+  @JsonProperty private Instant createdAtClient;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private Instant updatedAtClient;
+  @JsonProperty private Instant updatedAtClient;
 
-    @JsonProperty
-    private String trackedEntity;
+  @JsonProperty private String trackedEntity;
 
-    @JsonProperty
-    private String program;
+  @JsonProperty private String program;
 
-    @JsonProperty
-    private EnrollmentStatus status;
+  @JsonProperty private EnrollmentStatus status;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String orgUnitName;
+  @JsonProperty private String orgUnitName;
 
-    @JsonProperty
-    private Instant enrolledAt;
+  @JsonProperty private Instant enrolledAt;
 
-    @JsonProperty
-    private Instant occurredAt;
+  @JsonProperty private Instant occurredAt;
 
-    @JsonProperty
-    private boolean followUp;
+  @JsonProperty private boolean followUp;
 
-    @JsonProperty
-    private String completedBy;
+  @JsonProperty private String completedBy;
 
-    @JsonProperty
-    private Instant completedAt;
+  @JsonProperty private Instant completedAt;
 
-    @JsonProperty
-    private boolean deleted;
+  @JsonProperty private boolean deleted;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private User createdBy;
+  @JsonProperty private User createdBy;
 
-    @JsonProperty
-    private User updatedBy;
+  @JsonProperty private User updatedBy;
 
-    @JsonProperty
-    private Geometry geometry;
+  @JsonProperty private Geometry geometry;
 
-    @JsonProperty
-    @Builder.Default
-    private List<Event> events = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Event> events = new ArrayList<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<Attribute> attributes = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<Note> notes = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 
-    @Override
-    public String getUid()
-    {
-        return this.enrollment;
-    }
+  @Override
+  public String getUid() {
+    return this.enrollment;
+  }
 
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.ENROLLMENT;
-    }
+  @Override
+  public TrackerType getTrackerType() {
+    return TrackerType.ENROLLMENT;
+  }
 }

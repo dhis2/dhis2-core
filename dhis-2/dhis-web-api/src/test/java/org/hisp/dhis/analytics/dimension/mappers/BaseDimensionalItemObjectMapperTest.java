@@ -29,25 +29,23 @@ package org.hisp.dhis.analytics.dimension.mappers;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
+class BaseDimensionalItemObjectMapperTest {
 
-class BaseDimensionalItemObjectMapperTest
-{
+  private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
 
-    private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
-
-    @Test
-    void testDimensionalItemObjectMapper()
-    {
-        asserter( new BaseDimensionalItemObjectMapper(),
-            BaseDimensionalItemObject::new,
-            ImmutableList.of( b -> b.setDimensionItemType( DIMENSION_ITEM_TYPE ) ),
-            ImmutableList.of( Pair.of( DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE ) ) );
-    }
+  @Test
+  void testDimensionalItemObjectMapper() {
+    asserter(
+        new BaseDimensionalItemObjectMapper(),
+        BaseDimensionalItemObject::new,
+        ImmutableList.of(b -> b.setDimensionItemType(DIMENSION_ITEM_TYPE)),
+        ImmutableList.of(Pair.of(DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE)));
+  }
 }

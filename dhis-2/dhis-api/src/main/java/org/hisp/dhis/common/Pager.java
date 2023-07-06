@@ -34,160 +34,145 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "pager", namespace = DxfNamespaces.DXF_2_0 )
-public class Pager
-{
-    public static final int DEFAULT_PAGE_SIZE = 50;
+@JacksonXmlRootElement(localName = "pager", namespace = DxfNamespaces.DXF_2_0)
+public class Pager {
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-    private int page = 1;
+  private int page = 1;
 
-    private long total = 0;
+  private long total = 0;
 
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    private String nextPage;
+  private String nextPage;
 
-    private String prevPage;
+  private String prevPage;
 
-    public Pager()
-    {
+  public Pager() {}
 
+  public Pager(int page, long total) {
+    this.page = page;
+    this.total = total;
+
+    if (this.page > getPageCount()) {
+      this.page = getPageCount();
     }
 
-    public Pager( int page, long total )
-    {
-        this.page = page;
-        this.total = total;
+    if (this.page < 1) {
+      this.page = 1;
+    }
+  }
 
-        if ( this.page > getPageCount() )
-        {
-            this.page = getPageCount();
-        }
+  public Pager(int page, long total, int pageSize) {
+    this.page = page;
+    this.total = total >= 0 ? total : 0;
+    this.pageSize = pageSize > 0 ? pageSize : 1;
 
-        if ( this.page < 1 )
-        {
-            this.page = 1;
-        }
+    if (this.page > getPageCount()) {
+      this.page = getPageCount();
     }
 
-    public Pager( int page, long total, int pageSize )
-    {
-        this.page = page;
-        this.total = total >= 0 ? total : 0;
-        this.pageSize = pageSize > 0 ? pageSize : 1;
+    if (this.page < 1) {
+      this.page = 1;
+    }
+  }
 
-        if ( this.page > getPageCount() )
-        {
-            this.page = getPageCount();
-        }
+  public String toString() {
+    return "[Page: "
+        + page
+        + " total: "
+        + total
+        + " size: "
+        + pageSize
+        + " offset: "
+        + getOffset()
+        + "]";
+  }
 
-        if ( this.page < 1 )
-        {
-            this.page = 1;
-        }
+  public boolean pageSizeIsDefault() {
+    return pageSize == Pager.DEFAULT_PAGE_SIZE;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPage() {
+    return page;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public long getTotal() {
+    return total;
+  }
+
+  /**
+   * How many items per page.
+   *
+   * @return Number of items per page.
+   */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPageSize() {
+    return pageSize;
+  }
+
+  /**
+   * How many pages in total
+   *
+   * @return Total number of pages
+   */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getPageCount() {
+    int pageCount = 1;
+    long totalTmp = total;
+
+    while (totalTmp > pageSize) {
+      totalTmp -= pageSize;
+      pageCount++;
     }
 
-    public String toString()
-    {
-        return "[Page: " + page + " total: " + total + " size: " + pageSize + " offset: " + getOffset() + "]";
-    }
+    return pageCount;
+  }
 
-    public boolean pageSizeIsDefault()
-    {
-        return pageSize == Pager.DEFAULT_PAGE_SIZE;
-    }
+  /**
+   * Return the current offset to start at.
+   *
+   * @return Offset to start at
+   */
+  public int getOffset() {
+    return (page * pageSize) - pageSize;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPage()
-    {
-        return page;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getNextPage() {
+    return nextPage;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getTotal()
-    {
-        return total;
-    }
+  public void setNextPage(String nextPage) {
+    this.nextPage = nextPage;
+  }
 
-    /**
-     * How many items per page.
-     *
-     * @return Number of items per page.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageSize()
-    {
-        return pageSize;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getPrevPage() {
+    return prevPage;
+  }
 
-    /**
-     * How many pages in total
-     *
-     * @return Total number of pages
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageCount()
-    {
-        int pageCount = 1;
-        long totalTmp = total;
+  public void setPrevPage(String prevPage) {
+    this.prevPage = prevPage;
+  }
 
-        while ( totalTmp > pageSize )
-        {
-            totalTmp -= pageSize;
-            pageCount++;
-        }
-
-        return pageCount;
-    }
-
-    /**
-     * Return the current offset to start at.
-     *
-     * @return Offset to start at
-     */
-    public int getOffset()
-    {
-        return (page * pageSize) - pageSize;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getNextPage()
-    {
-        return nextPage;
-    }
-
-    public void setNextPage( String nextPage )
-    {
-        this.nextPage = nextPage;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPrevPage()
-    {
-        return prevPage;
-    }
-
-    public void setPrevPage( String prevPage )
-    {
-        this.prevPage = prevPage;
-    }
-
-    /**
-     * Method used when we don't need any pagination logic. We just want to
-     * simply set the current page and page size.
-     *
-     * @param page
-     * @param pageSize
-     */
-    public void force( int page, int pageSize )
-    {
-        this.page = page;
-        this.pageSize = pageSize;
-    }
+  /**
+   * Method used when we don't need any pagination logic. We just want to simply set the current
+   * page and page size.
+   *
+   * @param page
+   * @param pageSize
+   */
+  public void force(int page, int pageSize) {
+    this.page = page;
+    this.pageSize = pageSize;
+  }
 }

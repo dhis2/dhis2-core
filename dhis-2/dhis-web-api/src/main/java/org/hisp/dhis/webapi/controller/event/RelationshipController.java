@@ -40,11 +40,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -77,216 +74,215 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Stian Sandvold
  */
 @RestController
-@RequestMapping( value = RelationshipSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = RelationshipSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class RelationshipController
-{
+public class RelationshipController {
 
-    // -------------------------------------------------------------------------
-    // DEPENDENCIES
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DEPENDENCIES
+  // -------------------------------------------------------------------------
 
-    private final RelationshipService relationshipService;
+  private final RelationshipService relationshipService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+  private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final ProgramInstanceService programInstanceService;
+  private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+  private final ProgramStageInstanceService programStageInstanceService;
 
-    // -------------------------------------------------------------------------
-    // READ
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // READ
+  // -------------------------------------------------------------------------
 
-    @GetMapping
-    public List<Relationship> getRelationships( RelationshipCriteria relationshipCriteria )
-        throws WebMessageException
-    {
-        if ( relationshipCriteria.getTei() != null )
-        {
-            return Optional.ofNullable( trackedEntityInstanceService
-                .getTrackedEntityInstance( relationshipCriteria.getTei() ) )
-                .map( tei -> relationshipService.getRelationshipsByTrackedEntityInstance( tei,
-                    relationshipCriteria, false ) )
-                .orElseThrow( () -> new WebMessageException(
-                    notFound( "No trackedEntityInstance '" + relationshipCriteria.getTei() + "' found." ) ) );
-        }
-        else if ( relationshipCriteria.getEnrollment() != null )
-        {
-            return Optional.ofNullable( programInstanceService
-                .getProgramInstance( relationshipCriteria.getEnrollment() ) )
-                .map(
-                    pi -> relationshipService.getRelationshipsByProgramInstance( pi, relationshipCriteria,
-                        false ) )
-                .orElseThrow( () -> new WebMessageException(
-                    notFound( "No enrollment '" + relationshipCriteria.getEnrollment() + "' found." ) ) );
-        }
-        else if ( relationshipCriteria.getEvent() != null )
-        {
-            return Optional.ofNullable( programStageInstanceService
-                .getProgramStageInstance( relationshipCriteria.getEvent() ) )
-                .map( psi -> relationshipService.getRelationshipsByProgramStageInstance( psi,
-                    relationshipCriteria, false ) )
-                .orElseThrow( () -> new WebMessageException(
-                    notFound( "No event '" + relationshipCriteria.getEvent() + "' found." ) ) );
-        }
-        else
-        {
-            throw new WebMessageException( badRequest( "Missing required parameter 'tei', 'enrollment' or 'event'." ) );
-        }
+  @GetMapping
+  public List<Relationship> getRelationships(RelationshipCriteria relationshipCriteria)
+      throws WebMessageException {
+    if (relationshipCriteria.getTei() != null) {
+      return Optional.ofNullable(
+              trackedEntityInstanceService.getTrackedEntityInstance(relationshipCriteria.getTei()))
+          .map(
+              tei ->
+                  relationshipService.getRelationshipsByTrackedEntityInstance(
+                      tei, relationshipCriteria, false))
+          .orElseThrow(
+              () ->
+                  new WebMessageException(
+                      notFound(
+                          "No trackedEntityInstance '"
+                              + relationshipCriteria.getTei()
+                              + "' found.")));
+    } else if (relationshipCriteria.getEnrollment() != null) {
+      return Optional.ofNullable(
+              programInstanceService.getProgramInstance(relationshipCriteria.getEnrollment()))
+          .map(
+              pi ->
+                  relationshipService.getRelationshipsByProgramInstance(
+                      pi, relationshipCriteria, false))
+          .orElseThrow(
+              () ->
+                  new WebMessageException(
+                      notFound(
+                          "No enrollment '" + relationshipCriteria.getEnrollment() + "' found.")));
+    } else if (relationshipCriteria.getEvent() != null) {
+      return Optional.ofNullable(
+              programStageInstanceService.getProgramStageInstance(relationshipCriteria.getEvent()))
+          .map(
+              psi ->
+                  relationshipService.getRelationshipsByProgramStageInstance(
+                      psi, relationshipCriteria, false))
+          .orElseThrow(
+              () ->
+                  new WebMessageException(
+                      notFound("No event '" + relationshipCriteria.getEvent() + "' found.")));
+    } else {
+      throw new WebMessageException(
+          badRequest("Missing required parameter 'tei', 'enrollment' or 'event'."));
+    }
+  }
+
+  @GetMapping("/{id}")
+  public Relationship getRelationship(@PathVariable String id) throws WebMessageException {
+    return Optional.of(relationshipService.findRelationshipByUid(id))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .orElseThrow(
+            () ->
+                new WebMessageException(
+                    notFound("No relationship with id '" + id + "' was found.")));
+  }
+
+  // -------------------------------------------------------------------------
+  // CREATE
+  // -------------------------------------------------------------------------
+
+  @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage postRelationshipJson(
+      @RequestParam(defaultValue = "CREATE_AND_UPDATE") ImportStrategy strategy,
+      ImportOptions importOptions,
+      HttpServletRequest request)
+      throws IOException {
+    importOptions.setStrategy(strategy);
+    InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
+    ImportSummaries importSummaries =
+        relationshipService.addRelationshipsJson(inputStream, importOptions);
+
+    importSummaries.getImportSummaries().stream()
+        .filter(filterImportSummary(importOptions))
+        .forEach(setImportSummaryHref(request));
+
+    return importSummaries(importSummaries);
+  }
+
+  @PostMapping(value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE)
+  @ResponseBody
+  public WebMessage postRelationshipXml(
+      @RequestParam(defaultValue = "CREATE_AND_UPDATE") ImportStrategy strategy,
+      ImportOptions importOptions,
+      HttpServletRequest request)
+      throws IOException {
+    importOptions.setStrategy(strategy);
+    InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
+    ImportSummaries importSummaries =
+        relationshipService.addRelationshipsXml(inputStream, importOptions);
+
+    importSummaries.getImportSummaries().stream()
+        .filter(filterImportSummary(importOptions))
+        .forEach(setImportSummaryHref(request));
+
+    return importSummaries(importSummaries);
+  }
+
+  // -------------------------------------------------------------------------
+  // UPDATE
+  // -------------------------------------------------------------------------
+
+  @PutMapping(path = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage updateRelationshipJson(
+      @PathVariable String id, ImportOptions importOptions, HttpServletRequest request)
+      throws IOException {
+    Optional<Relationship> relationship = relationshipService.findRelationshipByUid(id);
+
+    if (relationship.isEmpty()) {
+      return notFound("No relationship with id '" + id + "' was found.");
+    }
+    InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
+    ImportSummary importSummary =
+        relationshipService.updateRelationshipJson(id, inputStream, importOptions);
+    importSummary.setImportOptions(importOptions);
+
+    return importSummary(importSummary);
+  }
+
+  @PutMapping(path = "/{id}", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE)
+  @ResponseBody
+  public WebMessage updateRelationshipXml(
+      @PathVariable String id, ImportOptions importOptions, HttpServletRequest request)
+      throws IOException {
+    Optional<Relationship> relationship = relationshipService.findRelationshipByUid(id);
+
+    if (relationship.isEmpty()) {
+      return notFound("No relationship with id '" + id + "' was found.");
+    }
+    InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat(request.getInputStream());
+    ImportSummary importSummary =
+        relationshipService.updateRelationshipXml(id, inputStream, importOptions);
+    importSummary.setImportOptions(importOptions);
+
+    return importSummary(importSummary).withPlainResponseBefore(DhisApiVersion.V38);
+  }
+
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
+
+  @DeleteMapping(value = "/{id}")
+  @ResponseBody
+  public WebMessage deleteRelationship(@PathVariable String id) {
+    Optional<Relationship> relationship = relationshipService.findRelationshipByUid(id);
+
+    if (relationship.isEmpty()) {
+      return notFound("No relationship with id '" + id + "' was found.");
     }
 
-    @GetMapping( "/{id}" )
-    public Relationship getRelationship(
-        @PathVariable String id )
-        throws WebMessageException
-    {
-        return Optional.of( relationshipService.findRelationshipByUid( id ) )
-            .filter( Optional::isPresent )
-            .map( Optional::get )
-            .orElseThrow(
-                () -> new WebMessageException( notFound( "No relationship with id '" + id + "' was found." ) ) );
-    }
+    return importSummary(relationshipService.deleteRelationship(id));
+  }
 
-    // -------------------------------------------------------------------------
-    // CREATE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // HELPER METHODS
+  // -------------------------------------------------------------------------
 
-    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage postRelationshipJson(
-        @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions,
-        HttpServletRequest request )
-        throws IOException
-    {
-        importOptions.setStrategy( strategy );
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummaries importSummaries = relationshipService.addRelationshipsJson( inputStream, importOptions );
+  /**
+   * Returns a Predicate that filters out ImportSummary depending on importOptions and the summary
+   * itself
+   *
+   * @param importOptions
+   * @return a Predicate for ImportSummary
+   */
+  private Predicate<ImportSummary> filterImportSummary(ImportOptions importOptions) {
+    return importSummary ->
+        !importOptions.isDryRun()
+            && !importSummary.getStatus().equals(ImportStatus.ERROR)
+            && !importOptions.getImportStrategy().isDelete()
+            && (!importOptions.getImportStrategy().isSync()
+                || importSummary.getImportCount().getDeleted() == 0);
+  }
 
-        importSummaries.getImportSummaries().stream()
-            .filter( filterImportSummary( importOptions ) )
-            .forEach( setImportSummaryHref( request ) );
-
-        return importSummaries( importSummaries );
-    }
-
-    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
-    @ResponseBody
-    public WebMessage postRelationshipXml(
-        @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions,
-        HttpServletRequest request )
-        throws IOException
-    {
-        importOptions.setStrategy( strategy );
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummaries importSummaries = relationshipService.addRelationshipsXml( inputStream, importOptions );
-
-        importSummaries.getImportSummaries().stream()
-            .filter( filterImportSummary( importOptions ) )
-            .forEach( setImportSummaryHref( request ) );
-
-        return importSummaries( importSummaries );
-    }
-
-    // -------------------------------------------------------------------------
-    // UPDATE
-    // -------------------------------------------------------------------------
-
-    @PutMapping( path = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage updateRelationshipJson(
-        @PathVariable String id,
-        ImportOptions importOptions,
-        HttpServletRequest request )
-        throws IOException
-    {
-        Optional<Relationship> relationship = relationshipService.findRelationshipByUid( id );
-
-        if ( relationship.isEmpty() )
-        {
-            return notFound( "No relationship with id '" + id + "' was found." );
-        }
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = relationshipService.updateRelationshipJson( id, inputStream, importOptions );
-        importSummary.setImportOptions( importOptions );
-
-        return importSummary( importSummary );
-    }
-
-    @PutMapping( path = "/{id}", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
-    @ResponseBody
-    public WebMessage updateRelationshipXml(
-        @PathVariable String id,
-        ImportOptions importOptions,
-        HttpServletRequest request )
-        throws IOException
-    {
-        Optional<Relationship> relationship = relationshipService.findRelationshipByUid( id );
-
-        if ( relationship.isEmpty() )
-        {
-            return notFound( "No relationship with id '" + id + "' was found." );
-        }
-        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = relationshipService.updateRelationshipXml( id, inputStream, importOptions );
-        importSummary.setImportOptions( importOptions );
-
-        return importSummary( importSummary ).withPlainResponseBefore( DhisApiVersion.V38 );
-    }
-
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
-
-    @DeleteMapping( value = "/{id}" )
-    @ResponseBody
-    public WebMessage deleteRelationship( @PathVariable String id )
-    {
-        Optional<Relationship> relationship = relationshipService.findRelationshipByUid( id );
-
-        if ( relationship.isEmpty() )
-        {
-            return notFound( "No relationship with id '" + id + "' was found." );
-        }
-
-        return importSummary( relationshipService.deleteRelationship( id ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // HELPER METHODS
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a Predicate that filters out ImportSummary depending on
-     * importOptions and the summary itself
-     *
-     * @param importOptions
-     * @return a Predicate for ImportSummary
-     */
-    private Predicate<ImportSummary> filterImportSummary( ImportOptions importOptions )
-    {
-        return importSummary -> !importOptions.isDryRun() &&
-            !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
-            !importOptions.getImportStrategy().isDelete() &&
-            (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0);
-    }
-
-    /**
-     * Creates a Consumer that takes an ImportSummary and sets the href
-     * property, based on the request root path, api endpoint and the reference
-     * from the import summary.
-     *
-     * @param request
-     * @return a Consumer for ImportSummary
-     */
-    private Consumer<ImportSummary> setImportSummaryHref( HttpServletRequest request )
-    {
-        return importSummary -> importSummary.setHref(
-            ContextUtils.getRootPath( request ) +
-                RelationshipSchemaDescriptor.API_ENDPOINT + "/" +
-                importSummary.getReference() );
-    }
+  /**
+   * Creates a Consumer that takes an ImportSummary and sets the href property, based on the request
+   * root path, api endpoint and the reference from the import summary.
+   *
+   * @param request
+   * @return a Consumer for ImportSummary
+   */
+  private Consumer<ImportSummary> setImportSummaryHref(HttpServletRequest request) {
+    return importSummary ->
+        importSummary.setHref(
+            ContextUtils.getRootPath(request)
+                + RelationshipSchemaDescriptor.API_ENDPOINT
+                + "/"
+                + importSummary.getReference());
+  }
 }

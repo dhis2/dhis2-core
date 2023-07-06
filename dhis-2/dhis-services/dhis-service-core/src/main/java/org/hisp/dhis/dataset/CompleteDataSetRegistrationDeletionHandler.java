@@ -30,7 +30,6 @@ package org.hisp.dhis.dataset;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -44,48 +43,43 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class CompleteDataSetRegistrationDeletionHandler extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( CompleteDataSetRegistration.class );
+public class CompleteDataSetRegistrationDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(CompleteDataSetRegistration.class);
 
-    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+  private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private void deleteDataSet( DataSet dataSet )
-    {
-        completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( dataSet );
-    }
+  private void deleteDataSet(DataSet dataSet) {
+    completeDataSetRegistrationService.deleteCompleteDataSetRegistrations(dataSet);
+  }
 
-    private DeletionVeto allowDeletePeriod( Period period )
-    {
-        return vetoIfExists( "SELECT COUNT(*) FROM completedatasetregistration where periodid=" + period.getId() );
-    }
+  private DeletionVeto allowDeletePeriod(Period period) {
+    return vetoIfExists(
+        "SELECT COUNT(*) FROM completedatasetregistration where periodid=" + period.getId());
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit unit )
-    {
-        completeDataSetRegistrationService.deleteCompleteDataSetRegistrations( unit );
-    }
+  private void deleteOrganisationUnit(OrganisationUnit unit) {
+    completeDataSetRegistrationService.deleteCompleteDataSetRegistrations(unit);
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
 
-        return vetoIfExists( "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid="
-            + optionCombo.getId() );
-    }
+    return vetoIfExists(
+        "SELECT COUNT(*) FROM completedatasetregistration where attributeoptioncomboid="
+            + optionCombo.getId());
+  }
 
-    private DeletionVeto vetoIfExists( String sql )
-    {
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-        return count == null || count == 0 ? ACCEPT : VETO;
-    }
+  private DeletionVeto vetoIfExists(String sql) {
+    Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+    return count == null || count == 0 ? ACCEPT : VETO;
+  }
 }

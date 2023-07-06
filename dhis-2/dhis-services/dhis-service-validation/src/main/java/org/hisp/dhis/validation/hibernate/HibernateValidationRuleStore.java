@@ -30,9 +30,7 @@ package org.hisp.dhis.validation.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.PeriodService;
@@ -49,75 +47,82 @@ import org.springframework.stereotype.Repository;
  * @author Chau Thu Tran
  * @version HibernateValidationRuleStore.java May 19, 2010 1:48:44 PM
  */
-@Repository( "org.hisp.dhis.validation.ValidationRuleStore" )
-public class HibernateValidationRuleStore
-    extends HibernateIdentifiableObjectStore<ValidationRule>
-    implements ValidationRuleStore
-{
-    // -------------------------------------------------------------------------
-    // Dependency
-    // -------------------------------------------------------------------------
+@Repository("org.hisp.dhis.validation.ValidationRuleStore")
+public class HibernateValidationRuleStore extends HibernateIdentifiableObjectStore<ValidationRule>
+    implements ValidationRuleStore {
+  // -------------------------------------------------------------------------
+  // Dependency
+  // -------------------------------------------------------------------------
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    public HibernateValidationRuleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        PeriodService periodService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ValidationRule.class, currentUserService, aclService, true );
+  public HibernateValidationRuleStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService,
+      PeriodService periodService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ValidationRule.class,
+        currentUserService,
+        aclService,
+        true);
 
-        checkNotNull( periodService );
+    checkNotNull(periodService);
 
-        this.periodService = periodService;
-    }
+    this.periodService = periodService;
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void save( ValidationRule validationRule )
-    {
-        PeriodType periodType = periodService.reloadPeriodType( validationRule.getPeriodType() );
+  @Override
+  public void save(ValidationRule validationRule) {
+    PeriodType periodType = periodService.reloadPeriodType(validationRule.getPeriodType());
 
-        validationRule.setPeriodType( periodType );
+    validationRule.setPeriodType(periodType);
 
-        super.save( validationRule );
-    }
+    super.save(validationRule);
+  }
 
-    @Override
-    public void update( ValidationRule validationRule )
-    {
-        PeriodType periodType = periodService.reloadPeriodType( validationRule.getPeriodType() );
+  @Override
+  public void update(ValidationRule validationRule) {
+    PeriodType periodType = periodService.reloadPeriodType(validationRule.getPeriodType());
 
-        validationRule.setPeriodType( periodType );
+    validationRule.setPeriodType(periodType);
 
-        super.update( validationRule );
-    }
+    super.update(validationRule);
+  }
 
-    @Override
-    public List<ValidationRule> getAllFormValidationRules()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ValidationRule> getAllFormValidationRules() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.get( "skipFormValidation" ), false ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicates(getSharingPredicates(builder))
+            .addPredicate(root -> builder.equal(root.get("skipFormValidation"), false)));
+  }
 
-    @Override
-    public List<ValidationRule> getValidationRulesWithNotificationTemplates()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ValidationRule> getValidationRulesWithNotificationTemplates() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.isNotEmpty( root.get( "notificationTemplates" ) ) )
-            .setUseDistinct( true ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.isNotEmpty(root.get("notificationTemplates")))
+            .setUseDistinct(true));
+  }
 
-    @Override
-    public List<ValidationRule> getValidationRulesWithoutGroups()
-    {
-        return getQuery( "from ValidationRule vr where size(vr.groups) = 0" ).list();
-    }
+  @Override
+  public List<ValidationRule> getValidationRulesWithoutGroups() {
+    return getQuery("from ValidationRule vr where size(vr.groups) = 0").list();
+  }
 }

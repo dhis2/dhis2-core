@@ -28,41 +28,34 @@
 package org.hisp.dhis.webapi.handler;
 
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 
 /**
- * Since ActionContext is not available at this point, we set a mark in the
- * session that signals that login has just occurred, and that LoginInterceptor
- * should be run.
+ * Since ActionContext is not available at this point, we set a mark in the session that signals
+ * that login has just occurred, and that LoginInterceptor should be run.
  *
  * @author mortenoh
  */
 @Slf4j
 public class DefaultAuthenticationSuccessHandler
-    extends SavedRequestAwareAuthenticationSuccessHandler
-{
-    public static final String JLI_SESSION_VARIABLE = "JLI";
+    extends SavedRequestAwareAuthenticationSuccessHandler {
+  public static final String JLI_SESSION_VARIABLE = "JLI";
 
-    @Override
-    public void onAuthenticationSuccess( HttpServletRequest request, HttpServletResponse response,
-        Authentication authentication )
-        throws ServletException,
-        IOException
-    {
-        HttpSession session = request.getSession();
-        final String username = authentication.getName();
-        session.setAttribute( "userIs", username );
-        session.setAttribute( JLI_SESSION_VARIABLE, Boolean.TRUE );
+  @Override
+  public void onAuthenticationSuccess(
+      HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+      throws ServletException, IOException {
+    HttpSession session = request.getSession();
+    final String username = authentication.getName();
+    session.setAttribute("userIs", username);
+    session.setAttribute(JLI_SESSION_VARIABLE, Boolean.TRUE);
 
-        super.onAuthenticationSuccess( request, response, authentication );
-    }
+    super.onAuthenticationSuccess(request, response, authentication);
+  }
 }

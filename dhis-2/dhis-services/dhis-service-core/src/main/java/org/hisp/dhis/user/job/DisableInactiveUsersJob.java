@@ -33,9 +33,7 @@ import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -50,65 +48,60 @@ import org.springframework.stereotype.Component;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-@Component( "disableInactiveUsersJob" )
-public class DisableInactiveUsersJob implements Job
-{
-    private final UserService userService;
+@Component("disableInactiveUsersJob")
+public class DisableInactiveUsersJob implements Job {
+  private final UserService userService;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    private final EmailService emailService;
+  private final EmailService emailService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.DISABLE_INACTIVE_USERS;
+  @Override
+  public JobType getJobType() {
+    return JobType.DISABLE_INACTIVE_USERS;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    DisableInactiveUsersJobParameters parameters =
+        (DisableInactiveUsersJobParameters) jobConfiguration.getJobParameters();
+    LocalDate today = LocalDate.now();
+    LocalDate since = today.minusMonths(parameters.getInactiveMonths());
+    Date nMonthsAgo = Date.from(since.atStartOfDay(systemDefault()).toInstant());
+    int disabledUserCount = userService.disableUsersInactiveSince(nMonthsAgo);
+    notifier.notify(
+        jobConfiguration,
+        String.format(
+            "Disabled %d users with %d months of inactivity",
+            disabledUserCount, parameters.getInactiveMonths()));
+
+    Integer reminderDaysBefore = parameters.getReminderDaysBefore();
+    if (reminderDaysBefore == null) {
+      return; // done
     }
+    int daysUntilDisable = reminderDaysBefore;
+    do {
+      sendReminderEmail(since, daysUntilDisable);
+      daysUntilDisable = daysUntilDisable / 2;
+    } while (daysUntilDisable > 0);
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        DisableInactiveUsersJobParameters parameters = (DisableInactiveUsersJobParameters) jobConfiguration
-            .getJobParameters();
-        LocalDate today = LocalDate.now();
-        LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
-        Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
-        int disabledUserCount = userService.disableUsersInactiveSince( nMonthsAgo );
-        notifier.notify( jobConfiguration, String.format( "Disabled %d users with %d months of inactivity",
-            disabledUserCount, parameters.getInactiveMonths() ) );
-
-        Integer reminderDaysBefore = parameters.getReminderDaysBefore();
-        if ( reminderDaysBefore == null )
-        {
-            return; // done
-        }
-        int daysUntilDisable = reminderDaysBefore;
-        do
-        {
-            sendReminderEmail( since, daysUntilDisable );
-            daysUntilDisable = daysUntilDisable / 2;
-        }
-        while ( daysUntilDisable > 0 );
-
+  private void sendReminderEmail(LocalDate since, int daysUntilDisable) {
+    LocalDate reference = since.plusDays(daysUntilDisable);
+    ZonedDateTime nDaysPriorToDisabling = reference.atStartOfDay(systemDefault());
+    ZonedDateTime nDaysPriorToDisablingEod = reference.plusDays(1).atStartOfDay(systemDefault());
+    Set<String> receivers =
+        userService.findNotifiableUsersWithLastLoginBetween(
+            Date.from(nDaysPriorToDisabling.toInstant()),
+            Date.from(nDaysPriorToDisablingEod.toInstant()));
+    if (!receivers.isEmpty()) {
+      emailService.sendEmail(
+          "Your DHIS2 account gets disabled soon",
+          String.format(
+              "Your DHIS2 user account was inactive for a while. "
+                  + "Login during the next %d days to prevent your account from being disabled.",
+              daysUntilDisable),
+          receivers);
     }
-
-    private void sendReminderEmail( LocalDate since, int daysUntilDisable )
-    {
-        LocalDate reference = since.plusDays( daysUntilDisable );
-        ZonedDateTime nDaysPriorToDisabling = reference.atStartOfDay( systemDefault() );
-        ZonedDateTime nDaysPriorToDisablingEod = reference.plusDays( 1 ).atStartOfDay( systemDefault() );
-        Set<String> receivers = userService.findNotifiableUsersWithLastLoginBetween(
-            Date.from( nDaysPriorToDisabling.toInstant() ),
-            Date.from( nDaysPriorToDisablingEod.toInstant() ) );
-        if ( !receivers.isEmpty() )
-        {
-            emailService.sendEmail(
-                "Your DHIS2 account gets disabled soon",
-                String.format(
-                    "Your DHIS2 user account was inactive for a while. " +
-                        "Login during the next %d days to prevent your account from being disabled.",
-                    daysUntilDisable ),
-                receivers );
-        }
-    }
+  }
 }

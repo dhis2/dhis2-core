@@ -35,31 +35,25 @@ import org.springframework.stereotype.Component;
 /**
  * @author Viet Nguyen
  */
-@Component( "org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler" )
-public class ProgramIndicatorGroupDeletionHandler
-    extends DeletionHandler
-{
+@Component("org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler")
+public class ProgramIndicatorGroupDeletionHandler extends DeletionHandler {
 
-    private final ProgramIndicatorService programIndicatorService;
+  private final ProgramIndicatorService programIndicatorService;
 
-    public ProgramIndicatorGroupDeletionHandler( ProgramIndicatorService programIndicatorService )
-    {
-        checkNotNull( programIndicatorService );
-        this.programIndicatorService = programIndicatorService;
+  public ProgramIndicatorGroupDeletionHandler(ProgramIndicatorService programIndicatorService) {
+    checkNotNull(programIndicatorService);
+    this.programIndicatorService = programIndicatorService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
+  }
+
+  private void deleteProgramIndicator(ProgramIndicator programIndicator) {
+    for (ProgramIndicatorGroup group : programIndicator.getGroups()) {
+      group.getMembers().remove(programIndicator);
+      programIndicatorService.updateProgramIndicatorGroup(group);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
-    }
-
-    private void deleteProgramIndicator( ProgramIndicator programIndicator )
-    {
-        for ( ProgramIndicatorGroup group : programIndicator.getGroups() )
-        {
-            group.getMembers().remove( programIndicator );
-            programIndicatorService.updateProgramIndicatorGroup( group );
-        }
-    }
+  }
 }

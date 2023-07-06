@@ -29,25 +29,22 @@ package org.hisp.dhis.dataitem;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.ValueType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * This is a pure DTO class and basic constructors in order to make it simple.
- * It's used only as final output/response to the consumer.
+ * This is a pure DTO class and basic constructors in order to make it simple. It's used only as
+ * final output/response to the consumer.
  *
  * @author maikel arabori
  */
@@ -57,51 +54,49 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
-@JacksonXmlRootElement( localName = "dataItem", namespace = DXF_2_0 )
-public class DataItem implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String name;
+@JacksonXmlRootElement(localName = "dataItem", namespace = DXF_2_0)
+public class DataItem implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String name;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String shortName;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String shortName;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String displayName;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String displayName;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String displayShortName;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String displayShortName;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String id;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String id;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String code;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String code;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private DimensionItemType dimensionItemType;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private DimensionItemType dimensionItemType;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String programId;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String programId;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private ValueType valueType;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private ValueType valueType;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private ValueType simplifiedValueType;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private ValueType simplifiedValueType;
 
-    public ValueType getSimplifiedValueType()
-    {
-        return valueType != null ? valueType.toSimplifiedValueType() : null;
-    }
+  public ValueType getSimplifiedValueType() {
+    return valueType != null ? valueType.toSimplifiedValueType() : null;
+  }
 }

@@ -30,26 +30,21 @@ package org.hisp.dhis.system.util;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-public class SecurityUtils
-{
-    public static Collection<GrantedAuthority> getGrantedAuthorities( User user )
-    {
-        Set<GrantedAuthority> authorities = new HashSet<>();
+public class SecurityUtils {
+  public static Collection<GrantedAuthority> getGrantedAuthorities(User user) {
+    Set<GrantedAuthority> authorities = new HashSet<>();
 
-        for ( UserRole group : user.getUserRoles() )
-        {
-            for ( String authority : group.getAuthorities() )
-            {
-                authorities.add( new SimpleGrantedAuthority( authority ) );
-            }
-        }
-
-        return authorities;
+    for (UserRole group : user.getUserRoles()) {
+      for (String authority : group.getAuthorities()) {
+        authorities.add(new SimpleGrantedAuthority(authority));
+      }
     }
+
+    return authorities;
+  }
 }

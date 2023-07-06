@@ -33,30 +33,21 @@ import org.hisp.dhis.rules.models.RuleActionShowError;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
-/**
- * This implementer show errors calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
+/** This implementer show errors calculated by Rule Engine. @Author Enrico Colasante */
 @Component
-public class ShowErrorValidator
-    extends ErrorWarningImplementer<RuleActionShowError>
-{
-    @Override
-    public Class<RuleActionShowError> getActionClass()
-    {
-        return RuleActionShowError.class;
-    }
+public class ShowErrorValidator extends ErrorWarningImplementer<RuleActionShowError> {
+  @Override
+  public Class<RuleActionShowError> getActionClass() {
+    return RuleActionShowError.class;
+  }
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
+  @Override
+  public boolean isOnComplete() {
+    return false;
+  }
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
-    }
+  @Override
+  public IssueType getIssueType() {
+    return ERROR;
+  }
 }

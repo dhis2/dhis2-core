@@ -31,292 +31,271 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.query.QueryParser" )
-public class DefaultJpaQueryParser
-    implements QueryParser
-{
-    private static final String IDENTIFIABLE = "identifiable";
+@Component("org.hisp.dhis.query.QueryParser")
+public class DefaultJpaQueryParser implements QueryParser {
+  private static final String IDENTIFIABLE = "identifiable";
 
-    private final SchemaService schemaService;
+  private final SchemaService schemaService;
 
-    public DefaultJpaQueryParser( SchemaService schemaService )
-    {
-        checkNotNull( schemaService );
+  public DefaultJpaQueryParser(SchemaService schemaService) {
+    checkNotNull(schemaService);
 
-        this.schemaService = schemaService;
+    this.schemaService = schemaService;
+  }
+
+  @Override
+  public Query parse(Class<?> klass, List<String> filters) throws QueryParserException {
+    return parse(klass, filters, Junction.Type.AND);
+  }
+
+  @Override
+  public Query parse(Class<?> klass, List<String> filters, Junction.Type rootJunction)
+      throws QueryParserException {
+    Schema schema = schemaService.getDynamicSchema(klass);
+    Query query = Query.from(schema, rootJunction);
+
+    for (String filter : filters) {
+      String[] split = filter.split(":");
+
+      if (!(split.length >= 2)) {
+        throw new QueryParserException("Invalid filter => " + filter);
+      }
+
+      if (split.length >= 3) {
+        int index = split[0].length() + ":".length() + split[1].length() + ":".length();
+
+        if (split[0].equals(IDENTIFIABLE) && !schema.haveProperty(IDENTIFIABLE)) {
+          handleIdentifiablePath(schema, split[1], filter.substring(index), query.addDisjunction());
+        } else {
+          query.add(getRestriction(schema, split[0], split[1], filter.substring(index)));
+        }
+      } else {
+        query.add(getRestriction(schema, split[0], split[1], null));
+      }
+    }
+    return query;
+  }
+
+  private void handleIdentifiablePath(
+      Schema schema, String operator, Object arg, Disjunction disjunction) {
+    disjunction.add(getRestriction(schema, "id", operator, arg));
+    disjunction.add(getRestriction(schema, "code", operator, arg));
+    disjunction.add(getRestriction(schema, "name", operator, arg));
+
+    if (schema.havePersistedProperty("shortName")) {
+      disjunction.add(getRestriction(schema, "shortName", operator, arg));
+    }
+  }
+
+  @Override
+  public Restriction getRestriction(Schema schema, String path, String operator, Object arg)
+      throws QueryParserException {
+    Property property = getProperty(schema, path);
+
+    if (property == null) {
+      throw new QueryParserException("Unknown path property: " + path);
     }
 
-    @Override
-    public Query parse( Class<?> klass, List<String> filters )
-        throws QueryParserException
-    {
-        return parse( klass, filters, Junction.Type.AND );
-    }
+    switch (operator) {
+      case "eq":
+        {
+          return Restrictions.eq(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "!eq":
+        {
+          return Restrictions.ne(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "ne":
+        {
+          return Restrictions.ne(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "neq":
+        {
+          return Restrictions.ne(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "gt":
+        {
+          return Restrictions.gt(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "lt":
+        {
+          return Restrictions.lt(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "gte":
+        {
+          return Restrictions.ge(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "ge":
+        {
+          return Restrictions.ge(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "lte":
+        {
+          return Restrictions.le(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "le":
+        {
+          return Restrictions.le(path, QueryUtils.parseValue(property.getKlass(), arg));
+        }
+      case "like":
+        {
+          return Restrictions.like(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.ANYWHERE);
+        }
+      case "!like":
+        {
+          return Restrictions.notLike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.ANYWHERE);
+        }
+      case "$like":
+        {
+          return Restrictions.like(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+        }
+      case "!$like":
+        {
+          return Restrictions.notLike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+        }
+      case "like$":
+        {
+          return Restrictions.like(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.END);
+        }
+      case "!like$":
+        {
+          return Restrictions.notLike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.END);
+        }
+      case "ilike":
+        {
+          return Restrictions.ilike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.ANYWHERE);
+        }
+      case "!ilike":
+        {
+          return Restrictions.notIlike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.ANYWHERE);
+        }
+      case "startsWith":
+      case "$ilike":
+        {
+          return Restrictions.ilike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+        }
+      case "!$ilike":
+        {
+          return Restrictions.notIlike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+        }
+      case "token":
+        {
+          return Restrictions.token(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+        }
+      case "!token":
+        {
+          return Restrictions.notToken(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.START);
+        }
+      case "endsWith":
+      case "ilike$":
+        {
+          return Restrictions.ilike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.END);
+        }
+      case "!ilike$":
+        {
+          return Restrictions.notIlike(
+              path, QueryUtils.parseValue(property.getKlass(), arg), MatchMode.END);
+        }
+      case "in":
+        {
+          Collection values = null;
 
-    @Override
-    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction )
-        throws QueryParserException
-    {
-        Schema schema = schemaService.getDynamicSchema( klass );
-        Query query = Query.from( schema, rootJunction );
+          if (property.isCollection()) {
+            values = QueryUtils.parseValue(Collection.class, property.getItemKlass(), arg);
+          } else {
+            values = QueryUtils.parseValue(Collection.class, property.getKlass(), arg);
+          }
 
-        for ( String filter : filters )
-        {
-            String[] split = filter.split( ":" );
+          if (values == null || values.isEmpty()) {
+            throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
+          }
 
-            if ( !(split.length >= 2) )
-            {
-                throw new QueryParserException( "Invalid filter => " + filter );
-            }
+          return Restrictions.in(path, values);
+        }
+      case "!in":
+        {
+          Collection values = null;
 
-            if ( split.length >= 3 )
-            {
-                int index = split[0].length() + ":".length() + split[1].length() + ":".length();
+          if (property.isCollection()) {
+            values = QueryUtils.parseValue(Collection.class, property.getItemKlass(), arg);
+          } else {
+            values = QueryUtils.parseValue(Collection.class, property.getKlass(), arg);
+          }
 
-                if ( split[0].equals( IDENTIFIABLE ) && !schema.haveProperty( IDENTIFIABLE ) )
-                {
-                    handleIdentifiablePath( schema, split[1], filter.substring( index ), query.addDisjunction() );
-                }
-                else
-                {
-                    query.add( getRestriction( schema, split[0], split[1], filter.substring( index ) ) );
-                }
-            }
-            else
-            {
-                query.add( getRestriction( schema, split[0], split[1], null ) );
-            }
-        }
-        return query;
-    }
+          if (values == null || values.isEmpty()) {
+            throw new QueryParserException("Invalid argument `" + arg + "` for in operator.");
+          }
 
-    private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )
-    {
-        disjunction.add( getRestriction( schema, "id", operator, arg ) );
-        disjunction.add( getRestriction( schema, "code", operator, arg ) );
-        disjunction.add( getRestriction( schema, "name", operator, arg ) );
-
-        if ( schema.havePersistedProperty( "shortName" ) )
-        {
-            disjunction.add( getRestriction( schema, "shortName", operator, arg ) );
+          return Restrictions.notIn(path, values);
         }
-    }
-
-    @Override
-    public Restriction getRestriction( Schema schema, String path, String operator, Object arg )
-        throws QueryParserException
-    {
-        Property property = getProperty( schema, path );
-
-        if ( property == null )
+      case "null":
         {
-            throw new QueryParserException( "Unknown path property: " + path );
+          return Restrictions.isNull(path);
         }
-
-        switch ( operator )
+      case "!null":
         {
-        case "eq":
-        {
-            return Restrictions.eq( path, QueryUtils.parseValue( property.getKlass(), arg ) );
+          return Restrictions.isNotNull(path);
         }
-        case "!eq":
+      case "empty":
         {
-            return Restrictions.ne( path, QueryUtils.parseValue( property.getKlass(), arg ) );
+          return Restrictions.isEmpty(path);
         }
-        case "ne":
+      default:
         {
-            return Restrictions.ne( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "neq":
-        {
-            return Restrictions.ne( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "gt":
-        {
-            return Restrictions.gt( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "lt":
-        {
-            return Restrictions.lt( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "gte":
-        {
-            return Restrictions.ge( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "ge":
-        {
-            return Restrictions.ge( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "lte":
-        {
-            return Restrictions.le( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "le":
-        {
-            return Restrictions.le( path, QueryUtils.parseValue( property.getKlass(), arg ) );
-        }
-        case "like":
-        {
-            return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
-        }
-        case "!like":
-        {
-            return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
-        }
-        case "$like":
-        {
-            return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
-        }
-        case "!$like":
-        {
-            return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
-        }
-        case "like$":
-        {
-            return Restrictions.like( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
-        }
-        case "!like$":
-        {
-            return Restrictions.notLike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
-        }
-        case "ilike":
-        {
-            return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
-        }
-        case "!ilike":
-        {
-            return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.ANYWHERE );
-        }
-        case "startsWith":
-        case "$ilike":
-        {
-            return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
-        }
-        case "!$ilike":
-        {
-            return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
-        }
-        case "token":
-        {
-            return Restrictions.token( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
-        }
-        case "!token":
-        {
-            return Restrictions.notToken( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.START );
-        }
-        case "endsWith":
-        case "ilike$":
-        {
-            return Restrictions.ilike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
-        }
-        case "!ilike$":
-        {
-            return Restrictions.notIlike( path, QueryUtils.parseValue( property.getKlass(), arg ), MatchMode.END );
-        }
-        case "in":
-        {
-            Collection values = null;
-
-            if ( property.isCollection() )
-            {
-                values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
-            }
-            else
-            {
-                values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
-            }
-
-            if ( values == null || values.isEmpty() )
-            {
-                throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
-            }
-
-            return Restrictions.in( path, values );
-        }
-        case "!in":
-        {
-            Collection values = null;
-
-            if ( property.isCollection() )
-            {
-                values = QueryUtils.parseValue( Collection.class, property.getItemKlass(), arg );
-            }
-            else
-            {
-                values = QueryUtils.parseValue( Collection.class, property.getKlass(), arg );
-            }
-
-            if ( values == null || values.isEmpty() )
-            {
-                throw new QueryParserException( "Invalid argument `" + arg + "` for in operator." );
-            }
-
-            return Restrictions.notIn( path, values );
-        }
-        case "null":
-        {
-            return Restrictions.isNull( path );
-        }
-        case "!null":
-        {
-            return Restrictions.isNotNull( path );
-        }
-        case "empty":
-        {
-            return Restrictions.isEmpty( path );
-        }
-        default:
-        {
-            throw new QueryParserException( "`" + operator + "` is not a valid operator." );
-        }
+          throw new QueryParserException("`" + operator + "` is not a valid operator.");
         }
     }
+  }
 
-    @Override
-    public Property getProperty( Schema schema, String path )
-        throws QueryParserException
-    {
-        String[] paths = path.split( "\\." );
-        Schema currentSchema = schema;
-        Property currentProperty = null;
+  @Override
+  public Property getProperty(Schema schema, String path) throws QueryParserException {
+    String[] paths = path.split("\\.");
+    Schema currentSchema = schema;
+    Property currentProperty = null;
 
-        for ( int i = 0; i < paths.length; i++ )
-        {
-            if ( !currentSchema.haveProperty( paths[i] ) )
-            {
-                return null;
-            }
+    for (int i = 0; i < paths.length; i++) {
+      if (!currentSchema.haveProperty(paths[i])) {
+        return null;
+      }
 
-            currentProperty = currentSchema.getProperty( paths[i] );
+      currentProperty = currentSchema.getProperty(paths[i]);
 
-            if ( currentProperty == null )
-            {
-                throw new QueryParserException( "Unknown path property: " + paths[i] + " (" + path + ")" );
-            }
+      if (currentProperty == null) {
+        throw new QueryParserException("Unknown path property: " + paths[i] + " (" + path + ")");
+      }
 
-            if ( (currentProperty.isSimple() && !currentProperty.isCollection()) && i != (paths.length - 1) )
-            {
-                throw new QueryParserException(
-                    "Simple type was found before finished parsing path expression, please check your path string." );
-            }
+      if ((currentProperty.isSimple() && !currentProperty.isCollection())
+          && i != (paths.length - 1)) {
+        throw new QueryParserException(
+            "Simple type was found before finished parsing path expression, please check your path string.");
+      }
 
-            if ( currentProperty.isCollection() )
-            {
-                currentSchema = schemaService.getDynamicSchema( currentProperty.getItemKlass() );
-            }
-            else
-            {
-                currentSchema = schemaService.getDynamicSchema( currentProperty.getKlass() );
-            }
-        }
-
-        return currentProperty;
+      if (currentProperty.isCollection()) {
+        currentSchema = schemaService.getDynamicSchema(currentProperty.getItemKlass());
+      } else {
+        currentSchema = schemaService.getDynamicSchema(currentProperty.getKlass());
+      }
     }
+
+    return currentProperty;
+  }
 }

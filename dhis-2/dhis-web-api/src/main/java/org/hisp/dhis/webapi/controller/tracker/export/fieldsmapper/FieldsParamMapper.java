@@ -30,37 +30,30 @@ package org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 
 /**
- * Provides basic methods to transform input fields into {@link FieldPath }
- * based on {@link FieldFilterParser }. It follows the principles of
- * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
+ * Provides basic methods to transform input fields into {@link FieldPath } based on {@link
+ * FieldFilterParser }. It follows the principles of {@link
+ * org.hisp.dhis.fieldfiltering.FieldFilterService}
  */
-class FieldsParamMapper
-{
-    private FieldsParamMapper()
-    {
+class FieldsParamMapper {
+  private FieldsParamMapper() {}
+
+  static final String FIELD_RELATIONSHIPS = "relationships";
+
+  static final String FIELD_EVENTS = "events";
+
+  static final String FIELD_ATTRIBUTES = "attributes";
+
+  static Map<String, FieldPath> rootFields(List<FieldPath> fieldPaths) {
+    Map<String, FieldPath> roots = new HashMap<>();
+    for (FieldPath p : fieldPaths) {
+      if (p.isRoot() && (!roots.containsKey(p.getName()) || p.isExclude())) {
+        roots.put(p.getName(), p);
+      }
     }
-
-    static final String FIELD_RELATIONSHIPS = "relationships";
-
-    static final String FIELD_EVENTS = "events";
-
-    static final String FIELD_ATTRIBUTES = "attributes";
-
-    static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
-    {
-        Map<String, FieldPath> roots = new HashMap<>();
-        for ( FieldPath p : fieldPaths )
-        {
-            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
-            {
-                roots.put( p.getName(), p );
-            }
-        }
-        return roots;
-    }
+    return roots;
+  }
 }

@@ -29,16 +29,13 @@ package org.hisp.dhis.merge.orgunit;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import lombok.Getter;
-
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.Getter;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * Encapsulation of an org unit merge request.
@@ -46,87 +43,75 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 @Getter
-public class OrgUnitMergeRequest
-{
-    private Set<OrganisationUnit> sources = new HashSet<>();
+public class OrgUnitMergeRequest {
+  private Set<OrganisationUnit> sources = new HashSet<>();
 
-    private OrganisationUnit target;
+  private OrganisationUnit target;
 
-    private DataMergeStrategy dataValueMergeStrategy;
+  private DataMergeStrategy dataValueMergeStrategy;
 
-    private DataMergeStrategy dataApprovalMergeStrategy;
+  private DataMergeStrategy dataApprovalMergeStrategy;
 
-    private boolean deleteSources;
+  private boolean deleteSources;
 
-    public Set<OrganisationUnit> getSources()
-    {
-        return ImmutableSet.copyOf( sources );
+  public Set<OrganisationUnit> getSources() {
+    return ImmutableSet.copyOf(sources);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("sources", IdentifiableObjectUtils.getUids(sources))
+        .add("target", target != null ? target.getUid() : null)
+        .add("deleteSources", deleteSources)
+        .toString();
+  }
+
+  public static class Builder {
+    private OrgUnitMergeRequest request;
+
+    public Builder() {
+      this.request = new OrgUnitMergeRequest();
+
+      this.request.dataValueMergeStrategy = DataMergeStrategy.LAST_UPDATED;
+      this.request.dataApprovalMergeStrategy = DataMergeStrategy.LAST_UPDATED;
+      this.request.deleteSources = true;
     }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "sources", IdentifiableObjectUtils.getUids( sources ) )
-            .add( "target", target != null ? target.getUid() : null )
-            .add( "deleteSources", deleteSources )
-            .toString();
+    public Builder addSource(OrganisationUnit source) {
+      this.request.sources.add(source);
+      return this;
     }
 
-    public static class Builder
-    {
-        private OrgUnitMergeRequest request;
-
-        public Builder()
-        {
-            this.request = new OrgUnitMergeRequest();
-
-            this.request.dataValueMergeStrategy = DataMergeStrategy.LAST_UPDATED;
-            this.request.dataApprovalMergeStrategy = DataMergeStrategy.LAST_UPDATED;
-            this.request.deleteSources = true;
-        }
-
-        public Builder addSource( OrganisationUnit source )
-        {
-            this.request.sources.add( source );
-            return this;
-        }
-
-        public Builder addSources( Set<OrganisationUnit> sources )
-        {
-            this.request.sources.addAll( sources );
-            return this;
-        }
-
-        public Builder withTarget( OrganisationUnit target )
-        {
-            this.request.target = target;
-            return this;
-        }
-
-        public Builder withDataValueMergeStrategy( DataMergeStrategy dataValueMergeStrategy )
-        {
-            this.request.dataValueMergeStrategy = firstNonNull(
-                dataValueMergeStrategy, this.request.dataValueMergeStrategy );
-            return this;
-        }
-
-        public Builder withDataApprovalMergeStrategy( DataMergeStrategy dataApprovalMergeStrategy )
-        {
-            this.request.dataApprovalMergeStrategy = firstNonNull(
-                dataApprovalMergeStrategy, this.request.dataApprovalMergeStrategy );
-            return this;
-        }
-
-        public Builder withDeleteSources( Boolean deleteSources )
-        {
-            this.request.deleteSources = firstNonNull( deleteSources, this.request.deleteSources );
-            return this;
-        }
-
-        public OrgUnitMergeRequest build()
-        {
-            return this.request;
-        }
+    public Builder addSources(Set<OrganisationUnit> sources) {
+      this.request.sources.addAll(sources);
+      return this;
     }
+
+    public Builder withTarget(OrganisationUnit target) {
+      this.request.target = target;
+      return this;
+    }
+
+    public Builder withDataValueMergeStrategy(DataMergeStrategy dataValueMergeStrategy) {
+      this.request.dataValueMergeStrategy =
+          firstNonNull(dataValueMergeStrategy, this.request.dataValueMergeStrategy);
+      return this;
+    }
+
+    public Builder withDataApprovalMergeStrategy(DataMergeStrategy dataApprovalMergeStrategy) {
+      this.request.dataApprovalMergeStrategy =
+          firstNonNull(dataApprovalMergeStrategy, this.request.dataApprovalMergeStrategy);
+      return this;
+    }
+
+    public Builder withDeleteSources(Boolean deleteSources) {
+      this.request.deleteSources = firstNonNull(deleteSources, this.request.deleteSources);
+      return this;
+    }
+
+    public OrgUnitMergeRequest build() {
+      return this.request;
+    }
+  }
 }

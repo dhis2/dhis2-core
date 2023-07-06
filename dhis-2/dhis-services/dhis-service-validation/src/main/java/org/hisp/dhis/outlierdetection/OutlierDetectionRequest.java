@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.outlierdetection;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import com.google.common.base.Preconditions;
 
 /**
  * Encapsulation of an outlier detection request.
@@ -45,125 +42,104 @@ import com.google.common.base.Preconditions;
  * @author Lars Helge Overland
  */
 @Getter
-public class OutlierDetectionRequest
-{
-    private List<DataElement> dataElements = new ArrayList<>();
+public class OutlierDetectionRequest {
+  private List<DataElement> dataElements = new ArrayList<>();
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    private OrgUnitSelection orgUnitSelection;
+  private OrgUnitSelection orgUnitSelection;
 
-    private OutlierDetectionAlgorithm algorithm;
+  private OutlierDetectionAlgorithm algorithm;
 
-    private double threshold;
+  private double threshold;
 
-    private Date dataStartDate;
+  private Date dataStartDate;
 
-    private Date dataEndDate;
+  private Date dataEndDate;
 
-    private Order orderBy;
+  private Order orderBy;
 
-    private int maxResults;
+  private int maxResults;
 
-    public List<Long> getDataElementIds()
-    {
-        return dataElements.stream()
-            .map( DataElement::getId )
-            .collect( Collectors.toList() );
+  public List<Long> getDataElementIds() {
+    return dataElements.stream().map(DataElement::getId).collect(Collectors.toList());
+  }
+
+  private OutlierDetectionRequest() {}
+
+  public boolean hasDataStartEndDate() {
+    return dataStartDate != null && dataEndDate != null;
+  }
+
+  public static class Builder {
+    private OutlierDetectionRequest request;
+
+    /** Initializes the {@link OutlierDetectionRequest} with default values. */
+    public Builder() {
+      this.request = new OutlierDetectionRequest();
+
+      this.request.orgUnitSelection = OrgUnitSelection.DESCENDANTS;
+      this.request.algorithm = OutlierDetectionAlgorithm.Z_SCORE;
+      this.request.threshold = 3.0d;
+      this.request.orderBy = Order.MEAN_ABS_DEV;
+      this.request.maxResults = 500;
     }
 
-    private OutlierDetectionRequest()
-    {
+    public Builder withDataElements(List<DataElement> dataElements) {
+      this.request.dataElements = dataElements;
+      return this;
     }
 
-    public boolean hasDataStartEndDate()
-    {
-        return dataStartDate != null && dataEndDate != null;
+    public Builder withStartEndDate(Date startDate, Date endDate) {
+      this.request.startDate = startDate;
+      this.request.endDate = endDate;
+      return this;
     }
 
-    public static class Builder
-    {
-        private OutlierDetectionRequest request;
-
-        /**
-         * Initializes the {@link OutlierDetectionRequest} with default values.
-         */
-        public Builder()
-        {
-            this.request = new OutlierDetectionRequest();
-
-            this.request.orgUnitSelection = OrgUnitSelection.DESCENDANTS;
-            this.request.algorithm = OutlierDetectionAlgorithm.Z_SCORE;
-            this.request.threshold = 3.0d;
-            this.request.orderBy = Order.MEAN_ABS_DEV;
-            this.request.maxResults = 500;
-        }
-
-        public Builder withDataElements( List<DataElement> dataElements )
-        {
-            this.request.dataElements = dataElements;
-            return this;
-        }
-
-        public Builder withStartEndDate( Date startDate, Date endDate )
-        {
-            this.request.startDate = startDate;
-            this.request.endDate = endDate;
-            return this;
-        }
-
-        public Builder withOrgUnits( List<OrganisationUnit> orgUnits )
-        {
-            this.request.orgUnits = orgUnits;
-            return this;
-        }
-
-        public Builder withAlgorithm( OutlierDetectionAlgorithm algorithm )
-        {
-            this.request.algorithm = algorithm;
-            return this;
-        }
-
-        public Builder withThreshold( double threshold )
-        {
-            this.request.threshold = threshold;
-            return this;
-        }
-
-        public Builder withDataStartDate( Date dataStartDate )
-        {
-            this.request.dataStartDate = dataStartDate;
-            return this;
-        }
-
-        public Builder withDataEndDate( Date dataEndDate )
-        {
-            this.request.dataEndDate = dataEndDate;
-            return this;
-        }
-
-        public Builder withOrderBy( Order orderBy )
-        {
-            this.request.orderBy = orderBy;
-            return this;
-        }
-
-        public Builder withMaxResults( int maxResults )
-        {
-            this.request.maxResults = maxResults;
-            return this;
-        }
-
-        public OutlierDetectionRequest build()
-        {
-            Preconditions.checkNotNull( this.request.orgUnitSelection );
-            Preconditions.checkNotNull( this.request.algorithm );
-            Preconditions.checkNotNull( this.request.orderBy );
-            return this.request;
-        }
+    public Builder withOrgUnits(List<OrganisationUnit> orgUnits) {
+      this.request.orgUnits = orgUnits;
+      return this;
     }
+
+    public Builder withAlgorithm(OutlierDetectionAlgorithm algorithm) {
+      this.request.algorithm = algorithm;
+      return this;
+    }
+
+    public Builder withThreshold(double threshold) {
+      this.request.threshold = threshold;
+      return this;
+    }
+
+    public Builder withDataStartDate(Date dataStartDate) {
+      this.request.dataStartDate = dataStartDate;
+      return this;
+    }
+
+    public Builder withDataEndDate(Date dataEndDate) {
+      this.request.dataEndDate = dataEndDate;
+      return this;
+    }
+
+    public Builder withOrderBy(Order orderBy) {
+      this.request.orderBy = orderBy;
+      return this;
+    }
+
+    public Builder withMaxResults(int maxResults) {
+      this.request.maxResults = maxResults;
+      return this;
+    }
+
+    public OutlierDetectionRequest build() {
+      Preconditions.checkNotNull(this.request.orgUnitSelection);
+      Preconditions.checkNotNull(this.request.algorithm);
+      Preconditions.checkNotNull(this.request.orderBy);
+      return this.request;
+    }
+  }
 }

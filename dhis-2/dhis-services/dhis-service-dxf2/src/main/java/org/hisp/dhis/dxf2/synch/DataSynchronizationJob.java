@@ -43,53 +43,52 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@Component( "dataSyncJob" )
-public class DataSynchronizationJob extends SynchronizationJob
-{
-    private final SynchronizationManager synchronizationManager;
+@Component("dataSyncJob")
+public class DataSynchronizationJob extends SynchronizationJob {
+  private final SynchronizationManager synchronizationManager;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    private final DataValueSynchronization dataValueSynchronization;
+  private final DataValueSynchronization dataValueSynchronization;
 
-    private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
+  private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
 
-    public DataSynchronizationJob( Notifier notifier, DataValueSynchronization dataValueSynchronization,
-        CompleteDataSetRegistrationSynchronization completenessSynchronization,
-        SynchronizationManager synchronizationManager )
-    {
-        checkNotNull( notifier );
-        checkNotNull( dataValueSynchronization );
-        checkNotNull( completenessSynchronization );
-        checkNotNull( synchronizationManager );
+  public DataSynchronizationJob(
+      Notifier notifier,
+      DataValueSynchronization dataValueSynchronization,
+      CompleteDataSetRegistrationSynchronization completenessSynchronization,
+      SynchronizationManager synchronizationManager) {
+    checkNotNull(notifier);
+    checkNotNull(dataValueSynchronization);
+    checkNotNull(completenessSynchronization);
+    checkNotNull(synchronizationManager);
 
-        this.notifier = notifier;
-        this.dataValueSynchronization = dataValueSynchronization;
-        this.completenessSynchronization = completenessSynchronization;
-        this.synchronizationManager = synchronizationManager;
-    }
+    this.notifier = notifier;
+    this.dataValueSynchronization = dataValueSynchronization;
+    this.completenessSynchronization = completenessSynchronization;
+    this.synchronizationManager = synchronizationManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.DATA_SYNC;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_SYNC;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        DataSynchronizationJobParameters jobParameters = (DataSynchronizationJobParameters) jobConfiguration
-            .getJobParameters();
-        dataValueSynchronization.synchronizeData( jobParameters.getPageSize() );
-        notifier.notify( jobConfiguration, "Data value sync successful" );
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    DataSynchronizationJobParameters jobParameters =
+        (DataSynchronizationJobParameters) jobConfiguration.getJobParameters();
+    dataValueSynchronization.synchronizeData(jobParameters.getPageSize());
+    notifier.notify(jobConfiguration, "Data value sync successful");
 
-        completenessSynchronization.synchronizeData();
-        notifier.notify( jobConfiguration, "Complete data set registration sync successful" );
+    completenessSynchronization.synchronizeData();
+    notifier.notify(jobConfiguration, "Complete data set registration sync successful");
 
-        notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
-    }
+    notifier.notify(
+        jobConfiguration, "Data value and Complete data set registration sync successful");
+  }
 }

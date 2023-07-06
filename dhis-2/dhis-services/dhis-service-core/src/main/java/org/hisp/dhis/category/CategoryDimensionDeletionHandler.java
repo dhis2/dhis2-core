@@ -38,39 +38,35 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.category.CategoryDimensionDeletionHandler" )
-public class CategoryDimensionDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( CategoryDimension.class );
+@Component("org.hisp.dhis.category.CategoryDimensionDeletionHandler")
+public class CategoryDimensionDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(CategoryDimension.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public CategoryDimensionDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
+  public CategoryDimensionDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
 
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( CategoryOption.class, this::allowDeleteCategoryOption );
-        whenVetoing( Category.class, this::allowDeleteCategory );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(CategoryOption.class, this::allowDeleteCategoryOption);
+    whenVetoing(Category.class, this::allowDeleteCategory);
+  }
 
-    private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
-    {
-        String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
+  private DeletionVeto allowDeleteCategoryOption(CategoryOption categoryOption) {
+    String sql =
+        "select count(*) from categorydimension_items where categoryoptionid = "
+            + categoryOption.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 
-    private DeletionVeto allowDeleteCategory( Category category )
-    {
-        String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
+  private DeletionVeto allowDeleteCategory(Category category) {
+    String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

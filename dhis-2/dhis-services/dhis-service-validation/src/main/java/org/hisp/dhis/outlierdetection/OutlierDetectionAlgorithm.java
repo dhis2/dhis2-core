@@ -32,9 +32,8 @@ package org.hisp.dhis.outlierdetection;
  *
  * @author Lars Helge Overland
  */
-public enum OutlierDetectionAlgorithm
-{
-    Z_SCORE,
-    MIN_MAX,
-    MOD_Z_SCORE;
+public enum OutlierDetectionAlgorithm {
+  Z_SCORE,
+  MIN_MAX,
+  MOD_Z_SCORE;
 }

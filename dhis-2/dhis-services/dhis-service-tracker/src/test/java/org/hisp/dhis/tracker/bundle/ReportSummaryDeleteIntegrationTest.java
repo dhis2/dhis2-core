@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -52,126 +51,116 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class ReportSummaryDeleteIntegrationTest extends TrackerTest
-{
+class ReportSummaryDeleteIntegrationTest extends TrackerTest {
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/tracker_basic_metadata.json" );
-        TrackerImportParams params = fromJson( "tracker/tracker_basic_data_before_deletion.json" );
-        assertEquals( 13, params.getTrackedEntities().size() );
-        assertEquals( 2, params.getEnrollments().size() );
-        assertEquals( 2, params.getEvents().size() );
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/tracker_basic_metadata.json");
+    TrackerImportParams params = fromJson("tracker/tracker_basic_data_before_deletion.json");
+    assertEquals(13, params.getTrackedEntities().size());
+    assertEquals(2, params.getEnrollments().size());
+    assertEquals(2, params.getEvents().size());
 
-        TrackerBundleReport bundleReport = trackerImportService.importTracker( params ).getBundleReport();
+    TrackerBundleReport bundleReport = trackerImportService.importTracker(params).getBundleReport();
 
-        assertImportedObjects( 13, bundleReport, TrackerType.TRACKED_ENTITY );
-        assertImportedObjects( 2, bundleReport, TrackerType.ENROLLMENT );
-        assertImportedObjects( 2, bundleReport, TrackerType.EVENT );
-        assertEquals( 6, manager.getAll( ProgramInstance.class ).size() );
-        assertEquals( bundleReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getCreated(),
-            manager.getAll( ProgramStageInstance.class ).size() );
-    }
+    assertImportedObjects(13, bundleReport, TrackerType.TRACKED_ENTITY);
+    assertImportedObjects(2, bundleReport, TrackerType.ENROLLMENT);
+    assertImportedObjects(2, bundleReport, TrackerType.EVENT);
+    assertEquals(6, manager.getAll(ProgramInstance.class).size());
+    assertEquals(
+        bundleReport.getTypeReportMap().get(TrackerType.EVENT).getStats().getCreated(),
+        manager.getAll(ProgramStageInstance.class).size());
+  }
 
-    @Test
-    void testTrackedEntityInstanceDeletion()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/tracked_entity_basic_data_for_deletion.json" );
-        params.setImportStrategy( TrackerImportStrategy.DELETE );
-        assertEquals( 9, params.getTrackedEntities().size() );
+  @Test
+  void testTrackedEntityInstanceDeletion() throws IOException {
+    TrackerImportParams params = fromJson("tracker/tracked_entity_basic_data_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
+    assertEquals(9, params.getTrackedEntities().size());
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertDeletedObjects( 9, trackerImportReport.getBundleReport(), TrackerType.TRACKED_ENTITY );
-        // remaining
-        assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
-        assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
-    }
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    assertDeletedObjects(9, trackerImportReport.getBundleReport(), TrackerType.TRACKED_ENTITY);
+    // remaining
+    assertEquals(4, manager.getAll(TrackedEntityInstance.class).size());
+    assertEquals(4, manager.getAll(ProgramInstance.class).size());
+  }
 
-    @Test
-    void testEnrollmentDeletion()
-        throws IOException
-    {
-        assertEquals( 2, manager.getAll( ProgramStageInstance.class ).size() );
-        TrackerImportParams params = fromJson( "tracker/enrollment_basic_data_for_deletion.json" );
-        params.setImportStrategy( TrackerImportStrategy.DELETE );
+  @Test
+  void testEnrollmentDeletion() throws IOException {
+    assertEquals(2, manager.getAll(ProgramStageInstance.class).size());
+    TrackerImportParams params = fromJson("tracker/enrollment_basic_data_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
 
-        assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.ENROLLMENT );
-        // remaining
-        assertEquals( 5, manager.getAll( ProgramInstance.class ).size() );
-        // delete associated events as well
-        assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
-    }
+    assertDeletedObjects(1, trackerImportReport.getBundleReport(), TrackerType.ENROLLMENT);
+    // remaining
+    assertEquals(5, manager.getAll(ProgramInstance.class).size());
+    // delete associated events as well
+    assertEquals(1, manager.getAll(ProgramStageInstance.class).size());
+  }
 
-    @Test
-    void testEventDeletion()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/event_basic_data_for_deletion.json" );
-        params.setImportStrategy( TrackerImportStrategy.DELETE );
+  @Test
+  void testEventDeletion() throws IOException {
+    TrackerImportParams params = fromJson("tracker/event_basic_data_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.EVENT );
-        // remaining
-        assertEquals( 1, manager.getAll( ProgramStageInstance.class ).size() );
-    }
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    assertDeletedObjects(1, trackerImportReport.getBundleReport(), TrackerType.EVENT);
+    // remaining
+    assertEquals(1, manager.getAll(ProgramStageInstance.class).size());
+  }
 
-    @Test
-    void testNonExistentEnrollment()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/non_existent_enrollment_basic_data_for_deletion.json" );
-        params.setImportStrategy( TrackerImportStrategy.DELETE );
+  @Test
+  void testNonExistentEnrollment() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/non_existent_enrollment_basic_data_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
 
-        TrackerImportReport importReport = trackerImportService.importTracker( params );
+    TrackerImportReport importReport = trackerImportService.importTracker(params);
 
-        assertEquals( TrackerStatus.ERROR, importReport.getStatus() );
-        assertTrue( importReport.getValidationReport().hasErrors() );
-        List<TrackerErrorReport> trackerErrorReports = importReport.getValidationReport().getErrors();
-        assertEquals( TrackerErrorCode.E1081, trackerErrorReports.get( 0 ).getErrorCode() );
-    }
+    assertEquals(TrackerStatus.ERROR, importReport.getStatus());
+    assertTrue(importReport.getValidationReport().hasErrors());
+    List<TrackerErrorReport> trackerErrorReports = importReport.getValidationReport().getErrors();
+    assertEquals(TrackerErrorCode.E1081, trackerErrorReports.get(0).getErrorCode());
+  }
 
-    @Test
-    void testDeleteMultipleEntities()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/tracker_data_for_deletion.json" );
-        params.setImportStrategy( TrackerImportStrategy.DELETE );
+  @Test
+  void testDeleteMultipleEntities() throws IOException {
+    TrackerImportParams params = fromJson("tracker/tracker_data_for_deletion.json");
+    params.setImportStrategy(TrackerImportStrategy.DELETE);
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.ENROLLMENT );
-        assertDeletedObjects( 1, trackerImportReport.getBundleReport(), TrackerType.TRACKED_ENTITY );
-    }
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    assertDeletedObjects(1, trackerImportReport.getBundleReport(), TrackerType.ENROLLMENT);
+    assertDeletedObjects(1, trackerImportReport.getBundleReport(), TrackerType.TRACKED_ENTITY);
+  }
 
-    private void assertImportedObjects( int expected, TrackerBundleReport bundleReport, TrackerType trackedEntityType )
-    {
-        assertTrue( bundleReport.getTypeReportMap().containsKey( trackedEntityType ) );
-        assertEquals( expected,
-            bundleReport.getTypeReportMap().get( trackedEntityType ).getStats().getCreated() );
-        assertEquals( expected,
-            bundleReport.getTypeReportMap().get( trackedEntityType ).getObjectReportMap().size() );
-    }
+  private void assertImportedObjects(
+      int expected, TrackerBundleReport bundleReport, TrackerType trackedEntityType) {
+    assertTrue(bundleReport.getTypeReportMap().containsKey(trackedEntityType));
+    assertEquals(
+        expected, bundleReport.getTypeReportMap().get(trackedEntityType).getStats().getCreated());
+    assertEquals(
+        expected,
+        bundleReport.getTypeReportMap().get(trackedEntityType).getObjectReportMap().size());
+  }
 
-    private void assertDeletedObjects( int expected, TrackerBundleReport bundleReport, TrackerType trackedEntityType )
-    {
-        assertTrue( bundleReport.getTypeReportMap().containsKey( trackedEntityType ) );
-        assertEquals( expected,
-            bundleReport.getTypeReportMap().get( trackedEntityType ).getStats().getDeleted() );
-        assertEquals( expected,
-            bundleReport.getTypeReportMap().get( trackedEntityType ).getObjectReportMap().size() );
-    }
+  private void assertDeletedObjects(
+      int expected, TrackerBundleReport bundleReport, TrackerType trackedEntityType) {
+    assertTrue(bundleReport.getTypeReportMap().containsKey(trackedEntityType));
+    assertEquals(
+        expected, bundleReport.getTypeReportMap().get(trackedEntityType).getStats().getDeleted());
+    assertEquals(
+        expected,
+        bundleReport.getTypeReportMap().get(trackedEntityType).getObjectReportMap().size());
+  }
 }

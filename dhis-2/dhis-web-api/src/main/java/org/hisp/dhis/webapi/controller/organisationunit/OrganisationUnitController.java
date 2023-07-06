@@ -31,16 +31,18 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -79,346 +81,318 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = OrganisationUnitSchemaDescriptor.API_ENDPOINT )
-public class OrganisationUnitController
-    extends AbstractCrudController<OrganisationUnit>
-{
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+@RequestMapping(value = OrganisationUnitSchemaDescriptor.API_ENDPOINT)
+public class OrganisationUnitController extends AbstractCrudController<OrganisationUnit> {
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private VersionService versionService;
+  @Autowired private VersionService versionService;
 
-    @Autowired
-    private OrgUnitSplitService orgUnitSplitService;
+  @Autowired private OrgUnitSplitService orgUnitSplitService;
 
-    @Autowired
-    private OrgUnitMergeService orgUnitMergeService;
+  @Autowired private OrgUnitMergeService orgUnitMergeService;
 
-    @ResponseStatus( HttpStatus.OK )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')" )
-    @PostMapping( value = "/split", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody WebMessage splitOrgUnits( @RequestBody OrgUnitSplitQuery query )
-    {
-        orgUnitSplitService.split( orgUnitSplitService.getFromQuery( query ) );
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_SPLIT')")
+  @PostMapping(value = "/split", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage splitOrgUnits(@RequestBody OrgUnitSplitQuery query) {
+    orgUnitSplitService.split(orgUnitSplitService.getFromQuery(query));
 
-        return ok( "Organisation unit split" );
+    return ok("Organisation unit split");
+  }
+
+  @ResponseStatus(HttpStatus.OK)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')")
+  @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage mergeOrgUnits(@RequestBody OrgUnitMergeQuery query) {
+    orgUnitMergeService.merge(orgUnitMergeService.getFromQuery(query));
+
+    return ok("Organisation units merged");
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  protected List<OrganisationUnit> getEntityList(
+      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      throws QueryParserException {
+    List<OrganisationUnit> objects = Lists.newArrayList();
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    boolean anySpecialPropertySet =
+        ObjectUtils.anyIsTrue(
+            options.isTrue("userOnly"),
+            options.isTrue("userDataViewOnly"),
+            options.isTrue("userDataViewFallback"),
+            options.isTrue("levelSorted"));
+    boolean anyQueryPropertySet =
+        ObjectUtils.firstNonNull(
+                    options.get("query"), options.getInt("level"), options.getInt("maxLevel"))
+                != null
+            || options.isTrue("withinUserHierarchy")
+            || options.isTrue("withinUserSearchHierarchy");
+    String memberObject = options.get("memberObject");
+    String memberCollection = options.get("memberCollection");
+
+    // ---------------------------------------------------------------------
+    // Special parameter handling
+    // ---------------------------------------------------------------------
+
+    if (options.isTrue("userOnly")) {
+      objects = new ArrayList<>(currentUser.getOrganisationUnits());
+    } else if (options.isTrue("userDataViewOnly")) {
+      objects = new ArrayList<>(currentUser.getDataViewOrganisationUnits());
+    } else if (options.isTrue("userDataViewFallback")) {
+      if (currentUser.hasDataViewOrganisationUnit()) {
+        objects = new ArrayList<>(currentUser.getDataViewOrganisationUnits());
+      } else {
+        objects = organisationUnitService.getOrganisationUnitsAtLevel(1);
+      }
+    } else if (options.isTrue("levelSorted")) {
+      objects = new ArrayList<>(manager.getAll(getEntityClass()));
+      objects.sort(OrganisationUnitByLevelComparator.INSTANCE);
     }
 
-    @ResponseStatus( HttpStatus.OK )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORGANISATION_UNIT_MERGE')" )
-    @PostMapping( value = "/merge", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody WebMessage mergeOrgUnits( @RequestBody OrgUnitMergeQuery query )
-    {
-        orgUnitMergeService.merge( orgUnitMergeService.getFromQuery( query ) );
+    // ---------------------------------------------------------------------
+    // OrganisationUnitQueryParams query parameter handling
+    // ---------------------------------------------------------------------
 
-        return ok( "Organisation units merged" );
+    else if (anyQueryPropertySet) {
+      OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+      params.setQuery(options.get("query"));
+      params.setLevel(options.getInt("level"));
+      params.setMaxLevels(options.getInt("maxLevel"));
+
+      params.setParents(
+          options.isTrue("withinUserHierarchy")
+              ? currentUser.getOrganisationUnits()
+              : options.isTrue("withinUserSearchHierarchy")
+                  ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
+                  : Sets.newHashSet());
+
+      objects = organisationUnitService.getOrganisationUnitsByQuery(params);
     }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    protected List<OrganisationUnit> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders )
-        throws QueryParserException
-    {
-        List<OrganisationUnit> objects = Lists.newArrayList();
+    // ---------------------------------------------------------------------
+    // Standard Query handling
+    // ---------------------------------------------------------------------
 
-        User currentUser = currentUserService.getCurrentUser();
+    Query query =
+        queryService.getQueryFromUrl(
+            getEntityClass(),
+            filters,
+            orders,
+            getPaginationData(options),
+            options.getRootJunction());
+    query.setUser(currentUser);
+    query.setDefaultOrder();
+    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
-        boolean anySpecialPropertySet = ObjectUtils.anyIsTrue( options.isTrue( "userOnly" ),
-            options.isTrue( "userDataViewOnly" ), options.isTrue( "userDataViewFallback" ),
-            options.isTrue( "levelSorted" ) );
-        boolean anyQueryPropertySet = ObjectUtils.firstNonNull( options.get( "query" ), options.getInt( "level" ),
-            options.getInt( "maxLevel" ) ) != null || options.isTrue( "withinUserHierarchy" )
-            || options.isTrue( "withinUserSearchHierarchy" );
-        String memberObject = options.get( "memberObject" );
-        String memberCollection = options.get( "memberCollection" );
-
-        // ---------------------------------------------------------------------
-        // Special parameter handling
-        // ---------------------------------------------------------------------
-
-        if ( options.isTrue( "userOnly" ) )
-        {
-            objects = new ArrayList<>( currentUser.getOrganisationUnits() );
-        }
-        else if ( options.isTrue( "userDataViewOnly" ) )
-        {
-            objects = new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
-        }
-        else if ( options.isTrue( "userDataViewFallback" ) )
-        {
-            if ( currentUser.hasDataViewOrganisationUnit() )
-            {
-                objects = new ArrayList<>( currentUser.getDataViewOrganisationUnits() );
-            }
-            else
-            {
-                objects = organisationUnitService.getOrganisationUnitsAtLevel( 1 );
-            }
-        }
-        else if ( options.isTrue( "levelSorted" ) )
-        {
-            objects = new ArrayList<>( manager.getAll( getEntityClass() ) );
-            objects.sort( OrganisationUnitByLevelComparator.INSTANCE );
-        }
-
-        // ---------------------------------------------------------------------
-        // OrganisationUnitQueryParams query parameter handling
-        // ---------------------------------------------------------------------
-
-        else if ( anyQueryPropertySet )
-        {
-            OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-            params.setQuery( options.get( "query" ) );
-            params.setLevel( options.getInt( "level" ) );
-            params.setMaxLevels( options.getInt( "maxLevel" ) );
-
-            params.setParents( options.isTrue( "withinUserHierarchy" ) ? currentUser.getOrganisationUnits()
-                : options.isTrue( "withinUserSearchHierarchy" )
-                    ? currentUser.getTeiSearchOrganisationUnitsWithFallback()
-                    : Sets.newHashSet() );
-
-            objects = organisationUnitService.getOrganisationUnitsByQuery( params );
-        }
-
-        // ---------------------------------------------------------------------
-        // Standard Query handling
-        // ---------------------------------------------------------------------
-
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction() );
-        query.setUser( currentUser );
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
-
-        if ( anySpecialPropertySet || anyQueryPropertySet )
-        {
-            query.setObjects( objects );
-        }
-
-        List<OrganisationUnit> list = (List<OrganisationUnit>) queryService.query( query );
-
-        // ---------------------------------------------------------------------
-        // Collection member count in hierarchy handling
-        // ---------------------------------------------------------------------
-
-        IdentifiableObject member;
-
-        if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
-        {
-            for ( OrganisationUnit unit : list )
-            {
-                Long count = organisationUnitService.getOrganisationUnitHierarchyMemberCount( unit, member,
-                    memberCollection );
-
-                unit.setMemberCount( (count != null ? count.intValue() : 0) );
-            }
-        }
-
-        return list;
+    if (anySpecialPropertySet || anyQueryPropertySet) {
+      query.setObjects(objects);
     }
 
-    @Override
-    protected List<OrganisationUnit> getEntity( String uid, WebOptions options )
-    {
-        OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
+    List<OrganisationUnit> list = (List<OrganisationUnit>) queryService.query(query);
 
-        List<OrganisationUnit> organisationUnits = Lists.newArrayList();
+    // ---------------------------------------------------------------------
+    // Collection member count in hierarchy handling
+    // ---------------------------------------------------------------------
 
-        if ( organisationUnit == null )
-        {
-            return organisationUnits;
-        }
+    IdentifiableObject member;
 
-        if ( options.contains( "includeChildren" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            organisationUnits.add( organisationUnit );
-            organisationUnits.addAll( organisationUnit.getChildren() );
-        }
-        else if ( options.contains( "includeDescendants" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( uid ) );
-        }
-        else if ( options.contains( "includeAncestors" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            organisationUnits.add( organisationUnit );
-            List<OrganisationUnit> ancestors = organisationUnit.getAncestors();
-            Collections.reverse( ancestors );
-            organisationUnits.addAll( ancestors );
-        }
-        else if ( options.contains( "level" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            int level = options.getInt( "level" );
-            int ouLevel = organisationUnit.getLevel();
-            int targetLevel = ouLevel + level;
-            organisationUnits
-                .addAll( organisationUnitService.getOrganisationUnitsAtLevel( targetLevel, organisationUnit ) );
-        }
-        else
-        {
-            organisationUnits.add( organisationUnit );
-        }
+    if (memberObject != null
+        && memberCollection != null
+        && (member = manager.get(memberObject)) != null) {
+      for (OrganisationUnit unit : list) {
+        Long count =
+            organisationUnitService.getOrganisationUnitHierarchyMemberCount(
+                unit, member, memberCollection);
 
-        return organisationUnits;
+        unit.setMemberCount((count != null ? count.intValue() : 0));
+      }
     }
 
-    @GetMapping( "/{uid}/parents" )
-    public @ResponseBody List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> parameters, Model model, TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        setUserContext( translateParams );
-        OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
-        List<OrganisationUnit> organisationUnits = Lists.newArrayList();
+    return list;
+  }
 
-        if ( organisationUnit != null )
-        {
-            OrganisationUnit organisationUnitParent = organisationUnit.getParent();
+  @Override
+  protected List<OrganisationUnit> getEntity(String uid, WebOptions options) {
+    OrganisationUnit organisationUnit = manager.get(getEntityClass(), uid);
 
-            while ( organisationUnitParent != null )
-            {
-                organisationUnits.add( organisationUnitParent );
-                organisationUnitParent = organisationUnitParent.getParent();
-            }
-        }
+    List<OrganisationUnit> organisationUnits = Lists.newArrayList();
 
-        WebMetadata metadata = new WebMetadata();
-        metadata.setOrganisationUnits( organisationUnits );
-
-        return organisationUnits;
+    if (organisationUnit == null) {
+      return organisationUnits;
     }
 
-    @GetMapping( value = "", produces = { "application/json+geo",
-        "application/json+geojson" } )
-    public void getGeoJson(
-        @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
-        @RequestParam( value = "parent", required = false ) List<String> rpParents,
-        @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
-        @CurrentUser User currentUser, HttpServletResponse response )
-        throws IOException
-    {
-        rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
-        rpParents = rpParents != null ? rpParents : new ArrayList<>();
-
-        List<OrganisationUnit> parents = manager.getByUid( OrganisationUnit.class, rpParents );
-
-        if ( rpLevels.isEmpty() )
-        {
-            rpLevels.add( 1 );
-        }
-
-        if ( parents.isEmpty() )
-        {
-            parents.addAll( organisationUnitService.getRootOrganisationUnits() );
-        }
-
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevels( rpLevels,
-            parents );
-
-        response.setContentType( APPLICATION_JSON_VALUE );
-
-        JsonFactory jsonFactory = new JsonFactory();
-        JsonGenerator generator = jsonFactory.createGenerator( response.getOutputStream() );
-
-        generator.writeStartObject();
-        generator.writeStringField( "type", "FeatureCollection" );
-        generator.writeArrayFieldStart( "features" );
-
-        for ( OrganisationUnit organisationUnit : organisationUnits )
-        {
-            writeFeature( generator, organisationUnit, rpProperties, currentUser );
-        }
-
-        generator.writeEndArray();
-        generator.writeEndObject();
-
-        generator.close();
+    if (options.contains("includeChildren")) {
+      options.getOptions().put("useWrapper", "true");
+      organisationUnits.add(organisationUnit);
+      organisationUnits.addAll(organisationUnit.getChildren());
+    } else if (options.contains("includeDescendants")) {
+      options.getOptions().put("useWrapper", "true");
+      organisationUnits.addAll(organisationUnitService.getOrganisationUnitWithChildren(uid));
+    } else if (options.contains("includeAncestors")) {
+      options.getOptions().put("useWrapper", "true");
+      organisationUnits.add(organisationUnit);
+      List<OrganisationUnit> ancestors = organisationUnit.getAncestors();
+      Collections.reverse(ancestors);
+      organisationUnits.addAll(ancestors);
+    } else if (options.contains("level")) {
+      options.getOptions().put("useWrapper", "true");
+      int level = options.getInt("level");
+      int ouLevel = organisationUnit.getLevel();
+      int targetLevel = ouLevel + level;
+      organisationUnits.addAll(
+          organisationUnitService.getOrganisationUnitsAtLevel(targetLevel, organisationUnit));
+    } else {
+      organisationUnits.add(organisationUnit);
     }
 
-    private void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,
-        boolean includeProperties, User user )
-        throws IOException
-    {
-        if ( organisationUnit.getGeometry() == null )
-        {
-            return;
-        }
+    return organisationUnits;
+  }
 
-        generator.writeStartObject();
+  @GetMapping("/{uid}/parents")
+  public @ResponseBody List<OrganisationUnit> getEntityList(
+      @PathVariable("uid") String uid,
+      @RequestParam Map<String, String> parameters,
+      Model model,
+      TranslateParams translateParams,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    setUserContext(translateParams);
+    OrganisationUnit organisationUnit = manager.get(getEntityClass(), uid);
+    List<OrganisationUnit> organisationUnits = Lists.newArrayList();
 
-        generator.writeStringField( "type", "Feature" );
-        generator.writeStringField( "id", organisationUnit.getUid() );
+    if (organisationUnit != null) {
+      OrganisationUnit organisationUnitParent = organisationUnit.getParent();
 
-        generator.writeObjectFieldStart( "geometry" );
-        generator.writeObjectField( "type", organisationUnit.getGeometry().getGeometryType() );
-
-        generator.writeFieldName( "coordinates" );
-        generator.writeRawValue( getCoordinatesFromGeometry( organisationUnit.getGeometry() ) );
-
-        generator.writeEndObject();
-
-        generator.writeObjectFieldStart( "properties" );
-
-        if ( includeProperties )
-        {
-            Set<OrganisationUnit> roots = user.getDataViewOrganisationUnitsWithFallback();
-
-            generator.writeStringField( "code", organisationUnit.getCode() );
-            generator.writeStringField( "name", organisationUnit.getName() );
-            generator.writeStringField( "level", String.valueOf( organisationUnit.getLevel() ) );
-
-            if ( organisationUnit.getParent() != null )
-            {
-                generator.writeStringField( "parent", organisationUnit.getParent().getUid() );
-            }
-
-            generator.writeStringField( "parentGraph", organisationUnit.getParentGraph( roots ) );
-
-            generator.writeArrayFieldStart( "groups" );
-
-            for ( OrganisationUnitGroup group : organisationUnit.getGroups() )
-            {
-                generator.writeString( group.getUid() );
-            }
-
-            generator.writeEndArray();
-        }
-
-        generator.writeEndObject();
-
-        generator.writeEndObject();
+      while (organisationUnitParent != null) {
+        organisationUnits.add(organisationUnitParent);
+        organisationUnitParent = organisationUnitParent.getParent();
+      }
     }
 
-    @Override
-    protected void postCreateEntity( OrganisationUnit entity )
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
+    WebMetadata metadata = new WebMetadata();
+    metadata.setOrganisationUnits(organisationUnits);
+
+    return organisationUnits;
+  }
+
+  @GetMapping(
+      value = "",
+      produces = {"application/json+geo", "application/json+geojson"})
+  public void getGeoJson(
+      @RequestParam(value = "level", required = false) List<Integer> rpLevels,
+      @RequestParam(value = "parent", required = false) List<String> rpParents,
+      @RequestParam(value = "properties", required = false, defaultValue = "true")
+          boolean rpProperties,
+      @CurrentUser User currentUser,
+      HttpServletResponse response)
+      throws IOException {
+    rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
+    rpParents = rpParents != null ? rpParents : new ArrayList<>();
+
+    List<OrganisationUnit> parents = manager.getByUid(OrganisationUnit.class, rpParents);
+
+    if (rpLevels.isEmpty()) {
+      rpLevels.add(1);
     }
 
-    @Override
-    protected void postUpdateEntity( OrganisationUnit entity )
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
+    if (parents.isEmpty()) {
+      parents.addAll(organisationUnitService.getRootOrganisationUnits());
     }
 
-    @Override
-    protected void postDeleteEntity( String entityUID )
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
+    List<OrganisationUnit> organisationUnits =
+        organisationUnitService.getOrganisationUnitsAtLevels(rpLevels, parents);
+
+    response.setContentType(APPLICATION_JSON_VALUE);
+
+    JsonFactory jsonFactory = new JsonFactory();
+    JsonGenerator generator = jsonFactory.createGenerator(response.getOutputStream());
+
+    generator.writeStartObject();
+    generator.writeStringField("type", "FeatureCollection");
+    generator.writeArrayFieldStart("features");
+
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      writeFeature(generator, organisationUnit, rpProperties, currentUser);
     }
+
+    generator.writeEndArray();
+    generator.writeEndObject();
+
+    generator.close();
+  }
+
+  private void writeFeature(
+      JsonGenerator generator,
+      OrganisationUnit organisationUnit,
+      boolean includeProperties,
+      User user)
+      throws IOException {
+    if (organisationUnit.getGeometry() == null) {
+      return;
+    }
+
+    generator.writeStartObject();
+
+    generator.writeStringField("type", "Feature");
+    generator.writeStringField("id", organisationUnit.getUid());
+
+    generator.writeObjectFieldStart("geometry");
+    generator.writeObjectField("type", organisationUnit.getGeometry().getGeometryType());
+
+    generator.writeFieldName("coordinates");
+    generator.writeRawValue(getCoordinatesFromGeometry(organisationUnit.getGeometry()));
+
+    generator.writeEndObject();
+
+    generator.writeObjectFieldStart("properties");
+
+    if (includeProperties) {
+      Set<OrganisationUnit> roots = user.getDataViewOrganisationUnitsWithFallback();
+
+      generator.writeStringField("code", organisationUnit.getCode());
+      generator.writeStringField("name", organisationUnit.getName());
+      generator.writeStringField("level", String.valueOf(organisationUnit.getLevel()));
+
+      if (organisationUnit.getParent() != null) {
+        generator.writeStringField("parent", organisationUnit.getParent().getUid());
+      }
+
+      generator.writeStringField("parentGraph", organisationUnit.getParentGraph(roots));
+
+      generator.writeArrayFieldStart("groups");
+
+      for (OrganisationUnitGroup group : organisationUnit.getGroups()) {
+        generator.writeString(group.getUid());
+      }
+
+      generator.writeEndArray();
+    }
+
+    generator.writeEndObject();
+
+    generator.writeEndObject();
+  }
+
+  @Override
+  protected void postCreateEntity(OrganisationUnit entity) {
+    versionService.updateVersion(VersionService.ORGANISATIONUNIT_VERSION);
+  }
+
+  @Override
+  protected void postUpdateEntity(OrganisationUnit entity) {
+    versionService.updateVersion(VersionService.ORGANISATIONUNIT_VERSION);
+  }
+
+  @Override
+  protected void postDeleteEntity(String entityUID) {
+    versionService.updateVersion(VersionService.ORGANISATIONUNIT_VERSION);
+  }
 }

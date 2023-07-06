@@ -27,28 +27,20 @@
  */
 package org.hisp.dhis.notification;
 
-/**
- * Created by zubair on 06.04.17.
- */
+/** Created by zubair on 06.04.17. */
+public enum SendStrategy {
+  COLLECTIVE_SUMMARY("Summary"),
+  SINGLE_NOTIFICATION("Single");
 
-public enum SendStrategy
-{
-    COLLECTIVE_SUMMARY( "Summary" ),
-    SINGLE_NOTIFICATION( "Single" );
+  private String description;
 
-    private String description;
+  SendStrategy() {}
 
-    SendStrategy()
-    {
-    }
+  SendStrategy(String description) {
+    this.description = description;
+  }
 
-    SendStrategy( String description )
-    {
-        this.description = description;
-    }
-
-    public String getDescription()
-    {
-        return description;
-    }
+  public String getDescription() {
+    return description;
+  }
 }

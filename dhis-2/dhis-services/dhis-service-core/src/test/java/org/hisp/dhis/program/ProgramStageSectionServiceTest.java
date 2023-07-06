@@ -38,58 +38,50 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramStageSectionServiceTest extends TransactionalIntegrationTest
-{
+class ProgramStageSectionServiceTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private ProgramStageSectionService programStageSectionService;
+  @Autowired private ProgramStageSectionService programStageSectionService;
 
-    @Autowired
-    private CategoryService _categoryService;
+  @Autowired private CategoryService _categoryService;
 
-    @BeforeEach
-    void init()
-    {
-        userService = _userService;
-        categoryService = _categoryService;
-    }
+  @BeforeEach
+  void init() {
+    userService = _userService;
+    categoryService = _categoryService;
+  }
 
-    @Test
-    void testUpdateWithAuthority()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        manager.save( programStage );
-        ProgramStageSection programStageSection = createProgramStageSection( 'A', 0 );
-        programStageSection.setProgramStage( programStage );
-        manager.save( programStageSection );
-        User userA = createUser( "A", "F_PROGRAMSTAGE_ADD" );
-        Assertions.assertTrue( aclService.canUpdate( userA, programStageSection ) );
-        User userB = createUser( "B" );
-        Assertions.assertFalse( aclService.canUpdate( userB, programStageSection ) );
-    }
+  @Test
+  void testUpdateWithAuthority() {
+    Program program = createProgram('A');
+    manager.save(program);
+    ProgramStage programStage = createProgramStage('A', program);
+    manager.save(programStage);
+    ProgramStageSection programStageSection = createProgramStageSection('A', 0);
+    programStageSection.setProgramStage(programStage);
+    manager.save(programStageSection);
+    User userA = createUser("A", "F_PROGRAMSTAGE_ADD");
+    Assertions.assertTrue(aclService.canUpdate(userA, programStageSection));
+    User userB = createUser("B");
+    Assertions.assertFalse(aclService.canUpdate(userB, programStageSection));
+  }
 
-    @Test
-    void testSaveWithoutAuthority()
-    {
-        Program program = createProgram( 'A' );
-        manager.save( program );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        manager.save( programStage );
-        createUserAndInjectSecurityContext( false );
-        ProgramStageSection programStageSection = createProgramStageSection( 'A', 0 );
-        programStageSection.setProgramStage( programStage );
-        programStageSectionService.saveProgramStageSection( programStageSection );
-        Assertions.assertNotNull( programStageSectionService.getProgramStageSection( programStageSection.getId() ) );
-    }
+  @Test
+  void testSaveWithoutAuthority() {
+    Program program = createProgram('A');
+    manager.save(program);
+    ProgramStage programStage = createProgramStage('A', program);
+    manager.save(programStage);
+    createUserAndInjectSecurityContext(false);
+    ProgramStageSection programStageSection = createProgramStageSection('A', 0);
+    programStageSection.setProgramStage(programStage);
+    programStageSectionService.saveProgramStageSection(programStageSection);
+    Assertions.assertNotNull(
+        programStageSectionService.getProgramStageSection(programStageSection.getId()));
+  }
 }

@@ -40,30 +40,25 @@ import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Configuration
-@ComponentScan( "org.hisp.dhis" )
-public class UnitTestConfig
-{
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
-    }
+@ComponentScan("org.hisp.dhis")
+public class UnitTestConfig {
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
+  }
 
-    @Bean
-    public PasswordEncoder encoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
+  @Bean
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
+  }
 
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
-    }
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
+  }
 }

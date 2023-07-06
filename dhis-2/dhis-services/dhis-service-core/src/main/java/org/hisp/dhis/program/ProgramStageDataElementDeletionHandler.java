@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -40,49 +39,41 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramStageDataElementDeletionHandler" )
-public class ProgramStageDataElementDeletionHandler
-    extends DeletionHandler
-{
-    private final ProgramStageDataElementService programStageDataElementService;
+@Component("org.hisp.dhis.program.ProgramStageDataElementDeletionHandler")
+public class ProgramStageDataElementDeletionHandler extends DeletionHandler {
+  private final ProgramStageDataElementService programStageDataElementService;
 
-    public ProgramStageDataElementDeletionHandler( ProgramStageDataElementService programStageDataElementService )
-    {
-        checkNotNull( programStageDataElementService );
+  public ProgramStageDataElementDeletionHandler(
+      ProgramStageDataElementService programStageDataElementService) {
+    checkNotNull(programStageDataElementService);
 
-        this.programStageDataElementService = programStageDataElementService;
+    this.programStageDataElementService = programStageDataElementService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+    whenDeleting(DataElement.class, this::deleteDataElement);
+  }
+
+  private void deleteProgramStage(ProgramStage programStage) {
+    List<ProgramStageDataElement> programStageDataElements =
+        new ArrayList<>(programStage.getProgramStageDataElements());
+
+    for (ProgramStageDataElement programStageDataElement : programStageDataElements) {
+      programStage.getProgramStageDataElements().remove(programStageDataElement);
+      programStageDataElementService.deleteProgramStageDataElement(programStageDataElement);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
-        whenDeleting( DataElement.class, this::deleteDataElement );
-    }
-
-    private void deleteProgramStage( ProgramStage programStage )
-    {
-        List<ProgramStageDataElement> programStageDataElements = new ArrayList<>(
-            programStage.getProgramStageDataElements() );
-
-        for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
-        {
-            programStage.getProgramStageDataElements().remove( programStageDataElement );
-            programStageDataElementService.deleteProgramStageDataElement( programStageDataElement );
+  private void deleteDataElement(DataElement dataElement) {
+    if (DataElementDomain.TRACKER == dataElement.getDomainType()) {
+      for (ProgramStageDataElement element :
+          programStageDataElementService.getAllProgramStageDataElements()) {
+        if (element.getDataElement() != null && element.getDataElement().equals(dataElement)) {
+          programStageDataElementService.deleteProgramStageDataElement(element);
         }
+      }
     }
-
-    private void deleteDataElement( DataElement dataElement )
-    {
-        if ( DataElementDomain.TRACKER == dataElement.getDomainType() )
-        {
-            for ( ProgramStageDataElement element : programStageDataElementService.getAllProgramStageDataElements() )
-            {
-                if ( element.getDataElement() != null && element.getDataElement().equals( dataElement ) )
-                {
-                    programStageDataElementService.deleteProgramStageDataElement( element );
-                }
-            }
-        }
-    }
+  }
 }

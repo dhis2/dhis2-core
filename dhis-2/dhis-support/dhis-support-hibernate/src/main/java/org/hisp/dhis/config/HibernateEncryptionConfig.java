@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.config;
 
+import com.google.common.collect.ImmutableMap;
 import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -41,75 +41,65 @@ import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
-public class HibernateEncryptionConfig
-{
-    @Autowired
-    private HibernateConfigurationProvider hibernateConfigurationProvider;
+public class HibernateEncryptionConfig {
+  @Autowired private HibernateConfigurationProvider hibernateConfigurationProvider;
 
-    private String password;
+  private String password;
 
-    @PostConstruct
-    public void init()
-    {
-        password = (String) getConnectionProperty( "encryption.password", "J7GhAs287hsSQlKd9g5" );
-    }
+  @PostConstruct
+  public void init() {
+    password = (String) getConnectionProperty("encryption.password", "J7GhAs287hsSQlKd9g5");
+  }
 
-    // Used only for SystemSettings (due to bug with JCE policy restrictions in
-    // Jasypt)
-    @Bean( "tripleDesStringEncryptor" )
-    public PooledPBEStringEncryptor tripleDesStringEncryptor()
-    {
-        PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
-        encryptor.setAlgorithm( "PBEWithSHA1AndDESede" );
-        encryptor.setPassword( password );
-        encryptor.setPoolSize( 4 );
-        encryptor.setSaltGenerator( new StringFixedSaltGenerator( "H7g0oLkEw3wf52fs52g3hbG" ) );
+  // Used only for SystemSettings (due to bug with JCE policy restrictions in
+  // Jasypt)
+  @Bean("tripleDesStringEncryptor")
+  public PooledPBEStringEncryptor tripleDesStringEncryptor() {
+    PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+    encryptor.setAlgorithm("PBEWithSHA1AndDESede");
+    encryptor.setPassword(password);
+    encryptor.setPoolSize(4);
+    encryptor.setSaltGenerator(new StringFixedSaltGenerator("H7g0oLkEw3wf52fs52g3hbG"));
 
-        return encryptor;
-    }
+    return encryptor;
+  }
 
-    // AES string encryptor, requires BouncyCastle and JCE extended policy (due
-    // to
-    // issue mentioned above)
-    @Bean( "aes128StringEncryptor" )
-    public PooledPBEStringEncryptor aes128StringEncryptor()
-    {
-        PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
-        encryptor.setAlgorithm( "PBEWITHSHA256AND128BITAES-CBC-BC" );
-        encryptor.setPassword( password );
-        encryptor.setPoolSize( 4 );
-        encryptor.setSaltGenerator( new RandomSaltGenerator() );
+  // AES string encryptor, requires BouncyCastle and JCE extended policy (due
+  // to
+  // issue mentioned above)
+  @Bean("aes128StringEncryptor")
+  public PooledPBEStringEncryptor aes128StringEncryptor() {
+    PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+    encryptor.setAlgorithm("PBEWITHSHA256AND128BITAES-CBC-BC");
+    encryptor.setPassword(password);
+    encryptor.setPoolSize(4);
+    encryptor.setSaltGenerator(new RandomSaltGenerator());
 
-        return encryptor;
-    }
+    return encryptor;
+  }
 
-    @Bean( "hibernateEncryptors" )
-    public HibernateEncryptorRegistry hibernateEncryptors()
-    {
-        HibernateEncryptorRegistry registry = HibernateEncryptorRegistry.getInstance();
-        registry.setEncryptors( ImmutableMap.of( "aes128StringEncryptor", aes128StringEncryptor() ) );
-        return registry;
-    }
+  @Bean("hibernateEncryptors")
+  public HibernateEncryptorRegistry hibernateEncryptors() {
+    HibernateEncryptorRegistry registry = HibernateEncryptorRegistry.getInstance();
+    registry.setEncryptors(ImmutableMap.of("aes128StringEncryptor", aes128StringEncryptor()));
+    return registry;
+  }
 
-    @Bean
-    public MethodInvokingFactoryBean addProvider()
-    {
-        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
-        methodInvokingFactoryBean.setStaticMethod( "java.security.Security.addProvider" );
-        methodInvokingFactoryBean.setArguments( new BouncyCastleProvider() );
-        return methodInvokingFactoryBean;
-    }
+  @Bean
+  public MethodInvokingFactoryBean addProvider() {
+    MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
+    methodInvokingFactoryBean.setStaticMethod("java.security.Security.addProvider");
+    methodInvokingFactoryBean.setArguments(new BouncyCastleProvider());
+    return methodInvokingFactoryBean;
+  }
 
-    private Object getConnectionProperty( String key, String defaultValue )
-    {
-        String value = hibernateConfigurationProvider.getConfiguration().getProperty( key );
+  private Object getConnectionProperty(String key, String defaultValue) {
+    String value = hibernateConfigurationProvider.getConfiguration().getProperty(key);
 
-        return StringUtils.defaultIfEmpty( value, defaultValue );
-    }
+    return StringUtils.defaultIfEmpty(value, defaultValue);
+  }
 }

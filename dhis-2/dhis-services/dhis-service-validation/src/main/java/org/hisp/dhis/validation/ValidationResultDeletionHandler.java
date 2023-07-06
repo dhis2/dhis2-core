@@ -38,84 +38,81 @@ import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
- *
  * @author Stian Sandvold
  */
-@Component( "org.hisp.dhis.validation.ValidationResultDeletionHandler" )
-public class ValidationResultDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( ValidationResult.class );
+@Component("org.hisp.dhis.validation.ValidationResultDeletionHandler")
+public class ValidationResultDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(ValidationResult.class);
 
-    private final ValidationResultService validationResultService;
+  private final ValidationResultService validationResultService;
 
-    public ValidationResultDeletionHandler( ValidationResultService validationResultService )
-    {
-        checkNotNull( validationResultService );
-        this.validationResultService = validationResultService;
+  public ValidationResultDeletionHandler(ValidationResultService validationResultService) {
+    checkNotNull(validationResultService);
+    this.validationResultService = validationResultService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(ValidationRule.class, this::deleteValidationRule);
+    whenDeleting(Period.class, this::deletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
+    whenVetoing(ValidationRule.class, this::allowDeleteValidationRule);
+  }
+
+  private void deleteValidationRule(ValidationRule validationRule) {
+    validationResultService
+        .getAllValidationResults()
+        .forEach(
+            validationResult -> {
+              if (validationResult.getValidationRule().equals(validationRule)) {
+                validationResultService.deleteValidationResult(validationResult);
+              }
+            });
+  }
+
+  private void deletePeriod(Period period) {
+    validationResultService
+        .getAllValidationResults()
+        .forEach(
+            validationResult -> {
+              if (validationResult.getPeriod().equals(period)) {
+                validationResultService.deleteValidationResult(validationResult);
+              }
+            });
+  }
+
+  private void deleteOrganisationUnit(OrganisationUnit organisationUnit) {
+    validationResultService
+        .getAllValidationResults()
+        .forEach(
+            validationResult -> {
+              if (validationResult.getOrganisationUnit().equals(organisationUnit)) {
+                validationResultService.deleteValidationResult(validationResult);
+              }
+            });
+  }
+
+  private void deleteCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo) {
+    validationResultService
+        .getAllValidationResults()
+        .forEach(
+            validationResult -> {
+              if (validationResult
+                  .getAttributeOptionCombo()
+                  .equals(dataElementCategoryOptionCombo)) {
+                validationResultService.deleteValidationResult(validationResult);
+              }
+            });
+  }
+
+  private DeletionVeto allowDeleteValidationRule(ValidationRule validationRule) {
+    for (ValidationResult validationResult : validationResultService.getAllValidationResults()) {
+      if (validationResult.getValidationRule().equals(validationRule)) {
+        return VETO;
+      }
     }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ValidationRule.class, this::deleteValidationRule );
-        whenDeleting( Period.class, this::deletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
-        whenVetoing( ValidationRule.class, this::allowDeleteValidationRule );
-    }
-
-    private void deleteValidationRule( ValidationRule validationRule )
-    {
-        validationResultService.getAllValidationResults().forEach( validationResult -> {
-            if ( validationResult.getValidationRule().equals( validationRule ) )
-            {
-                validationResultService.deleteValidationResult( validationResult );
-            }
-        } );
-    }
-
-    private void deletePeriod( Period period )
-    {
-        validationResultService.getAllValidationResults().forEach( validationResult -> {
-            if ( validationResult.getPeriod().equals( period ) )
-            {
-                validationResultService.deleteValidationResult( validationResult );
-            }
-        } );
-    }
-
-    private void deleteOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        validationResultService.getAllValidationResults().forEach( validationResult -> {
-            if ( validationResult.getOrganisationUnit().equals( organisationUnit ) )
-            {
-                validationResultService.deleteValidationResult( validationResult );
-            }
-        } );
-    }
-
-    private void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
-    {
-        validationResultService.getAllValidationResults().forEach( validationResult -> {
-            if ( validationResult.getAttributeOptionCombo().equals( dataElementCategoryOptionCombo ) )
-            {
-                validationResultService.deleteValidationResult( validationResult );
-            }
-        } );
-    }
-
-    private DeletionVeto allowDeleteValidationRule( ValidationRule validationRule )
-    {
-        for ( ValidationResult validationResult : validationResultService.getAllValidationResults() )
-        {
-            if ( validationResult.getValidationRule().equals( validationRule ) )
-            {
-                return VETO;
-            }
-        }
-
-        return ACCEPT;
-    }
-
+    return ACCEPT;
+  }
 }

@@ -30,9 +30,8 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public enum FontSize
-{
-    LARGE,
-    NORMAL,
-    SMALL
+public enum FontSize {
+  LARGE,
+  NORMAL,
+  SMALL
 }

@@ -32,33 +32,28 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 /**
  * @Author Zubair Asghar.
  */
-public class FileDeletedEvent
-{
-    private String storageKey;
+public class FileDeletedEvent {
+  private String storageKey;
 
-    private String contentType;
+  private String contentType;
 
-    private FileResourceDomain domain;
+  private FileResourceDomain domain;
 
-    public FileDeletedEvent( String storageKey, String contentType, FileResourceDomain domain )
-    {
-        this.storageKey = storageKey;
-        this.contentType = contentType;
-        this.domain = domain;
-    }
+  public FileDeletedEvent(String storageKey, String contentType, FileResourceDomain domain) {
+    this.storageKey = storageKey;
+    this.contentType = contentType;
+    this.domain = domain;
+  }
 
-    public String getStorageKey()
-    {
-        return storageKey;
-    }
+  public String getStorageKey() {
+    return storageKey;
+  }
 
-    public String getContentType()
-    {
-        return contentType;
-    }
+  public String getContentType() {
+    return contentType;
+  }
 
-    public FileResourceDomain getDomain()
-    {
-        return domain;
-    }
+  public FileResourceDomain getDomain() {
+    return domain;
+  }
 }

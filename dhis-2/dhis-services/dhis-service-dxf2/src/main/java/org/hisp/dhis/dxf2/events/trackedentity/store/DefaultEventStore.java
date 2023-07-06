@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -44,139 +46,131 @@ import org.hisp.dhis.security.acl.AclService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
 @Repository
-public class DefaultEventStore
-    extends
-    AbstractStore
-    implements
-    EventStore
-{
-    private static final String GET_EVENTS_SQL = EventQuery.getQuery();
+public class DefaultEventStore extends AbstractStore implements EventStore {
+  private static final String GET_EVENTS_SQL = EventQuery.getQuery();
 
-    private static final String GET_DATAVALUES_SQL = "select psi.uid as key, " +
-        "psi.eventdatavalues " +
-        "from programstageinstance psi " +
-        "where psi.programstageinstanceid in (:ids)";
+  private static final String GET_DATAVALUES_SQL =
+      "select psi.uid as key, "
+          + "psi.eventdatavalues "
+          + "from programstageinstance psi "
+          + "where psi.programstageinstanceid in (:ids)";
 
-    private static final String GET_NOTES_SQL = "select psi.uid as key, tec.uid, tec.commenttext, " +
-        "tec.creator, tec.created " +
-        "from trackedentitycomment tec " +
-        "join programstageinstancecomments psic " +
-        "on tec.trackedentitycommentid = psic.trackedentitycommentid " +
-        "join programstageinstance psi on psic.programstageinstanceid = psi.programstageinstanceid " +
-        "where psic.programstageinstanceid in (:ids)";
+  private static final String GET_NOTES_SQL =
+      "select psi.uid as key, tec.uid, tec.commenttext, "
+          + "tec.creator, tec.created "
+          + "from trackedentitycomment tec "
+          + "join programstageinstancecomments psic "
+          + "on tec.trackedentitycommentid = psic.trackedentitycommentid "
+          + "join programstageinstance psi on psic.programstageinstanceid = psi.programstageinstanceid "
+          + "where psic.programstageinstanceid in (:ids)";
 
-    private static final String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
-        "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
-        "AND psi.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
+  private static final String ACL_FILTER_SQL =
+      "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
+          + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
+          + "AND psi.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
 
-    private static final String ACL_FILTER_SQL_NO_PROGRAM_STAGE = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
-        "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
-        "AND pi.programid IN (:programIds)";
+  private static final String ACL_FILTER_SQL_NO_PROGRAM_STAGE =
+      "CASE WHEN p.type = 'WITH_REGISTRATION' THEN "
+          + "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END "
+          + "AND pi.programid IN (:programIds)";
 
-    private static final String FILTER_OUT_DELETED_EVENTS = "psi.deleted=false";
+  private static final String FILTER_OUT_DELETED_EVENTS = "psi.deleted=false";
 
-    public DefaultEventStore( JdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
+  public DefaultEventStore(JdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
+
+  @Override
+  String getRelationshipEntityColumn() {
+    return "programstageinstanceid";
+  }
+
+  @Override
+  public Multimap<String, Event> getEventsByEnrollmentIds(
+      List<Long> enrollmentsId, AggregateContext ctx) {
+    List<List<Long>> enrollmentIdsPartitions = Lists.partition(enrollmentsId, PARITITION_SIZE);
+
+    Multimap<String, Event> eventMultimap = ArrayListMultimap.create();
+
+    enrollmentIdsPartitions.forEach(
+        partition -> eventMultimap.putAll(getEventsByEnrollmentIdsPartitioned(partition, ctx)));
+
+    return eventMultimap;
+  }
+
+  private String getAttributeOptionComboClause(AggregateContext ctx) {
+    return "   and psi.attributeoptioncomboid not in ("
+        + "select distinct(cocco.categoryoptioncomboid) "
+        + "from categoryoptioncombos_categoryoptions as cocco "
+        +
+        // Get inaccessible category options
+        "where cocco.categoryoptionid not in ( "
+        + "select co.categoryoptionid "
+        + "from dataelementcategoryoption co  "
+        + " where "
+        + JpaQueryUtils.generateSQlQueryForSharingCheck(
+            "co.sharing", ctx.getUserUid(), ctx.getUserGroups(), AclService.LIKE_READ_DATA)
+        + ") )";
+  }
+
+  private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned(
+      List<Long> enrollmentsId, AggregateContext ctx) {
+    EventRowCallbackHandler handler = new EventRowCallbackHandler();
+
+    List<Long> programStages = ctx.getProgramStages();
+
+    String aocSql = ctx.isSuperUser() ? "" : getAttributeOptionComboClause(ctx);
+
+    if (programStages.isEmpty()) {
+      jdbcTemplate.query(
+          getQuery(
+              GET_EVENTS_SQL,
+              ctx,
+              ACL_FILTER_SQL_NO_PROGRAM_STAGE + aocSql,
+              FILTER_OUT_DELETED_EVENTS),
+          createIdsParam(enrollmentsId)
+              .addValue("trackedEntityTypeIds", ctx.getTrackedEntityTypes())
+              .addValue("programIds", ctx.getPrograms()),
+          handler);
+    } else {
+      jdbcTemplate.query(
+          getQuery(GET_EVENTS_SQL, ctx, ACL_FILTER_SQL + aocSql, FILTER_OUT_DELETED_EVENTS),
+          createIdsParam(enrollmentsId)
+              .addValue("trackedEntityTypeIds", ctx.getTrackedEntityTypes())
+              .addValue("programStageIds", programStages)
+              .addValue("programIds", ctx.getPrograms()),
+          handler);
     }
 
-    @Override
-    String getRelationshipEntityColumn()
-    {
-        return "programstageinstanceid";
-    }
+    return handler.getItems();
+  }
 
-    @Override
-    public Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, AggregateContext ctx )
-    {
-        List<List<Long>> enrollmentIdsPartitions = Lists.partition( enrollmentsId, PARITITION_SIZE );
+  @Override
+  public Map<String, List<DataValue>> getDataValues(List<Long> programStageInstanceId) {
+    List<List<Long>> psiIdsPartitions = Lists.partition(programStageInstanceId, PARITITION_SIZE);
 
-        Multimap<String, Event> eventMultimap = ArrayListMultimap.create();
+    Map<String, List<DataValue>> dataValueListMultimap = new HashMap<>();
 
-        enrollmentIdsPartitions
-            .forEach( partition -> eventMultimap.putAll( getEventsByEnrollmentIdsPartitioned( partition, ctx ) ) );
+    psiIdsPartitions.forEach(
+        partition -> dataValueListMultimap.putAll(getDataValuesPartitioned(partition)));
 
-        return eventMultimap;
-    }
+    return dataValueListMultimap;
+  }
 
-    private String getAttributeOptionComboClause( AggregateContext ctx )
-    {
-        return "   and psi.attributeoptioncomboid not in (" +
-            "select distinct(cocco.categoryoptioncomboid) " +
-            "from categoryoptioncombos_categoryoptions as cocco " +
-            // Get inaccessible category options
-            "where cocco.categoryoptionid not in ( " +
-            "select co.categoryoptionid " +
-            "from dataelementcategoryoption co  " +
-            " where "
-            + JpaQueryUtils.generateSQlQueryForSharingCheck( "co.sharing", ctx.getUserUid(), ctx.getUserGroups(),
-                AclService.LIKE_READ_DATA )
-            + ") )";
-    }
+  private Map<String, List<DataValue>> getDataValuesPartitioned(List<Long> programStageInstanceId) {
+    EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
 
-    private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
-        AggregateContext ctx )
-    {
-        EventRowCallbackHandler handler = new EventRowCallbackHandler();
+    jdbcTemplate.query(GET_DATAVALUES_SQL, createIdsParam(programStageInstanceId), handler);
 
-        List<Long> programStages = ctx.getProgramStages();
+    return handler.getItems();
+  }
 
-        String aocSql = ctx.isSuperUser() ? "" : getAttributeOptionComboClause( ctx );
-
-        if ( programStages.isEmpty() )
-        {
-            jdbcTemplate.query(
-                getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL_NO_PROGRAM_STAGE + aocSql, FILTER_OUT_DELETED_EVENTS ),
-                createIdsParam( enrollmentsId )
-                    .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
-                    .addValue( "programIds", ctx.getPrograms() ),
-                handler );
-        }
-        else
-        {
-            jdbcTemplate.query( getQuery( GET_EVENTS_SQL, ctx, ACL_FILTER_SQL + aocSql, FILTER_OUT_DELETED_EVENTS ),
-                createIdsParam( enrollmentsId )
-                    .addValue( "trackedEntityTypeIds", ctx.getTrackedEntityTypes() )
-                    .addValue( "programStageIds", programStages )
-                    .addValue( "programIds", ctx.getPrograms() ),
-                handler );
-        }
-
-        return handler.getItems();
-    }
-
-    @Override
-    public Map<String, List<DataValue>> getDataValues( List<Long> programStageInstanceId )
-    {
-        List<List<Long>> psiIdsPartitions = Lists.partition( programStageInstanceId, PARITITION_SIZE );
-
-        Map<String, List<DataValue>> dataValueListMultimap = new HashMap<>();
-
-        psiIdsPartitions.forEach( partition -> dataValueListMultimap.putAll( getDataValuesPartitioned( partition ) ) );
-
-        return dataValueListMultimap;
-    }
-
-    private Map<String, List<DataValue>> getDataValuesPartitioned( List<Long> programStageInstanceId )
-    {
-        EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
-
-        jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( programStageInstanceId ), handler );
-
-        return handler.getItems();
-    }
-
-    @Override
-    public Multimap<String, Note> getNotes( List<Long> eventIds )
-    {
-        return fetch( GET_NOTES_SQL, new NoteRowCallbackHandler(), eventIds );
-    }
+  @Override
+  public Multimap<String, Note> getNotes(List<Long> eventIds) {
+    return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), eventIds);
+  }
 }

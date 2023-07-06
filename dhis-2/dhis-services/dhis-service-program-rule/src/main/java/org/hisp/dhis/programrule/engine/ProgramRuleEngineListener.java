@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.engine;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -38,32 +37,27 @@ import org.springframework.transaction.event.TransactionalEventListener;
  */
 @Async
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.programrule.engine.ProgramRuleEngineListener" )
-public class ProgramRuleEngineListener
-{
-    private final ProgramRuleEngineService programRuleEngineService;
+@Component("org.hisp.dhis.programrule.engine.ProgramRuleEngineListener")
+public class ProgramRuleEngineListener {
+  private final ProgramRuleEngineService programRuleEngineService;
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onEnrollment( EnrollmentEvaluationEvent event )
-    {
-        programRuleEngineService.evaluateEnrollmentAndRunEffects( event.getProgramInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onEnrollment(EnrollmentEvaluationEvent event) {
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(event.getProgramInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onDataValueChange( DataValueUpdatedEvent event )
-    {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onDataValueChange(DataValueUpdatedEvent event) {
+    programRuleEngineService.evaluateEventAndRunEffects(event.getProgramStageInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onEventCompletion( StageCompletionEvaluationEvent event )
-    {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onEventCompletion(StageCompletionEvaluationEvent event) {
+    programRuleEngineService.evaluateEventAndRunEffects(event.getProgramStageInstance());
+  }
 
-    @TransactionalEventListener( fallbackExecution = true )
-    public void onScheduledEvent( StageScheduledEvaluationEvent event )
-    {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
-    }
+  @TransactionalEventListener(fallbackExecution = true)
+  public void onScheduledEvent(StageScheduledEvaluationEvent event) {
+    programRuleEngineService.evaluateEventAndRunEffects(event.getProgramStageInstance());
+  }
 }

@@ -41,50 +41,46 @@ import org.springframework.stereotype.Component;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Component( "org.hisp.dhis.document.DocumentDeletionHandler" )
-public class DocumentDeletionHandler extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( Document.class );
+@Component("org.hisp.dhis.document.DocumentDeletionHandler")
+public class DocumentDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(Document.class);
 
-    private final DocumentService documentService;
+  private final DocumentService documentService;
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public DocumentDeletionHandler( DocumentService documentService, JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( documentService );
-        checkNotNull( jdbcTemplate );
+  public DocumentDeletionHandler(DocumentService documentService, JdbcTemplate jdbcTemplate) {
+    checkNotNull(documentService);
+    checkNotNull(jdbcTemplate);
 
-        this.documentService = documentService;
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    this.documentService = documentService;
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( User.class, this::allowDeleteUser );
-        whenVetoing( FileResource.class, this::allowDeleteFileResource );
-        whenDeleting( FileResource.class, this::deleteFileResource );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(User.class, this::allowDeleteUser);
+    whenVetoing(FileResource.class, this::allowDeleteFileResource);
+    whenDeleting(FileResource.class, this::deleteFileResource);
+  }
 
-    private DeletionVeto allowDeleteUser( User user )
-    {
-        return documentService.getCountDocumentByUser( user ) > 0 ? VETO : ACCEPT;
-    }
+  private DeletionVeto allowDeleteUser(User user) {
+    return documentService.getCountDocumentByUser(user) > 0 ? VETO : ACCEPT;
+  }
 
-    private DeletionVeto allowDeleteFileResource( FileResource fileResource )
-    {
-        String sql = "SELECT COUNT(*) FROM document WHERE fileresource=" + fileResource.getId();
+  private DeletionVeto allowDeleteFileResource(FileResource fileResource) {
+    String sql = "SELECT COUNT(*) FROM document WHERE fileresource=" + fileResource.getId();
 
-        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+    int result = jdbcTemplate.queryForObject(sql, Integer.class);
 
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? ACCEPT : VETO;
-    }
+    return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED
+        ? ACCEPT
+        : VETO;
+  }
 
-    private void deleteFileResource( FileResource fileResource )
-    {
-        String sql = "DELETE FROM document WHERE fileresource=" + fileResource.getId();
+  private void deleteFileResource(FileResource fileResource) {
+    String sql = "DELETE FROM document WHERE fileresource=" + fileResource.getId();
 
-        jdbcTemplate.execute( sql );
-    }
+    jdbcTemplate.execute(sql);
+  }
 }

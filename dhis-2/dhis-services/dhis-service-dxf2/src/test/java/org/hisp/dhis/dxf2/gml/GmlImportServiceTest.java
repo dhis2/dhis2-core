@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -55,105 +54,98 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Halvdan Hoem Grelland
  */
-class GmlImportServiceTest extends TransactionalIntegrationTest
-{
+class GmlImportServiceTest extends TransactionalIntegrationTest {
 
-    private InputStream inputStream;
+  private InputStream inputStream;
 
-    private User user;
+  private User user;
 
-    private OrganisationUnit boOrgUnit, bontheOrgUnit, ojdOrgUnit, bliOrgUnit, forskOrgUnit;
+  private OrganisationUnit boOrgUnit, bontheOrgUnit, ojdOrgUnit, bliOrgUnit, forskOrgUnit;
 
-    private ImportOptions importOptions;
+  private ImportOptions importOptions;
 
-    private JobConfiguration id;
+  private JobConfiguration id;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    @Autowired
-    private GmlImportService gmlImportService;
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
+  @Autowired private GmlImportService gmlImportService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Override
-    public void setUpTest()
-        throws IOException
-    {
-        inputStream = new ClassPathResource( "gml/testGmlPayload.gml" ).getInputStream();
-        /*
-         * Create orgunits present in testGmlPayload.gml and set ID properties.
-         * Name - FeatureType - ID property Bo - Poly - Name Bonthe - Multi -
-         * Code Ole Johan Dahls Hus - Point - Uid Blindern - Point (pos) - Name
-         * Forskningsparken - Poly (list) - Name
-         *
-         * Note: some of these are included to cover different coordinate
-         * element schemes such as <posList>, <coordinates> and <pos>.
-         */
-        userService = _userService;
-        boOrgUnit = createOrganisationUnit( 'A' );
-        boOrgUnit.setName( "Bo" );
-        organisationUnitService.addOrganisationUnit( boOrgUnit );
-        bontheOrgUnit = createOrganisationUnit( 'B' );
-        // Match on Code, therefore wrong
-        bontheOrgUnit.setName( "AA Bonthe" );
-        // name
-        bontheOrgUnit.setCode( "CODE_BONTHE" );
-        organisationUnitService.addOrganisationUnit( bontheOrgUnit );
-        ojdOrgUnit = createOrganisationUnit( 'C' );
-        ojdOrgUnit.setUid( "ImspTQPwCqd" );
-        // Match on UID,
-        ojdOrgUnit.setName( "AA Ole Johan Dahls Hus" );
-        // therefore wrong name
-        organisationUnitService.addOrganisationUnit( ojdOrgUnit );
-        bliOrgUnit = createOrganisationUnit( 'D' );
-        bliOrgUnit.setName( "Blindern" );
-        organisationUnitService.addOrganisationUnit( bliOrgUnit );
-        forskOrgUnit = createOrganisationUnit( 'E' );
-        forskOrgUnit.setName( "Forskningsparken" );
-        organisationUnitService.addOrganisationUnit( forskOrgUnit );
-        user = createAndInjectAdminUser();
-        id = new JobConfiguration( "gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true );
-        importOptions = new ImportOptions().setImportStrategy( ImportStrategy.UPDATE );
-        importOptions.setDryRun( false );
-        importOptions.setPreheatCache( true );
-    }
+  @Override
+  public void setUpTest() throws IOException {
+    inputStream = new ClassPathResource("gml/testGmlPayload.gml").getInputStream();
+    /*
+     * Create orgunits present in testGmlPayload.gml and set ID properties.
+     * Name - FeatureType - ID property Bo - Poly - Name Bonthe - Multi -
+     * Code Ole Johan Dahls Hus - Point - Uid Blindern - Point (pos) - Name
+     * Forskningsparken - Poly (list) - Name
+     *
+     * Note: some of these are included to cover different coordinate
+     * element schemes such as <posList>, <coordinates> and <pos>.
+     */
+    userService = _userService;
+    boOrgUnit = createOrganisationUnit('A');
+    boOrgUnit.setName("Bo");
+    organisationUnitService.addOrganisationUnit(boOrgUnit);
+    bontheOrgUnit = createOrganisationUnit('B');
+    // Match on Code, therefore wrong
+    bontheOrgUnit.setName("AA Bonthe");
+    // name
+    bontheOrgUnit.setCode("CODE_BONTHE");
+    organisationUnitService.addOrganisationUnit(bontheOrgUnit);
+    ojdOrgUnit = createOrganisationUnit('C');
+    ojdOrgUnit.setUid("ImspTQPwCqd");
+    // Match on UID,
+    ojdOrgUnit.setName("AA Ole Johan Dahls Hus");
+    // therefore wrong name
+    organisationUnitService.addOrganisationUnit(ojdOrgUnit);
+    bliOrgUnit = createOrganisationUnit('D');
+    bliOrgUnit.setName("Blindern");
+    organisationUnitService.addOrganisationUnit(bliOrgUnit);
+    forskOrgUnit = createOrganisationUnit('E');
+    forskOrgUnit.setName("Forskningsparken");
+    organisationUnitService.addOrganisationUnit(forskOrgUnit);
+    user = createAndInjectAdminUser();
+    id = new JobConfiguration("gmlImportTest", JobType.METADATA_IMPORT, user.getUid(), true);
+    importOptions = new ImportOptions().setImportStrategy(ImportStrategy.UPDATE);
+    importOptions.setDryRun(false);
+    importOptions.setPreheatCache(true);
+  }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
-    @Test
-    void testImportGml()
-    {
-        MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setId( id );
-        importParams.setUser( user );
-        gmlImportService.importGml( inputStream, importParams );
-        assertNotNull( boOrgUnit.getGeometry() );
-        assertNotNull( bontheOrgUnit.getGeometry() );
-        assertNotNull( ojdOrgUnit.getGeometry() );
-        assertNotNull( bliOrgUnit.getGeometry() );
-        assertNotNull( forskOrgUnit.getGeometry() );
-        // Check if data is correct
-        assertEquals( 1, getCoordinates( boOrgUnit ).size() );
-        assertEquals( 18, getCoordinates( bontheOrgUnit ).size() );
-        assertEquals( 1, getCoordinates( ojdOrgUnit ).size() );
-        assertEquals( 1, getCoordinates( bliOrgUnit ).size() );
-        assertEquals( 1, getCoordinates( forskOrgUnit ).size() );
-        assertEquals( 76, getCoordinates( boOrgUnit ).get( 0 ).getNumberOfCoordinates() );
-        assertEquals( 189, getCoordinates( bontheOrgUnit ).get( 1 ).getNumberOfCoordinates() );
-        assertEquals( 1, getCoordinates( ojdOrgUnit ).get( 0 ).getNumberOfCoordinates() );
-        assertEquals( 1, getCoordinates( bliOrgUnit ).get( 0 ).getNumberOfCoordinates() );
-        assertEquals( 76, getCoordinates( forskOrgUnit ).get( 0 ).getNumberOfCoordinates() );
-    }
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
+  @Test
+  void testImportGml() {
+    MetadataImportParams importParams = new MetadataImportParams();
+    importParams.setId(id);
+    importParams.setUser(user);
+    gmlImportService.importGml(inputStream, importParams);
+    assertNotNull(boOrgUnit.getGeometry());
+    assertNotNull(bontheOrgUnit.getGeometry());
+    assertNotNull(ojdOrgUnit.getGeometry());
+    assertNotNull(bliOrgUnit.getGeometry());
+    assertNotNull(forskOrgUnit.getGeometry());
+    // Check if data is correct
+    assertEquals(1, getCoordinates(boOrgUnit).size());
+    assertEquals(18, getCoordinates(bontheOrgUnit).size());
+    assertEquals(1, getCoordinates(ojdOrgUnit).size());
+    assertEquals(1, getCoordinates(bliOrgUnit).size());
+    assertEquals(1, getCoordinates(forskOrgUnit).size());
+    assertEquals(76, getCoordinates(boOrgUnit).get(0).getNumberOfCoordinates());
+    assertEquals(189, getCoordinates(bontheOrgUnit).get(1).getNumberOfCoordinates());
+    assertEquals(1, getCoordinates(ojdOrgUnit).get(0).getNumberOfCoordinates());
+    assertEquals(1, getCoordinates(bliOrgUnit).get(0).getNumberOfCoordinates());
+    assertEquals(76, getCoordinates(forskOrgUnit).get(0).getNumberOfCoordinates());
+  }
 
-    private List<CoordinatesTuple> getCoordinates( OrganisationUnit orgUnit )
-    {
-        return getCoordinatesAsList( getCoordinatesFromGeometry( orgUnit.getGeometry() ),
-            FeatureType.getTypeFromName( orgUnit.getGeometry().getGeometryType() ) );
-    }
+  private List<CoordinatesTuple> getCoordinates(OrganisationUnit orgUnit) {
+    return getCoordinatesAsList(
+        getCoordinatesFromGeometry(orgUnit.getGeometry()),
+        FeatureType.getTypeFromName(orgUnit.getGeometry().getGeometryType()));
+  }
 }

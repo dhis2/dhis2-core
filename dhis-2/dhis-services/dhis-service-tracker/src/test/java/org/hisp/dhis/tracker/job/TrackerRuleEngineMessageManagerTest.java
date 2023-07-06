@@ -40,10 +40,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
-
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
@@ -61,77 +59,66 @@ import org.springframework.beans.factory.ObjectFactory;
 /**
  * @author Zubair Asghar
  */
-@ExtendWith( MockitoExtension.class )
-class TrackerRuleEngineMessageManagerTest
-{
+@ExtendWith(MockitoExtension.class)
+class TrackerRuleEngineMessageManagerTest {
 
-    @Mock
-    private ObjectFactory<TrackerRuleEngineThread> objectFactory;
+  @Mock private ObjectFactory<TrackerRuleEngineThread> objectFactory;
 
-    @Mock
-    private MessageManager messageManager;
+  @Mock private MessageManager messageManager;
 
-    @Mock
-    private RenderService renderService;
+  @Mock private RenderService renderService;
 
-    @Mock
-    private TextMessage textMessage;
+  @Mock private TextMessage textMessage;
 
-    @Mock
-    private AsyncTaskExecutor taskExecutor;
+  @Mock private AsyncTaskExecutor taskExecutor;
 
-    @Mock
-    private TrackerRuleEngineThread trackerRuleEngineThread;
+  @Mock private TrackerRuleEngineThread trackerRuleEngineThread;
 
-    @InjectMocks
-    private TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
+  @InjectMocks private TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
 
-    @Captor
-    private ArgumentCaptor<String> topicCaptor;
+  @Captor private ArgumentCaptor<String> topicCaptor;
 
-    @Captor
-    private ArgumentCaptor<TrackerSideEffectDataBundle> bundleArgumentCaptor;
+  @Captor private ArgumentCaptor<TrackerSideEffectDataBundle> bundleArgumentCaptor;
 
-    @Captor
-    private ArgumentCaptor<Runnable> runnableArgumentCaptor;
+  @Captor private ArgumentCaptor<Runnable> runnableArgumentCaptor;
 
-    @Test
-    void test_add_job()
-    {
-        doNothing().when( messageManager ).sendQueue( anyString(), any( TrackerSideEffectDataBundle.class ) );
+  @Test
+  void test_add_job() {
+    doNothing().when(messageManager).sendQueue(anyString(), any(TrackerSideEffectDataBundle.class));
 
-        TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
+    TrackerSideEffectDataBundle dataBundle = TrackerSideEffectDataBundle.builder().build();
 
-        trackerRuleEngineMessageManager.addJob( dataBundle );
+    trackerRuleEngineMessageManager.addJob(dataBundle);
 
-        Mockito.verify( messageManager ).sendQueue( topicCaptor.capture(), bundleArgumentCaptor.capture() );
+    Mockito.verify(messageManager).sendQueue(topicCaptor.capture(), bundleArgumentCaptor.capture());
 
-        assertNotNull( topicCaptor.getValue() );
-        assertEquals( Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, topicCaptor.getValue() );
-        assertEquals( dataBundle, bundleArgumentCaptor.getValue() );
-    }
+    assertNotNull(topicCaptor.getValue());
+    assertEquals(Topics.TRACKER_IMPORT_RULE_ENGINE_TOPIC_NAME, topicCaptor.getValue());
+    assertEquals(dataBundle, bundleArgumentCaptor.getValue());
+  }
 
-    @Test
-    void test_message_consumer()
-        throws JMSException,
-        IOException
-    {
-        TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().accessedBy( "test-user" ).build();
+  @Test
+  void test_message_consumer() throws JMSException, IOException {
+    TrackerSideEffectDataBundle bundle =
+        TrackerSideEffectDataBundle.builder().accessedBy("test-user").build();
 
-        when( textMessage.getText() ).thenReturn( "text" );
-        when( objectFactory.getObject() ).thenReturn( trackerRuleEngineThread );
-        doNothing().when( taskExecutor ).executeTask( any( Runnable.class ) );
+    when(textMessage.getText()).thenReturn("text");
+    when(objectFactory.getObject()).thenReturn(trackerRuleEngineThread);
+    doNothing().when(taskExecutor).executeTask(any(Runnable.class));
 
-        when( renderService.fromJson( anyString(), eq( TrackerSideEffectDataBundle.class ) ) ).thenReturn( null );
-        trackerRuleEngineMessageManager.consume( textMessage );
+    when(renderService.fromJson(anyString(), eq(TrackerSideEffectDataBundle.class)))
+        .thenReturn(null);
+    trackerRuleEngineMessageManager.consume(textMessage);
 
-        verify( taskExecutor, times( 0 ) ).executeTask( any( Runnable.class ) );
+    verify(taskExecutor, times(0)).executeTask(any(Runnable.class));
 
-        doReturn( bundle ).when( renderService ).fromJson( anyString(), eq( TrackerSideEffectDataBundle.class ) );
-        trackerRuleEngineMessageManager.consume( textMessage );
+    doReturn(bundle)
+        .when(renderService)
+        .fromJson(anyString(), eq(TrackerSideEffectDataBundle.class));
+    trackerRuleEngineMessageManager.consume(textMessage);
 
-        Mockito.verify( taskExecutor ).executeTask( runnableArgumentCaptor.capture() );
+    Mockito.verify(taskExecutor).executeTask(runnableArgumentCaptor.capture());
 
-        assertTrue( runnableArgumentCaptor.getValue() instanceof TrackerRuleEngineThread );
-    }
+    assertTrue(runnableArgumentCaptor.getValue() instanceof TrackerRuleEngineThread);
+  }
 }

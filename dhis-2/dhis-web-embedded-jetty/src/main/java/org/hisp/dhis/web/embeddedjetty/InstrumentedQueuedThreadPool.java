@@ -28,30 +28,21 @@
 package org.hisp.dhis.web.embeddedjetty;
 
 import java.util.concurrent.BlockingQueue;
-
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 /**
- * DHIS2 specific implementation of
- * {@link io.micrometer.core.instrument.binder.jetty.InstrumentedQueuedThreadPool}
- * Created to implement support for more fine grained control over thread
- * parameters
+ * DHIS2 specific implementation of {@link
+ * io.micrometer.core.instrument.binder.jetty.InstrumentedQueuedThreadPool} Created to implement
+ * support for more fine grained control over thread parameters
  */
-public class InstrumentedQueuedThreadPool extends QueuedThreadPool
-{
-    public InstrumentedQueuedThreadPool(
-        int maxThreads,
-        int minThreads,
-        int idleTimeout,
-        BlockingQueue<Runnable> queue )
-    {
-        super( maxThreads, minThreads, idleTimeout, queue );
-    }
+public class InstrumentedQueuedThreadPool extends QueuedThreadPool {
+  public InstrumentedQueuedThreadPool(
+      int maxThreads, int minThreads, int idleTimeout, BlockingQueue<Runnable> queue) {
+    super(maxThreads, minThreads, idleTimeout, queue);
+  }
 
-    @Override
-    protected void doStart()
-        throws Exception
-    {
-        super.doStart();
-    }
+  @Override
+  protected void doStart() throws Exception {
+    super.doStart();
+  }
 }

@@ -39,39 +39,35 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler" )
-public class TrackedEntityInstanceDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityInstance.class );
+@Component("org.hisp.dhis.trackedentity.TrackedEntityInstanceDeletionHandler")
+public class TrackedEntityInstanceDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(TrackedEntityInstance.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public TrackedEntityInstanceDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
+  public TrackedEntityInstanceDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-        whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+    whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
+  }
 
-    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
-    {
-        String sql = "select count(*) from trackedentityinstance where organisationunitid = " + unit.getId();
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    String sql =
+        "select count(*) from trackedentityinstance where organisationunitid = " + unit.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 
-    private DeletionVeto allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = "
+  private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
+    String sql =
+        "select count(*) from trackedentityinstance where trackedentitytypeid = "
             + trackedEntityType.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

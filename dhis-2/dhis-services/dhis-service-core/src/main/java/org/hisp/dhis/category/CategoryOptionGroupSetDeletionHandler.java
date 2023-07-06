@@ -36,30 +36,24 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.category.CategoryOptionGroupSetDeletionHandler" )
-public class CategoryOptionGroupSetDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.category.CategoryOptionGroupSetDeletionHandler")
+public class CategoryOptionGroupSetDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public CategoryOptionGroupSetDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
-    }
+  public CategoryOptionGroupSetDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
+    this.idObjectManager = idObjectManager;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( CategoryOptionGroup.class, this::deleteCategoryOptionGroup );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(CategoryOptionGroup.class, this::deleteCategoryOptionGroup);
+  }
 
-    private void deleteCategoryOptionGroup( CategoryOptionGroup categoryOptionGroup )
-    {
-        for ( CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets() )
-        {
-            groupSet.getMembers().remove( categoryOptionGroup );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+  private void deleteCategoryOptionGroup(CategoryOptionGroup categoryOptionGroup) {
+    for (CategoryOptionGroupSet groupSet : categoryOptionGroup.getGroupSets()) {
+      groupSet.getMembers().remove(categoryOptionGroup);
+      idObjectManager.updateNoAcl(groupSet);
     }
+  }
 }

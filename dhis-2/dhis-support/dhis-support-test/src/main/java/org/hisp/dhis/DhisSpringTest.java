@@ -28,7 +28,6 @@
 package org.hisp.dhis;
 
 import javax.sql.DataSource;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.config.UnitTestConfig;
@@ -48,41 +47,34 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Trygve Laugstoel
  * @author Lars Helge Overland
  */
-@ExtendWith( SpringExtension.class )
-@ContextConfiguration( classes = UnitTestConfig.class )
-@ActiveProfiles( profiles = { "test-h2" } )
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = UnitTestConfig.class)
+@ActiveProfiles(profiles = {"test-h2"})
 @Transactional
-public abstract class DhisSpringTest extends BaseSpringTest
-{
+public abstract class DhisSpringTest extends BaseSpringTest {
 
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return false;
+  protected boolean emptyDatabaseAfterTest() {
+    return false;
+  }
+
+  @Autowired private DataSource dataSource;
+
+  @BeforeEach
+  final void before() throws Exception {
+    TestUtils.executeStartupRoutines(applicationContext);
+    boolean enableQueryLogging =
+        dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
+    if (enableQueryLogging) {
+      Configurator.setLevel("org.hisp.dhis.datasource.query", Level.INFO);
+      Configurator.setRootLevel(Level.INFO);
     }
+    H2SqlFunction.registerH2Functions(dataSource);
+    setUpTest();
+  }
 
-    @Autowired
-    private DataSource dataSource;
-
-    @BeforeEach
-    final void before()
-        throws Exception
-    {
-        TestUtils.executeStartupRoutines( applicationContext );
-        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-        if ( enableQueryLogging )
-        {
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
-            Configurator.setRootLevel( Level.INFO );
-        }
-        H2SqlFunction.registerH2Functions( dataSource );
-        setUpTest();
-    }
-
-    @AfterEach
-    final void after()
-        throws Exception
-    {
-        clearSecurityContext();
-        tearDownTest();
-    }
+  @AfterEach
+  final void after() throws Exception {
+    clearSecurityContext();
+    tearDownTest();
+  }
 }

@@ -28,10 +28,8 @@
 package org.hisp.dhis.tracker.util;
 
 import java.util.function.Function;
-
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.dhis.common.ValueType;
 
 /**
@@ -39,11 +37,10 @@ import org.hisp.dhis.common.ValueType;
  */
 @Builder
 @Getter
-public class ValueTypeValidationFunction
-{
-    private Function<String, Boolean> function;
+public class ValueTypeValidationFunction {
+  private Function<String, Boolean> function;
 
-    private ValueType valueType;
+  private ValueType valueType;
 
-    private String message;
+  private String message;
 }

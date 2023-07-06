@@ -39,18 +39,14 @@ import org.hisp.dhis.program.ProgramExpressionItem;
  *
  * @author Jim Grace
  */
-public class D2Zing
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return castDouble( visitor.visit( ctx.expr( 0 ) ) );
-    }
+public class D2Zing extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return castDouble(visitor.visit(ctx.expr(0)));
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "greatest(0," + castString( visitor.visit( ctx.expr( 0 ) ) ) + ")";
-    }
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "greatest(0," + castString(visitor.visit(ctx.expr(0))) + ")";
+  }
 }

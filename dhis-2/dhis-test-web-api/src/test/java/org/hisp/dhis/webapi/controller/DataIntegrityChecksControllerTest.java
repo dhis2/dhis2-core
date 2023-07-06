@@ -36,33 +36,29 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link DataIntegrityController} API with focus API returning
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck} information.
+ * Tests the {@link DataIntegrityController} API with focus API returning {@link
+ * org.hisp.dhis.dataintegrity.DataIntegrityCheck} information.
  *
  * @author Jan Bernitt
  */
-class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerTest
-{
-    @Test
-    void testGetAvailableChecks()
-    {
-        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity" ).content()
-            .asList( JsonDataIntegrityCheck.class );
-        assertFalse( checks.isEmpty() );
-        assertCheckExists( "categories_no_options", checks );
-        assertCheckExists( "categories_one_default_category", checks );
-        assertCheckExists( "categories_one_default_category_option", checks );
-        assertCheckExists( "categories_one_default_category_combo", checks );
-        assertCheckExists( "categories_one_default_category_option_combo", checks );
-        assertCheckExists( "categories_unique_category_combo", checks );
-        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
-        {
-            assertCheckExists( type.getName(), checks );
-        }
+class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerTest {
+  @Test
+  void testGetAvailableChecks() {
+    JsonList<JsonDataIntegrityCheck> checks =
+        GET("/dataIntegrity").content().asList(JsonDataIntegrityCheck.class);
+    assertFalse(checks.isEmpty());
+    assertCheckExists("categories_no_options", checks);
+    assertCheckExists("categories_one_default_category", checks);
+    assertCheckExists("categories_one_default_category_option", checks);
+    assertCheckExists("categories_one_default_category_combo", checks);
+    assertCheckExists("categories_one_default_category_option_combo", checks);
+    assertCheckExists("categories_unique_category_combo", checks);
+    for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
+      assertCheckExists(type.getName(), checks);
     }
+  }
 
-    private void assertCheckExists( String name, JsonList<JsonDataIntegrityCheck> checks )
-    {
-        assertTrue( checks.stream().anyMatch( check -> check.getName().equals( name ) ) );
-    }
+  private void assertCheckExists(String name, JsonList<JsonDataIntegrityCheck> checks) {
+    assertTrue(checks.stream().anyMatch(check -> check.getName().equals(name)));
+  }
 }

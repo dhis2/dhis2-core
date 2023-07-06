@@ -29,7 +29,6 @@ package org.hisp.dhis.eventchart;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -44,67 +43,58 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.eventchart.EventChartDeletionHandler" )
+@Component("org.hisp.dhis.eventchart.EventChartDeletionHandler")
 public class EventChartDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<EventChart, EventChartService>
-{
-    public EventChartDeletionHandler( EventChartService eventChartService )
-    {
-        super( new DeletionVeto( EventChart.class ), eventChartService );
+    extends GenericAnalyticalObjectDeletionHandler<EventChart, EventChartService> {
+  public EventChartDeletionHandler(EventChartService eventChartService) {
+    super(new DeletionVeto(EventChart.class), eventChartService);
+  }
+
+  @Override
+  protected void register() {
+    // generic
+    whenDeleting(Period.class, this::deletePeriod);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+    whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);
+    // special
+    whenDeleting(DataElement.class, this::deleteDataElementSpecial);
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private void deleteDataElementSpecial(DataElement dataElement) {
+    List<EventChart> eventCharts = service.getAnalyticalObjectsByDataDimension(dataElement);
+
+    for (EventChart chart : eventCharts) {
+      chart
+          .getDataElementDimensions()
+          .removeIf(
+              trackedEntityDataElementDimension ->
+                  trackedEntityDataElementDimension.getDataElement().equals(dataElement));
+
+      service.update(chart);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        // generic
-        whenDeleting( Period.class, this::deletePeriod );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
-        // special
-        whenDeleting( DataElement.class, this::deleteDataElementSpecial );
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
-        whenDeleting( Program.class, this::deleteProgram );
+  private void deleteProgramStage(ProgramStage programStage) {
+    Collection<EventChart> charts = service.getAllEventCharts();
+
+    for (EventChart chart : charts) {
+      if (chart.getProgramStage().equals(programStage)) {
+        service.deleteEventChart(chart);
+      }
     }
+  }
 
-    private void deleteDataElementSpecial( DataElement dataElement )
-    {
-        List<EventChart> eventCharts = service.getAnalyticalObjectsByDataDimension( dataElement );
+  private void deleteProgram(Program program) {
+    Collection<EventChart> charts = service.getAllEventCharts();
 
-        for ( EventChart chart : eventCharts )
-        {
-            chart.getDataElementDimensions()
-                .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
-                    .equals( dataElement ) );
-
-            service.update( chart );
-        }
+    for (EventChart chart : charts) {
+      if (chart.getProgram().equals(program)) {
+        service.deleteEventChart(chart);
+      }
     }
-
-    private void deleteProgramStage( ProgramStage programStage )
-    {
-        Collection<EventChart> charts = service.getAllEventCharts();
-
-        for ( EventChart chart : charts )
-        {
-            if ( chart.getProgramStage().equals( programStage ) )
-            {
-                service.deleteEventChart( chart );
-            }
-        }
-    }
-
-    private void deleteProgram( Program program )
-    {
-        Collection<EventChart> charts = service.getAllEventCharts();
-
-        for ( EventChart chart : charts )
-        {
-            if ( chart.getProgram().equals( program ) )
-            {
-                service.deleteEventChart( chart );
-            }
-        }
-    }
+  }
 }

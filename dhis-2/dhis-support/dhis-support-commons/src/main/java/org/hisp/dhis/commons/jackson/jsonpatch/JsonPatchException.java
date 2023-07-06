@@ -30,10 +30,8 @@ package org.hisp.dhis.commons.jackson.jsonpatch;
 /**
  * @author Morten Olav Hansen
  */
-public class JsonPatchException extends Exception
-{
-    public JsonPatchException( String message )
-    {
-        super( message );
-    }
+public class JsonPatchException extends Exception {
+  public JsonPatchException(String message) {
+    super(message);
+  }
 }

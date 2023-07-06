@@ -28,186 +28,150 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.util.List;
-
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonURL;
 import org.hisp.dhis.security.AuthorityType;
 
 /**
- * Web API equivalent of a {@code Schema} as returned by the {@code /schemas}
- * endpoint.
+ * Web API equivalent of a {@code Schema} as returned by the {@code /schemas} endpoint.
  *
  * @author Jan Bernitt
  */
-public interface JsonSchema extends JsonObject
-{
+public interface JsonSchema extends JsonObject {
 
-    default Class<?> getKlass()
-    {
-        return getString( "klass" ).parsedClass();
+  default Class<?> getKlass() {
+    return getString("klass").parsedClass();
+  }
+
+  default List<Class<?>> getReferences() {
+    return getArray("references")
+        .values(
+            klass -> {
+              try {
+                return Class.forName(klass);
+              } catch (ClassNotFoundException ex) {
+                throw new IllegalArgumentException(ex);
+              }
+            });
+  }
+
+  default String getRelativeApiEndpoint() {
+    return getString("relativeApiEndpoint").string();
+  }
+
+  default String getName() {
+    return getString("name").string();
+  }
+
+  default String getSingular() {
+    return getString("singular").string();
+  }
+
+  default String getPlural() {
+    return getString("plural").string();
+  }
+
+  default String getDisplayName() {
+    return getString("displayName").string();
+  }
+
+  default String getCollectionName() {
+    return getString("collectionName").string();
+  }
+
+  default JsonURL getHref() {
+    return get("href", JsonURL.class);
+  }
+
+  default JsonURL getApiEndpoint() {
+    return get("apiEndpoint", JsonURL.class);
+  }
+
+  default JsonURL getNamespace() {
+    return get("namespace", JsonURL.class);
+  }
+
+  default boolean isShareable() {
+    return getBoolean("shareable").booleanValue();
+  }
+
+  default boolean isMetadata() {
+    return getBoolean("metadata").booleanValue();
+  }
+
+  default boolean isSecondaryMetadata() {
+    return getBoolean("secondaryMetadata").booleanValue();
+  }
+
+  default boolean isImplicitPrivateAuthority() {
+    return getBoolean("implicitPrivateAuthority").booleanValue();
+  }
+
+  default boolean isNameableObject() {
+    return getBoolean("nameableObject").booleanValue();
+  }
+
+  default boolean isSubscribable() {
+    return getBoolean("subscribable").booleanValue();
+  }
+
+  default int getOrder() {
+    return getNumber("order").intValue();
+  }
+
+  default boolean isTranslatable() {
+    return getBoolean("translatable").booleanValue();
+  }
+
+  default boolean isIdentifiableObject() {
+    return getBoolean("identifiableObject").booleanValue();
+  }
+
+  default boolean isFavoritable() {
+    return getBoolean("favoritable").booleanValue();
+  }
+
+  default boolean isSubscribableObject() {
+    return getBoolean("subscribableObject").booleanValue();
+  }
+
+  default boolean isDataShareable() {
+    return getBoolean("dataShareable").booleanValue();
+  }
+
+  default boolean isEmbeddedObject() {
+    return getBoolean("embeddedObject").booleanValue();
+  }
+
+  default boolean isDefaultPrivate() {
+    return getBoolean("defaultPrivate").booleanValue();
+  }
+
+  default boolean isPersisted() {
+    return getBoolean("persisted").booleanValue();
+  }
+
+  default JsonList<JsonAuthority> getAuthorities() {
+    return getList("authorities", JsonAuthority.class);
+  }
+
+  interface JsonAuthority extends JsonObject {
+
+    default AuthorityType getType() {
+      return getString("type").parsed(AuthorityType::valueOf);
     }
 
-    default List<Class<?>> getReferences()
-    {
-        return getArray( "references" ).values( klass -> {
-            try
-            {
-                return Class.forName( klass );
-            }
-            catch ( ClassNotFoundException ex )
-            {
-                throw new IllegalArgumentException( ex );
-            }
-        } );
+    default List<String> getAuthorities() {
+      return getArray("authorities").stringValues();
     }
+  }
 
-    default String getRelativeApiEndpoint()
-    {
-        return getString( "relativeApiEndpoint" ).string();
-    }
+  default JsonList<JsonProperty> getProperties() {
+    return getList("properties", JsonProperty.class);
+  }
 
-    default String getName()
-    {
-        return getString( "name" ).string();
-    }
-
-    default String getSingular()
-    {
-        return getString( "singular" ).string();
-    }
-
-    default String getPlural()
-    {
-        return getString( "plural" ).string();
-    }
-
-    default String getDisplayName()
-    {
-        return getString( "displayName" ).string();
-    }
-
-    default String getCollectionName()
-    {
-        return getString( "collectionName" ).string();
-    }
-
-    default JsonURL getHref()
-    {
-        return get( "href", JsonURL.class );
-    }
-
-    default JsonURL getApiEndpoint()
-    {
-        return get( "apiEndpoint", JsonURL.class );
-    }
-
-    default JsonURL getNamespace()
-    {
-        return get( "namespace", JsonURL.class );
-    }
-
-    default boolean isShareable()
-    {
-        return getBoolean( "shareable" ).booleanValue();
-    }
-
-    default boolean isMetadata()
-    {
-        return getBoolean( "metadata" ).booleanValue();
-    }
-
-    default boolean isSecondaryMetadata()
-    {
-        return getBoolean( "secondaryMetadata" ).booleanValue();
-    }
-
-    default boolean isImplicitPrivateAuthority()
-    {
-        return getBoolean( "implicitPrivateAuthority" ).booleanValue();
-    }
-
-    default boolean isNameableObject()
-    {
-        return getBoolean( "nameableObject" ).booleanValue();
-    }
-
-    default boolean isSubscribable()
-    {
-        return getBoolean( "subscribable" ).booleanValue();
-    }
-
-    default int getOrder()
-    {
-        return getNumber( "order" ).intValue();
-    }
-
-    default boolean isTranslatable()
-    {
-        return getBoolean( "translatable" ).booleanValue();
-    }
-
-    default boolean isIdentifiableObject()
-    {
-        return getBoolean( "identifiableObject" ).booleanValue();
-    }
-
-    default boolean isFavoritable()
-    {
-        return getBoolean( "favoritable" ).booleanValue();
-    }
-
-    default boolean isSubscribableObject()
-    {
-        return getBoolean( "subscribableObject" ).booleanValue();
-    }
-
-    default boolean isDataShareable()
-    {
-        return getBoolean( "dataShareable" ).booleanValue();
-    }
-
-    default boolean isEmbeddedObject()
-    {
-        return getBoolean( "embeddedObject" ).booleanValue();
-    }
-
-    default boolean isDefaultPrivate()
-    {
-        return getBoolean( "defaultPrivate" ).booleanValue();
-    }
-
-    default boolean isPersisted()
-    {
-        return getBoolean( "persisted" ).booleanValue();
-    }
-
-    default JsonList<JsonAuthority> getAuthorities()
-    {
-        return getList( "authorities", JsonAuthority.class );
-    }
-
-    interface JsonAuthority extends JsonObject
-    {
-
-        default AuthorityType getType()
-        {
-            return getString( "type" ).parsed( AuthorityType::valueOf );
-        }
-
-        default List<String> getAuthorities()
-        {
-            return getArray( "authorities" ).stringValues();
-        }
-    }
-
-    default JsonList<JsonProperty> getProperties()
-    {
-        return getList( "properties", JsonProperty.class );
-    }
-
-    default Iterable<JsonProperty> getRequiredProperties()
-    {
-        return getProperties().filtered( JsonProperty::isRequired );
-    }
+  default Iterable<JsonProperty> getRequiredProperties() {
+    return getProperties().filtered(JsonProperty::isRequired);
+  }
 }

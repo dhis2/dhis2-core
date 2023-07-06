@@ -39,31 +39,29 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Henning Håkonsen
  */
 @Transactional
-public class TwoFAPopulator
-    extends AbstractStartupRoutine
-{
-    private final UserService userService;
+public class TwoFAPopulator extends AbstractStartupRoutine {
+  private final UserService userService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    public TwoFAPopulator( UserService userService, CurrentUserService currentUserService )
-    {
-        checkNotNull( userService );
-        checkNotNull( currentUserService );
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-    }
+  public TwoFAPopulator(UserService userService, CurrentUserService currentUserService) {
+    checkNotNull(userService);
+    checkNotNull(currentUserService);
+    this.userService = userService;
+    this.currentUserService = currentUserService;
+  }
 
-    @Override
-    public void execute()
-        throws Exception
-    {
-        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
-        userQueryParams.setNot2FA( true );
+  @Override
+  public void execute() throws Exception {
+    UserQueryParams userQueryParams = new UserQueryParams(currentUserService.getCurrentUser());
+    userQueryParams.setNot2FA(true);
 
-        userService.getUsers( userQueryParams ).forEach( user -> {
-            user.setSecret( null );
-            userService.updateUser( user );
-        } );
-    }
+    userService
+        .getUsers(userQueryParams)
+        .forEach(
+            user -> {
+              user.setSecret(null);
+              userService.updateUser(user);
+            });
+  }
 }

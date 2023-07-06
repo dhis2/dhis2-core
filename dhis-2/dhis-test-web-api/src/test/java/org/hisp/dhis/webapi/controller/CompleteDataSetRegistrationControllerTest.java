@@ -41,49 +41,55 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
- * Tests the {@link CompleteDataSetRegistrationController} using (mocked) REST
- * requests.
+ * Tests the {@link CompleteDataSetRegistrationController} using (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienceTest
-{
+class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPostCompleteRegistrationsJson()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
-            POST( "/38/completeDataSetRegistrations", "{}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testPostCompleteRegistrationsJson() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "An error occurred, please check import summary.",
+        POST("/38/completeDataSetRegistrations", "{}").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testPostCompleteRegistrationsJson_Pre38()
-    {
-        JsonImportSummary summary = POST( "/37/completeDataSetRegistrations", "{}" ).content( HttpStatus.OK )
-            .as( JsonImportSummary.class );
-        assertEquals( "ImportSummary", summary.getResponseType() );
-        assertEquals( "ERROR", summary.getStatus() );
-    }
+  @Test
+  void testPostCompleteRegistrationsJson_Pre38() {
+    JsonImportSummary summary =
+        POST("/37/completeDataSetRegistrations", "{}")
+            .content(HttpStatus.OK)
+            .as(JsonImportSummary.class);
+    assertEquals("ImportSummary", summary.getResponseType());
+    assertEquals("ERROR", summary.getStatus());
+  }
 
-    @Test
-    void testPostCompleteRegistrationsXml()
-    {
-        HttpResponse response = POST( "/38/completeDataSetRegistrations",
-            Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
-            Accept( CONTENT_TYPE_XML ) );
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
-        assertTrue( content.startsWith( "<webMessage " ) );
-    }
+  @Test
+  void testPostCompleteRegistrationsXml() {
+    HttpResponse response =
+        POST(
+            "/38/completeDataSetRegistrations",
+            Body("<completeDataSetRegistrations></completeDataSetRegistrations>"),
+            ContentType(CONTENT_TYPE_XML),
+            Accept(CONTENT_TYPE_XML));
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    String content = response.content(MediaType.APPLICATION_XML);
+    assertTrue(content.startsWith("<webMessage "));
+  }
 
-    @Test
-    void testPostCompleteRegistrationsXml_Pre38()
-    {
-        HttpResponse response = POST( "/37/completeDataSetRegistrations",
-            Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
-            Accept( CONTENT_TYPE_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
-        assertTrue( content.startsWith( "<importSummary " ) );
-    }
+  @Test
+  void testPostCompleteRegistrationsXml_Pre38() {
+    HttpResponse response =
+        POST(
+            "/37/completeDataSetRegistrations",
+            Body("<completeDataSetRegistrations></completeDataSetRegistrations>"),
+            ContentType(CONTENT_TYPE_XML),
+            Accept(CONTENT_TYPE_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    String content = response.content(MediaType.APPLICATION_XML);
+    assertTrue(content.startsWith("<importSummary "));
+  }
 }

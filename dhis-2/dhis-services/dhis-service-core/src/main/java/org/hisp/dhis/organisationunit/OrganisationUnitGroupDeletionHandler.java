@@ -36,30 +36,24 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.organisationunit.OrganisationUnitGroupDeletionHandler" )
-public class OrganisationUnitGroupDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.organisationunit.OrganisationUnitGroupDeletionHandler")
+public class OrganisationUnitGroupDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public OrganisationUnitGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
-    }
+  public OrganisationUnitGroupDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
+    this.idObjectManager = idObjectManager;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit unit )
-    {
-        for ( OrganisationUnitGroup group : unit.getGroups() )
-        {
-            group.getMembers().remove( unit );
-            idObjectManager.updateNoAcl( group );
-        }
+  private void deleteOrganisationUnit(OrganisationUnit unit) {
+    for (OrganisationUnitGroup group : unit.getGroups()) {
+      group.getMembers().remove(unit);
+      idObjectManager.updateNoAcl(group);
     }
+  }
 }

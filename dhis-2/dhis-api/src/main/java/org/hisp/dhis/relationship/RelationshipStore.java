@@ -28,7 +28,6 @@
 package org.hisp.dhis.relationship;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -38,49 +37,43 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 /**
  * @author Abyot Asalefew
  */
-public interface RelationshipStore
-    extends IdentifiableObjectStore<Relationship>
-{
-    String ID = RelationshipStore.class.getName();
+public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
+  String ID = RelationshipStore.class.getName();
 
-    default List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
-    {
-        return getByTrackedEntityInstance( tei, null );
-    }
+  default List<Relationship> getByTrackedEntityInstance(TrackedEntityInstance tei) {
+    return getByTrackedEntityInstance(tei, null);
+  }
 
-    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByTrackedEntityInstance(
+      TrackedEntityInstance tei, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-    default List<Relationship> getByProgramInstance( ProgramInstance pi )
-    {
-        return getByProgramInstance( pi, null );
-    }
+  default List<Relationship> getByProgramInstance(ProgramInstance pi) {
+    return getByProgramInstance(pi, null);
+  }
 
-    List<Relationship> getByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByProgramInstance(
+      ProgramInstance pi, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-    default List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
-    {
-        return getByProgramStageInstance( psi, null );
-    }
+  default List<Relationship> getByProgramStageInstance(ProgramStageInstance psi) {
+    return getByProgramStageInstance(psi, null);
+  }
 
-    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByProgramStageInstance(
+      ProgramStageInstance psi, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-    List<Relationship> getByRelationshipType( RelationshipType relationshipType );
+  List<Relationship> getByRelationshipType(RelationshipType relationshipType);
 
-    /**
-     * Fetches a {@link Relationship} based on a relationship identifying
-     * attributes: - relationship type - from - to
-     *
-     * @param relationship A valid Relationship
-     *
-     * @return a {@link Relationship} or null if no Relationship is found
-     *         matching the identifying criterias
-     */
-    Relationship getByRelationship( Relationship relationship );
+  /**
+   * Fetches a {@link Relationship} based on a relationship identifying attributes: - relationship
+   * type - from - to
+   *
+   * @param relationship A valid Relationship
+   * @return a {@link Relationship} or null if no Relationship is found matching the identifying
+   *     criterias
+   */
+  Relationship getByRelationship(Relationship relationship);
 
-    List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList );
+  List<String> getUidsByRelationshipKeys(List<String> relationshipKeyList);
 
-    List<Relationship> getByUids( List<String> uids );
+  List<Relationship> getByUids(List<String> uids);
 }

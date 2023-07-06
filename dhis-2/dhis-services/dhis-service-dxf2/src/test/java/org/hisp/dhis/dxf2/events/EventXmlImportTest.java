@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashSet;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -64,107 +63,104 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Enrico Colasante
  */
-class EventXmlImportTest extends TransactionalIntegrationTest
-{
+class EventXmlImportTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private EventService eventService;
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+  @Autowired private ProgramInstanceService programInstanceService;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private Program programA;
+  private Program programA;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitA.setUid( "A" );
-        manager.save( organisationUnitA );
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setValueType( ValueType.INTEGER );
-        dataElementA.setUid( "A" );
-        manager.save( dataElementA );
-        programStageA = createProgramStage( 'A', 0 );
-        programStageA.setFeatureType( FeatureType.POINT );
-        programStageA.setUid( "A" );
-        manager.save( programStageA );
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA );
-        programStageDataElement.setProgramStage( programStageA );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programA.setUid( "A" );
-        manager.save( programA );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        programInstanceService.addProgramInstance( programInstance );
-        programStageA.getProgramStageDataElements().add( programStageDataElement );
-        programStageA.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
-        manager.update( programStageA );
-        manager.update( programA );
-        createUserAndInjectSecurityContext( true );
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitA.setUid("A");
+    manager.save(organisationUnitA);
+    dataElementA = createDataElement('A');
+    dataElementA.setValueType(ValueType.INTEGER);
+    dataElementA.setUid("A");
+    manager.save(dataElementA);
+    programStageA = createProgramStage('A', 0);
+    programStageA.setFeatureType(FeatureType.POINT);
+    programStageA.setUid("A");
+    manager.save(programStageA);
+    ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElementA);
+    programStageDataElement.setProgramStage(programStageA);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElement);
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    programA.setUid("A");
+    manager.save(programA);
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setProgram(programA);
+    programInstance.setAutoFields();
+    programInstance.setEnrollmentDate(new Date());
+    programInstance.setIncidentDate(new Date());
+    programInstance.setStatus(ProgramStatus.ACTIVE);
+    programInstanceService.addProgramInstance(programInstance);
+    programStageA.getProgramStageDataElements().add(programStageDataElement);
+    programStageA.setProgram(programA);
+    programA.getProgramStages().add(programStageA);
+    manager.update(programStageA);
+    manager.update(programA);
+    createUserAndInjectSecurityContext(true);
+  }
 
-    @Test
-    void testGeometry()
-        throws IOException
-    {
-        InputStream is = createEventXmlInputStream();
-        ImportSummaries importSummaries = eventService.addEventsXml( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA )
-            .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
-        assertEquals( 1, events.getEvents().size() );
-        assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
-    }
+  @Test
+  void testGeometry() throws IOException {
+    InputStream is = createEventXmlInputStream();
+    ImportSummaries importSummaries = eventService.addEventsXml(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+    Events events =
+        eventService.getEvents(
+            new EventSearchParams()
+                .setProgram(programA)
+                .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
+    assertEquals(1, events.getEvents().size());
+    assertTrue(
+        events.getEvents().stream()
+            .allMatch(e -> e.getGeometry().getGeometryType().equals("Point")));
+  }
 
-    @Test
-    void testNoAccessEvent()
-        throws IOException
-    {
-        InputStream is = createEventXmlInputStream();
-        ImportSummaries importSummaries = eventService.addEventsXml( is, null );
-        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-        // Get by admin
-        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA )
-            .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
-        assertEquals( 1, events.getEvents().size() );
-        // Get by user without access
-        User user = createUser( "A" );
-        userService.addUser( user );
-        injectSecurityContext( user );
-        events = eventService.getEvents( new EventSearchParams().setProgram( programA )
-            .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
-        assertEquals( 0, events.getEvents().size() );
-    }
+  @Test
+  void testNoAccessEvent() throws IOException {
+    InputStream is = createEventXmlInputStream();
+    ImportSummaries importSummaries = eventService.addEventsXml(is, null);
+    assertEquals(ImportStatus.SUCCESS, importSummaries.getStatus());
+    // Get by admin
+    Events events =
+        eventService.getEvents(
+            new EventSearchParams()
+                .setProgram(programA)
+                .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
+    assertEquals(1, events.getEvents().size());
+    // Get by user without access
+    User user = createUser("A");
+    userService.addUser(user);
+    injectSecurityContext(user);
+    events =
+        eventService.getEvents(
+            new EventSearchParams()
+                .setProgram(programA)
+                .setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ACCESSIBLE));
+    assertEquals(0, events.getEvents().size());
+  }
 
-    private InputStream createEventXmlInputStream()
-        throws IOException
-    {
-        return new ClassPathResource( "events/events.xml" ).getInputStream();
-    }
+  private InputStream createEventXmlInputStream() throws IOException {
+    return new ClassPathResource("events/events.xml").getInputStream();
+  }
 }

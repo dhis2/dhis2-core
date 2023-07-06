@@ -30,7 +30,6 @@ package org.hisp.dhis.datavalue;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
@@ -40,73 +39,65 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-@Service( "org.hisp.dhis.datavalue.DataValueAuditService" )
-public class DefaultDataValueAuditService
-    implements DataValueAuditService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.datavalue.DataValueAuditService")
+public class DefaultDataValueAuditService implements DataValueAuditService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final DataValueAuditStore dataValueAuditStore;
+  private final DataValueAuditStore dataValueAuditStore;
 
-    public DefaultDataValueAuditService( DataValueAuditStore dataValueAuditStore )
-    {
-        checkNotNull( dataValueAuditStore );
+  public DefaultDataValueAuditService(DataValueAuditStore dataValueAuditStore) {
+    checkNotNull(dataValueAuditStore);
 
-        this.dataValueAuditStore = dataValueAuditStore;
-    }
+    this.dataValueAuditStore = dataValueAuditStore;
+  }
 
-    // -------------------------------------------------------------------------
-    // DataValueAuditService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataValueAuditService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void addDataValueAudit( DataValueAudit dataValueAudit )
-    {
-        dataValueAuditStore.addDataValueAudit( dataValueAudit );
-    }
+  @Override
+  @Transactional
+  public void addDataValueAudit(DataValueAudit dataValueAudit) {
+    dataValueAuditStore.addDataValueAudit(dataValueAudit);
+  }
 
-    @Override
-    @Transactional
-    public void deleteDataValueAudits( OrganisationUnit organisationUnit )
-    {
-        dataValueAuditStore.deleteDataValueAudits( organisationUnit );
-    }
+  @Override
+  @Transactional
+  public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
+    dataValueAuditStore.deleteDataValueAudits(organisationUnit);
+  }
 
-    @Override
-    @Transactional
-    public void deleteDataValueAudits( DataElement dataElement )
-    {
-        dataValueAuditStore.deleteDataValueAudits( dataElement );
-    }
+  @Override
+  @Transactional
+  public void deleteDataValueAudits(DataElement dataElement) {
+    dataValueAuditStore.deleteDataValueAudits(dataElement);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
-    {
-        DataValueAuditQueryParams params = new DataValueAuditQueryParams()
-            .setDataElements( List.of( dataValue.getDataElement() ) )
-            .setPeriods( List.of( dataValue.getPeriod() ) )
-            .setOrgUnits( List.of( dataValue.getSource() ) )
-            .setCategoryOptionCombo( dataValue.getCategoryOptionCombo() )
-            .setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataValueAudit> getDataValueAudits(DataValue dataValue) {
+    DataValueAuditQueryParams params =
+        new DataValueAuditQueryParams()
+            .setDataElements(List.of(dataValue.getDataElement()))
+            .setPeriods(List.of(dataValue.getPeriod()))
+            .setOrgUnits(List.of(dataValue.getSource()))
+            .setCategoryOptionCombo(dataValue.getCategoryOptionCombo())
+            .setAttributeOptionCombo(dataValue.getAttributeOptionCombo());
 
-        return dataValueAuditStore.getDataValueAudits( params );
-    }
+    return dataValueAuditStore.getDataValueAudits(params);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params )
-    {
-        return dataValueAuditStore.getDataValueAudits( params );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
+    return dataValueAuditStore.getDataValueAudits(params);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public int countDataValueAudits( DataValueAuditQueryParams params )
-    {
-        return dataValueAuditStore.countDataValueAudits( params );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public int countDataValueAudits(DataValueAuditQueryParams params) {
+    return dataValueAuditStore.countDataValueAudits(params);
+  }
 }

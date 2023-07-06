@@ -27,68 +27,58 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 
-import com.google.common.collect.ImmutableList;
+abstract class ImplementableRuleService {
+  private final ProgramRuleService programRuleService;
 
-abstract class ImplementableRuleService
-{
-    private final ProgramRuleService programRuleService;
+  public ImplementableRuleService(ProgramRuleService programRuleService) {
+    this.programRuleService = programRuleService;
+  }
 
-    public ImplementableRuleService( ProgramRuleService programRuleService )
-    {
-        this.programRuleService = programRuleService;
+  abstract List<ProgramRule> getProgramRulesByActionTypes(Program program, String programStageUid);
+
+  abstract Cache<Boolean> getProgramHasRulesCache();
+
+  protected List<ProgramRule> getProgramRulesByActionTypes(
+      Program program, Set<ProgramRuleActionType> types, String programStageUid) {
+    if (programStageUid == null) {
+      return programRuleService.getProgramRulesByActionTypes(program, types);
+    } else {
+      return programRuleService.getProgramRulesByActionTypes(program, types, programStageUid);
+    }
+  }
+
+  public List<ProgramRule> getProgramRules(Program program, String programStageUid) {
+    Optional<Boolean> optionalCacheValue = getProgramHasRulesCache().get(program.getUid());
+
+    if (optionalCacheValue.isPresent() && Boolean.FALSE.equals(optionalCacheValue.get())) {
+      return ImmutableList.of();
     }
 
-    abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
+    List<ProgramRule> programRulesByActionTypes =
+        getProgramRulesByActionTypes(program, programStageUid);
 
-    abstract Cache<Boolean> getProgramHasRulesCache();
-
-    protected List<ProgramRule> getProgramRulesByActionTypes( Program program,
-        Set<ProgramRuleActionType> types, String programStageUid )
+    if (programStageUid == null) // To populate programHasRulesCache at
+    // enrollment
     {
-        if ( programStageUid == null )
-        {
-            return programRuleService.getProgramRulesByActionTypes( program, types );
-        }
-        else
-        {
-            return programRuleService.getProgramRulesByActionTypes( program, types, programStageUid );
-        }
+      getProgramHasRulesCache().put(program.getUid(), !programRulesByActionTypes.isEmpty());
 
+      // At enrollment, only those rules should be selected for execution
+      // which are not associated with any ProgramStage.
+      return programRulesByActionTypes.stream()
+          .filter(rule -> rule.getProgramStage() == null)
+          .collect(Collectors.toList());
     }
-
-    public List<ProgramRule> getProgramRules( Program program, String programStageUid )
-    {
-        Optional<Boolean> optionalCacheValue = getProgramHasRulesCache().get( program.getUid() );
-
-        if ( optionalCacheValue.isPresent() && Boolean.FALSE.equals( optionalCacheValue.get() ) )
-        {
-            return ImmutableList.of();
-        }
-
-        List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );
-
-        if ( programStageUid == null ) // To populate programHasRulesCache at
-                                       // enrollment
-        {
-            getProgramHasRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
-
-            // At enrollment, only those rules should be selected for execution
-            // which are not associated with any ProgramStage.
-            return programRulesByActionTypes.stream().filter( rule -> rule.getProgramStage() == null )
-                .collect( Collectors.toList() );
-        }
-        return programRulesByActionTypes;
-    }
-
+    return programRulesByActionTypes;
+  }
 }

@@ -54,126 +54,117 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class EnrollmentGeoValidationHookTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class EnrollmentGeoValidationHookTest {
 
-    private static final String PROGRAM = "Program";
+  private static final String PROGRAM = "Program";
 
-    private EnrollmentGeoValidationHook hookToTest;
+  private EnrollmentGeoValidationHook hookToTest;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    public void setUp()
-    {
-        hookToTest = new EnrollmentGeoValidationHook();
+  @BeforeEach
+  public void setUp() {
+    hookToTest = new EnrollmentGeoValidationHook();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .build();
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
-        Program program = new Program();
-        program.setFeatureType( FeatureType.POINT );
-        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
-    }
+    Program program = new Program();
+    program.setFeatureType(FeatureType.POINT);
+    when(preheat.getProgram(PROGRAM)).thenReturn(program);
+  }
 
-    @Test
-    void testGeometryIsValid()
-    {
-        // given
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( PROGRAM );
-        enrollment.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testGeometryIsValid() {
+    // given
+    Enrollment enrollment = new Enrollment();
+    enrollment.setProgram(PROGRAM);
+    enrollment.setGeometry(new GeometryFactory().createPoint());
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        // when
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    // when
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
+    // then
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testEnrollmentWithNoProgramThrowsAnError()
-    {
-        // given
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( null );
-        enrollment.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testEnrollmentWithNoProgramThrowsAnError() {
+    // given
+    Enrollment enrollment = new Enrollment();
+    enrollment.setProgram(null);
+    enrollment.setGeometry(new GeometryFactory().createPoint());
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
-    }
+    assertThrows(
+        NullPointerException.class, () -> this.hookToTest.validateEnrollment(reporter, enrollment));
+  }
 
-    @Test
-    void testProgramWithNullFeatureTypeFailsGeometryValidation()
-    {
-        // given
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( PROGRAM );
-        enrollment.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testProgramWithNullFeatureTypeFailsGeometryValidation() {
+    // given
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(PROGRAM);
+    enrollment.setGeometry(new GeometryFactory().createPoint());
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        // when
-        Program program = new Program();
-        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
+    // when
+    Program program = new Program();
+    when(preheat.getProgram(PROGRAM)).thenReturn(program);
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        // then
-        hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
-    }
+    // then
+    hasTrackerError(reporter, E1074, ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void testProgramWithFeatureTypeNoneFailsGeometryValidation()
-    {
-        // given
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( PROGRAM );
-        enrollment.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testProgramWithFeatureTypeNoneFailsGeometryValidation() {
+    // given
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(PROGRAM);
+    enrollment.setGeometry(new GeometryFactory().createPoint());
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        // when
-        Program program = new Program();
-        program.setFeatureType( FeatureType.NONE );
-        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
+    // when
+    Program program = new Program();
+    program.setFeatureType(FeatureType.NONE);
+    when(preheat.getProgram(PROGRAM)).thenReturn(program);
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
-    }
+    // then
+    hasTrackerError(reporter, E1012, ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void testProgramWithFeatureTypeDifferentFromGeometryFails()
-    {
-        // given
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setProgram( PROGRAM );
-        enrollment.setGeometry( new GeometryFactory().createPoint() );
+  @Test
+  void testProgramWithFeatureTypeDifferentFromGeometryFails() {
+    // given
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(CodeGenerator.generateUid());
+    enrollment.setProgram(PROGRAM);
+    enrollment.setGeometry(new GeometryFactory().createPoint());
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        // when
-        Program program = new Program();
-        program.setFeatureType( FeatureType.MULTI_POLYGON );
-        when( preheat.getProgram( PROGRAM ) ).thenReturn( program );
+    // when
+    Program program = new Program();
+    program.setFeatureType(FeatureType.MULTI_POLYGON);
+    when(preheat.getProgram(PROGRAM)).thenReturn(program);
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+    this.hookToTest.validateEnrollment(reporter, enrollment);
 
-        // then
-        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
-    }
+    // then
+    hasTrackerError(reporter, E1012, ENROLLMENT, enrollment.getUid());
+  }
 }

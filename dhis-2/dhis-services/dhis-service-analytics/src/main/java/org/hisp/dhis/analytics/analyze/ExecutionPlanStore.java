@@ -28,14 +28,12 @@
 package org.hisp.dhis.analytics.analyze;
 
 import java.util.List;
-
 import org.hisp.dhis.common.ExecutionPlan;
 
-public interface ExecutionPlanStore
-{
-    void addExecutionPlan( String params, String sql );
+public interface ExecutionPlanStore {
+  void addExecutionPlan(String params, String sql);
 
-    List<ExecutionPlan> getExecutionPlans( String key );
+  List<ExecutionPlan> getExecutionPlans(String key);
 
-    void removeExecutionPlans( String key );
+  void removeExecutionPlans(String key);
 }

@@ -35,11 +35,11 @@ import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParam
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.REPORT_MODE;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.VALIDATION_MODE_KEY;
 
+import com.google.common.base.Enums;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
@@ -50,72 +50,66 @@ import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
 
-import com.google.common.base.Enums;
+public class TrackerImportParamsValidator {
+  private TrackerImportParamsValidator() {}
 
-public class TrackerImportParamsValidator
-{
-    private TrackerImportParamsValidator()
-    {
+  public static void validateRequest(TrackerImportRequest request)
+      throws InvalidEnumValueException {
+    Map<String, List<String>> parameters = request.getContextService().getParameterValuesMap();
+
+    validateEnum(TrackerBundleMode.class, parameters, IMPORT_MODE_KEY);
+    validateEnum(TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY);
+    validateEnum(AtomicMode.class, parameters, ATOMIC_MODE_KEY);
+    validateEnum(FlushMode.class, parameters, FLUSH_MODE_KEY);
+    validateEnum(ValidationMode.class, parameters, VALIDATION_MODE_KEY);
+    validateEnum(TrackerIdScheme.class, parameters, ID_SCHEME_KEY, IdScheme::isAttribute);
+    validateEnum(TrackerBundleReportMode.class, parameters, REPORT_MODE);
+  }
+
+  private static <T extends Enum<T>> void validateEnum(
+      Class<T> enumKlass,
+      Map<String, List<String>> parameters,
+      TrackerImportParamKey trackerImportParamKey)
+      throws InvalidEnumValueException {
+    if (parameters == null
+        || parameters.get(trackerImportParamKey.getKey()) == null
+        || parameters.get(trackerImportParamKey.getKey()).isEmpty()) {
+      return;
     }
 
-    public static void validateRequest( TrackerImportRequest request )
-        throws InvalidEnumValueException
-    {
-        Map<String, List<String>> parameters = request.getContextService().getParameterValuesMap();
+    validateEnumValue(
+        enumKlass, trackerImportParamKey, parameters.get(trackerImportParamKey.getKey()).get(0));
+  }
 
-        validateEnum( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY );
-        validateEnum( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY );
-        validateEnum( AtomicMode.class, parameters, ATOMIC_MODE_KEY );
-        validateEnum( FlushMode.class, parameters, FLUSH_MODE_KEY );
-        validateEnum( ValidationMode.class, parameters, VALIDATION_MODE_KEY );
-        validateEnum( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, IdScheme::isAttribute );
-        validateEnum( TrackerBundleReportMode.class, parameters, REPORT_MODE );
+  private static <T extends Enum<T>> void validateEnum(
+      Class<T> enumKlass,
+      Map<String, List<String>> parameters,
+      TrackerImportParamKey trackerImportParamKey,
+      Predicate<String> predicate)
+      throws InvalidEnumValueException {
+    if (parameters == null
+        || parameters.get(trackerImportParamKey.getKey()) == null
+        || parameters.get(trackerImportParamKey.getKey()).isEmpty()) {
+      return;
     }
 
-    private static <T extends Enum<T>> void validateEnum( Class<T> enumKlass, Map<String, List<String>> parameters,
-        TrackerImportParamKey trackerImportParamKey )
-        throws InvalidEnumValueException
-    {
-        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
-            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
-        {
-            return;
-        }
+    String value = parameters.get(trackerImportParamKey.getKey()).get(0);
 
-        validateEnumValue( enumKlass, trackerImportParamKey,
-            parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
+    if (predicate.test(value)) {
+      return;
     }
 
-    private static <T extends Enum<T>> void validateEnum( Class<T> enumKlass, Map<String, List<String>> parameters,
-        TrackerImportParamKey trackerImportParamKey, Predicate<String> predicate )
-        throws InvalidEnumValueException
-    {
-        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
-            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
-        {
-            return;
-        }
+    validateEnumValue(enumKlass, trackerImportParamKey, value);
+  }
 
-        String value = parameters.get( trackerImportParamKey.getKey() ).get( 0 );
-
-        if ( predicate.test( value ) )
-        {
-            return;
-        }
-
-        validateEnumValue( enumKlass, trackerImportParamKey, value );
+  private static <T extends Enum<T>> void validateEnumValue(
+      Class<T> enumKlass, TrackerImportParamKey trackerImportParamKey, String value)
+      throws InvalidEnumValueException {
+    Optional<T> optionalEnumValue = Enums.getIfPresent(enumKlass, value).toJavaUtil();
+    if (optionalEnumValue.isPresent()) {
+      return;
     }
 
-    private static <T extends Enum<T>> void validateEnumValue( Class<T> enumKlass,
-        TrackerImportParamKey trackerImportParamKey, String value )
-        throws InvalidEnumValueException
-    {
-        Optional<T> optionalEnumValue = Enums.getIfPresent( enumKlass, value ).toJavaUtil();
-        if ( optionalEnumValue.isPresent() )
-        {
-            return;
-        }
-
-        throw new InvalidEnumValueException( value, trackerImportParamKey.getKey(), enumKlass );
-    }
+    throw new InvalidEnumValueException(value, trackerImportParamKey.getKey(), enumKlass);
+  }
 }

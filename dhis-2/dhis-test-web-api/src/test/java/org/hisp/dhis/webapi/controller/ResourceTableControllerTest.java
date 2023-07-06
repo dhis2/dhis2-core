@@ -41,42 +41,47 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-class ResourceTableControllerTest extends DhisControllerConvenienceTest
-{
+class ResourceTableControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private SchedulingManager schedulingManager;
+  @Autowired private SchedulingManager schedulingManager;
 
-    @BeforeEach
-    void setUp()
-    {
-        ((TestSchedulingManager) schedulingManager).setEnabled( false );
-    }
+  @BeforeEach
+  void setUp() {
+    ((TestSchedulingManager) schedulingManager).setEnabled(false);
+  }
 
-    @AfterEach
-    void tearDown()
-    {
-        ((TestSchedulingManager) schedulingManager).setEnabled( true );
-    }
+  @AfterEach
+  void tearDown() {
+    ((TestSchedulingManager) schedulingManager).setEnabled(true);
+  }
 
-    @Test
-    void testAnalytics()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryAnalyticsJob",
-            POST( "/resourceTables/analytics" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testAnalytics() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryAnalyticsJob",
+        POST("/resourceTables/analytics").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testResourceTables()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryResourceTableJob",
-            POST( "/resourceTables" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testResourceTables() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryResourceTableJob",
+        POST("/resourceTables").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testMonitoring()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryMonitoringJob",
-            POST( "/resourceTables/monitoring" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testMonitoring() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryMonitoringJob",
+        POST("/resourceTables/monitoring").content(HttpStatus.OK));
+  }
 }

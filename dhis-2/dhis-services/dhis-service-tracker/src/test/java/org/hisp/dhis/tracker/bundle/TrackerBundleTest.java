@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.Arrays;
 import java.util.Collections;
-
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -44,35 +43,39 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerBundleTest
-{
+class TrackerBundleTest {
 
-    @Test
-    void testBasicSetup1()
-    {
-        TrackerBundle trackerBundle = TrackerBundle.builder().atomicMode( AtomicMode.ALL )
-            .validationMode( ValidationMode.SKIP ).trackedEntities( Collections.singletonList( new TrackedEntity() ) )
-            .enrollments( Collections.singletonList( new Enrollment() ) )
-            .events( Collections.singletonList( new Event() ) ).build();
-        assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
-        assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );
-        assertFalse( trackerBundle.getTrackedEntities().isEmpty() );
-        assertFalse( trackerBundle.getEnrollments().isEmpty() );
-        assertFalse( trackerBundle.getEvents().isEmpty() );
-    }
+  @Test
+  void testBasicSetup1() {
+    TrackerBundle trackerBundle =
+        TrackerBundle.builder()
+            .atomicMode(AtomicMode.ALL)
+            .validationMode(ValidationMode.SKIP)
+            .trackedEntities(Collections.singletonList(new TrackedEntity()))
+            .enrollments(Collections.singletonList(new Enrollment()))
+            .events(Collections.singletonList(new Event()))
+            .build();
+    assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
+    assertSame(trackerBundle.getValidationMode(), ValidationMode.SKIP);
+    assertFalse(trackerBundle.getTrackedEntities().isEmpty());
+    assertFalse(trackerBundle.getEnrollments().isEmpty());
+    assertFalse(trackerBundle.getEvents().isEmpty());
+  }
 
-    @Test
-    void testBasicSetup2()
-    {
-        TrackerBundle trackerBundle = TrackerBundle.builder().atomicMode( AtomicMode.ALL )
-            .validationMode( ValidationMode.SKIP )
-            .trackedEntities( Arrays.asList( new TrackedEntity(), new TrackedEntity() ) )
-            .enrollments( Arrays.asList( new Enrollment(), new Enrollment() ) )
-            .events( Arrays.asList( new Event(), new Event() ) ).build();
-        assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
-        assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );
-        assertEquals( 2, trackerBundle.getTrackedEntities().size() );
-        assertEquals( 2, trackerBundle.getEnrollments().size() );
-        assertEquals( 2, trackerBundle.getEvents().size() );
-    }
+  @Test
+  void testBasicSetup2() {
+    TrackerBundle trackerBundle =
+        TrackerBundle.builder()
+            .atomicMode(AtomicMode.ALL)
+            .validationMode(ValidationMode.SKIP)
+            .trackedEntities(Arrays.asList(new TrackedEntity(), new TrackedEntity()))
+            .enrollments(Arrays.asList(new Enrollment(), new Enrollment()))
+            .events(Arrays.asList(new Event(), new Event()))
+            .build();
+    assertEquals(AtomicMode.ALL, trackerBundle.getAtomicMode());
+    assertSame(trackerBundle.getValidationMode(), ValidationMode.SKIP);
+    assertEquals(2, trackerBundle.getTrackedEntities().size());
+    assertEquals(2, trackerBundle.getEnrollments().size());
+    assertEquals(2, trackerBundle.getEvents().size());
+  }
 }

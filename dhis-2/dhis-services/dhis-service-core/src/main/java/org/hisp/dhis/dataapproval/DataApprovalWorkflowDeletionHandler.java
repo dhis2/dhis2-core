@@ -36,34 +36,27 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler" )
-public class DataApprovalWorkflowDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler")
+public class DataApprovalWorkflowDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public DataApprovalWorkflowDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
+  public DataApprovalWorkflowDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
 
-        this.idObjectManager = idObjectManager;
+    this.idObjectManager = idObjectManager;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(DataApprovalLevel.class, this::deleteDataApprovalLevel);
+  }
+
+  private void deleteDataApprovalLevel(DataApprovalLevel level) {
+    for (DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl(DataApprovalWorkflow.class)) {
+      if (workflow.getLevels().contains(level)) {
+        workflow.getLevels().remove(level);
+        idObjectManager.updateNoAcl(workflow);
+      }
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataApprovalLevel.class, this::deleteDataApprovalLevel );
-    }
-
-    private void deleteDataApprovalLevel( DataApprovalLevel level )
-    {
-        for ( DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl( DataApprovalWorkflow.class ) )
-        {
-            if ( workflow.getLevels().contains( level ) )
-            {
-                workflow.getLevels().remove( level );
-                idObjectManager.updateNoAcl( workflow );
-            }
-        }
-    }
+  }
 }

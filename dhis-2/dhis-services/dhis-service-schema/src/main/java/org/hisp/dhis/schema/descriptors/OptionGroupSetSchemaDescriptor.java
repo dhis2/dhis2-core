@@ -27,38 +27,37 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+public class OptionGroupSetSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "optionGroupSet";
 
-public class OptionGroupSetSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "optionGroupSet";
+  public static final String PLURAL = "optionGroupSets";
 
-    public static final String PLURAL = "optionGroupSets";
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(OptionGroupSet.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1051);
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( OptionGroupSet.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1051 );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_OPTIONGROUPSET_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_OPTIONGROUPSET_PRIVATE_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_OPTIONGROUPSET_DELETE")));
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_OPTIONGROUPSET_PUBLIC_ADD" ) ) );
-        schema
-            .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_OPTIONGROUPSET_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OPTIONGROUPSET_DELETE" ) ) );
-
-        return schema;
-    }
+    return schema;
+  }
 }

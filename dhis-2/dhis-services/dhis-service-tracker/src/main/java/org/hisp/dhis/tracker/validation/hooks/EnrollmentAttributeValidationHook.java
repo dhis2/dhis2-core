@@ -34,12 +34,13 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 
+import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -58,160 +59,163 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Streams;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentAttributeValidationHook extends AttributeValidationHook
-{
+public class EnrollmentAttributeValidationHook extends AttributeValidationHook {
 
-    public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService,
-        DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        super( teAttrService, dhisConfigurationProvider );
+  public EnrollmentAttributeValidationHook(
+      TrackedAttributeValidationService teAttrService,
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    super(teAttrService, dhisConfigurationProvider);
+  }
+
+  @Override
+  public void validateEnrollment(ValidationErrorReporter reporter, Enrollment enrollment) {
+    TrackerBundle bundle = reporter.getBundle();
+    TrackerPreheat preheat = bundle.getPreheat();
+    Program program = preheat.getProgram(enrollment.getProgram());
+    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
+
+    TrackedEntityInstance tei =
+        reporter.getBundle().getTrackedEntityInstance(enrollment.getTrackedEntity());
+
+    OrganisationUnit orgUnit =
+        preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
+
+    Map<String, String> attributeValueMap = Maps.newHashMap();
+
+    for (Attribute attribute : enrollment.getAttributes()) {
+      validateRequiredProperties(reporter, enrollment, attribute, program);
+
+      TrackedEntityAttribute teAttribute =
+          reporter.getBundle().getPreheat().getTrackedEntityAttribute(attribute.getAttribute());
+
+      if (attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null) {
+
+        attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
+
+        validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
+        validateAttrValueType(reporter, enrollment, attribute, teAttribute);
+        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
+
+        validateAttributeUniqueness(
+            reporter, enrollment, attribute.getValue(), teAttribute, tei, orgUnit);
+      }
     }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
-    {
-        TrackerBundle bundle = reporter.getBundle();
-        TrackerPreheat preheat = bundle.getPreheat();
-        Program program = preheat.getProgram( enrollment.getProgram() );
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+    validateMandatoryAttributes(reporter, program, attributeValueMap, enrollment);
+  }
 
-        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( enrollment.getTrackedEntity() );
+  protected void validateRequiredProperties(
+      ValidationErrorReporter reporter,
+      Enrollment enrollment,
+      Attribute attribute,
+      Program program) {
+    reporter.addErrorIfNull(attribute.getAttribute(), enrollment, E1075, attribute);
 
-        OrganisationUnit orgUnit = preheat
-            .getOrganisationUnit( getOrgUnitUidFromTei( bundle, enrollment.getTrackedEntity() ) );
-
-        Map<String, String> attributeValueMap = Maps.newHashMap();
-
-        for ( Attribute attribute : enrollment.getAttributes() )
-        {
-            validateRequiredProperties( reporter, enrollment, attribute, program );
-
-            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
-                .getTrackedEntityAttribute( attribute.getAttribute() );
-
-            if ( attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null )
-            {
-
-                attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-
-                validateAttributeValue( reporter, enrollment, teAttribute, attribute.getValue() );
-                validateAttrValueType( reporter, enrollment, attribute, teAttribute );
-                validateOptionSet( reporter, enrollment, teAttribute,
-                    attribute.getValue() );
-
-                validateAttributeUniqueness( reporter,
-                    enrollment,
-                    attribute.getValue(),
-                    teAttribute,
-                    tei,
-                    orgUnit );
-            }
-        }
-
-        validateMandatoryAttributes( reporter, program, attributeValueMap, enrollment );
-    }
-
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, Enrollment enrollment,
-        Attribute attribute, Program program )
-    {
-        reporter.addErrorIfNull( attribute.getAttribute(), enrollment, E1075, attribute );
-
-        Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
-            .filter( pa -> pa.getAttribute().getUid().equals( attribute.getAttribute() ) && pa.isMandatory() )
+    Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr =
+        program.getProgramAttributes().stream()
+            .filter(
+                pa ->
+                    pa.getAttribute().getUid().equals(attribute.getAttribute()) && pa.isMandatory())
             .findFirst();
 
-        if ( optionalTrackedAttr.isPresent() )
-        {
-            reporter.addErrorIfNull( attribute.getValue(), enrollment, E1076,
-                TrackedEntityAttribute.class.getSimpleName(),
-                attribute.getAttribute() );
-        }
-
-        if ( attribute.getAttribute() != null )
-        {
-            TrackedEntityAttribute teAttribute = reporter.getBundle().getPreheat()
-                .getTrackedEntityAttribute( attribute.getAttribute() );
-
-            reporter.addErrorIfNull( teAttribute, enrollment, E1006, attribute.getAttribute() );
-        }
+    if (optionalTrackedAttr.isPresent()) {
+      reporter.addErrorIfNull(
+          attribute.getValue(),
+          enrollment,
+          E1076,
+          TrackedEntityAttribute.class.getSimpleName(),
+          attribute.getAttribute());
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-        Program program, Map<String, String> enrollmentNonEmptyAttributeUids, Enrollment enrollment )
-    {
-        // Build a data structures of attributes eligible for mandatory
-        // validations:
-        // 1 - attributes from enrollments whose value is not empty or null
-        // 2 - attributes already existing in TEI (from preheat)
+    if (attribute.getAttribute() != null) {
+      TrackedEntityAttribute teAttribute =
+          reporter.getBundle().getPreheat().getTrackedEntityAttribute(attribute.getAttribute());
 
-        // 1 - attributes from enrollment whose value is non-empty
-
-        // 2 - attributes uids from existing TEI (if any) from preheat
-        Set<String> teiAttributeUids = buildTeiAttributeUids( reporter, enrollment.getTrackedEntity() );
-
-        // merged uids of eligible attribute to validate
-        Set<String> mergedAttributes = Streams
-            .concat( enrollmentNonEmptyAttributeUids.keySet().stream(), teiAttributeUids.stream() )
-            .collect( Collectors.toSet() );
-
-        // Map having as key program attribute uid and mandatory flag as value
-        Map<String, Boolean> programAttributesMap = program.getProgramAttributes().stream()
-            .collect( Collectors.toMap(
-                programTrackedEntityAttribute -> programTrackedEntityAttribute.getAttribute().getUid(),
-                ProgramTrackedEntityAttribute::isMandatory ) );
-
-        // Merged attributes must contain each mandatory program attribute.
-        programAttributesMap.entrySet()
-            .stream()
-            .filter( Map.Entry::getValue ) // <--- filter on mandatory flag
-            .map( Map.Entry::getKey )
-            .forEach( mandatoryProgramAttributeUid -> reporter.addErrorIf(
-                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ),
-                enrollment, E1018,
-                mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
-
-        // enrollment must not contain any attribute which is not defined in
-        // program
-        enrollmentNonEmptyAttributeUids
-            .forEach(
-                ( attrUid, attrVal ) -> reporter.addErrorIf( () -> !programAttributesMap.containsKey( attrUid ),
-                    enrollment, E1019,
-                    attrUid + "=" + attrVal ) );
+      reporter.addErrorIfNull(teAttribute, enrollment, E1006, attribute.getAttribute());
     }
+  }
 
-    private Set<String> buildTeiAttributeUids( ValidationErrorReporter reporter, String trackedEntityInstanceUid )
-    {
-        return Optional.of( reporter )
-            .map( ValidationErrorReporter::getBundle )
-            .map( TrackerBundle::getPreheat )
-            .map( trackerPreheat -> trackerPreheat.getTrackedEntity( trackedEntityInstanceUid ) )
-            .map( TrackedEntityInstance::getTrackedEntityAttributeValues )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( TrackedEntityAttributeValue::getAttribute )
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
+  private void validateMandatoryAttributes(
+      ValidationErrorReporter reporter,
+      Program program,
+      Map<String, String> enrollmentNonEmptyAttributeUids,
+      Enrollment enrollment) {
+    // Build a data structures of attributes eligible for mandatory
+    // validations:
+    // 1 - attributes from enrollments whose value is not empty or null
+    // 2 - attributes already existing in TEI (from preheat)
+
+    // 1 - attributes from enrollment whose value is non-empty
+
+    // 2 - attributes uids from existing TEI (if any) from preheat
+    Set<String> teiAttributeUids = buildTeiAttributeUids(reporter, enrollment.getTrackedEntity());
+
+    // merged uids of eligible attribute to validate
+    Set<String> mergedAttributes =
+        Streams.concat(enrollmentNonEmptyAttributeUids.keySet().stream(), teiAttributeUids.stream())
+            .collect(Collectors.toSet());
+
+    // Map having as key program attribute uid and mandatory flag as value
+    Map<String, Boolean> programAttributesMap =
+        program.getProgramAttributes().stream()
+            .collect(
+                Collectors.toMap(
+                    programTrackedEntityAttribute ->
+                        programTrackedEntityAttribute.getAttribute().getUid(),
+                    ProgramTrackedEntityAttribute::isMandatory));
+
+    // Merged attributes must contain each mandatory program attribute.
+    programAttributesMap.entrySet().stream()
+        .filter(Map.Entry::getValue) // <--- filter on mandatory flag
+        .map(Map.Entry::getKey)
+        .forEach(
+            mandatoryProgramAttributeUid ->
+                reporter.addErrorIf(
+                    () -> !mergedAttributes.contains(mandatoryProgramAttributeUid),
+                    enrollment,
+                    E1018,
+                    mandatoryProgramAttributeUid,
+                    program.getUid(),
+                    enrollment.getEnrollment()));
+
+    // enrollment must not contain any attribute which is not defined in
+    // program
+    enrollmentNonEmptyAttributeUids.forEach(
+        (attrUid, attrVal) ->
+            reporter.addErrorIf(
+                () -> !programAttributesMap.containsKey(attrUid),
+                enrollment,
+                E1019,
+                attrUid + "=" + attrVal));
+  }
+
+  private Set<String> buildTeiAttributeUids(
+      ValidationErrorReporter reporter, String trackedEntityInstanceUid) {
+    return Optional.of(reporter)
+        .map(ValidationErrorReporter::getBundle)
+        .map(TrackerBundle::getPreheat)
+        .map(trackerPreheat -> trackerPreheat.getTrackedEntity(trackedEntityInstanceUid))
+        .map(TrackedEntityInstance::getTrackedEntityAttributeValues)
+        .orElse(Collections.emptySet())
+        .stream()
+        .map(TrackedEntityAttributeValue::getAttribute)
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toSet());
+  }
+
+  private String getOrgUnitUidFromTei(TrackerBundle bundle, String teiUid) {
+
+    final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat().getReference(teiUid);
+    if (reference.isPresent()) {
+      final Optional<TrackedEntity> tei = bundle.getTrackedEntity(teiUid);
+      if (tei.isPresent()) {
+        return tei.get().getOrgUnit();
+      }
     }
-
-    private String getOrgUnitUidFromTei( TrackerBundle bundle, String teiUid )
-    {
-
-        final Optional<ReferenceTrackerEntity> reference = bundle.getPreheat().getReference( teiUid );
-        if ( reference.isPresent() )
-        {
-            final Optional<TrackedEntity> tei = bundle.getTrackedEntity( teiUid );
-            if ( tei.isPresent() )
-            {
-                return tei.get().getOrgUnit();
-            }
-        }
-        return null;
-    }
+    return null;
+  }
 }

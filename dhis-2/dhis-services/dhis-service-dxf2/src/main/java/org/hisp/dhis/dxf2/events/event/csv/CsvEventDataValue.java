@@ -27,345 +27,311 @@
  */
 package org.hisp.dhis.dxf2.events.event.csv;
 
-import java.util.Objects;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.common.base.MoreObjects;
+import java.util.Objects;
+import org.springframework.util.Assert;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JsonPropertyOrder( {
-    "event",
-    "status",
-    "program",
-    "programStage",
-    "enrollment",
-    "orgUnit",
-    "eventDate",
-    "dueDate",
-    "latitude",
-    "longitude",
-    "dataElement",
-    "value",
-    "storedBy",
-    "providedElsewhere",
-    "completedDate",
-    "completedBy",
-    "geometry"
-} )
-public class CsvEventDataValue
-{
-    private String event;
+@JsonPropertyOrder({
+  "event",
+  "status",
+  "program",
+  "programStage",
+  "enrollment",
+  "orgUnit",
+  "eventDate",
+  "dueDate",
+  "latitude",
+  "longitude",
+  "dataElement",
+  "value",
+  "storedBy",
+  "providedElsewhere",
+  "completedDate",
+  "completedBy",
+  "geometry"
+})
+public class CsvEventDataValue {
+  private String event;
 
-    private String status;
+  private String status;
 
-    private String program;
+  private String program;
 
-    private String programStage;
+  private String programStage;
 
-    private String orgUnit;
+  private String orgUnit;
 
-    private String enrollment;
+  private String enrollment;
 
-    private String eventDate;
+  private String eventDate;
 
-    private String dueDate;
+  private String dueDate;
 
-    private Double latitude;
+  private Double latitude;
 
-    private Double longitude;
+  private Double longitude;
 
-    private String dataElement;
+  private String dataElement;
 
-    private String value;
+  private String value;
 
-    private String storedBy;
+  private String storedBy;
 
-    private Boolean providedElsewhere;
+  private Boolean providedElsewhere;
 
-    private String completedDate;
+  private String completedDate;
 
-    private String completedBy;
+  private String completedBy;
 
-    private String geometry;
+  private String geometry;
 
-    public CsvEventDataValue()
-    {
+  public CsvEventDataValue() {}
+
+  public CsvEventDataValue(CsvEventDataValue dataValue) {
+    Assert.notNull(dataValue, "A non-null CsvOutputEventDataValue must be given as a parameter.");
+
+    event = dataValue.getEvent();
+    status = dataValue.getStatus();
+    program = dataValue.getProgram();
+    programStage = dataValue.getProgramStage();
+    enrollment = dataValue.getEnrollment();
+    orgUnit = dataValue.getOrgUnit();
+    eventDate = dataValue.getEventDate();
+    dueDate = dataValue.getDueDate();
+    latitude = dataValue.getLatitude();
+    longitude = dataValue.getLongitude();
+    dataElement = dataValue.getDataElement();
+    value = dataValue.getValue();
+    storedBy = dataValue.getStoredBy();
+    providedElsewhere = dataValue.getProvidedElsewhere();
+    completedDate = dataValue.getCompletedDate();
+    completedBy = dataValue.getCompletedBy();
+    geometry = dataValue.getGeometry();
+  }
+
+  @JsonProperty
+  public String getEvent() {
+    return event;
+  }
+
+  public void setEvent(String event) {
+    this.event = event;
+  }
+
+  @JsonProperty
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  @JsonProperty
+  public String getProgram() {
+    return program;
+  }
+
+  public void setProgram(String program) {
+    this.program = program;
+  }
+
+  @JsonProperty
+  public String getProgramStage() {
+    return programStage;
+  }
+
+  public void setProgramStage(String programStage) {
+    this.programStage = programStage;
+  }
+
+  @JsonProperty
+  public String getEnrollment() {
+    return enrollment;
+  }
+
+  public void setEnrollment(String enrollment) {
+    this.enrollment = enrollment;
+  }
+
+  @JsonProperty
+  public String getOrgUnit() {
+    return orgUnit;
+  }
+
+  public void setOrgUnit(String orgUnit) {
+    this.orgUnit = orgUnit;
+  }
+
+  @JsonProperty
+  public String getEventDate() {
+    return eventDate;
+  }
+
+  public void setEventDate(String eventDate) {
+    this.eventDate = eventDate;
+  }
+
+  @JsonProperty
+  public String getDueDate() {
+    return dueDate;
+  }
+
+  public void setDueDate(String dueDate) {
+    this.dueDate = dueDate;
+  }
+
+  @JsonProperty
+  public Double getLatitude() {
+    return latitude;
+  }
+
+  public void setLatitude(Double latitude) {
+    this.latitude = latitude;
+  }
+
+  @JsonProperty
+  public Double getLongitude() {
+    return longitude;
+  }
+
+  public void setLongitude(Double longitude) {
+    this.longitude = longitude;
+  }
+
+  @JsonProperty
+  public String getDataElement() {
+    return dataElement;
+  }
+
+  public void setDataElement(String dataElement) {
+    this.dataElement = dataElement;
+  }
+
+  @JsonProperty
+  public String getValue() {
+    return value;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
+  }
+
+  @JsonProperty
+  public Boolean getProvidedElsewhere() {
+    return providedElsewhere;
+  }
+
+  public void setProvidedElsewhere(Boolean providedElsewhere) {
+    this.providedElsewhere = providedElsewhere;
+  }
+
+  @JsonProperty
+  public String getStoredBy() {
+    return storedBy;
+  }
+
+  public void setStoredBy(String storedBy) {
+    this.storedBy = storedBy;
+  }
+
+  @JsonProperty
+  public String getCompletedDate() {
+    return this.completedDate;
+  }
+
+  public void setCompletedDate(String completedDate) {
+    this.completedDate = completedDate;
+  }
+
+  @JsonProperty
+  public String getCompletedBy() {
+    return this.completedBy;
+  }
+
+  public void setCompletedBy(String completedBy) {
+    this.completedBy = completedBy;
+  }
+
+  @JsonProperty
+  public String getGeometry() {
+    return geometry;
+  }
+
+  public void setGeometry(String geometry) {
+    this.geometry = geometry;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        event,
+        status,
+        program,
+        programStage,
+        orgUnit,
+        enrollment,
+        eventDate,
+        dueDate,
+        dataElement,
+        value,
+        storedBy,
+        providedElsewhere);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
 
-    public CsvEventDataValue( CsvEventDataValue dataValue )
-    {
-        Assert.notNull( dataValue, "A non-null CsvOutputEventDataValue must be given as a parameter." );
+    final CsvEventDataValue other = (CsvEventDataValue) obj;
 
-        event = dataValue.getEvent();
-        status = dataValue.getStatus();
-        program = dataValue.getProgram();
-        programStage = dataValue.getProgramStage();
-        enrollment = dataValue.getEnrollment();
-        orgUnit = dataValue.getOrgUnit();
-        eventDate = dataValue.getEventDate();
-        dueDate = dataValue.getDueDate();
-        latitude = dataValue.getLatitude();
-        longitude = dataValue.getLongitude();
-        dataElement = dataValue.getDataElement();
-        value = dataValue.getValue();
-        storedBy = dataValue.getStoredBy();
-        providedElsewhere = dataValue.getProvidedElsewhere();
-        completedDate = dataValue.getCompletedDate();
-        completedBy = dataValue.getCompletedBy();
-        geometry = dataValue.getGeometry();
-    }
+    return Objects.equals(this.event, other.event)
+        && Objects.equals(this.status, other.status)
+        && Objects.equals(this.program, other.program)
+        && Objects.equals(this.programStage, other.programStage)
+        && Objects.equals(this.orgUnit, other.orgUnit)
+        && Objects.equals(this.enrollment, other.enrollment)
+        && Objects.equals(this.eventDate, other.eventDate)
+        && Objects.equals(this.dueDate, other.dueDate)
+        && Objects.equals(this.latitude, other.latitude)
+        && Objects.equals(this.longitude, other.longitude)
+        && Objects.equals(this.dataElement, other.dataElement)
+        && Objects.equals(this.value, other.value)
+        && Objects.equals(this.storedBy, other.storedBy)
+        && Objects.equals(this.providedElsewhere, other.providedElsewhere)
+        && Objects.equals(this.geometry, other.geometry);
+  }
 
-    @JsonProperty
-    public String getEvent()
-    {
-        return event;
-    }
-
-    public void setEvent( String event )
-    {
-        this.event = event;
-    }
-
-    @JsonProperty
-    public String getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus( String status )
-    {
-        this.status = status;
-    }
-
-    @JsonProperty
-    public String getProgram()
-    {
-        return program;
-    }
-
-    public void setProgram( String program )
-    {
-        this.program = program;
-    }
-
-    @JsonProperty
-    public String getProgramStage()
-    {
-        return programStage;
-    }
-
-    public void setProgramStage( String programStage )
-    {
-        this.programStage = programStage;
-    }
-
-    @JsonProperty
-    public String getEnrollment()
-    {
-        return enrollment;
-    }
-
-    public void setEnrollment( String enrollment )
-    {
-        this.enrollment = enrollment;
-    }
-
-    @JsonProperty
-    public String getOrgUnit()
-    {
-        return orgUnit;
-    }
-
-    public void setOrgUnit( String orgUnit )
-    {
-        this.orgUnit = orgUnit;
-    }
-
-    @JsonProperty
-    public String getEventDate()
-    {
-        return eventDate;
-    }
-
-    public void setEventDate( String eventDate )
-    {
-        this.eventDate = eventDate;
-    }
-
-    @JsonProperty
-    public String getDueDate()
-    {
-        return dueDate;
-    }
-
-    public void setDueDate( String dueDate )
-    {
-        this.dueDate = dueDate;
-    }
-
-    @JsonProperty
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
-    }
-
-    @JsonProperty
-    public Double getLongitude()
-    {
-        return longitude;
-    }
-
-    public void setLongitude( Double longitude )
-    {
-        this.longitude = longitude;
-    }
-
-    @JsonProperty
-    public String getDataElement()
-    {
-        return dataElement;
-    }
-
-    public void setDataElement( String dataElement )
-    {
-        this.dataElement = dataElement;
-    }
-
-    @JsonProperty
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    @JsonProperty
-    public Boolean getProvidedElsewhere()
-    {
-        return providedElsewhere;
-    }
-
-    public void setProvidedElsewhere( Boolean providedElsewhere )
-    {
-        this.providedElsewhere = providedElsewhere;
-    }
-
-    @JsonProperty
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    @JsonProperty
-    public String getCompletedDate()
-    {
-        return this.completedDate;
-    }
-
-    public void setCompletedDate( String completedDate )
-    {
-        this.completedDate = completedDate;
-    }
-
-    @JsonProperty
-    public String getCompletedBy()
-    {
-        return this.completedBy;
-    }
-
-    public void setCompletedBy( String completedBy )
-    {
-        this.completedBy = completedBy;
-    }
-
-    @JsonProperty
-    public String getGeometry()
-    {
-        return geometry;
-    }
-
-    public void setGeometry( String geometry )
-    {
-        this.geometry = geometry;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( event, status, program, programStage, orgUnit, enrollment, eventDate, dueDate,
-            dataElement, value, storedBy, providedElsewhere );
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-
-        final CsvEventDataValue other = (CsvEventDataValue) obj;
-
-        return Objects.equals( this.event, other.event ) && Objects.equals( this.status, other.status )
-            && Objects.equals( this.program,
-                other.program )
-            && Objects.equals( this.programStage, other.programStage ) && Objects.equals( this.orgUnit,
-                other.orgUnit )
-            && Objects.equals( this.enrollment, other.enrollment ) && Objects.equals( this.eventDate,
-                other.eventDate )
-            && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
-                other.latitude )
-            && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
-                other.dataElement )
-            && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
-                other.storedBy )
-            && Objects.equals( this.providedElsewhere, other.providedElsewhere ) && Objects.equals( this.geometry,
-                other.geometry );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "event", event )
-            .add( "status", status )
-            .add( "program", program )
-            .add( "programStage", programStage )
-            .add( "enrollment", enrollment )
-            .add( "orgUnit", orgUnit )
-            .add( "eventDate", eventDate )
-            .add( "dueDate", dueDate )
-            .add( "latitude", latitude )
-            .add( "longitude", longitude )
-            .add( "dataElement", dataElement )
-            .add( "value", value )
-            .add( "storedBy", storedBy )
-            .add( "providedElsewhere", providedElsewhere )
-            .add( "completedDate", completedDate )
-            .add( "completedBy", completedBy )
-            .add( "geometry", geometry )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("event", event)
+        .add("status", status)
+        .add("program", program)
+        .add("programStage", programStage)
+        .add("enrollment", enrollment)
+        .add("orgUnit", orgUnit)
+        .add("eventDate", eventDate)
+        .add("dueDate", dueDate)
+        .add("latitude", latitude)
+        .add("longitude", longitude)
+        .add("dataElement", dataElement)
+        .add("value", value)
+        .add("storedBy", storedBy)
+        .add("providedElsewhere", providedElsewhere)
+        .add("completedDate", completedDate)
+        .add("completedBy", completedBy)
+        .add("geometry", geometry)
+        .toString();
+  }
 }

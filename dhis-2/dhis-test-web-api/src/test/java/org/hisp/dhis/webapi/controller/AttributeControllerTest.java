@@ -41,25 +41,31 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-class AttributeControllerTest extends DhisControllerConvenienceTest
-{
+class AttributeControllerTest extends DhisControllerConvenienceTest {
 
-    /**
-     * Tests that each type only sets the property the type relates to
-     */
-    @Test
-    void testObjectTypes()
-    {
-        for ( ObjectType testedType : ObjectType.values() )
-        {
-            String propertyName = testedType.getPropertyName();
-            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes",
-                "{" + "'name':'" + testedType + "', " + "'valueType':'INTEGER', " + "'" + propertyName + "':true}" ) );
-            JsonObject attr = GET( "/attributes/{uid}", uid ).content();
-            for ( ObjectType otherType : ObjectType.values() )
-            {
-                assertEquals( testedType == otherType, attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
-            }
-        }
+  /** Tests that each type only sets the property the type relates to */
+  @Test
+  void testObjectTypes() {
+    for (ObjectType testedType : ObjectType.values()) {
+      String propertyName = testedType.getPropertyName();
+      String uid =
+          assertStatus(
+              HttpStatus.CREATED,
+              POST(
+                  "/attributes",
+                  "{"
+                      + "'name':'"
+                      + testedType
+                      + "', "
+                      + "'valueType':'INTEGER', "
+                      + "'"
+                      + propertyName
+                      + "':true}"));
+      JsonObject attr = GET("/attributes/{uid}", uid).content();
+      for (ObjectType otherType : ObjectType.values()) {
+        assertEquals(
+            testedType == otherType, attr.getBoolean(otherType.getPropertyName()).booleanValue());
+      }
     }
+  }
 }

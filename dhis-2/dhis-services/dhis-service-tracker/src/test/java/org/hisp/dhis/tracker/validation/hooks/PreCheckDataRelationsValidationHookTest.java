@@ -36,10 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -74,1074 +74,1052 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest {
 
-    private static final String PROGRAM_UID = "PROGRAM_UID";
+  private static final String PROGRAM_UID = "PROGRAM_UID";
 
-    private static final String PROGRAM_STAGE_ID = "PROGRAM_STAGE_ID";
+  private static final String PROGRAM_STAGE_ID = "PROGRAM_STAGE_ID";
 
-    private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
+  private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-    private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
 
-    private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
+  private static final String ANOTHER_TEI_TYPE_ID = "ANOTHER_TEI_TYPE_ID";
 
-    private static final String TEI_ID = "TEI_ID";
+  private static final String TEI_ID = "TEI_ID";
 
-    private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
+  private static final String ENROLLMENT_ID = "ENROLLMENT_ID";
 
-    private PreCheckDataRelationsValidationHook hook;
+  private PreCheckDataRelationsValidationHook hook;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private ValidationErrorReporter reporter;
+  private ValidationErrorReporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        hook = new PreCheckDataRelationsValidationHook();
+  @BeforeEach
+  void setUp() {
+    hook = new PreCheckDataRelationsValidationHook();
 
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
-        reporter = new ValidationErrorReporter( bundle );
-    }
+    bundle = TrackerBundle.builder().preheat(preheat).build();
+    reporter = new ValidationErrorReporter(bundle);
+  }
 
-    @Test
-    void verifyValidationSuccessForEnrollment()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        TrackedEntityType teiType = trackedEntityType( TEI_TYPE_ID );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, teiType ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
+  @Test
+  void verifyValidationSuccessForEnrollment() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    TrackedEntityType teiType = trackedEntityType(TEI_TYPE_ID);
+    when(preheat.getProgram(PROGRAM_UID))
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, teiType));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(bundle.getTrackedEntityInstance(TEI_ID))
+        .thenReturn(trackedEntityInstance(TEI_TYPE_ID, teiType, orgUnit));
 
-        Enrollment enrollment = Enrollment.builder()
-            .orgUnit( ORG_UNIT_ID )
-            .program( PROGRAM_UID )
-            .enrollment( CodeGenerator.generateUid() )
-            .trackedEntity( TEI_ID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .orgUnit(ORG_UNIT_ID)
+            .program(PROGRAM_UID)
+            .enrollment(CodeGenerator.generateUid())
+            .trackedEntity(TEI_ID)
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+    hook.validateEnrollment(reporter, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentIsNotARegistration()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( programWithoutRegistration( PROGRAM_UID, orgUnit ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
+  @Test
+  void verifyValidationFailsWhenEnrollmentIsNotARegistration() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    when(preheat.getProgram(PROGRAM_UID))
+        .thenReturn(programWithoutRegistration(PROGRAM_UID, orgUnit));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
 
-        Enrollment enrollment = Enrollment.builder()
-            .orgUnit( ORG_UNIT_ID )
-            .enrollment( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .orgUnit(ORG_UNIT_ID)
+            .enrollment(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+    hook.validateEnrollment(reporter, enrollment);
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1014 ) );
-    }
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1014));
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, anotherOrgUnit ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn(
-                Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
+  @Test
+  void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    OrganisationUnit anotherOrgUnit = organisationUnit(CodeGenerator.generateUid());
+    when(preheat.getProgram(PROGRAM_UID))
+        .thenReturn(programWithRegistration(PROGRAM_UID, anotherOrgUnit));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(
+            Collections.singletonMap(
+                PROGRAM_UID, Collections.singletonList(anotherOrgUnit.getUid())));
 
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .orgUnit( ORG_UNIT_ID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .orgUnit(ORG_UNIT_ID)
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+    hook.validateEnrollment(reporter, enrollment);
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1041 ) );
-    }
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1041));
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_ID, anotherTrackedEntityType, orgUnit ) );
+  @Test
+  void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    when(preheat.getProgram(PROGRAM_UID))
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TEI_TYPE_ID)));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    TrackedEntityType anotherTrackedEntityType = trackedEntityType(TEI_ID, 'B');
+    when(bundle.getTrackedEntityInstance(TEI_ID))
+        .thenReturn(trackedEntityInstance(TEI_ID, anotherTrackedEntityType, orgUnit));
 
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .orgUnit( ORG_UNIT_ID )
-            .trackedEntity( TEI_ID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .orgUnit(ORG_UNIT_ID)
+            .trackedEntity(TEI_ID)
             .build();
 
-        hook.validateEnrollment( reporter, enrollment );
+    hook.validateEnrollment(reporter, enrollment);
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
-    }
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1022));
+  }
 
-    @Test
-    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( programWithRegistration( PROGRAM_UID, orgUnit, trackedEntityType( TEI_TYPE_ID ) ) );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( null );
+  @Test
+  void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    when(preheat.getProgram(PROGRAM_UID))
+        .thenReturn(programWithRegistration(PROGRAM_UID, orgUnit, trackedEntityType(TEI_TYPE_ID)));
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(null);
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .trackedEntityType( ANOTHER_TEI_TYPE_ID )
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .trackedEntityType(ANOTHER_TEI_TYPE_ID)
             .build();
-        bundle.setTrackedEntities( Collections.singletonList( trackedEntity ) );
+    bundle.setTrackedEntities(Collections.singletonList(trackedEntity));
 
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .orgUnit( ORG_UNIT_ID )
-            .trackedEntity( TEI_ID )
-            .build();
-
-        hook.validateEnrollment( reporter, enrollment );
-
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1022 ) );
-    }
-
-    @Test
-    void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( program );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( preheat.getProgramStage( PROGRAM_STAGE_ID ) )
-            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
-
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
-
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ORG_UNIT_ID )
-            .enrollment( ENROLLMENT_ID )
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .orgUnit(ORG_UNIT_ID)
+            .trackedEntity(TEI_ID)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEnrollment(reporter, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1022));
+  }
 
-    @Test
-    void eventValidationFailsWhenEventAndProgramStageProgramDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( program );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( preheat.getProgramStage( PROGRAM_STAGE_ID ) )
-            .thenReturn(
-                programStage( PROGRAM_STAGE_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
+  @Test
+  void eventValidationSucceedsWhenAOCAndCOsAreNotSetAndProgramHasDefaultCC() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
+    when(preheat.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getProgramStage(PROGRAM_STAGE_ID))
+        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
+    when(bundle.getProgramInstance(ENROLLMENT_ID))
+        .thenReturn(programInstance(ENROLLMENT_ID, program));
 
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
 
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ORG_UNIT_ID )
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .programStage(PROGRAM_STAGE_ID)
+            .orgUnit(ORG_UNIT_ID)
+            .enrollment(ENROLLMENT_ID)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1089 ) );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void eventValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( program );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( preheat.getProgramStage( PROGRAM_STAGE_ID ) )
-            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
+  @Test
+  void eventValidationFailsWhenEventAndProgramStageProgramDontMatch() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
+    when(preheat.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getProgramStage(PROGRAM_STAGE_ID))
+        .thenReturn(
+            programStage(
+                PROGRAM_STAGE_ID, programWithRegistration(CodeGenerator.generateUid(), orgUnit)));
 
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
 
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ORG_UNIT_ID )
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .programStage(PROGRAM_STAGE_ID)
+            .orgUnit(ORG_UNIT_ID)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1033 ) );
-    }
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1089));
+  }
 
-    @Test
-    void eventValidationFailsWhenEventAndEnrollmentProgramDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( program );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( preheat.getProgramStage( PROGRAM_STAGE_ID ) )
-            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
-            .thenReturn(
-                programInstance( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
+  @Test
+  void eventValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
+    when(preheat.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getProgramStage(PROGRAM_STAGE_ID))
+        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
 
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
 
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ORG_UNIT_ID )
-            .enrollment( ENROLLMENT_ID )
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .programStage(PROGRAM_STAGE_ID)
+            .orgUnit(ORG_UNIT_ID)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1079 ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1033));
+  }
 
-    @Test
-    void eventValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        OrganisationUnit anotherOrgUnit = organisationUnit( CodeGenerator.generateUid() );
-        Program program = programWithRegistration( PROGRAM_UID, anotherOrgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( program );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn(
-                Collections.singletonMap( PROGRAM_UID, Collections.singletonList( anotherOrgUnit.getUid() ) ) );
-        when( preheat.getProgramStage( PROGRAM_STAGE_ID ) )
-            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+  @Test
+  void eventValidationFailsWhenEventAndEnrollmentProgramDontMatch() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
+    when(preheat.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getProgramStage(PROGRAM_STAGE_ID))
+        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
+    when(bundle.getProgramInstance(ENROLLMENT_ID))
+        .thenReturn(
+            programInstance(
+                ENROLLMENT_ID, programWithRegistration(CodeGenerator.generateUid(), orgUnit)));
 
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
 
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ORG_UNIT_ID )
-            .enrollment( ENROLLMENT_ID )
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .programStage(PROGRAM_STAGE_ID)
+            .orgUnit(ORG_UNIT_ID)
+            .enrollment(ENROLLMENT_ID)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1029 ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1079));
+  }
 
-    @Test
-    void eventValidationFailsWhenNoAOCAndNoCOsAreSetAndProgramHasNonDefaultCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( categoryCombo() );
+  @Test
+  void eventValidationFailsWhenEventAndProgramOrganisationUnitDontMatch() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    OrganisationUnit anotherOrgUnit = organisationUnit(CodeGenerator.generateUid());
+    Program program = programWithRegistration(PROGRAM_UID, anotherOrgUnit);
+    when(preheat.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(
+            Collections.singletonMap(
+                PROGRAM_UID, Collections.singletonList(anotherOrgUnit.getUid())));
+    when(preheat.getProgramStage(PROGRAM_STAGE_ID))
+        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
+    when(bundle.getProgramInstance(ENROLLMENT_ID))
+        .thenReturn(programInstance(ENROLLMENT_ID, program));
 
-        Event event = eventBuilder()
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .program(PROGRAM_UID)
+            .programStage(PROGRAM_STAGE_ID)
+            .orgUnit(ORG_UNIT_ID)
+            .enrollment(ENROLLMENT_ID)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1029));
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyCOsAreSetAndExist()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
+  @Test
+  void eventValidationFailsWhenNoAOCAndNoCOsAreSetAndProgramHasNonDefaultCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    program.setCategoryCombo(categoryCombo());
 
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+    Event event = eventBuilder().build();
 
-        Event event = eventBuilder()
-            .attributeCategoryOptions( co.getUid() )
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1055));
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyCOsAreSetAndExist() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOption co = cc.getCategoryOptions().get(0);
+    when(preheat.getCategoryOption(co.getUid())).thenReturn(co);
+
+    Event event = eventBuilder().attributeCategoryOptions(co.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1117
+                    && r.getErrorMessage().contains(program.getCategoryCombo().getUid())
+                    && r.getErrorMessage().contains(co.getUid())));
+  }
+
+  @Test
+  void eventValidationSucceedsWhenOnlyCOsAreSetAndEventProgramHasDefaultCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+
+    CategoryOption defaultCO = defaultCC.getCategoryOptions().get(0);
+    when(preheat.getCategoryOption(defaultCO.getUid())).thenReturn(defaultCO);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+
+    Event event = eventBuilder().attributeCategoryOptions(defaultCO.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getDefault(CategoryOptionCombo.class)).thenReturn(defaultAOC);
+
+    CategoryCombo cc = categoryCombo();
+    CategoryOption co = cc.getCategoryOptions().get(0);
+    when(preheat.getCategoryOption(co.getUid())).thenReturn(co);
+
+    Event event = eventBuilder().attributeCategoryOptions(co.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1117
+                    && r.getErrorMessage().contains(program.getCategoryCombo().getUid())
+                    && r.getErrorMessage().contains(co.getUid())));
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyCOsAreSetToCONotInProgramCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+
+    CategoryOption co = createCategoryOption('B');
+    when(preheat.getCategoryOption(co.getUid())).thenReturn(co);
+
+    Event event = eventBuilder().attributeCategoryOptions(co.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1117
+                    && r.getErrorMessage().contains(program.getCategoryCombo().getUid())
+                    && r.getErrorMessage().contains(co.getUid())));
+  }
+
+  @Test
+  void eventValidationSucceedsWhenOnlyAOCIsSet() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
+    when(preheat.getCategoryOptionCombo(aoc.getUid())).thenReturn(aoc);
+
+    Event event = eventBuilder().attributeOptionCombo(aoc.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void eventValidationSucceedsWhenOnlyAOCIsSetAndEventProgramHasDefaultCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getCategoryOptionCombo(defaultAOC.getUid())).thenReturn(defaultAOC);
+
+    Event event = eventBuilder().attributeOptionCombo(defaultAOC.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyAOCIsSetEventProgramHasDefaultCCAndAOCIsNotFound() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    program.setCategoryCombo(defaultCategoryCombo());
+
+    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(UNKNOWN_AOC_ID)).thenReturn(null);
+
+    Event event = eventBuilder().attributeOptionCombo(UNKNOWN_AOC_ID).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1115));
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyAOCIsSetAndAOCIsNotFound() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    program.setCategoryCombo(categoryCombo());
+
+    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(UNKNOWN_AOC_ID)).thenReturn(null);
+
+    Event event = eventBuilder().attributeOptionCombo(UNKNOWN_AOC_ID).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1115));
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    program.setCategoryCombo(categoryCombo('A'));
+
+    CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo('B'));
+    when(preheat.getCategoryOptionCombo(aoc.getUid())).thenReturn(aoc);
+
+    Event event = eventBuilder().attributeOptionCombo(aoc.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1054
+                    && r.getErrorMessage().contains(aoc.getUid())
+                    && r.getErrorMessage().contains(program.getCategoryCombo().getUid())));
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyAOCIsSetToDefaultAOCNotInProgramCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    program.setCategoryCombo(categoryCombo('A'));
+
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCategoryCombo());
+    when(preheat.getCategoryOptionCombo(defaultAOC.getUid())).thenReturn(defaultAOC);
+
+    Event event = eventBuilder().attributeOptionCombo(defaultAOC.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1055));
+  }
+
+  @Test
+  void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCCAndEventProgramHasDefaultCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    program.setCategoryCombo(defaultCategoryCombo());
+
+    CategoryOptionCombo aoc = firstCategoryOptionCombo(categoryCombo('B'));
+    when(preheat.getCategoryOptionCombo(aoc.getUid())).thenReturn(aoc);
+
+    Event event = eventBuilder().attributeOptionCombo(aoc.getUid()).build();
+
+    hook.validateEvent(reporter, event);
+
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1054
+                    && r.getErrorMessage().contains(aoc.getUid())
+                    && r.getErrorMessage().contains(program.getCategoryCombo().getUid())));
+  }
+
+  @Test
+  void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndProgramHasDefaultCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+
+    CategoryCombo defaultCC = defaultCategoryCombo();
+    program.setCategoryCombo(defaultCC);
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCC);
+    when(preheat.getCategoryOptionCombo(defaultAOC.getUid())).thenReturn(defaultAOC);
+
+    CategoryOption defaultCO = defaultCC.getCategoryOptions().get(0);
+    program.setCategoryCombo(defaultCC);
+    when(preheat.getCategoryOption(defaultCO.getUid())).thenReturn(defaultCO);
+
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(defaultAOC.getUid())
+            .attributeCategoryOptions(defaultCO.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-            r.getErrorMessage().contains( co.getUid() ) ) );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void eventValidationSucceedsWhenOnlyCOsAreSetAndEventProgramHasDefaultCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
+  @Test
+  void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndBothFound() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
 
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOption co = cc.getCategoryOptions().get(0);
+    when(preheat.getCategoryOption(co.getUid())).thenReturn(co);
+    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
+    when(preheat.getCategoryOptionCombo(aoc.getUid())).thenReturn(aoc);
 
-        CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( defaultCO.getUid() ) ).thenReturn( defaultCO );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
-
-        Event event = eventBuilder()
-            .attributeCategoryOptions( defaultCO.getUid() )
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(aoc.getUid())
+            .attributeCategoryOptions(co.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyCOsAreSetToCONotInCCAndEventProgramHasDefaultCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( defaultAOC );
+  @Test
+  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
 
-        CategoryCombo cc = categoryCombo();
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOption co = cc.getCategoryOptions().get(0);
+    when(preheat.getCategoryOption(co.getUid())).thenReturn(co);
 
-        Event event = eventBuilder()
-            .attributeCategoryOptions( co.getUid() )
+    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(UNKNOWN_AOC_ID)).thenReturn(null);
+
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(UNKNOWN_AOC_ID)
+            .attributeCategoryOptions(co.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-            r.getErrorMessage().contains( co.getUid() ) ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1115));
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyCOsAreSetToCONotInProgramCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
+  @Test
+  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsSetToDefault() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
 
-        CategoryOption co = createCategoryOption( 'B' );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOption co = cc.getCategoryOptions().get(0);
+    when(preheat.getCategoryOption(co.getUid())).thenReturn(co);
 
-        Event event = eventBuilder()
-            .attributeCategoryOptions( co.getUid() )
+    CategoryOptionCombo defaultAOC = firstCategoryOptionCombo(defaultCategoryCombo());
+    when(preheat.getCategoryOptionCombo(defaultAOC.getUid())).thenReturn(defaultAOC);
+
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(defaultAOC.getUid())
+            .attributeCategoryOptions(co.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) &&
-            r.getErrorMessage().contains( co.getUid() ) ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1055));
+  }
 
-    @Test
-    void eventValidationSucceedsWhenOnlyAOCIsSet()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
+  @Test
+  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotFound() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
 
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
+    when(preheat.getCategoryOptionCombo(aoc.getUid())).thenReturn(aoc);
 
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+    String UNKNOWN_CO_ID = CodeGenerator.generateUid();
+    when(preheat.getCategoryOption(UNKNOWN_CO_ID)).thenReturn(null);
+
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(aoc.getUid())
+            .attributeCategoryOptions(UNKNOWN_CO_ID)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1116));
+  }
 
-    @Test
-    void eventValidationSucceedsWhenOnlyAOCIsSetAndEventProgramHasDefaultCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
+  @Test
+  void eventValidationFailsAccumulatingAOCAndCOsNotFoundErrors() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
 
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOption co = cc.getCategoryOptions().get(0);
+    when(preheat.getCategoryOption(co.getUid())).thenReturn(co);
 
-        Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+    String UNKNOWN_CO_ID1 = CodeGenerator.generateUid();
+    when(preheat.getCategoryOption(UNKNOWN_CO_ID1)).thenReturn(null);
+    String UNKNOWN_CO_ID2 = CodeGenerator.generateUid();
+    when(preheat.getCategoryOption(UNKNOWN_CO_ID2)).thenReturn(null);
+
+    String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
+    when(preheat.getCategoryOptionCombo(UNKNOWN_AOC_ID)).thenReturn(null);
+
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(UNKNOWN_AOC_ID)
+            .attributeCategoryOptions(UNKNOWN_CO_ID1 + ";" + co.getUid() + ";" + UNKNOWN_CO_ID2)
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertEquals(3, reporter.getReportList().size());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E1115));
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1116
+                    && r.getErrorMessage().contains(UNKNOWN_CO_ID1)));
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1116
+                    && r.getErrorMessage().contains(UNKNOWN_CO_ID2)));
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyAOCIsSetEventProgramHasDefaultCCAndAOCIsNotFound()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( defaultCategoryCombo() );
+  @Test
+  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotInProgramCC() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
 
-        String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
+    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
+    when(preheat.getCategoryOptionCombo(aoc.getUid())).thenReturn(aoc);
 
-        Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+    CategoryOption eventCO = createCategoryOption('C');
+    when(preheat.getCategoryOption(eventCO.getUid())).thenReturn(eventCO);
+
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(aoc.getUid())
+            .attributeCategoryOptions(eventCO.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1117
+                    && r.getErrorMessage().contains(eventCO.getUid())
+                    && r.getErrorMessage().contains(aoc.getUid())));
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyAOCIsSetAndAOCIsNotFound()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( categoryCombo() );
+  @Test
+  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButDoNotMatch() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    CategoryCombo cc = categoryCombo();
+    program.setCategoryCombo(cc);
 
-        String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
+    CategoryOptionCombo aoc1 = cc.getSortedOptionCombos().get(0);
+    CategoryOption co1 = (CategoryOption) aoc1.getCategoryOptions().toArray()[0];
+    when(preheat.getCategoryOption(co1.getUid())).thenReturn(co1);
 
-        Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
+    CategoryOptionCombo aoc2 = cc.getSortedOptionCombos().get(1);
+    when(preheat.getCategoryOptionCombo(aoc2.getUid())).thenReturn(aoc2);
+
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(aoc2.getUid())
+            .attributeCategoryOptions(co1.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1117
+                    && r.getErrorMessage().contains(co1.getUid())
+                    && r.getErrorMessage().contains(aoc2.getUid())));
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( categoryCombo( 'A' ) );
+  @Test
+  void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButNotAllCOsInAOCAreGiven() {
+    OrganisationUnit orgUnit = setupOrgUnit();
+    Program program = setupProgram(orgUnit);
+    CategoryCombo cc = categoryComboWithTwoCategories();
+    program.setCategoryCombo(cc);
 
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo( 'B' ) );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+    CategoryOptionCombo aoc = firstCategoryOptionCombo(cc);
+    when(preheat.getCategoryOptionCombo(aoc.getUid())).thenReturn(aoc);
+    CategoryOption co1 = (CategoryOption) aoc.getCategoryOptions().toArray()[0];
+    when(preheat.getCategoryOption(co1.getUid())).thenReturn(co1);
 
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+    Event event =
+        eventBuilder()
+            .attributeOptionCombo(aoc.getUid())
+            .attributeCategoryOptions(co1.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateEvent(reporter, event);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
-            r.getErrorMessage().contains( aoc.getUid() ) &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
-    }
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            r ->
+                r.getErrorCode() == TrackerErrorCode.E1117
+                    && r.getErrorMessage().contains(co1.getUid())
+                    && r.getErrorMessage().contains(aoc.getUid())));
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyAOCIsSetToDefaultAOCNotInProgramCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( categoryCombo( 'A' ) );
+  @Test
+  void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound() {
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
 
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCategoryCombo() );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(trackedEntityRelationshipItem("validTrackedEntity"))
+            .to(trackedEntityRelationshipItem("anotherValidTrackedEntity"))
+            .relationshipType(relType.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
+    hook.validateRelationship(reporter, relationship);
 
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
-    }
+    assertTrue(reporter.hasErrors());
+    assertTrue(reporter.hasErrorReport(r -> r.getErrorCode() == TrackerErrorCode.E4012));
+    assertThat(
+        reporter.getReportList().stream()
+            .map(TrackerErrorReport::getErrorMessage)
+            .collect(Collectors.toList()),
+        hasItem("Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship."));
+    assertThat(
+        reporter.getReportList().stream()
+            .map(TrackerErrorReport::getErrorMessage)
+            .collect(Collectors.toList()),
+        hasItem(
+            "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship."));
+  }
 
-    @Test
-    void eventValidationFailsWhenOnlyAOCIsSetToAOCNotInProgramCCAndEventProgramHasDefaultCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        program.setCategoryCombo( defaultCategoryCombo() );
+  @Test
+  void verifyValidationSuccessWhenLinkedTrackedEntityIsFound() {
 
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( categoryCombo( 'B' ) );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
+    TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
+    validTrackedEntity.setUid("validTrackedEntity");
+    when(bundle.getTrackedEntityInstance("validTrackedEntity")).thenReturn(validTrackedEntity);
 
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
+    ReferenceTrackerEntity anotherValidTrackedEntity =
+        new ReferenceTrackerEntity("anotherValidTrackedEntity", null);
+    when(preheat.getReference("anotherValidTrackedEntity"))
+        .thenReturn(Optional.of(anotherValidTrackedEntity));
+
+    RelationshipType relType =
+        createRelTypeConstraint(TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE);
+
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .from(trackedEntityRelationshipItem("validTrackedEntity"))
+            .to(trackedEntityRelationshipItem("anotherValidTrackedEntity"))
+            .relationshipType(relType.getUid())
             .build();
 
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1054 &&
-            r.getErrorMessage().contains( aoc.getUid() ) &&
-            r.getErrorMessage().contains( program.getCategoryCombo().getUid() ) ) );
-    }
-
-    @Test
-    void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndProgramHasDefaultCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo defaultCC = defaultCategoryCombo();
-        program.setCategoryCombo( defaultCC );
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCC );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
-
-        CategoryOption defaultCO = defaultCC.getCategoryOptions().get( 0 );
-        program.setCategoryCombo( defaultCC );
-        when( preheat.getCategoryOption( defaultCO.getUid() ) ).thenReturn( defaultCO );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
-            .attributeCategoryOptions( defaultCO.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void eventValidationSucceedsWhenEventAOCAndEventCOsAreSetAndBothFound()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
-            .attributeCategoryOptions( co.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsNotFound()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-
-        String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
-            .attributeCategoryOptions( co.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
-    }
-
-    @Test
-    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndAOCIsSetToDefault()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-
-        CategoryOptionCombo defaultAOC = firstCategoryOptionCombo( defaultCategoryCombo() );
-        when( preheat.getCategoryOptionCombo( defaultAOC.getUid() ) ).thenReturn( defaultAOC );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( defaultAOC.getUid() )
-            .attributeCategoryOptions( co.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1055 ) );
-    }
-
-    @Test
-    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotFound()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
-
-        String UNKNOWN_CO_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOption( UNKNOWN_CO_ID ) ).thenReturn( null );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
-            .attributeCategoryOptions( UNKNOWN_CO_ID )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116 ) );
-    }
-
-    @Test
-    void eventValidationFailsAccumulatingAOCAndCOsNotFoundErrors()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOption co = cc.getCategoryOptions().get( 0 );
-        when( preheat.getCategoryOption( co.getUid() ) ).thenReturn( co );
-
-        String UNKNOWN_CO_ID1 = CodeGenerator.generateUid();
-        when( preheat.getCategoryOption( UNKNOWN_CO_ID1 ) ).thenReturn( null );
-        String UNKNOWN_CO_ID2 = CodeGenerator.generateUid();
-        when( preheat.getCategoryOption( UNKNOWN_CO_ID2 ) ).thenReturn( null );
-
-        String UNKNOWN_AOC_ID = CodeGenerator.generateUid();
-        when( preheat.getCategoryOptionCombo( UNKNOWN_AOC_ID ) ).thenReturn( null );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( UNKNOWN_AOC_ID )
-            .attributeCategoryOptions( UNKNOWN_CO_ID1 + ";" + co.getUid() + ";" + UNKNOWN_CO_ID2 )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 3, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1115 ) );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
-            && r.getErrorMessage().contains( UNKNOWN_CO_ID1 ) ) );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1116
-            && r.getErrorMessage().contains( UNKNOWN_CO_ID2 ) ) );
-    }
-
-    @Test
-    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndCOIsNotInProgramCC()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
-
-        CategoryOption eventCO = createCategoryOption( 'C' );
-        when( preheat.getCategoryOption( eventCO.getUid() ) ).thenReturn( eventCO );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
-            .attributeCategoryOptions( eventCO.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( eventCO.getUid() ) &&
-            r.getErrorMessage().contains( aoc.getUid() ) ) );
-    }
-
-    @Test
-    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButDoNotMatch()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        CategoryCombo cc = categoryCombo();
-        program.setCategoryCombo( cc );
-
-        CategoryOptionCombo aoc1 = cc.getSortedOptionCombos().get( 0 );
-        CategoryOption co1 = (CategoryOption) aoc1.getCategoryOptions().toArray()[0];
-        when( preheat.getCategoryOption( co1.getUid() ) ).thenReturn( co1 );
-
-        CategoryOptionCombo aoc2 = cc.getSortedOptionCombos().get( 1 );
-        when( preheat.getCategoryOptionCombo( aoc2.getUid() ) ).thenReturn( aoc2 );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc2.getUid() )
-            .attributeCategoryOptions( co1.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co1.getUid() ) &&
-            r.getErrorMessage().contains( aoc2.getUid() ) ) );
-    }
-
-    @Test
-    void eventValidationFailsWhenEventAOCAndEventCOsAreSetAndInProgramCCButNotAllCOsInAOCAreGiven()
-    {
-        OrganisationUnit orgUnit = setupOrgUnit();
-        Program program = setupProgram( orgUnit );
-        CategoryCombo cc = categoryComboWithTwoCategories();
-        program.setCategoryCombo( cc );
-
-        CategoryOptionCombo aoc = firstCategoryOptionCombo( cc );
-        when( preheat.getCategoryOptionCombo( aoc.getUid() ) ).thenReturn( aoc );
-        CategoryOption co1 = (CategoryOption) aoc.getCategoryOptions().toArray()[0];
-        when( preheat.getCategoryOption( co1.getUid() ) ).thenReturn( co1 );
-
-        Event event = eventBuilder()
-            .attributeOptionCombo( aoc.getUid() )
-            .attributeCategoryOptions( co1.getUid() )
-            .build();
-
-        hook.validateEvent( reporter, event );
-
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E1117 &&
-            r.getErrorMessage().contains( co1.getUid() ) &&
-            r.getErrorMessage().contains( aoc.getUid() ) ) );
-    }
-
-    @Test
-    void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
-    {
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
-            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( relType.getUid() )
-            .build();
-
-        hook.validateRelationship( reporter, relationship );
-
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( r -> r.getErrorCode() == TrackerErrorCode.E4012 ) );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
-            hasItem( "Could not find `trackedEntity`: `validTrackedEntity`, linked to Relationship." ) );
-        assertThat(
-            reporter.getReportList().stream().map( TrackerErrorReport::getErrorMessage ).collect( Collectors.toList() ),
-            hasItem( "Could not find `trackedEntity`: `anotherValidTrackedEntity`, linked to Relationship." ) );
-    }
-
-    @Test
-    void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
-    {
-
-        TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
-        validTrackedEntity.setUid( "validTrackedEntity" );
-        when( bundle.getTrackedEntityInstance( "validTrackedEntity" ) ).thenReturn( validTrackedEntity );
-
-        ReferenceTrackerEntity anotherValidTrackedEntity = new ReferenceTrackerEntity( "anotherValidTrackedEntity",
-            null );
-        when( preheat.getReference( "anotherValidTrackedEntity" ) )
-            .thenReturn( Optional.of( anotherValidTrackedEntity ) );
-
-        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
-
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( trackedEntityRelationshipItem( "validTrackedEntity" ) )
-            .to( trackedEntityRelationshipItem( "anotherValidTrackedEntity" ) )
-            .relationshipType( relType.getUid() )
-            .build();
-
-        hook.validateRelationship( reporter, relationship );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    private OrganisationUnit organisationUnit( String uid )
-    {
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnit.setUid( uid );
-        return organisationUnit;
-    }
-
-    private Program programWithRegistration( String uid, OrganisationUnit orgUnit )
-    {
-        return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
-    }
-
-    // Note : parameters that always have the same value are kept to
-    // make connections between different entities clear when looking at the
-    // test. Without having to navigate to the
-    // helpers.
-    private Program programWithRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
-        OrganisationUnit orgUnit, TrackedEntityType teiType )
-    {
-        return program( uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType );
-    }
-
-    private Program programWithoutRegistration( @SuppressWarnings( "SameParameterValue" ) String uid,
-        OrganisationUnit orgUnit )
-    {
-        return program( uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType( TEI_TYPE_ID ) );
-    }
-
-    private Program program( String uid, ProgramType type, char uniqueCharacter, OrganisationUnit orgUnit,
-        TrackedEntityType teiType )
-    {
-        Program program = createProgram( uniqueCharacter );
-        program.setUid( uid );
-        program.setProgramType( type );
-        program.setOrganisationUnits( Sets.newHashSet( orgUnit ) );
-        program.setTrackedEntityType( teiType );
-        return program;
-    }
-
-    private TrackedEntityType trackedEntityType( @SuppressWarnings( "SameParameterValue" ) String uid )
-    {
-        return trackedEntityType( uid, 'A' );
-    }
-
-    private TrackedEntityType trackedEntityType( String uid, char uniqueChar )
-    {
-        TrackedEntityType trackedEntityType = createTrackedEntityType( uniqueChar );
-        trackedEntityType.setUid( uid );
-        return trackedEntityType;
-    }
-
-    private TrackedEntityInstance trackedEntityInstance( @SuppressWarnings( "SameParameterValue" ) String uid,
-        TrackedEntityType type, OrganisationUnit orgUnit )
-    {
-        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
-        tei.setUid( uid );
-        tei.setTrackedEntityType( type );
-        return tei;
-    }
-
-    private ProgramStage programStage( @SuppressWarnings( "SameParameterValue" ) String uid, Program program )
-    {
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStage.setUid( uid );
-        return programStage;
-    }
-
-    private ProgramInstance programInstance( @SuppressWarnings( "SameParameterValue" ) String uid, Program program )
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( uid );
-        programInstance.setProgram( program );
-        return programInstance;
-    }
-
-    private Program setupProgram( OrganisationUnit orgUnit )
-    {
-        Program program = programWithRegistration( PROGRAM_UID, orgUnit );
-        when( preheat.getProgram( PROGRAM_UID ) )
-            .thenReturn( program );
-        when( preheat.getProgramWithOrgUnitsMap() )
-            .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
-        when( preheat.getProgramStage( PROGRAM_STAGE_ID ) )
-            .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
-        return program;
-    }
-
-    private OrganisationUnit setupOrgUnit()
-    {
-        OrganisationUnit orgUnit = organisationUnit( ORG_UNIT_ID );
-        when( preheat.getOrganisationUnit( ORG_UNIT_ID ) )
-            .thenReturn( orgUnit );
-        return orgUnit;
-    }
-
-    private CategoryCombo defaultCategoryCombo()
-    {
-        CategoryOption co = new CategoryOption( CategoryOption.DEFAULT_NAME );
-        co.setAutoFields();
-        assertTrue( co.isDefault(), "tests rely on this CO being the default one" );
-        Category ca = createCategory( 'A', co );
-        CategoryCombo cc = createCategoryCombo( 'A', ca );
-        cc.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        assertTrue( cc.isDefault(), "tests rely on this CC being the default one" );
-        cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
-        CategoryOptionCombo aoc = createCategoryOptionCombo( cc, co );
-        assertTrue( aoc.isDefault(), "tests rely on this AOC being the default one" );
-        cc.setOptionCombos( Sets.newHashSet( aoc ) );
-        return cc;
-    }
-
-    private CategoryCombo categoryCombo()
-    {
-        return categoryCombo( 'A' );
-    }
-
-    private CategoryCombo categoryCombo( char uniqueIdentifier )
-    {
-        CategoryOption co1 = createCategoryOption( uniqueIdentifier );
-        CategoryOption co2 = createCategoryOption( uniqueIdentifier );
-        Category ca = createCategory( uniqueIdentifier, co1, co2 );
-        CategoryCombo cc = createCategoryCombo( uniqueIdentifier, ca );
-        cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
-        CategoryOptionCombo aoc1 = createCategoryOptionCombo( cc, co1 );
-        CategoryOptionCombo aoc2 = createCategoryOptionCombo( cc, co2 );
-        cc.setOptionCombos( Sets.newHashSet( aoc1, aoc2 ) );
-        return cc;
-    }
-
-    private CategoryCombo categoryComboWithTwoCategories()
-    {
-        char uniqueIdentifier = 'A';
-        CategoryOption co1 = createCategoryOption( uniqueIdentifier );
-        Category ca1 = createCategory( uniqueIdentifier, co1 );
-        CategoryOption co2 = createCategoryOption( uniqueIdentifier );
-        Category ca2 = createCategory( uniqueIdentifier, co2 );
-        CategoryCombo cc = createCategoryCombo( uniqueIdentifier, ca1, ca2 );
-        cc.setDataDimensionType( DataDimensionType.ATTRIBUTE );
-        CategoryOptionCombo aoc1 = createCategoryOptionCombo( cc, co1, co2 );
-        cc.setOptionCombos( Sets.newHashSet( aoc1 ) );
-        return cc;
-    }
-
-    private CategoryOptionCombo firstCategoryOptionCombo( CategoryCombo categoryCombo )
-    {
-        assertNotNull( categoryCombo.getOptionCombos() );
-        assertFalse( categoryCombo.getOptionCombos().isEmpty() );
-
-        return categoryCombo.getSortedOptionCombos().get( 0 );
-    }
-
-    private Event.EventBuilder eventBuilder()
-    {
-        return Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .program( PROGRAM_UID )
-            .programStage( PROGRAM_STAGE_ID )
-            .orgUnit( ORG_UNIT_ID )
-            .enrollment( ENROLLMENT_ID );
-    }
-
-    private RelationshipType createRelTypeConstraint( @SuppressWarnings( "SameParameterValue" ) RelationshipEntity from,
-        @SuppressWarnings( "SameParameterValue" ) RelationshipEntity to )
-    {
-        RelationshipType relType = new RelationshipType();
-        relType.setUid( CodeGenerator.generateUid() );
-        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
-        relationshipConstraintFrom.setRelationshipEntity( from );
-        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
-        relationshipConstraintTo.setRelationshipEntity( to );
-
-        relType.setFromConstraint( relationshipConstraintFrom );
-        relType.setToConstraint( relationshipConstraintTo );
-
-        return relType;
-    }
-
-    private RelationshipItem trackedEntityRelationshipItem( String trackedEntityUid )
-    {
-        return RelationshipItem.builder()
-            .trackedEntity( RelationshipItem.TrackedEntity.builder().trackedEntity( trackedEntityUid ).build() )
-            .build();
-    }
-
+    hook.validateRelationship(reporter, relationship);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  private OrganisationUnit organisationUnit(String uid) {
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    organisationUnit.setUid(uid);
+    return organisationUnit;
+  }
+
+  private Program programWithRegistration(String uid, OrganisationUnit orgUnit) {
+    return program(
+        uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, trackedEntityType(TEI_TYPE_ID));
+  }
+
+  // Note : parameters that always have the same value are kept to
+  // make connections between different entities clear when looking at the
+  // test. Without having to navigate to the
+  // helpers.
+  private Program programWithRegistration(
+      @SuppressWarnings("SameParameterValue") String uid,
+      OrganisationUnit orgUnit,
+      TrackedEntityType teiType) {
+    return program(uid, ProgramType.WITH_REGISTRATION, 'A', orgUnit, teiType);
+  }
+
+  private Program programWithoutRegistration(
+      @SuppressWarnings("SameParameterValue") String uid, OrganisationUnit orgUnit) {
+    return program(
+        uid, ProgramType.WITHOUT_REGISTRATION, 'B', orgUnit, trackedEntityType(TEI_TYPE_ID));
+  }
+
+  private Program program(
+      String uid,
+      ProgramType type,
+      char uniqueCharacter,
+      OrganisationUnit orgUnit,
+      TrackedEntityType teiType) {
+    Program program = createProgram(uniqueCharacter);
+    program.setUid(uid);
+    program.setProgramType(type);
+    program.setOrganisationUnits(Sets.newHashSet(orgUnit));
+    program.setTrackedEntityType(teiType);
+    return program;
+  }
+
+  private TrackedEntityType trackedEntityType(@SuppressWarnings("SameParameterValue") String uid) {
+    return trackedEntityType(uid, 'A');
+  }
+
+  private TrackedEntityType trackedEntityType(String uid, char uniqueChar) {
+    TrackedEntityType trackedEntityType = createTrackedEntityType(uniqueChar);
+    trackedEntityType.setUid(uid);
+    return trackedEntityType;
+  }
+
+  private TrackedEntityInstance trackedEntityInstance(
+      @SuppressWarnings("SameParameterValue") String uid,
+      TrackedEntityType type,
+      OrganisationUnit orgUnit) {
+    TrackedEntityInstance tei = createTrackedEntityInstance(orgUnit);
+    tei.setUid(uid);
+    tei.setTrackedEntityType(type);
+    return tei;
+  }
+
+  private ProgramStage programStage(
+      @SuppressWarnings("SameParameterValue") String uid, Program program) {
+    ProgramStage programStage = createProgramStage('A', program);
+    programStage.setUid(uid);
+    return programStage;
+  }
+
+  private ProgramInstance programInstance(
+      @SuppressWarnings("SameParameterValue") String uid, Program program) {
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid(uid);
+    programInstance.setProgram(program);
+    return programInstance;
+  }
+
+  private Program setupProgram(OrganisationUnit orgUnit) {
+    Program program = programWithRegistration(PROGRAM_UID, orgUnit);
+    when(preheat.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(preheat.getProgramWithOrgUnitsMap())
+        .thenReturn(Collections.singletonMap(PROGRAM_UID, Collections.singletonList(ORG_UNIT_ID)));
+    when(preheat.getProgramStage(PROGRAM_STAGE_ID))
+        .thenReturn(programStage(PROGRAM_STAGE_ID, program));
+    when(bundle.getProgramInstance(ENROLLMENT_ID))
+        .thenReturn(programInstance(ENROLLMENT_ID, program));
+    return program;
+  }
+
+  private OrganisationUnit setupOrgUnit() {
+    OrganisationUnit orgUnit = organisationUnit(ORG_UNIT_ID);
+    when(preheat.getOrganisationUnit(ORG_UNIT_ID)).thenReturn(orgUnit);
+    return orgUnit;
+  }
+
+  private CategoryCombo defaultCategoryCombo() {
+    CategoryOption co = new CategoryOption(CategoryOption.DEFAULT_NAME);
+    co.setAutoFields();
+    assertTrue(co.isDefault(), "tests rely on this CO being the default one");
+    Category ca = createCategory('A', co);
+    CategoryCombo cc = createCategoryCombo('A', ca);
+    cc.setName(CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    assertTrue(cc.isDefault(), "tests rely on this CC being the default one");
+    cc.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    CategoryOptionCombo aoc = createCategoryOptionCombo(cc, co);
+    assertTrue(aoc.isDefault(), "tests rely on this AOC being the default one");
+    cc.setOptionCombos(Sets.newHashSet(aoc));
+    return cc;
+  }
+
+  private CategoryCombo categoryCombo() {
+    return categoryCombo('A');
+  }
+
+  private CategoryCombo categoryCombo(char uniqueIdentifier) {
+    CategoryOption co1 = createCategoryOption(uniqueIdentifier);
+    CategoryOption co2 = createCategoryOption(uniqueIdentifier);
+    Category ca = createCategory(uniqueIdentifier, co1, co2);
+    CategoryCombo cc = createCategoryCombo(uniqueIdentifier, ca);
+    cc.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    CategoryOptionCombo aoc1 = createCategoryOptionCombo(cc, co1);
+    CategoryOptionCombo aoc2 = createCategoryOptionCombo(cc, co2);
+    cc.setOptionCombos(Sets.newHashSet(aoc1, aoc2));
+    return cc;
+  }
+
+  private CategoryCombo categoryComboWithTwoCategories() {
+    char uniqueIdentifier = 'A';
+    CategoryOption co1 = createCategoryOption(uniqueIdentifier);
+    Category ca1 = createCategory(uniqueIdentifier, co1);
+    CategoryOption co2 = createCategoryOption(uniqueIdentifier);
+    Category ca2 = createCategory(uniqueIdentifier, co2);
+    CategoryCombo cc = createCategoryCombo(uniqueIdentifier, ca1, ca2);
+    cc.setDataDimensionType(DataDimensionType.ATTRIBUTE);
+    CategoryOptionCombo aoc1 = createCategoryOptionCombo(cc, co1, co2);
+    cc.setOptionCombos(Sets.newHashSet(aoc1));
+    return cc;
+  }
+
+  private CategoryOptionCombo firstCategoryOptionCombo(CategoryCombo categoryCombo) {
+    assertNotNull(categoryCombo.getOptionCombos());
+    assertFalse(categoryCombo.getOptionCombos().isEmpty());
+
+    return categoryCombo.getSortedOptionCombos().get(0);
+  }
+
+  private Event.EventBuilder eventBuilder() {
+    return Event.builder()
+        .event(CodeGenerator.generateUid())
+        .program(PROGRAM_UID)
+        .programStage(PROGRAM_STAGE_ID)
+        .orgUnit(ORG_UNIT_ID)
+        .enrollment(ENROLLMENT_ID);
+  }
+
+  private RelationshipType createRelTypeConstraint(
+      @SuppressWarnings("SameParameterValue") RelationshipEntity from,
+      @SuppressWarnings("SameParameterValue") RelationshipEntity to) {
+    RelationshipType relType = new RelationshipType();
+    relType.setUid(CodeGenerator.generateUid());
+    RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
+    relationshipConstraintFrom.setRelationshipEntity(from);
+    RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
+    relationshipConstraintTo.setRelationshipEntity(to);
+
+    relType.setFromConstraint(relationshipConstraintFrom);
+    relType.setToConstraint(relationshipConstraintTo);
+
+    return relType;
+  }
+
+  private RelationshipItem trackedEntityRelationshipItem(String trackedEntityUid) {
+    return RelationshipItem.builder()
+        .trackedEntity(
+            RelationshipItem.TrackedEntity.builder().trackedEntity(trackedEntityUid).build())
+        .build();
+  }
 }

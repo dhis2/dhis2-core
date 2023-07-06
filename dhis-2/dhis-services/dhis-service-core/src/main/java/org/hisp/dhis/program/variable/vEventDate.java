@@ -36,21 +36,22 @@ import org.hisp.dhis.program.AnalyticsType;
  *
  * @author Jim Grace
  */
-public class vEventDate
-    extends ProgramDateVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        ProgramExpressionParams params = visitor.getProgParams();
+public class vEventDate extends ProgramDateVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    ProgramExpressionParams params = visitor.getProgParams();
 
-        if ( AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType() )
-        {
-            return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-                null, "executiondate", params.getReportingStartDate(), params.getReportingEndDate(),
-                params.getProgramIndicator() );
-        }
-
-        return "executiondate";
+    if (AnalyticsType.ENROLLMENT == params.getProgramIndicator().getAnalyticsType()) {
+      return visitor
+          .getStatementBuilder()
+          .getProgramIndicatorEventColumnSql(
+              null,
+              "executiondate",
+              params.getReportingStartDate(),
+              params.getReportingEndDate(),
+              params.getProgramIndicator());
     }
+
+    return "executiondate";
+  }
 }

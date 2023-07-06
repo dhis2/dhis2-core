@@ -31,9 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.io.IOException;
 import java.io.Writer;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -58,99 +56,86 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = FileController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class FileController
-{
-    public static final String RESOURCE_PATH = "/files";
+@RequestMapping(value = FileController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class FileController {
+  public static final String RESOURCE_PATH = "/files";
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    // -------------------------------------------------------------------------
-    // Custom script
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Custom script
+  // -------------------------------------------------------------------------
 
-    @GetMapping( "/script" )
-    public void getCustomScript( HttpServletResponse response, Writer writer )
-        throws IOException
-    {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JAVASCRIPT, CacheStrategy.CACHE_TWO_WEEKS );
+  @GetMapping("/script")
+  public void getCustomScript(HttpServletResponse response, Writer writer) throws IOException {
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JAVASCRIPT, CacheStrategy.CACHE_TWO_WEEKS);
 
-        String content = systemSettingManager.getSystemSetting( SettingKey.CUSTOM_JS, StringUtils.EMPTY );
+    String content = systemSettingManager.getSystemSetting(SettingKey.CUSTOM_JS, StringUtils.EMPTY);
 
-        if ( content != null )
-        {
-            writer.write( content );
-        }
+    if (content != null) {
+      writer.write(content);
     }
+  }
 
-    @PostMapping( value = "/script", consumes = "application/javascript" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
-    @ResponseBody
-    @ResponseStatus( HttpStatus.OK )
-    public WebMessage postCustomScript( @RequestBody String content )
-    {
-        if ( content != null )
-        {
-            systemSettingManager.saveSystemSetting( SettingKey.CUSTOM_JS, content );
-            return ok( "Custom script created" );
-        }
-        return null;
+  @PostMapping(value = "/script", consumes = "application/javascript")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @ResponseBody
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage postCustomScript(@RequestBody String content) {
+    if (content != null) {
+      systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_JS, content);
+      return ok("Custom script created");
     }
+    return null;
+  }
 
-    @DeleteMapping( "/script" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeCustomScript( HttpServletResponse response )
-    {
-        systemSettingManager.deleteSystemSetting( SettingKey.CUSTOM_JS );
+  @DeleteMapping("/script")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeCustomScript(HttpServletResponse response) {
+    systemSettingManager.deleteSystemSetting(SettingKey.CUSTOM_JS);
+  }
+
+  // -------------------------------------------------------------------------
+  // Custom style
+  // -------------------------------------------------------------------------
+
+  /**
+   * The style/external mapping enables style to be reached from login page / before authentication.
+   */
+  @GetMapping(value = {"/style", "/style/external"})
+  public void getCustomStyle(HttpServletResponse response, Writer writer) throws IOException {
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_CSS, CacheStrategy.CACHE_TWO_WEEKS);
+
+    String content =
+        systemSettingManager.getSystemSetting(SettingKey.CUSTOM_CSS, StringUtils.EMPTY);
+
+    if (content != null) {
+      writer.write(content);
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Custom style
-    // -------------------------------------------------------------------------
-
-    /**
-     * The style/external mapping enables style to be reached from login page /
-     * before authentication.
-     */
-    @GetMapping( value = { "/style", "/style/external" } )
-    public void getCustomStyle( HttpServletResponse response, Writer writer )
-        throws IOException
-    {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSS, CacheStrategy.CACHE_TWO_WEEKS );
-
-        String content = systemSettingManager.getSystemSetting( SettingKey.CUSTOM_CSS, StringUtils.EMPTY );
-
-        if ( content != null )
-        {
-            writer.write( content );
-        }
+  @PostMapping(value = "/style", consumes = "text/css")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @ResponseBody
+  @ResponseStatus(HttpStatus.OK)
+  public WebMessage postCustomStyle(@RequestBody String content) {
+    if (content != null) {
+      systemSettingManager.saveSystemSetting(SettingKey.CUSTOM_CSS, content);
+      return ok("Custom style created");
     }
+    return null;
+  }
 
-    @PostMapping( value = "/style", consumes = "text/css" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
-    @ResponseBody
-    @ResponseStatus( HttpStatus.OK )
-    public WebMessage postCustomStyle( @RequestBody String content )
-    {
-        if ( content != null )
-        {
-            systemSettingManager.saveSystemSetting( SettingKey.CUSTOM_CSS, content );
-            return ok( "Custom style created" );
-        }
-        return null;
-    }
-
-    @DeleteMapping( "/style" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeCustomStyle( HttpServletResponse response )
-    {
-        systemSettingManager.deleteSystemSetting( SettingKey.CUSTOM_CSS );
-    }
+  @DeleteMapping("/style")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_INSERT_CUSTOM_JS_CSS')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeCustomStyle(HttpServletResponse response) {
+    systemSettingManager.deleteSystemSetting(SettingKey.CUSTOM_CSS);
+  }
 }

@@ -36,15 +36,12 @@ import java.util.ResourceBundle;
  * @author Nguyen Dang Quang
  * @version $Id: ResourceBundleManager.java 6335 2008-11-20 11:11:26Z larshelg $
  */
-public interface ResourceBundleManager
-{
-    String ID = ResourceBundleManager.class.getName();
+public interface ResourceBundleManager {
+  String ID = ResourceBundleManager.class.getName();
 
-    ResourceBundle getSpecificResourceBundle( String clazzName, Locale locale );
+  ResourceBundle getSpecificResourceBundle(String clazzName, Locale locale);
 
-    ResourceBundle getGlobalResourceBundle( Locale locale )
-        throws ResourceBundleManagerException;
+  ResourceBundle getGlobalResourceBundle(Locale locale) throws ResourceBundleManagerException;
 
-    List<Locale> getAvailableLocales()
-        throws ResourceBundleManagerException;
+  List<Locale> getAvailableLocales() throws ResourceBundleManagerException;
 }

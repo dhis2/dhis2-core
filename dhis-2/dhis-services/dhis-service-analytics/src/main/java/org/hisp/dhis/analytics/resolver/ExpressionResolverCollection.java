@@ -30,12 +30,11 @@ package org.hisp.dhis.analytics.resolver;
 import java.util.List;
 
 /**
- * A collections of components that can analyze analytics expressions so that
- * each expression can be resolved to its final "shape".
+ * A collections of components that can analyze analytics expressions so that each expression can be
+ * resolved to its final "shape".
  *
  * @author Dusan Bernat
  */
-public interface ExpressionResolverCollection
-{
-    List<ExpressionResolver> getExpressionResolvers();
+public interface ExpressionResolverCollection {
+  List<ExpressionResolver> getExpressionResolvers();
 }

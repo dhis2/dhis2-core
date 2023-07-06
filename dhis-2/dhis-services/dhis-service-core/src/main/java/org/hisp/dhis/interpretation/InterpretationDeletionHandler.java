@@ -30,7 +30,6 @@ package org.hisp.dhis.interpretation;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -41,69 +40,57 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.interpretation.InterpretationDeletionHandler" )
-public class InterpretationDeletionHandler
-    extends DeletionHandler
-{
-    private final InterpretationService interpretationService;
+@Component("org.hisp.dhis.interpretation.InterpretationDeletionHandler")
+public class InterpretationDeletionHandler extends DeletionHandler {
+  private final InterpretationService interpretationService;
 
-    public InterpretationDeletionHandler( InterpretationService interpretationService )
-    {
-        checkNotNull( interpretationService );
+  public InterpretationDeletionHandler(InterpretationService interpretationService) {
+    checkNotNull(interpretationService);
 
-        this.interpretationService = interpretationService;
+    this.interpretationService = interpretationService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+    whenDeleting(Visualization.class, this::deleteVisualizationInterpretations);
+    whenDeleting(EventVisualization.class, this::deleteEventVisualizationInterpretations);
+    whenDeleting(Map.class, this::deleteMapInterpretations);
+  }
+
+  private void deleteUser(User user) {
+    List<Interpretation> interpretations = interpretationService.getInterpretations();
+
+    for (Interpretation interpretation : interpretations) {
+      if (interpretation.getCreatedBy() != null && interpretation.getCreatedBy().equals(user)) {
+        interpretation.setCreatedBy(null);
+        interpretationService.updateInterpretation(interpretation);
+      }
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-        whenDeleting( Visualization.class, this::deleteVisualizationInterpretations );
-        whenDeleting( EventVisualization.class, this::deleteEventVisualizationInterpretations );
-        whenDeleting( Map.class, this::deleteMapInterpretations );
+  private void deleteVisualizationInterpretations(Visualization visualization) {
+    List<Interpretation> interpretations = interpretationService.getInterpretations(visualization);
+
+    if (interpretations != null) {
+      interpretations.forEach(interpretationService::deleteInterpretation);
     }
+  }
 
-    private void deleteUser( User user )
-    {
-        List<Interpretation> interpretations = interpretationService.getInterpretations();
+  private void deleteEventVisualizationInterpretations(EventVisualization eventVisualization) {
+    List<Interpretation> interpretations =
+        interpretationService.getInterpretations(eventVisualization);
 
-        for ( Interpretation interpretation : interpretations )
-        {
-            if ( interpretation.getCreatedBy() != null && interpretation.getCreatedBy().equals( user ) )
-            {
-                interpretation.setCreatedBy( null );
-                interpretationService.updateInterpretation( interpretation );
-            }
-        }
+    if (interpretations != null) {
+      interpretations.forEach(interpretationService::deleteInterpretation);
     }
+  }
 
-    private void deleteVisualizationInterpretations( Visualization visualization )
-    {
-        List<Interpretation> interpretations = interpretationService.getInterpretations( visualization );
+  private void deleteMapInterpretations(Map map) {
+    List<Interpretation> interpretations = interpretationService.getInterpretations(map);
 
-        if ( interpretations != null )
-        {
-            interpretations.forEach( interpretationService::deleteInterpretation );
-        }
+    if (interpretations != null) {
+      interpretations.forEach(interpretationService::deleteInterpretation);
     }
-
-    private void deleteEventVisualizationInterpretations( EventVisualization eventVisualization )
-    {
-        List<Interpretation> interpretations = interpretationService.getInterpretations( eventVisualization );
-
-        if ( interpretations != null )
-        {
-            interpretations.forEach( interpretationService::deleteInterpretation );
-        }
-    }
-
-    private void deleteMapInterpretations( Map map )
-    {
-        List<Interpretation> interpretations = interpretationService.getInterpretations( map );
-
-        if ( interpretations != null )
-        {
-            interpretations.forEach( interpretationService::deleteInterpretation );
-        }
-    }
+  }
 }

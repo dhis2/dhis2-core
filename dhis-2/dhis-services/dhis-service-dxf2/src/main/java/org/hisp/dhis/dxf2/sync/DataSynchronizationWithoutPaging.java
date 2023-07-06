@@ -33,13 +33,12 @@ import org.hisp.dhis.system.util.Clock;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public abstract class DataSynchronizationWithoutPaging
-{
-    protected Clock clock;
+public abstract class DataSynchronizationWithoutPaging {
+  protected Clock clock;
 
-    protected int objectsToSynchronize;
+  protected int objectsToSynchronize;
 
-    protected SystemInstance instance;
+  protected SystemInstance instance;
 
-    public abstract SynchronizationResult synchronizeData();
+  public abstract SynchronizationResult synchronizeData();
 }

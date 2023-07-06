@@ -33,36 +33,34 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-public class AnalyticsDimensionsTestSupport
-{
-    static List<TrackedEntityAttribute> allValueTypeTEAs()
-    {
-        return buildWithAllValueTypes( valueType -> {
-            TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-            trackedEntityAttribute.setUid( "uid" + valueType.name() );
-            trackedEntityAttribute.setValueType( valueType );
-            return trackedEntityAttribute;
-        } ).collect( Collectors.toList() );
-    }
+public class AnalyticsDimensionsTestSupport {
+  static List<TrackedEntityAttribute> allValueTypeTEAs() {
+    return buildWithAllValueTypes(
+            valueType -> {
+              TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+              trackedEntityAttribute.setUid("uid" + valueType.name());
+              trackedEntityAttribute.setValueType(valueType);
+              return trackedEntityAttribute;
+            })
+        .collect(Collectors.toList());
+  }
 
-    static Set<DataElement> allValueTypeDataElements()
-    {
-        return buildWithAllValueTypes( valueType -> {
-            DataElement dataElement = new DataElement();
-            dataElement.setUid( "uid" + valueType.name() );
-            dataElement.setValueType( valueType );
-            return dataElement;
-        } ).collect( Collectors.toSet() );
-    }
+  static Set<DataElement> allValueTypeDataElements() {
+    return buildWithAllValueTypes(
+            valueType -> {
+              DataElement dataElement = new DataElement();
+              dataElement.setUid("uid" + valueType.name());
+              dataElement.setValueType(valueType);
+              return dataElement;
+            })
+        .collect(Collectors.toSet());
+  }
 
-    static <T> Stream<T> buildWithAllValueTypes( Function<ValueType, T> mapper )
-    {
-        return Arrays.stream( ValueType.values() )
-            .map( mapper );
-    }
+  static <T> Stream<T> buildWithAllValueTypes(Function<ValueType, T> mapper) {
+    return Arrays.stream(ValueType.values()).map(mapper);
+  }
 }

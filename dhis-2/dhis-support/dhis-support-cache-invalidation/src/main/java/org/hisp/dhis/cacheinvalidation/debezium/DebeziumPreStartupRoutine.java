@@ -29,7 +29,6 @@ package org.hisp.dhis.cacheinvalidation.debezium;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
-
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -39,35 +38,28 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Startup routine responsible for pre-populating the table name to entity
- * lookup table {@link TableNameToEntityMapping} This class is executed before
- * the {@link StartupDebeziumServiceRoutine} which starts the Debezium engine
- * itself.
+ * Startup routine responsible for pre-populating the table name to entity lookup table {@link
+ * TableNameToEntityMapping} This class is executed before the {@link StartupDebeziumServiceRoutine}
+ * which starts the Debezium engine itself.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
-{
-    @PersistenceUnit
-    private EntityManagerFactory emf;
+@Profile({"!test", "!test-h2"})
+@Conditional(value = DebeziumCacheInvalidationEnabledCondition.class)
+public class DebeziumPreStartupRoutine extends AbstractStartupRoutine {
+  @PersistenceUnit private EntityManagerFactory emf;
 
-    @Autowired
-    private HibernateFlushListener hibernateFlushListener;
+  @Autowired private HibernateFlushListener hibernateFlushListener;
 
-    @Autowired
-    private TableNameToEntityMapping tableNameToEntityMapping;
+  @Autowired private TableNameToEntityMapping tableNameToEntityMapping;
 
-    @Override
+  @Override
+  public void execute() throws Exception {
+    tableNameToEntityMapping.init();
 
-    public void execute()
-        throws Exception
-    {
-        tableNameToEntityMapping.init();
-
-        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
-        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-        registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
-    }
+    SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
+    EventListenerRegistry registry =
+        sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
+    registry.getEventListenerGroup(EventType.FLUSH).appendListener(hibernateFlushListener);
+  }
 }

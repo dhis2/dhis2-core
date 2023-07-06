@@ -30,34 +30,31 @@ package org.hisp.dhis.fieldfiltering.transformers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.junit.jupiter.api.Test;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen
  */
-class SizeFieldFilterTest
-{
+class SizeFieldFilterTest {
 
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
-    void sizeFieldNameTest()
-    {
-        ObjectNode objectNode = jsonMapper.createObjectNode();
-        objectNode.set( "a", jsonMapper.createArrayNode() );
-        objectNode.put( "b", "hello" );
-        SizeFieldTransformer transformer = new SizeFieldTransformer();
-        transformer.apply( "a", objectNode.get( "a" ), objectNode );
-        transformer.apply( "b", objectNode.get( "b" ), objectNode );
-        assertTrue( objectNode.has( "a" ) );
-        assertTrue( objectNode.get( "a" ).isInt() );
-        assertEquals( 0, objectNode.get( "a" ).asInt() );
-        assertTrue( objectNode.has( "b" ) );
-        assertTrue( objectNode.get( "b" ).isInt() );
-        assertEquals( 5, objectNode.get( "b" ).asInt() );
-    }
+  @Test
+  void sizeFieldNameTest() {
+    ObjectNode objectNode = jsonMapper.createObjectNode();
+    objectNode.set("a", jsonMapper.createArrayNode());
+    objectNode.put("b", "hello");
+    SizeFieldTransformer transformer = new SizeFieldTransformer();
+    transformer.apply("a", objectNode.get("a"), objectNode);
+    transformer.apply("b", objectNode.get("b"), objectNode);
+    assertTrue(objectNode.has("a"));
+    assertTrue(objectNode.get("a").isInt());
+    assertEquals(0, objectNode.get("a").asInt());
+    assertTrue(objectNode.has("b"));
+    assertTrue(objectNode.get("b").isInt());
+    assertEquals(5, objectNode.get("b").asInt());
+  }
 }

@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
@@ -40,28 +39,28 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * Contains validation method that can be added to
- * {@link org.hisp.dhis.jsonpatch.BulkPatchParameters}
- * <p>
- * which then will be used in {@link org.hisp.dhis.jsonpatch.BulkPatchManager}
+ * Contains validation method that can be added to {@link
+ * org.hisp.dhis.jsonpatch.BulkPatchParameters}
+ *
+ * <p>which then will be used in {@link org.hisp.dhis.jsonpatch.BulkPatchManager}
  */
 @FunctionalInterface
-public interface JsonPatchCheck
-    extends Function<JsonPatch, List<ErrorReport>>
-{
-    JsonPatchCheck empty = $ -> Collections.emptyList();
+public interface JsonPatchCheck extends Function<JsonPatch, List<ErrorReport>> {
+  JsonPatchCheck empty = $ -> Collections.emptyList();
 
-    /**
-     * Validate if all {@link JsonPatchOperation} of given {@link JsonPatch} are
-     * applied to "sharing" property.
-     **/
-    JsonPatchCheck isSharingPatch = checkPath( op -> op.getPath().matchesProperty( "sharing" ), ErrorCode.E4032 );
+  /**
+   * Validate if all {@link JsonPatchOperation} of given {@link JsonPatch} are applied to "sharing"
+   * property.
+   */
+  JsonPatchCheck isSharingPatch =
+      checkPath(op -> op.getPath().matchesProperty("sharing"), ErrorCode.E4032);
 
-    static JsonPatchCheck checkPath( final Predicate<JsonPatchOperation> predicate, ErrorCode errorCode )
-    {
-        return jsonPatch -> jsonPatch.getOperations().stream().filter( op -> !predicate.test( op ) )
-            .map( op -> new ErrorReport( JsonPatchException.class, errorCode, op.getPath() ) )
-            .collect( Collectors.toList() );
-    }
-
+  static JsonPatchCheck checkPath(
+      final Predicate<JsonPatchOperation> predicate, ErrorCode errorCode) {
+    return jsonPatch ->
+        jsonPatch.getOperations().stream()
+            .filter(op -> !predicate.test(op))
+            .map(op -> new ErrorReport(JsonPatchException.class, errorCode, op.getPath()))
+            .collect(Collectors.toList());
+  }
 }

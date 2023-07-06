@@ -37,41 +37,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class LegendSetServiceTest extends DhisSpringTest
-{
+class LegendSetServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private LegendSetService legendSetService;
+  @Autowired private LegendSetService legendSetService;
 
-    private Legend legendA;
+  private Legend legendA;
 
-    private Legend legendB;
+  private Legend legendB;
 
-    private LegendSet legendSetA;
+  private LegendSet legendSetA;
 
-    @Test
-    void testAddGetLegendSet()
-    {
-        legendA = createLegend( 'A', 0d, 10d );
-        legendB = createLegend( 'B', 0d, 10d );
-        legendSetA = createLegendSet( 'A' );
-        legendSetA.getLegends().add( legendA );
-        legendSetA.getLegends().add( legendB );
-        long idA = legendSetService.addLegendSet( legendSetA );
-        assertEquals( legendSetA, legendSetService.getLegendSet( idA ) );
-        assertEquals( 2, legendSetService.getLegendSet( idA ).getLegends().size() );
-    }
+  @Test
+  void testAddGetLegendSet() {
+    legendA = createLegend('A', 0d, 10d);
+    legendB = createLegend('B', 0d, 10d);
+    legendSetA = createLegendSet('A');
+    legendSetA.getLegends().add(legendA);
+    legendSetA.getLegends().add(legendB);
+    long idA = legendSetService.addLegendSet(legendSetA);
+    assertEquals(legendSetA, legendSetService.getLegendSet(idA));
+    assertEquals(2, legendSetService.getLegendSet(idA).getLegends().size());
+  }
 
-    @Test
-    void testDeleteLegendSet()
-    {
-        legendA = createLegend( 'A', 0d, 10d );
-        legendB = createLegend( 'B', 0d, 10d );
-        legendSetA = createLegendSet( 'A' );
-        legendSetA.getLegends().add( legendA );
-        legendSetA.getLegends().add( legendB );
-        long idA = legendSetService.addLegendSet( legendSetA );
-        legendSetService.deleteLegendSet( legendSetA );
-        assertNull( legendSetService.getLegendSet( idA ) );
-    }
+  @Test
+  void testDeleteLegendSet() {
+    legendA = createLegend('A', 0d, 10d);
+    legendB = createLegend('B', 0d, 10d);
+    legendSetA = createLegendSet('A');
+    legendSetA.getLegends().add(legendA);
+    legendSetA.getLegends().add(legendB);
+    long idA = legendSetService.addLegendSet(legendSetA);
+    legendSetService.deleteLegendSet(legendSetA);
+    assertNull(legendSetService.getLegendSet(idA));
+  }
 }

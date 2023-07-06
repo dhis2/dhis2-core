@@ -33,7 +33,6 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,159 +49,133 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.dataset.DataSetDeletionHandler" )
-public class DataSetDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.dataset.DataSetDeletionHandler")
+public class DataSetDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final DataSetService dataSetService;
+  private final DataSetService dataSetService;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    public DataSetDeletionHandler( IdentifiableObjectManager idObjectManager, DataSetService dataSetService,
-        CategoryService categoryService )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( dataSetService );
-        checkNotNull( categoryService );
+  public DataSetDeletionHandler(
+      IdentifiableObjectManager idObjectManager,
+      DataSetService dataSetService,
+      CategoryService categoryService) {
+    checkNotNull(idObjectManager);
+    checkNotNull(dataSetService);
+    checkNotNull(categoryService);
 
-        this.idObjectManager = idObjectManager;
-        this.dataSetService = dataSetService;
-        this.categoryService = categoryService;
+    this.idObjectManager = idObjectManager;
+    this.dataSetService = dataSetService;
+    this.categoryService = categoryService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(Indicator.class, this::deleteIndicator);
+    whenDeleting(Section.class, this::deleteSection);
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(DataEntryForm.class, this::deleteDataEntryForm);
+    whenDeleting(DataApprovalWorkflow.class, this::deleteDataApprovalWorkflow);
+  }
+
+  private void deleteDataElement(DataElement dataElement) {
+    Iterator<DataSetElement> elements = dataElement.getDataSetElements().iterator();
+
+    while (elements.hasNext()) {
+      DataSetElement element = elements.next();
+      elements.remove();
+
+      dataElement.removeDataSetElement(element);
+      idObjectManager.updateNoAcl(element.getDataSet());
     }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( Indicator.class, this::deleteIndicator );
-        whenDeleting( Section.class, this::deleteSection );
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
-        whenDeleting( DataApprovalWorkflow.class, this::deleteDataApprovalWorkflow );
-    }
+    List<DataSet> dataSets = idObjectManager.getAllNoAcl(DataSet.class);
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        Iterator<DataSetElement> elements = dataElement.getDataSetElements().iterator();
+    for (DataSet dataSet : dataSets) {
+      boolean update = false;
 
-        while ( elements.hasNext() )
-        {
-            DataSetElement element = elements.next();
-            elements.remove();
+      Iterator<DataElementOperand> operands = dataSet.getCompulsoryDataElementOperands().iterator();
 
-            dataElement.removeDataSetElement( element );
-            idObjectManager.updateNoAcl( element.getDataSet() );
+      while (operands.hasNext()) {
+        DataElementOperand operand = operands.next();
+
+        if (operand.getDataElement().equals(dataElement)) {
+          operands.remove();
+          update = true;
         }
+      }
 
-        List<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
-
-        for ( DataSet dataSet : dataSets )
-        {
-            boolean update = false;
-
-            Iterator<DataElementOperand> operands = dataSet.getCompulsoryDataElementOperands().iterator();
-
-            while ( operands.hasNext() )
-            {
-                DataElementOperand operand = operands.next();
-
-                if ( operand.getDataElement().equals( dataElement ) )
-                {
-                    operands.remove();
-                    update = true;
-                }
-            }
-
-            if ( update )
-            {
-                idObjectManager.updateNoAcl( dataSet );
-            }
-        }
+      if (update) {
+        idObjectManager.updateNoAcl(dataSet);
+      }
     }
+  }
 
-    private void deleteIndicator( Indicator indicator )
-    {
-        for ( DataSet dataSet : indicator.getDataSets() )
-        {
-            dataSet.getIndicators().remove( indicator );
-            idObjectManager.updateNoAcl( dataSet );
-        }
+  private void deleteIndicator(Indicator indicator) {
+    for (DataSet dataSet : indicator.getDataSets()) {
+      dataSet.getIndicators().remove(indicator);
+      idObjectManager.updateNoAcl(dataSet);
     }
+  }
 
-    private void deleteSection( Section section )
-    {
-        DataSet dataSet = section.getDataSet();
+  private void deleteSection(Section section) {
+    DataSet dataSet = section.getDataSet();
 
-        if ( dataSet != null )
-        {
-            dataSet.getSections().remove( section );
-            idObjectManager.updateNoAcl( dataSet );
-        }
+    if (dataSet != null) {
+      dataSet.getSections().remove(section);
+      idObjectManager.updateNoAcl(dataSet);
     }
+  }
 
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        for ( DataSet dataSet : idObjectManager.getAllNoAcl( DataSet.class ) )
-        {
-            for ( LegendSet ls : dataSet.getLegendSets() )
-            {
-                if ( legendSet.equals( ls ) )
-                {
-                    dataSet.getLegendSets().remove( ls );
-                    idObjectManager.updateNoAcl( dataSet );
-                }
-
-            }
+  private void deleteLegendSet(LegendSet legendSet) {
+    for (DataSet dataSet : idObjectManager.getAllNoAcl(DataSet.class)) {
+      for (LegendSet ls : dataSet.getLegendSets()) {
+        if (legendSet.equals(ls)) {
+          dataSet.getLegendSets().remove(ls);
+          idObjectManager.updateNoAcl(dataSet);
         }
+      }
     }
+  }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        CategoryCombo defaultCategoryCombo = categoryService
-            .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    CategoryCombo defaultCategoryCombo =
+        categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
 
-        Collection<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
+    Collection<DataSet> dataSets = idObjectManager.getAllNoAcl(DataSet.class);
 
-        for ( DataSet dataSet : dataSets )
-        {
-            if ( dataSet != null && categoryCombo.equals( dataSet.getCategoryCombo() ) )
-            {
-                dataSet.setCategoryCombo( defaultCategoryCombo );
-                idObjectManager.updateNoAcl( dataSet );
-            }
-        }
+    for (DataSet dataSet : dataSets) {
+      if (dataSet != null && categoryCombo.equals(dataSet.getCategoryCombo())) {
+        dataSet.setCategoryCombo(defaultCategoryCombo);
+        idObjectManager.updateNoAcl(dataSet);
+      }
     }
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit unit )
-    {
-        for ( DataSet dataSet : unit.getDataSets() )
-        {
-            dataSet.getSources().remove( unit );
-            idObjectManager.updateNoAcl( dataSet );
-        }
+  private void deleteOrganisationUnit(OrganisationUnit unit) {
+    for (DataSet dataSet : unit.getDataSets()) {
+      dataSet.getSources().remove(unit);
+      idObjectManager.updateNoAcl(dataSet);
     }
+  }
 
-    private void deleteDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        List<DataSet> associatedDataSets = dataSetService.getDataSetsByDataEntryForm( dataEntryForm );
+  private void deleteDataEntryForm(DataEntryForm dataEntryForm) {
+    List<DataSet> associatedDataSets = dataSetService.getDataSetsByDataEntryForm(dataEntryForm);
 
-        for ( DataSet dataSet : associatedDataSets )
-        {
-            dataSet.setDataEntryForm( null );
-            idObjectManager.updateNoAcl( dataSet );
-        }
+    for (DataSet dataSet : associatedDataSets) {
+      dataSet.setDataEntryForm(null);
+      idObjectManager.updateNoAcl(dataSet);
     }
+  }
 
-    private void deleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
-    {
-        for ( DataSet dataSet : workflow.getDataSets() )
-        {
-            dataSet.setWorkflow( null );
-            idObjectManager.updateNoAcl( dataSet );
-        }
+  private void deleteDataApprovalWorkflow(DataApprovalWorkflow workflow) {
+    for (DataSet dataSet : workflow.getDataSets()) {
+      dataSet.setWorkflow(null);
+      idObjectManager.updateNoAcl(dataSet);
     }
+  }
 }

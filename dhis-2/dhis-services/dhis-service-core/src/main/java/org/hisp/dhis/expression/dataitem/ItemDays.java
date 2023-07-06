@@ -39,22 +39,18 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class ItemDays
-    implements ExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.getItemDescriptions().put( ctx.getText(), DAYS_DESCRIPTION );
+public class ItemDays implements ExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    visitor.getItemDescriptions().put(ctx.getText(), DAYS_DESCRIPTION);
 
-        return DOUBLE_VALUE_IF_NULL;
-    }
+    return DOUBLE_VALUE_IF_NULL;
+  }
 
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Integer days = visitor.getParams().getDays();
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Integer days = visitor.getParams().getDays();
 
-        return days == null ? null : Double.valueOf( days );
-    }
+    return days == null ? null : Double.valueOf(days);
+  }
 }

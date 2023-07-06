@@ -32,98 +32,85 @@ import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-
 import javax.validation.constraints.NotNull;
-
 import lombok.Data;
-
 import org.hisp.dhis.common.DimensionType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * This is used to represents dimensions that are needed by clients but do not
- * actually exists in the back-end/codebase.
+ * This is used to represents dimensions that are needed by clients but do not actually exists in
+ * the back-end/codebase.
  *
- * It holds dimensions that do not have a concrete entity representation, and
- * are simple enough so they can be represented by Strings.
+ * <p>It holds dimensions that do not have a concrete entity representation, and are simple enough
+ * so they can be represented by Strings.
  *
- * It should hold only the necessary data for the respective event
- * visualization.
+ * <p>It should hold only the necessary data for the respective event visualization.
  *
  * @author maikel arabori
  */
 @Data
-public class SimpleDimension implements Serializable
-{
-    public enum Type
-    {
-        EVENT_DATE( "eventDate", PERIOD ),
-        ENROLLMENT_DATE( "enrollmentDate", PERIOD ),
-        INCIDENT_DATE( "incidentDate", PERIOD ),
-        SCHEDULE_DATE( "scheduledDate", PERIOD ),
-        LAST_UPDATE_DATE( "lastUpdated", PERIOD ),
-        EVENT_STATUS( "eventStatus", DATA_X ),
-        PROGRAM_STATUS( "programStatus", DATA_X ),
-        CREATED_BY( "createdBy", DATA_X ),
-        LAST_UPDATED_BY( "lastUpdatedBy", DATA_X );
+public class SimpleDimension implements Serializable {
+  public enum Type {
+    EVENT_DATE("eventDate", PERIOD),
+    ENROLLMENT_DATE("enrollmentDate", PERIOD),
+    INCIDENT_DATE("incidentDate", PERIOD),
+    SCHEDULE_DATE("scheduledDate", PERIOD),
+    LAST_UPDATE_DATE("lastUpdated", PERIOD),
+    EVENT_STATUS("eventStatus", DATA_X),
+    PROGRAM_STATUS("programStatus", DATA_X),
+    CREATED_BY("createdBy", DATA_X),
+    LAST_UPDATED_BY("lastUpdatedBy", DATA_X);
 
-        private final String dimension;
+    private final String dimension;
 
-        private final DimensionType parentType;
+    private final DimensionType parentType;
 
-        Type( final String dimension, final DimensionType parentType )
-        {
-            this.dimension = dimension;
-            this.parentType = parentType;
-        }
-
-        public String getDimension()
-        {
-            return dimension;
-        }
-
-        public DimensionType getParentType()
-        {
-            return parentType;
-        }
-
-        public static boolean contains( final String dimension )
-        {
-            return stream( Type.values() )
-                .anyMatch( t -> t.getDimension().equals( dimension ) );
-        }
-
-        public static Type from( final String dimension )
-        {
-            return stream( Type.values() )
-                .filter( t -> t.getDimension().equals( dimension ) ).findFirst()
-                .orElseThrow( () -> new NoSuchElementException( "Invalid dimension: " + dimension ) );
-        }
+    Type(final String dimension, final DimensionType parentType) {
+      this.dimension = dimension;
+      this.parentType = parentType;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
-    private Attribute parent;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
-    private String dimension;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
-    private List<String> values = new ArrayList<>();
-
-    boolean belongsTo( final Attribute parent )
-    {
-        return this.parent == parent;
+    public String getDimension() {
+      return dimension;
     }
+
+    public DimensionType getParentType() {
+      return parentType;
+    }
+
+    public static boolean contains(final String dimension) {
+      return stream(Type.values()).anyMatch(t -> t.getDimension().equals(dimension));
+    }
+
+    public static Type from(final String dimension) {
+      return stream(Type.values())
+          .filter(t -> t.getDimension().equals(dimension))
+          .findFirst()
+          .orElseThrow(() -> new NoSuchElementException("Invalid dimension: " + dimension));
+    }
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @NotNull
+  private Attribute parent;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @NotNull
+  private String dimension;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @NotNull
+  private List<String> values = new ArrayList<>();
+
+  boolean belongsTo(final Attribute parent) {
+    return this.parent == parent;
+  }
 }

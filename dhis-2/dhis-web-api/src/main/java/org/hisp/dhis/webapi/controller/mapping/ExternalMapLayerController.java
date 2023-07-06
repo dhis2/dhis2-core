@@ -37,8 +37,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Controller
-@RequestMapping( value = ExternalMapLayerSchemaDescriptor.API_ENDPOINT )
-public class ExternalMapLayerController
-    extends AbstractCrudController<ExternalMapLayer>
-{
-}
+@RequestMapping(value = ExternalMapLayerSchemaDescriptor.API_ENDPOINT)
+public class ExternalMapLayerController extends AbstractCrudController<ExternalMapLayer> {}

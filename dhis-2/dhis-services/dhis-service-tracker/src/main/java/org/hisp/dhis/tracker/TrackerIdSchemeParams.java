@@ -27,16 +27,14 @@
  */
 package org.hisp.dhis.tracker;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Wrapper object to handle identifier-related parameters for tracker
- * import/export
+ * Wrapper object to handle identifier-related parameters for tracker import/export
  *
  * @author Stian Sandvold
  */
@@ -44,77 +42,53 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerIdSchemeParams
-{
-    /**
-     * Specific identifier to match data elements on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam dataElementIdScheme = TrackerIdSchemeParam.UID;
+public class TrackerIdSchemeParams {
+  /** Specific identifier to match data elements on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam dataElementIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match organisation units on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam orgUnitIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match organisation units on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam orgUnitIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match program on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam programIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match program on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam programIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match program stage on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam programStageIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match program stage on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam programStageIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match all metadata on. Will be overridden by
-     * metadata-specific idSchemes.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
+  /**
+   * Specific identifier to match all metadata on. Will be overridden by metadata-specific
+   * idSchemes.
+   */
+  @JsonProperty @Builder.Default private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match category option combo on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam categoryOptionComboIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match category option combo on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam categoryOptionComboIdScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match category option on.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam categoryOptionIdScheme = TrackerIdSchemeParam.UID;
+  /** Specific identifier to match category option on. */
+  @JsonProperty @Builder.Default
+  private TrackerIdSchemeParam categoryOptionIdScheme = TrackerIdSchemeParam.UID;
 
-    public TrackerIdSchemeParam getByClass( Class<?> klazz )
-    {
-        switch ( klazz.getSimpleName() )
-        {
-        case "CategoryOptionCombo":
-            return categoryOptionComboIdScheme;
-        case "OrganisationUnit":
-            return orgUnitIdScheme;
-        case "CategoryOption":
-            return categoryOptionIdScheme;
-        case "DataElement":
-            return dataElementIdScheme;
-        case "Program":
-            return programIdScheme;
-        case "ProgramStage":
-            return programStageIdScheme;
-        default:
-            return idScheme;
-        }
-
+  public TrackerIdSchemeParam getByClass(Class<?> klazz) {
+    switch (klazz.getSimpleName()) {
+      case "CategoryOptionCombo":
+        return categoryOptionComboIdScheme;
+      case "OrganisationUnit":
+        return orgUnitIdScheme;
+      case "CategoryOption":
+        return categoryOptionIdScheme;
+      case "DataElement":
+        return dataElementIdScheme;
+      case "Program":
+        return programIdScheme;
+      case "ProgramStage":
+        return programStageIdScheme;
+      default:
+        return idScheme;
     }
+  }
 }

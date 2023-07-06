@@ -34,83 +34,75 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
+class CollectionUtilsTest {
+  @Test
+  public void testFlatMapToSet() {
+    DataElement deA = new DataElement();
+    DataElement deB = new DataElement();
+    DataElement deC = new DataElement();
+    DataSet dsA = new DataSet();
+    DataSet dsB = new DataSet();
 
-class CollectionUtilsTest
-{
-    @Test
-    public void testFlatMapToSet()
-    {
-        DataElement deA = new DataElement();
-        DataElement deB = new DataElement();
-        DataElement deC = new DataElement();
-        DataSet dsA = new DataSet();
-        DataSet dsB = new DataSet();
+    deA.setAutoFields();
+    deB.setAutoFields();
+    deC.setAutoFields();
+    dsA.setAutoFields();
+    dsB.setAutoFields();
 
-        deA.setAutoFields();
-        deB.setAutoFields();
-        deC.setAutoFields();
-        dsA.setAutoFields();
-        dsB.setAutoFields();
+    dsA.addDataSetElement(deA);
+    dsA.addDataSetElement(deB);
+    dsB.addDataSetElement(deB);
+    dsB.addDataSetElement(deC);
 
-        dsA.addDataSetElement( deA );
-        dsA.addDataSetElement( deB );
-        dsB.addDataSetElement( deB );
-        dsB.addDataSetElement( deC );
+    List<DataSet> dataSets = List.of(dsA, dsB);
 
-        List<DataSet> dataSets = List.of( dsA, dsB );
+    Set<DataElement> dataElements = flatMapToSet(dataSets, DataSet::getDataElements);
 
-        Set<DataElement> dataElements = flatMapToSet( dataSets, DataSet::getDataElements );
+    assertEquals(3, dataElements.size());
+  }
 
-        assertEquals( 3, dataElements.size() );
-    }
+  @Test
+  public void testDifference() {
+    List<String> collection1 = Lists.newArrayList("One", "Two", "Three");
+    List<String> collection2 = Lists.newArrayList("One", "Two", "Four");
+    List<String> difference = CollectionUtils.difference(collection1, collection2);
 
-    @Test
-    public void testDifference()
-    {
-        List<String> collection1 = Lists.newArrayList( "One", "Two", "Three" );
-        List<String> collection2 = Lists.newArrayList( "One", "Two", "Four" );
-        List<String> difference = CollectionUtils.difference( collection1, collection2 );
+    assertEquals(1, difference.size());
+    assertEquals("Three", difference.get(0));
+  }
 
-        assertEquals( 1, difference.size() );
-        assertEquals( "Three", difference.get( 0 ) );
-    }
+  @Test
+  void testEmptyIfNullSet() {
+    Set<String> setA = Set.of("One", "Two", "Three");
+    Set<String> setB = null;
 
-    @Test
-    void testEmptyIfNullSet()
-    {
-        Set<String> setA = Set.of( "One", "Two", "Three" );
-        Set<String> setB = null;
+    assertEquals(setA, emptyIfNull(setA));
+    assertEquals(new HashSet<>(), emptyIfNull(setB));
+  }
 
-        assertEquals( setA, emptyIfNull( setA ) );
-        assertEquals( new HashSet<>(), emptyIfNull( setB ) );
-    }
+  @Test
+  void testEmptyIfNullList() {
+    List<String> listA = List.of("One", "Two", "Three");
+    List<String> listB = null;
 
-    @Test
-    void testEmptyIfNullList()
-    {
-        List<String> listA = List.of( "One", "Two", "Three" );
-        List<String> listB = null;
+    assertEquals(listA, emptyIfNull(listA));
+    assertEquals(new ArrayList<>(), emptyIfNull(listB));
+  }
 
-        assertEquals( listA, emptyIfNull( listA ) );
-        assertEquals( new ArrayList<>(), emptyIfNull( listB ) );
-    }
-
-    @Test
-    void testIsEmpty()
-    {
-        assertTrue( isEmpty( List.of() ) );
-        assertTrue( isEmpty( null ) );
-        assertFalse( isEmpty( List.of( "One", "Two" ) ) );
-    }
+  @Test
+  void testIsEmpty() {
+    assertTrue(isEmpty(List.of()));
+    assertTrue(isEmpty(null));
+    assertFalse(isEmpty(List.of("One", "Two")));
+  }
 }

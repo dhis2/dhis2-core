@@ -30,10 +30,8 @@ package org.hisp.dhis.tracker.preheat;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.Objects;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -41,86 +39,84 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.tracker.domain.Relationship;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class RelationshipPreheatKeySupport
-{
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class RelationshipPreheatKeySupport {
 
-    public static boolean hasRelationshipKey( Relationship relationship )
-    {
-        return ObjectUtils.allNotNull(
-            relationship.getRelationshipType(),
-            relationship.getFrom(),
-            relationship.getTo() );
-    }
+  public static boolean hasRelationshipKey(Relationship relationship) {
+    return ObjectUtils.allNotNull(
+        relationship.getRelationshipType(), relationship.getFrom(), relationship.getTo());
+  }
 
-    public static RelationshipKey getRelationshipKey( Relationship relationship )
-    {
-        return getRelationshipKey(
-            relationship.getRelationshipType(),
-            getRelationshipItemKey( relationship.getFrom() ),
-            getRelationshipItemKey( relationship.getTo() ) );
-    }
+  public static RelationshipKey getRelationshipKey(Relationship relationship) {
+    return getRelationshipKey(
+        relationship.getRelationshipType(),
+        getRelationshipItemKey(relationship.getFrom()),
+        getRelationshipItemKey(relationship.getTo()));
+  }
 
-    public static RelationshipKey getRelationshipKey( org.hisp.dhis.relationship.Relationship relationship )
-    {
-        return getRelationshipKey(
-            relationship.getRelationshipType().getUid(),
-            getRelationshipItemKey( relationship.getFrom() ),
-            getRelationshipItemKey( relationship.getTo() ) );
-    }
+  public static RelationshipKey getRelationshipKey(
+      org.hisp.dhis.relationship.Relationship relationship) {
+    return getRelationshipKey(
+        relationship.getRelationshipType().getUid(),
+        getRelationshipItemKey(relationship.getFrom()),
+        getRelationshipItemKey(relationship.getTo()));
+  }
 
-    private static RelationshipKey getRelationshipKey( String relationshipType,
-        RelationshipKey.RelationshipItemKey from, RelationshipKey.RelationshipItemKey to )
-    {
-        return RelationshipKey.of( relationshipType, from, to );
-    }
+  private static RelationshipKey getRelationshipKey(
+      String relationshipType,
+      RelationshipKey.RelationshipItemKey from,
+      RelationshipKey.RelationshipItemKey to) {
+    return RelationshipKey.of(relationshipType, from, to);
+  }
 
-    public static RelationshipKey.RelationshipItemKey getRelationshipItemKey(
-        org.hisp.dhis.tracker.domain.RelationshipItem relationshipItem )
-    {
-        if ( Objects.nonNull( relationshipItem ) )
-        {
-            return RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( trimToEmpty( relationshipItem.getTrackedEntity() == null ? null
-                    : relationshipItem.getTrackedEntity().getTrackedEntity() ) )
-                .enrollment( trimToEmpty( relationshipItem.getEnrollment() == null ? null
-                    : relationshipItem.getEnrollment().getEnrollment() ) )
-                .event(
-                    trimToEmpty( relationshipItem.getEvent() == null ? null : relationshipItem.getEvent().getEvent() ) )
-                .build();
-        }
-        throw new IllegalStateException( "Unable to determine uid for relationship item" );
+  public static RelationshipKey.RelationshipItemKey getRelationshipItemKey(
+      org.hisp.dhis.tracker.domain.RelationshipItem relationshipItem) {
+    if (Objects.nonNull(relationshipItem)) {
+      return RelationshipKey.RelationshipItemKey.builder()
+          .trackedEntity(
+              trimToEmpty(
+                  relationshipItem.getTrackedEntity() == null
+                      ? null
+                      : relationshipItem.getTrackedEntity().getTrackedEntity()))
+          .enrollment(
+              trimToEmpty(
+                  relationshipItem.getEnrollment() == null
+                      ? null
+                      : relationshipItem.getEnrollment().getEnrollment()))
+          .event(
+              trimToEmpty(
+                  relationshipItem.getEvent() == null
+                      ? null
+                      : relationshipItem.getEvent().getEvent()))
+          .build();
     }
+    throw new IllegalStateException("Unable to determine uid for relationship item");
+  }
 
-    public static RelationshipKey.RelationshipItemKey getRelationshipItemKey( RelationshipItem relationshipItem )
-    {
-        if ( Objects.nonNull( relationshipItem ) )
-        {
-            return RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( getUidOrEmptyString( relationshipItem.getTrackedEntityInstance() ) )
-                .enrollment( getUidOrEmptyString( relationshipItem.getProgramInstance() ) )
-                .event( getUidOrEmptyString( relationshipItem.getProgramStageInstance() ) )
-                .build();
-        }
-        throw new IllegalStateException( "Unable to determine uid for relationship item" );
+  public static RelationshipKey.RelationshipItemKey getRelationshipItemKey(
+      RelationshipItem relationshipItem) {
+    if (Objects.nonNull(relationshipItem)) {
+      return RelationshipKey.RelationshipItemKey.builder()
+          .trackedEntity(getUidOrEmptyString(relationshipItem.getTrackedEntityInstance()))
+          .enrollment(getUidOrEmptyString(relationshipItem.getProgramInstance()))
+          .event(getUidOrEmptyString(relationshipItem.getProgramStageInstance()))
+          .build();
     }
+    throw new IllegalStateException("Unable to determine uid for relationship item");
+  }
 
-    private static String getUidOrEmptyString( BaseIdentifiableObject baseIdentifiableObject )
-    {
-        return Objects.isNull( baseIdentifiableObject ) ? ""
-            : StringUtils.trimToEmpty( baseIdentifiableObject.getUid() );
-    }
+  private static String getUidOrEmptyString(BaseIdentifiableObject baseIdentifiableObject) {
+    return Objects.isNull(baseIdentifiableObject)
+        ? ""
+        : StringUtils.trimToEmpty(baseIdentifiableObject.getUid());
+  }
 
-    public static boolean isRelationshipPreheatKey( String s )
-    {
-        try
-        {
-            RelationshipKey.fromString( s );
-            return true;
-        }
-        catch ( IllegalArgumentException e )
-        {
-            return false;
-        }
+  public static boolean isRelationshipPreheatKey(String s) {
+    try {
+      RelationshipKey.fromString(s);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
     }
+  }
 }

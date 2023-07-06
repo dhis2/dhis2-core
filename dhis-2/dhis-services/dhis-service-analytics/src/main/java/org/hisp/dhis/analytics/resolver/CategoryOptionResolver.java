@@ -29,65 +29,60 @@ package org.hisp.dhis.analytics.resolver;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
+import com.google.common.base.Joiner;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Joiner;
-
 /**
  * @author Dusan Bernat
  */
-
-@Service( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" )
+@Service("org.hisp.dhis.analytics.resolver.CategoryOptionResolver")
 @AllArgsConstructor
-public class CategoryOptionResolver implements ExpressionResolver
-{
-    private final ExpressionService expressionService;
+public class CategoryOptionResolver implements ExpressionResolver {
+  private final ExpressionService expressionService;
 
-    private final CategoryOptionStore categoryOptionStore;
+  private final CategoryOptionStore categoryOptionStore;
 
-    private static final String LEFT_BRACKET = "(";
+  private static final String LEFT_BRACKET = "(";
 
-    private static final String RIGHT_BRACKET = ")";
+  private static final String RIGHT_BRACKET = ")";
 
-    private static final String CATEGORY_OPTION_PREFIX = "co:";
+  private static final String CATEGORY_OPTION_PREFIX = "co:";
 
-    private static final String EMPTY_STRING = "";
+  private static final String EMPTY_STRING = "";
 
-    @Override
-    public String resolve( String expression )
-    {
-        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
-            INDICATOR_EXPRESSION );
+  @Override
+  public String resolve(String expression) {
+    Set<DimensionalItemId> dimItemIds =
+        expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION);
 
-        for ( DimensionalItemId id : dimItemIds )
-        {
-            if ( id.getItem() != null && id.getId1() != null && id.getId1().startsWith( CATEGORY_OPTION_PREFIX ) )
-            {
-                CategoryOption co = categoryOptionStore
-                    .getByUid( id.getId1().replace( CATEGORY_OPTION_PREFIX, EMPTY_STRING ) );
+    for (DimensionalItemId id : dimItemIds) {
+      if (id.getItem() != null
+          && id.getId1() != null
+          && id.getId1().startsWith(CATEGORY_OPTION_PREFIX)) {
+        CategoryOption co =
+            categoryOptionStore.getByUid(id.getId1().replace(CATEGORY_OPTION_PREFIX, EMPTY_STRING));
 
-                if ( co != null )
-                {
-                    List<String> resolved = co.getCategoryOptionCombos().stream()
-                        .map( coc -> id.getItem().replace( id.getId1(), coc.getUid() ) )
-                        .collect( Collectors.toList() );
+        if (co != null) {
+          List<String> resolved =
+              co.getCategoryOptionCombos().stream()
+                  .map(coc -> id.getItem().replace(id.getId1(), coc.getUid()))
+                  .collect(Collectors.toList());
 
-                    expression = expression.replace( id.getItem(),
-                        LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
-                }
-            }
+          expression =
+              expression.replace(
+                  id.getItem(), LEFT_BRACKET + Joiner.on("+").join(resolved) + RIGHT_BRACKET);
         }
-
-        return expression;
+      }
     }
+
+    return expression;
+  }
 }

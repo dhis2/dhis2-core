@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.importer.update.preprocess;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.AbstractUserInfoPreProcessor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -39,43 +38,38 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
-{
+public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor {
 
-    @Override
-    protected void updateDataValueUserInfo( ProgramStageInstance existingPsi, EventDataValue dataValue,
-        UserInfoSnapshot userInfo )
-    {
-        if ( existingPsi != null )
-        {
-            Optional<EventDataValue> existingPsiEventDataValue = findEventDataValues( existingPsi, dataValue );
-            if ( existingPsiEventDataValue.isPresent() )
-            {
-                EventDataValue eventDataValue = existingPsiEventDataValue.get();
-                dataValue.setCreatedByUserInfo( eventDataValue.getCreatedByUserInfo() );
-            }
-            else
-            {
-                dataValue.setCreatedByUserInfo( userInfo );
-            }
-        }
-        dataValue.setLastUpdatedByUserInfo( userInfo );
+  @Override
+  protected void updateDataValueUserInfo(
+      ProgramStageInstance existingPsi, EventDataValue dataValue, UserInfoSnapshot userInfo) {
+    if (existingPsi != null) {
+      Optional<EventDataValue> existingPsiEventDataValue =
+          findEventDataValues(existingPsi, dataValue);
+      if (existingPsiEventDataValue.isPresent()) {
+        EventDataValue eventDataValue = existingPsiEventDataValue.get();
+        dataValue.setCreatedByUserInfo(eventDataValue.getCreatedByUserInfo());
+      } else {
+        dataValue.setCreatedByUserInfo(userInfo);
+      }
     }
+    dataValue.setLastUpdatedByUserInfo(userInfo);
+  }
 
-    private Optional<EventDataValue> findEventDataValues( ProgramStageInstance existingPsi, EventDataValue dataValue )
-    {
-        return Optional.ofNullable( existingPsi )
-            .map( ProgramStageInstance::getEventDataValues )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .filter( Objects::nonNull )
-            .filter( eventDataValue -> eventDataValue.getDataElement().equals( dataValue.getDataElement() ) )
-            .findFirst();
-    }
+  private Optional<EventDataValue> findEventDataValues(
+      ProgramStageInstance existingPsi, EventDataValue dataValue) {
+    return Optional.ofNullable(existingPsi)
+        .map(ProgramStageInstance::getEventDataValues)
+        .orElse(Collections.emptySet())
+        .stream()
+        .filter(Objects::nonNull)
+        .filter(
+            eventDataValue -> eventDataValue.getDataElement().equals(dataValue.getDataElement()))
+        .findFirst();
+  }
 
-    @Override
-    protected void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo )
-    {
-        event.setLastUpdatedByUserInfo( eventUserInfo );
-    }
+  @Override
+  protected void updateEventUserInfo(Event event, UserInfoSnapshot eventUserInfo) {
+    event.setLastUpdatedByUserInfo(eventUserInfo);
+  }
 }

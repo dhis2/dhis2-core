@@ -42,79 +42,73 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class EventReportServiceTest extends DhisSpringTest
-{
+class EventReportServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private EventReportService eventReportService;
+  @Autowired private EventReportService eventReportService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    private Program prA;
+  private Program prA;
 
-    @Override
-    public void setUpTest()
-    {
-        prA = createProgram( 'A', null, null );
-        programService.addProgram( prA );
-    }
+  @Override
+  public void setUpTest() {
+    prA = createProgram('A', null, null);
+    programService.addProgram(prA);
+  }
 
-    @Test
-    void testSaveGet()
-    {
-        EventReport erA = new EventReport( "erA" );
-        erA.setProgram( prA );
-        erA.setDataType( EventDataType.AGGREGATED_VALUES );
-        erA.setType( EventVisualizationType.PIVOT_TABLE );
-        EventReport erB = new EventReport( "erB" );
-        erB.setProgram( prA );
-        erB.setDataType( EventDataType.AGGREGATED_VALUES );
-        erB.setType( EventVisualizationType.PIVOT_TABLE );
-        EventReport erC = new EventReport( "erC" );
-        erC.setProgram( prA );
-        erC.setDataType( EventDataType.AGGREGATED_VALUES );
-        erC.setType( EventVisualizationType.PIVOT_TABLE );
-        long idA = eventReportService.saveEventReport( erA );
-        long idB = eventReportService.saveEventReport( erB );
-        long idC = eventReportService.saveEventReport( erC );
-        assertEquals( "erA", eventReportService.getEventReport( idA ).getName() );
-        assertEquals( "erB", eventReportService.getEventReport( idB ).getName() );
-        assertEquals( "erC", eventReportService.getEventReport( idC ).getName() );
-    }
+  @Test
+  void testSaveGet() {
+    EventReport erA = new EventReport("erA");
+    erA.setProgram(prA);
+    erA.setDataType(EventDataType.AGGREGATED_VALUES);
+    erA.setType(EventVisualizationType.PIVOT_TABLE);
+    EventReport erB = new EventReport("erB");
+    erB.setProgram(prA);
+    erB.setDataType(EventDataType.AGGREGATED_VALUES);
+    erB.setType(EventVisualizationType.PIVOT_TABLE);
+    EventReport erC = new EventReport("erC");
+    erC.setProgram(prA);
+    erC.setDataType(EventDataType.AGGREGATED_VALUES);
+    erC.setType(EventVisualizationType.PIVOT_TABLE);
+    long idA = eventReportService.saveEventReport(erA);
+    long idB = eventReportService.saveEventReport(erB);
+    long idC = eventReportService.saveEventReport(erC);
+    assertEquals("erA", eventReportService.getEventReport(idA).getName());
+    assertEquals("erB", eventReportService.getEventReport(idB).getName());
+    assertEquals("erC", eventReportService.getEventReport(idC).getName());
+  }
 
-    @Test
-    void testDelete()
-    {
-        EventReport erA = new EventReport( "erA" );
-        erA.setProgram( prA );
-        erA.setDataType( EventDataType.AGGREGATED_VALUES );
-        erA.setType( EventVisualizationType.PIVOT_TABLE );
-        EventReport erB = new EventReport( "erB" );
-        erB.setProgram( prA );
-        erB.setDataType( EventDataType.AGGREGATED_VALUES );
-        erB.setType( EventVisualizationType.PIVOT_TABLE );
-        EventReport erC = new EventReport( "erC" );
-        erC.setProgram( prA );
-        erC.setDataType( EventDataType.AGGREGATED_VALUES );
-        erC.setType( EventVisualizationType.PIVOT_TABLE );
-        long idA = eventReportService.saveEventReport( erA );
-        long idB = eventReportService.saveEventReport( erB );
-        long idC = eventReportService.saveEventReport( erC );
-        assertNotNull( eventReportService.getEventReport( idA ) );
-        assertNotNull( eventReportService.getEventReport( idB ) );
-        assertNotNull( eventReportService.getEventReport( idC ) );
-        eventReportService.deleteEventReport( erA );
-        assertNull( eventReportService.getEventReport( idA ) );
-        assertNotNull( eventReportService.getEventReport( idB ) );
-        assertNotNull( eventReportService.getEventReport( idC ) );
-        eventReportService.deleteEventReport( erB );
-        assertNull( eventReportService.getEventReport( idA ) );
-        assertNull( eventReportService.getEventReport( idB ) );
-        assertNotNull( eventReportService.getEventReport( idC ) );
-        eventReportService.deleteEventReport( erC );
-        assertNull( eventReportService.getEventReport( idA ) );
-        assertNull( eventReportService.getEventReport( idB ) );
-        assertNull( eventReportService.getEventReport( idC ) );
-    }
+  @Test
+  void testDelete() {
+    EventReport erA = new EventReport("erA");
+    erA.setProgram(prA);
+    erA.setDataType(EventDataType.AGGREGATED_VALUES);
+    erA.setType(EventVisualizationType.PIVOT_TABLE);
+    EventReport erB = new EventReport("erB");
+    erB.setProgram(prA);
+    erB.setDataType(EventDataType.AGGREGATED_VALUES);
+    erB.setType(EventVisualizationType.PIVOT_TABLE);
+    EventReport erC = new EventReport("erC");
+    erC.setProgram(prA);
+    erC.setDataType(EventDataType.AGGREGATED_VALUES);
+    erC.setType(EventVisualizationType.PIVOT_TABLE);
+    long idA = eventReportService.saveEventReport(erA);
+    long idB = eventReportService.saveEventReport(erB);
+    long idC = eventReportService.saveEventReport(erC);
+    assertNotNull(eventReportService.getEventReport(idA));
+    assertNotNull(eventReportService.getEventReport(idB));
+    assertNotNull(eventReportService.getEventReport(idC));
+    eventReportService.deleteEventReport(erA);
+    assertNull(eventReportService.getEventReport(idA));
+    assertNotNull(eventReportService.getEventReport(idB));
+    assertNotNull(eventReportService.getEventReport(idC));
+    eventReportService.deleteEventReport(erB);
+    assertNull(eventReportService.getEventReport(idA));
+    assertNull(eventReportService.getEventReport(idB));
+    assertNotNull(eventReportService.getEventReport(idC));
+    eventReportService.deleteEventReport(erC);
+    assertNull(eventReportService.getEventReport(idA));
+    assertNull(eventReportService.getEventReport(idB));
+    assertNull(eventReportService.getEventReport(idC));
+  }
 }

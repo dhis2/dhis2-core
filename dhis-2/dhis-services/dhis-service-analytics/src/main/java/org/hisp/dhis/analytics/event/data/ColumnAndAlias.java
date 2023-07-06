@@ -28,51 +28,39 @@
 package org.hisp.dhis.analytics.event.data;
 
 import java.util.Optional;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 
 @Getter
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-class ColumnAndAlias
-{
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+class ColumnAndAlias {
 
-    public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn( "" );
+  public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn("");
 
-    private final String column;
+  private final String column;
 
-    private final String alias;
+  private final String alias;
 
-    static ColumnAndAlias ofColumn( String column )
-    {
-        return ofColumnAndAlias( column, null );
+  static ColumnAndAlias ofColumn(String column) {
+    return ofColumnAndAlias(column, null);
+  }
+
+  static ColumnAndAlias ofColumnAndAlias(String column, String alias) {
+    return new ColumnAndAlias(column, alias);
+  }
+
+  public String asSql() {
+    if (StringUtils.isNotEmpty(alias)) {
+      return String.join(" as ", column, getQuotedAlias());
+    } else {
+      return column;
     }
+  }
 
-    static ColumnAndAlias ofColumnAndAlias( String column, String alias )
-    {
-        return new ColumnAndAlias( column, alias );
-    }
-
-    public String asSql()
-    {
-        if ( StringUtils.isNotEmpty( alias ) )
-        {
-            return String.join( " as ", column, getQuotedAlias() );
-        }
-        else
-        {
-            return column;
-        }
-    }
-
-    public String getQuotedAlias()
-    {
-        return Optional.ofNullable( alias )
-            .map( AnalyticsSqlUtils::quote )
-            .orElse( null );
-    }
+  public String getQuotedAlias() {
+    return Optional.ofNullable(alias).map(AnalyticsSqlUtils::quote).orElse(null);
+  }
 }

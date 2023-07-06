@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -40,377 +43,350 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityInstance
-{
-    private String trackedEntityType;
+@JacksonXmlRootElement(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityInstance {
+  private String trackedEntityType;
 
-    private String trackedEntityInstance;
+  private String trackedEntityInstance;
 
-    private String orgUnit;
+  private String orgUnit;
 
-    private String created;
+  private String created;
 
-    private String lastUpdated;
+  private String lastUpdated;
 
-    private String createdAtClient;
+  private String createdAtClient;
 
-    private String lastUpdatedAtClient;
+  private String lastUpdatedAtClient;
 
-    private List<Relationship> relationships = new ArrayList<>();
+  private List<Relationship> relationships = new ArrayList<>();
 
-    private List<Attribute> attributes = new ArrayList<>();
+  private List<Attribute> attributes = new ArrayList<>();
 
-    private List<Enrollment> enrollments = new ArrayList<>();
+  private List<Enrollment> enrollments = new ArrayList<>();
 
-    private List<ProgramOwner> programOwners = new ArrayList<>();
+  private List<ProgramOwner> programOwners = new ArrayList<>();
 
-    private Boolean inactive;
+  private Boolean inactive;
 
-    private Boolean deleted = false;
+  private Boolean deleted = false;
 
-    private Boolean potentialDuplicate = false;
+  private Boolean potentialDuplicate = false;
 
-    private FeatureType featureType = FeatureType.NONE;
+  private FeatureType featureType = FeatureType.NONE;
 
-    private String coordinates;
+  private String coordinates;
 
-    private Geometry geometry;
+  private Geometry geometry;
 
-    private String storedBy;
+  private String storedBy;
 
-    private UserInfoSnapshot createdByUserInfo;
+  private UserInfoSnapshot createdByUserInfo;
 
-    private UserInfoSnapshot lastUpdatedByUserInfo;
+  private UserInfoSnapshot lastUpdatedByUserInfo;
 
-    public TrackedEntityInstance()
-    {
+  public TrackedEntityInstance() {}
+
+  /** Trims the value property of attribute values to null. */
+  public void trimValuesToNull() {
+    if (attributes != null) {
+      for (Attribute attribute : attributes) {
+        attribute.setValue(StringUtils.trimToNull(attribute.getValue()));
+      }
     }
+  }
 
-    /**
-     * Trims the value property of attribute values to null.
-     */
-    public void trimValuesToNull()
-    {
-        if ( attributes != null )
-        {
-            for ( Attribute attribute : attributes )
-            {
-                attribute.setValue( StringUtils.trimToNull( attribute.getValue() ) );
-            }
-        }
-    }
+  public void clear() {
+    this.setDeleted(null);
+    this.setFeatureType(null);
+    this.setEnrollments(null);
+    this.setRelationships(null);
+    this.setAttributes(null);
+  }
 
-    public void clear()
-    {
-        this.setDeleted( null );
-        this.setFeatureType( null );
-        this.setEnrollments( null );
-        this.setRelationships( null );
-        this.setAttributes( null );
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(isAttribute = true)
+  public String getTrackedEntityType() {
+    return trackedEntityType;
+  }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntityType()
-    {
-        return trackedEntityType;
-    }
+  public void setTrackedEntityType(String trackedEntityType) {
+    this.trackedEntityType = trackedEntityType;
+  }
 
-    public void setTrackedEntityType( String trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(isAttribute = true)
+  public String getTrackedEntityInstance() {
+    return trackedEntityInstance;
+  }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntityInstance()
-    {
-        return trackedEntityInstance;
-    }
+  public void setTrackedEntityInstance(String trackedEntityInstance) {
+    this.trackedEntityInstance = trackedEntityInstance;
+  }
 
-    public void setTrackedEntityInstance( String trackedEntityInstance )
-    {
-        this.trackedEntityInstance = trackedEntityInstance;
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(isAttribute = true)
+  public String getOrgUnit() {
+    return orgUnit;
+  }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getOrgUnit()
-    {
-        return orgUnit;
-    }
+  public void setOrgUnit(String orgUnit) {
+    this.orgUnit = orgUnit;
+  }
 
-    public void setOrgUnit( String orgUnit )
-    {
-        this.orgUnit = orgUnit;
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCreated() {
+    return created;
+  }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreated()
-    {
-        return created;
-    }
+  public void setCreated(String created) {
+    this.created = created;
+  }
 
-    public void setCreated( String created )
-    {
-        this.created = created;
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(isAttribute = true)
+  public String getLastUpdated() {
+    return lastUpdated;
+  }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdated()
-    {
-        return lastUpdated;
-    }
+  public void setLastUpdated(String lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 
-    public void setLastUpdated( String lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCreatedAtClient() {
+    return createdAtClient;
+  }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCreatedAtClient()
-    {
-        return createdAtClient;
-    }
+  public void setCreatedAtClient(String createdAtClient) {
+    this.createdAtClient = createdAtClient;
+  }
 
-    public void setCreatedAtClient( String createdAtClient )
-    {
-        this.createdAtClient = createdAtClient;
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(isAttribute = true)
+  public String getLastUpdatedAtClient() {
+    return lastUpdatedAtClient;
+  }
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLastUpdatedAtClient()
-    {
-        return lastUpdatedAtClient;
-    }
+  public void setLastUpdatedAtClient(String lastUpdatedAtClient) {
+    this.lastUpdatedAtClient = lastUpdatedAtClient;
+  }
 
-    public void setLastUpdatedAtClient( String lastUpdatedAtClient )
-    {
-        this.lastUpdatedAtClient = lastUpdatedAtClient;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<Relationship> getRelationships() {
+    return relationships;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Relationship> getRelationships()
-    {
-        return relationships;
-    }
+  public void setRelationships(List<Relationship> relationships) {
+    this.relationships = relationships;
+  }
 
-    public void setRelationships( List<Relationship> relationships )
-    {
-        this.relationships = relationships;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "attributes", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "attribute", namespace = DxfNamespaces.DXF_2_0)
+  public List<Attribute> getAttributes() {
+    return attributes;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Attribute> getAttributes()
-    {
-        return attributes;
-    }
+  public void setAttributes(List<Attribute> attributes) {
+    this.attributes = attributes;
+  }
 
-    public void setAttributes( List<Attribute> attributes )
-    {
-        this.attributes = attributes;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "enrollments", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "enrollment", namespace = DxfNamespaces.DXF_2_0)
+  public List<Enrollment> getEnrollments() {
+    return enrollments;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Enrollment> getEnrollments()
-    {
-        return enrollments;
-    }
+  public void setEnrollments(List<Enrollment> enrollments) {
+    this.enrollments = enrollments;
+  }
 
-    public void setEnrollments( List<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "programOwners", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "programOwner", namespace = DxfNamespaces.DXF_2_0)
+  public List<ProgramOwner> getProgramOwners() {
+    return programOwners;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programOwner", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramOwner> getProgramOwners()
-    {
-        return programOwners;
-    }
+  public void setProgramOwners(List<ProgramOwner> programOwners) {
+    this.programOwners = programOwners;
+  }
 
-    public void setProgramOwners( List<ProgramOwner> programOwners )
-    {
-        this.programOwners = programOwners;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "inactive", namespace = DxfNamespaces.DXF_2_0)
+  public Boolean isInactive() {
+    return inactive;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isInactive()
-    {
-        return inactive;
-    }
+  public void setInactive(Boolean inactive) {
+    this.inactive = inactive;
+  }
 
-    public void setInactive( Boolean inactive )
-    {
-        this.inactive = inactive;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(localName = "deleted", namespace = DxfNamespaces.DXF_2_0)
+  public Boolean isDeleted() {
+    return deleted;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isDeleted()
-    {
-        return deleted;
-    }
+  public void setDeleted(Boolean deleted) {
+    this.deleted = deleted;
+  }
 
-    public void setDeleted( Boolean deleted )
-    {
-        this.deleted = deleted;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public FeatureType getFeatureType() {
+    return featureType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FeatureType getFeatureType()
-    {
-        return featureType;
-    }
+  public void setFeatureType(FeatureType featureType) {
+    this.featureType = featureType;
+  }
 
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(PropertyType.GEOLOCATION)
+  public String getCoordinates() {
+    return coordinates;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.GEOLOCATION )
-    public String getCoordinates()
-    {
-        return coordinates;
-    }
+  public void setCoordinates(String coordinates) {
+    this.coordinates = coordinates;
+  }
 
-    public void setCoordinates( String coordinates )
-    {
-        this.coordinates = coordinates;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Geometry getGeometry() {
+    return geometry;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Geometry getGeometry()
-    {
-        return geometry;
-    }
+  public void setGeometry(Geometry geometry) {
+    this.geometry = geometry;
+  }
 
-    public void setGeometry( Geometry geometry )
-    {
-        this.geometry = geometry;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getStoredBy() {
+    return storedBy;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
+  public void setStoredBy(String storedBy) {
+    this.storedBy = storedBy;
+  }
 
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public UserInfoSnapshot getCreatedByUserInfo() {
+    return createdByUserInfo;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public UserInfoSnapshot getCreatedByUserInfo()
-    {
-        return createdByUserInfo;
-    }
+  public void setCreatedByUserInfo(UserInfoSnapshot createdByUserInfo) {
+    this.createdByUserInfo = createdByUserInfo;
+  }
 
-    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
-    {
-        this.createdByUserInfo = createdByUserInfo;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public UserInfoSnapshot getLastUpdatedByUserInfo() {
+    return lastUpdatedByUserInfo;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public UserInfoSnapshot getLastUpdatedByUserInfo()
-    {
-        return lastUpdatedByUserInfo;
-    }
+  public void setLastUpdatedByUserInfo(UserInfoSnapshot lastUpdatedByUserInfo) {
+    this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
+  }
 
-    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
-    {
-        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean isPotentialDuplicate() {
+    return potentialDuplicate;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isPotentialDuplicate()
-    {
-        return potentialDuplicate;
-    }
+  public void setPotentialDuplicate(Boolean potentialDuplicate) {
+    this.potentialDuplicate = potentialDuplicate;
+  }
 
-    public void setPotentialDuplicate( Boolean potentialDuplicate )
-    {
-        this.potentialDuplicate = potentialDuplicate;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    TrackedEntityInstance that = (TrackedEntityInstance) o;
+    return Objects.equals(trackedEntityType, that.trackedEntityType)
+        && Objects.equals(trackedEntityInstance, that.trackedEntityInstance)
+        && Objects.equals(orgUnit, that.orgUnit)
+        && Objects.equals(created, that.created)
+        && Objects.equals(createdAtClient, that.createdAtClient)
+        && Objects.equals(lastUpdated, that.lastUpdated)
+        && Objects.equals(lastUpdatedAtClient, that.lastUpdatedAtClient)
+        && Objects.equals(relationships, that.relationships)
+        && Objects.equals(attributes, that.attributes)
+        && Objects.equals(enrollments, that.enrollments)
+        && Objects.equals(inactive, that.inactive);
+  }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        TrackedEntityInstance that = (TrackedEntityInstance) o;
-        return Objects.equals( trackedEntityType, that.trackedEntityType ) &&
-            Objects.equals( trackedEntityInstance, that.trackedEntityInstance ) &&
-            Objects.equals( orgUnit, that.orgUnit ) &&
-            Objects.equals( created, that.created ) &&
-            Objects.equals( createdAtClient, that.createdAtClient ) &&
-            Objects.equals( lastUpdated, that.lastUpdated ) &&
-            Objects.equals( lastUpdatedAtClient, that.lastUpdatedAtClient ) &&
-            Objects.equals( relationships, that.relationships ) &&
-            Objects.equals( attributes, that.attributes ) &&
-            Objects.equals( enrollments, that.enrollments ) &&
-            Objects.equals( inactive, that.inactive );
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        trackedEntityType,
+        trackedEntityInstance,
+        orgUnit,
+        created,
+        createdAtClient,
+        lastUpdated,
+        lastUpdatedAtClient,
+        relationships,
+        attributes,
+        enrollments,
+        inactive);
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( trackedEntityType, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated,
-            lastUpdatedAtClient,
-            relationships, attributes, enrollments, inactive );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "TrackedEntityInstance{" +
-            "trackedEntityType='" + trackedEntityType + '\'' +
-            ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
-            ", orgUnit='" + orgUnit + '\'' +
-            ", created='" + created + '\'' +
-            ", lastUpdated='" + lastUpdated + '\'' +
-            ", createdAtClient='" + createdAtClient + '\'' +
-            ", lastUpdatedAtClient='" + lastUpdatedAtClient + '\'' +
-            ", relationships=" + relationships +
-            ", attributes=" + attributes +
-            ", enrollments=" + enrollments +
-            ", programOwners=" + programOwners +
-            ", inactive=" + inactive +
-            ", deleted=" + deleted +
-            ", featureType=" + featureType +
-            ", coordinates='" + coordinates + '\'' +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "TrackedEntityInstance{"
+        + "trackedEntityType='"
+        + trackedEntityType
+        + '\''
+        + ", trackedEntityInstance='"
+        + trackedEntityInstance
+        + '\''
+        + ", orgUnit='"
+        + orgUnit
+        + '\''
+        + ", created='"
+        + created
+        + '\''
+        + ", lastUpdated='"
+        + lastUpdated
+        + '\''
+        + ", createdAtClient='"
+        + createdAtClient
+        + '\''
+        + ", lastUpdatedAtClient='"
+        + lastUpdatedAtClient
+        + '\''
+        + ", relationships="
+        + relationships
+        + ", attributes="
+        + attributes
+        + ", enrollments="
+        + enrollments
+        + ", programOwners="
+        + programOwners
+        + ", inactive="
+        + inactive
+        + ", deleted="
+        + deleted
+        + ", featureType="
+        + featureType
+        + ", coordinates='"
+        + coordinates
+        + '\''
+        + '}';
+  }
 }

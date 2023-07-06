@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2;
 import java.util.Arrays;
 import java.util.List;
 
-public final class Constants
-{
-    public static final String UNKNOWN = "[Unknown]";
+public final class Constants {
+  public static final String UNKNOWN = "[Unknown]";
 
-    public static final List<String> PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS = Arrays.asList( "and", "or", "not" );
+  public static final List<String> PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS =
+      Arrays.asList("and", "or", "not");
 }

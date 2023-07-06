@@ -31,11 +31,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppType;
@@ -66,475 +66,444 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Sets;
-
 /**
- * Note: The remove associations methods must be altered if caching is
- * introduced.
+ * Note: The remove associations methods must be altered if caching is introduced.
  *
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.dashboard.DashboardService" )
-public class DefaultDashboardService
-    implements DashboardService
-{
-    private static final int HITS_PER_OBJECT = 6;
+@Service("org.hisp.dhis.dashboard.DashboardService")
+public class DefaultDashboardService implements DashboardService {
+  private static final int HITS_PER_OBJECT = 6;
 
-    private static final int MAX_HITS_PER_OBJECT = 25;
+  private static final int MAX_HITS_PER_OBJECT = 25;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final HibernateIdentifiableObjectStore<Dashboard> dashboardStore;
+  private final HibernateIdentifiableObjectStore<Dashboard> dashboardStore;
 
-    private final IdentifiableObjectManager objectManager;
+  private final IdentifiableObjectManager objectManager;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final DashboardItemStore dashboardItemStore;
+  private final DashboardItemStore dashboardItemStore;
 
-    private final AppManager appManager;
+  private final AppManager appManager;
 
-    private final EventVisualizationStore eventVisualizationStore;
+  private final EventVisualizationStore eventVisualizationStore;
 
-    public DefaultDashboardService(
-        @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" ) HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
-        IdentifiableObjectManager objectManager, UserService userService, DashboardItemStore dashboardItemStore,
-        AppManager appManager, EventVisualizationStore eventVisualizationStore )
-    {
-        checkNotNull( dashboardStore );
-        checkNotNull( objectManager );
-        checkNotNull( userService );
-        checkNotNull( dashboardItemStore );
-        checkNotNull( appManager );
-        checkNotNull( eventVisualizationStore );
+  public DefaultDashboardService(
+      @Qualifier("org.hisp.dhis.dashboard.DashboardStore")
+          HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
+      IdentifiableObjectManager objectManager,
+      UserService userService,
+      DashboardItemStore dashboardItemStore,
+      AppManager appManager,
+      EventVisualizationStore eventVisualizationStore) {
+    checkNotNull(dashboardStore);
+    checkNotNull(objectManager);
+    checkNotNull(userService);
+    checkNotNull(dashboardItemStore);
+    checkNotNull(appManager);
+    checkNotNull(eventVisualizationStore);
 
-        this.dashboardStore = dashboardStore;
-        this.objectManager = objectManager;
-        this.userService = userService;
-        this.dashboardItemStore = dashboardItemStore;
-        this.appManager = appManager;
-        this.eventVisualizationStore = eventVisualizationStore;
+    this.dashboardStore = dashboardStore;
+    this.objectManager = objectManager;
+    this.userService = userService;
+    this.dashboardItemStore = dashboardItemStore;
+    this.appManager = appManager;
+    this.eventVisualizationStore = eventVisualizationStore;
+  }
+
+  // -------------------------------------------------------------------------
+  // DashboardService implementation
+  // -------------------------------------------------------------------------
+
+  // -------------------------------------------------------------------------
+  // Dashboard
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public DashboardSearchResult search(String query) {
+    return search(query, new HashSet<>(), null, null);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DashboardSearchResult search(
+      String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount) {
+    Set<String> words = Sets.newHashSet(query.split(TextUtils.SPACE));
+
+    List<App> dashboardApps =
+        appManager.getAppsByType(
+            AppType.DASHBOARD_WIDGET, new HashSet<>(appManager.getApps(null, true)));
+
+    DashboardSearchResult result = new DashboardSearchResult();
+
+    result.setUsers(
+        userService.getAllUsersBetweenByName(
+            query, 0, getMax(DashboardItemType.USERS, maxTypes, count, maxCount)));
+    result.setVisualizations(
+        convertFromVisualization(
+            objectManager.getBetweenLikeName(
+                Visualization.class,
+                words,
+                0,
+                getMax(DashboardItemType.VISUALIZATION, maxTypes, count, maxCount))));
+    result.setEventVisualizations(
+        convertFromEventVisualization(
+            eventVisualizationStore.getLineListsLikeName(
+                words,
+                0,
+                getMax(DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount))));
+    result.setEventCharts(
+        eventVisualizationStore.getChartsLikeName(
+            words, 0, getMax(DashboardItemType.EVENT_CHART, maxTypes, count, maxCount)));
+    result.setMaps(
+        objectManager.getBetweenLikeName(
+            Map.class, words, 0, getMax(DashboardItemType.MAP, maxTypes, count, maxCount)));
+    result.setEventReports(
+        eventVisualizationStore.getReportsLikeName(
+            words, 0, getMax(DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount)));
+    result.setReports(
+        objectManager.getBetweenLikeName(
+            Report.class, words, 0, getMax(DashboardItemType.REPORTS, maxTypes, count, maxCount)));
+    result.setResources(
+        objectManager.getBetweenLikeName(
+            Document.class,
+            words,
+            0,
+            getMax(DashboardItemType.RESOURCES, maxTypes, count, maxCount)));
+    result.setApps(appManager.getAppsByName(query, dashboardApps, "ilike"));
+
+    return result;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DashboardSearchResult search(
+      Set<DashboardItemType> maxTypes, Integer count, Integer maxCount) {
+    DashboardSearchResult result = new DashboardSearchResult();
+
+    result.setVisualizations(
+        convertFromVisualization(
+            objectManager.getBetweenSorted(
+                Visualization.class,
+                0,
+                getMax(DashboardItemType.VISUALIZATION, maxTypes, count, maxCount))));
+    result.setEventVisualizations(
+        convertFromEventVisualization(
+            eventVisualizationStore.getLineLists(
+                0, getMax(DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount))));
+    result.setEventCharts(
+        eventVisualizationStore.getCharts(
+            0, getMax(DashboardItemType.EVENT_CHART, maxTypes, count, maxCount)));
+    result.setMaps(
+        objectManager.getBetweenSorted(
+            Map.class, 0, getMax(DashboardItemType.MAP, maxTypes, count, maxCount)));
+    result.setEventReports(
+        eventVisualizationStore.getReports(
+            0, getMax(DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount)));
+    result.setReports(
+        objectManager.getBetweenSorted(
+            Report.class, 0, getMax(DashboardItemType.REPORTS, maxTypes, count, maxCount)));
+    result.setResources(
+        objectManager.getBetweenSorted(
+            Document.class, 0, getMax(DashboardItemType.RESOURCES, maxTypes, count, maxCount)));
+    result.setApps(
+        appManager.getApps(
+            AppType.DASHBOARD_WIDGET,
+            getMax(DashboardItemType.APP, maxTypes, count, maxCount),
+            true));
+
+    return result;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DashboardSearchResult search(String query, Set<DashboardItemType> maxTypes) {
+    return search(query, maxTypes, null, null);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DashboardSearchResult search(Set<DashboardItemType> maxTypes) {
+    return search(maxTypes, null, null);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DashboardItem addItemContent(
+      String dashboardUid, DashboardItemType type, String contentUid) {
+    Dashboard dashboard = getDashboard(dashboardUid);
+
+    if (dashboard == null) {
+      return null;
     }
 
-    // -------------------------------------------------------------------------
-    // DashboardService implementation
-    // -------------------------------------------------------------------------
+    DashboardItem item = new DashboardItem();
 
-    // -------------------------------------------------------------------------
-    // Dashboard
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public DashboardSearchResult search( String query )
+    if (DashboardItemType.VISUALIZATION.equals(type)) {
+      item.setVisualization(objectManager.get(Visualization.class, contentUid));
+      dashboard.getItems().add(0, item);
+    }
+    if (DashboardItemType.EVENT_VISUALIZATION.equals(type)) {
+      item.setEventVisualization(objectManager.get(EventVisualization.class, contentUid));
+      dashboard.getItems().add(0, item);
+    } else if (DashboardItemType.EVENT_CHART.equals(type)) {
+      item.setEventChart(objectManager.get(EventChart.class, contentUid));
+      dashboard.getItems().add(0, item);
+    } else if (DashboardItemType.MAP.equals(type)) {
+      item.setMap(objectManager.get(Map.class, contentUid));
+      dashboard.getItems().add(0, item);
+    } else if (DashboardItemType.EVENT_REPORT.equals(type)) {
+      item.setEventReport(objectManager.get(EventReport.class, contentUid));
+      dashboard.getItems().add(0, item);
+    } else if (DashboardItemType.MESSAGES.equals(type)) {
+      item.setMessages(true);
+      dashboard.getItems().add(0, item);
+    } else if (DashboardItemType.APP.equals(type)) {
+      item.setAppKey(contentUid);
+      dashboard.getItems().add(0, item);
+    } else // Link item
     {
-        return search( query, new HashSet<>(), null, null );
+      DashboardItem availableItem = dashboard.getAvailableItemByType(type);
+
+      item = availableItem == null ? new DashboardItem() : availableItem;
+
+      if (DashboardItemType.USERS.equals(type)) {
+        item.getUsers().add(objectManager.get(User.class, contentUid));
+      } else if (DashboardItemType.REPORTS.equals(type)) {
+        item.getReports().add(objectManager.get(Report.class, contentUid));
+      } else if (DashboardItemType.RESOURCES.equals(type)) {
+        item.getResources().add(objectManager.get(Document.class, contentUid));
+      }
+
+      if (availableItem == null) {
+        dashboard.getItems().add(0, item);
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes, Integer count,
-        Integer maxCount )
-    {
-        Set<String> words = Sets.newHashSet( query.split( TextUtils.SPACE ) );
-
-        List<App> dashboardApps = appManager.getAppsByType( AppType.DASHBOARD_WIDGET,
-            new HashSet<>( appManager.getApps( null, true ) ) );
-
-        DashboardSearchResult result = new DashboardSearchResult();
-
-        result.setUsers( userService.getAllUsersBetweenByName( query, 0,
-            getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
-        result.setVisualizations(
-            convertFromVisualization( objectManager.getBetweenLikeName( Visualization.class, words, 0,
-                getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setEventVisualizations(
-            convertFromEventVisualization( eventVisualizationStore.getLineListsLikeName( words, 0,
-                getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setEventCharts( eventVisualizationStore.getChartsLikeName( words, 0,
-            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
-        result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0,
-            getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setEventReports( eventVisualizationStore.getReportsLikeName( words, 0,
-            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
-        result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0,
-            getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
-        result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0,
-            getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
-        result.setApps( appManager.getAppsByName( query, dashboardApps, "ilike" ) );
-
-        return result;
+    if (dashboard.getItemCount() > Dashboard.MAX_ITEMS) {
+      return null;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DashboardSearchResult search( Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
-    {
-        DashboardSearchResult result = new DashboardSearchResult();
+    updateDashboard(dashboard);
 
-        result.setVisualizations( convertFromVisualization( objectManager.getBetweenSorted( Visualization.class, 0,
-            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setEventVisualizations( convertFromEventVisualization( eventVisualizationStore.getLineLists( 0,
-            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setEventCharts( eventVisualizationStore.getCharts( 0,
-            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
-        result.setMaps( objectManager.getBetweenSorted( Map.class, 0,
-            getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setEventReports( eventVisualizationStore.getReports( 0,
-            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
-        result.setReports( objectManager.getBetweenSorted( Report.class, 0,
-            getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
-        result.setResources( objectManager.getBetweenSorted( Document.class, 0,
-            getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
-        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET,
-            getMax( DashboardItemType.APP, maxTypes, count, maxCount ), true ) );
+    return item;
+  }
 
-        return result;
+  @Override
+  @Transactional(readOnly = true)
+  public void mergeDashboard(Dashboard dashboard) {
+    if (dashboard.getItems() != null) {
+      for (DashboardItem item : dashboard.getItems()) {
+        mergeDashboardItem(item);
+      }
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public void mergeDashboardItem(DashboardItem item) {
+    if (item.getVisualization() != null) {
+      item.setVisualization(
+          objectManager.get(Visualization.class, item.getVisualization().getUid()));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes )
-    {
-        return search( query, maxTypes, null, null );
+    if (item.getEventVisualization() != null) {
+      item.setEventVisualization(
+          objectManager.get(EventVisualization.class, item.getEventVisualization().getUid()));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DashboardSearchResult search( Set<DashboardItemType> maxTypes )
-    {
-        return search( maxTypes, null, null );
+    if (item.getEventChart() != null) {
+      item.setEventChart(objectManager.get(EventChart.class, item.getEventChart().getUid()));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid )
-    {
-        Dashboard dashboard = getDashboard( dashboardUid );
-
-        if ( dashboard == null )
-        {
-            return null;
-        }
-
-        DashboardItem item = new DashboardItem();
-
-        if ( DashboardItemType.VISUALIZATION.equals( type ) )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
-        if ( DashboardItemType.EVENT_VISUALIZATION.equals( type ) )
-        {
-            item.setEventVisualization( objectManager.get( EventVisualization.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
-        else if ( DashboardItemType.EVENT_CHART.equals( type ) )
-        {
-            item.setEventChart( objectManager.get( EventChart.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
-        else if ( DashboardItemType.MAP.equals( type ) )
-        {
-            item.setMap( objectManager.get( Map.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
-        else if ( DashboardItemType.EVENT_REPORT.equals( type ) )
-        {
-            item.setEventReport( objectManager.get( EventReport.class, contentUid ) );
-            dashboard.getItems().add( 0, item );
-        }
-        else if ( DashboardItemType.MESSAGES.equals( type ) )
-        {
-            item.setMessages( true );
-            dashboard.getItems().add( 0, item );
-        }
-        else if ( DashboardItemType.APP.equals( type ) )
-        {
-            item.setAppKey( contentUid );
-            dashboard.getItems().add( 0, item );
-        }
-        else // Link item
-        {
-            DashboardItem availableItem = dashboard.getAvailableItemByType( type );
-
-            item = availableItem == null ? new DashboardItem() : availableItem;
-
-            if ( DashboardItemType.USERS.equals( type ) )
-            {
-                item.getUsers().add( objectManager.get( User.class, contentUid ) );
-            }
-            else if ( DashboardItemType.REPORTS.equals( type ) )
-            {
-                item.getReports().add( objectManager.get( Report.class, contentUid ) );
-            }
-            else if ( DashboardItemType.RESOURCES.equals( type ) )
-            {
-                item.getResources().add( objectManager.get( Document.class, contentUid ) );
-            }
-
-            if ( availableItem == null )
-            {
-                dashboard.getItems().add( 0, item );
-            }
-        }
-
-        if ( dashboard.getItemCount() > Dashboard.MAX_ITEMS )
-        {
-            return null;
-        }
-
-        updateDashboard( dashboard );
-
-        return item;
+    if (item.getMap() != null) {
+      item.setMap(objectManager.get(Map.class, item.getMap().getUid()));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public void mergeDashboard( Dashboard dashboard )
-    {
-        if ( dashboard.getItems() != null )
-        {
-            for ( DashboardItem item : dashboard.getItems() )
-            {
-                mergeDashboardItem( item );
-            }
-        }
+    if (item.getEventReport() != null) {
+      item.setEventReport(objectManager.get(EventReport.class, item.getEventReport().getUid()));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public void mergeDashboardItem( DashboardItem item )
-    {
-        if ( item.getVisualization() != null )
-        {
-            item.setVisualization( objectManager.get( Visualization.class, item.getVisualization().getUid() ) );
-        }
-
-        if ( item.getEventVisualization() != null )
-        {
-            item.setEventVisualization(
-                objectManager.get( EventVisualization.class, item.getEventVisualization().getUid() ) );
-        }
-
-        if ( item.getEventChart() != null )
-        {
-            item.setEventChart( objectManager.get( EventChart.class, item.getEventChart().getUid() ) );
-        }
-
-        if ( item.getMap() != null )
-        {
-            item.setMap( objectManager.get( Map.class, item.getMap().getUid() ) );
-        }
-
-        if ( item.getEventReport() != null )
-        {
-            item.setEventReport( objectManager.get( EventReport.class, item.getEventReport().getUid() ) );
-        }
-
-        if ( item.getUsers() != null )
-        {
-            item.setUsers( objectManager.getByUid( User.class, getUids( item.getUsers() ) ) );
-        }
-
-        if ( item.getReports() != null )
-        {
-            item.setReports( objectManager.getByUid( Report.class, getUids( item.getReports() ) ) );
-        }
-
-        if ( item.getResources() != null )
-        {
-            item.setResources( objectManager.getByUid( Document.class, getUids( item.getResources() ) ) );
-        }
-
-        if ( item.getAppKey() != null )
-        {
-            item.setAppKey( item.getAppKey() );
-        }
+    if (item.getUsers() != null) {
+      item.setUsers(objectManager.getByUid(User.class, getUids(item.getUsers())));
     }
 
-    @Override
-    @Transactional
-    public long saveDashboard( Dashboard dashboard )
-    {
-        dashboardStore.save( dashboard );
-
-        return dashboard.getId();
+    if (item.getReports() != null) {
+      item.setReports(objectManager.getByUid(Report.class, getUids(item.getReports())));
     }
 
-    @Override
-    @Transactional
-    public void updateDashboard( Dashboard dashboard )
-    {
-        dashboardStore.update( dashboard );
+    if (item.getResources() != null) {
+      item.setResources(objectManager.getByUid(Document.class, getUids(item.getResources())));
     }
 
-    @Override
-    @Transactional
-    public void deleteDashboard( Dashboard dashboard )
-    {
-        dashboardStore.delete( dashboard );
+    if (item.getAppKey() != null) {
+      item.setAppKey(item.getAppKey());
+    }
+  }
+
+  @Override
+  @Transactional
+  public long saveDashboard(Dashboard dashboard) {
+    dashboardStore.save(dashboard);
+
+    return dashboard.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateDashboard(Dashboard dashboard) {
+    dashboardStore.update(dashboard);
+  }
+
+  @Override
+  @Transactional
+  public void deleteDashboard(Dashboard dashboard) {
+    dashboardStore.delete(dashboard);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Dashboard getDashboard(long id) {
+    return dashboardStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Dashboard getDashboard(String uid) {
+    return dashboardStore.getByUid(uid);
+  }
+
+  // -------------------------------------------------------------------------
+  // DashboardItem
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void updateDashboardItem(DashboardItem item) {
+    dashboardItemStore.update(item);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DashboardItem getDashboardItem(String uid) {
+    return dashboardItemStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Dashboard getDashboardFromDashboardItem(DashboardItem dashboardItem) {
+    return dashboardItemStore.getDashboardFromDashboardItem(dashboardItem);
+  }
+
+  @Override
+  public void deleteDashboardItem(DashboardItem item) {
+    dashboardItemStore.delete(item);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getVisualizationDashboardItems(Visualization visualization) {
+    return dashboardItemStore.getVisualizationDashboardItems(visualization);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getEventVisualizationDashboardItems(
+      EventVisualization eventVisualization) {
+    return dashboardItemStore.getEventVisualizationDashboardItems(eventVisualization);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getEventChartDashboardItems(EventChart eventChart) {
+    return dashboardItemStore.getEventChartDashboardItems(eventChart);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getMapDashboardItems(Map map) {
+    return dashboardItemStore.getMapDashboardItems(map);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getEventReportDashboardItems(EventReport eventReport) {
+    return dashboardItemStore.getEventReportDashboardItems(eventReport);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getUserDashboardItems(User user) {
+    return dashboardItemStore.getUserDashboardItems(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getReportDashboardItems(Report report) {
+    return dashboardItemStore.getReportDashboardItems(report);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<DashboardItem> getDocumentDashboardItems(Document document) {
+    return dashboardItemStore.getDocumentDashboardItems(document);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private int getMax(
+      DashboardItemType type, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount) {
+    int dashboardsMax = ObjectUtils.firstNonNull(maxCount, MAX_HITS_PER_OBJECT);
+    int dashboardsCount = ObjectUtils.firstNonNull(count, HITS_PER_OBJECT);
+
+    return maxTypes != null && maxTypes.contains(type) ? dashboardsMax : dashboardsCount;
+  }
+
+  private List<SimpleVisualizationView> convertFromVisualization(
+      List<Visualization> visualizations) {
+    List<SimpleVisualizationView> views = new ArrayList<>();
+
+    if (isNotEmpty(visualizations)) {
+      for (Visualization visualization : visualizations) {
+        views.add(convertFrom(visualization));
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Dashboard getDashboard( long id )
-    {
-        return dashboardStore.get( id );
+    return views;
+  }
+
+  private SimpleVisualizationView convertFrom(Visualization visualization) {
+    SimpleVisualizationView view = new SimpleVisualizationView();
+    BeanUtils.copyProperties(visualization, view);
+
+    return view;
+  }
+
+  private List<SimpleEventVisualizationView> convertFromEventVisualization(
+      List<EventVisualization> eventVisualizations) {
+    List<SimpleEventVisualizationView> views = new ArrayList<>();
+
+    if (isNotEmpty(eventVisualizations)) {
+      for (final EventVisualization eventVisualization : eventVisualizations) {
+        views.add(convertFrom(eventVisualization));
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Dashboard getDashboard( String uid )
-    {
-        return dashboardStore.getByUid( uid );
-    }
+    return views;
+  }
 
-    // -------------------------------------------------------------------------
-    // DashboardItem
-    // -------------------------------------------------------------------------
+  private SimpleEventVisualizationView convertFrom(EventVisualization visualization) {
+    SimpleEventVisualizationView view = new SimpleEventVisualizationView();
+    BeanUtils.copyProperties(visualization, view);
 
-    @Override
-    @Transactional
-    public void updateDashboardItem( DashboardItem item )
-    {
-        dashboardItemStore.update( item );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public DashboardItem getDashboardItem( String uid )
-    {
-        return dashboardItemStore.getByUid( uid );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem )
-    {
-        return dashboardItemStore.getDashboardFromDashboardItem( dashboardItem );
-    }
-
-    @Override
-    public void deleteDashboardItem( DashboardItem item )
-    {
-        dashboardItemStore.delete( item );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getVisualizationDashboardItems( Visualization visualization )
-    {
-        return dashboardItemStore.getVisualizationDashboardItems( visualization );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getEventVisualizationDashboardItems( EventVisualization eventVisualization )
-    {
-        return dashboardItemStore.getEventVisualizationDashboardItems( eventVisualization );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getEventChartDashboardItems( EventChart eventChart )
-    {
-        return dashboardItemStore.getEventChartDashboardItems( eventChart );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getMapDashboardItems( Map map )
-    {
-        return dashboardItemStore.getMapDashboardItems( map );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getEventReportDashboardItems( EventReport eventReport )
-    {
-        return dashboardItemStore.getEventReportDashboardItems( eventReport );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getUserDashboardItems( User user )
-    {
-        return dashboardItemStore.getUserDashboardItems( user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getReportDashboardItems( Report report )
-    {
-        return dashboardItemStore.getReportDashboardItems( report );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<DashboardItem> getDocumentDashboardItems( Document document )
-    {
-        return dashboardItemStore.getDocumentDashboardItems( document );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private int getMax( DashboardItemType type, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
-    {
-        int dashboardsMax = ObjectUtils.firstNonNull( maxCount, MAX_HITS_PER_OBJECT );
-        int dashboardsCount = ObjectUtils.firstNonNull( count, HITS_PER_OBJECT );
-
-        return maxTypes != null && maxTypes.contains( type ) ? dashboardsMax : dashboardsCount;
-    }
-
-    private List<SimpleVisualizationView> convertFromVisualization( List<Visualization> visualizations )
-    {
-        List<SimpleVisualizationView> views = new ArrayList<>();
-
-        if ( isNotEmpty( visualizations ) )
-        {
-            for ( Visualization visualization : visualizations )
-            {
-                views.add( convertFrom( visualization ) );
-            }
-        }
-
-        return views;
-    }
-
-    private SimpleVisualizationView convertFrom( Visualization visualization )
-    {
-        SimpleVisualizationView view = new SimpleVisualizationView();
-        BeanUtils.copyProperties( visualization, view );
-
-        return view;
-    }
-
-    private List<SimpleEventVisualizationView> convertFromEventVisualization(
-        List<EventVisualization> eventVisualizations )
-    {
-        List<SimpleEventVisualizationView> views = new ArrayList<>();
-
-        if ( isNotEmpty( eventVisualizations ) )
-        {
-            for ( final EventVisualization eventVisualization : eventVisualizations )
-            {
-                views.add( convertFrom( eventVisualization ) );
-            }
-        }
-
-        return views;
-    }
-
-    private SimpleEventVisualizationView convertFrom( EventVisualization visualization )
-    {
-        SimpleEventVisualizationView view = new SimpleEventVisualizationView();
-        BeanUtils.copyProperties( visualization, view );
-
-        return view;
-    }
+    return view;
+  }
 }

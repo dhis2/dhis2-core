@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.collection;
 
 import java.util.Collection;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.feedback.TypeReport;
@@ -36,31 +35,35 @@ import org.hisp.dhis.feedback.TypeReport;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface CollectionService
-{
-    TypeReport addCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+public interface CollectionService {
+  TypeReport addCollectionItems(
+      IdentifiableObject object,
+      String propertyName,
+      Collection<? extends IdentifiableObject> objects)
+      throws Exception;
 
-    TypeReport delCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+  TypeReport delCollectionItems(
+      IdentifiableObject object,
+      String propertyName,
+      Collection<? extends IdentifiableObject> objects)
+      throws Exception;
 
-    TypeReport replaceCollectionItems( IdentifiableObject object, String propertyName,
-        Collection<? extends IdentifiableObject> objects )
-        throws Exception;
+  TypeReport replaceCollectionItems(
+      IdentifiableObject object,
+      String propertyName,
+      Collection<? extends IdentifiableObject> objects)
+      throws Exception;
 
-    /**
-     * Perform addition and deletion of given {@link IdentifiableObjects} to
-     * given {@link IdentifiableObject} in one transaction.
-     *
-     * @param object {@link IdentifiableObject} to be updated
-     * @param propertyName property name of the given {@link IdentifiableObject}
-     *        which will be updated.
-     * @param items {@link IdentifiableObjects} contains additions and deletions
-     *        items.
-     * @return {@link TypeReport}
-     */
-    TypeReport mergeCollectionItems( IdentifiableObject object, String propertyName, IdentifiableObjects items )
-        throws Exception;
+  /**
+   * Perform addition and deletion of given {@link IdentifiableObjects} to given {@link
+   * IdentifiableObject} in one transaction.
+   *
+   * @param object {@link IdentifiableObject} to be updated
+   * @param propertyName property name of the given {@link IdentifiableObject} which will be
+   *     updated.
+   * @param items {@link IdentifiableObjects} contains additions and deletions items.
+   * @return {@link TypeReport}
+   */
+  TypeReport mergeCollectionItems(
+      IdentifiableObject object, String propertyName, IdentifiableObjects items) throws Exception;
 }

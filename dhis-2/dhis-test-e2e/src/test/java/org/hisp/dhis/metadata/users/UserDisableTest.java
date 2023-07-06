@@ -40,78 +40,73 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class UserDisableTest
-    extends ApiTest
-{
-    private UserActions userActions;
+public class UserDisableTest extends ApiTest {
+  private UserActions userActions;
 
-    private LoginActions loginActions;
+  private LoginActions loginActions;
 
-    private String userId;
+  private String userId;
 
-    private String userName;
+  private String userName;
 
-    private String password = "!XPTOqwerty1";
+  private String password = "!XPTOqwerty1";
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        userActions = new UserActions();
-        loginActions = new LoginActions();
+  @BeforeEach
+  public void beforeEach() {
+    userActions = new UserActions();
+    loginActions = new LoginActions();
 
-        userName = (DataGenerator.randomString()).toLowerCase();
+    userName = (DataGenerator.randomString()).toLowerCase();
 
-        loginActions.loginAsSuperUser();
+    loginActions.loginAsSuperUser();
 
-        userId = userActions.addUserFull( "johnny", "bravo", userName, password );
-    }
+    userId = userActions.addUserFull("johnny", "bravo", userName, password);
+  }
 
-    @Test
-    public void shouldDisableUser()
-    {
-        loginActions.loginAsUser( userName, password );
-        loginActions.loginAsSuperUser();
+  @Test
+  public void shouldDisableUser() {
+    loginActions.loginAsUser(userName, password);
+    loginActions.loginAsSuperUser();
 
-        ApiResponse preChangeResponse = userActions.get( userId );
-        preChangeResponse.validate().statusCode( 200 ).body( "disabled", is( false ) );
+    ApiResponse preChangeResponse = userActions.get(userId);
+    preChangeResponse.validate().statusCode(200).body("disabled", is(false));
 
-        ApiResponse response = userActions.post( userId + "/disabled", new Object(), null );
-        response.validate().statusCode( 204 );
+    ApiResponse response = userActions.post(userId + "/disabled", new Object(), null);
+    response.validate().statusCode(204);
 
-        ApiResponse getResponse = userActions.get( userId );
-        getResponse.validate().statusCode( 200 ).body( "disabled", is( true ) );
+    ApiResponse getResponse = userActions.get(userId);
+    getResponse.validate().statusCode(200).body("disabled", is(true));
 
-        loginActions.addAuthenticationHeader( userName, password );
-        loginActions.getLoggedInUserInfo().validate().statusCode( 401 );
-    }
+    loginActions.addAuthenticationHeader(userName, password);
+    loginActions.getLoggedInUserInfo().validate().statusCode(401);
+  }
 
-    @Test
-    public void shouldEnableUser()
-    {
-        loginActions.loginAsUser( userName, password );
-        loginActions.loginAsSuperUser();
+  @Test
+  public void shouldEnableUser() {
+    loginActions.loginAsUser(userName, password);
+    loginActions.loginAsSuperUser();
 
-        ApiResponse preChangeResponse = userActions.get( userId );
-        preChangeResponse.validate().statusCode( 200 ).body( "disabled", is( false ) );
+    ApiResponse preChangeResponse = userActions.get(userId);
+    preChangeResponse.validate().statusCode(200).body("disabled", is(false));
 
-        ApiResponse response = userActions.post( userId + "/disabled", new Object(), null );
-        response.validate().statusCode( 204 );
+    ApiResponse response = userActions.post(userId + "/disabled", new Object(), null);
+    response.validate().statusCode(204);
 
-        ApiResponse getResponse = userActions.get( userId );
-        getResponse.validate().statusCode( 200 ).body( "disabled", is( true ) );
+    ApiResponse getResponse = userActions.get(userId);
+    getResponse.validate().statusCode(200).body("disabled", is(true));
 
-        loginActions.addAuthenticationHeader( userName, password );
-        loginActions.getLoggedInUserInfo().validate().statusCode( 401 );
+    loginActions.addAuthenticationHeader(userName, password);
+    loginActions.getLoggedInUserInfo().validate().statusCode(401);
 
-        loginActions.loginAsSuperUser();
+    loginActions.loginAsSuperUser();
 
-        ApiResponse enableResponse = userActions.post( userId + "/enabled", new Object(), null );
-        enableResponse.validate().statusCode( 204 );
+    ApiResponse enableResponse = userActions.post(userId + "/enabled", new Object(), null);
+    enableResponse.validate().statusCode(204);
 
-        ApiResponse getAfterEnabled = userActions.get( userId );
-        getAfterEnabled.validate().statusCode( 200 ).body( "disabled", is( false ) );
+    ApiResponse getAfterEnabled = userActions.get(userId);
+    getAfterEnabled.validate().statusCode(200).body("disabled", is(false));
 
-        loginActions.addAuthenticationHeader( userName, password );
-        loginActions.getLoggedInUserInfo().validate().statusCode( 200 );
-    }
+    loginActions.addAuthenticationHeader(userName, password);
+    loginActions.getLoggedInUserInfo().validate().statusCode(200);
+  }
 }

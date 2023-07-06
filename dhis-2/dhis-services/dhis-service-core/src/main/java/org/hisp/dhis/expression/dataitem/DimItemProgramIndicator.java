@@ -38,14 +38,9 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class DimItemProgramIndicator
-    extends DimensionalItem
-{
-    @Override
-    public DimensionalItemId getDimensionalItemId( ExprContext ctx,
-        CommonExpressionVisitor visitor )
-    {
-        return new DimensionalItemId( PROGRAM_INDICATOR,
-            ctx.uid0.getText() );
-    }
+public class DimItemProgramIndicator extends DimensionalItem {
+  @Override
+  public DimensionalItemId getDimensionalItemId(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return new DimensionalItemId(PROGRAM_INDICATOR, ctx.uid0.getText());
+  }
 }

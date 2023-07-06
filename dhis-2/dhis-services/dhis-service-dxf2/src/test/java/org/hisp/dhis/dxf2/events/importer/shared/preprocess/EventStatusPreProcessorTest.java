@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -38,30 +39,26 @@ import org.hisp.dhis.event.EventStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-class EventStatusPreProcessorTest
-{
+class EventStatusPreProcessorTest {
 
-    private SharedEventStatusPreProcessor preProcessor;
+  private SharedEventStatusPreProcessor preProcessor;
 
-    @BeforeEach
-    void setUp()
-    {
-        preProcessor = new SharedEventStatusPreProcessor();
-    }
+  @BeforeEach
+  void setUp() {
+    preProcessor = new SharedEventStatusPreProcessor();
+  }
 
-    @Test
-    void testVisitedStatusIsConvertedToActive()
-    {
-        WorkContext ctx = WorkContext.builder().importOptions( ImportOptions.getDefaultImportOptions() ).build();
-        Event event = new Event();
-        event.setStatus( EventStatus.VISITED );
-        event.setDataValues( Sets.newHashSet( new DataValue( "aaa", "one" ), new DataValue( "bbb", "two" ) ) );
-        preProcessor.process( event, ctx );
-        assertThat( event.getStatus(), is( EventStatus.ACTIVE ) );
-    }
+  @Test
+  void testVisitedStatusIsConvertedToActive() {
+    WorkContext ctx =
+        WorkContext.builder().importOptions(ImportOptions.getDefaultImportOptions()).build();
+    Event event = new Event();
+    event.setStatus(EventStatus.VISITED);
+    event.setDataValues(Sets.newHashSet(new DataValue("aaa", "one"), new DataValue("bbb", "two")));
+    preProcessor.process(event, ctx);
+    assertThat(event.getStatus(), is(EventStatus.ACTIVE));
+  }
 }

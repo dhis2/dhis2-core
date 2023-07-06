@@ -35,12 +35,9 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
-{
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
-    {
-        event
-            .setNotes( ValidationUtils.validateNotes( reporter, event, event.getNotes() ) );
-    }
+public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook {
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, Event event) {
+    event.setNotes(ValidationUtils.validateNotes(reporter, event, event.getNotes()));
+  }
 }

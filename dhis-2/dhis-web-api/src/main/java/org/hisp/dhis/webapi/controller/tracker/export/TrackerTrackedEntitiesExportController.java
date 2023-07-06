@@ -30,11 +30,10 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -56,73 +55,73 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 @RestController
-@RequestMapping( value = RESOURCE_PATH + "/" + TrackerTrackedEntitiesExportController.TRACKED_ENTITIES )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(
+    value = RESOURCE_PATH + "/" + TrackerTrackedEntitiesExportController.TRACKED_ENTITIES)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @RequiredArgsConstructor
-public class TrackerTrackedEntitiesExportController
-{
-    protected static final String TRACKED_ENTITIES = "trackedEntities";
+public class TrackerTrackedEntitiesExportController {
+  protected static final String TRACKED_ENTITIES = "trackedEntities";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
+  private static final String DEFAULT_FIELDS_PARAM =
+      "*,!relationships,!enrollments,!events,!programOwners";
 
-    private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
+  private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
+      Mappers.getMapper(TrackedEntityMapper.class);
 
-    @NonNull
-    private final TrackedEntityCriteriaMapper criteriaMapper;
+  @NonNull private final TrackedEntityCriteriaMapper criteriaMapper;
 
-    @NonNull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+  @NonNull private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @NonNull
-    private final TrackedEntitiesSupportService trackedEntitiesSupportService;
+  @NonNull private final TrackedEntitiesSupportService trackedEntitiesSupportService;
 
-    @NonNull
-    private final FieldFilterService fieldFilterService;
+  @NonNull private final FieldFilterService fieldFilterService;
 
-    private final TrackedEntityFieldsParamMapper fieldsMapper;
+  private final TrackedEntityFieldsParamMapper fieldsMapper;
 
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-    {
-        TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  PagingWrapper<ObjectNode> getInstances(
+      TrackerTrackedEntityCriteria criteria,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
+    TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map(criteria);
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
-            criteria.isIncludeDeleted() );
+    TrackedEntityInstanceParams trackedEntityInstanceParams =
+        fieldsMapper.map(fields, criteria.isIncludeDeleted());
 
-        List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
-            .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntityInstanceParams, false, false ) );
+    List<TrackedEntity> trackedEntityInstances =
+        TRACKED_ENTITY_MAPPER.fromCollection(
+            trackedEntityInstanceService.getTrackedEntityInstances(
+                queryParams, trackedEntityInstanceParams, false, false));
 
-        PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-        if ( criteria.isPagingRequest() )
-        {
-            Long count = 0L;
-            if ( criteria.isTotalPages() )
-            {
-                count = (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true );
-            }
+    PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
+    if (criteria.isPagingRequest()) {
+      Long count = 0L;
+      if (criteria.isTotalPages()) {
+        count =
+            (long)
+                trackedEntityInstanceService.getTrackedEntityInstanceCount(queryParams, true, true);
+      }
 
-            Pager pager = new Pager( criteria.getPageWithDefault(), count, criteria.getPageSizeWithDefault() );
-            pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.fromLegacy( criteria, pager ) );
-        }
-
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntityInstances, fields );
-        return pagingWrapper.withInstances( objectNodes );
+      Pager pager =
+          new Pager(criteria.getPageWithDefault(), count, criteria.getPageSizeWithDefault());
+      pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(criteria, pager));
     }
 
-    @GetMapping( value = "{id}" )
-    public ResponseEntity<ObjectNode> getTrackedEntityInstanceById( @PathVariable String id,
-        @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-    {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(trackedEntityInstances, fields);
+    return pagingWrapper.withInstances(objectNodes);
+  }
 
-        TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
-    }
+  @GetMapping(value = "{id}")
+  public ResponseEntity<ObjectNode> getTrackedEntityInstanceById(
+      @PathVariable String id,
+      @RequestParam(required = false) String program,
+      @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM) List<FieldPath> fields) {
+    TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map(fields);
+
+    TrackedEntity trackedEntity =
+        TRACKED_ENTITY_MAPPER.from(
+            trackedEntitiesSupportService.getTrackedEntityInstance(
+                id, program, trackedEntityInstanceParams));
+    return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
+  }
 }

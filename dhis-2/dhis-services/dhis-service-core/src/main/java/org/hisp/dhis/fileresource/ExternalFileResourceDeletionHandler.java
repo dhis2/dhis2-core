@@ -38,41 +38,38 @@ import org.springframework.stereotype.Component;
 /**
  * @author Kristian Wærstad <kristian@dhis2.org>
  */
-@Component( "org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler" )
-public class ExternalFileResourceDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( ExternalFileResource.class );
+@Component("org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler")
+public class ExternalFileResourceDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(ExternalFileResource.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public ExternalFileResourceDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
+  public ExternalFileResourceDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
+  @Override
+  protected void register() {
 
-        whenVetoing( FileResource.class, this::allowDeleteFileResource );
-        whenDeleting( FileResource.class, this::deleteFileResource );
-    }
+    whenVetoing(FileResource.class, this::allowDeleteFileResource);
+    whenDeleting(FileResource.class, this::deleteFileResource);
+  }
 
-    private DeletionVeto allowDeleteFileResource( FileResource fileResource )
-    {
-        String sql = "SELECT COUNT(*) FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
+  private DeletionVeto allowDeleteFileResource(FileResource fileResource) {
+    String sql =
+        "SELECT COUNT(*) FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
 
-        int result = jdbcTemplate.queryForObject( sql, Integer.class );
+    int result = jdbcTemplate.queryForObject(sql, Integer.class);
 
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? ACCEPT : VETO;
-    }
+    return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED
+        ? ACCEPT
+        : VETO;
+  }
 
-    private void deleteFileResource( FileResource fileResource )
-    {
-        String sql = "DELETE FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
+  private void deleteFileResource(FileResource fileResource) {
+    String sql = "DELETE FROM externalfileresource WHERE fileresourceid=" + fileResource.getId();
 
-        jdbcTemplate.execute( sql );
-    }
+    jdbcTemplate.execute(sql);
+  }
 }

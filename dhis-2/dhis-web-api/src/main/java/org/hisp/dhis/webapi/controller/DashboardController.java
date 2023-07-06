@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemType;
@@ -62,116 +61,105 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = DashboardSchemaDescriptor.API_ENDPOINT )
-public class DashboardController
-    extends AbstractCrudController<Dashboard>
-{
-    @Autowired
-    private DashboardService dashboardService;
+@RequestMapping(value = DashboardSchemaDescriptor.API_ENDPOINT)
+public class DashboardController extends AbstractCrudController<Dashboard> {
+  @Autowired private DashboardService dashboardService;
 
-    @Autowired
-    private CascadeSharingService cascadeSharingService;
+  @Autowired private CascadeSharingService cascadeSharingService;
 
-    // -------------------------------------------------------------------------
-    // Search
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Search
+  // -------------------------------------------------------------------------
 
-    @GetMapping( "/q/{query}" )
-    public @ResponseBody DashboardSearchResult search( @PathVariable String query,
-        @RequestParam( required = false ) Set<DashboardItemType> max,
-        @RequestParam( required = false ) Integer count,
-        @RequestParam( required = false ) Integer maxCount )
-    {
-        return dashboardService.search( query, max, count, maxCount );
+  @GetMapping("/q/{query}")
+  public @ResponseBody DashboardSearchResult search(
+      @PathVariable String query,
+      @RequestParam(required = false) Set<DashboardItemType> max,
+      @RequestParam(required = false) Integer count,
+      @RequestParam(required = false) Integer maxCount) {
+    return dashboardService.search(query, max, count, maxCount);
+  }
+
+  @GetMapping("/q")
+  public @ResponseBody DashboardSearchResult searchNoFilter(
+      @RequestParam(required = false) Set<DashboardItemType> max,
+      @RequestParam(required = false) Integer count,
+      @RequestParam(required = false) Integer maxCount) {
+    return dashboardService.search(max, count, maxCount);
+  }
+
+  // -------------------------------------------------------------------------
+  // Metadata with dependencies
+  // -------------------------------------------------------------------------
+
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<RootNode> getDataSetWithDependencies(
+      @PathVariable("uid") String dashboardId,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException {
+    Dashboard dashboard = dashboardService.getDashboard(dashboardId);
+
+    if (dashboard == null) {
+      throw new WebMessageException(notFound("Dashboard not found for uid: " + dashboardId));
     }
 
-    @GetMapping( "/q" )
-    public @ResponseBody DashboardSearchResult searchNoFilter(
-        @RequestParam( required = false ) Set<DashboardItemType> max, @RequestParam( required = false ) Integer count,
-        @RequestParam( required = false ) Integer maxCount )
-    {
-        return dashboardService.search( max, count, maxCount );
+    return MetadataExportControllerUtils.getWithDependencies(
+        contextService, exportService, dashboard, download);
+  }
+
+  @PostMapping("cascadeSharing/{uid}")
+  public @ResponseBody CascadeSharingReport cascadeSharing(
+      @PathVariable("uid") String dashboardId,
+      @RequestParam(required = false) boolean dryRun,
+      @RequestParam(required = false) boolean atomic,
+      @CurrentUser User currentUser)
+      throws WebMessageException {
+    Dashboard dashboard = dashboardService.getDashboard(dashboardId);
+
+    if (dashboard == null) {
+      throw new WebMessageException(notFound("Dashboard not found for uid: " + dashboardId));
     }
 
-    // -------------------------------------------------------------------------
-    // Metadata with dependencies
-    // -------------------------------------------------------------------------
+    return cascadeSharingService.cascadeSharing(
+        dashboard,
+        CascadeSharingParameters.builder().user(currentUser).atomic(atomic).dryRun(dryRun).build());
+  }
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException
-    {
-        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
+  @Override
+  protected void preCreateEntity(final Dashboard dashboard) throws WebMessageException {
+    checkPreConditions(dashboard);
+  }
 
-        if ( dashboard == null )
-        {
-            throw new WebMessageException( notFound( "Dashboard not found for uid: " + dashboardId ) );
+  @Override
+  protected void preUpdateEntity(final Dashboard dashboard, final Dashboard newDashboard)
+      throws WebMessageException {
+    checkPreConditions(newDashboard);
+  }
+
+  private void checkPreConditions(final Dashboard dashboard) throws WebMessageException {
+    if (!hasDashboardItemsTypeSet(dashboard.getItems())) {
+      throw new WebMessageException(conflict("Dashboard item does not have any type associated."));
+    }
+  }
+
+  private boolean hasDashboardItemsTypeSet(final List<DashboardItem> items) {
+    if (isNotEmpty(items)) {
+      for (final DashboardItem item : items) {
+        final boolean hasAssociationType =
+            item != null
+                && (item.getLinkItems() != null
+                    || item.getEmbeddedItem() != null
+                    || item.getText() != null
+                    || item.getMessages() != null);
+
+        final boolean hasType = item != null && item.getType() != null;
+
+        if (!hasType && !hasAssociationType) {
+          return false;
         }
-
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
+      }
     }
 
-    @PostMapping( "cascadeSharing/{uid}" )
-    public @ResponseBody CascadeSharingReport cascadeSharing( @PathVariable( "uid" ) String dashboardId,
-        @RequestParam( required = false ) boolean dryRun, @RequestParam( required = false ) boolean atomic,
-        @CurrentUser User currentUser )
-        throws WebMessageException
-    {
-        Dashboard dashboard = dashboardService.getDashboard( dashboardId );
-
-        if ( dashboard == null )
-        {
-            throw new WebMessageException( notFound( "Dashboard not found for uid: " + dashboardId ) );
-        }
-
-        return cascadeSharingService.cascadeSharing( dashboard,
-            CascadeSharingParameters.builder().user( currentUser )
-                .atomic( atomic ).dryRun( dryRun ).build() );
-    }
-
-    @Override
-    protected void preCreateEntity( final Dashboard dashboard )
-        throws WebMessageException
-    {
-        checkPreConditions( dashboard );
-    }
-
-    @Override
-    protected void preUpdateEntity( final Dashboard dashboard, final Dashboard newDashboard )
-        throws WebMessageException
-    {
-        checkPreConditions( newDashboard );
-    }
-
-    private void checkPreConditions( final Dashboard dashboard )
-        throws WebMessageException
-    {
-        if ( !hasDashboardItemsTypeSet( dashboard.getItems() ) )
-        {
-            throw new WebMessageException( conflict( "Dashboard item does not have any type associated." ) );
-        }
-    }
-
-    private boolean hasDashboardItemsTypeSet( final List<DashboardItem> items )
-    {
-        if ( isNotEmpty( items ) )
-        {
-            for ( final DashboardItem item : items )
-            {
-                final boolean hasAssociationType = item != null
-                    && (item.getLinkItems() != null || item.getEmbeddedItem() != null || item.getText() != null
-                        || item.getMessages() != null);
-
-                final boolean hasType = item != null && item.getType() != null;
-
-                if ( !hasType && !hasAssociationType )
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
+    return true;
+  }
 }

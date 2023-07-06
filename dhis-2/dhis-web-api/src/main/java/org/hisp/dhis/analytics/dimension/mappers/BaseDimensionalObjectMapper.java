@@ -28,9 +28,7 @@
 package org.hisp.dhis.analytics.dimension.mappers;
 
 import java.util.Set;
-
 import lombok.Getter;
-
 import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
 import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.category.Category;
@@ -40,18 +38,15 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseDimensionalObjectMapper extends BaseDimensionMapper
-{
+public class BaseDimensionalObjectMapper extends BaseDimensionMapper {
 
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        CategoryOptionGroupSet.class,
-        Category.class );
+  @Getter
+  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+      Set.of(CategoryOptionGroupSet.class, Category.class);
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
-    {
-        return super.map( dimension, prefix )
-            .withDimensionType( ((BaseDimensionalObject) dimension).getDimensionType().name() );
-    }
+  @Override
+  public DimensionResponse map(BaseIdentifiableObject dimension, String prefix) {
+    return super.map(dimension, prefix)
+        .withDimensionType(((BaseDimensionalObject) dimension).getDimensionType().name());
+  }
 }

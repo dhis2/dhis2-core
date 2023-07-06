@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -58,196 +57,203 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-@Service( "org.hisp.dhis.datastatistics.DataStatisticsService" )
+@Service("org.hisp.dhis.datastatistics.DataStatisticsService")
 @Transactional
-public class DefaultDataStatisticsService
-    implements DataStatisticsService
-{
-    private final DataStatisticsStore dataStatisticsStore;
+public class DefaultDataStatisticsService implements DataStatisticsService {
+  private final DataStatisticsStore dataStatisticsStore;
 
-    private final DataStatisticsEventStore dataStatisticsEventStore;
+  private final DataStatisticsEventStore dataStatisticsEventStore;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final StatisticsProvider statisticsProvider;
+  private final StatisticsProvider statisticsProvider;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+  private final ProgramStageInstanceService programStageInstanceService;
 
-    private final EventVisualizationStore eventVisualizationStore;
+  private final EventVisualizationStore eventVisualizationStore;
 
-    public DefaultDataStatisticsService( final DataStatisticsStore dataStatisticsStore,
-        final DataStatisticsEventStore dataStatisticsEventStore, final UserService userService,
-        final IdentifiableObjectManager idObjectManager, final DataValueService dataValueService,
-        final StatisticsProvider statisticsProvider, final ProgramStageInstanceService programStageInstanceService,
-        final EventVisualizationStore eventVisualizationStore )
-    {
-        checkNotNull( dataStatisticsStore );
-        checkNotNull( dataStatisticsEventStore );
-        checkNotNull( userService );
-        checkNotNull( idObjectManager );
-        checkNotNull( dataValueService );
-        checkNotNull( statisticsProvider );
-        checkNotNull( programStageInstanceService );
-        checkNotNull( eventVisualizationStore );
+  public DefaultDataStatisticsService(
+      final DataStatisticsStore dataStatisticsStore,
+      final DataStatisticsEventStore dataStatisticsEventStore,
+      final UserService userService,
+      final IdentifiableObjectManager idObjectManager,
+      final DataValueService dataValueService,
+      final StatisticsProvider statisticsProvider,
+      final ProgramStageInstanceService programStageInstanceService,
+      final EventVisualizationStore eventVisualizationStore) {
+    checkNotNull(dataStatisticsStore);
+    checkNotNull(dataStatisticsEventStore);
+    checkNotNull(userService);
+    checkNotNull(idObjectManager);
+    checkNotNull(dataValueService);
+    checkNotNull(statisticsProvider);
+    checkNotNull(programStageInstanceService);
+    checkNotNull(eventVisualizationStore);
 
-        this.dataStatisticsStore = dataStatisticsStore;
-        this.dataStatisticsEventStore = dataStatisticsEventStore;
-        this.userService = userService;
-        this.idObjectManager = idObjectManager;
-        this.dataValueService = dataValueService;
-        this.statisticsProvider = statisticsProvider;
-        this.programStageInstanceService = programStageInstanceService;
-        this.eventVisualizationStore = eventVisualizationStore;
-    }
+    this.dataStatisticsStore = dataStatisticsStore;
+    this.dataStatisticsEventStore = dataStatisticsEventStore;
+    this.userService = userService;
+    this.idObjectManager = idObjectManager;
+    this.dataValueService = dataValueService;
+    this.statisticsProvider = statisticsProvider;
+    this.programStageInstanceService = programStageInstanceService;
+    this.eventVisualizationStore = eventVisualizationStore;
+  }
 
-    // -------------------------------------------------------------------------
-    // DataStatisticsService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataStatisticsService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public int addEvent( DataStatisticsEvent event )
-    {
-        dataStatisticsEventStore.save( event );
+  @Override
+  public int addEvent(DataStatisticsEvent event) {
+    dataStatisticsEventStore.save(event);
 
-        return event.getId();
-    }
+    return event.getId();
+  }
 
-    @Override
-    public List<AggregatedStatistics> getReports( Date startDate, Date endDate, EventInterval eventInterval )
-    {
-        return dataStatisticsStore.getSnapshotsInInterval( eventInterval, startDate, endDate );
-    }
+  @Override
+  public List<AggregatedStatistics> getReports(
+      Date startDate, Date endDate, EventInterval eventInterval) {
+    return dataStatisticsStore.getSnapshotsInInterval(eventInterval, startDate, endDate);
+  }
 
-    @Override
-    public DataStatistics getDataStatisticsSnapshot( Date day )
-    {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime( day );
-        cal.add( Calendar.DATE, -1 );
-        Date startDate = cal.getTime();
-        Date now = new Date();
-        long diff = now.getTime() - startDate.getTime();
-        int days = (int) TimeUnit.DAYS.convert( diff, TimeUnit.MILLISECONDS );
+  @Override
+  public DataStatistics getDataStatisticsSnapshot(Date day) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(day);
+    cal.add(Calendar.DATE, -1);
+    Date startDate = cal.getTime();
+    Date now = new Date();
+    long diff = now.getTime() - startDate.getTime();
+    int days = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
-        double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
-        double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
-        double savedEventReports = eventVisualizationStore.countReportsCreated( startDate );
-        double savedEventCharts = eventVisualizationStore.countChartsCreated( startDate );
-        double savedEventVisualizations = eventVisualizationStore.countEventVisualizationsCreated( startDate );
-        double savedDashboards = idObjectManager.getCountByCreated( Dashboard.class, startDate );
-        double savedIndicators = idObjectManager.getCountByCreated( Indicator.class, startDate );
-        double savedDataValues = dataValueService.getDataValueCount( days );
-        int activeUsers = userService.getActiveUsersCount( 1 );
-        int users = idObjectManager.getCount( User.class );
+    double savedMaps =
+        idObjectManager.getCountByCreated(org.hisp.dhis.mapping.Map.class, startDate);
+    double savedVisualizations = idObjectManager.getCountByCreated(Visualization.class, startDate);
+    double savedEventReports = eventVisualizationStore.countReportsCreated(startDate);
+    double savedEventCharts = eventVisualizationStore.countChartsCreated(startDate);
+    double savedEventVisualizations =
+        eventVisualizationStore.countEventVisualizationsCreated(startDate);
+    double savedDashboards = idObjectManager.getCountByCreated(Dashboard.class, startDate);
+    double savedIndicators = idObjectManager.getCountByCreated(Indicator.class, startDate);
+    double savedDataValues = dataValueService.getDataValueCount(days);
+    int activeUsers = userService.getActiveUsersCount(1);
+    int users = idObjectManager.getCount(User.class);
 
-        Map<DataStatisticsEventType, Double> eventCountMap = dataStatisticsEventStore
-            .getDataStatisticsEventCount( startDate, day );
+    Map<DataStatisticsEventType, Double> eventCountMap =
+        dataStatisticsEventStore.getDataStatisticsEventCount(startDate, day);
 
-        DataStatistics dataStatistics = new DataStatistics(
-            eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.EVENT_VISUALIZATION_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.DASHBOARD_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedVisualizations, savedEventReports, savedEventCharts, savedEventVisualizations,
-            savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
+    DataStatistics dataStatistics =
+        new DataStatistics(
+            eventCountMap.get(DataStatisticsEventType.MAP_VIEW),
+            eventCountMap.get(DataStatisticsEventType.VISUALIZATION_VIEW),
+            eventCountMap.get(DataStatisticsEventType.EVENT_REPORT_VIEW),
+            eventCountMap.get(DataStatisticsEventType.EVENT_CHART_VIEW),
+            eventCountMap.get(DataStatisticsEventType.EVENT_VISUALIZATION_VIEW),
+            eventCountMap.get(DataStatisticsEventType.DASHBOARD_VIEW),
+            eventCountMap.get(DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW),
+            eventCountMap.get(DataStatisticsEventType.DATA_SET_REPORT_VIEW),
+            eventCountMap.get(DataStatisticsEventType.TOTAL_VIEW),
+            savedMaps,
+            savedVisualizations,
+            savedEventReports,
+            savedEventCharts,
+            savedEventVisualizations,
+            savedDashboards,
+            savedIndicators,
+            savedDataValues,
+            activeUsers,
+            users);
 
-        return dataStatistics;
-    }
+    return dataStatistics;
+  }
 
-    @Override
-    public long saveDataStatistics( DataStatistics dataStatistics )
-    {
-        dataStatisticsStore.save( dataStatistics );
+  @Override
+  public long saveDataStatistics(DataStatistics dataStatistics) {
+    dataStatisticsStore.save(dataStatistics);
 
-        return dataStatistics.getId();
-    }
+    return dataStatistics.getId();
+  }
 
-    @Override
-    public long saveDataStatisticsSnapshot()
-    {
-        return saveDataStatistics( getDataStatisticsSnapshot( new Date() ) );
-    }
+  @Override
+  public long saveDataStatisticsSnapshot() {
+    return saveDataStatistics(getDataStatisticsSnapshot(new Date()));
+  }
 
-    @Override
-    public List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize,
-        SortOrder sortOrder, String username )
-    {
-        return dataStatisticsEventStore.getFavoritesData( eventType, pageSize, sortOrder, username );
-    }
+  @Override
+  public List<FavoriteStatistics> getTopFavorites(
+      DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username) {
+    return dataStatisticsEventStore.getFavoritesData(eventType, pageSize, sortOrder, username);
+  }
 
-    @Override
-    public FavoriteStatistics getFavoriteStatistics( String uid )
-    {
-        return dataStatisticsEventStore.getFavoriteStatistics( uid );
-    }
+  @Override
+  public FavoriteStatistics getFavoriteStatistics(String uid) {
+    return dataStatisticsEventStore.getFavoriteStatistics(uid);
+  }
 
-    @Override
-    public DataSummary getSystemStatisticsSummary()
-    {
-        DataSummary statistics = new DataSummary();
+  @Override
+  public DataSummary getSystemStatisticsSummary() {
+    DataSummary statistics = new DataSummary();
 
-        // Database objects
-        Map<String, Long> objectCounts = new HashMap<>();
-        statisticsProvider.getObjectCounts()
-            .forEach( ( object, count ) -> objectCounts.put( object.getValue(), count ) );
+    // Database objects
+    Map<String, Long> objectCounts = new HashMap<>();
+    statisticsProvider
+        .getObjectCounts()
+        .forEach((object, count) -> objectCounts.put(object.getValue(), count));
 
-        statistics.setObjectCounts( objectCounts );
+    statistics.setObjectCounts(objectCounts);
 
-        // Active users
-        Date lastHour = new DateTime().minusHours( 1 ).toDate();
+    // Active users
+    Date lastHour = new DateTime().minusHours(1).toDate();
 
-        Map<Integer, Integer> activeUsers = new HashMap<>();
+    Map<Integer, Integer> activeUsers = new HashMap<>();
 
-        activeUsers.put( 0, userService.getActiveUsersCount( lastHour ) );
-        activeUsers.put( 1, userService.getActiveUsersCount( 0 ) );
-        activeUsers.put( 2, userService.getActiveUsersCount( 1 ) );
-        activeUsers.put( 7, userService.getActiveUsersCount( 7 ) );
-        activeUsers.put( 30, userService.getActiveUsersCount( 30 ) );
+    activeUsers.put(0, userService.getActiveUsersCount(lastHour));
+    activeUsers.put(1, userService.getActiveUsersCount(0));
+    activeUsers.put(2, userService.getActiveUsersCount(1));
+    activeUsers.put(7, userService.getActiveUsersCount(7));
+    activeUsers.put(30, userService.getActiveUsersCount(30));
 
-        statistics.setActiveUsers( activeUsers );
+    statistics.setActiveUsers(activeUsers);
 
-        // User invitations
-        Map<String, Integer> userInvitations = new HashMap<>();
+    // User invitations
+    Map<String, Integer> userInvitations = new HashMap<>();
 
-        UserQueryParams inviteAll = new UserQueryParams();
-        inviteAll.setInvitationStatus( UserInvitationStatus.ALL );
-        userInvitations.put( UserInvitationStatus.ALL.getValue(), userService.getUserCount( inviteAll ) );
+    UserQueryParams inviteAll = new UserQueryParams();
+    inviteAll.setInvitationStatus(UserInvitationStatus.ALL);
+    userInvitations.put(UserInvitationStatus.ALL.getValue(), userService.getUserCount(inviteAll));
 
-        UserQueryParams inviteExpired = new UserQueryParams();
-        inviteExpired.setInvitationStatus( UserInvitationStatus.EXPIRED );
-        userInvitations.put( UserInvitationStatus.EXPIRED.getValue(), userService.getUserCount( inviteExpired ) );
+    UserQueryParams inviteExpired = new UserQueryParams();
+    inviteExpired.setInvitationStatus(UserInvitationStatus.EXPIRED);
+    userInvitations.put(
+        UserInvitationStatus.EXPIRED.getValue(), userService.getUserCount(inviteExpired));
 
-        statistics.setUserInvitations( userInvitations );
+    statistics.setUserInvitations(userInvitations);
 
-        // Data values
-        Map<Integer, Integer> dataValueCount = new HashMap<>();
+    // Data values
+    Map<Integer, Integer> dataValueCount = new HashMap<>();
 
-        dataValueCount.put( 0, dataValueService.getDataValueCount( 0 ) );
-        dataValueCount.put( 1, dataValueService.getDataValueCount( 1 ) );
-        dataValueCount.put( 7, dataValueService.getDataValueCount( 7 ) );
-        dataValueCount.put( 30, dataValueService.getDataValueCount( 30 ) );
+    dataValueCount.put(0, dataValueService.getDataValueCount(0));
+    dataValueCount.put(1, dataValueService.getDataValueCount(1));
+    dataValueCount.put(7, dataValueService.getDataValueCount(7));
+    dataValueCount.put(30, dataValueService.getDataValueCount(30));
 
-        statistics.setDataValueCount( dataValueCount );
+    statistics.setDataValueCount(dataValueCount);
 
-        // Events
-        Map<Integer, Long> eventCount = new HashMap<>();
+    // Events
+    Map<Integer, Long> eventCount = new HashMap<>();
 
-        eventCount.put( 0, programStageInstanceService.getProgramStageInstanceCount( 0 ) );
-        eventCount.put( 1, programStageInstanceService.getProgramStageInstanceCount( 1 ) );
-        eventCount.put( 7, programStageInstanceService.getProgramStageInstanceCount( 7 ) );
-        eventCount.put( 30, programStageInstanceService.getProgramStageInstanceCount( 30 ) );
+    eventCount.put(0, programStageInstanceService.getProgramStageInstanceCount(0));
+    eventCount.put(1, programStageInstanceService.getProgramStageInstanceCount(1));
+    eventCount.put(7, programStageInstanceService.getProgramStageInstanceCount(7));
+    eventCount.put(30, programStageInstanceService.getProgramStageInstanceCount(30));
 
-        statistics.setEventCount( eventCount );
+    statistics.setEventCount(eventCount);
 
-        return statistics;
-    }
+    return statistics;
+  }
 }

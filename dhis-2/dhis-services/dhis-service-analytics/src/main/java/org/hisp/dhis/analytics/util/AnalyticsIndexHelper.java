@@ -36,9 +36,9 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.RegExUtils;
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -46,160 +46,158 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.CodeGenerator;
 
-import com.google.common.collect.Lists;
-
 /**
- * Helper class that encapsulates methods responsible for supporting the
- * creation of analytics indexes based on very specific needs.
+ * Helper class that encapsulates methods responsible for supporting the creation of analytics
+ * indexes based on very specific needs.
  *
  * @author maikel arabori
  */
-public class AnalyticsIndexHelper
-{
-    private static final String PREFIX_INDEX = "in_";
+public class AnalyticsIndexHelper {
+  private static final String PREFIX_INDEX = "in_";
 
-    private AnalyticsIndexHelper()
-    {
-    }
+  private AnalyticsIndexHelper() {}
 
-    /**
-     * Returns a queue of analytics table indexes.
-     *
-     * @param partitions the list of {@link AnalyticsTablePartition}.
-     * @return a {@link java.util.concurrent.ConcurrentLinkedQueue} of indexes.
-     */
-    public static List<AnalyticsIndex> getIndexes( List<AnalyticsTablePartition> partitions )
-    {
-        List<AnalyticsIndex> indexes = new ArrayList<>();
+  /**
+   * Returns a queue of analytics table indexes.
+   *
+   * @param partitions the list of {@link AnalyticsTablePartition}.
+   * @return a {@link java.util.concurrent.ConcurrentLinkedQueue} of indexes.
+   */
+  public static List<AnalyticsIndex> getIndexes(List<AnalyticsTablePartition> partitions) {
+    List<AnalyticsIndex> indexes = new ArrayList<>();
 
-        for ( AnalyticsTablePartition partition : partitions )
-        {
-            List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+    for (AnalyticsTablePartition partition : partitions) {
+      List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
 
-            for ( AnalyticsTableColumn col : columns )
-            {
-                if ( !col.isSkipIndex() )
-                {
-                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
-                        : Lists.newArrayList( col.getName() );
+      for (AnalyticsTableColumn col : columns) {
+        if (!col.isSkipIndex()) {
+          List<String> indexColumns =
+              col.hasIndexColumns() ? col.getIndexColumns() : Lists.newArrayList(col.getName());
 
-                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), indexColumns, col.getIndexType() ) );
+          indexes.add(
+              new AnalyticsIndex(partition.getTempTableName(), indexColumns, col.getIndexType()));
 
-                    maybeAddTextLowerIndex( indexes, partition.getTempTableName(), col, indexColumns );
-                }
-            }
+          maybeAddTextLowerIndex(indexes, partition.getTempTableName(), col, indexColumns);
         }
-
-        return indexes;
+      }
     }
 
-    /**
-     * Based on the given arguments, this method will apply specific logic and
-     * return the correct SQL statement for the index creation.
-     *
-     * @param index the {@link AnalyticsIndex}
-     * @param tableType the {@link AnalyticsTableType}
-     * @return the SQL index statement
-     */
-    public static String createIndexStatement( AnalyticsIndex index, AnalyticsTableType tableType )
-    {
-        final String indexName = getIndexName( index, tableType );
-        final String indexColumns = maybeApplyFunctionToIndex( index, join( index.getColumns(), "," ) );
+    return indexes;
+  }
 
-        return "create index " + indexName + " " +
-            "on " + index.getTable() + " " +
-            "using " + index.getType().keyword() + " (" + indexColumns + ");";
+  /**
+   * Based on the given arguments, this method will apply specific logic and return the correct SQL
+   * statement for the index creation.
+   *
+   * @param index the {@link AnalyticsIndex}
+   * @param tableType the {@link AnalyticsTableType}
+   * @return the SQL index statement
+   */
+  public static String createIndexStatement(AnalyticsIndex index, AnalyticsTableType tableType) {
+    final String indexName = getIndexName(index, tableType);
+    final String indexColumns = maybeApplyFunctionToIndex(index, join(index.getColumns(), ","));
+
+    return "create index "
+        + indexName
+        + " "
+        + "on "
+        + index.getTable()
+        + " "
+        + "using "
+        + index.getType().keyword()
+        + " ("
+        + indexColumns
+        + ");";
+  }
+
+  /**
+   * Returns index name for column. Purpose of code suffix is to avoid uniqueness collision between
+   * indexes for temporary and real tables.
+   *
+   * @param index the {@link AnalyticsIndex}
+   * @param tableType the {@link AnalyticsTableType}
+   */
+  public static String getIndexName(AnalyticsIndex index, AnalyticsTableType tableType) {
+    String columnName = join(index.getColumns(), "_");
+
+    return quote(
+        maybeSuffixIndexName(
+            index,
+            PREFIX_INDEX
+                + removeQuote(columnName)
+                + "_"
+                + shortenTableName(index.getTable(), tableType)
+                + "_"
+                + CodeGenerator.generateCode(5)));
+  }
+
+  /**
+   * If the given "index" has an associated function, this method will wrap the given "columns" into
+   * the index function.
+   *
+   * @param index the {@link AnalyticsIndex}
+   * @param indexColumns the columns to be used in the function
+   * @return the columns inside the respective function
+   */
+  private static String maybeApplyFunctionToIndex(AnalyticsIndex index, String indexColumns) {
+    if (index.hasFunction()) {
+      return index.getFunction().value() + "(" + indexColumns + ")";
     }
 
-    /**
-     * Returns index name for column. Purpose of code suffix is to avoid
-     * uniqueness collision between indexes for temporary and real tables.
-     *
-     * @param index the {@link AnalyticsIndex}
-     * @param tableType the {@link AnalyticsTableType}
-     */
-    public static String getIndexName( AnalyticsIndex index, AnalyticsTableType tableType )
-    {
-        String columnName = join( index.getColumns(), "_" );
+    return indexColumns;
+  }
 
-        return quote( maybeSuffixIndexName( index,
-            PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( index.getTable(), tableType )
-                + "_" + CodeGenerator.generateCode( 5 ) ) );
+  /**
+   * If the conditions are met, this method adds an index, that uses the "lower" function, into the
+   * given list of "indexes". A new index will be added in the following rules are matched:
+   *
+   * <p>Column data type is TEXT AND "indexColumns" has ONLY one element AND the column name is a
+   * valid UID.
+   *
+   * @param indexes list of {@link AnalyticsIndex}
+   * @param tableName the table name of the index
+   * @param column the {@link AnalyticsTableColumn}
+   * @param indexColumns the columns to be used in the function
+   */
+  private static void maybeAddTextLowerIndex(
+      List<AnalyticsIndex> indexes,
+      String tableName,
+      AnalyticsTableColumn column,
+      List<String> indexColumns) {
+    String columnName = RegExUtils.removeAll(column.getName(), "\"");
+    boolean isSingleColumn = indexColumns.size() == 1;
+
+    if (column.getDataType() == TEXT && isValidUid(columnName) && isSingleColumn) {
+      indexes.add(new AnalyticsIndex(tableName, indexColumns, column.getIndexType(), LOWER));
+    }
+  }
+
+  /**
+   * Shortens the given table name.
+   *
+   * @param table the table name
+   * @param tableType
+   */
+  private static String shortenTableName(String table, AnalyticsTableType tableType) {
+    table = table.replaceAll(tableType.getTableName(), "ax");
+    table = table.replaceAll(TABLE_TEMP_SUFFIX, EMPTY);
+
+    return table;
+  }
+
+  /**
+   * If the current index object has an associated function, this method will add a suffix using the
+   * function name.
+   *
+   * @param index
+   * @param indexName
+   * @return the index name plus the function suffix if any
+   */
+  private static String maybeSuffixIndexName(AnalyticsIndex index, String indexName) {
+    if (index.hasFunction()) {
+      return indexName + "_" + index.getFunction().value();
     }
 
-    /**
-     * If the given "index" has an associated function, this method will wrap
-     * the given "columns" into the index function.
-     *
-     * @param index the {@link AnalyticsIndex}
-     * @param indexColumns the columns to be used in the function
-     * @return the columns inside the respective function
-     */
-    private static String maybeApplyFunctionToIndex( AnalyticsIndex index, String indexColumns )
-    {
-        if ( index.hasFunction() )
-        {
-            return index.getFunction().value() + "(" + indexColumns + ")";
-        }
-
-        return indexColumns;
-    }
-
-    /**
-     * If the conditions are met, this method adds an index, that uses the
-     * "lower" function, into the given list of "indexes". A new index will be
-     * added in the following rules are matched:
-     *
-     * Column data type is TEXT AND "indexColumns" has ONLY one element AND the
-     * column name is a valid UID.
-     *
-     * @param indexes list of {@link AnalyticsIndex}
-     * @param tableName the table name of the index
-     * @param column the {@link AnalyticsTableColumn}
-     * @param indexColumns the columns to be used in the function
-     */
-    private static void maybeAddTextLowerIndex( List<AnalyticsIndex> indexes, String tableName,
-        AnalyticsTableColumn column, List<String> indexColumns )
-    {
-        String columnName = RegExUtils.removeAll( column.getName(), "\"" );
-        boolean isSingleColumn = indexColumns.size() == 1;
-
-        if ( column.getDataType() == TEXT && isValidUid( columnName ) && isSingleColumn )
-        {
-            indexes.add( new AnalyticsIndex( tableName, indexColumns, column.getIndexType(),
-                LOWER ) );
-        }
-    }
-
-    /**
-     * Shortens the given table name.
-     *
-     * @param table the table name
-     * @param tableType
-     */
-    private static String shortenTableName( String table, AnalyticsTableType tableType )
-    {
-        table = table.replaceAll( tableType.getTableName(), "ax" );
-        table = table.replaceAll( TABLE_TEMP_SUFFIX, EMPTY );
-
-        return table;
-    }
-
-    /**
-     * If the current index object has an associated function, this method will
-     * add a suffix using the function name.
-     *
-     * @param index
-     * @param indexName
-     * @return the index name plus the function suffix if any
-     */
-    private static String maybeSuffixIndexName( AnalyticsIndex index, String indexName )
-    {
-        if ( index.hasFunction() )
-        {
-            return indexName + "_" + index.getFunction().value();
-        }
-
-        return indexName;
-    }
+    return indexName;
+  }
 }

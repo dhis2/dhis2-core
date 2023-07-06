@@ -32,11 +32,9 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.AntlrExpressionVisitor;
@@ -54,181 +52,152 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
- * Common traversal of the ANTLR4 expression parse tree using the visitor
- * pattern.
+ * Common traversal of the ANTLR4 expression parse tree using the visitor pattern.
  *
  * @author Jim Grace
  */
 @Getter
 @Setter
-@Builder( toBuilder = true )
-public class CommonExpressionVisitor
-    extends AntlrExpressionVisitor
-{
-    private IdentifiableObjectManager idObjectManager;
+@Builder(toBuilder = true)
+public class CommonExpressionVisitor extends AntlrExpressionVisitor {
+  private IdentifiableObjectManager idObjectManager;
 
-    private DimensionService dimensionService;
+  private DimensionService dimensionService;
 
-    private ProgramIndicatorService programIndicatorService;
+  private ProgramIndicatorService programIndicatorService;
 
-    private ProgramStageService programStageService;
+  private ProgramStageService programStageService;
 
-    private TrackedEntityAttributeService attributeService;
+  private TrackedEntityAttributeService attributeService;
 
-    private StatementBuilder statementBuilder;
+  private StatementBuilder statementBuilder;
 
-    /**
-     * A {@link Supplier} object that can return a {@link I18n} instance when
-     * needed. This is done because retrieving a {@link I18n} instance can be
-     * expensive and is not needed for most parsing operations. When it is
-     * needed, however, this can provide it.
-     */
-    private Supplier<I18n> i18nSupplier;
+  /**
+   * A {@link Supplier} object that can return a {@link I18n} instance when needed. This is done
+   * because retrieving a {@link I18n} instance can be expensive and is not needed for most parsing
+   * operations. When it is needed, however, this can provide it.
+   */
+  private Supplier<I18n> i18nSupplier;
 
-    /**
-     * Map of constant values to use in evaluating the expression.
-     */
-    @Builder.Default
-    private Map<String, Constant> constantMap = new HashMap<>();
+  /** Map of constant values to use in evaluating the expression. */
+  @Builder.Default private Map<String, Constant> constantMap = new HashMap<>();
 
-    /**
-     * Map of ExprItem object instances to call for each expression item.
-     */
-    private Map<Integer, ExpressionItem> itemMap;
+  /** Map of ExprItem object instances to call for each expression item. */
+  private Map<Integer, ExpressionItem> itemMap;
 
-    /**
-     * Method to call within the ExprItem object instance.
-     */
-    private ExpressionItemMethod itemMethod;
+  /** Method to call within the ExprItem object instance. */
+  private ExpressionItemMethod itemMethod;
 
-    /**
-     * Parameters to evaluate the expression to a value.
-     */
-    @Builder.Default
-    private ExpressionParams params = ExpressionParams.builder().build();
+  /** Parameters to evaluate the expression to a value. */
+  @Builder.Default private ExpressionParams params = ExpressionParams.builder().build();
 
-    /**
-     * Parameters to generate SQL from a program expression.
-     */
-    @Builder.Default
-    private ProgramExpressionParams progParams = ProgramExpressionParams.builder().build();
+  /** Parameters to generate SQL from a program expression. */
+  @Builder.Default
+  private ProgramExpressionParams progParams = ProgramExpressionParams.builder().build();
 
-    /**
-     * State variables during an expression evaluation.
-     */
-    @Builder.Default
-    private ExpressionState state = new ExpressionState();
+  /** State variables during an expression evaluation. */
+  @Builder.Default private ExpressionState state = new ExpressionState();
 
-    /**
-     * Information found from parsing the raw expression (contains nothing that
-     * is the result of data or metadata found in the database).
-     */
-    @Builder.Default
-    private ExpressionInfo info = new ExpressionInfo();
+  /**
+   * Information found from parsing the raw expression (contains nothing that is the result of data
+   * or metadata found in the database).
+   */
+  @Builder.Default private ExpressionInfo info = new ExpressionInfo();
 
-    /**
-     * Used to collect the string replacements to build a description. This may
-     * contain names of metadata from the database.
-     */
-    @Builder.Default
-    private Map<String, String> itemDescriptions = new HashMap<>();
+  /**
+   * Used to collect the string replacements to build a description. This may contain names of
+   * metadata from the database.
+   */
+  @Builder.Default private Map<String, String> itemDescriptions = new HashMap<>();
 
-    // -------------------------------------------------------------------------
-    // Visitor logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Visitor logic
+  // -------------------------------------------------------------------------
 
-    @Override
-    public Object visitExpr( ExprContext ctx )
-    {
-        if ( ctx.it != null )
-        {
-            ExpressionItem item = itemMap.get( ctx.it.getType() );
+  @Override
+  public Object visitExpr(ExprContext ctx) {
+    if (ctx.it != null) {
+      ExpressionItem item = itemMap.get(ctx.it.getType());
 
-            if ( item == null )
-            {
-                throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
-                    "Item " + ctx.it.getText() + " not supported for this type of expression" );
-            }
+      if (item == null) {
+        throw new org.hisp.dhis.antlr.ParserExceptionWithoutContext(
+            "Item " + ctx.it.getText() + " not supported for this type of expression");
+      }
 
-            return itemMethod.apply( item, ctx, this );
-        }
-
-        if ( !ctx.expr().isEmpty() ) // If there's an expr, visit the expr
-        {
-            return visit( ctx.expr( 0 ) );
-        }
-
-        return visit( ctx.getChild( 0 ) ); // All others: visit first child.
+      return itemMethod.apply(item, ctx, this);
     }
 
-    /**
-     * Visits a context while allowing null values (not replacing them with 0 or
-     * ''), even if we would otherwise be replacing them.
-     *
-     * @param ctx any context
-     * @return the value while allowing nulls
-     */
-    public Object visitAllowingNulls( ParserRuleContext ctx )
+    if (!ctx.expr().isEmpty()) // If there's an expr, visit the expr
     {
-        boolean savedReplaceNulls = state.isReplaceNulls();
-
-        state.setReplaceNulls( false );
-
-        Object result = visit( ctx );
-
-        state.setReplaceNulls( savedReplaceNulls );
-
-        return result;
+      return visit(ctx.expr(0));
     }
 
-    /**
-     * Visits a context with a configuration of query modifiers.
-     *
-     * @param ctx any context
-     * @param mods the query modifiers
-     * @return the value with the applied offset
-     */
-    public Object visitWithQueryMods( ParserRuleContext ctx, QueryModifiers mods )
-    {
-        QueryModifiers savedQueryMods = state.getQueryMods();
+    return visit(ctx.getChild(0)); // All others: visit first child.
+  }
 
-        state.setQueryMods( mods );
+  /**
+   * Visits a context while allowing null values (not replacing them with 0 or ''), even if we would
+   * otherwise be replacing them.
+   *
+   * @param ctx any context
+   * @return the value while allowing nulls
+   */
+  public Object visitAllowingNulls(ParserRuleContext ctx) {
+    boolean savedReplaceNulls = state.isReplaceNulls();
 
-        Object result = visit( ctx );
+    state.setReplaceNulls(false);
 
-        state.setQueryMods( savedQueryMods );
+    Object result = visit(ctx);
 
-        return result;
-    }
+    state.setReplaceNulls(savedReplaceNulls);
 
-    /**
-     * Visit a parse subtree to generate SQL with a request that boolean items
-     * should generate a boolean value.
-     */
-    public String sqlBooleanVisit( ExprContext ctx )
-    {
-        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.BOOLEAN ) );
-    }
+    return result;
+  }
 
-    /**
-     * Visit a parse subtree to generate SQL with a request that boolean items
-     * should generate a numeric value.
-     */
-    public String sqlNumericVisit( ExprContext ctx )
-    {
-        return AntlrParserUtils.castString( visitWithDataType( ctx, DataType.NUMERIC ) );
-    }
+  /**
+   * Visits a context with a configuration of query modifiers.
+   *
+   * @param ctx any context
+   * @param mods the query modifiers
+   * @return the value with the applied offset
+   */
+  public Object visitWithQueryMods(ParserRuleContext ctx, QueryModifiers mods) {
+    QueryModifiers savedQueryMods = state.getQueryMods();
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    state.setQueryMods(mods);
 
-    private Object visitWithDataType( ExprContext ctx, DataType dataType )
-    {
-        ExpressionParams visitParams = params.toBuilder().dataType( dataType ).build();
-        CommonExpressionVisitor visitor = this.toBuilder().params( visitParams ).build();
-        visitor.setExpressionLiteral( this.expressionLiteral );
+    Object result = visit(ctx);
 
-        return visitor.visitExpr( ctx );
-    }
+    state.setQueryMods(savedQueryMods);
+
+    return result;
+  }
+
+  /**
+   * Visit a parse subtree to generate SQL with a request that boolean items should generate a
+   * boolean value.
+   */
+  public String sqlBooleanVisit(ExprContext ctx) {
+    return AntlrParserUtils.castString(visitWithDataType(ctx, DataType.BOOLEAN));
+  }
+
+  /**
+   * Visit a parse subtree to generate SQL with a request that boolean items should generate a
+   * numeric value.
+   */
+  public String sqlNumericVisit(ExprContext ctx) {
+    return AntlrParserUtils.castString(visitWithDataType(ctx, DataType.NUMERIC));
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private Object visitWithDataType(ExprContext ctx, DataType dataType) {
+    ExpressionParams visitParams = params.toBuilder().dataType(dataType).build();
+    CommonExpressionVisitor visitor = this.toBuilder().params(visitParams).build();
+    visitor.setExpressionLiteral(this.expressionLiteral);
+
+    return visitor.visitExpr(ctx);
+  }
 }

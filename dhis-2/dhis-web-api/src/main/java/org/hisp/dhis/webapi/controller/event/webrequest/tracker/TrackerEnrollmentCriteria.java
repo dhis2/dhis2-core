@@ -31,86 +31,72 @@ import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTran
 
 import java.util.Date;
 import java.util.Optional;
-
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @Data
 @NoArgsConstructor
-public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String orgUnit;
+public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter {
+  private String orgUnit;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private String program;
+  private String program;
 
-    private ProgramStatus programStatus;
+  private ProgramStatus programStatus;
 
-    private Boolean followUp;
+  private Boolean followUp;
 
-    private Date updatedAfter;
+  private Date updatedAfter;
 
-    private String updatedWithin;
+  private String updatedWithin;
 
-    private Date enrolledAfter;
+  private Date enrolledAfter;
 
-    private Date enrolledBefore;
+  private Date enrolledBefore;
 
-    private String trackedEntityType;
+  private String trackedEntityType;
 
-    private String trackedEntity;
+  private String trackedEntity;
 
-    private String enrollment;
+  private String enrollment;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    @Override
-    public boolean isLegacy()
-    {
-        return false;
-    }
+  @Override
+  public boolean isLegacy() {
+    return false;
+  }
 
-    @Override
-    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return translate( dtoFieldName, DtoToEntityFieldTranslator.values() );
-    }
+  @Override
+  public Optional<String> translateField(String dtoFieldName, boolean isLegacy) {
+    return translate(dtoFieldName, DtoToEntityFieldTranslator.values());
+  }
 
+  /** Dto to database field translator for new tracker Enrollment export controller */
+  @RequiredArgsConstructor
+  private enum DtoToEntityFieldTranslator implements EntityNameSupplier {
     /**
-     * Dto to database field translator for new tracker Enrollment export
-     * controller
+     * this enum names must be the same as org.hisp.dhis.tracker.domain.Enrollment fields, just with
+     * different case
+     *
+     * <p>example: org.hisp.dhis.tracker.domain.Enrollment.updatedAtClient --> UPDATED_AT_CLIENT
      */
-    @RequiredArgsConstructor
-    private enum DtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.tracker.domain.Enrollment fields, just with different
-         * case
-         *
-         * example: org.hisp.dhis.tracker.domain.Enrollment.updatedAtClient -->
-         * UPDATED_AT_CLIENT
-         */
-        ENROLLMENT( "uid" ),
-        CREATED_AT( "created" ),
-        UPDATED_AT( "lastUpdated" ),
-        UPDATED_AT_CLIENT( "lastUpdatedAtClient" ),
-        TRACKED_ENTITY( "pi.entityInstance.uid" ),
-        TRACKED_ENTITY_INSTANCE( "pi.entityInstance.uid" ),
-        ENROLLED_AT( "enrollmentDate" ),
-        OCCURRED_AT( "incidentDate" ),
-        COMPLETED_AT( "endDate" );
+    ENROLLMENT("uid"),
+    CREATED_AT("created"),
+    UPDATED_AT("lastUpdated"),
+    UPDATED_AT_CLIENT("lastUpdatedAtClient"),
+    TRACKED_ENTITY("pi.entityInstance.uid"),
+    TRACKED_ENTITY_INSTANCE("pi.entityInstance.uid"),
+    ENROLLED_AT("enrollmentDate"),
+    OCCURRED_AT("incidentDate"),
+    COMPLETED_AT("endDate");
 
-        @Getter
-        private final String entityName;
-
-    }
-
+    @Getter private final String entityName;
+  }
 }

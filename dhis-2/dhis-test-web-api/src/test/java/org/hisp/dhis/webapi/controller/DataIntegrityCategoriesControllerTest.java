@@ -49,256 +49,243 @@ import org.springframework.http.HttpStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * Tests the {@link DataIntegrityController} API with focus on checks for
- * {@link Category}s and its related objects.
- * <p>
- * This includes both the
- * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary} and the
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityDetails} results.
+ * Tests the {@link DataIntegrityController} API with focus on checks for {@link Category}s and its
+ * related objects.
+ *
+ * <p>This includes both the {@link org.hisp.dhis.dataintegrity.DataIntegritySummary} and the {@link
+ * org.hisp.dhis.dataintegrity.DataIntegrityDetails} results.
  *
  * @author Jan Bernitt
  */
-class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControllerTest
-{
-    @Autowired
-    private CategoryService categoryService;
+class DataIntegrityCategoriesControllerTest extends AbstractDataIntegrityControllerTest {
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private CategoryStore categoryStore;
+  @Autowired private CategoryStore categoryStore;
 
-    @Autowired
-    private CategoryOptionStore categoryOptionStore;
+  @Autowired private CategoryOptionStore categoryOptionStore;
 
-    @Autowired
-    private CategoryComboStore categoryComboStore;
+  @Autowired private CategoryComboStore categoryComboStore;
 
-    @Autowired
-    private CategoryOptionComboStore categoryOptionComboStore;
+  @Autowired private CategoryOptionComboStore categoryOptionComboStore;
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
+  @Autowired private TransactionTemplate transactionTemplate;
 
-    @Test
-    void testSummaryCategories_no_options()
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+  @Test
+  void testSummaryCategories_no_options() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categories",
+            "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}"));
 
-        postSummary( "categories-no-options" );
-        JsonDataIntegritySummary summary = getSummary( "categories-no-options" );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
-    }
+    postSummary("categories-no-options");
+    JsonDataIntegritySummary summary = getSummary("categories-no-options");
+    assertEquals(1, summary.getCount());
+    assertEquals(50, summary.getPercentage().intValue());
+  }
 
-    @Test
-    void testDetailsCategories_no_options()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+  @Test
+  void testDetailsCategories_no_options() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}"));
 
-        postDetails( "categories-no-options" );
-        JsonDataIntegrityDetails details = getDetails( "categories-no-options" );
+    postDetails("categories-no-options");
+    JsonDataIntegrityDetails details = getDetails("categories-no-options");
 
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "CatDog", details.getIssues().get( 0 ).getName() );
-    }
+    assertEquals(1, details.getIssues().size());
+    assertEquals(uid, details.getIssues().get(0).getId());
+    assertEquals("CatDog", details.getIssues().get(0).getName());
+  }
 
-    /**
-     * Ideally we would have created a second category named default, but we
-     * have made this impossible by unique constraint. So the best we can do is
-     * changing the UID of the existing default to some other UID.
-     */
-    @Test
-    void testSummaryCategories_one_default_category()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryToUid( uid ) );
+  /**
+   * Ideally we would have created a second category named default, but we have made this impossible
+   * by unique constraint. So the best we can do is changing the UID of the existing default to some
+   * other UID.
+   */
+  @Test
+  void testSummaryCategories_one_default_category() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryToUid(uid));
 
-        postSummary( "categories_one_default_category" );
-        JsonDataIntegritySummary summary = getSummary( "categories_one_default_category" );
+    postSummary("categories_one_default_category");
+    JsonDataIntegritySummary summary = getSummary("categories_one_default_category");
 
-        assertEquals( 1, summary.getCount() );
-        assertNull( summary.getPercentage() );
-    }
+    assertEquals(1, summary.getCount());
+    assertNull(summary.getPercentage());
+  }
 
-    /**
-     * Ideally we would have created a second category named default, but we
-     * have made this impossible by unique constraint. So the best we can do is
-     * changing the UID of the existing default to some other UID.
-     */
-    @Test
-    void testDetailsCategories_one_default_category()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryToUid( uid ) );
+  /**
+   * Ideally we would have created a second category named default, but we have made this impossible
+   * by unique constraint. So the best we can do is changing the UID of the existing default to some
+   * other UID.
+   */
+  @Test
+  void testDetailsCategories_one_default_category() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryToUid(uid));
 
-        postDetails( "categories_one_default_category" );
-        JsonDataIntegrityDetails details = getDetails( "categories_one_default_category" );
+    postDetails("categories_one_default_category");
+    JsonDataIntegrityDetails details = getDetails("categories_one_default_category");
 
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "default", details.getIssues().get( 0 ).getName() );
-    }
+    assertEquals(1, details.getIssues().size());
+    assertEquals(uid, details.getIssues().get(0).getId());
+    assertEquals("default", details.getIssues().get(0).getName());
+  }
 
-    /**
-     * Ideally we would have created a second category option named default, but
-     * we have made this impossible by unique constraint. So the best we can do
-     * is changing the UID of the existing default to some other UID.
-     */
-    @Test
-    void testSummaryCategories_one_default_category_option()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryOptionToUid( uid ) );
+  /**
+   * Ideally we would have created a second category option named default, but we have made this
+   * impossible by unique constraint. So the best we can do is changing the UID of the existing
+   * default to some other UID.
+   */
+  @Test
+  void testSummaryCategories_one_default_category_option() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryOptionToUid(uid));
 
-        postSummary( "categories_one_default_category_option" );
-        JsonDataIntegritySummary summary = getSummary( "categories_one_default_category_option" );
+    postSummary("categories_one_default_category_option");
+    JsonDataIntegritySummary summary = getSummary("categories_one_default_category_option");
 
-        assertEquals( 1, summary.getCount() );
-        assertNull( summary.getPercentage() );
-    }
+    assertEquals(1, summary.getCount());
+    assertNull(summary.getPercentage());
+  }
 
-    /**
-     * Ideally we would have created a second category option named default, but
-     * we have made this impossible by unique constraint. So the best we can do
-     * is changing the UID of the existing default to some other UID.
-     */
-    @Test
-    void testDetailsCategories_one_default_category_option()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryOptionToUid( uid ) );
+  /**
+   * Ideally we would have created a second category option named default, but we have made this
+   * impossible by unique constraint. So the best we can do is changing the UID of the existing
+   * default to some other UID.
+   */
+  @Test
+  void testDetailsCategories_one_default_category_option() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryOptionToUid(uid));
 
-        postDetails( "categories_one_default_category_option" );
-        JsonDataIntegrityDetails details = getDetails( "categories_one_default_category_option" );
+    postDetails("categories_one_default_category_option");
+    JsonDataIntegrityDetails details = getDetails("categories_one_default_category_option");
 
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "default", details.getIssues().get( 0 ).getName() );
-    }
+    assertEquals(1, details.getIssues().size());
+    assertEquals(uid, details.getIssues().get(0).getId());
+    assertEquals("default", details.getIssues().get(0).getName());
+  }
 
-    /**
-     * Ideally we would have created a second category combo named default, but
-     * we have made this impossible by unique constraint. So the best we can do
-     * is changing the UID of the existing default to some other UID.
-     */
-    @Test
-    void testSummaryCategories_one_default_category_combo()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryComboToUid( uid ) );
+  /**
+   * Ideally we would have created a second category combo named default, but we have made this
+   * impossible by unique constraint. So the best we can do is changing the UID of the existing
+   * default to some other UID.
+   */
+  @Test
+  void testSummaryCategories_one_default_category_combo() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryComboToUid(uid));
 
-        postSummary( "categories_one_default_category_combo" );
-        JsonDataIntegritySummary summary = getSummary( "categories_one_default_category_combo" );
+    postSummary("categories_one_default_category_combo");
+    JsonDataIntegritySummary summary = getSummary("categories_one_default_category_combo");
 
-        assertEquals( 1, summary.getCount() );
-        assertNull( summary.getPercentage() );
-    }
+    assertEquals(1, summary.getCount());
+    assertNull(summary.getPercentage());
+  }
 
-    /**
-     * Ideally we would have created a second category combo named default, but
-     * we have made this impossible by unique constraint. So the best we can do
-     * is changing the UID of the existing default to some other UID.
-     */
-    @Test
-    void testDetailsCategories_one_default_category_combo()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryComboToUid( uid ) );
+  /**
+   * Ideally we would have created a second category combo named default, but we have made this
+   * impossible by unique constraint. So the best we can do is changing the UID of the existing
+   * default to some other UID.
+   */
+  @Test
+  void testDetailsCategories_one_default_category_combo() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryComboToUid(uid));
 
-        postDetails( "categories_one_default_category_combo" );
-        JsonDataIntegrityDetails details = getDetails( "categories_one_default_category_combo" );
+    postDetails("categories_one_default_category_combo");
+    JsonDataIntegrityDetails details = getDetails("categories_one_default_category_combo");
 
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "default", details.getIssues().get( 0 ).getName() );
-    }
+    assertEquals(1, details.getIssues().size());
+    assertEquals(uid, details.getIssues().get(0).getId());
+    assertEquals("default", details.getIssues().get(0).getName());
+  }
 
-    /**
-     * Ideally we would have created a second category option combo named
-     * default, but we have made this impossible by unique constraint. So the
-     * best we can do is changing the UID of the existing default to some other
-     * UID.
-     */
-    @Test
-    void testSummaryCategories_one_default_category_option_combo()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryOptionComboToUid( uid ) );
+  /**
+   * Ideally we would have created a second category option combo named default, but we have made
+   * this impossible by unique constraint. So the best we can do is changing the UID of the existing
+   * default to some other UID.
+   */
+  @Test
+  void testSummaryCategories_one_default_category_option_combo() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryOptionComboToUid(uid));
 
-        postSummary( "categories_one_default_category_option_combo" );
-        JsonDataIntegritySummary summary = getSummary( "categories_one_default_category_option_combo" );
+    postSummary("categories_one_default_category_option_combo");
+    JsonDataIntegritySummary summary = getSummary("categories_one_default_category_option_combo");
 
-        assertEquals( 1, summary.getCount() );
-        assertNull( summary.getPercentage() );
-    }
+    assertEquals(1, summary.getCount());
+    assertNull(summary.getPercentage());
+  }
 
-    /**
-     * Ideally we would have created a second category option combo named
-     * default, but we have made this impossible by unique constraint. So the
-     * best we can do is changing the UID of the existing default to some other
-     * UID.
-     */
-    @Test
-    void testDetailsCategories_one_default_category_option_combo()
-    {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid, updateDefaultCategoryOptionComboToUid( uid ) );
+  /**
+   * Ideally we would have created a second category option combo named default, but we have made
+   * this impossible by unique constraint. So the best we can do is changing the UID of the existing
+   * default to some other UID.
+   */
+  @Test
+  void testDetailsCategories_one_default_category_option_combo() {
+    String uid = CodeGenerator.generateUid();
+    assertEquals(uid, updateDefaultCategoryOptionComboToUid(uid));
 
-        postDetails( "categories_one_default_category_option_combo" );
-        JsonDataIntegrityDetails details = getDetails( "categories_one_default_category_option_combo" );
+    postDetails("categories_one_default_category_option_combo");
+    JsonDataIntegrityDetails details = getDetails("categories_one_default_category_option_combo");
 
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "default", details.getIssues().get( 0 ).getName() );
-    }
+    assertEquals(1, details.getIssues().size());
+    assertEquals(uid, details.getIssues().get(0).getId());
+    assertEquals("default", details.getIssues().get(0).getName());
+  }
 
-    private String updateDefaultCategoryToUid( String uid )
-    {
-        transactionTemplate.execute( status -> {
-            Category category = categoryService.getDefaultCategory();
-            category.setUid( uid );
-            categoryStore.save( category );
-            return null;
-        } );
-        // OBS! we need to read this to force the TX to be applied
-        return categoryService.getDefaultCategory().getUid();
-    }
+  private String updateDefaultCategoryToUid(String uid) {
+    transactionTemplate.execute(
+        status -> {
+          Category category = categoryService.getDefaultCategory();
+          category.setUid(uid);
+          categoryStore.save(category);
+          return null;
+        });
+    // OBS! we need to read this to force the TX to be applied
+    return categoryService.getDefaultCategory().getUid();
+  }
 
-    private String updateDefaultCategoryOptionToUid( String uid )
-    {
-        transactionTemplate.execute( status -> {
-            CategoryOption option = categoryService.getDefaultCategoryOption();
-            option.setUid( uid );
-            categoryOptionStore.save( option );
-            return null;
-        } );
-        // OBS! we need to read this to force the TX to be applied
-        return categoryService.getDefaultCategoryOption().getUid();
-    }
+  private String updateDefaultCategoryOptionToUid(String uid) {
+    transactionTemplate.execute(
+        status -> {
+          CategoryOption option = categoryService.getDefaultCategoryOption();
+          option.setUid(uid);
+          categoryOptionStore.save(option);
+          return null;
+        });
+    // OBS! we need to read this to force the TX to be applied
+    return categoryService.getDefaultCategoryOption().getUid();
+  }
 
-    private String updateDefaultCategoryComboToUid( String uid )
-    {
-        transactionTemplate.execute( status -> {
-            CategoryCombo combo = categoryService.getDefaultCategoryCombo();
-            combo.setUid( uid );
-            categoryComboStore.save( combo );
-            return null;
-        } );
-        // OBS! we need to read this to force the TX to be applied
-        return categoryService.getDefaultCategoryCombo().getUid();
-    }
+  private String updateDefaultCategoryComboToUid(String uid) {
+    transactionTemplate.execute(
+        status -> {
+          CategoryCombo combo = categoryService.getDefaultCategoryCombo();
+          combo.setUid(uid);
+          categoryComboStore.save(combo);
+          return null;
+        });
+    // OBS! we need to read this to force the TX to be applied
+    return categoryService.getDefaultCategoryCombo().getUid();
+  }
 
-    private String updateDefaultCategoryOptionComboToUid( String uid )
-    {
-        transactionTemplate.execute( status -> {
-            CategoryOptionCombo combo = categoryService.getDefaultCategoryOptionCombo();
-            combo.setUid( uid );
-            categoryOptionComboStore.save( combo );
-            return null;
-        } );
-        // OBS! we need to read this to force the TX to be applied
-        return categoryService.getDefaultCategoryOptionCombo().getUid();
-    }
+  private String updateDefaultCategoryOptionComboToUid(String uid) {
+    transactionTemplate.execute(
+        status -> {
+          CategoryOptionCombo combo = categoryService.getDefaultCategoryOptionCombo();
+          combo.setUid(uid);
+          categoryOptionComboStore.save(combo);
+          return null;
+        });
+    // OBS! we need to read this to force the TX to be applied
+    return categoryService.getDefaultCategoryOptionCombo().getUid();
+  }
 }

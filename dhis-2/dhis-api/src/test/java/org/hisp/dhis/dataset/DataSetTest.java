@@ -30,10 +30,10 @@ package org.hisp.dhis.dataset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,111 +41,102 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class DataSetTest
-{
+class DataSetTest {
 
-    @Test
-    void testAddDataSetElement()
-    {
-        DataSet dsA = new DataSet( "DataSetA" );
-        DataSet dsB = new DataSet( "DataSetB" );
-        DataElement deA = new DataElement( "DataElementA" );
-        DataElement deB = new DataElement( "DataElementB" );
-        dsA.addDataSetElement( deA );
-        dsA.addDataSetElement( deB );
-        dsB.addDataSetElement( deA );
-        assertEquals( 2, dsA.getDataSetElements().size() );
-        assertEquals( 1, dsB.getDataSetElements().size() );
-        assertEquals( 2, deA.getDataSetElements().size() );
-        assertEquals( 1, deB.getDataSetElements().size() );
-    }
+  @Test
+  void testAddDataSetElement() {
+    DataSet dsA = new DataSet("DataSetA");
+    DataSet dsB = new DataSet("DataSetB");
+    DataElement deA = new DataElement("DataElementA");
+    DataElement deB = new DataElement("DataElementB");
+    dsA.addDataSetElement(deA);
+    dsA.addDataSetElement(deB);
+    dsB.addDataSetElement(deA);
+    assertEquals(2, dsA.getDataSetElements().size());
+    assertEquals(1, dsB.getDataSetElements().size());
+    assertEquals(2, deA.getDataSetElements().size());
+    assertEquals(1, deB.getDataSetElements().size());
+  }
 
-    @Test
-    void testUpdateOrganisationUnits()
-    {
-        DataSet dsA = new DataSet( "dsA" );
-        OrganisationUnit ouA = new OrganisationUnit( "ouA" );
-        OrganisationUnit ouB = new OrganisationUnit( "ouB" );
-        OrganisationUnit ouC = new OrganisationUnit( "ouC" );
-        OrganisationUnit ouD = new OrganisationUnit( "ouD" );
-        dsA.addOrganisationUnit( ouA );
-        dsA.addOrganisationUnit( ouB );
-        assertEquals( 2, dsA.getSources().size() );
-        assertTrue( dsA.getSources().containsAll( Sets.newHashSet( ouA, ouB ) ) );
-        assertTrue( ouA.getDataSets().contains( dsA ) );
-        assertTrue( ouB.getDataSets().contains( dsA ) );
-        assertTrue( ouC.getDataSets().isEmpty() );
-        assertTrue( ouD.getDataSets().isEmpty() );
-        dsA.updateOrganisationUnits( Sets.newHashSet( ouB, ouC ) );
-        assertEquals( 2, dsA.getSources().size() );
-        assertTrue( dsA.getSources().containsAll( Sets.newHashSet( ouB, ouC ) ) );
-        assertTrue( ouA.getDataSets().isEmpty() );
-        assertTrue( ouB.getDataSets().contains( dsA ) );
-        assertTrue( ouC.getDataSets().contains( dsA ) );
-        assertTrue( ouD.getDataSets().isEmpty() );
-    }
+  @Test
+  void testUpdateOrganisationUnits() {
+    DataSet dsA = new DataSet("dsA");
+    OrganisationUnit ouA = new OrganisationUnit("ouA");
+    OrganisationUnit ouB = new OrganisationUnit("ouB");
+    OrganisationUnit ouC = new OrganisationUnit("ouC");
+    OrganisationUnit ouD = new OrganisationUnit("ouD");
+    dsA.addOrganisationUnit(ouA);
+    dsA.addOrganisationUnit(ouB);
+    assertEquals(2, dsA.getSources().size());
+    assertTrue(dsA.getSources().containsAll(Sets.newHashSet(ouA, ouB)));
+    assertTrue(ouA.getDataSets().contains(dsA));
+    assertTrue(ouB.getDataSets().contains(dsA));
+    assertTrue(ouC.getDataSets().isEmpty());
+    assertTrue(ouD.getDataSets().isEmpty());
+    dsA.updateOrganisationUnits(Sets.newHashSet(ouB, ouC));
+    assertEquals(2, dsA.getSources().size());
+    assertTrue(dsA.getSources().containsAll(Sets.newHashSet(ouB, ouC)));
+    assertTrue(ouA.getDataSets().isEmpty());
+    assertTrue(ouB.getDataSets().contains(dsA));
+    assertTrue(ouC.getDataSets().contains(dsA));
+    assertTrue(ouD.getDataSets().isEmpty());
+  }
 
-    @Test
-    void testAddIndicator()
-    {
-        DataSet dsA = new DataSet( "DataSetA" );
-        Indicator indicatorA = new Indicator();
-        Indicator indicatorB = new Indicator();
-        indicatorA.setName( "Indicator A" );
-        indicatorB.setName( "Indicator B" );
-        dsA.addIndicator( indicatorA );
-        assertEquals( 1, dsA.getIndicators().size() );
-        assertTrue( dsA.getIndicators().contains( indicatorA ) );
-        assertEquals( 1, indicatorA.getDataSets().size() );
-        assertTrue( indicatorA.getDataSets().contains( dsA ) );
-        dsA.addIndicator( indicatorB );
-        assertEquals( 2, dsA.getIndicators().size() );
-        assertTrue( dsA.getIndicators().contains( indicatorA ) );
-        assertTrue( dsA.getIndicators().contains( indicatorB ) );
-        assertEquals( 1, indicatorA.getDataSets().size() );
-        assertEquals( 1, indicatorB.getDataSets().size() );
-        assertTrue( indicatorA.getDataSets().contains( dsA ) );
-        assertTrue( indicatorB.getDataSets().contains( dsA ) );
-    }
+  @Test
+  void testAddIndicator() {
+    DataSet dsA = new DataSet("DataSetA");
+    Indicator indicatorA = new Indicator();
+    Indicator indicatorB = new Indicator();
+    indicatorA.setName("Indicator A");
+    indicatorB.setName("Indicator B");
+    dsA.addIndicator(indicatorA);
+    assertEquals(1, dsA.getIndicators().size());
+    assertTrue(dsA.getIndicators().contains(indicatorA));
+    assertEquals(1, indicatorA.getDataSets().size());
+    assertTrue(indicatorA.getDataSets().contains(dsA));
+    dsA.addIndicator(indicatorB);
+    assertEquals(2, dsA.getIndicators().size());
+    assertTrue(dsA.getIndicators().contains(indicatorA));
+    assertTrue(dsA.getIndicators().contains(indicatorB));
+    assertEquals(1, indicatorA.getDataSets().size());
+    assertEquals(1, indicatorB.getDataSets().size());
+    assertTrue(indicatorA.getDataSets().contains(dsA));
+    assertTrue(indicatorB.getDataSets().contains(dsA));
+  }
 
-    @Test
-    void testIsLocked_BeforeFirstDayOfPeriod()
-    {
-        assertIsLocked( false, period -> new Date( period.getStartDate().getTime() - 1L ) );
-    }
+  @Test
+  void testIsLocked_BeforeFirstDayOfPeriod() {
+    assertIsLocked(false, period -> new Date(period.getStartDate().getTime() - 1L));
+  }
 
-    @Test
-    void testIsLocked_FirstDayOfPeriod()
-    {
-        assertIsLocked( false, Period::getStartDate );
-    }
+  @Test
+  void testIsLocked_FirstDayOfPeriod() {
+    assertIsLocked(false, Period::getStartDate);
+  }
 
-    @Test
-    void testIsLocked_LastDayOfPeriod()
-    {
-        assertIsLocked( false, Period::getEndDate );
-    }
+  @Test
+  void testIsLocked_LastDayOfPeriod() {
+    assertIsLocked(false, Period::getEndDate);
+  }
 
-    @Test
-    void testIsLocked_AfterLastDayOfPeriod()
-    {
-        // expiryDays is 1 so 1 extra day after the end is still ok
-        assertIsLocked( false, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 1 ) ) );
-        // but 2 is too much
-        assertIsLocked( true, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 2 ) ) );
-    }
+  @Test
+  void testIsLocked_AfterLastDayOfPeriod() {
+    // expiryDays is 1 so 1 extra day after the end is still ok
+    assertIsLocked(
+        false, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(1)));
+    // but 2 is too much
+    assertIsLocked(
+        true, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(2)));
+  }
 
-    private static void assertIsLocked( boolean expected, Function<Period, Date> actual )
-    {
-        Date now = new Date();
-        Period thisMonth = new MonthlyPeriodType().createPeriod( now );
-        DataSet ds = new DataSet();
-        ds.setExpiryDays( 1 );
-        assertEquals( expected, ds.isLocked( null, thisMonth, actual.apply( thisMonth ) ) );
-    }
+  private static void assertIsLocked(boolean expected, Function<Period, Date> actual) {
+    Date now = new Date();
+    Period thisMonth = new MonthlyPeriodType().createPeriod(now);
+    DataSet ds = new DataSet();
+    ds.setExpiryDays(1);
+    assertEquals(expected, ds.isLocked(null, thisMonth, actual.apply(thisMonth)));
+  }
 }

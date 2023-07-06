@@ -29,111 +29,105 @@ package org.hisp.dhis.dataanalysis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FollowupParams
-{
-    private int dataElementId;
+public class FollowupParams {
+  private int dataElementId;
 
-    private int periodId;
+  private int periodId;
 
-    private int organisationUnitId;
+  private int organisationUnitId;
 
-    private int categoryOptionComboId;
+  private int categoryOptionComboId;
 
-    private int attributeOptionComboId;
+  private int attributeOptionComboId;
 
-    private boolean followup;
+  private boolean followup;
 
-    public FollowupParams()
-    {
-    }
+  public FollowupParams() {}
 
-    public FollowupParams( int dataElementId, int periodId, int organisationUnitId, int categoryOptionComboId,
-        int attributeOptionComboId, boolean followup )
-    {
-        this.dataElementId = dataElementId;
-        this.periodId = periodId;
-        this.organisationUnitId = organisationUnitId;
-        this.categoryOptionComboId = categoryOptionComboId;
-        this.attributeOptionComboId = attributeOptionComboId;
-        this.followup = followup;
-    }
+  public FollowupParams(
+      int dataElementId,
+      int periodId,
+      int organisationUnitId,
+      int categoryOptionComboId,
+      int attributeOptionComboId,
+      boolean followup) {
+    this.dataElementId = dataElementId;
+    this.periodId = periodId;
+    this.organisationUnitId = organisationUnitId;
+    this.categoryOptionComboId = categoryOptionComboId;
+    this.attributeOptionComboId = attributeOptionComboId;
+    this.followup = followup;
+  }
 
-    @JsonProperty
-    public int getDataElementId()
-    {
-        return dataElementId;
-    }
+  @JsonProperty
+  public int getDataElementId() {
+    return dataElementId;
+  }
 
-    public void setDataElementId( int dataElementId )
-    {
-        this.dataElementId = dataElementId;
-    }
+  public void setDataElementId(int dataElementId) {
+    this.dataElementId = dataElementId;
+  }
 
-    @JsonProperty
-    public int getPeriodId()
-    {
-        return periodId;
-    }
+  @JsonProperty
+  public int getPeriodId() {
+    return periodId;
+  }
 
-    public void setPeriodId( int periodId )
-    {
-        this.periodId = periodId;
-    }
+  public void setPeriodId(int periodId) {
+    this.periodId = periodId;
+  }
 
-    @JsonProperty
-    public int getOrganisationUnitId()
-    {
-        return organisationUnitId;
-    }
+  @JsonProperty
+  public int getOrganisationUnitId() {
+    return organisationUnitId;
+  }
 
-    public void setOrganisationUnitId( int organisationUnitId )
-    {
-        this.organisationUnitId = organisationUnitId;
-    }
+  public void setOrganisationUnitId(int organisationUnitId) {
+    this.organisationUnitId = organisationUnitId;
+  }
 
-    @JsonProperty
-    public int getCategoryOptionComboId()
-    {
-        return categoryOptionComboId;
-    }
+  @JsonProperty
+  public int getCategoryOptionComboId() {
+    return categoryOptionComboId;
+  }
 
-    public void setCategoryOptionComboId( int categoryOptionComboId )
-    {
-        this.categoryOptionComboId = categoryOptionComboId;
-    }
+  public void setCategoryOptionComboId(int categoryOptionComboId) {
+    this.categoryOptionComboId = categoryOptionComboId;
+  }
 
-    @JsonProperty
-    public int getAttributeOptionComboId()
-    {
-        return attributeOptionComboId;
-    }
+  @JsonProperty
+  public int getAttributeOptionComboId() {
+    return attributeOptionComboId;
+  }
 
-    public void setAttributeOptionComboId( int attributeOptionComboId )
-    {
-        this.attributeOptionComboId = attributeOptionComboId;
-    }
+  public void setAttributeOptionComboId(int attributeOptionComboId) {
+    this.attributeOptionComboId = attributeOptionComboId;
+  }
 
-    @JsonProperty
-    public boolean isFollowup()
-    {
-        return followup;
-    }
+  @JsonProperty
+  public boolean isFollowup() {
+    return followup;
+  }
 
-    public void setFollowup( boolean followup )
-    {
-        this.followup = followup;
-    }
+  public void setFollowup(boolean followup) {
+    this.followup = followup;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "FollowupParams{" +
-            "dataElementId=" + dataElementId +
-            ", periodId=" + periodId +
-            ", organisationUnitId=" + organisationUnitId +
-            ", categoryOptionComboId=" + categoryOptionComboId +
-            ", attributeOptionComboId=" + attributeOptionComboId +
-            ", followup=" + followup +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "FollowupParams{"
+        + "dataElementId="
+        + dataElementId
+        + ", periodId="
+        + periodId
+        + ", organisationUnitId="
+        + organisationUnitId
+        + ", categoryOptionComboId="
+        + categoryOptionComboId
+        + ", attributeOptionComboId="
+        + attributeOptionComboId
+        + ", followup="
+        + followup
+        + '}';
+  }
 }
