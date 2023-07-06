@@ -33,10 +33,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
@@ -62,144 +60,142 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService" )
+@Service("org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService")
 @RequiredArgsConstructor
-public class DefaultOrgUnitAnalyticsService
-    implements OrgUnitAnalyticsService
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class DefaultOrgUnitAnalyticsService implements OrgUnitAnalyticsService {
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final OrgUnitAnalyticsManager analyticsManager;
+  private final OrgUnitAnalyticsManager analyticsManager;
 
-    private final OrgUnitQueryPlanner queryPlanner;
+  private final OrgUnitQueryPlanner queryPlanner;
 
-    @Override
-    public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns )
-    {
-        List<String> ous = TextUtils.getOptions( orgUnits );
-        List<String> ougs = TextUtils.getOptions( orgUnitGroupSets );
-        List<String> cols = TextUtils.getOptions( columns );
+  @Override
+  public OrgUnitQueryParams getParams(String orgUnits, String orgUnitGroupSets, String columns) {
+    List<String> ous = TextUtils.getOptions(orgUnits);
+    List<String> ougs = TextUtils.getOptions(orgUnitGroupSets);
+    List<String> cols = TextUtils.getOptions(columns);
 
-        return new OrgUnitQueryParams.Builder()
-            .withOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
-            .withOrgUnitGroupSets(
-                idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) )
-            .withColumns( DimensionalObjectUtils.asDimensionalObjectList(
-                idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, cols ) ) )
-            .build();
+    return new OrgUnitQueryParams.Builder()
+        .withOrgUnits(
+            idObjectManager.getObjects(OrganisationUnit.class, IdentifiableProperty.UID, ous))
+        .withOrgUnitGroupSets(
+            idObjectManager.getObjects(
+                OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs))
+        .withColumns(
+            DimensionalObjectUtils.asDimensionalObjectList(
+                idObjectManager.getObjects(
+                    OrganisationUnitGroupSet.class, IdentifiableProperty.UID, cols)))
+        .build();
+  }
+
+  @Override
+  public Grid getOrgUnitData(OrgUnitQueryParams params) {
+    log.info(String.format("Get org unit data for query: %s", params));
+
+    validate(params);
+
+    return params.isTableLayout() ? getOrgUnitDataTableLayout(params) : getNormalizedData(params);
+  }
+
+  @Override
+  public Map<String, Object> getOrgUnitDataMap(OrgUnitQueryParams params) {
+    validate(params);
+
+    Map<String, Object> valueMap = new HashMap<>();
+    queryPlanner
+        .planQuery(params)
+        .forEach(query -> valueMap.putAll(analyticsManager.getOrgUnitData(query)));
+    return valueMap;
+  }
+
+  @Override
+  public void validate(OrgUnitQueryParams params) {
+    ErrorMessage error = null;
+
+    if (params == null) {
+      error = new ErrorMessage(ErrorCode.E7100);
+    } else if (params.getOrgUnits().isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E7300);
+    } else if (params.getOrgUnitGroupSets().isEmpty()) {
+      error = new ErrorMessage(ErrorCode.E7301);
     }
 
-    @Override
-    public Grid getOrgUnitData( OrgUnitQueryParams params )
-    {
-        log.info( String.format( "Get org unit data for query: %s", params ) );
-
-        validate( params );
-
-        return params.isTableLayout() ? getOrgUnitDataTableLayout( params ) : getNormalizedData( params );
+    if (error != null) {
+      throw new IllegalQueryException(error);
     }
+  }
 
-    @Override
-    public Map<String, Object> getOrgUnitDataMap( OrgUnitQueryParams params )
-    {
-        validate( params );
+  /**
+   * Returns normalized data based on the given query.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a data {@link Grid}.
+   */
+  private Grid getNormalizedData(OrgUnitQueryParams params) {
+    Grid grid = new ListGrid();
 
-        Map<String, Object> valueMap = new HashMap<>();
-        queryPlanner.planQuery( params )
-            .forEach( query -> valueMap.putAll( analyticsManager.getOrgUnitData( query ) ) );
-        return valueMap;
-    }
+    addHeaders(params, grid);
+    addMetadata(params, grid);
 
-    @Override
-    public void validate( OrgUnitQueryParams params )
-    {
-        ErrorMessage error = null;
+    getOrgUnitDataMap(params)
+        .entrySet()
+        .forEach(
+            entry -> {
+              grid.addRow()
+                  .addValues(entry.getKey().split(DIMENSION_SEP))
+                  .addValue(entry.getValue());
+            });
 
-        if ( params == null )
-        {
-            error = new ErrorMessage( ErrorCode.E7100 );
-        }
-        else if ( params.getOrgUnits().isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E7300 );
-        }
-        else if ( params.getOrgUnitGroupSets().isEmpty() )
-        {
-            error = new ErrorMessage( ErrorCode.E7301 );
-        }
+    return grid;
+  }
 
-        if ( error != null )
-        {
-            throw new IllegalQueryException( error );
-        }
-    }
+  /**
+   * Returns the given query as a grid in org unit table layout.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a data {@link Grid}.
+   */
+  private Grid getOrgUnitDataTableLayout(OrgUnitQueryParams params) {
+    return GridRenderUtils.asGrid(params.getColumns(), params.getRows(), getOrgUnitDataMap(params));
+  }
 
-    /**
-     * Returns normalized data based on the given query.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a data {@link Grid}.
-     */
-    private Grid getNormalizedData( OrgUnitQueryParams params )
-    {
-        Grid grid = new ListGrid();
+  /**
+   * Adds headers to the given grid.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  private void addHeaders(OrgUnitQueryParams params, Grid grid) {
+    grid.addHeader(new GridHeader("orgunit", "Organisation unit", ValueType.TEXT, false, true));
+    params
+        .getOrgUnitGroupSets()
+        .forEach(
+            ougs ->
+                grid.addHeader(
+                    new GridHeader(
+                        ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, false, true)));
+    grid.addHeader(new GridHeader("count", "Count", ValueType.INTEGER, false, false));
+  }
 
-        addHeaders( params, grid );
-        addMetadata( params, grid );
+  /**
+   * Adds metadata to the given grid.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @param grid the {@link Grid}.
+   */
+  private void addMetadata(OrgUnitQueryParams params, Grid grid) {
+    Map<String, Object> metadata = new HashMap<>();
+    Map<String, Object> items = new HashMap<>();
 
-        getOrgUnitDataMap( params ).entrySet().forEach( entry -> {
-            grid.addRow()
-                .addValues( entry.getKey().split( DIMENSION_SEP ) )
-                .addValue( entry.getValue() );
-        } );
+    params
+        .getOrgUnits()
+        .forEach(ou -> items.put(ou.getUid(), new MetadataItem(ou.getDisplayName())));
+    params.getOrgUnitGroupSets().stream()
+        .map(OrganisationUnitGroupSet::getOrganisationUnitGroups)
+        .flatMap(Collection::stream)
+        .forEach(oug -> items.put(oug.getUid(), new MetadataItem(oug.getDisplayName())));
 
-        return grid;
-    }
-
-    /**
-     * Returns the given query as a grid in org unit table layout.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a data {@link Grid}.
-     */
-    private Grid getOrgUnitDataTableLayout( OrgUnitQueryParams params )
-    {
-        return GridRenderUtils.asGrid( params.getColumns(), params.getRows(), getOrgUnitDataMap( params ) );
-    }
-
-    /**
-     * Adds headers to the given grid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    private void addHeaders( OrgUnitQueryParams params, Grid grid )
-    {
-        grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, false, true ) );
-        params.getOrgUnitGroupSets().forEach( ougs -> grid
-            .addHeader( new GridHeader( ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, false, true ) ) );
-        grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, false, false ) );
-    }
-
-    /**
-     * Adds metadata to the given grid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @param grid the {@link Grid}.
-     */
-    private void addMetadata( OrgUnitQueryParams params, Grid grid )
-    {
-        Map<String, Object> metadata = new HashMap<>();
-        Map<String, Object> items = new HashMap<>();
-
-        params.getOrgUnits()
-            .forEach( ou -> items.put( ou.getUid(), new MetadataItem( ou.getDisplayName() ) ) );
-        params.getOrgUnitGroupSets().stream()
-            .map( OrganisationUnitGroupSet::getOrganisationUnitGroups )
-            .flatMap( Collection::stream )
-            .forEach( oug -> items.put( oug.getUid(), new MetadataItem( oug.getDisplayName() ) ) );
-
-        metadata.put( "items", items );
-        grid.setMetaData( metadata );
-    }
+    metadata.put("items", items);
+    grid.setMetaData(metadata);
+  }
 }

@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -53,147 +52,128 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class ValidationExecutorTest extends DhisConvenienceTest
-{
-    private final static String RULE_UID = "Rule uid";
+@ExtendWith(MockitoExtension.class)
+class ValidationExecutorTest extends DhisConvenienceTest {
+  private static final String RULE_UID = "Rule uid";
 
-    private final static String CONTENT = "SHOW ERROR DATA";
+  private static final String CONTENT = "SHOW ERROR DATA";
 
-    private final static String EVALUATED_DATA = "4.0";
+  private static final String EVALUATED_DATA = "4.0";
 
-    private final static String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
+  private static final String ACTIVE_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
-    private final static String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
+  private static final String COMPLETED_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
-    private ShowWarningOnCompleteExecutor warningOnCompleteExecutor = new ShowWarningOnCompleteExecutor(
-        getValidationRuleAction( WARNING ) );
+  private ShowWarningOnCompleteExecutor warningOnCompleteExecutor =
+      new ShowWarningOnCompleteExecutor(getValidationRuleAction(WARNING));
 
-    private ShowErrorOnCompleteExecutor errorOnCompleteExecutor = new ShowErrorOnCompleteExecutor(
-        getValidationRuleAction( ERROR ) );
+  private ShowErrorOnCompleteExecutor errorOnCompleteExecutor =
+      new ShowErrorOnCompleteExecutor(getValidationRuleAction(ERROR));
 
-    private ShowErrorExecutor showErrorExecutor = new ShowErrorExecutor( getValidationRuleAction( ERROR ) );
+  private ShowErrorExecutor showErrorExecutor =
+      new ShowErrorExecutor(getValidationRuleAction(ERROR));
 
-    private ShowWarningExecutor showWarningExecutor = new ShowWarningExecutor( getValidationRuleAction( WARNING ) );
+  private ShowWarningExecutor showWarningExecutor =
+      new ShowWarningExecutor(getValidationRuleAction(WARNING));
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @BeforeEach
-    void setUpTest()
-    {
-        bundle = TrackerBundle.builder().build();
-        bundle.setEnrollments( getEnrollments() );
-        bundle.setPreheat( preheat );
-    }
+  @BeforeEach
+  void setUpTest() {
+    bundle = TrackerBundle.builder().build();
+    bundle.setEnrollments(getEnrollments());
+    bundle.setPreheat(preheat);
+  }
 
-    @Test
-    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForActiveEnrollment()
-    {
-        Optional<ProgramRuleIssue> error = showErrorExecutor.executeRuleAction( bundle, activeEnrollment() );
+  @Test
+  void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForActiveEnrollment() {
+    Optional<ProgramRuleIssue> error =
+        showErrorExecutor.executeRuleAction(bundle, activeEnrollment());
 
-        assertTrue( error.isPresent() );
-        assertEquals( error( RULE_UID, E1300, validationMessage( ERROR ) ), error.get() );
-    }
+    assertTrue(error.isPresent());
+    assertEquals(error(RULE_UID, E1300, validationMessage(ERROR)), error.get());
+  }
 
-    @Test
-    void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForCompletedEnrollment()
-    {
-        Optional<ProgramRuleIssue> error = showErrorExecutor.executeRuleAction( bundle,
-            completedEnrollment() );
+  @Test
+  void shouldReturnAnErrorWhenAShowErrorActionIsTriggeredForCompletedEnrollment() {
+    Optional<ProgramRuleIssue> error =
+        showErrorExecutor.executeRuleAction(bundle, completedEnrollment());
 
-        assertTrue( error.isPresent() );
-        assertEquals( error( RULE_UID, E1300, validationMessage( ERROR ) ), error.get() );
-    }
+    assertTrue(error.isPresent());
+    assertEquals(error(RULE_UID, E1300, validationMessage(ERROR)), error.get());
+  }
 
-    @Test
-    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForActiveEnrollment()
-    {
-        Optional<ProgramRuleIssue> warning = showWarningExecutor.executeRuleAction( bundle,
-            activeEnrollment() );
+  @Test
+  void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForActiveEnrollment() {
+    Optional<ProgramRuleIssue> warning =
+        showWarningExecutor.executeRuleAction(bundle, activeEnrollment());
 
-        assertTrue( warning.isPresent() );
-        assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
-    }
+    assertTrue(warning.isPresent());
+    assertEquals(warning(RULE_UID, E1300, validationMessage(WARNING)), warning.get());
+  }
 
-    @Test
-    void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForCompletedEnrollment()
-    {
-        Optional<ProgramRuleIssue> warning = showWarningExecutor.executeRuleAction( bundle,
-            completedEnrollment() );
+  @Test
+  void shouldReturnAWarningWhenAShowErrorActionIsTriggeredForCompletedEnrollment() {
+    Optional<ProgramRuleIssue> warning =
+        showWarningExecutor.executeRuleAction(bundle, completedEnrollment());
 
-        assertTrue( warning.isPresent() );
-        assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
-    }
+    assertTrue(warning.isPresent());
+    assertEquals(warning(RULE_UID, E1300, validationMessage(WARNING)), warning.get());
+  }
 
-    @Test
-    void shouldNotReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment()
-    {
-        Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.executeRuleAction( bundle,
-            activeEnrollment() );
+  @Test
+  void shouldNotReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment() {
+    Optional<ProgramRuleIssue> error =
+        errorOnCompleteExecutor.executeRuleAction(bundle, activeEnrollment());
 
-        assertFalse( error.isPresent() );
-    }
+    assertFalse(error.isPresent());
+  }
 
-    @Test
-    void shouldReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment()
-    {
-        Optional<ProgramRuleIssue> error = errorOnCompleteExecutor.executeRuleAction( bundle,
-            completedEnrollment() );
+  @Test
+  void shouldReturnAnErrorWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment() {
+    Optional<ProgramRuleIssue> error =
+        errorOnCompleteExecutor.executeRuleAction(bundle, completedEnrollment());
 
-        assertTrue( error.isPresent() );
-        assertEquals( error( RULE_UID, E1300, validationMessage( ERROR ) ), error.get() );
-    }
+    assertTrue(error.isPresent());
+    assertEquals(error(RULE_UID, E1300, validationMessage(ERROR)), error.get());
+  }
 
-    @Test
-    void shouldNotReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment()
-    {
-        Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.executeRuleAction( bundle,
-            activeEnrollment() );
+  @Test
+  void shouldNotReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForActiveEnrollment() {
+    Optional<ProgramRuleIssue> warning =
+        warningOnCompleteExecutor.executeRuleAction(bundle, activeEnrollment());
 
-        assertFalse( warning.isPresent() );
-    }
+    assertFalse(warning.isPresent());
+  }
 
-    @Test
-    void shouldReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment()
-    {
-        Optional<ProgramRuleIssue> warning = warningOnCompleteExecutor.executeRuleAction( bundle,
-            completedEnrollment() );
+  @Test
+  void shouldReturnAWarningWhenAShowErrorOnCompleteActionIsTriggeredForCompletedEnrollment() {
+    Optional<ProgramRuleIssue> warning =
+        warningOnCompleteExecutor.executeRuleAction(bundle, completedEnrollment());
 
-        assertTrue( warning.isPresent() );
-        assertEquals( warning( RULE_UID, E1300, validationMessage( WARNING ) ), warning.get() );
-    }
+    assertTrue(warning.isPresent());
+    assertEquals(warning(RULE_UID, E1300, validationMessage(WARNING)), warning.get());
+  }
 
-    private List<Enrollment> getEnrollments()
-    {
-        return List.of( activeEnrollment(), completedEnrollment() );
-    }
+  private List<Enrollment> getEnrollments() {
+    return List.of(activeEnrollment(), completedEnrollment());
+  }
 
-    private Enrollment activeEnrollment()
-    {
-        return Enrollment.builder()
-            .enrollment( ACTIVE_ENROLLMENT_ID )
-            .status( ACTIVE )
-            .build();
-    }
+  private Enrollment activeEnrollment() {
+    return Enrollment.builder().enrollment(ACTIVE_ENROLLMENT_ID).status(ACTIVE).build();
+  }
 
-    private Enrollment completedEnrollment()
-    {
-        return Enrollment.builder()
-            .enrollment( COMPLETED_ENROLLMENT_ID )
-            .status( COMPLETED )
-            .build();
-    }
+  private Enrollment completedEnrollment() {
+    return Enrollment.builder().enrollment(COMPLETED_ENROLLMENT_ID).status(COMPLETED).build();
+  }
 
-    private ValidationRuleAction getValidationRuleAction( IssueType issueType )
-    {
-        return new ValidationRuleAction( RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT );
-    }
+  private ValidationRuleAction getValidationRuleAction(IssueType issueType) {
+    return new ValidationRuleAction(RULE_UID, EVALUATED_DATA, null, issueType.name() + CONTENT);
+  }
 
-    private String validationMessage( IssueType issueType )
-    {
-        return issueType.name() + CONTENT + " " + EVALUATED_DATA;
-    }
+  private String validationMessage(IssueType issueType) {
+    return issueType.name() + CONTENT + " " + EVALUATED_DATA;
+  }
 }

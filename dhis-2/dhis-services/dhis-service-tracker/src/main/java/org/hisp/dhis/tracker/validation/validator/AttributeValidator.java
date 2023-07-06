@@ -38,7 +38,6 @@ import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertEr
 
 import java.util.List;
 import java.util.Objects;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -57,122 +56,118 @@ import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValida
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AttributeValidator
-{
+public abstract class AttributeValidator {
 
-    private final TrackedAttributeValidationService teAttrService;
+  private final TrackedAttributeValidationService teAttrService;
 
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    protected AttributeValidator( TrackedAttributeValidationService teAttrService,
-        DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        this.teAttrService = teAttrService;
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
+  protected AttributeValidator(
+      TrackedAttributeValidationService teAttrService,
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    this.teAttrService = teAttrService;
+    this.dhisConfigurationProvider = dhisConfigurationProvider;
+  }
+
+  protected void validateAttrValueType(
+      Reporter reporter,
+      TrackerPreheat preheat,
+      TrackerDto dto,
+      Attribute attr,
+      TrackedEntityAttribute teAttr) {
+    checkNotNull(attr, ATTRIBUTE_CANT_BE_NULL);
+    checkNotNull(teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL);
+
+    ValueType valueType = teAttr.getValueType();
+
+    String error;
+
+    if (valueType.equals(ValueType.ORGANISATION_UNIT)) {
+      error =
+          preheat.getOrganisationUnit(attr.getValue()) == null
+              ? " Value " + attr.getValue() + " is not a valid org unit value"
+              : null;
+    } else if (valueType.equals(ValueType.USERNAME)) {
+      error =
+          preheat.getUserByUsername(attr.getValue()).isPresent()
+              ? null
+              : " Value " + attr.getValue() + " is not a valid username value";
+    } else {
+      // We need to do try/catch here since validateValueType() since
+      // validateValueType can cast IllegalArgumentException e.g.
+      // on at
+      // org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
+      try {
+        error = teAttrService.validateValueType(teAttr, attr.getValue());
+      } catch (Exception e) {
+        error = e.getMessage();
+      }
     }
 
-    protected void validateAttrValueType( Reporter reporter, TrackerPreheat preheat, TrackerDto dto,
-        Attribute attr,
-        TrackedEntityAttribute teAttr )
-    {
-        checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
-        checkNotNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
-
-        ValueType valueType = teAttr.getValueType();
-
-        String error;
-
-        if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
-        {
-            error = preheat.getOrganisationUnit( attr.getValue() ) == null
-                ? " Value " + attr.getValue() + " is not a valid org unit value"
-                : null;
-        }
-        else if ( valueType.equals( ValueType.USERNAME ) )
-        {
-            error = preheat.getUserByUsername( attr.getValue() ).isPresent() ? null
-                : " Value " + attr.getValue() + " is not a valid username value";
-        }
-        else
-        {
-            // We need to do try/catch here since validateValueType() since
-            // validateValueType can cast IllegalArgumentException e.g.
-            // on at
-            // org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
-            try
-            {
-                error = teAttrService.validateValueType( teAttr, attr.getValue() );
-            }
-            catch ( Exception e )
-            {
-                error = e.getMessage();
-            }
-        }
-
-        if ( error != null )
-        {
-            reporter.addError( dto, ValidationCode.E1007, valueType, error );
-        }
+    if (error != null) {
+      reporter.addError(dto, ValidationCode.E1007, valueType, error);
     }
+  }
 
-    public void validateAttributeValue( Reporter reporter, TrackerDto trackerDto,
-        TrackedEntityAttribute tea,
-        String value )
-    {
-        checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
-        checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
+  public void validateAttributeValue(
+      Reporter reporter, TrackerDto trackerDto, TrackedEntityAttribute tea, String value) {
+    checkNotNull(tea, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL);
+    checkNotNull(value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL);
 
-        // Validate value (string) don't exceed the max length
-        reporter.addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, trackerDto,
-            E1077, value,
-            Constant.MAX_ATTR_VALUE_LENGTH );
+    // Validate value (string) don't exceed the max length
+    reporter.addErrorIf(
+        () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH,
+        trackerDto,
+        E1077,
+        value,
+        Constant.MAX_ATTR_VALUE_LENGTH);
 
-        // Validate if that encryption is configured properly if someone sets
-        // value to (confidential)
-        boolean isConfidential = tea.isConfidentialBool();
-        EncryptionStatus encryptionStatus = dhisConfigurationProvider.getEncryptionStatus();
-        reporter.addErrorIf( () -> isConfidential && !encryptionStatus.isOk(), trackerDto, E1112,
-            value, encryptionStatus.getKey() );
+    // Validate if that encryption is configured properly if someone sets
+    // value to (confidential)
+    boolean isConfidential = tea.isConfidentialBool();
+    EncryptionStatus encryptionStatus = dhisConfigurationProvider.getEncryptionStatus();
+    reporter.addErrorIf(
+        () -> isConfidential && !encryptionStatus.isOk(),
+        trackerDto,
+        E1112,
+        value,
+        encryptionStatus.getKey());
 
-        // Uses ValidationUtils to check that the data value corresponds to the
-        // data value type set on the attribute
-        final String result = valueIsValid( value, tea.getValueType() );
-        reporter.addErrorIf( () -> result != null, trackerDto, E1085, tea, result );
+    // Uses ValidationUtils to check that the data value corresponds to the
+    // data value type set on the attribute
+    final String result = valueIsValid(value, tea.getValueType());
+    reporter.addErrorIf(() -> result != null, trackerDto, E1085, tea, result);
+  }
+
+  protected void validateAttributeUniqueness(
+      Reporter reporter,
+      TrackerPreheat preheat,
+      TrackerDto dto,
+      String value,
+      TrackedEntityAttribute trackedEntityAttribute,
+      TrackedEntityInstance trackedEntityInstance,
+      OrganisationUnit organisationUnit) {
+    checkNotNull(trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL);
+
+    if (Boolean.FALSE.equals(trackedEntityAttribute.isUnique())) return;
+
+    List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();
+
+    for (UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues) {
+      boolean isTeaUniqueInOrgUnitScope =
+          !trackedEntityAttribute.getOrgunitScope()
+              || uniqueAttributeValue.getOrgUnit().isEqualTo(organisationUnit);
+
+      boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo(trackedEntityAttribute);
+      boolean hasTheSameValue = Objects.equals(uniqueAttributeValue.getValue(), value);
+      boolean isNotSameTei =
+          trackedEntityInstance == null
+              || !Objects.equals(trackedEntityInstance.getUid(), uniqueAttributeValue.getTeiUid());
+
+      if (isTeaUniqueInOrgUnitScope && isTheSameTea && hasTheSameValue && isNotSameTei) {
+        reporter.addError(dto, ValidationCode.E1064, value, trackedEntityAttribute);
+        return;
+      }
     }
-
-    protected void validateAttributeUniqueness( Reporter reporter,
-        TrackerPreheat preheat, TrackerDto dto,
-        String value,
-        TrackedEntityAttribute trackedEntityAttribute,
-        TrackedEntityInstance trackedEntityInstance,
-        OrganisationUnit organisationUnit )
-    {
-        checkNotNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
-
-        if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
-            return;
-
-        List<UniqueAttributeValue> uniqueAttributeValues = preheat.getUniqueAttributeValues();
-
-        for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
-        {
-            boolean isTeaUniqueInOrgUnitScope = !trackedEntityAttribute.getOrgunitScope()
-                || uniqueAttributeValue.getOrgUnit().isEqualTo( organisationUnit );
-
-            boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo( trackedEntityAttribute );
-            boolean hasTheSameValue = Objects.equals( uniqueAttributeValue.getValue(), value );
-            boolean isNotSameTei = trackedEntityInstance == null
-                || !Objects.equals( trackedEntityInstance.getUid(),
-                    uniqueAttributeValue.getTeiUid() );
-
-            if ( isTeaUniqueInOrgUnitScope
-                && isTheSameTea
-                && hasTheSameValue
-                && isNotSameTei )
-            {
-                reporter.addError( dto, ValidationCode.E1064, value, trackedEntityAttribute );
-                return;
-            }
-        }
-    }
+  }
 }

@@ -28,52 +28,42 @@
 package org.hisp.dhis.textpattern;
 
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Stian Sandvold
  */
-public class StringMethodType
-    extends BaseMethodType
-{
-    StringMethodType( Pattern pattern )
-    {
-        super( pattern );
+public class StringMethodType extends BaseMethodType {
+  StringMethodType(Pattern pattern) {
+    super(pattern);
+  }
+
+  @Override
+  public String getValueRegex(String format) {
+    if (format.isEmpty()) {
+      format = ".*";
     }
 
-    @Override
-    public String getValueRegex( String format )
-    {
-        if ( format.isEmpty() )
-        {
-            format = ".*";
-        }
+    format = format.replaceAll("\\^", "");
+    format = format.replaceAll("\\$", "");
+    return format;
+  }
 
-        format = format.replaceAll( "\\^", "" );
-        format = format.replaceAll( "\\$", "" );
-        return format;
+  @Override
+  public boolean validateText(String format, String text) {
+    if (StringUtils.isEmpty(format)) {
+      return true;
     }
 
-    @Override
-    public boolean validateText( String format, String text )
-    {
-        if ( StringUtils.isEmpty( format ) )
-        {
-            return true;
-        }
+    return super.validateText(format, text);
+  }
 
-        return super.validateText( format, text );
+  @Override
+  public String getFormattedText(String format, String value) {
+    if (StringUtils.isEmpty(format)) {
+      return value;
     }
 
-    @Override
-    public String getFormattedText( String format, String value )
-    {
-        if ( StringUtils.isEmpty( format ) )
-        {
-            return value;
-        }
-
-        return TextPatternMethodUtils.formatText( format, value );
-    }
+    return TextPatternMethodUtils.formatText(format, value);
+  }
 }

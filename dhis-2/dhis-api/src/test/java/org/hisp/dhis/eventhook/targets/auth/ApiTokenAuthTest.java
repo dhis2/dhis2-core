@@ -37,20 +37,18 @@ import org.springframework.util.MultiValueMap;
 /**
  * @author Morten Olav Hansen
  */
-class ApiTokenAuthTest
-{
+class ApiTokenAuthTest {
 
-    @Test
-    void testAuthorizationHeaderSet()
-    {
-        ApiTokenAuth auth = new ApiTokenAuth()
-            .setToken( "90619873-3287-4296-8C22-9E1D49C0201F" );
+  @Test
+  void testAuthorizationHeaderSet() {
+    ApiTokenAuth auth = new ApiTokenAuth().setToken("90619873-3287-4296-8C22-9E1D49C0201F");
 
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        auth.apply( headers );
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers);
 
-        assertTrue( headers.containsKey( "Authorization" ) );
-        assertFalse( headers.get( "Authorization" ).isEmpty() );
-        assertEquals( "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get( "Authorization" ).get( 0 ) );
-    }
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals(
+        "ApiToken 90619873-3287-4296-8C22-9E1D49C0201F", headers.get("Authorization").get(0));
+  }
 }

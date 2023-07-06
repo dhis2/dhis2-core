@@ -30,7 +30,6 @@ package org.hisp.dhis.i18n;
 import java.util.MissingResourceException;
 import java.util.Objects;
 import java.util.ResourceBundle;
-
 import lombok.AllArgsConstructor;
 
 /**
@@ -39,57 +38,47 @@ import lombok.AllArgsConstructor;
  * @author Anders Gjendem
  */
 @AllArgsConstructor
-public class I18n
-{
-    private final ResourceBundle globalResourceBundle;
+public class I18n {
+  private final ResourceBundle globalResourceBundle;
 
-    private final ResourceBundle specificResourceBundle;
+  private final ResourceBundle specificResourceBundle;
 
-    /**
-     * Get a translated String for a given key for the currently selected locale
-     *
-     * @param key the key for a given translation
-     * @return a translated String for a given key, or the key if no translation
-     *         is found.
-     */
-    public String getString( String key )
-    {
-        return getString( key, key );
+  /**
+   * Get a translated String for a given key for the currently selected locale
+   *
+   * @param key the key for a given translation
+   * @return a translated String for a given key, or the key if no translation is found.
+   */
+  public String getString(String key) {
+    return getString(key, key);
+  }
+
+  /**
+   * Get a translated String for a given key for the currently selected locale
+   *
+   * @param key the key for a given translation
+   * @return a translated String for a given key, or the provided default value if no translation is
+   *     found.
+   */
+  public String getString(String key, String defaultValue) {
+    String translation = defaultValue;
+
+    if (specificResourceBundle != null) {
+      translation = getBundleString(specificResourceBundle, key, translation);
     }
 
-    /**
-     * Get a translated String for a given key for the currently selected locale
-     *
-     * @param key the key for a given translation
-     * @return a translated String for a given key, or the provided default
-     *         value if no translation is found.
-     */
-    public String getString( String key, String defaultValue )
-    {
-        String translation = defaultValue;
-
-        if ( specificResourceBundle != null )
-        {
-            translation = getBundleString( specificResourceBundle, key, translation );
-        }
-
-        if ( Objects.equals( defaultValue, translation ) && globalResourceBundle != null )
-        {
-            translation = getBundleString( globalResourceBundle, key, translation );
-        }
-
-        return translation;
+    if (Objects.equals(defaultValue, translation) && globalResourceBundle != null) {
+      translation = getBundleString(globalResourceBundle, key, translation);
     }
 
-    private String getBundleString( ResourceBundle bundle, String key, String defaultValue )
-    {
-        try
-        {
-            return bundle.getString( key );
-        }
-        catch ( MissingResourceException ignored )
-        {
-            return defaultValue;
-        }
+    return translation;
+  }
+
+  private String getBundleString(ResourceBundle bundle, String key, String defaultValue) {
+    try {
+      return bundle.getString(key);
+    } catch (MissingResourceException ignored) {
+      return defaultValue;
     }
+  }
 }

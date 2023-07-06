@@ -31,14 +31,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
@@ -83,441 +82,429 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "ui" )
+@OpenApi.Tags("ui")
 @Controller
-@RequestMapping( value = InterpretationSchemaDescriptor.API_ENDPOINT )
-public class InterpretationController extends AbstractCrudController<Interpretation>
-{
-    @Autowired
-    private InterpretationService interpretationService;
+@RequestMapping(value = InterpretationSchemaDescriptor.API_ENDPOINT)
+public class InterpretationController extends AbstractCrudController<Interpretation> {
+  @Autowired private InterpretationService interpretationService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    protected List<Interpretation> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders )
-        throws QueryParserException
-    {
-        // If custom filter (mentions:in:[username]) in filters -> Remove from
-        // filters
-        List<String> mentionsFromCustomFilters = MentionUtils.removeCustomFilters( filters );
+  @Override
+  @SuppressWarnings("unchecked")
+  protected List<Interpretation> getEntityList(
+      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      throws QueryParserException {
+    // If custom filter (mentions:in:[username]) in filters -> Remove from
+    // filters
+    List<String> mentionsFromCustomFilters = MentionUtils.removeCustomFilters(filters);
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction() );
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
-        // If custom filter (mentions:in:[username]) in filters -> Add as
-        // disjunction including interpretation mentions and comments mentions
-        for ( Disjunction disjunction : (Collection<Disjunction>) getDisjunctionsFromCustomMentions(
-            mentionsFromCustomFilters, query.getSchema() ) )
-        {
-            query.add( disjunction );
-        }
-
-        List<Interpretation> entityList;
-        if ( options.getOptions().containsKey( "query" ) )
-        {
-            entityList = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
-        }
-        else
-        {
-            entityList = (List<Interpretation>) queryService.query( query );
-        }
-        return entityList;
+    Query query =
+        queryService.getQueryFromUrl(
+            getEntityClass(),
+            filters,
+            orders,
+            getPaginationData(options),
+            options.getRootJunction());
+    query.setDefaultOrder();
+    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
+    // If custom filter (mentions:in:[username]) in filters -> Add as
+    // disjunction including interpretation mentions and comments mentions
+    for (Disjunction disjunction :
+        (Collection<Disjunction>)
+            getDisjunctionsFromCustomMentions(mentionsFromCustomFilters, query.getSchema())) {
+      query.add(disjunction);
     }
 
-    // -------------------------------------------------------------------------
-    // Interpretation create
-    // -------------------------------------------------------------------------
+    List<Interpretation> entityList;
+    if (options.getOptions().containsKey("query")) {
+      entityList =
+          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
+    } else {
+      entityList = (List<Interpretation>) queryService.query(query);
+    }
+    return entityList;
+  }
 
-    @PostMapping( value = "/visualization/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    public WebMessage writeVisualizationInterpretation(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid,
-        @CurrentUser User currentUser,
-        @RequestBody String text )
-        throws WebMessageException
-    {
-        final Visualization visualization = idObjectManager.get( Visualization.class, uid );
+  // -------------------------------------------------------------------------
+  // Interpretation create
+  // -------------------------------------------------------------------------
 
-        if ( visualization == null )
-        {
-            return conflict( "Visualization does not exist or is not accessible: " + uid );
-        }
+  @PostMapping(
+      value = "/visualization/{uid}",
+      consumes = {"text/html", "text/plain"})
+  @ResponseBody
+  public WebMessage writeVisualizationInterpretation(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String orgUnitUid,
+      @CurrentUser User currentUser,
+      @RequestBody String text)
+      throws WebMessageException {
+    final Visualization visualization = idObjectManager.get(Visualization.class, uid);
 
-        final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization, currentUser );
-
-        return createInterpretation( new Interpretation( visualization, orgUnit, text ) );
+    if (visualization == null) {
+      return conflict("Visualization does not exist or is not accessible: " + uid);
     }
 
-    @PostMapping( value = "/eventVisualization/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    public WebMessage writeEventVisualizationInterpretation( @PathVariable( "uid" )
-    final String uid, @RequestParam( value = "ou", required = false )
-    final String orgUnitUid, @RequestBody
-    final String text )
-        throws WebMessageException
-    {
-        final EventVisualization eventVisualization = idObjectManager.get( EventVisualization.class, uid );
+    final OrganisationUnit orgUnit =
+        getUserOrganisationUnit(orgUnitUid, visualization, currentUser);
 
-        if ( eventVisualization == null )
-        {
-            return conflict( "EventVisualization does not exist or is not accessible: " + uid );
-        }
+    return createInterpretation(new Interpretation(visualization, orgUnit, text));
+  }
 
-        final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventVisualization,
-            currentUserService.getCurrentUser() );
+  @PostMapping(
+      value = "/eventVisualization/{uid}",
+      consumes = {"text/html", "text/plain"})
+  @ResponseBody
+  public WebMessage writeEventVisualizationInterpretation(
+      @PathVariable("uid") final String uid,
+      @RequestParam(value = "ou", required = false) final String orgUnitUid,
+      @RequestBody final String text)
+      throws WebMessageException {
+    final EventVisualization eventVisualization =
+        idObjectManager.get(EventVisualization.class, uid);
 
-        /*
-         * This is needed until the deprecated entities (EventChart and
-         * EventReport) are completely removed from the code base. Until there
-         * all interpretations saved on the new EventVisualization entity should
-         * also be available for the deprecated ones.
-         */
-        switch ( eventVisualization.getType() )
-        {
-        case LINE_LIST:
-        case PIVOT_TABLE:
-            final EventReport eventReport = idObjectManager.get( EventReport.class,
-                eventVisualization.getUid() );
-            return createInterpretation( new Interpretation( eventVisualization, eventReport, orgUnit, text ) );
-        default:
-            final EventChart eventChart = idObjectManager.get( EventChart.class, eventVisualization.getUid() );
-            return createInterpretation( new Interpretation( eventVisualization, eventChart, orgUnit, text ) );
-        }
+    if (eventVisualization == null) {
+      return conflict("EventVisualization does not exist or is not accessible: " + uid);
     }
 
-    @PostMapping( value = "/map/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    public WebMessage writeMapInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text )
-    {
-        Map map = idObjectManager.get( Map.class, uid );
+    final OrganisationUnit orgUnit =
+        getUserOrganisationUnit(
+            orgUnitUid, eventVisualization, currentUserService.getCurrentUser());
 
-        if ( map == null )
-        {
-            return conflict( "Map does not exist or is not accessible: " + uid );
-        }
-
-        return createInterpretation( new Interpretation( map, text ) );
-    }
-
-    @PostMapping( value = "/eventReport/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    @Deprecated
-    public WebMessage writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @CurrentUser User currentUser,
-        @RequestBody String text )
-        throws WebMessageException
-    {
-        EventReport eventReport = idObjectManager.get( EventReport.class, uid );
-
-        if ( eventReport == null )
-        {
-            return conflict( "Event report does not exist or is not accessible: " + uid );
-        }
-
-        final EventVisualization eventVisualization = idObjectManager.get( EventVisualization.class,
-            eventReport.getUid() );
-
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport, currentUser );
-
-        return createInterpretation( new Interpretation( eventVisualization, eventReport, orgUnit, text ) );
-    }
-
-    @PostMapping( value = "/eventChart/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    @Deprecated
-    public WebMessage writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @CurrentUser User currentUser,
-        @RequestBody String text )
-        throws WebMessageException
-    {
-        EventChart eventChart = idObjectManager.get( EventChart.class, uid );
-
-        if ( eventChart == null )
-        {
-            return conflict( "Event chart does not exist or is not accessible: " + uid );
-        }
-
-        final EventVisualization eventVisualization = idObjectManager.get( EventVisualization.class,
-            eventChart.getUid() );
-
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart, currentUser );
-
-        return createInterpretation( new Interpretation( eventVisualization, eventChart, orgUnit, text ) );
-    }
-
-    @PostMapping( value = "/dataSetReport/{uid}", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    public WebMessage writeDataSetReportInterpretation( @PathVariable( "uid" ) String dataSetUid,
-        @RequestParam( "pe" ) String isoPeriod, @RequestParam( "ou" ) String orgUnitUid, @RequestBody String text )
-    {
-        DataSet dataSet = idObjectManager.get( DataSet.class, dataSetUid );
-
-        if ( dataSet == null )
-        {
-            return conflict( "Data set does not exist or is not accessible: " + dataSetUid );
-        }
-
-        Period period = PeriodType.getPeriodFromIsoString( isoPeriod );
-
-        if ( period == null )
-        {
-            return conflict( "Period identifier not valid: " + isoPeriod );
-        }
-
-        OrganisationUnit orgUnit = idObjectManager.get( OrganisationUnit.class, orgUnitUid );
-
-        if ( orgUnit == null )
-        {
-            return conflict( "Organisation unit does not exist or is not accessible: " + orgUnitUid );
-        }
-
-        return createInterpretation( new Interpretation( dataSet, period, orgUnit, text ) );
-    }
-
-    /**
-     * Returns the organisation unit with the given identifier. If not existing,
-     * returns the user organisation unit if the analytical object specifies a
-     * user organisation unit. If not, returns null.
+    /*
+     * This is needed until the deprecated entities (EventChart and
+     * EventReport) are completely removed from the code base. Until there
+     * all interpretations saved on the new EventVisualization entity should
+     * also be available for the deprecated ones.
      */
-    private OrganisationUnit getUserOrganisationUnit( String uid, AnalyticalObject analyticalObject, User user )
-        throws WebMessageException
-    {
-        OrganisationUnit unit = null;
+    switch (eventVisualization.getType()) {
+      case LINE_LIST:
+      case PIVOT_TABLE:
+        final EventReport eventReport =
+            idObjectManager.get(EventReport.class, eventVisualization.getUid());
+        return createInterpretation(
+            new Interpretation(eventVisualization, eventReport, orgUnit, text));
+      default:
+        final EventChart eventChart =
+            idObjectManager.get(EventChart.class, eventVisualization.getUid());
+        return createInterpretation(
+            new Interpretation(eventVisualization, eventChart, orgUnit, text));
+    }
+  }
 
-        if ( uid != null )
-        {
-            unit = idObjectManager.get( OrganisationUnit.class, uid );
+  @PostMapping(
+      value = "/map/{uid}",
+      consumes = {"text/html", "text/plain"})
+  @ResponseBody
+  public WebMessage writeMapInterpretation(
+      @PathVariable("uid") String uid, @RequestBody String text) {
+    Map map = idObjectManager.get(Map.class, uid);
 
-            if ( unit == null )
-            {
-                throw new WebMessageException(
-                    conflict( "Organisation unit does not exist or is not accessible: " + uid ) );
-            }
-
-            return unit;
-        }
-        else if ( analyticalObject.hasUserOrgUnit() && user.hasOrganisationUnit() )
-        {
-            unit = user.getOrganisationUnit();
-        }
-
-        return unit;
+    if (map == null) {
+      return conflict("Map does not exist or is not accessible: " + uid);
     }
 
-    /**
-     * Saves the given interpretation, adds location header and returns a web
-     * message response.
-     */
-    private WebMessage createInterpretation( Interpretation interpretation )
-    {
-        interpretationService.saveInterpretation( interpretation );
+    return createInterpretation(new Interpretation(map, text));
+  }
 
-        return created( "Interpretation created" )
-            .setLocation( InterpretationSchemaDescriptor.API_ENDPOINT + "/" + interpretation.getUid() );
+  @PostMapping(
+      value = "/eventReport/{uid}",
+      consumes = {"text/html", "text/plain"})
+  @ResponseBody
+  @Deprecated
+  public WebMessage writeEventReportInterpretation(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String orgUnitUid,
+      @CurrentUser User currentUser,
+      @RequestBody String text)
+      throws WebMessageException {
+    EventReport eventReport = idObjectManager.get(EventReport.class, uid);
+
+    if (eventReport == null) {
+      return conflict("Event report does not exist or is not accessible: " + uid);
     }
 
-    // -------------------------------------------------------------------------
-    // Interpretation update
-    // -------------------------------------------------------------------------
+    final EventVisualization eventVisualization =
+        idObjectManager.get(EventVisualization.class, eventReport.getUid());
 
-    @PutMapping( "/{uid}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @ResponseBody
-    public WebMessage updateInterpretation( @PathVariable( "uid" ) String uid, @RequestBody String text )
-    {
-        Interpretation interpretation = interpretationService.getInterpretation( uid );
+    OrganisationUnit orgUnit = getUserOrganisationUnit(orgUnitUid, eventReport, currentUser);
 
-        if ( interpretation == null )
-        {
-            return notFound( "Interpretation does not exist: " + uid );
-        }
+    return createInterpretation(new Interpretation(eventVisualization, eventReport, orgUnit, text));
+  }
 
-        if ( !currentUserService.getCurrentUser().equals( interpretation.getCreatedBy() )
-            && !currentUserService.currentUserIsSuper() )
-        {
-            throw new AccessDeniedException( "You are not allowed to update this interpretation." );
-        }
+  @PostMapping(
+      value = "/eventChart/{uid}",
+      consumes = {"text/html", "text/plain"})
+  @ResponseBody
+  @Deprecated
+  public WebMessage writeEventChartInterpretation(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String orgUnitUid,
+      @CurrentUser User currentUser,
+      @RequestBody String text)
+      throws WebMessageException {
+    EventChart eventChart = idObjectManager.get(EventChart.class, uid);
 
-        interpretationService.updateInterpretationText( interpretation, text );
-        return null;
+    if (eventChart == null) {
+      return conflict("Event chart does not exist or is not accessible: " + uid);
     }
 
-    @Override
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage deleteObject( @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request,
-        HttpServletResponse response )
-    {
-        Interpretation interpretation = interpretationService.getInterpretation( uid );
+    final EventVisualization eventVisualization =
+        idObjectManager.get(EventVisualization.class, eventChart.getUid());
 
-        if ( interpretation == null )
-        {
-            return notFound( "Interpretation does not exist: " + uid );
-        }
+    OrganisationUnit orgUnit = getUserOrganisationUnit(orgUnitUid, eventChart, currentUser);
 
-        if ( !currentUserService.getCurrentUser().equals( interpretation.getCreatedBy() )
-            && !currentUserService.currentUserIsSuper() )
-        {
-            throw new AccessDeniedException( "You are not allowed to delete this interpretation." );
-        }
+    return createInterpretation(new Interpretation(eventVisualization, eventChart, orgUnit, text));
+  }
 
-        interpretationService.deleteInterpretation( interpretation );
-        return null;
+  @PostMapping(
+      value = "/dataSetReport/{uid}",
+      consumes = {"text/html", "text/plain"})
+  @ResponseBody
+  public WebMessage writeDataSetReportInterpretation(
+      @PathVariable("uid") String dataSetUid,
+      @RequestParam("pe") String isoPeriod,
+      @RequestParam("ou") String orgUnitUid,
+      @RequestBody String text) {
+    DataSet dataSet = idObjectManager.get(DataSet.class, dataSetUid);
+
+    if (dataSet == null) {
+      return conflict("Data set does not exist or is not accessible: " + dataSetUid);
     }
 
-    // -------------------------------------------------------------------------
-    // Comment
-    // -------------------------------------------------------------------------
+    Period period = PeriodType.getPeriodFromIsoString(isoPeriod);
 
-    @PostMapping( value = "/{uid}/comments", consumes = { "text/html", "text/plain" } )
-    @ResponseBody
-    public WebMessage postComment( @PathVariable( "uid" ) String uid, @RequestBody String text,
-        HttpServletResponse response )
-    {
-        Interpretation interpretation = interpretationService.getInterpretation( uid );
-
-        if ( interpretation == null )
-        {
-            return conflict( "Interpretation does not exist: " + uid );
-        }
-
-        InterpretationComment comment = interpretationService.addInterpretationComment( uid, text );
-
-        return created( "Commented created" )
-            .setLocation( InterpretationSchemaDescriptor.API_ENDPOINT + "/" + uid + "/comments/" + comment.getUid() );
+    if (period == null) {
+      return conflict("Period identifier not valid: " + isoPeriod);
     }
 
-    @PutMapping( "/{uid}/comments/{cuid}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @ResponseBody
-    public WebMessage updateComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
-        @RequestBody String content )
-    {
-        Interpretation interpretation = interpretationService.getInterpretation( uid );
+    OrganisationUnit orgUnit = idObjectManager.get(OrganisationUnit.class, orgUnitUid);
 
-        if ( interpretation == null )
-        {
-            return conflict( "Interpretation does not exist: " + uid );
-        }
-
-        for ( InterpretationComment comment : interpretation.getComments() )
-        {
-            if ( comment.getUid().equals( cuid ) )
-            {
-                if ( !currentUserService.getCurrentUser().equals( comment.getCreatedBy() )
-                    && !currentUserService.currentUserIsSuper() )
-                {
-                    throw new AccessDeniedException( "You are not allowed to update this comment." );
-                }
-
-                comment.setText( content );
-                interpretationService.updateComment( interpretation, comment );
-
-            }
-        }
-        return null;
+    if (orgUnit == null) {
+      return conflict("Organisation unit does not exist or is not accessible: " + orgUnitUid);
     }
 
-    @DeleteMapping( "/{uid}/comments/{cuid}" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @ResponseBody
-    public WebMessage deleteComment( @PathVariable( "uid" ) String uid, @PathVariable( "cuid" ) String cuid,
-        HttpServletResponse response )
-    {
-        Interpretation interpretation = interpretationService.getInterpretation( uid );
+    return createInterpretation(new Interpretation(dataSet, period, orgUnit, text));
+  }
 
-        if ( interpretation == null )
-        {
-            return conflict( "Interpretation does not exist: " + uid );
-        }
+  /**
+   * Returns the organisation unit with the given identifier. If not existing, returns the user
+   * organisation unit if the analytical object specifies a user organisation unit. If not, returns
+   * null.
+   */
+  private OrganisationUnit getUserOrganisationUnit(
+      String uid, AnalyticalObject analyticalObject, User user) throws WebMessageException {
+    OrganisationUnit unit = null;
 
-        Iterator<InterpretationComment> iterator = interpretation.getComments().iterator();
+    if (uid != null) {
+      unit = idObjectManager.get(OrganisationUnit.class, uid);
 
-        while ( iterator.hasNext() )
-        {
-            InterpretationComment comment = iterator.next();
+      if (unit == null) {
+        throw new WebMessageException(
+            conflict("Organisation unit does not exist or is not accessible: " + uid));
+      }
 
-            if ( comment.getUid().equals( cuid ) )
-            {
-                if ( !currentUserService.getCurrentUser().equals( comment.getCreatedBy() )
-                    && !currentUserService.currentUserIsSuper() )
-                {
-                    throw new AccessDeniedException( "You are not allowed to delete this comment." );
-                }
-
-                iterator.remove();
-            }
-        }
-
-        interpretationService.updateInterpretation( interpretation );
-        return null;
+      return unit;
+    } else if (analyticalObject.hasUserOrgUnit() && user.hasOrganisationUnit()) {
+      unit = user.getOrganisationUnit();
     }
 
-    // -------------------------------------------------------------------------
-    // Likes
-    // -------------------------------------------------------------------------
+    return unit;
+  }
 
-    @PostMapping( "/{uid}/like" )
-    @ResponseBody
-    public WebMessage like( @PathVariable( "uid" ) String uid )
-    {
-        Interpretation interpretation = interpretationService.getInterpretation( uid );
+  /** Saves the given interpretation, adds location header and returns a web message response. */
+  private WebMessage createInterpretation(Interpretation interpretation) {
+    interpretationService.saveInterpretation(interpretation);
 
-        if ( interpretation == null )
-        {
-            return conflict( "Interpretation does not exist: " + uid );
-        }
+    return created("Interpretation created")
+        .setLocation(InterpretationSchemaDescriptor.API_ENDPOINT + "/" + interpretation.getUid());
+  }
 
-        if ( interpretationService.likeInterpretation( interpretation.getId() ) )
-        {
-            return created( "Like added to interpretation" );
-        }
-        return conflict( "Could not add like, user had already liked interpretation" );
+  // -------------------------------------------------------------------------
+  // Interpretation update
+  // -------------------------------------------------------------------------
+
+  @PutMapping("/{uid}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  public WebMessage updateInterpretation(
+      @PathVariable("uid") String uid, @RequestBody String text) {
+    Interpretation interpretation = interpretationService.getInterpretation(uid);
+
+    if (interpretation == null) {
+      return notFound("Interpretation does not exist: " + uid);
     }
 
-    @DeleteMapping( "/{uid}/like" )
-    @ResponseBody
-    public WebMessage unlike( @PathVariable( "uid" ) String uid )
-    {
-        Interpretation interpretation = interpretationService.getInterpretation( uid );
-
-        if ( interpretation == null )
-        {
-            return conflict( "Interpretation does not exist: " + uid );
-        }
-
-        if ( interpretationService.unlikeInterpretation( interpretation.getId() ) )
-        {
-            return created( "Like removed from interpretation" );
-        }
-        return conflict( "Could not remove like, user had not previously liked interpretation" );
+    if (!currentUserService.getCurrentUser().equals(interpretation.getCreatedBy())
+        && !currentUserService.currentUserIsSuper()) {
+      throw new AccessDeniedException("You are not allowed to update this interpretation.");
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    interpretationService.updateInterpretationText(interpretation, text);
+    return null;
+  }
 
-    private Collection<Disjunction> getDisjunctionsFromCustomMentions( List<String> mentions, Schema schema )
-    {
-        Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
-        for ( String m : mentions )
-        {
-            Disjunction disjunction = new Disjunction( schema );
-            String[] split = m.substring( 1, m.length() - 1 ).split( "," );
-            List<String> items = Lists.newArrayList( split );
-            disjunction.add( Restrictions.in( "mentions.username", items ) );
-            disjunction.add( Restrictions.in( "comments.mentions.username", items ) );
-            disjunctions.add( disjunction );
-        }
-        return disjunctions;
+  @Override
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public WebMessage deleteObject(
+      @PathVariable String uid,
+      @CurrentUser User currentUser,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    Interpretation interpretation = interpretationService.getInterpretation(uid);
+
+    if (interpretation == null) {
+      return notFound("Interpretation does not exist: " + uid);
     }
+
+    if (!currentUserService.getCurrentUser().equals(interpretation.getCreatedBy())
+        && !currentUserService.currentUserIsSuper()) {
+      throw new AccessDeniedException("You are not allowed to delete this interpretation.");
+    }
+
+    interpretationService.deleteInterpretation(interpretation);
+    return null;
+  }
+
+  // -------------------------------------------------------------------------
+  // Comment
+  // -------------------------------------------------------------------------
+
+  @PostMapping(
+      value = "/{uid}/comments",
+      consumes = {"text/html", "text/plain"})
+  @ResponseBody
+  public WebMessage postComment(
+      @PathVariable("uid") String uid, @RequestBody String text, HttpServletResponse response) {
+    Interpretation interpretation = interpretationService.getInterpretation(uid);
+
+    if (interpretation == null) {
+      return conflict("Interpretation does not exist: " + uid);
+    }
+
+    InterpretationComment comment = interpretationService.addInterpretationComment(uid, text);
+
+    return created("Commented created")
+        .setLocation(
+            InterpretationSchemaDescriptor.API_ENDPOINT
+                + "/"
+                + uid
+                + "/comments/"
+                + comment.getUid());
+  }
+
+  @PutMapping("/{uid}/comments/{cuid}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  public WebMessage updateComment(
+      @PathVariable("uid") String uid,
+      @PathVariable("cuid") String cuid,
+      @RequestBody String content) {
+    Interpretation interpretation = interpretationService.getInterpretation(uid);
+
+    if (interpretation == null) {
+      return conflict("Interpretation does not exist: " + uid);
+    }
+
+    for (InterpretationComment comment : interpretation.getComments()) {
+      if (comment.getUid().equals(cuid)) {
+        if (!currentUserService.getCurrentUser().equals(comment.getCreatedBy())
+            && !currentUserService.currentUserIsSuper()) {
+          throw new AccessDeniedException("You are not allowed to update this comment.");
+        }
+
+        comment.setText(content);
+        interpretationService.updateComment(interpretation, comment);
+      }
+    }
+    return null;
+  }
+
+  @DeleteMapping("/{uid}/comments/{cuid}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  public WebMessage deleteComment(
+      @PathVariable("uid") String uid,
+      @PathVariable("cuid") String cuid,
+      HttpServletResponse response) {
+    Interpretation interpretation = interpretationService.getInterpretation(uid);
+
+    if (interpretation == null) {
+      return conflict("Interpretation does not exist: " + uid);
+    }
+
+    Iterator<InterpretationComment> iterator = interpretation.getComments().iterator();
+
+    while (iterator.hasNext()) {
+      InterpretationComment comment = iterator.next();
+
+      if (comment.getUid().equals(cuid)) {
+        if (!currentUserService.getCurrentUser().equals(comment.getCreatedBy())
+            && !currentUserService.currentUserIsSuper()) {
+          throw new AccessDeniedException("You are not allowed to delete this comment.");
+        }
+
+        iterator.remove();
+      }
+    }
+
+    interpretationService.updateInterpretation(interpretation);
+    return null;
+  }
+
+  // -------------------------------------------------------------------------
+  // Likes
+  // -------------------------------------------------------------------------
+
+  @PostMapping("/{uid}/like")
+  @ResponseBody
+  public WebMessage like(@PathVariable("uid") String uid) {
+    Interpretation interpretation = interpretationService.getInterpretation(uid);
+
+    if (interpretation == null) {
+      return conflict("Interpretation does not exist: " + uid);
+    }
+
+    if (interpretationService.likeInterpretation(interpretation.getId())) {
+      return created("Like added to interpretation");
+    }
+    return conflict("Could not add like, user had already liked interpretation");
+  }
+
+  @DeleteMapping("/{uid}/like")
+  @ResponseBody
+  public WebMessage unlike(@PathVariable("uid") String uid) {
+    Interpretation interpretation = interpretationService.getInterpretation(uid);
+
+    if (interpretation == null) {
+      return conflict("Interpretation does not exist: " + uid);
+    }
+
+    if (interpretationService.unlikeInterpretation(interpretation.getId())) {
+      return created("Like removed from interpretation");
+    }
+    return conflict("Could not remove like, user had not previously liked interpretation");
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private Collection<Disjunction> getDisjunctionsFromCustomMentions(
+      List<String> mentions, Schema schema) {
+    Collection<Disjunction> disjunctions = new ArrayList<Disjunction>();
+    for (String m : mentions) {
+      Disjunction disjunction = new Disjunction(schema);
+      String[] split = m.substring(1, m.length() - 1).split(",");
+      List<String> items = Lists.newArrayList(split);
+      disjunction.add(Restrictions.in("mentions.username", items));
+      disjunction.add(Restrictions.in("comments.mentions.username", items));
+      disjunctions.add(disjunction);
+    }
+    return disjunctions;
+  }
 }

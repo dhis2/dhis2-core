@@ -27,201 +27,177 @@
  */
 package org.hisp.dhis.minmax;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Objects;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Kristian Nordal
  */
-@JacksonXmlRootElement( localName = "minMaxDataElement", namespace = DxfNamespaces.DXF_2_0 )
-public class MinMaxDataElement
-    implements Serializable
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 1557460368163701333L;
+@JacksonXmlRootElement(localName = "minMaxDataElement", namespace = DxfNamespaces.DXF_2_0)
+public class MinMaxDataElement implements Serializable {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 1557460368163701333L;
 
-    private long id;
+  private long id;
 
-    private DataElement dataElement;
+  private DataElement dataElement;
 
-    private OrganisationUnit source;
+  private OrganisationUnit source;
 
-    private CategoryOptionCombo optionCombo;
+  private CategoryOptionCombo optionCombo;
 
-    private int min;
+  private int min;
 
-    private int max;
+  private int max;
 
-    private boolean generated;
+  private boolean generated;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public MinMaxDataElement()
-    {
+  public MinMaxDataElement() {}
+
+  public MinMaxDataElement(
+      DataElement dataElement,
+      OrganisationUnit source,
+      CategoryOptionCombo optionCombo,
+      int min,
+      int max) {
+    this.dataElement = dataElement;
+    this.source = source;
+    this.optionCombo = optionCombo;
+    this.min = min;
+    this.max = max;
+    this.generated = false;
+  }
+
+  public MinMaxDataElement(
+      DataElement dataElement,
+      OrganisationUnit source,
+      CategoryOptionCombo optionCombo,
+      int min,
+      int max,
+      boolean generated) {
+    this(dataElement, source, optionCombo, min, max);
+    this.generated = generated;
+  }
+
+  // -------------------------------------------------------------------------
+  // Equals and hashCode
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(dataElement.hashCode(), source.hashCode(), optionCombo.hashCode());
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public MinMaxDataElement( DataElement dataElement, OrganisationUnit source, CategoryOptionCombo optionCombo,
-        int min, int max )
-    {
-        this.dataElement = dataElement;
-        this.source = source;
-        this.optionCombo = optionCombo;
-        this.min = min;
-        this.max = max;
-        this.generated = false;
+    if (obj == null) {
+      return false;
     }
 
-    public MinMaxDataElement( DataElement dataElement, OrganisationUnit source, CategoryOptionCombo optionCombo,
-        int min, int max, boolean generated )
-    {
-        this( dataElement, source, optionCombo, min, max );
-        this.generated = generated;
+    if (getClass() != obj.getClass()) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // Equals and hashCode
-    // -------------------------------------------------------------------------
+    final MinMaxDataElement other = (MinMaxDataElement) obj;
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(
-            dataElement.hashCode(),
-            source.hashCode(),
-            optionCombo.hashCode() );
-    }
+    return Objects.equals(this.dataElement, other.dataElement)
+        && Objects.equals(this.source, other.source)
+        && Objects.equals(this.optionCombo, other.optionCombo);
+  }
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
+  // -------------------------------------------------------------------------
+  // Setters and getters
+  // -------------------------------------------------------------------------
 
-        if ( obj == null )
-        {
-            return false;
-        }
+  public long getId() {
+    return id;
+  }
 
-        if ( getClass() != obj.getClass() )
-        {
-            return false;
-        }
+  public void setId(long id) {
+    this.id = id;
+  }
 
-        final MinMaxDataElement other = (MinMaxDataElement) obj;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public OrganisationUnit getSource() {
+    return source;
+  }
 
-        return Objects.equals( this.dataElement, other.dataElement ) &&
-            Objects.equals( this.source, other.source ) &&
-            Objects.equals( this.optionCombo, other.optionCombo );
-    }
+  public void setSource(OrganisationUnit source) {
+    this.source = source;
+  }
 
-    // -------------------------------------------------------------------------
-    // Setters and getters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DataElement getDataElement() {
+    return dataElement;
+  }
 
-    public long getId()
-    {
-        return id;
-    }
+  public void setDataElement(DataElement dataElement) {
+    this.dataElement = dataElement;
+  }
 
-    public void setId( long id )
-    {
-        this.id = id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryOptionCombo getOptionCombo() {
+    return optionCombo;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnit getSource()
-    {
-        return source;
-    }
+  public void setOptionCombo(CategoryOptionCombo optionCombo) {
+    this.optionCombo = optionCombo;
+  }
 
-    public void setSource( OrganisationUnit source )
-    {
-        this.source = source;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getMin() {
+    return min;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElement getDataElement()
-    {
-        return dataElement;
-    }
+  public void setMin(int min) {
+    this.min = min;
+  }
 
-    public void setDataElement( DataElement dataElement )
-    {
-        this.dataElement = dataElement;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getMax() {
+    return max;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryOptionCombo getOptionCombo()
-    {
-        return optionCombo;
-    }
+  public void setMax(int max) {
+    this.max = max;
+  }
 
-    public void setOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        this.optionCombo = optionCombo;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isGenerated() {
+    return generated;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getMin()
-    {
-        return min;
-    }
+  public void setGenerated(boolean generated) {
+    this.generated = generated;
+  }
 
-    public void setMin( int min )
-    {
-        this.min = min;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getMax()
-    {
-        return max;
-    }
-
-    public void setMax( int max )
-    {
-        this.max = max;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isGenerated()
-    {
-        return generated;
-    }
-
-    public void setGenerated( boolean generated )
-    {
-        this.generated = generated;
-    }
-
-    public void mergeWith( MinMaxDataElement other )
-    {
-        dataElement = other.getDataElement() == null ? dataElement : other.getDataElement();
-        source = other.getSource() == null ? source : other.getSource();
-        optionCombo = other.getOptionCombo() == null ? optionCombo : other.getOptionCombo();
-        min = other.getMin();
-        max = other.getMax();
-        generated = other.isGenerated();
-    }
+  public void mergeWith(MinMaxDataElement other) {
+    dataElement = other.getDataElement() == null ? dataElement : other.getDataElement();
+    source = other.getSource() == null ? source : other.getSource();
+    optionCombo = other.getOptionCombo() == null ? optionCombo : other.getOptionCombo();
+    min = other.getMin();
+    max = other.getMax();
+    generated = other.isGenerated();
+  }
 }

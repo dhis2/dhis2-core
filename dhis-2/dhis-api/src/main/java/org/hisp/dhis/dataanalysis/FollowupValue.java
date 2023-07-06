@@ -27,105 +27,77 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Date;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * A {@link FollowupValue} is a read-only set of fields extracted for a
- * {@link org.hisp.dhis.datavalue.DataValue} and references objects as part of
- * the followup-data-analysis.
+ * A {@link FollowupValue} is a read-only set of fields extracted for a {@link
+ * org.hisp.dhis.datavalue.DataValue} and references objects as part of the followup-data-analysis.
  *
  * @author Jan Bernitt
  */
 @Getter
 @AllArgsConstructor
-public final class FollowupValue implements Serializable
-{
-    // OBS! The order of fields is important as it becomes the order of the
-    // constructor arguments that are mapped to database results.
+public final class FollowupValue implements Serializable {
+  // OBS! The order of fields is important as it becomes the order of the
+  // constructor arguments that are mapped to database results.
 
-    @JsonProperty
-    private String de;
+  @JsonProperty private String de;
 
-    @JsonProperty
-    private String deName;
+  @JsonProperty private String deName;
 
-    @JsonProperty
-    private String peType;
+  @JsonProperty private String peType;
 
-    @JsonProperty
-    private Date peStartDate;
+  @JsonProperty private Date peStartDate;
 
-    @JsonProperty
-    private Date peEndDate;
+  @JsonProperty private Date peEndDate;
 
-    @Setter
-    @JsonProperty
-    private String peName;
+  @Setter @JsonProperty private String peName;
 
-    @JsonProperty
-    private String ou;
+  @JsonProperty private String ou;
 
-    @JsonProperty
-    private String ouName;
+  @JsonProperty private String ouName;
 
-    @JsonProperty
-    private String ouPath;
+  @JsonProperty private String ouPath;
 
-    @JsonProperty
-    private String coc;
+  @JsonProperty private String coc;
 
-    @JsonProperty
-    private String cocName;
+  @JsonProperty private String cocName;
 
-    @JsonProperty
-    private String aoc;
+  @JsonProperty private String aoc;
 
-    @JsonProperty
-    private String aocName;
+  @JsonProperty private String aocName;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private Date lastUpdated;
+  @JsonProperty private Date lastUpdated;
 
-    @JsonProperty
-    private Date created;
+  @JsonProperty private Date created;
 
-    @JsonProperty
-    private String comment;
+  @JsonProperty private String comment;
 
-    @JsonProperty
-    private Integer min;
+  @JsonProperty private Integer min;
 
-    @JsonProperty
-    private Integer max;
+  @JsonProperty private Integer max;
 
-    @JsonProperty
-    public String getPe()
-    {
-        return peType == null
-            ? null
-            : PeriodType.getIsoPeriod( PeriodType.getCalendar(), peType, peStartDate );
-    }
+  @JsonProperty
+  public String getPe() {
+    return peType == null
+        ? null
+        : PeriodType.getIsoPeriod(PeriodType.getCalendar(), peType, peStartDate);
+  }
 
-    @JsonIgnore
-    Period getPeAsPeriod()
-    {
-        return peType == null ? null : PeriodType.getPeriodFromIsoString( getPe() );
-    }
+  @JsonIgnore
+  Period getPeAsPeriod() {
+    return peType == null ? null : PeriodType.getPeriodFromIsoString(getPe());
+  }
 }

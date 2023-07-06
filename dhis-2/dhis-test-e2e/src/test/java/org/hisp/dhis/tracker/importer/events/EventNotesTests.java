@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.importer.events;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.*;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -39,81 +40,73 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventNotesTests
-    extends TrackerNtiApiTest
-{
-    @BeforeEach
-    public void beforeAll()
-    {
-        loginActions.loginAsAdmin();
-    }
+public class EventNotesTests extends TrackerNtiApiTest {
+  @BeforeEach
+  public void beforeAll() {
+    loginActions.loginAsAdmin();
+  }
 
-    @Test
-    public void shouldAddAnotherNoteWhenUpdatingEvent()
-    {
-        // arrange
-        String id = new IdGenerator().generateUniqueId();
-        JsonObject payload = buildEventWithNote( id );
+  @Test
+  public void shouldAddAnotherNoteWhenUpdatingEvent() {
+    // arrange
+    String id = new IdGenerator().generateUniqueId();
+    JsonObject payload = buildEventWithNote(id);
 
-        trackerActions.postAndGetJobReport( payload )
-            .validateSuccessfulImport();
+    trackerActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
-        // act
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
+    // act
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(payload);
 
-        // assert
-        response.validateSuccessfulImport()
-            .validate()
-            .body( "stats.updated", equalTo( 1 ) );
+    // assert
+    response.validateSuccessfulImport().validate().body("stats.updated", equalTo(1));
 
-        trackerActions.getEvent( id + "?fields=notes" )
-            .validate().statusCode( 200 )
-            .body( "notes", hasSize( 2 ) )
-            .rootPath( "notes.createdBy" )
-            .body( "username", everyItem( equalTo( "taadmin" ) ) )
-            .body( "uid", everyItem( notNullValue() ) )
-            .body( "firstName", everyItem( notNullValue() ) )
-            .body( "surname", everyItem( notNullValue() ) );
-    }
+    trackerActions
+        .getEvent(id + "?fields=notes")
+        .validate()
+        .statusCode(200)
+        .body("notes", hasSize(2))
+        .rootPath("notes.createdBy")
+        .body("username", everyItem(equalTo("taadmin")))
+        .body("uid", everyItem(notNullValue()))
+        .body("firstName", everyItem(notNullValue()))
+        .body("surname", everyItem(notNullValue()));
+  }
 
-    @Test
-    public void shouldNotUpdateExistingNote()
-    {
-        // arrange
-        String eventId = new IdGenerator().generateUniqueId();
+  @Test
+  public void shouldNotUpdateExistingNote() {
+    // arrange
+    String eventId = new IdGenerator().generateUniqueId();
 
-        JsonObject payload = buildEventWithNote( eventId );
+    JsonObject payload = buildEventWithNote(eventId);
 
-        trackerActions.postAndGetJobReport( payload )
-            .validateSuccessfulImport();
+    trackerActions.postAndGetJobReport(payload).validateSuccessfulImport();
 
-        payload = trackerActions.getEvent( eventId ).getBodyAsJsonBuilder().wrapIntoArray( "events" );
+    payload = trackerActions.getEvent(eventId).getBodyAsJsonBuilder().wrapIntoArray("events");
 
-        // act
+    // act
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(payload);
 
-        // assert
-        response.validateSuccessfulImport()
-            .validateWarningReport()
-            .body( "trackerType", everyItem( equalTo( "EVENT" ) ) )
-            .body( "warningCode", hasItem( "E1119" ) );
-    }
+    // assert
+    response
+        .validateSuccessfulImport()
+        .validateWarningReport()
+        .body("trackerType", everyItem(equalTo("EVENT")))
+        .body("warningCode", hasItem("E1119"));
+  }
 
-    private JsonObject buildEventWithNote( String id )
-    {
-        JsonObject ob = new EventDataBuilder().setOu( Constants.ORG_UNIT_IDS[0] )
-            .setId( id )
-            .setProgram( Constants.EVENT_PROGRAM_ID )
-            .setProgramStage( Constants.EVENT_PROGRAM_STAGE_ID )
-            .addNote( DataGenerator.randomString() )
+  private JsonObject buildEventWithNote(String id) {
+    JsonObject ob =
+        new EventDataBuilder()
+            .setOu(Constants.ORG_UNIT_IDS[0])
+            .setId(id)
+            .setProgram(Constants.EVENT_PROGRAM_ID)
+            .setProgramStage(Constants.EVENT_PROGRAM_STAGE_ID)
+            .addNote(DataGenerator.randomString())
             .array();
-        return ob;
-    }
-
+    return ob;
+  }
 }

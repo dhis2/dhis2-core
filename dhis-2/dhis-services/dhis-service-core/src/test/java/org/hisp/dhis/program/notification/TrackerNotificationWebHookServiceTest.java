@@ -36,12 +36,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.net.URI;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataelement.DataElement;
@@ -71,179 +72,179 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Zubair Asghar
  */
+@ExtendWith(MockitoExtension.class)
+class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest {
 
-@ExtendWith( MockitoExtension.class )
-class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
-{
+  private static final String URL = "https://www.google.com";
 
-    private static final String URL = "https://www.google.com";
+  private DataElement dataElement;
 
-    private DataElement dataElement;
+  private EventDataValue dataValue;
 
-    private EventDataValue dataValue;
+  private TrackedEntityAttribute trackedEntityAttribute;
 
-    private TrackedEntityAttribute trackedEntityAttribute;
+  private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
-    private TrackedEntityAttributeValue trackedEntityAttributeValue;
+  private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
-    private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
+  private OrganisationUnit organisationUnitA;
 
-    private OrganisationUnit organisationUnitA;
+  private Program programA;
 
-    private Program programA;
+  private ProgramStage programStageA;
 
-    private ProgramStage programStageA;
+  private ProgramInstance programInstance;
 
-    private ProgramInstance programInstance;
+  private ProgramStageInstance programStageInstance;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramNotificationTemplate programNotification;
 
-    private ProgramNotificationTemplate programNotification;
+  private ProgramNotificationTemplate programStageNotification;
 
-    private ProgramNotificationTemplate programStageNotification;
+  private ResponseEntity<String> responseEntity;
 
-    private ResponseEntity<String> responseEntity;
+  @Mock private ProgramInstanceService programInstanceService;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
+  @Mock private ProgramStageInstanceService programStageInstanceService;
 
-    @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+  @Mock private ProgramNotificationTemplateService templateService;
 
-    @Mock
-    private ProgramNotificationTemplateService templateService;
+  @Mock private RestTemplate restTemplate;
 
-    @Mock
-    private RestTemplate restTemplate;
+  @Mock private RenderService renderService;
 
-    @Mock
-    private RenderService renderService;
+  @InjectMocks private DefaultTrackerNotificationWebHookService subject;
 
-    @InjectMocks
-    private DefaultTrackerNotificationWebHookService subject;
+  @BeforeEach
+  public void initTest() {
+    trackedEntityAttribute = createTrackedEntityAttribute('A');
+    dataElement = createDataElement('D');
+    organisationUnitA = createOrganisationUnit('A');
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
+    programA.getProgramAttributes().add(programTrackedEntityAttribute);
+    TrackedEntityInstance tei = createTrackedEntityInstance(organisationUnitA);
+    trackedEntityAttributeValue =
+        createTrackedEntityAttributeValue('I', tei, trackedEntityAttribute);
+    tei.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
 
-    @BeforeEach
-    public void initTest()
-    {
-        trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        dataElement = createDataElement( 'D' );
-        organisationUnitA = createOrganisationUnit( 'A' );
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, trackedEntityAttribute );
-        programA.getProgramAttributes().add( programTrackedEntityAttribute );
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitA );
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'I', tei, trackedEntityAttribute );
-        tei.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+    programStageA = createProgramStage('A', programA);
 
-        programStageA = createProgramStage( 'A', programA );
+    programInstance = new ProgramInstance();
+    programInstance.setAutoFields();
+    programInstance.setProgram(programA);
+    programInstance.setOrganisationUnit(organisationUnitA);
+    programInstance.setEnrollmentDate(new Date());
+    programInstance.setIncidentDate(new Date());
+    programInstance.setEntityInstance(tei);
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( programA );
-        programInstance.setOrganisationUnit( organisationUnitA );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setEntityInstance( tei );
+    programStageInstance = new ProgramStageInstance();
+    programStageInstance.setAutoFields();
+    programStageInstance.setProgramStage(programStageA);
+    programStageInstance.setOrganisationUnit(organisationUnitA);
+    programInstance.setEnrollmentDate(new Date());
+    programStageInstance.setExecutionDate(new Date());
+    programStageInstance.setDueDate(new Date());
+    programStageInstance.setProgramInstance(programInstance);
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setOrganisationUnit( organisationUnitA );
-        programInstance.setEnrollmentDate( new Date() );
-        programStageInstance.setExecutionDate( new Date() );
-        programStageInstance.setDueDate( new Date() );
-        programStageInstance.setProgramInstance( programInstance );
+    dataValue = new EventDataValue();
+    dataValue.setValue("dataValue123");
+    dataValue.setDataElement(dataElement.getUid());
+    dataValue.setAutoFields();
+    programStageInstance.getEventDataValues().add(dataValue);
 
-        dataValue = new EventDataValue();
-        dataValue.setValue( "dataValue123" );
-        dataValue.setDataElement( dataElement.getUid() );
-        dataValue.setAutoFields();
-        programStageInstance.getEventDataValues().add( dataValue );
+    programNotification = new ProgramNotificationTemplate();
+    programNotification.setNotificationRecipient(ProgramNotificationRecipient.WEB_HOOK);
+    programNotification.setMessageTemplate(URL);
+    programNotification.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.HTTP));
 
-        programNotification = new ProgramNotificationTemplate();
-        programNotification.setNotificationRecipient( ProgramNotificationRecipient.WEB_HOOK );
-        programNotification.setMessageTemplate( URL );
-        programNotification.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.HTTP ) );
+    programA.setNotificationTemplates(Sets.newHashSet(programNotification));
 
-        programA.setNotificationTemplates( Sets.newHashSet( programNotification ) );
+    programStageNotification = new ProgramNotificationTemplate();
+    programStageNotification.setNotificationRecipient(ProgramNotificationRecipient.WEB_HOOK);
+    programStageNotification.setMessageTemplate(URL);
+    programStageNotification.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.HTTP));
 
-        programStageNotification = new ProgramNotificationTemplate();
-        programStageNotification.setNotificationRecipient( ProgramNotificationRecipient.WEB_HOOK );
-        programStageNotification.setMessageTemplate( URL );
-        programStageNotification.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.HTTP ) );
+    programStageA.setNotificationTemplates(Sets.newHashSet(programStageNotification));
 
-        programStageA.setNotificationTemplates( Sets.newHashSet( programStageNotification ) );
+    responseEntity = new ResponseEntity<>(HttpStatus.OK);
+  }
 
-        responseEntity = new ResponseEntity<>( HttpStatus.OK );
+  @Test
+  void testTrackerEnrollmentNotificationWebHook() {
+    when(programInstanceService.getProgramInstance(anyString())).thenReturn(programInstance);
+    when(templateService.isProgramLinkedToWebHookNotification(any(Program.class))).thenReturn(true);
+    when(templateService.getProgramLinkedToWebHookNotifications(any(Program.class)))
+        .thenReturn(Lists.newArrayList(programNotification));
+    when(renderService.toJsonAsString(any(Map.class))).thenReturn("body");
+    when(restTemplate.exchange(
+            any(URI.class), any(HttpMethod.class), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(responseEntity);
 
-    }
+    ArgumentCaptor<URI> urlCaptor = ArgumentCaptor.forClass(URI.class);
+    ArgumentCaptor<HttpMethod> httpMethodCaptor = ArgumentCaptor.forClass(HttpMethod.class);
+    ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+    ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass(Map.class);
 
-    @Test
-    void testTrackerEnrollmentNotificationWebHook()
-    {
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
-        when( templateService.isProgramLinkedToWebHookNotification( any( Program.class ) ) ).thenReturn( true );
-        when( templateService.getProgramLinkedToWebHookNotifications( any( Program.class ) ) )
-            .thenReturn( Lists.newArrayList( programNotification ) );
-        when( renderService.toJsonAsString( any( Map.class ) ) ).thenReturn( "body" );
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-            eq( String.class ) ) ).thenReturn( responseEntity );
+    subject.handleEnrollment(programInstance.getUid());
 
-        ArgumentCaptor<URI> urlCaptor = ArgumentCaptor.forClass( URI.class );
-        ArgumentCaptor<HttpMethod> httpMethodCaptor = ArgumentCaptor.forClass( HttpMethod.class );
-        ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
-        ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
+    verify(renderService, times(1)).toJsonAsString(bodyCaptor.capture());
+    verify(restTemplate, times(1))
+        .exchange(
+            urlCaptor.capture(),
+            httpMethodCaptor.capture(),
+            httpEntityCaptor.capture(),
+            eq(String.class));
 
-        subject.handleEnrollment( programInstance.getUid() );
+    Stream.of(ProgramTemplateVariable.values())
+        .forEach(v -> assertTrue(bodyCaptor.getValue().containsKey(v.name())));
 
-        verify( renderService, times( 1 ) ).toJsonAsString( bodyCaptor.capture() );
-        verify( restTemplate, times( 1 ) ).exchange( urlCaptor.capture(),
-            httpMethodCaptor.capture(), httpEntityCaptor.capture(), eq( String.class ) );
+    assertTrue(bodyCaptor.getValue().containsKey(trackedEntityAttribute.getUid()));
+    assertEquals(URL, urlCaptor.getValue().toString());
+    assertEquals(HttpMethod.POST, httpMethodCaptor.getValue());
+    assertTrue(
+        httpEntityCaptor.getValue().getHeaders().get("Content-Type").contains("application/json"));
+  }
 
-        Stream.of( ProgramTemplateVariable.values() )
-            .forEach( v -> assertTrue( bodyCaptor.getValue().containsKey( v.name() ) ) );
+  @Test
+  void testTrackerEventNotificationWebHook() {
+    when(programStageInstanceService.getProgramStageInstance(anyString()))
+        .thenReturn(programStageInstance);
+    when(templateService.isProgramStageLinkedToWebHookNotification(any(ProgramStage.class)))
+        .thenReturn(true);
+    when(templateService.getProgramStageLinkedToWebHookNotifications(any(ProgramStage.class)))
+        .thenReturn(Lists.newArrayList(programStageNotification));
+    when(renderService.toJsonAsString(any(Map.class))).thenReturn("body");
+    when(restTemplate.exchange(
+            any(URI.class), any(HttpMethod.class), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(responseEntity);
 
-        assertTrue( bodyCaptor.getValue().containsKey( trackedEntityAttribute.getUid() ) );
-        assertEquals( URL, urlCaptor.getValue().toString() );
-        assertEquals( HttpMethod.POST, httpMethodCaptor.getValue() );
-        assertTrue( httpEntityCaptor.getValue().getHeaders().get( "Content-Type" ).contains( "application/json" ) );
-    }
+    ArgumentCaptor<URI> urlCaptor = ArgumentCaptor.forClass(URI.class);
+    ArgumentCaptor<HttpMethod> httpMethodCaptor = ArgumentCaptor.forClass(HttpMethod.class);
+    ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+    ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass(Map.class);
 
-    @Test
-    void testTrackerEventNotificationWebHook()
-    {
-        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
-        when( templateService.isProgramStageLinkedToWebHookNotification( any( ProgramStage.class ) ) )
-            .thenReturn( true );
-        when( templateService.getProgramStageLinkedToWebHookNotifications( any( ProgramStage.class ) ) )
-            .thenReturn( Lists.newArrayList( programStageNotification ) );
-        when( renderService.toJsonAsString( any( Map.class ) ) ).thenReturn( "body" );
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-            eq( String.class ) ) ).thenReturn( responseEntity );
+    subject.handleEvent(programStageInstance.getUid());
 
-        ArgumentCaptor<URI> urlCaptor = ArgumentCaptor.forClass( URI.class );
-        ArgumentCaptor<HttpMethod> httpMethodCaptor = ArgumentCaptor.forClass( HttpMethod.class );
-        ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
-        ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
+    verify(renderService, times(1)).toJsonAsString(bodyCaptor.capture());
+    verify(restTemplate, times(1))
+        .exchange(
+            urlCaptor.capture(),
+            httpMethodCaptor.capture(),
+            httpEntityCaptor.capture(),
+            eq(String.class));
 
-        subject.handleEvent( programStageInstance.getUid() );
+    Stream.of(ProgramStageTemplateVariable.values())
+        .forEach(v -> assertTrue(bodyCaptor.getValue().containsKey(v.name())));
 
-        verify( renderService, times( 1 ) ).toJsonAsString( bodyCaptor.capture() );
-        verify( restTemplate, times( 1 ) ).exchange( urlCaptor.capture(),
-            httpMethodCaptor.capture(), httpEntityCaptor.capture(), eq( String.class ) );
-
-        Stream.of( ProgramStageTemplateVariable.values() )
-            .forEach( v -> assertTrue( bodyCaptor.getValue().containsKey( v.name() ) ) );
-
-        assertTrue( bodyCaptor.getValue().containsKey( dataElement.getUid() ) );
-        assertEquals( URL, urlCaptor.getValue().toString() );
-        assertEquals( HttpMethod.POST, httpMethodCaptor.getValue() );
-        assertTrue( httpEntityCaptor.getValue().getHeaders().get( "Content-Type" ).contains( "application/json" ) );
-    }
+    assertTrue(bodyCaptor.getValue().containsKey(dataElement.getUid()));
+    assertEquals(URL, urlCaptor.getValue().toString());
+    assertEquals(HttpMethod.POST, httpMethodCaptor.getValue());
+    assertTrue(
+        httpEntityCaptor.getValue().getHeaders().get("Content-Type").contains("application/json"));
+  }
 }

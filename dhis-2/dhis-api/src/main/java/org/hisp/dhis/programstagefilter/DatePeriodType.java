@@ -31,10 +31,8 @@ package org.hisp.dhis.programstagefilter;
  * Enum for representing absolute or relative date period.
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-public enum DatePeriodType
-{
-    RELATIVE,
-    ABSOLUTE;
+public enum DatePeriodType {
+  RELATIVE,
+  ABSOLUTE;
 }

@@ -28,10 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.Date;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -42,159 +40,104 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 
 /**
- * Represents query parameters sent to
- * {@link TrackerTrackedEntitiesExportController}.
+ * Represents query parameters sent to {@link TrackerTrackedEntitiesExportController}.
  *
  * @author Giuseppe Nespolino
  */
 @Data
 @NoArgsConstructor
-class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String query;
+class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter {
+  private String query;
 
-    /**
-     * Comma separated list of attribute UIDs
-     */
-    @OpenApi.Property( { UID[].class, Attribute.class } )
-    private String attribute;
+  /** Comma separated list of attribute UIDs */
+  @OpenApi.Property({UID[].class, Attribute.class})
+  private String attribute;
 
-    private String filter;
+  private String filter;
 
-    /**
-     * Semicolon-delimited list of Organizational Unit UIDs
-     */
-    private String orgUnit;
+  /** Semicolon-delimited list of Organizational Unit UIDs */
+  private String orgUnit;
 
-    /**
-     * Selection mode for the specified organisation units, default is
-     * ACCESSIBLE.
-     */
-    private OrganisationUnitSelectionMode ouMode;
+  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
+  private OrganisationUnitSelectionMode ouMode;
 
-    /**
-     * a Program UID for which instances in the response must be enrolled in.
-     */
-    private String program;
+  /** a Program UID for which instances in the response must be enrolled in. */
+  private String program;
 
-    /**
-     * The {@see ProgramStatus} of the Tracked Entity Instance in the given
-     * program.
-     */
-    private ProgramStatus programStatus;
+  /** The {@see ProgramStatus} of the Tracked Entity Instance in the given program. */
+  private ProgramStatus programStatus;
 
-    /**
-     * Indicates whether the Tracked Entity Instance is marked for follow up for
-     * the specified Program.
-     */
-    private Boolean followUp;
+  /**
+   * Indicates whether the Tracked Entity Instance is marked for follow up for the specified
+   * Program.
+   */
+  private Boolean followUp;
 
-    /**
-     * Start date for last updated.
-     */
-    private Date updatedAfter;
+  /** Start date for last updated. */
+  private Date updatedAfter;
 
-    /**
-     * End date for last updated.
-     */
-    private Date updatedBefore;
+  /** End date for last updated. */
+  private Date updatedBefore;
 
-    /**
-     * The last updated duration filter.
-     */
-    private String updatedWithin;
+  /** The last updated duration filter. */
+  private String updatedWithin;
 
-    /**
-     * The given Program start date.
-     */
-    private Date enrollmentEnrolledAfter;
+  /** The given Program start date. */
+  private Date enrollmentEnrolledAfter;
 
-    /**
-     * The given Program end date.
-     */
-    private Date enrollmentEnrolledBefore;
+  /** The given Program end date. */
+  private Date enrollmentEnrolledBefore;
 
-    /**
-     * Start date for incident in the given program.
-     */
-    private Date enrollmentOccurredAfter;
+  /** Start date for incident in the given program. */
+  private Date enrollmentOccurredAfter;
 
-    /**
-     * End date for incident in the given program.
-     */
-    private Date enrollmentOccurredBefore;
+  /** End date for incident in the given program. */
+  private Date enrollmentOccurredBefore;
 
-    /**
-     * Only returns Tracked Entity Instances of this type.
-     */
-    private String trackedEntityType;
+  /** Only returns Tracked Entity Instances of this type. */
+  private String trackedEntityType;
 
-    /**
-     * Semicolon-delimited list of Tracked Entity Instance UIDs
-     */
-    private String trackedEntity;
+  /** Semicolon-delimited list of Tracked Entity Instance UIDs */
+  private String trackedEntity;
 
-    /**
-     * Selection mode for user assignment of events.
-     */
-    private AssignedUserSelectionMode assignedUserMode;
+  /** Selection mode for user assignment of events. */
+  private AssignedUserSelectionMode assignedUserMode;
 
-    /**
-     * Semicolon-delimited list of user UIDs to filter based on events assigned
-     * to the users.
-     */
-    private String assignedUser;
+  /** Semicolon-delimited list of user UIDs to filter based on events assigned to the users. */
+  private String assignedUser;
 
-    /**
-     * Program Stage UID, used for filtering TEIs based on the selected Program
-     * Stage
-     */
-    private String programStage;
+  /** Program Stage UID, used for filtering TEIs based on the selected Program Stage */
+  private String programStage;
 
-    /**
-     * Status of any events in the specified program.
-     */
-    private EventStatus eventStatus;
+  /** Status of any events in the specified program. */
+  private EventStatus eventStatus;
 
-    /**
-     * Start date for Event for the given Program.
-     */
-    private Date eventOccurredAfter;
+  /** Start date for Event for the given Program. */
+  private Date eventOccurredAfter;
 
-    /**
-     * End date for Event for the given Program.
-     */
-    private Date eventOccurredBefore;
+  /** End date for Event for the given Program. */
+  private Date eventOccurredBefore;
 
-    /**
-     * Indicates whether not to include meta data in the response.
-     */
-    private boolean skipMeta;
+  /** Indicates whether not to include meta data in the response. */
+  private boolean skipMeta;
 
-    /**
-     * Indicates whether to include soft-deleted elements
-     */
-    private boolean includeDeleted;
+  /** Indicates whether to include soft-deleted elements */
+  private boolean includeDeleted;
 
-    /**
-     * Indicates whether to include all TEI attributes
-     */
-    private boolean includeAllAttributes;
+  /** Indicates whether to include all TEI attributes */
+  private boolean includeAllAttributes;
 
-    /**
-     * The file name in case of exporting as file
-     */
-    private String attachment;
+  /** The file name in case of exporting as file */
+  private String attachment;
 
-    /**
-     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
-     * is a potentialDuplicate or not
-     */
-    private Boolean potentialDuplicate;
+  /**
+   * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a
+   * potentialDuplicate or not
+   */
+  private Boolean potentialDuplicate;
 
-    @Override
-    public boolean isLegacy()
-    {
-        return false;
-    }
+  @Override
+  public boolean isLegacy() {
+    return false;
+  }
 }

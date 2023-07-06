@@ -35,9 +35,7 @@ import static org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode.ERRORS;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -50,76 +48,77 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class EventImporter
-{
-    private static final int BATCH_SIZE = 100;
+public class EventImporter {
+  private static final int BATCH_SIZE = 100;
 
-    private final EventManager eventManager;
+  private final EventManager eventManager;
 
-    private final WorkContextLoader workContextLoader;
+  private final WorkContextLoader workContextLoader;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    public EventImporter( final EventManager eventManager, final WorkContextLoader workContextLoader,
-        final Notifier notifier )
-    {
-        checkNotNull( eventManager );
-        checkNotNull( workContextLoader );
-        checkNotNull( notifier );
+  public EventImporter(
+      final EventManager eventManager,
+      final WorkContextLoader workContextLoader,
+      final Notifier notifier) {
+    checkNotNull(eventManager);
+    checkNotNull(workContextLoader);
+    checkNotNull(notifier);
 
-        this.eventManager = eventManager;
-        this.workContextLoader = workContextLoader;
-        this.notifier = notifier;
+    this.eventManager = eventManager;
+    this.workContextLoader = workContextLoader;
+    this.notifier = notifier;
+  }
+
+  public ImportSummaries importAll(
+      final List<Event> events,
+      final ImportOptions importOptions,
+      final JobConfiguration jobConfiguration) {
+    assert importOptions != null;
+
+    final ImportSummaries importSummaries = new ImportSummaries();
+
+    if (events.size() == 0) {
+      return importSummaries;
     }
 
-    public ImportSummaries importAll( final List<Event> events, final ImportOptions importOptions,
-        final JobConfiguration jobConfiguration )
-    {
-        assert importOptions != null;
+    notifier.clear(jobConfiguration).notify(jobConfiguration, "Importing events");
+    final Clock clock = new Clock(log).startClock();
 
-        final ImportSummaries importSummaries = new ImportSummaries();
+    long now = nanoTime();
 
-        if ( events.size() == 0 )
-        {
-            return importSummaries;
-        }
+    final WorkContext context = workContextLoader.load(importOptions, events);
 
-        notifier.clear( jobConfiguration ).notify( jobConfiguration, "Importing events" );
-        final Clock clock = new Clock( log ).startClock();
+    log.debug("::: event tracker import context load took : " + (nanoTime() - now));
 
-        long now = nanoTime();
+    final List<List<Event>> partitions = partition(events, BATCH_SIZE);
 
-        final WorkContext context = workContextLoader.load( importOptions, events );
+    for (final List<Event> batch : partitions) {
+      final ImportStrategyAccumulator accumulator =
+          new ImportStrategyAccumulator()
+              .partitionEvents(
+                  batch, importOptions.getImportStrategy(), context.getProgramStageInstanceMap());
 
-        log.debug( "::: event tracker import context load took : " + (nanoTime() - now) );
-
-        final List<List<Event>> partitions = partition( events, BATCH_SIZE );
-
-        for ( final List<Event> batch : partitions )
-        {
-            final ImportStrategyAccumulator accumulator = new ImportStrategyAccumulator().partitionEvents( batch,
-                importOptions.getImportStrategy(), context.getProgramStageInstanceMap() );
-
-            importSummaries.addImportSummaries( eventManager.addEvents( accumulator.getCreate(), context ) );
-            importSummaries.addImportSummaries( eventManager.updateEvents( accumulator.getUpdate(), context ) );
-            importSummaries.addImportSummaries( eventManager.deleteEvents( accumulator.getDelete(), context ) );
-        }
-
-        if ( jobConfiguration != null )
-        {
-            notifier.notify( jobConfiguration, INFO, "Import done. Completed in " + clock.time() + ".", true )
-                .addJobSummary( jobConfiguration, importSummaries, ImportSummaries.class );
-        }
-        else
-        {
-            clock.logTime( "Import done" );
-        }
-
-        if ( ERRORS == importOptions.getReportMode() && isNotEmpty( importSummaries.getImportSummaries() ) )
-        {
-            importSummaries.getImportSummaries().removeIf( is -> !is.hasConflicts() );
-        }
-
-        return importSummaries;
+      importSummaries.addImportSummaries(eventManager.addEvents(accumulator.getCreate(), context));
+      importSummaries.addImportSummaries(
+          eventManager.updateEvents(accumulator.getUpdate(), context));
+      importSummaries.addImportSummaries(
+          eventManager.deleteEvents(accumulator.getDelete(), context));
     }
+
+    if (jobConfiguration != null) {
+      notifier
+          .notify(jobConfiguration, INFO, "Import done. Completed in " + clock.time() + ".", true)
+          .addJobSummary(jobConfiguration, importSummaries, ImportSummaries.class);
+    } else {
+      clock.logTime("Import done");
+    }
+
+    if (ERRORS == importOptions.getReportMode()
+        && isNotEmpty(importSummaries.getImportSummaries())) {
+      importSummaries.getImportSummaries().removeIf(is -> !is.hasConflicts());
+    }
+
+    return importSummaries;
+  }
 }

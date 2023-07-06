@@ -34,13 +34,11 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    InstantMapper.class,
-    MetadataIdentifierMapper.class
-} )
-public interface AttributeMapper extends DomainMapper<Attribute, org.hisp.dhis.tracker.domain.Attribute>
-{
+@Mapper(uses = {InstantMapper.class, MetadataIdentifierMapper.class})
+public interface AttributeMapper
+    extends DomainMapper<Attribute, org.hisp.dhis.tracker.domain.Attribute> {
 
-    @Mapping( target = "attribute", source = "attribute", qualifiedByName = "toMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Attribute from( Attribute attribute, @Context TrackerIdSchemeParams params );
+  @Mapping(target = "attribute", source = "attribute", qualifiedByName = "toMetadataIdentifier")
+  org.hisp.dhis.tracker.domain.Attribute from(
+      Attribute attribute, @Context TrackerIdSchemeParams params);
 }

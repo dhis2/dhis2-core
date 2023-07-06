@@ -28,9 +28,7 @@
 package org.hisp.dhis.program;
 
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -41,44 +39,42 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramStageInstanceDeletionHandler extends IdObjectDeletionHandler<ProgramStageInstance>
-{
-    private final ProgramStageInstanceService programStageInstanceService;
+public class ProgramStageInstanceDeletionHandler
+    extends IdObjectDeletionHandler<ProgramStageInstance> {
+  private final ProgramStageInstanceService programStageInstanceService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenVetoing( Program.class, this::allowDeleteProgram );
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-    }
+  @Override
+  protected void registerHandler() {
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
+    whenDeleting(ProgramInstance.class, this::deleteProgramInstance);
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
 
-    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
-    {
-        return vetoIfExists( VETO,
-            "select 1 from programstageinstance where programstageid = :id limit 1",
-            Map.of( "id", programStage.getId() ) );
-    }
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from programstageinstance where programstageid = :id limit 1",
+        Map.of("id", programStage.getId()));
+  }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
-    {
-        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
-        {
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
-        }
+  private void deleteProgramInstance(ProgramInstance programInstance) {
+    for (ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances()) {
+      programStageInstanceService.deleteProgramStageInstance(programStageInstance);
     }
+  }
 
-    private DeletionVeto allowDeleteProgram( Program program )
-    {
-        return vetoIfExists( VETO,
-            "select 1 from programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id limit 1",
-            Map.of( "id", program.getId() ) );
-    }
+  private DeletionVeto allowDeleteProgram(Program program) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id limit 1",
+        Map.of("id", program.getId()));
+  }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        return vetoIfExists( VETO, "select 1 from programstageinstance where eventdatavalues ?? :uid limit 1",
-            Map.of( "uid", dataElement.getUid() ) );
-    }
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from programstageinstance where eventdatavalues ?? :uid limit 1",
+        Map.of("uid", dataElement.getUid()));
+  }
 }

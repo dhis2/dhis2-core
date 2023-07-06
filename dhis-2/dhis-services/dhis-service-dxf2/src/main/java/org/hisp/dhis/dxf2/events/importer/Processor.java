@@ -31,19 +31,18 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 
 /**
- * This interface is implemented by classes that operates before validation
- * (pre-processors) or post-persistence (post-processor)
+ * This interface is implemented by classes that operates before validation (pre-processors) or
+ * post-persistence (post-processor)
  *
  * @author Luciano Fiandesio
  */
-public interface Processor
-{
-    /**
-     * Process an Event. Events that are processed through classes implementing
-     * this method can be modified.
-     *
-     * @param event an instance of {@see Event}
-     * @param workContext an instance of {@see WorkContext}
-     */
-    void process( Event event, WorkContext workContext );
+public interface Processor {
+  /**
+   * Process an Event. Events that are processed through classes implementing this method can be
+   * modified.
+   *
+   * @param event an instance of {@see Event}
+   * @param workContext an instance of {@see WorkContext}
+   */
+  void process(Event event, WorkContext workContext);
 }

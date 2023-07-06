@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.mappers;
 
 import java.util.List;
-
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.mapstruct.BeanMapping;
@@ -36,27 +35,23 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityTypeAttributeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
-{
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
+@Mapper(
+    uses = {DebugMapper.class, TrackedEntityTypeAttributeMapper.class, AttributeValueMapper.class})
+public interface TrackedEntityTypeMapper extends PreheatMapper<TrackedEntityType> {
+  TrackedEntityTypeMapper INSTANCE = Mappers.getMapper(TrackedEntityTypeMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "name" )
-    @Mapping( target = "code" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    @Mapping( target = "allowAuditLog" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "name")
+  @Mapping(target = "code")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "featureType")
+  @Mapping(target = "sharing")
+  @Mapping(target = "trackedEntityTypeAttributes")
+  @Mapping(target = "allowAuditLog")
+  TrackedEntityType map(TrackedEntityType trackedEntityType);
 
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+  List<TrackedEntityTypeAttribute> map(
+      List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes);
 }

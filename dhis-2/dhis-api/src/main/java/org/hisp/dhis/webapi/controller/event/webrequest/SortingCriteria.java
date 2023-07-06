@@ -36,32 +36,25 @@ import java.util.Optional;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface SortingCriteria
-{
+public interface SortingCriteria {
 
-    /**
-     * order params
-     */
-    List<OrderCriteria> getOrder();
+  /** order params */
+  List<OrderCriteria> getOrder();
 
-    /**
-     * Implementors should return a list of fields on which it is allowed to
-     * perform ordering Defaults to empty list which means all fields are
-     * allowed for ordering
-     */
-    default List<String> getAllowedOrderingFields()
-    {
-        return Collections.emptyList();
-    }
+  /**
+   * Implementors should return a list of fields on which it is allowed to perform ordering Defaults
+   * to empty list which means all fields are allowed for ordering
+   */
+  default List<String> getAllowedOrderingFields() {
+    return Collections.emptyList();
+  }
 
-    /**
-     * By default it does not translate any field
-     *
-     * @return
-     */
-    default Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return Optional.ofNullable( dtoFieldName );
-    }
-
+  /**
+   * By default it does not translate any field
+   *
+   * @return
+   */
+  default Optional<String> translateField(String dtoFieldName, boolean isLegacy) {
+    return Optional.ofNullable(dtoFieldName);
+  }
 }

@@ -35,9 +35,8 @@ import lombok.Value;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Value
-public class OrderParam
-{
-    private final String field;
+public class OrderParam {
+  private final String field;
 
-    private final SortDirection direction;
+  private final SortDirection direction;
 }

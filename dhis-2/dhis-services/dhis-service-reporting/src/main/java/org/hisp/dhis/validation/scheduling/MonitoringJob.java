@@ -31,13 +31,13 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.util.DateUtils.addDays;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -57,95 +57,85 @@ import org.hisp.dhis.validation.ValidationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  * @author Jim Grace
  */
 @Component
 @RequiredArgsConstructor
-public class MonitoringJob implements Job
-{
-    private final ValidationService validationService;
+public class MonitoringJob implements Job {
+  private final ValidationService validationService;
 
-    private final ValidationRuleService validationRuleService;
+  private final ValidationRuleService validationRuleService;
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.MONITORING;
+  @Override
+  public JobType getJobType() {
+    return JobType.MONITORING;
+  }
+
+  @Override
+  @Transactional
+  public void execute(JobConfiguration config, JobProgress progress) {
+    progress.startingProcess("Data validation");
+    try {
+      MonitoringJobParameters params = (MonitoringJobParameters) config.getJobParameters();
+      List<String> groupUIDs = params.getValidationRuleGroups();
+      Collection<ValidationRule> rules = getValidationRules(groupUIDs);
+      progress.startingStage("Preparing analysis parameters");
+      List<Period> periods =
+          progress.runStage(
+              List.of(),
+              ps -> rules.stream().map(BaseIdentifiableObject::getName).collect(joining(", ")),
+              () -> getPeriods(params, rules));
+
+      ValidationAnalysisParams parameters =
+          validationService
+              .newParamsBuilder(rules, null, periods)
+              .withIncludeOrgUnitDescendants(true)
+              .withMaxResults(ValidationService.MAX_SCHEDULED_ALERTS)
+              .withSendNotifications(params.isSendNotifications())
+              .withPersistResults(params.isPersistResults())
+              .build();
+
+      validationService.validationAnalysis(parameters, progress);
+
+      progress.completedProcess("Data validation done");
+    } catch (RuntimeException ex) {
+      progress.failedProcess(ex);
+      messageService.sendSystemErrorNotification("Data validation failed", ex);
+      throw ex;
     }
+  }
 
-    @Override
-    @Transactional
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        progress.startingProcess( "Data validation" );
-        try
-        {
-            MonitoringJobParameters params = (MonitoringJobParameters) config.getJobParameters();
-            List<String> groupUIDs = params.getValidationRuleGroups();
-            Collection<ValidationRule> rules = getValidationRules( groupUIDs );
-            progress.startingStage( "Preparing analysis parameters" );
-            List<Period> periods = progress.runStage( List.of(),
-                ps -> rules.stream().map( BaseIdentifiableObject::getName ).collect( joining( ", " ) ),
-                () -> getPeriods( params, rules ) );
-
-            ValidationAnalysisParams parameters = validationService
-                .newParamsBuilder( rules, null, periods )
-                .withIncludeOrgUnitDescendants( true )
-                .withMaxResults( ValidationService.MAX_SCHEDULED_ALERTS )
-                .withSendNotifications( params.isSendNotifications() )
-                .withPersistResults( params.isPersistResults() )
-                .build();
-
-            validationService.validationAnalysis( parameters, progress );
-
-            progress.completedProcess( "Data validation done" );
-        }
-        catch ( RuntimeException ex )
-        {
-            progress.failedProcess( ex );
-            messageService.sendSystemErrorNotification( "Data validation failed", ex );
-            throw ex;
-        }
+  private Collection<ValidationRule> getValidationRules(List<String> groupUIDs) {
+    if (groupUIDs.isEmpty()) {
+      return validationRuleService.getValidationRulesWithNotificationTemplates();
     }
+    return groupUIDs.stream()
+        .map(validationRuleService::getValidationRuleGroup)
+        .filter(Objects::nonNull)
+        .map(ValidationRuleGroup::getMembers)
+        .filter(Objects::nonNull)
+        .reduce(Sets.newHashSet(), SetUtils::union);
+  }
 
-    private Collection<ValidationRule> getValidationRules( List<String> groupUIDs )
-    {
-        if ( groupUIDs.isEmpty() )
-        {
-            return validationRuleService.getValidationRulesWithNotificationTemplates();
-        }
-        return groupUIDs.stream()
-            .map( validationRuleService::getValidationRuleGroup )
-            .filter( Objects::nonNull )
-            .map( ValidationRuleGroup::getMembers )
-            .filter( Objects::nonNull )
-            .reduce( Sets.newHashSet(), SetUtils::union );
+  private List<Period> getPeriods(
+      MonitoringJobParameters params, Collection<ValidationRule> rules) {
+    if (params.getRelativeStart() != 0 && params.getRelativeEnd() != 0) {
+      Date startDate = addDays(new Date(), params.getRelativeStart());
+      Date endDate = addDays(new Date(), params.getRelativeEnd());
+
+      List<Period> periods = periodService.getPeriodsBetweenDates(startDate, endDate);
+      return ListUtils.union(periods, periodService.getIntersectionPeriods(periods));
     }
-
-    private List<Period> getPeriods( MonitoringJobParameters params, Collection<ValidationRule> rules )
-    {
-        if ( params.getRelativeStart() != 0 && params.getRelativeEnd() != 0 )
-        {
-            Date startDate = addDays( new Date(), params.getRelativeStart() );
-            Date endDate = addDays( new Date(), params.getRelativeEnd() );
-
-            List<Period> periods = periodService.getPeriodsBetweenDates( startDate, endDate );
-            return ListUtils.union( periods, periodService.getIntersectionPeriods( periods ) );
-        }
-        return rules.stream()
-            .map( ValidationRule::getPeriodType )
-            .distinct()
-            .map( vr -> asList( vr.createPeriod(), vr.getPreviousPeriod( vr.createPeriod() ) ) )
-            .reduce( Lists.newArrayList(), ListUtils::union );
-    }
-
+    return rules.stream()
+        .map(ValidationRule::getPeriodType)
+        .distinct()
+        .map(vr -> asList(vr.createPeriod(), vr.getPreviousPeriod(vr.createPeriod())))
+        .reduce(Lists.newArrayList(), ListUtils::union);
+  }
 }

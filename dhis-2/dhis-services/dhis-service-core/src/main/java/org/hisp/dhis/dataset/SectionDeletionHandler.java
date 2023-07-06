@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataset;
 
 import java.util.Iterator;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
@@ -40,38 +38,32 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class SectionDeletionHandler extends IdObjectDeletionHandler<Section>
-{
-    private final SectionService sectionService;
+public class SectionDeletionHandler extends IdObjectDeletionHandler<Section> {
+  private final SectionService sectionService;
 
-    private final SectionStore sectionStore;
+  private final SectionStore sectionStore;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( DataSet.class, this::deleteDataSet );
+  @Override
+  protected void registerHandler() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+  }
+
+  private void deleteDataElement(DataElement dataElement) {
+    for (Section section : sectionStore.getSectionsByDataElement(dataElement.getUid())) {
+      section.getGreyedFields().removeIf(operand -> operand.getDataElement().equals(dataElement));
+      section.getDataElements().removeIf(de -> de.equals(dataElement));
+      sectionService.updateSection(section);
     }
+  }
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        for ( Section section : sectionStore.getSectionsByDataElement( dataElement.getUid() ) )
-        {
-            section.getGreyedFields().removeIf( operand -> operand.getDataElement().equals( dataElement ) );
-            section.getDataElements().removeIf( de -> de.equals( dataElement ) );
-            sectionService.updateSection( section );
-        }
+  private void deleteDataSet(DataSet dataSet) {
+    Iterator<Section> iterator = dataSet.getSections().iterator();
+
+    while (iterator.hasNext()) {
+      Section section = iterator.next();
+      iterator.remove();
+      sectionService.deleteSection(section);
     }
-
-    private void deleteDataSet( DataSet dataSet )
-    {
-        Iterator<Section> iterator = dataSet.getSections().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            Section section = iterator.next();
-            iterator.remove();
-            sectionService.deleteSection( section );
-        }
-    }
+  }
 }

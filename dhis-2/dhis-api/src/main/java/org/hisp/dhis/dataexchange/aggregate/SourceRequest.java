@@ -27,81 +27,47 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Getter
 @Setter
 @NoArgsConstructor
-@Accessors( chain = true )
-public class SourceRequest
-    implements Serializable
-{
-    /**
-     * Name of source request, max 50 characters.
-     */
-    @JsonProperty
-    private String name;
+@Accessors(chain = true)
+public class SourceRequest implements Serializable {
+  /** Name of source request, max 50 characters. */
+  @JsonProperty private String name;
 
-    /**
-     * Optional UID reference to a visualization.
-     */
-    @JsonProperty
-    private String visualization;
+  /** Optional UID reference to a visualization. */
+  @JsonProperty private String visualization;
 
-    /**
-     * Data dimension item identifiers.
-     */
-    @JsonProperty
-    private List<String> dx = new ArrayList<>();
+  /** Data dimension item identifiers. */
+  @JsonProperty private List<String> dx = new ArrayList<>();
 
-    /**
-     * ISO period identifiers.
-     */
-    @JsonProperty
-    private List<String> pe = new ArrayList<>();
+  /** ISO period identifiers. */
+  @JsonProperty private List<String> pe = new ArrayList<>();
 
-    /**
-     * Org unit identifiers.
-     */
-    @JsonProperty
-    private List<String> ou = new ArrayList<>();
+  /** Org unit identifiers. */
+  @JsonProperty private List<String> ou = new ArrayList<>();
 
-    /**
-     * Request filters.
-     */
-    @JsonProperty
-    private List<Filter> filters = new ArrayList<>();
+  /** Request filters. */
+  @JsonProperty private List<Filter> filters = new ArrayList<>();
 
-    /**
-     * Input identifier scheme.
-     */
-    @JsonProperty
-    private String inputIdScheme;
+  /** Input identifier scheme. */
+  @JsonProperty private String inputIdScheme;
 
-    /**
-     * Output data element identifier scheme.
-     */
-    @JsonProperty
-    private String outputDataElementIdScheme;
+  /** Output data element identifier scheme. */
+  @JsonProperty private String outputDataElementIdScheme;
 
-    /**
-     * Output org unit identifier scheme.
-     */
-    @JsonProperty
-    private String outputOrgUnitIdScheme;
+  /** Output org unit identifier scheme. */
+  @JsonProperty private String outputOrgUnitIdScheme;
 
-    /**
-     * Output identifier scheme.
-     */
-    @JsonProperty
-    private String outputIdScheme;
+  /** Output identifier scheme. */
+  @JsonProperty private String outputIdScheme;
 }

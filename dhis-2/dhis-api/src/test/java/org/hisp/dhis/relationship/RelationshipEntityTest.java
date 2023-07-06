@@ -33,15 +33,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-class RelationshipEntityTest
-{
+class RelationshipEntityTest {
 
-    @Test
-    void testGetRelationshipEntityByName()
-    {
-        RelationshipEntity relationshipEntity = RelationshipEntity.get( "tracked_entity" );
-        RelationshipEntity relationshipEntityNull = RelationshipEntity.get( "I_DONT_EXIST" );
-        assertThat( relationshipEntity, is( RelationshipEntity.TRACKED_ENTITY_INSTANCE ) );
-        assertNull( relationshipEntityNull );
-    }
+  @Test
+  void testGetRelationshipEntityByName() {
+    RelationshipEntity relationshipEntity = RelationshipEntity.get("tracked_entity");
+    RelationshipEntity relationshipEntityNull = RelationshipEntity.get("I_DONT_EXIST");
+    assertThat(relationshipEntity, is(RelationshipEntity.TRACKED_ENTITY_INSTANCE));
+    assertNull(relationshipEntityNull);
+  }
 }

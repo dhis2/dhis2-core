@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
@@ -43,19 +42,23 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = GenericStrategy.class, mapper = CopyMapper.class )
-public class GenericStrategy extends AbstractSchemaStrategy
-{
-    public GenericStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
-    {
-        super( schemaService, queryService, manager, cacheService );
-    }
+@StrategyFor(value = GenericStrategy.class, mapper = CopyMapper.class)
+public class GenericStrategy extends AbstractSchemaStrategy {
+  public GenericStrategy(
+      SchemaService schemaService,
+      QueryService queryService,
+      IdentifiableObjectManager manager,
+      PreheatCacheService cacheService) {
+    super(schemaService, queryService, manager, cacheService);
+  }
 
-    public void add( Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        Schema schema = schemaService.getDynamicSchema( klazz );
-        queryForIdentifiableObjects( preheat, schema, TrackerIdSchemeParam.UID, splitList,
-            getClass().getAnnotation( StrategyFor.class ).mapper() );
-    }
+  public void add(Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat) {
+    Schema schema = schemaService.getDynamicSchema(klazz);
+    queryForIdentifiableObjects(
+        preheat,
+        schema,
+        TrackerIdSchemeParam.UID,
+        splitList,
+        getClass().getAnnotation(StrategyFor.class).mapper());
+  }
 }

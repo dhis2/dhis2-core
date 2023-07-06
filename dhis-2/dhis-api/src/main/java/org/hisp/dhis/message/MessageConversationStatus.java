@@ -30,11 +30,10 @@ package org.hisp.dhis.message;
 /**
  * @author Stian Sandvold
  */
-public enum MessageConversationStatus
-{
-    NONE,
-    OPEN,
-    PENDING,
-    INVALID,
-    SOLVED
+public enum MessageConversationStatus {
+  NONE,
+  OPEN,
+  PENDING,
+  INVALID,
+  SOLVED
 }

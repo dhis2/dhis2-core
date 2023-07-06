@@ -32,14 +32,12 @@ import org.hisp.dhis.common.GenericStore;
 /**
  * @author mortenoh
  */
-public interface VersionStore
-    extends GenericStore<Version>
-{
-    String ID = VersionStore.class.getName();
+public interface VersionStore extends GenericStore<Version> {
+  String ID = VersionStore.class.getName();
 
-    /**
-     * @param key Key to lookup.
-     * @return Value that matched key, or null if there was no match.
-     */
-    Version getVersionByKey( String key );
+  /**
+   * @param key Key to lookup.
+   * @return Value that matched key, or null if there was no match.
+   */
+  Version getVersionByKey(String key);
 }

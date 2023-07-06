@@ -39,24 +39,24 @@ import org.hisp.dhis.tracker.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-class UpdatableFieldsValidator
-    implements Validator<TrackedEntity>
-{
-    @Override
-    public void validate( Reporter reporter,
-        TrackerBundle bundle, TrackedEntity trackedEntity )
-    {
-        TrackedEntityInstance trackedEntityInstance = bundle
-            .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+class UpdatableFieldsValidator implements Validator<TrackedEntity> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
+    TrackedEntityInstance trackedEntityInstance =
+        bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
-        reporter.addErrorIf(
-            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
-            trackedEntity, E1126, "trackedEntityType" );
-    }
+    reporter.addErrorIf(
+        () ->
+            !trackedEntity
+                .getTrackedEntityType()
+                .isEqualTo(trackedEntityInstance.getTrackedEntityType()),
+        trackedEntity,
+        E1126,
+        "trackedEntityType");
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy == TrackerImportStrategy.UPDATE;
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == TrackerImportStrategy.UPDATE;
+  }
 }

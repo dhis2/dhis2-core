@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -56,123 +55,117 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class DateValidatorTest
-{
+@ExtendWith(MockitoExtension.class)
+class DateValidatorTest {
 
-    private DateValidator validator;
+  private DateValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new DateValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new DateValidator();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
+    bundle = TrackerBundle.builder().preheat(preheat).build();
+
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
+
+  @Test
+  void testMandatoryDatesMustBePresent() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(Instant.now())
             .build();
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-    @Test
-    void testMandatoryDatesMustBePresent()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( Instant.now() )
+    validator.validate(reporter, bundle, enrollment);
+
+    assertHasError(reporter, enrollment, E1025);
+  }
+
+  @Test
+  void testDatesMustNotBeInTheFuture() {
+    final Instant dateInTheFuture = Instant.now().plus(Duration.ofDays(2));
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(dateInTheFuture)
+            .enrolledAt(dateInTheFuture)
             .build();
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1025 );
-    }
+    assertAll(
+        () -> assertHasError(reporter, enrollment, E1020),
+        () -> assertHasError(reporter, enrollment, E1021));
+  }
 
-    @Test
-    void testDatesMustNotBeInTheFuture()
-    {
-        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( dateInTheFuture )
-            .enrolledAt( dateInTheFuture )
+  @Test
+  void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed() {
+    final Instant today = Instant.now().plus(Duration.ofMinutes(1));
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(today)
+            .enrolledAt(today)
             .build();
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertAll(
-            () -> assertHasError( reporter, enrollment, E1020 ),
-            () -> assertHasError( reporter, enrollment, E1021 ) );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
-    {
-        final Instant today = Instant.now().plus( Duration.ofMinutes( 1 ) );
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( today )
-            .enrolledAt( today )
+  @Test
+  void testDatesCanBeInTheFuture() {
+    final Instant dateInTheFuture = Instant.now().plus(Duration.ofDays(2));
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(dateInTheFuture)
+            .enrolledAt(dateInTheFuture)
             .build();
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    Program program = new Program();
+    program.setSelectEnrollmentDatesInFuture(true);
+    program.setSelectIncidentDatesInFuture(true);
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(program);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void testDatesCanBeInTheFuture()
-    {
-        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( dateInTheFuture )
-            .enrolledAt( dateInTheFuture )
+  @Test
+  void testFailOnMissingOccurredAtDate() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .enrolledAt(Instant.now())
             .build();
 
-        Program program = new Program();
-        program.setSelectEnrollmentDatesInFuture( true );
-        program.setSelectIncidentDatesInFuture( true );
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
+    Program program = new Program();
+    program.setDisplayIncidentDate(true);
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(program);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
-
-    @Test
-    void testFailOnMissingOccurredAtDate()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .enrolledAt( Instant.now() )
-            .build();
-
-        Program program = new Program();
-        program.setDisplayIncidentDate( true );
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
-
-        validator.validate( reporter, bundle, enrollment );
-
-        assertHasError( reporter, enrollment, E1023 );
-    }
-
+    assertHasError(reporter, enrollment, E1023);
+  }
 }

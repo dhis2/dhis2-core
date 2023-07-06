@@ -27,48 +27,37 @@
  */
 package org.hisp.dhis.program.notification.template.snapshot;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Data
-@EqualsAndHashCode( callSuper = true )
-public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnapshot
-{
+@EqualsAndHashCode(callSuper = true)
+public class ProgramNotificationTemplateSnapshot extends IdentifiableObjectSnapshot {
 
-    @JsonProperty
-    private NotificationTrigger notificationTrigger;
+  @JsonProperty private NotificationTrigger notificationTrigger;
 
-    @JsonProperty
-    private ProgramNotificationRecipient notificationRecipient;
+  @JsonProperty private ProgramNotificationRecipient notificationRecipient;
 
-    private IdentifiableObjectSnapshot recipientDataElement;
+  private IdentifiableObjectSnapshot recipientDataElement;
 
-    private IdentifiableObjectSnapshot recipientProgramAttribute;
+  private IdentifiableObjectSnapshot recipientProgramAttribute;
 
-    private UserGroupSnapshot recipientUserGroup;
+  private UserGroupSnapshot recipientUserGroup;
 
-    @JsonProperty
-    private String subjectTemplate;
+  @JsonProperty private String subjectTemplate;
 
-    @JsonProperty
-    private String messageTemplate;
+  @JsonProperty private String messageTemplate;
 
-    @JsonProperty
-    private Set<DeliveryChannel> deliveryChannels;
+  @JsonProperty private Set<DeliveryChannel> deliveryChannels;
 
-    private Boolean notifyUsersInHierarchyOnly;
+  private Boolean notifyUsersInHierarchyOnly;
 
-    private Boolean notifyParentOrganisationUnitOnly;
+  private Boolean notifyParentOrganisationUnitOnly;
 
-    @JsonProperty
-    private boolean sendRepeatable;
-
+  @JsonProperty private boolean sendRepeatable;
 }

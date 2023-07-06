@@ -27,38 +27,38 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ProgramIndicatorSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "programIndicator";
+public class ProgramIndicatorSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "programIndicator";
 
-    public static final String PLURAL = "programIndicators";
+  public static final String PLURAL = "programIndicators";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ProgramIndicator.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1560 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ProgramIndicator.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1560);
 
-        schema.add(
-            new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_PROGRAM_INDICATOR_PUBLIC_ADD" ) ) );
-        schema.add(
-            new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_PROGRAM_INDICATOR_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_INDICATOR_DELETE" ) ) );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_PROGRAM_INDICATOR_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_PROGRAM_INDICATOR_PRIVATE_ADD")));
+    schema.add(
+        new Authority(AuthorityType.DELETE, Lists.newArrayList("F_PROGRAM_INDICATOR_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

@@ -34,34 +34,32 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.jupiter.api.Test;
 
-class RelationshipMapperTest
-{
-    @Test
-    void testIdSchemeRelatedFieldsAreMapped()
-    {
+class RelationshipMapperTest {
+  @Test
+  void testIdSchemeRelatedFieldsAreMapped() {
 
-        RelationshipType relationshipType = setIdSchemeFields(
+    RelationshipType relationshipType =
+        setIdSchemeFields(
             new RelationshipType(),
             "WTTYiPQDqh1",
             "friendship",
             "red",
-            attributeValues( "m0GpPuMUfFW", "yellow" ) );
+            attributeValues("m0GpPuMUfFW", "yellow"));
 
-        Relationship relationship = new Relationship();
-        relationship.setRelationshipType( relationshipType );
+    Relationship relationship = new Relationship();
+    relationship.setRelationshipType(relationshipType);
 
-        Relationship mapped = RelationshipMapper.INSTANCE.map( relationship );
+    Relationship mapped = RelationshipMapper.INSTANCE.map(relationship);
 
-        assertEquals( "WTTYiPQDqh1", mapped.getRelationshipType().getUid() );
-        assertEquals( "friendship", mapped.getRelationshipType().getName() );
-        assertEquals( "red", mapped.getRelationshipType().getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
-            mapped.getRelationshipType().getAttributeValues() );
-    }
-
+    assertEquals("WTTYiPQDqh1", mapped.getRelationshipType().getUid());
+    assertEquals("friendship", mapped.getRelationshipType().getName());
+    assertEquals("red", mapped.getRelationshipType().getCode());
+    assertContainsOnly(
+        Set.of(attributeValue("m0GpPuMUfFW", "yellow")),
+        mapped.getRelationshipType().getAttributeValues());
+  }
 }

@@ -36,188 +36,166 @@ import org.hisp.dhis.query.operators.TokenOperator;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.query.operators.TokenOperator} and
- * {@link org.hisp.dhis.query.operators.NotTokenOperator} implementation.
+ * Tests the {@link org.hisp.dhis.query.operators.TokenOperator} and {@link
+ * org.hisp.dhis.query.operators.NotTokenOperator} implementation.
  *
  * @author Jan Bernitt
  */
-class TokenOperatorTest
-{
+class TokenOperatorTest {
 
-    @Test
-    void nullValue()
-    {
-        for ( MatchMode mode : MatchMode.values() )
-        {
-            assertFalse( new TokenOperator<>( "any", true, mode ).test( null ) );
-            assertFalse( new TokenOperator<>( "any", false, mode ).test( null ) );
-            assertTrue( new NotTokenOperator<>( "any", true, mode ).test( null ) );
-            assertTrue( new NotTokenOperator<>( "any", false, mode ).test( null ) );
-        }
+  @Test
+  void nullValue() {
+    for (MatchMode mode : MatchMode.values()) {
+      assertFalse(new TokenOperator<>("any", true, mode).test(null));
+      assertFalse(new TokenOperator<>("any", false, mode).test(null));
+      assertTrue(new NotTokenOperator<>("any", true, mode).test(null));
+      assertTrue(new NotTokenOperator<>("any", false, mode).test(null));
     }
+  }
 
-    @Test
-    void exactMatchOneWordOneTerm()
-    {
-        assertMatch( MatchMode.EXACT, "Hello!", "Hello" );
-        assertMatch( MatchMode.EXACT, "Hello!", "Hello!" );
-    }
+  @Test
+  void exactMatchOneWordOneTerm() {
+    assertMatch(MatchMode.EXACT, "Hello!", "Hello");
+    assertMatch(MatchMode.EXACT, "Hello!", "Hello!");
+  }
 
-    @Test
-    void exactMatchOneWordManyTerms()
-    {
-        assertMatch( MatchMode.EXACT, "Hello!", "Hello Hello" );
-        assertMatch( MatchMode.EXACT, "Hello!", "Hello! Hello!" );
-    }
+  @Test
+  void exactMatchOneWordManyTerms() {
+    assertMatch(MatchMode.EXACT, "Hello!", "Hello Hello");
+    assertMatch(MatchMode.EXACT, "Hello!", "Hello! Hello!");
+  }
 
-    @Test
-    void exactMatchManyWordsOneTerm()
-    {
-        assertMatch( MatchMode.EXACT, "Hello World!", "Hello" );
-        assertMatch( MatchMode.EXACT, "Hello World!", "World" );
-    }
+  @Test
+  void exactMatchManyWordsOneTerm() {
+    assertMatch(MatchMode.EXACT, "Hello World!", "Hello");
+    assertMatch(MatchMode.EXACT, "Hello World!", "World");
+  }
 
-    @Test
-    void exactMatchManyWordsManyTerms()
-    {
-        assertMatch( MatchMode.EXACT, "Hello World!", "Hello World" );
-        assertMatch( MatchMode.EXACT, "Hello World!", "Hello, World!" );
-        assertMatch( MatchMode.EXACT, "Hello there World!", "Hello, World!" );
-    }
+  @Test
+  void exactMatchManyWordsManyTerms() {
+    assertMatch(MatchMode.EXACT, "Hello World!", "Hello World");
+    assertMatch(MatchMode.EXACT, "Hello World!", "Hello, World!");
+    assertMatch(MatchMode.EXACT, "Hello there World!", "Hello, World!");
+  }
 
-    @Test
-    void startsWithMatchOneWordOneTerm()
-    {
-        assertMatch( MatchMode.START, "Hello!", "Hello" );
-        assertMatch( MatchMode.START, "Hello!", "Hello!" );
-        assertMatch( MatchMode.START, "Hello!", "Hel" );
-    }
+  @Test
+  void startsWithMatchOneWordOneTerm() {
+    assertMatch(MatchMode.START, "Hello!", "Hello");
+    assertMatch(MatchMode.START, "Hello!", "Hello!");
+    assertMatch(MatchMode.START, "Hello!", "Hel");
+  }
 
-    @Test
-    void startsWithMatchOneWordManyTerms()
-    {
-        assertMatch( MatchMode.START, "Hello!", "Hello Hello" );
-        assertMatch( MatchMode.START, "Hello!", "Hello! Hello!" );
-        assertMatch( MatchMode.START, "Hello!", "He! Hell" );
-    }
+  @Test
+  void startsWithMatchOneWordManyTerms() {
+    assertMatch(MatchMode.START, "Hello!", "Hello Hello");
+    assertMatch(MatchMode.START, "Hello!", "Hello! Hello!");
+    assertMatch(MatchMode.START, "Hello!", "He! Hell");
+  }
 
-    @Test
-    void startsWithMatchManyWordsOneTerm()
-    {
-        assertMatch( MatchMode.START, "Hello World!", "Hello" );
-        assertMatch( MatchMode.START, "Hello World!", "World" );
-        assertMatch( MatchMode.START, "Hello World!", "Hel" );
-        assertMatch( MatchMode.START, "Hello World!", "Wo" );
-    }
+  @Test
+  void startsWithMatchManyWordsOneTerm() {
+    assertMatch(MatchMode.START, "Hello World!", "Hello");
+    assertMatch(MatchMode.START, "Hello World!", "World");
+    assertMatch(MatchMode.START, "Hello World!", "Hel");
+    assertMatch(MatchMode.START, "Hello World!", "Wo");
+  }
 
-    @Test
-    void startsWithMatchManyWordsManyTerms()
-    {
-        assertMatch( MatchMode.START, "Hello World!", "Hello World" );
-        assertMatch( MatchMode.START, "Hello World!", "Hello, World!" );
-        assertMatch( MatchMode.START, "Hello there World!", "Hello, World!" );
-        assertMatch( MatchMode.START, "Hello there World!", "Hel, Wor" );
-    }
+  @Test
+  void startsWithMatchManyWordsManyTerms() {
+    assertMatch(MatchMode.START, "Hello World!", "Hello World");
+    assertMatch(MatchMode.START, "Hello World!", "Hello, World!");
+    assertMatch(MatchMode.START, "Hello there World!", "Hello, World!");
+    assertMatch(MatchMode.START, "Hello there World!", "Hel, Wor");
+  }
 
-    @Test
-    void endsWithMatchOneWordOneTerm()
-    {
-        assertMatch( MatchMode.END, "Hello!", "Hello" );
-        assertMatch( MatchMode.END, "Hello!", "Hello!" );
-        assertMatch( MatchMode.END, "Hello!", "lo!" );
-    }
+  @Test
+  void endsWithMatchOneWordOneTerm() {
+    assertMatch(MatchMode.END, "Hello!", "Hello");
+    assertMatch(MatchMode.END, "Hello!", "Hello!");
+    assertMatch(MatchMode.END, "Hello!", "lo!");
+  }
 
-    @Test
-    void endsWithMatchOneWordManyTerms()
-    {
-        assertMatch( MatchMode.END, "Hello!", "Hello Hello" );
-        assertMatch( MatchMode.END, "Hello!", "Hello! Hello!" );
-        assertMatch( MatchMode.END, "Hello!", "lo ello" );
-    }
+  @Test
+  void endsWithMatchOneWordManyTerms() {
+    assertMatch(MatchMode.END, "Hello!", "Hello Hello");
+    assertMatch(MatchMode.END, "Hello!", "Hello! Hello!");
+    assertMatch(MatchMode.END, "Hello!", "lo ello");
+  }
 
-    @Test
-    void endsWithMatchManyWordsOneTerm()
-    {
-        assertMatch( MatchMode.END, "Hello World!", "Hello" );
-        assertMatch( MatchMode.END, "Hello World!", "World" );
-        assertMatch( MatchMode.END, "Hello World!", "lo" );
-        assertMatch( MatchMode.END, "Hello World!", "rld" );
-    }
+  @Test
+  void endsWithMatchManyWordsOneTerm() {
+    assertMatch(MatchMode.END, "Hello World!", "Hello");
+    assertMatch(MatchMode.END, "Hello World!", "World");
+    assertMatch(MatchMode.END, "Hello World!", "lo");
+    assertMatch(MatchMode.END, "Hello World!", "rld");
+  }
 
-    @Test
-    void endsWithMatchManyWordsManyTerms()
-    {
-        assertMatch( MatchMode.END, "Hello World!", "Hello World" );
-        assertMatch( MatchMode.END, "Hello World!", "Hello, World!" );
-        assertMatch( MatchMode.END, "Hello there World!", "Hello, World!" );
-        assertMatch( MatchMode.END, "Hello there World!", "ello orld" );
-    }
+  @Test
+  void endsWithMatchManyWordsManyTerms() {
+    assertMatch(MatchMode.END, "Hello World!", "Hello World");
+    assertMatch(MatchMode.END, "Hello World!", "Hello, World!");
+    assertMatch(MatchMode.END, "Hello there World!", "Hello, World!");
+    assertMatch(MatchMode.END, "Hello there World!", "ello orld");
+  }
 
-    @Test
-    void anywhereMatchOneWordOneTerm()
-    {
-        assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello" );
-        assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello!" );
-        assertMatch( MatchMode.ANYWHERE, "Hello!", "ell" );
-    }
+  @Test
+  void anywhereMatchOneWordOneTerm() {
+    assertMatch(MatchMode.ANYWHERE, "Hello!", "Hello");
+    assertMatch(MatchMode.ANYWHERE, "Hello!", "Hello!");
+    assertMatch(MatchMode.ANYWHERE, "Hello!", "ell");
+  }
 
-    @Test
-    void anywhereMatchOneWordManyTerms()
-    {
-        assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello Hello" );
-        assertMatch( MatchMode.ANYWHERE, "Hello!", "Hello! Hello!" );
-        assertMatch( MatchMode.ANYWHERE, "Hello!", "el ll" );
-    }
+  @Test
+  void anywhereMatchOneWordManyTerms() {
+    assertMatch(MatchMode.ANYWHERE, "Hello!", "Hello Hello");
+    assertMatch(MatchMode.ANYWHERE, "Hello!", "Hello! Hello!");
+    assertMatch(MatchMode.ANYWHERE, "Hello!", "el ll");
+  }
 
-    @Test
-    void anywhereMatchManyWordsOneTerm()
-    {
-        assertMatch( MatchMode.ANYWHERE, "Hello World!", "Hello" );
-        assertMatch( MatchMode.ANYWHERE, "Hello World!", "World" );
-        assertMatch( MatchMode.ANYWHERE, "Hello World!", "ll" );
-        assertMatch( MatchMode.ANYWHERE, "Hello World!", "or" );
-    }
+  @Test
+  void anywhereMatchManyWordsOneTerm() {
+    assertMatch(MatchMode.ANYWHERE, "Hello World!", "Hello");
+    assertMatch(MatchMode.ANYWHERE, "Hello World!", "World");
+    assertMatch(MatchMode.ANYWHERE, "Hello World!", "ll");
+    assertMatch(MatchMode.ANYWHERE, "Hello World!", "or");
+  }
 
-    @Test
-    void anywhereMatchManyWordsManyTerms()
-    {
-        assertMatch( MatchMode.ANYWHERE, "Hello World!", "Hello World" );
-        assertMatch( MatchMode.ANYWHERE, "Hello World!", "Hello, World!" );
-        assertMatch( MatchMode.ANYWHERE, "Hello there World!", "Hello, World!" );
-        assertMatch( MatchMode.ANYWHERE, "Hello there World!", "el er or" );
-    }
+  @Test
+  void anywhereMatchManyWordsManyTerms() {
+    assertMatch(MatchMode.ANYWHERE, "Hello World!", "Hello World");
+    assertMatch(MatchMode.ANYWHERE, "Hello World!", "Hello, World!");
+    assertMatch(MatchMode.ANYWHERE, "Hello there World!", "Hello, World!");
+    assertMatch(MatchMode.ANYWHERE, "Hello there World!", "el er or");
+  }
 
-    private static void assertMatch( MatchMode mode, String value, String term )
-    {
-        String upperValue = value.toUpperCase();
-        String lowerValue = value.toLowerCase();
-        TokenOperator<String> caseSensitive = new TokenOperator<>( term, true, mode );
-        TokenOperator<String> caseInsensitive = new TokenOperator<>( term, false, mode );
-        assertTrue( caseSensitive.test( value ) );
-        assertTrue( caseInsensitive.test( value ) );
-        assertTrue( caseInsensitive.test( upperValue ) );
-        assertTrue( caseInsensitive.test( lowerValue ) );
-        if ( !upperValue.equals( lowerValue ) )
-        {
-            assertFalse( caseSensitive.test( upperValue ) && caseSensitive.test( lowerValue ) );
-        }
-        // make it mismatch by searching for something not in value
-        String zzzTerm = "zzz" + term + "zzz";
-        TokenOperator<String> zzzCaseSensitive = new TokenOperator<>( zzzTerm, true, mode );
-        TokenOperator<String> zzzCaseInsensitive = new TokenOperator<>( zzzTerm, false, mode );
-        assertFalse( zzzCaseSensitive.test( value ) );
-        assertFalse( zzzCaseInsensitive.test( value ) );
-        assertFalse( zzzCaseInsensitive.test( upperValue ) );
-        assertFalse( zzzCaseInsensitive.test( lowerValue ) );
-        NotTokenOperator<String> notCaseSensitive = new NotTokenOperator<>( term, true, mode );
-        NotTokenOperator<String> notCaseInsensitive = new NotTokenOperator<>( term, false, mode );
-        assertFalse( notCaseSensitive.test( value ) );
-        assertFalse( notCaseInsensitive.test( value ) );
-        assertFalse( notCaseInsensitive.test( upperValue ) );
-        assertFalse( notCaseInsensitive.test( lowerValue ) );
-        if ( !upperValue.equals( lowerValue ) )
-        {
-            assertTrue( notCaseSensitive.test( upperValue ) || notCaseSensitive.test( lowerValue ) );
-        }
+  private static void assertMatch(MatchMode mode, String value, String term) {
+    String upperValue = value.toUpperCase();
+    String lowerValue = value.toLowerCase();
+    TokenOperator<String> caseSensitive = new TokenOperator<>(term, true, mode);
+    TokenOperator<String> caseInsensitive = new TokenOperator<>(term, false, mode);
+    assertTrue(caseSensitive.test(value));
+    assertTrue(caseInsensitive.test(value));
+    assertTrue(caseInsensitive.test(upperValue));
+    assertTrue(caseInsensitive.test(lowerValue));
+    if (!upperValue.equals(lowerValue)) {
+      assertFalse(caseSensitive.test(upperValue) && caseSensitive.test(lowerValue));
     }
+    // make it mismatch by searching for something not in value
+    String zzzTerm = "zzz" + term + "zzz";
+    TokenOperator<String> zzzCaseSensitive = new TokenOperator<>(zzzTerm, true, mode);
+    TokenOperator<String> zzzCaseInsensitive = new TokenOperator<>(zzzTerm, false, mode);
+    assertFalse(zzzCaseSensitive.test(value));
+    assertFalse(zzzCaseInsensitive.test(value));
+    assertFalse(zzzCaseInsensitive.test(upperValue));
+    assertFalse(zzzCaseInsensitive.test(lowerValue));
+    NotTokenOperator<String> notCaseSensitive = new NotTokenOperator<>(term, true, mode);
+    NotTokenOperator<String> notCaseInsensitive = new NotTokenOperator<>(term, false, mode);
+    assertFalse(notCaseSensitive.test(value));
+    assertFalse(notCaseInsensitive.test(value));
+    assertFalse(notCaseInsensitive.test(upperValue));
+    assertFalse(notCaseInsensitive.test(lowerValue));
+    if (!upperValue.equals(lowerValue)) {
+      assertTrue(notCaseSensitive.test(upperValue) || notCaseSensitive.test(lowerValue));
+    }
+  }
 }

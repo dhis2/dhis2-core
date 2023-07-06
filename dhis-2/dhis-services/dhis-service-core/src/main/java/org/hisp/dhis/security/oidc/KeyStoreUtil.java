@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.RSAKey;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,45 +38,34 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.RSAKey;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class KeyStoreUtil
-{
-    private KeyStoreUtil()
-    {
-        throw new IllegalArgumentException( "This class should not be instantiated" );
+public class KeyStoreUtil {
+  private KeyStoreUtil() {
+    throw new IllegalArgumentException("This class should not be instantiated");
+  }
+
+  public static KeyStore readKeyStore(String keystorePath, String keystorePassword)
+      throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
+    KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+    try (InputStream is = new FileInputStream(keystorePath)) {
+      keyStore.load(is, keystorePassword.toCharArray());
     }
 
-    public static KeyStore readKeyStore( String keystorePath, String keystorePassword )
-        throws KeyStoreException,
-        IOException,
-        NoSuchAlgorithmException,
-        CertificateException
-    {
-        KeyStore keyStore = KeyStore.getInstance( KeyStore.getDefaultType() );
-        try ( InputStream is = new FileInputStream( keystorePath ) )
-        {
-            keyStore.load( is, keystorePassword.toCharArray() );
-        }
+    return keyStore;
+  }
 
-        return keyStore;
+  public static RSAKey loadRSAPublicKey(
+      final KeyStore keyStore, final String alias, final char[] pin)
+      throws KeyStoreException, JOSEException {
+    java.security.cert.Certificate cert = keyStore.getCertificate(alias);
+
+    if (cert.getPublicKey() instanceof RSAPublicKey) {
+      return RSAKey.load(keyStore, alias, pin);
     }
 
-    public static RSAKey loadRSAPublicKey( final KeyStore keyStore, final String alias, final char[] pin )
-        throws KeyStoreException,
-        JOSEException
-    {
-        java.security.cert.Certificate cert = keyStore.getCertificate( alias );
-
-        if ( cert.getPublicKey() instanceof RSAPublicKey )
-        {
-            return RSAKey.load( keyStore, alias, pin );
-        }
-
-        throw new JOSEException( "Unsupported public key algorithm: " + cert.getPublicKey().getAlgorithm() );
-    }
+    throw new JOSEException(
+        "Unsupported public key algorithm: " + cert.getPublicKey().getAlgorithm());
+  }
 }

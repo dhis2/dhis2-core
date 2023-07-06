@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.cache.Cache;
@@ -62,167 +61,146 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 /**
  * @author <luca@dhis2.org>
  */
-@ExtendWith( MockitoExtension.class )
-class JdbcOrgUnitAssociationsStoreTest
-{
-    private JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
+@ExtendWith(MockitoExtension.class)
+class JdbcOrgUnitAssociationsStoreTest {
+  private JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
+  @Mock private AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    @Mock
-    private Array orgUnitArray;
+  @Mock private Array orgUnitArray;
 
-    @Mock
-    private ResultSet resultSet;
+  @Mock private ResultSet resultSet;
 
-    @Captor
-    private ArgumentCaptor<ResultSetExtractor<?>> resultSetExtractorArgumentCaptor;
+  @Captor private ArgumentCaptor<ResultSetExtractor<?>> resultSetExtractorArgumentCaptor;
 
-    private final Cache<Set<String>> programToOrgUnitCache = new TestCache<>();
+  private final Cache<Set<String>> programToOrgUnitCache = new TestCache<>();
 
-    private final String program = CodeGenerator.generateUid();
+  private final String program = CodeGenerator.generateUid();
 
-    private final String orgUnitA = CodeGenerator.generateUid();
+  private final String orgUnitA = CodeGenerator.generateUid();
 
-    private final String orgUnitB = CodeGenerator.generateUid();
+  private final String orgUnitB = CodeGenerator.generateUid();
 
-    @BeforeEach
-    void setUpTest()
-    {
-        jdbcOrgUnitAssociationsStore = new JdbcOrgUnitAssociationsStore( mock( CurrentUserService.class ), jdbcTemplate,
-            queryBuilder, programToOrgUnitCache );
-    }
+  @BeforeEach
+  void setUpTest() {
+    jdbcOrgUnitAssociationsStore =
+        new JdbcOrgUnitAssociationsStore(
+            mock(CurrentUserService.class), jdbcTemplate, queryBuilder, programToOrgUnitCache);
+  }
 
-    @Test
-    void shouldFindAssociationWhenOrgUnitIsCached()
-    {
-        programToOrgUnitCache.put( program, Set.of( orgUnitA ) );
+  @Test
+  void shouldFindAssociationWhenOrgUnitIsCached() {
+    programToOrgUnitCache.put(program, Set.of(orgUnitA));
 
-        assertTrue( jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations( program, orgUnitA ) );
-        verify( jdbcTemplate, times( 0 ) ).query( anyString(), resultSetExtractorArgumentCaptor.capture() );
-    }
+    assertTrue(jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnitA));
+    verify(jdbcTemplate, times(0)).query(anyString(), resultSetExtractorArgumentCaptor.capture());
+  }
 
-    @Test
-    void shouldNotFindAssociationWhenProgramHasNoOrgUnitAssociation()
-    {
-        when( queryBuilder
-            .buildSqlQueryForRawAssociation( new HashSet<>( Collections.singletonList( program ) ) ) )
-                .thenReturn( "query" );
+  @Test
+  void shouldNotFindAssociationWhenProgramHasNoOrgUnitAssociation() {
+    when(queryBuilder.buildSqlQueryForRawAssociation(
+            new HashSet<>(Collections.singletonList(program))))
+        .thenReturn("query");
 
-        when( jdbcTemplate.query(
-            anyString(), resultSetExtractorArgumentCaptor.capture() ) )
-                .thenAnswer( ( invocation ) -> {
+    when(jdbcTemplate.query(anyString(), resultSetExtractorArgumentCaptor.capture()))
+        .thenAnswer(
+            (invocation) -> {
+              when(orgUnitArray.getArray()).thenReturn(new String[] {orgUnitA});
 
-                    when( orgUnitArray.getArray() ).thenReturn( new String[] { orgUnitA } );
+              ResultSetExtractor<Map<Integer, String>> resultSetExtractor =
+                  invocation.getArgument(1);
 
-                    ResultSetExtractor<Map<Integer, String>> resultSetExtractor = invocation
-                        .getArgument( 1 );
+              when(resultSet.next()).thenReturn(true, false);
 
-                    when( resultSet.next() ).thenReturn( true, false );
+              Mockito.when(resultSet.getString(1)).thenReturn(program);
 
-                    Mockito.when( resultSet.getString( 1 ) )
-                        .thenReturn( program );
+              Mockito.when(resultSet.getArray(2)).thenReturn(orgUnitArray);
 
-                    Mockito.when( resultSet.getArray( 2 ) )
-                        .thenReturn( orgUnitArray );
+              return resultSetExtractor.extractData(resultSet);
+            });
 
-                    return resultSetExtractor.extractData( resultSet );
-                } );
+    assertFalse(jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnitB));
+    verify(jdbcTemplate, times(1)).query(anyString(), resultSetExtractorArgumentCaptor.capture());
+  }
 
-        assertFalse( jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations( program, orgUnitB ) );
-        verify( jdbcTemplate, times( 1 ) ).query( anyString(), resultSetExtractorArgumentCaptor.capture() );
-    }
+  @Test
+  void shouldNotFindAssociationWhenProgramOrgUnitDoNotExists() {
+    when(queryBuilder.buildSqlQueryForRawAssociation(
+            new HashSet<>(Collections.singletonList(program))))
+        .thenReturn("query");
 
-    @Test
-    void shouldNotFindAssociationWhenProgramOrgUnitDoNotExists()
-    {
-        when( queryBuilder
-            .buildSqlQueryForRawAssociation( new HashSet<>( Collections.singletonList( program ) ) ) )
-                .thenReturn( "query" );
+    when(jdbcTemplate.query(anyString(), resultSetExtractorArgumentCaptor.capture()))
+        .thenAnswer(
+            (invocation) -> {
+              ResultSetExtractor<Map<Integer, String>> resultSetExtractor =
+                  invocation.getArgument(1);
 
-        when( jdbcTemplate.query(
-            anyString(), resultSetExtractorArgumentCaptor.capture() ) )
-                .thenAnswer( ( invocation ) -> {
+              when(resultSet.next()).thenReturn(false);
 
-                    ResultSetExtractor<Map<Integer, String>> resultSetExtractor = invocation
-                        .getArgument( 1 );
+              return resultSetExtractor.extractData(resultSet);
+            });
 
-                    when( resultSet.next() ).thenReturn( false );
+    assertFalse(jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnitA));
+    verify(jdbcTemplate, times(1)).query(anyString(), resultSetExtractorArgumentCaptor.capture());
+  }
 
-                    return resultSetExtractor.extractData( resultSet );
-                } );
+  @Test
+  void shouldFindAssociationWhenOrgUnitIsNotCachedButProgramOrgUnitExists() {
+    programToOrgUnitCache.put(program, Set.of(orgUnitA));
 
-        assertFalse( jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations( program, orgUnitA ) );
-        verify( jdbcTemplate, times( 1 ) ).query( anyString(), resultSetExtractorArgumentCaptor.capture() );
-    }
+    when(queryBuilder.buildSqlQueryForRawAssociation(
+            new HashSet<>(Collections.singletonList(program))))
+        .thenReturn("query");
 
-    @Test
-    void shouldFindAssociationWhenOrgUnitIsNotCachedButProgramOrgUnitExists()
-    {
-        programToOrgUnitCache.put( program, Set.of( orgUnitA ) );
+    when(jdbcTemplate.query(anyString(), resultSetExtractorArgumentCaptor.capture()))
+        .thenAnswer(
+            (invocation) -> {
+              when(orgUnitArray.getArray()).thenReturn(new String[] {orgUnitA, orgUnitB});
 
-        when( queryBuilder
-            .buildSqlQueryForRawAssociation( new HashSet<>( Collections.singletonList( program ) ) ) )
-                .thenReturn( "query" );
+              ResultSetExtractor<Map<Integer, String>> resultSetExtractor =
+                  invocation.getArgument(1);
 
-        when( jdbcTemplate.query(
-            anyString(), resultSetExtractorArgumentCaptor.capture() ) )
-                .thenAnswer( ( invocation ) -> {
+              when(resultSet.next()).thenReturn(true, false);
 
-                    when( orgUnitArray.getArray() ).thenReturn( new String[] { orgUnitA, orgUnitB } );
+              Mockito.when(resultSet.getString(1)).thenReturn(program);
 
-                    ResultSetExtractor<Map<Integer, String>> resultSetExtractor = invocation
-                        .getArgument( 1 );
+              Mockito.when(resultSet.getArray(2)).thenReturn(orgUnitArray);
 
-                    when( resultSet.next() ).thenReturn( true, false );
+              return resultSetExtractor.extractData(resultSet);
+            });
 
-                    Mockito.when( resultSet.getString( 1 ) )
-                        .thenReturn( program );
+    assertTrue(jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnitB));
+    verify(jdbcTemplate, times(1)).query(anyString(), resultSetExtractorArgumentCaptor.capture());
+  }
 
-                    Mockito.when( resultSet.getArray( 2 ) )
-                        .thenReturn( orgUnitArray );
+  @Test
+  void shouldNotFindAssociationWhenOrgUnitIsNotCachedAndProgramOrgUnitNotExists() {
+    programToOrgUnitCache.put(program, Set.of(orgUnitA));
 
-                    return resultSetExtractor.extractData( resultSet );
-                } );
+    when(queryBuilder.buildSqlQueryForRawAssociation(
+            new HashSet<>(Collections.singletonList(program))))
+        .thenReturn("query");
 
-        assertTrue( jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations( program, orgUnitB ) );
-        verify( jdbcTemplate, times( 1 ) ).query( anyString(), resultSetExtractorArgumentCaptor.capture() );
-    }
+    when(jdbcTemplate.query(anyString(), resultSetExtractorArgumentCaptor.capture()))
+        .thenAnswer(
+            (invocation) -> {
+              when(orgUnitArray.getArray()).thenReturn(new String[] {orgUnitA});
 
-    @Test
-    void shouldNotFindAssociationWhenOrgUnitIsNotCachedAndProgramOrgUnitNotExists()
-    {
-        programToOrgUnitCache.put( program, Set.of( orgUnitA ) );
+              ResultSetExtractor<Map<Integer, String>> resultSetExtractor =
+                  invocation.getArgument(1);
 
-        when( queryBuilder
-            .buildSqlQueryForRawAssociation( new HashSet<>( Collections.singletonList( program ) ) ) )
-                .thenReturn( "query" );
+              when(resultSet.next()).thenReturn(true, false);
 
-        when( jdbcTemplate.query(
-            anyString(), resultSetExtractorArgumentCaptor.capture() ) )
-                .thenAnswer( ( invocation ) -> {
+              Mockito.when(resultSet.getString(1)).thenReturn(program);
 
-                    when( orgUnitArray.getArray() ).thenReturn( new String[] { orgUnitA } );
+              Mockito.when(resultSet.getArray(2)).thenReturn(orgUnitArray);
 
-                    ResultSetExtractor<Map<Integer, String>> resultSetExtractor = invocation
-                        .getArgument( 1 );
+              return resultSetExtractor.extractData(resultSet);
+            });
 
-                    when( resultSet.next() ).thenReturn( true, false );
-
-                    Mockito.when( resultSet.getString( 1 ) )
-                        .thenReturn( program );
-
-                    Mockito.when( resultSet.getArray( 2 ) )
-                        .thenReturn( orgUnitArray );
-
-                    return resultSetExtractor.extractData( resultSet );
-                } );
-
-        assertFalse( jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations( program, orgUnitB ) );
-        verify( jdbcTemplate, times( 1 ) ).query( anyString(), resultSetExtractorArgumentCaptor.capture() );
-    }
+    assertFalse(jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnitB));
+    verify(jdbcTemplate, times(1)).query(anyString(), resultSetExtractorArgumentCaptor.capture());
+  }
 }

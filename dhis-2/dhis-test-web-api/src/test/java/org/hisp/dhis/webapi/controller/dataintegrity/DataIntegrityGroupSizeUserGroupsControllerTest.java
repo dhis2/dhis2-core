@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.web.HttpStatus;
@@ -38,84 +37,91 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests the metadata check for category option groups which have fewer than two
- * members.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_category_option_groups.yaml}
+ * Tests the metadata check for category option groups which have fewer than two members. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_category_option_groups.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityGroupSizeUserGroupsControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-    @Autowired
-    UserService userService;
+  @Autowired UserService userService;
 
-    private static final String check = "user_groups_scarce";
+  private static final String check = "user_groups_scarce";
 
-    private static final String detailsIdType = "userGroups";
+  private static final String detailsIdType = "userGroups";
 
-    private User bill;
+  private User bill;
 
-    @Test
-    void testUserGroupsScarce()
-    {
+  @Test
+  void testUserGroupsScarce() {
 
-        setUpTest();
+    setUpTest();
 
-        String userGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/userGroups", "{'name' : 'TestB', 'code' : 'TestB', 'users' : [{'id' : '" +
-                bill.getUid() + "'}], 'managedGroups': [], 'attributeValues' : []}" ) );
+    String userGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/userGroups",
+                "{'name' : 'TestB', 'code' : 'TestB', 'users' : [{'id' : '"
+                    + bill.getUid()
+                    + "'}], 'managedGroups': [], 'attributeValues' : []}"));
 
-        String userGroupC = assertStatus( HttpStatus.CREATED,
-            POST( "/userGroups",
-                "{'name' : 'TestC', 'code' : 'TestC', 'users' : [], 'managedGroups': [], 'attributeValues' : []}" ) );
+    String userGroupC =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/userGroups",
+                "{'name' : 'TestC', 'code' : 'TestC', 'users' : [], 'managedGroups': [], 'attributeValues' : []}"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66,
-            Set.of( userGroupB, userGroupC ), Set.of( "TestB", "TestC" ), Set.of( "0", "1" ),
-            true );
+    assertHasDataIntegrityIssues(
+        detailsIdType,
+        check,
+        66,
+        Set.of(userGroupB, userGroupC),
+        Set.of("TestB", "TestC"),
+        Set.of("0", "1"),
+        true);
+  }
 
-    }
+  @Test
+  void testUserGroupsOK() {
+    setUpTest();
 
-    @Test
-    void testUserGroupsOK()
-    {
-        setUpTest();
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  @Test
+  void testUserGroupScarceRuns() {
 
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    @Test
-    void testUserGroupScarceRuns()
-    {
+  private static User createUser(String uniquePart) {
+    User user = new User();
+    user.setCode("Code" + uniquePart);
+    user.setFirstName(FIRST_NAME + uniquePart);
+    user.setSurname(SURNAME + uniquePart);
+    user.setUsername("username" + uniquePart);
+    return user;
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
+  void setUpTest() {
 
-    }
+    bill = createUser("Bill");
+    User mary = createUser("Mary");
 
-    private static User createUser( String uniquePart )
-    {
-        User user = new User();
-        user.setCode( "Code" + uniquePart );
-        user.setFirstName( FIRST_NAME + uniquePart );
-        user.setSurname( SURNAME + uniquePart );
-        user.setUsername( "username" + uniquePart );
-        return user;
-    }
+    userService.addUser(bill);
+    userService.addUser(mary);
+    dbmsManager.clearSession();
 
-    void setUpTest()
-    {
-
-        bill = createUser( "Bill" );
-        User mary = createUser( "Mary" );
-
-        userService.addUser( bill );
-        userService.addUser( mary );
-        dbmsManager.clearSession();
-
-        assertStatus( HttpStatus.CREATED,
-            POST( "/userGroups", "{'name' : 'TestA', 'code' : 'TestA', 'users' : [{'id' : '" +
-                bill.getUid() + "'}, {'id' : '" + mary.getUid()
-                + "'}], 'managedGroups': [], 'attributeValues' : []}" ) );
-    }
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/userGroups",
+            "{'name' : 'TestA', 'code' : 'TestA', 'users' : [{'id' : '"
+                + bill.getUid()
+                + "'}, {'id' : '"
+                + mary.getUid()
+                + "'}], 'managedGroups': [], 'attributeValues' : []}"));
+  }
 }

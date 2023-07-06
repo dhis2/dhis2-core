@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
-
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -40,47 +39,44 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest
-{
-    @Autowired
-    EnrollmentFieldsParamMapper mapper;
+class EnrollmentFieldsMapperTest extends DhisControllerConvenienceTest {
+  @Autowired EnrollmentFieldsParamMapper mapper;
 
-    static Stream<Arguments> getEnrollmentParamsMultipleCases()
-    {
-        return Stream.of(
-            // This value does not make sense as it means exclude all.
-            // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
-            arguments( "!*", true, true, true ),
-            arguments( "*", true, true, true ),
-            arguments( "*,!relationships", true, true, false ),
-            arguments( "*,!attributes", false, true, true ),
-            arguments( "*,!events", true, false, true ),
-            arguments( "!events", false, false, false ),
-            arguments( "events", false, true, false ),
-            arguments( "!attributes", false, false, false ),
-            arguments( "attributes", true, false, false ),
-            arguments( "!attributes", "attributes", false, false, false ),
-            arguments( "!attributes[*]", false, false, false ),
-            arguments( "attributes[createdAt],attributes,attributes,!attributes", false, false, false ),
-            arguments( "events[!createdAt]", false, true, false ),
-            arguments( "attributes,!events", true, false, false ),
-            arguments( "relationships,!attributes", false, false, true ),
-            arguments( "events,!relationships", false, true, false ),
-            arguments( "attributes[*],events[*],relationships[*]", true, true, true ),
-            arguments( "relationships[*],!relationships[*]", false, false, false ),
-            arguments( "!relationships[*],relationships[*]", false, false, false ),
-            arguments( "relationships,relationships[!from]", false, false, true ) );
-    }
+  static Stream<Arguments> getEnrollmentParamsMultipleCases() {
+    return Stream.of(
+        // This value does not make sense as it means exclude all.
+        // We initially assumed field filtering would exclude all fields but is does not. Keeping
+        // this test as a reminder of its behavior.
+        arguments("!*", true, true, true),
+        arguments("*", true, true, true),
+        arguments("*,!relationships", true, true, false),
+        arguments("*,!attributes", false, true, true),
+        arguments("*,!events", true, false, true),
+        arguments("!events", false, false, false),
+        arguments("events", false, true, false),
+        arguments("!attributes", false, false, false),
+        arguments("attributes", true, false, false),
+        arguments("!attributes", "attributes", false, false, false),
+        arguments("!attributes[*]", false, false, false),
+        arguments("attributes[createdAt],attributes,attributes,!attributes", false, false, false),
+        arguments("events[!createdAt]", false, true, false),
+        arguments("attributes,!events", true, false, false),
+        arguments("relationships,!attributes", false, false, true),
+        arguments("events,!relationships", false, true, false),
+        arguments("attributes[*],events[*],relationships[*]", true, true, true),
+        arguments("relationships[*],!relationships[*]", false, false, false),
+        arguments("!relationships[*],relationships[*]", false, false, false),
+        arguments("relationships,relationships[!from]", false, false, true));
+  }
 
-    @MethodSource
-    @ParameterizedTest
-    void getEnrollmentParamsMultipleCases( String fields, boolean expectAttributes,
-        boolean expectEvents, boolean expectRelationships )
-    {
-        EnrollmentParams params = mapper.map( FieldFilterParser.parse( fields ) );
+  @MethodSource
+  @ParameterizedTest
+  void getEnrollmentParamsMultipleCases(
+      String fields, boolean expectAttributes, boolean expectEvents, boolean expectRelationships) {
+    EnrollmentParams params = mapper.map(FieldFilterParser.parse(fields));
 
-        assertEquals( expectAttributes, params.isIncludeAttributes() );
-        assertEquals( expectEvents, params.isIncludeEvents() );
-        assertEquals( expectRelationships, params.isIncludeRelationships() );
-    }
+    assertEquals(expectAttributes, params.isIncludeAttributes());
+    assertEquals(expectEvents, params.isIncludeEvents());
+    assertEquals(expectRelationships, params.isIncludeRelationships());
+  }
 }

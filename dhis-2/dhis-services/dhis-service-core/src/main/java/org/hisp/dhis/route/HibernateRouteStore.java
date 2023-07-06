@@ -40,12 +40,20 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class HibernateRouteStore extends HibernateIdentifiableObjectStore<Route>
-    implements RouteStore
-{
-    public HibernateRouteStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher,
-            Route.class, currentUserService, aclService, false );
-    }
+    implements RouteStore {
+  public HibernateRouteStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Route.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 }

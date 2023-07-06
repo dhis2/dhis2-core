@@ -29,7 +29,6 @@ package org.hisp.dhis.artemis.config;
 
 import java.util.Optional;
 import java.util.function.Supplier;
-
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 
@@ -37,21 +36,18 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class UsernameSupplier implements Supplier<String>
-{
-    // TODO this may come from configuration
-    private final static String DEFAULT_USERNAME = "system-process";
+public class UsernameSupplier implements Supplier<String> {
+  // TODO this may come from configuration
+  private static final String DEFAULT_USERNAME = "system-process";
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    public UsernameSupplier( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
+  public UsernameSupplier(CurrentUserService currentUserService) {
+    this.currentUserService = currentUserService;
+  }
 
-    @Override
-    public String get()
-    {
-        return Optional.ofNullable( currentUserService.getCurrentUsername() ).orElse( DEFAULT_USERNAME );
-    }
+  @Override
+  public String get() {
+    return Optional.ofNullable(currentUserService.getCurrentUsername()).orElse(DEFAULT_USERNAME);
+  }
 }

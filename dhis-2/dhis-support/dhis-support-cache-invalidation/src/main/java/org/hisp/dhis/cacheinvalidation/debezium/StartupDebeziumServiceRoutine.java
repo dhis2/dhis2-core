@@ -33,24 +33,19 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 
 /**
- * Startup routine responsible for starting the Debezium engine service. The
- * {@link DebeziumPreStartupRoutine} is called first so that the
- * {@link TableNameToEntityMapping} is already been initialized, see
- * {@link TableNameToEntityMapping#init}
+ * Startup routine responsible for starting the Debezium engine service. The {@link
+ * DebeziumPreStartupRoutine} is called first so that the {@link TableNameToEntityMapping} is
+ * already been initialized, see {@link TableNameToEntityMapping#init}
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
-{
-    @Autowired
-    private DebeziumService debeziumService;
+@Profile({"!test", "!test-h2"})
+@Conditional(value = DebeziumCacheInvalidationEnabledCondition.class)
+public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine {
+  @Autowired private DebeziumService debeziumService;
 
-    @Override
-    public void execute()
-        throws InterruptedException
-    {
-        debeziumService.startDebeziumEngine();
-    }
+  @Override
+  public void execute() throws InterruptedException {
+    debeziumService.startDebeziumEngine();
+  }
 }

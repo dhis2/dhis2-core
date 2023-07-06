@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
@@ -43,57 +42,53 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-@Repository( "org.hisp.dhis.program.EventSyncStore" )
-public class HibernateEventSyncStore implements EventSyncStore
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Repository("org.hisp.dhis.program.EventSyncStore")
+public class HibernateEventSyncStore implements EventSyncStore {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final SessionFactory sessionFactory;
+  private final SessionFactory sessionFactory;
 
-    public HibernateEventSyncStore( SessionFactory sessionFactory )
-    {
-        checkNotNull( sessionFactory );
+  public HibernateEventSyncStore(SessionFactory sessionFactory) {
+    checkNotNull(sessionFactory);
 
-        this.sessionFactory = sessionFactory;
+    this.sessionFactory = sessionFactory;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<ProgramStageInstance> getEvents(List<String> uids) {
+    if (uids.isEmpty()) {
+      return new ArrayList<>();
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+    Criteria criteria =
+        sessionFactory.getCurrentSession().createCriteria(ProgramStageInstance.class);
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramStageInstance> getEvents( List<String> uids )
-    {
-        if ( uids.isEmpty() )
-        {
-            return new ArrayList<>();
-        }
+    criteria.add(Restrictions.in("uid", uids));
 
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramStageInstance.class );
+    return criteria.list();
+  }
 
-        criteria.add( Restrictions.in( "uid", uids ) );
+  @Override
+  public ProgramStageInstance getEvent(String uid) {
+    Criteria criteria =
+        sessionFactory.getCurrentSession().createCriteria(ProgramStageInstance.class);
+    criteria.add(Restrictions.eq("uid", uid));
 
-        return criteria.list();
-    }
+    return (ProgramStageInstance) criteria.uniqueResult();
+  }
 
-    @Override
-    public ProgramStageInstance getEvent( String uid )
-    {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramStageInstance.class );
-        criteria.add( Restrictions.eq( "uid", uid ) );
+  @Override
+  public ProgramInstance getEnrollment(String uid) {
+    Criteria criteria = sessionFactory.getCurrentSession().createCriteria(ProgramInstance.class);
+    criteria.add(Restrictions.eq("uid", uid));
 
-        return (ProgramStageInstance) criteria.uniqueResult();
-    }
-
-    @Override
-    public ProgramInstance getEnrollment( String uid )
-    {
-        Criteria criteria = sessionFactory.getCurrentSession().createCriteria( ProgramInstance.class );
-        criteria.add( Restrictions.eq( "uid", uid ) );
-
-        return (ProgramInstance) criteria.uniqueResult();
-    }
+    return (ProgramInstance) criteria.uniqueResult();
+  }
 }

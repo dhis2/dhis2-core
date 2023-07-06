@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 /**
  * @author Stian Sandvold
  */
-public interface DataElementGroupService
-{
-    DataElementGroup getDataElementGroupByUid( String uid );
+public interface DataElementGroupService {
+  DataElementGroup getDataElementGroupByUid(String uid);
 }

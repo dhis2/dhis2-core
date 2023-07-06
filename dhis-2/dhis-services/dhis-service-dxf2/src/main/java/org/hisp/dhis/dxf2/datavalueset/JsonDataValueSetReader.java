@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-
 import lombok.AllArgsConstructor;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Reads {@link DataValueSet} from JSON input.
@@ -41,41 +39,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-final class JsonDataValueSetReader implements DataValueSetReader
-{
-    final InputStream in;
+final class JsonDataValueSetReader implements DataValueSetReader {
+  final InputStream in;
 
-    final ObjectMapper jsonMapper;
+  final ObjectMapper jsonMapper;
 
-    @Override
-    public DataValueSet readHeader()
-    {
-        try
-        {
-            return jsonMapper.readValue( in, DataValueSet.class );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  @Override
+  public DataValueSet readHeader() {
+    try {
+      return jsonMapper.readValue(in, DataValueSet.class);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 
-    @Override
-    public DataValueEntry readNext()
-    {
-        return null; // header contains the values
-    }
+  @Override
+  public DataValueEntry readNext() {
+    return null; // header contains the values
+  }
 
-    @Override
-    public void close()
-    {
-        try
-        {
-            in.close();
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+  @Override
+  public void close() {
+    try {
+      in.close();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 }

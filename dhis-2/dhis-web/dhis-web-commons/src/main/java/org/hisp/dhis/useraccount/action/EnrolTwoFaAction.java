@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.TwoFactoryAuthenticationUtils;
@@ -40,79 +40,68 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EnrolTwoFaAction implements Action
-{
-    private SystemSettingManager systemSettingManager;
+public class EnrolTwoFaAction implements Action {
+  private SystemSettingManager systemSettingManager;
 
-    private UserService userService;
+  private UserService userService;
 
-    @Autowired
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
+  @Autowired
+  public void setSystemSettingManager(SystemSettingManager systemSettingManager) {
+    this.systemSettingManager = systemSettingManager;
+  }
+
+  @Autowired
+  public void setUserService(UserService userService) {
+    this.userService = userService;
+  }
+
+  private String username;
+
+  private String image;
+
+  public String getUsername() {
+    return username;
+  }
+
+  public String getImage() {
+    return image;
+  }
+
+  @Override
+  public String execute() throws Exception {
+    this.username =
+        (String) ServletActionContext.getRequest().getSession().getAttribute("username");
+
+    User user = userService.getUserByUsername(username);
+
+    if (userService.hasTwoFactorRoleRestriction(user)
+        && (!user.isTwoFactorEnabled() || UserService.hasTwoFactorSecretForApproval(user))) {
+      userService.generateTwoFactorOtpSecretForApproval(user);
+
+      List<ErrorCode> errorCodes = new ArrayList<>();
+
+      this.image = generateQrCode(user, errorCodes);
+
+      if (errorCodes.isEmpty()) {
+        return SUCCESS;
+      }
     }
 
-    @Autowired
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
-    }
+    return ERROR;
+  }
 
-    private String username;
+  private String generateQrCode(User user, List<ErrorCode> errorCodes) {
+    String appName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
 
-    private String image;
+    String qrContent =
+        TwoFactoryAuthenticationUtils.generateQrContent(appName, user, errorCodes::add);
 
-    public String getUsername()
-    {
-        return username;
-    }
+    byte[] qrCode =
+        TwoFactoryAuthenticationUtils.generateQRCode(qrContent, 200, 200, errorCodes::add);
 
-    public String getImage()
-    {
-        return image;
-    }
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        this.username = (String) ServletActionContext.getRequest().getSession().getAttribute( "username" );
-
-        User user = userService.getUserByUsername( username );
-
-        if ( userService.hasTwoFactorRoleRestriction( user ) && (!user.isTwoFactorEnabled()
-            || UserService.hasTwoFactorSecretForApproval( user )) )
-        {
-            userService.generateTwoFactorOtpSecretForApproval( user );
-
-            List<ErrorCode> errorCodes = new ArrayList<>();
-
-            this.image = generateQrCode( user, errorCodes );
-
-            if ( errorCodes.isEmpty() )
-            {
-                return SUCCESS;
-            }
-        }
-
-        return ERROR;
-    }
-
-    private String generateQrCode( User user, List<ErrorCode> errorCodes )
-    {
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-
-        String qrContent = TwoFactoryAuthenticationUtils.generateQrContent( appName, user,
-            errorCodes::add );
-
-        byte[] qrCode = TwoFactoryAuthenticationUtils.generateQRCode( qrContent, 200, 200,
-            errorCodes::add );
-
-        return "data:image/png;base64," + Base64.getEncoder().encodeToString( qrCode );
-    }
+    return "data:image/png;base64," + Base64.getEncoder().encodeToString(qrCode);
+  }
 }

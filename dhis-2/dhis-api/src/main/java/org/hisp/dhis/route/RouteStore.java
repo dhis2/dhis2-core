@@ -32,6 +32,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Morten Olav Hansen
  */
-public interface RouteStore extends IdentifiableObjectStore<Route>
-{
-}
+public interface RouteStore extends IdentifiableObjectStore<Route> {}

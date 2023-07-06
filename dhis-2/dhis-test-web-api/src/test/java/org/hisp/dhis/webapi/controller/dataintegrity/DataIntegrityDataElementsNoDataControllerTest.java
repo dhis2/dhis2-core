@@ -34,88 +34,94 @@ import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for data elements which have no data values associated with them
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_nodata.yaml}
+ * Test for data elements which have no data values associated with them {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_nodata.yaml}
  *
- * @implNote Note that we clear the database session prior to the actual test.
- *           This seems to be required for the data to actually be flushed to
- *           the datavalue table.
- *
+ * @implNote Note that we clear the database session prior to the actual test. This seems to be
+ *     required for the data to actually be flushed to the datavalue table.
  * @author Jason P. Pickering
  */
-class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "data_elements_aggregate_no_data";
+class DataIntegrityDataElementsNoDataControllerTest extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "data_elements_aggregate_no_data";
 
-    private static final String detailsIdType = "dataElements";
+  private static final String detailsIdType = "dataElements";
 
-    private String dataElementA;
+  private String dataElementA;
 
-    private String dataElementB;
+  private String dataElementB;
 
-    private static final String period = "202212";
+  private static final String period = "202212";
 
-    private String orgUnitId;
+  private String orgUnitId;
 
-    @Test
-    void testDataElementsHaveData()
-    {
+  @Test
+  void testDataElementsHaveData() {
 
-        setUpTest();
-        // Add some data to dataElementB
-        assertStatus( HttpStatus.CREATED,
-            postNewDataValue( period, "10", "Test Data", false, dataElementB, orgUnitId ) );
-        // Add some data to dataElementB
-        assertStatus( HttpStatus.CREATED,
-            postNewDataValue( period, "10", "Test Data", false, dataElementA, orgUnitId ) );
+    setUpTest();
+    // Add some data to dataElementB
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
+    // Add some data to dataElementB
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, "10", "Test Data", false, dataElementA, orgUnitId));
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    }
+  @Test
+  void testDataElementsDoNotHaveData() {
 
-    @Test
-    void testDataElementsDoNotHaveData()
-    {
+    setUpTest();
 
-        setUpTest();
+    // Add some data to dataElementB
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
+    dbmsManager.clearSession();
+    // One of the data elements should not have data
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, dataElementA, "ANC1", null, true);
+  }
 
-        // Add some data to dataElementB
-        assertStatus( HttpStatus.CREATED,
-            postNewDataValue( period, "10", "Test Data", false, dataElementB, orgUnitId ) );
-        dbmsManager.clearSession();
-        //One of the data elements should not have data
-        assertHasDataIntegrityIssues( detailsIdType, check, 50,
-            dataElementA, "ANC1", null, true );
+  @Test
+  void testDataElementsNoDataRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    }
+  void setUpTest() {
 
-    @Test
-    void testDataElementsNoDataRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
+    dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-    void setUpTest()
-    {
+    dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
+    orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
 
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        // add OU to users hierarchy
-        assertStatus( HttpStatus.OK, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
-            WebClient.Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
-
-    }
+    // add OU to users hierarchy
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/users/{id}/organisationUnits",
+            getCurrentUser().getUid(),
+            WebClient.Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
+  }
 }

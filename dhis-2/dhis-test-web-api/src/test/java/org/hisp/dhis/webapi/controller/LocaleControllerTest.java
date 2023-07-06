@@ -38,35 +38,46 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class LocaleControllerTest extends DhisControllerConvenienceTest
-{
+class LocaleControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testAddLocale()
-    {
-        assertWebMessage( "Created", 201, "OK", "Locale created successfully",
-            POST( "/locales/dbLocales?language=en&country=GB" ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testAddLocale() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Locale created successfully",
+        POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testAddLocale_InvalidCountry()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Invalid country or language code.",
-            POST( "/locales/dbLocales?language=en&country=" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLocale_InvalidCountry() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Invalid country or language code.",
+        POST("/locales/dbLocales?language=en&country=").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddLocale_InvalidLanguage()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Invalid country or language code.",
-            POST( "/locales/dbLocales?language=&country=GB" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLocale_InvalidLanguage() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Invalid country or language code.",
+        POST("/locales/dbLocales?language=&country=GB").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddLocale_AlreadyExists()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/locales/dbLocales?language=en&country=GB" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "Locale code existed.",
-            POST( "/locales/dbLocales?language=en&country=GB" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLocale_AlreadyExists() {
+    assertStatus(HttpStatus.CREATED, POST("/locales/dbLocales?language=en&country=GB"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Locale code existed.",
+        POST("/locales/dbLocales?language=en&country=GB").content(HttpStatus.CONFLICT));
+  }
 }

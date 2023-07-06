@@ -27,32 +27,26 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared( pattern = Pattern.INFO )
+@OpenApi.Shared(pattern = Pattern.INFO)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProgramOwner
-{
-    @JsonProperty
-    private String orgUnit;
+public class ProgramOwner {
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String trackedEntity;
+  @JsonProperty private String trackedEntity;
 
-    @JsonProperty
-    private String program;
+  @JsonProperty private String program;
 }

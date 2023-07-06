@@ -38,121 +38,104 @@ import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_TTL_MODE;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 
 import java.util.Date;
-
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.stereotype.Component;
 
-/**
- * Holds the configuration settings for the analytics caching.
- */
+/** Holds the configuration settings for the analytics caching. */
 @Component
-public class AnalyticsCacheSettings
-{
-    private final SystemSettingManager systemSettingManager;
+public class AnalyticsCacheSettings {
+  private final SystemSettingManager systemSettingManager;
 
-    public AnalyticsCacheSettings( final SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( systemSettingManager );
-        this.systemSettingManager = systemSettingManager;
-    }
+  public AnalyticsCacheSettings(final SystemSettingManager systemSettingManager) {
+    checkNotNull(systemSettingManager);
+    this.systemSettingManager = systemSettingManager;
+  }
 
-    /**
-     * Returns true if the analytics cache mode, at application level, is set to
-     * PROGRESSIVE. If enabled, it overrides the fixed predefined settings.
-     *
-     * @see AnalyticsCacheTtlMode#PROGRESSIVE
-     *
-     * @return true if the current cache is enabled and set to PROGRESSIVE,
-     *         false otherwise.
-     */
-    public boolean isProgressiveCachingEnabled()
-    {
-        AnalyticsCacheTtlMode analyticsCacheMode = systemSettingManager
-            .getSystemSetting( ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class );
+  /**
+   * Returns true if the analytics cache mode, at application level, is set to PROGRESSIVE. If
+   * enabled, it overrides the fixed predefined settings.
+   *
+   * @see AnalyticsCacheTtlMode#PROGRESSIVE
+   * @return true if the current cache is enabled and set to PROGRESSIVE, false otherwise.
+   */
+  public boolean isProgressiveCachingEnabled() {
+    AnalyticsCacheTtlMode analyticsCacheMode =
+        systemSettingManager.getSystemSetting(
+            ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class);
 
-        return PROGRESSIVE == analyticsCacheMode;
-    }
+    return PROGRESSIVE == analyticsCacheMode;
+  }
 
-    /**
-     * Returns true if the analytics cache mode, at application level, is
-     * correctly set to FIXED.
-     *
-     * @see AnalyticsCacheTtlMode#FIXED
-     *
-     * @return true if the current cache mode is set to FIXED, false otherwise.
-     */
-    public boolean isFixedCachingEnabled()
-    {
-        AnalyticsCacheTtlMode analyticsCacheMode = systemSettingManager
-            .getSystemSetting( ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class );
+  /**
+   * Returns true if the analytics cache mode, at application level, is correctly set to FIXED.
+   *
+   * @see AnalyticsCacheTtlMode#FIXED
+   * @return true if the current cache mode is set to FIXED, false otherwise.
+   */
+  public boolean isFixedCachingEnabled() {
+    AnalyticsCacheTtlMode analyticsCacheMode =
+        systemSettingManager.getSystemSetting(
+            ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class);
 
-        CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
-            CacheStrategy.class );
+    CacheStrategy cacheStrategy =
+        systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class);
 
-        return FIXED == analyticsCacheMode && cacheStrategy != null && cacheStrategy.hasExpirationTimeSet();
-    }
+    return FIXED == analyticsCacheMode
+        && cacheStrategy != null
+        && cacheStrategy.hasExpirationTimeSet();
+  }
 
-    /**
-     * Encapsulates the calculation of the progressive expiration time for the
-     * analytics caching at application level, if the PROGRESSIVE mode is set.
-     *
-     * @param dateBeforeToday the date to be used during the calculation of the
-     *        progressive expiration time.
-     *
-     * @return the expiration time computed based on the given
-     *         "dateBeforeToday".
-     */
-    public long progressiveExpirationTimeOrDefault( Date dateBeforeToday )
-    {
-        return new TimeToLive( dateBeforeToday, getProgressiveTtlFactorOrDefault() ).compute();
-    }
+  /**
+   * Encapsulates the calculation of the progressive expiration time for the analytics caching at
+   * application level, if the PROGRESSIVE mode is set.
+   *
+   * @param dateBeforeToday the date to be used during the calculation of the progressive expiration
+   *     time.
+   * @return the expiration time computed based on the given "dateBeforeToday".
+   */
+  public long progressiveExpirationTimeOrDefault(Date dateBeforeToday) {
+    return new TimeToLive(dateBeforeToday, getProgressiveTtlFactorOrDefault()).compute();
+  }
 
-    /**
-     * Retrieves the expiration time in seconds based on the system settings
-     * based on the {@link org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}. If
-     * it says not to cache, return 0 so no caching will take place. Otherwise
-     * return a long time. This is because we flush the analytics cache after on
-     * analytics rebuild. For this purpose, two weeks is considered to be "a
-     * long time". Two weeks is likely to be longer than until the next
-     * analytics rebuild, and if it isn't, this ensures that all cache entries
-     * will eventually be aged out.
-     *
-     * @see CacheStrategy
-     *
-     * @return the predefined expiration time set or 0 (ZERO) if nothing is set.
-     */
-    public long fixedExpirationTimeOrDefault()
-    {
-        CacheStrategy cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY,
-            CacheStrategy.class );
+  /**
+   * Retrieves the expiration time in seconds based on the system settings based on the {@link
+   * org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}. If it says not to cache, return 0 so no
+   * caching will take place. Otherwise return a long time. This is because we flush the analytics
+   * cache after on analytics rebuild. For this purpose, two weeks is considered to be "a long
+   * time". Two weeks is likely to be longer than until the next analytics rebuild, and if it isn't,
+   * this ensures that all cache entries will eventually be aged out.
+   *
+   * @see CacheStrategy
+   * @return the predefined expiration time set or 0 (ZERO) if nothing is set.
+   */
+  public long fixedExpirationTimeOrDefault() {
+    CacheStrategy cacheStrategy =
+        systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class);
 
-        return (NO_CACHE.equals( cacheStrategy ))
-            ? NO_CACHE.toSeconds()
-            : CACHE_TWO_WEEKS.toSeconds();
-    }
+    return (NO_CACHE.equals(cacheStrategy)) ? NO_CACHE.toSeconds() : CACHE_TWO_WEEKS.toSeconds();
+  }
 
-    /**
-     * Checks if any the caching feature (PROGRESSIVE or FIXED) is enabled.
-     *
-     * @return true if there is any expiration time set, false otherwise.
-     */
-    public boolean isCachingEnabled()
-    {
-        return isFixedCachingEnabled() || isProgressiveCachingEnabled();
-    }
+  /**
+   * Checks if any the caching feature (PROGRESSIVE or FIXED) is enabled.
+   *
+   * @return true if there is any expiration time set, false otherwise.
+   */
+  public boolean isCachingEnabled() {
+    return isFixedCachingEnabled() || isProgressiveCachingEnabled();
+  }
 
-    /**
-     * Returns the TTL factor set in system settings or 1 (when the factor is
-     * set to ZERO or negative).
-     *
-     * @return the ttl factor
-     */
-    private int getProgressiveTtlFactorOrDefault()
-    {
-        Integer ttlFactor = systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR );
+  /**
+   * Returns the TTL factor set in system settings or 1 (when the factor is set to ZERO or
+   * negative).
+   *
+   * @return the ttl factor
+   */
+  private int getProgressiveTtlFactorOrDefault() {
+    Integer ttlFactor =
+        systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR);
 
-        return max( ttlFactor, 1 );
-    }
+    return max(ttlFactor, 1);
+  }
 }

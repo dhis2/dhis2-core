@@ -28,7 +28,6 @@
 package org.hisp.dhis.datavalue;
 
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,41 +40,38 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class DataValueDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataValue.class );
+public class DataValueDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataValue.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        return vetoIfExists( VETO, "select 1 from datavalue where dataelementid=:id limit 1",
-            Map.of( "id", dataElement.getId() ) );
-    }
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from datavalue where dataelementid=:id limit 1",
+        Map.of("id", dataElement.getId()));
+  }
 
-    private DeletionVeto allowDeletePeriod( Period period )
-    {
-        return vetoIfExists( VETO, "select 1 from datavalue where periodid=:id limit 1",
-            Map.of( "id", period.getId() ) );
-    }
+  private DeletionVeto allowDeletePeriod(Period period) {
+    return vetoIfExists(
+        VETO, "select 1 from datavalue where periodid=:id limit 1", Map.of("id", period.getId()));
+  }
 
-    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
-    {
-        return vetoIfExists( VETO, "select 1 from datavalue where sourceid=:id limit 1",
-            Map.of( "id", unit.getId() ) );
-    }
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    return vetoIfExists(
+        VETO, "select 1 from datavalue where sourceid=:id limit 1", Map.of("id", unit.getId()));
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        return vetoIfExists( VETO,
-            "select 1 from datavalue where categoryoptioncomboid=:id or attributeoptioncomboid=:id limit 1",
-            Map.of( "id", optionCombo.getId() ) );
-    }
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    return vetoIfExists(
+        VETO,
+        "select 1 from datavalue where categoryoptioncomboid=:id or attributeoptioncomboid=:id limit 1",
+        Map.of("id", optionCombo.getId()));
+  }
 }

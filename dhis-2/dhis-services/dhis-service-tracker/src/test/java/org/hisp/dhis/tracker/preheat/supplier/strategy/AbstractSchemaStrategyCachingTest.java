@@ -39,7 +39,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.Program;
@@ -63,78 +62,75 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class AbstractSchemaStrategyCachingTest
-{
+@ExtendWith(MockitoExtension.class)
+class AbstractSchemaStrategyCachingTest {
 
-    @Mock
-    private PreheatCacheService cache;
+  @Mock private PreheatCacheService cache;
 
-    @Mock
-    private IdentifiableObjectManager manager;
+  @Mock private IdentifiableObjectManager manager;
 
-    @Mock
-    private QueryService queryService;
+  @Mock private QueryService queryService;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @BeforeEach
-    public void setUp()
-    {
-        preheat = new TrackerPreheat();
-    }
+  @BeforeEach
+  public void setUp() {
+    preheat = new TrackerPreheat();
+  }
 
-    @Test
-    void verifyObjectInCacheIsReturned()
-    {
-        // Given
-        final Schema schema = new ProgramSchemaDescriptor().getSchema();
+  @Test
+  void verifyObjectInCacheIsReturned() {
+    // Given
+    final Schema schema = new ProgramSchemaDescriptor().getSchema();
 
-        String UID = CodeGenerator.generateUid();
+    String UID = CodeGenerator.generateUid();
 
-        Program program = rnd.nextObject( Program.class );
-        when( cache.get( Program.class.getSimpleName(), UID ) ).thenReturn( Optional.of( program ) );
+    Program program = rnd.nextObject(Program.class);
+    when(cache.get(Program.class.getSimpleName(), UID)).thenReturn(Optional.of(program));
 
-        ProgramStrategy strategy = new ProgramStrategy( schemaService, queryService,
-            manager, cache );
+    ProgramStrategy strategy = new ProgramStrategy(schemaService, queryService, manager, cache);
 
-        // When
-        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdSchemeParam.UID,
-            singletonList( singletonList( UID ) ), ProgramMapper.INSTANCE.getClass() );
+    // When
+    strategy.queryForIdentifiableObjects(
+        preheat,
+        schema,
+        TrackerIdSchemeParam.UID,
+        singletonList(singletonList(UID)),
+        ProgramMapper.INSTANCE.getClass());
 
-        // Then
-        assertThat( preheat.getAll( Program.class ), hasSize( 1 ) );
-    }
+    // Then
+    assertThat(preheat.getAll(Program.class), hasSize(1));
+  }
 
-    @Test
-    void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
-    {
-        // Given
-        final Schema schema = new ProgramSchemaDescriptor().getSchema();
+  @Test
+  void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache() {
+    // Given
+    final Schema schema = new ProgramSchemaDescriptor().getSchema();
 
-        String UID = CodeGenerator.generateUid();
+    String UID = CodeGenerator.generateUid();
 
-        Program program = rnd.nextObject( Program.class );
+    Program program = rnd.nextObject(Program.class);
 
-        when( cache.get( Program.class.getSimpleName(), UID ) ).thenReturn( Optional.empty() );
+    when(cache.get(Program.class.getSimpleName(), UID)).thenReturn(Optional.empty());
 
-        doReturn( singletonList( program ) ).when( queryService ).query( any( Query.class ) );
-        ProgramStrategy strategy = new ProgramStrategy( schemaService, queryService,
-            manager, cache );
+    doReturn(singletonList(program)).when(queryService).query(any(Query.class));
+    ProgramStrategy strategy = new ProgramStrategy(schemaService, queryService, manager, cache);
 
-        // When
-        strategy.queryForIdentifiableObjects( preheat, schema, TrackerIdSchemeParam.UID,
-            singletonList( singletonList( UID ) ), CopyMapper.class );
+    // When
+    strategy.queryForIdentifiableObjects(
+        preheat,
+        schema,
+        TrackerIdSchemeParam.UID,
+        singletonList(singletonList(UID)),
+        CopyMapper.class);
 
-        // Then
-        assertThat( preheat.getAll( Program.class ), hasSize( 1 ) );
+    // Then
+    assertThat(preheat.getAll(Program.class), hasSize(1));
 
-        verify( cache, times( 1 ) ).put( eq( "Program" ), anyString(), any(), eq( 20 ), eq( 10L ) );
-    }
-
+    verify(cache, times(1)).put(eq("Program"), anyString(), any(), eq(20), eq(10L));
+  }
 }

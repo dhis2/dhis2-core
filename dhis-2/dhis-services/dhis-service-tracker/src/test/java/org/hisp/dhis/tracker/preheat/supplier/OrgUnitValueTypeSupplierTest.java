@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -59,218 +58,195 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class OrgUnitValueTypeSupplierTest extends DhisConvenienceTest {
 
-    private OrgUnitValueTypeSupplier supplier;
+  private OrgUnitValueTypeSupplier supplier;
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    @Mock
-    private IdentifiableObjectManager manager;
+  @Mock private IdentifiableObjectManager manager;
 
-    @BeforeEach
-    public void setUp()
-    {
-        preheat = new TrackerPreheat();
-        supplier = new OrgUnitValueTypeSupplier( manager );
-    }
+  @BeforeEach
+  public void setUp() {
+    preheat = new TrackerPreheat();
+    supplier = new OrgUnitValueTypeSupplier(manager);
+  }
 
-    @Test
-    void testSupplierAddsOrgUnitReferencedByTEIAttributes()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            List.of( teaNumeric( "numeric" ), teaOrgUnit( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierAddsOrgUnitReferencedByTEIAttributes() {
+    preheat.put(
+        TrackerIdSchemeParam.UID, List.of(teaNumeric("numeric"), teaOrgUnit("hQKI6KcEu5t")));
 
-        OrganisationUnit orgUnit = orgUnit( "kKacJUdANDC" );
-        when( manager.getByUid( OrganisationUnit.class, List.of( "kKacJUdANDC" ) ) )
-            .thenReturn( List.of( orgUnit ) );
+    OrganisationUnit orgUnit = orgUnit("kKacJUdANDC");
+    when(manager.getByUid(OrganisationUnit.class, List.of("kKacJUdANDC")))
+        .thenReturn(List.of(orgUnit));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
             .trackedEntities(
-                List.of( trackedEntity( numericAttribute(), orgUnitAttribute( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+                List.of(
+                    trackedEntity(
+                        numericAttribute(), orgUnitAttribute("hQKI6KcEu5t", "kKacJUdANDC"))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertContainsOnly( List.of( orgUnit ), preheat.getAll( OrganisationUnit.class ) );
-    }
+    assertContainsOnly(List.of(orgUnit), preheat.getAll(OrganisationUnit.class));
+  }
 
-    @Test
-    void testSupplierDoesNotAddOrgUnitIfTEIAttributeValueIsEmpty()
-    {
-        preheat.put( TrackerIdSchemeParam.UID, List.of( teaOrgUnit( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierDoesNotAddOrgUnitIfTEIAttributeValueIsEmpty() {
+    preheat.put(TrackerIdSchemeParam.UID, List.of(teaOrgUnit("hQKI6KcEu5t")));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .trackedEntities( List.of( trackedEntity( orgUnitAttribute( "hQKI6KcEu5t", "" ) ) ) )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .trackedEntities(List.of(trackedEntity(orgUnitAttribute("hQKI6KcEu5t", ""))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertEquals( Collections.emptyList(), preheat.getAll( OrganisationUnit.class ) );
-    }
+    assertEquals(Collections.emptyList(), preheat.getAll(OrganisationUnit.class));
+  }
 
-    @Test
-    void testSupplierAddsOrgUnitReferencedByEnrollmentAttributes()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            List.of( teaNumeric( "numeric" ), teaOrgUnit( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierAddsOrgUnitReferencedByEnrollmentAttributes() {
+    preheat.put(
+        TrackerIdSchemeParam.UID, List.of(teaNumeric("numeric"), teaOrgUnit("hQKI6KcEu5t")));
 
-        OrganisationUnit orgUnit = orgUnit( "kKacJUdANDC" );
-        when( manager.getByUid( OrganisationUnit.class, List.of( "kKacJUdANDC" ) ) )
-            .thenReturn( List.of( orgUnit ) );
+    OrganisationUnit orgUnit = orgUnit("kKacJUdANDC");
+    when(manager.getByUid(OrganisationUnit.class, List.of("kKacJUdANDC")))
+        .thenReturn(List.of(orgUnit));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
             .enrollments(
-                List.of( enrollment( numericAttribute(), orgUnitAttribute( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+                List.of(
+                    enrollment(numericAttribute(), orgUnitAttribute("hQKI6KcEu5t", "kKacJUdANDC"))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertContainsOnly( List.of( orgUnit ), preheat.getAll( OrganisationUnit.class ) );
-    }
+    assertContainsOnly(List.of(orgUnit), preheat.getAll(OrganisationUnit.class));
+  }
 
-    @Test
-    void testSupplierAddsOrgUnitReferencedByEventDataElement()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            List.of( numericDataElement( "numeric" ), orgUnitDataElement( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierAddsOrgUnitReferencedByEventDataElement() {
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        List.of(numericDataElement("numeric"), orgUnitDataElement("hQKI6KcEu5t")));
 
-        OrganisationUnit orgUnit = orgUnit( "kKacJUdANDC" );
-        when( manager.getByUid( OrganisationUnit.class, List.of( "kKacJUdANDC" ) ) )
-            .thenReturn( List.of( orgUnit ) );
+    OrganisationUnit orgUnit = orgUnit("kKacJUdANDC");
+    when(manager.getByUid(OrganisationUnit.class, List.of("kKacJUdANDC")))
+        .thenReturn(List.of(orgUnit));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .events( List.of( event( dataValue( "numeric", "2" ), dataValue( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .events(
+                List.of(event(dataValue("numeric", "2"), dataValue("hQKI6KcEu5t", "kKacJUdANDC"))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertContainsOnly( List.of( orgUnit ), preheat.getAll( OrganisationUnit.class ) );
-    }
+    assertContainsOnly(List.of(orgUnit), preheat.getAll(OrganisationUnit.class));
+  }
 
-    @Test
-    void testSupplierDoesNotAddOrgUnitIfEventDataValueValueIsEmpty()
-    {
-        preheat.put( TrackerIdSchemeParam.UID, List.of( orgUnitDataElement( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierDoesNotAddOrgUnitIfEventDataValueValueIsEmpty() {
+    preheat.put(TrackerIdSchemeParam.UID, List.of(orgUnitDataElement("hQKI6KcEu5t")));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .events( List.of( event( dataValue( "hQKI6KcEu5t", "" ) ) ) )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .events(List.of(event(dataValue("hQKI6KcEu5t", ""))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertEquals( Collections.emptyList(), preheat.getAll( OrganisationUnit.class ) );
-    }
+    assertEquals(Collections.emptyList(), preheat.getAll(OrganisationUnit.class));
+  }
 
-    private TrackedEntityAttribute teaNumeric( String uid )
-    {
-        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        attribute.setUid( uid );
-        attribute.setValueType( ValueType.NUMBER );
-        return attribute;
-    }
+  private TrackedEntityAttribute teaNumeric(String uid) {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    attribute.setUid(uid);
+    attribute.setValueType(ValueType.NUMBER);
+    return attribute;
+  }
 
-    private TrackedEntityAttribute teaOrgUnit( String uid )
-    {
-        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        attribute.setUid( uid );
-        attribute.setValueType( ValueType.ORGANISATION_UNIT );
-        return attribute;
-    }
+  private TrackedEntityAttribute teaOrgUnit(String uid) {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    attribute.setUid(uid);
+    attribute.setValueType(ValueType.ORGANISATION_UNIT);
+    return attribute;
+  }
 
-    private OrganisationUnit orgUnit( String uid )
-    {
-        OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
-        orgUnit.setUid( uid );
-        return orgUnit;
-    }
+  private OrganisationUnit orgUnit(String uid) {
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    orgUnit.setUid(uid);
+    return orgUnit;
+  }
 
-    private TrackerImportParams.TrackerImportParamsBuilder params( TrackerIdSchemeParams idSchemes )
-    {
-        return TrackerImportParams.builder().idSchemes( idSchemes );
-    }
+  private TrackerImportParams.TrackerImportParamsBuilder params(TrackerIdSchemeParams idSchemes) {
+    return TrackerImportParams.builder().idSchemes(idSchemes);
+  }
 
-    private Attribute numericAttribute()
-    {
-        return Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( "numeric" ) )
-            .valueType( ValueType.NUMBER )
-            .build();
-    }
+  private Attribute numericAttribute() {
+    return Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid("numeric"))
+        .valueType(ValueType.NUMBER)
+        .build();
+  }
 
-    private Attribute orgUnitAttribute( String uid, String value )
-    {
-        return Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( uid ) )
-            .valueType( ValueType.ORGANISATION_UNIT )
-            .value( value )
-            .build();
-    }
+  private Attribute orgUnitAttribute(String uid, String value) {
+    return Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid(uid))
+        .valueType(ValueType.ORGANISATION_UNIT)
+        .value(value)
+        .build();
+  }
 
-    private TrackedEntity trackedEntity( Attribute... attributes )
-    {
-        return TrackedEntity.builder()
-            .attributes( attributes( attributes ) )
-            .build();
-    }
+  private TrackedEntity trackedEntity(Attribute... attributes) {
+    return TrackedEntity.builder().attributes(attributes(attributes)).build();
+  }
 
-    private Enrollment enrollment( Attribute... attributes )
-    {
-        return Enrollment.builder()
-            .attributes( attributes( attributes ) )
-            .build();
-    }
+  private Enrollment enrollment(Attribute... attributes) {
+    return Enrollment.builder().attributes(attributes(attributes)).build();
+  }
 
-    private List<Attribute> attributes( Attribute[] attributes )
-    {
-        List<Attribute> attrs = new ArrayList<>();
-        for ( Attribute at : attributes )
-        {
-            attrs.add( at );
-        }
-        return attrs;
+  private List<Attribute> attributes(Attribute[] attributes) {
+    List<Attribute> attrs = new ArrayList<>();
+    for (Attribute at : attributes) {
+      attrs.add(at);
     }
+    return attrs;
+  }
 
-    private DataElement numericDataElement( String uid )
-    {
-        DataElement element = createDataElement( 'A' );
-        element.setUid( uid );
-        element.setValueType( ValueType.NUMBER );
-        return element;
-    }
+  private DataElement numericDataElement(String uid) {
+    DataElement element = createDataElement('A');
+    element.setUid(uid);
+    element.setValueType(ValueType.NUMBER);
+    return element;
+  }
 
-    private DataElement orgUnitDataElement( String uid )
-    {
-        DataElement element = createDataElement( 'A' );
-        element.setUid( uid );
-        element.setValueType( ValueType.ORGANISATION_UNIT );
-        return element;
-    }
+  private DataElement orgUnitDataElement(String uid) {
+    DataElement element = createDataElement('A');
+    element.setUid(uid);
+    element.setValueType(ValueType.ORGANISATION_UNIT);
+    return element;
+  }
 
-    private Event event( DataValue... dataValues )
-    {
-        return Event.builder()
-            .dataValues( dataValues( dataValues ) )
-            .build();
-    }
+  private Event event(DataValue... dataValues) {
+    return Event.builder().dataValues(dataValues(dataValues)).build();
+  }
 
-    private Set<DataValue> dataValues( DataValue[] dataValues )
-    {
-        Set<DataValue> dvs = new HashSet<>();
-        for ( DataValue dv : dataValues )
-        {
-            dvs.add( dv );
-        }
-        return dvs;
+  private Set<DataValue> dataValues(DataValue[] dataValues) {
+    Set<DataValue> dvs = new HashSet<>();
+    for (DataValue dv : dataValues) {
+      dvs.add(dv);
     }
+    return dvs;
+  }
 
-    private DataValue dataValue( String uid, String value )
-    {
-        return DataValue.builder()
-            .dataElement( MetadataIdentifier.ofUid( uid ) )
-            .value( value )
-            .build();
-    }
+  private DataValue dataValue(String uid, String value) {
+    return DataValue.builder().dataElement(MetadataIdentifier.ofUid(uid)).value(value).build();
+  }
 }

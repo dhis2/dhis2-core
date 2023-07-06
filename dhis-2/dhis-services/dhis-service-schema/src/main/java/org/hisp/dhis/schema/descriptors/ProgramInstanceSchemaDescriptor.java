@@ -31,17 +31,15 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
-public class ProgramInstanceSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "programInstance";
+public class ProgramInstanceSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "programInstance";
 
-    public static final String PLURAL = "programInstances";
+  public static final String PLURAL = "programInstances";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( ProgramInstance.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(ProgramInstance.class, SINGULAR, PLURAL);
+  }
 }

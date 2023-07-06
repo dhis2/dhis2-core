@@ -43,76 +43,89 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link DataIntegrityController} API with focus API returning
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityDetails}.
+ * Tests the {@link DataIntegrityController} API with focus API returning {@link
+ * org.hisp.dhis.dataintegrity.DataIntegrityDetails}.
  *
  * @author Jan Bernitt
  */
-class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityControllerTest
-{
-    @Test
-    void testLegacyChecksOnly()
-    {
-        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
-        {
-            String check = type.getName();
-            postDetails( check );
-            JsonDataIntegrityDetails details = getDetails( check );
-            assertTrue( details.getIssues().isEmpty() );
-        }
+class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityControllerTest {
+  @Test
+  void testLegacyChecksOnly() {
+    for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
+      String check = type.getName();
+      postDetails(check);
+      JsonDataIntegrityDetails details = getDetails(check);
+      assertTrue(details.getIssues().isEmpty());
     }
+  }
 
-    @Test
-    void testSingleCheckByPath()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+  @Test
+  void testSingleCheckByPath() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}"));
 
-        postDetails( "categories-no-options" );
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details?timeout=1000" )
-            .content().as( JsonDataIntegrityDetails.class );
+    postDetails("categories-no-options");
+    JsonDataIntegrityDetails details =
+        GET("/dataIntegrity/categories-no-options/details?timeout=1000")
+            .content()
+            .as(JsonDataIntegrityDetails.class);
 
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        assertNotNull( details.getStartTime() );
-        assertNotNull( details.getCode() );
-        assertFalse( details.getStartTime().isAfter( details.getFinishedTime() ) );
-        JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( uid, issues.get( 0 ).getId() );
-        assertEquals( "CatDog", issues.get( 0 ).getName() );
-        assertEquals( "categories", details.getIssuesIdType() );
-    }
+    assertTrue(details.exists());
+    assertTrue(details.isObject());
+    assertNotNull(details.getStartTime());
+    assertNotNull(details.getCode());
+    assertFalse(details.getStartTime().isAfter(details.getFinishedTime()));
+    JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
+    assertTrue(issues.exists());
+    assertEquals(1, issues.size());
+    assertEquals(uid, issues.get(0).getId());
+    assertEquals("CatDog", issues.get(0).getName());
+    assertEquals("categories", details.getIssuesIdType());
+  }
 
-    @Test
-    void testCompletedChecks()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+  @Test
+  void testCompletedChecks() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}"));
 
-        postDetails( "categories-no-options" );
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details?timeout=1000" )
-            .content().as( JsonDataIntegrityDetails.class );
-        assertNotNull( details );
+    postDetails("categories-no-options");
+    JsonDataIntegrityDetails details =
+        GET("/dataIntegrity/categories-no-options/details?timeout=1000")
+            .content()
+            .as(JsonDataIntegrityDetails.class);
+    assertNotNull(details);
 
-        //OBS! The result is based on application scoped map so there might be other values from other tests
-        assertTrue(
-            GET( "/dataIntegrity/details/completed" ).content().stringValues().contains( "categories_no_options" ) );
-    }
+    // OBS! The result is based on application scoped map so there might be other values from other
+    // tests
+    assertTrue(
+        GET("/dataIntegrity/details/completed")
+            .content()
+            .stringValues()
+            .contains("categories_no_options"));
+  }
 
-    @Test
-    void testRunDetailsCheck_WithBody()
-    {
-        JsonObject trigger = POST( "/dataIntegrity/details", "['DE']" ).content(); // datasets_empty
-        assertTrue( trigger.isA( JsonWebMessage.class ) );
+  @Test
+  void testRunDetailsCheck_WithBody() {
+    JsonObject trigger = POST("/dataIntegrity/details", "['DE']").content(); // datasets_empty
+    assertTrue(trigger.isA(JsonWebMessage.class));
 
-        // wait for check to complete
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/DE/details?timeout=1000" )
-            .content().as( JsonDataIntegrityDetails.class );
-        assertTrue( details.isObject() );
+    // wait for check to complete
+    JsonDataIntegrityDetails details =
+        GET("/dataIntegrity/DE/details?timeout=1000").content().as(JsonDataIntegrityDetails.class);
+    assertTrue(details.isObject());
 
-        assertTrue(
-            GET( "/dataIntegrity/details/completed" ).content().stringValues().contains( "datasets_empty" ) );
-    }
+    assertTrue(
+        GET("/dataIntegrity/details/completed")
+            .content()
+            .stringValues()
+            .contains("datasets_empty"));
+  }
 }

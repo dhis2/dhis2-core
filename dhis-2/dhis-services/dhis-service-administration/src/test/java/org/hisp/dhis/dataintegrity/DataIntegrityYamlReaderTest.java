@@ -43,7 +43,6 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
 
@@ -52,77 +51,89 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityYamlReaderTest
-{
-    @Test
-    void testReadDataIntegrityYaml()
-    {
+class DataIntegrityYamlReaderTest {
+  @Test
+  void testReadDataIntegrityYaml() {
 
-        List<DataIntegrityCheck> checks = new ArrayList<>();
-        readDataIntegrityYaml( "data-integrity-checks.yaml", checks::add,
-            ( property, defaultValue ) -> defaultValue,
-            sql -> check -> new DataIntegritySummary( check, new Date(), new Date(), null, 1, 100d ),
-            sql -> check -> new DataIntegrityDetails( check, new Date(), new Date(), null,
-                List.of( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-        assertEquals( 63, checks.size() );
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readDataIntegrityYaml(
+        "data-integrity-checks.yaml",
+        checks::add,
+        (property, defaultValue) -> defaultValue,
+        sql -> check -> new DataIntegritySummary(check, new Date(), new Date(), null, 1, 100d),
+        sql ->
+            check ->
+                new DataIntegrityDetails(
+                    check,
+                    new Date(),
+                    new Date(),
+                    null,
+                    List.of(new DataIntegrityIssue("id", "name", sql, List.of()))));
+    assertEquals(63, checks.size());
 
-        //Names should be unique
-        List<String> allNames = checks.stream().map( DataIntegrityCheck::getName )
-            .collect( toUnmodifiableList() );
-        assertEquals( allNames.size(), Set.copyOf( allNames ).size() );
+    // Names should be unique
+    List<String> allNames =
+        checks.stream().map(DataIntegrityCheck::getName).collect(toUnmodifiableList());
+    assertEquals(allNames.size(), Set.copyOf(allNames).size());
 
-        //Config checks and Java checks should not have any of the same names
-        List<String> nonYamlChecks = Stream.of( DataIntegrityCheckType.values() )
-            .map( e -> e.getName().toLowerCase() )
-            .collect( toList() );
-        assertTrue( nonYamlChecks.size() > 0 );
-        nonYamlChecks.retainAll( allNames );
-        assertEquals( 0, nonYamlChecks.size() );
+    // Config checks and Java checks should not have any of the same names
+    List<String> nonYamlChecks =
+        Stream.of(DataIntegrityCheckType.values())
+            .map(e -> e.getName().toLowerCase())
+            .collect(toList());
+    assertTrue(nonYamlChecks.size() > 0);
+    nonYamlChecks.retainAll(allNames);
+    assertEquals(0, nonYamlChecks.size());
 
-        //Assert that all "codes" are unique.
-        List<String> codeList = checks.stream()
-            .map( DataIntegrityCheck::getCode )
-            .sorted()
-            .collect( toUnmodifiableList() );
-        assertEquals( codeList.size(), Set.copyOf( codeList ).size() );
+    // Assert that all "codes" are unique.
+    List<String> codeList =
+        checks.stream().map(DataIntegrityCheck::getCode).sorted().collect(toUnmodifiableList());
+    assertEquals(codeList.size(), Set.copyOf(codeList).size());
 
-        //Assert that codes consist of upper case letter and numbers only
-        String regEx = "^[A-Z0-9]+$";
-        Predicate<String> IS_NOT_CAPS = Pattern.compile( regEx ).asPredicate().negate();
-        List<String> badCodes = codeList.stream().filter( IS_NOT_CAPS ).collect( Collectors.toUnmodifiableList() );
-        assertEquals( 0, badCodes.size() );
+    // Assert that codes consist of upper case letter and numbers only
+    String regEx = "^[A-Z0-9]+$";
+    Predicate<String> IS_NOT_CAPS = Pattern.compile(regEx).asPredicate().negate();
+    List<String> badCodes =
+        codeList.stream().filter(IS_NOT_CAPS).collect(Collectors.toUnmodifiableList());
+    assertEquals(0, badCodes.size());
 
-        //Assert that all checks have details ID and are unique and UIDish
-        List<String> detailsIDs = checks.stream()
-            .map( DataIntegrityCheck::getDetailsID )
-            .collect( toUnmodifiableList() );
-        assertEquals( detailsIDs.size(), Set.copyOf( detailsIDs ).size() );
+    // Assert that all checks have details ID and are unique and UIDish
+    List<String> detailsIDs =
+        checks.stream().map(DataIntegrityCheck::getDetailsID).collect(toUnmodifiableList());
+    assertEquals(detailsIDs.size(), Set.copyOf(detailsIDs).size());
 
-        List<String> badDetailsUIDs = detailsIDs.stream().filter( e -> !isValidUid( e ) ).collect( toList() );
-        assertEquals( 0, badDetailsUIDs.size() );
+    List<String> badDetailsUIDs = detailsIDs.stream().filter(e -> !isValidUid(e)).collect(toList());
+    assertEquals(0, badDetailsUIDs.size());
 
-        //Assert that all checks have summary ID and are unique and are UIDish
-        List<String> summaryIDs = checks.stream()
-            .map( DataIntegrityCheck::getSummaryID )
-            .collect( toUnmodifiableList() );
+    // Assert that all checks have summary ID and are unique and are UIDish
+    List<String> summaryIDs =
+        checks.stream().map(DataIntegrityCheck::getSummaryID).collect(toUnmodifiableList());
 
-        assertEquals( summaryIDs.size(), Set.copyOf( summaryIDs ).size() );
-        List<String> badSummaryUIDs = summaryIDs.stream().filter( e -> !isValidUid( e ) ).collect( toList() );
-        assertEquals( 0, badSummaryUIDs.size() );
+    assertEquals(summaryIDs.size(), Set.copyOf(summaryIDs).size());
+    List<String> badSummaryUIDs = summaryIDs.stream().filter(e -> !isValidUid(e)).collect(toList());
+    assertEquals(0, badSummaryUIDs.size());
 
-        DataIntegrityCheck check = checks.get( 0 );
-        assertEquals( "categories_no_options", check.getName() );
-        assertEquals( "Categories with no category options", check.getDescription() );
-        assertEquals( "Categories", check.getSection() );
-        assertEquals( "categories", check.getIssuesIdType() );
-        assertEquals( DataIntegritySeverity.WARNING, check.getSeverity() );
-        assertEquals( "Categories should always have at least one category option.", check.getIntroduction() );
-        assertEquals( "Any categories without category options should either be removed from the"
+    DataIntegrityCheck check = checks.get(0);
+    assertEquals("categories_no_options", check.getName());
+    assertEquals("Categories with no category options", check.getDescription());
+    assertEquals("Categories", check.getSection());
+    assertEquals("categories", check.getIssuesIdType());
+    assertEquals(DataIntegritySeverity.WARNING, check.getSeverity());
+    assertEquals(
+        "Categories should always have at least one category option.", check.getIntroduction());
+    assertEquals(
+        "Any categories without category options should either be removed from the"
             + " system if they are not in use. Otherwise, appropriate category options"
-            + " should be added to the category.", check.getRecommendation() );
-        assertFalse( check.isSlow() );
-        assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
-            .startsWith( "SELECT uid,name from dataelementcategory" ) );
-    }
-
+            + " should be added to the category.",
+        check.getRecommendation());
+    assertFalse(check.isSlow());
+    assertTrue(
+        check
+            .getRunDetailsCheck()
+            .apply(check)
+            .getIssues()
+            .get(0)
+            .getComment()
+            .startsWith("SELECT uid,name from dataelementcategory"));
+  }
 }

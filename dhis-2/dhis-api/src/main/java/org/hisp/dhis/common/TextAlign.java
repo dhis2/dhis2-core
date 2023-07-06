@@ -32,9 +32,8 @@ package org.hisp.dhis.common;
  *
  * @author Lars Helge Overland
  */
-public enum TextAlign
-{
-    LEFT,
-    CENTER,
-    RIGHT;
+public enum TextAlign {
+  LEFT,
+  CENTER,
+  RIGHT;
 }

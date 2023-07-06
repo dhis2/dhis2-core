@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonMap;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -45,80 +44,78 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DomainJsonResponseTest
-{
-    @Test
-    void testCustomObjectType()
-    {
-        JsonObject response = createJSON( "{'user': {'id':'foo'}}" );
-        assertEquals( "foo", response.get( "user", JsonUser.class ).getId() );
-    }
+class DomainJsonResponseTest {
+  @Test
+  void testCustomObjectType() {
+    JsonObject response = createJSON("{'user': {'id':'foo'}}");
+    assertEquals("foo", response.get("user", JsonUser.class).getId());
+  }
 
-    @Test
-    void testCustomObjectTypeList()
-    {
-        JsonObject response = createJSON( "{'users': [ {'id':'foo'} ]}" );
-        JsonList<JsonUser> users = response.getList( "users", JsonUser.class );
-        assertEquals( "foo", users.get( 0 ).getId() );
-    }
+  @Test
+  void testCustomObjectTypeList() {
+    JsonObject response = createJSON("{'users': [ {'id':'foo'} ]}");
+    JsonList<JsonUser> users = response.getList("users", JsonUser.class);
+    assertEquals("foo", users.get(0).getId());
+  }
 
-    @Test
-    void testCustomObjectTypeMap()
-    {
-        JsonObject response = createJSON( "{'users': {'foo':{'id':'foo'}, 'bar':{'id':'bar'}}}" );
-        JsonMap<JsonUser> usersById = response.getMap( "users", JsonUser.class );
-        assertFalse( usersById.isEmpty() );
-        assertEquals( 2, usersById.size() );
-        assertEquals( "foo", usersById.get( "foo" ).getId() );
-    }
+  @Test
+  void testCustomObjectTypeMap() {
+    JsonObject response = createJSON("{'users': {'foo':{'id':'foo'}, 'bar':{'id':'bar'}}}");
+    JsonMap<JsonUser> usersById = response.getMap("users", JsonUser.class);
+    assertFalse(usersById.isEmpty());
+    assertEquals(2, usersById.size());
+    assertEquals("foo", usersById.get("foo").getId());
+  }
 
-    @Test
-    void testDateType()
-    {
-        JsonObject response = createJSON( "{'user': {'lastUpdated': '2021-01-21T15:14:54.000'}}" );
-        JsonUser user = response.get( "user", JsonUser.class );
-        assertEquals( LocalDateTime.of( 2021, 1, 21, 15, 14, 54 ), user.getLastUpdated() );
-        Assertions.assertNull( user.getCreated() );
-    }
+  @Test
+  void testDateType() {
+    JsonObject response = createJSON("{'user': {'lastUpdated': '2021-01-21T15:14:54.000'}}");
+    JsonUser user = response.get("user", JsonUser.class);
+    assertEquals(LocalDateTime.of(2021, 1, 21, 15, 14, 54), user.getLastUpdated());
+    Assertions.assertNull(user.getCreated());
+  }
 
-    @Test
-    void testErrorSummary_MessageOnly()
-    {
-        JsonObject response = createJSON( "{"
-            + "'message':'my message',"
-            + "'httpStatus':'CONFLICT',"
-            + "'httpStatusCode':409,"
-            + "}" );
-        assertEquals( "my message", response.as( JsonError.class ).summary() );
-    }
+  @Test
+  void testErrorSummary_MessageOnly() {
+    JsonObject response =
+        createJSON(
+            "{"
+                + "'message':'my message',"
+                + "'httpStatus':'CONFLICT',"
+                + "'httpStatusCode':409,"
+                + "}");
+    assertEquals("my message", response.as(JsonError.class).summary());
+  }
 
-    @Test
-    void testErrorSummary_MessageAndErrorReports()
-    {
-        JsonObject response = createJSON( "{"
-            + "'message':'my message',"
-            + "'httpStatus':'CONFLICT',"
-            + "'httpStatusCode':409,"
-            + "'response':{'errorReports': [{'errorCode':'E4000','message':'m1'}]}"
-            + "}" );
-        assertEquals( "my message\n" + "  E4000 m1", response.as( JsonError.class ).summary() );
-    }
+  @Test
+  void testErrorSummary_MessageAndErrorReports() {
+    JsonObject response =
+        createJSON(
+            "{"
+                + "'message':'my message',"
+                + "'httpStatus':'CONFLICT',"
+                + "'httpStatusCode':409,"
+                + "'response':{'errorReports': [{'errorCode':'E4000','message':'m1'}]}"
+                + "}");
+    assertEquals("my message\n" + "  E4000 m1", response.as(JsonError.class).summary());
+  }
 
-    @Test
-    void testErrorSummary_MessageAndObjectReports()
-    {
-        JsonObject response = createJSON( "{"
-            + "'message':'my message',"
-            + "'httpStatus':'CONFLICT',"
-            + "'httpStatusCode':409,"
-            + "'response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}"
-            + "}" );
-        assertEquals( "my message\n" + "* class java.lang.String\n" + "  E4000 m1",
-            response.as( JsonError.class ).summary() );
-    }
+  @Test
+  void testErrorSummary_MessageAndObjectReports() {
+    JsonObject response =
+        createJSON(
+            "{"
+                + "'message':'my message',"
+                + "'httpStatus':'CONFLICT',"
+                + "'httpStatusCode':409,"
+                + "'response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}"
+                + "}");
+    assertEquals(
+        "my message\n" + "* class java.lang.String\n" + "  E4000 m1",
+        response.as(JsonError.class).summary());
+  }
 
-    private JsonResponse createJSON( String content )
-    {
-        return new JsonResponse( content.replace( '\'', '"' ), JsonTypedAccess.GLOBAL );
-    }
+  private JsonResponse createJSON(String content) {
+    return new JsonResponse(content.replace('\'', '"'), JsonTypedAccess.GLOBAL);
+  }
 }

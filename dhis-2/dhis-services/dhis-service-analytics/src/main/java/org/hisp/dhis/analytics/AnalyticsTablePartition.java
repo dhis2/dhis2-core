@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
 
 import java.util.Date;
 import java.util.Objects;
-
 import org.hisp.dhis.analytics.table.PartitionUtils;
 
 /**
@@ -37,111 +36,94 @@ import org.hisp.dhis.analytics.table.PartitionUtils;
  *
  * @author Lars Helge Overland
  */
-public class AnalyticsTablePartition
-{
-    public static final Integer LATEST_PARTITION = 0;
+public class AnalyticsTablePartition {
+  public static final Integer LATEST_PARTITION = 0;
 
-    /**
-     * The master analytics table for this partition.
-     */
-    private AnalyticsTable masterTable;
+  /** The master analytics table for this partition. */
+  private AnalyticsTable masterTable;
 
-    /**
-     * The year for which this partition may contain data. A zero value
-     * indicates the "latest" data stored since last full analytics table
-     * generation.
-     */
-    private Integer year;
+  /**
+   * The year for which this partition may contain data. A zero value indicates the "latest" data
+   * stored since last full analytics table generation.
+   */
+  private Integer year;
 
-    /**
-     * The start date for which this partition may contain data, inclusive.
-     */
-    private Date startDate;
+  /** The start date for which this partition may contain data, inclusive. */
+  private Date startDate;
 
-    /**
-     * The end date for which this partition may contain data, exclusive.
-     */
-    private Date endDate;
+  /** The end date for which this partition may contain data, exclusive. */
+  private Date endDate;
 
-    /**
-     * Indicates whether data approval applies to this partition.
-     */
-    private boolean dataApproval;
+  /** Indicates whether data approval applies to this partition. */
+  private boolean dataApproval;
 
-    public AnalyticsTablePartition( AnalyticsTable masterTable, Integer year, Date startDate, Date endDate,
-        boolean dataApproval )
-    {
-        this.masterTable = masterTable;
-        this.year = year;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.dataApproval = dataApproval;
-    }
+  public AnalyticsTablePartition(
+      AnalyticsTable masterTable,
+      Integer year,
+      Date startDate,
+      Date endDate,
+      boolean dataApproval) {
+    this.masterTable = masterTable;
+    this.year = year;
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.dataApproval = dataApproval;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public String getTableName( boolean forTempTable )
-    {
-        String name = forTempTable ? masterTable.getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX
+  public String getTableName(boolean forTempTable) {
+    String name =
+        forTempTable
+            ? masterTable.getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX
             : masterTable.getBaseName();
 
-        if ( masterTable.getProgram() != null )
-        {
-            name = PartitionUtils.getTableName( name, masterTable.getProgram() );
-        }
-        if ( year != null )
-        {
-            name += PartitionUtils.SEP + year;
-        }
-
-        return name;
+    if (masterTable.getProgram() != null) {
+      name = PartitionUtils.getTableName(name, masterTable.getProgram());
+    }
+    if (year != null) {
+      name += PartitionUtils.SEP + year;
     }
 
-    public String getTableName()
-    {
-        return getTableName( false );
-    }
+    return name;
+  }
 
-    public String getTempTableName()
-    {
-        return getTableName( true );
-    }
+  public String getTableName() {
+    return getTableName(false);
+  }
 
-    public boolean isLatestPartition()
-    {
-        return Objects.equals( year, LATEST_PARTITION );
-    }
+  public String getTempTableName() {
+    return getTableName(true);
+  }
 
-    public AnalyticsTable getMasterTable()
-    {
-        return masterTable;
-    }
+  public boolean isLatestPartition() {
+    return Objects.equals(year, LATEST_PARTITION);
+  }
 
-    public Integer getYear()
-    {
-        return year;
-    }
+  public AnalyticsTable getMasterTable() {
+    return masterTable;
+  }
 
-    public Date getStartDate()
-    {
-        return startDate;
-    }
+  public Integer getYear() {
+    return year;
+  }
 
-    public Date getEndDate()
-    {
-        return endDate;
-    }
+  public Date getStartDate() {
+    return startDate;
+  }
 
-    public boolean isDataApproval()
-    {
-        return dataApproval;
-    }
+  public Date getEndDate() {
+    return endDate;
+  }
 
-    @Override
-    public String toString()
-    {
-        return getTableName();
-    }
+  public boolean isDataApproval() {
+    return dataApproval;
+  }
+
+  @Override
+  public String toString() {
+    return getTableName();
+  }
 }

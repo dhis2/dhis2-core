@@ -51,130 +51,109 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class EnrollmentPreCheckExistenceValidatorTest
-{
-    private final static String SOFT_DELETED_ENROLLMENT_UID = "SoftDeletedEnrollmentId";
+@ExtendWith(MockitoExtension.class)
+class EnrollmentPreCheckExistenceValidatorTest {
+  private static final String SOFT_DELETED_ENROLLMENT_UID = "SoftDeletedEnrollmentId";
 
-    private final static String ENROLLMENT_UID = "EnrollmentId";
+  private static final String ENROLLMENT_UID = "EnrollmentId";
 
-    private final static String NOT_PRESENT_ENROLLMENT_UID = "NotPresentEnrollmentId";
+  private static final String NOT_PRESENT_ENROLLMENT_UID = "NotPresentEnrollmentId";
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private ExistenceValidator validator;
+  private ExistenceValidator validator;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        when( bundle.getPreheat() ).thenReturn( preheat );
+  @BeforeEach
+  void setUp() {
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
 
-        validator = new ExistenceValidator();
-    }
+    validator = new ExistenceValidator();
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
-            .build();
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
+  @Test
+  void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent() {
+    Enrollment enrollment = Enrollment.builder().enrollment(NOT_PRESENT_ENROLLMENT_UID).build();
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
-            .build();
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent() {
+    Enrollment enrollment = Enrollment.builder().enrollment(NOT_PRESENT_ENROLLMENT_UID).build();
+    when(bundle.getStrategy(any(Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccessWhenIsUpdate()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( ENROLLMENT_UID )
-            .build();
-        when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void verifyEnrollmentValidationSuccessWhenIsUpdate() {
+    Enrollment enrollment = Enrollment.builder().enrollment(ENROLLMENT_UID).build();
+    when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(getEnrollment());
+    when(bundle.getStrategy(any(Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( SOFT_DELETED_ENROLLMENT_UID )
-            .build();
-        when( preheat.getEnrollment( SOFT_DELETED_ENROLLMENT_UID ) ).thenReturn( getSoftDeletedEnrollment() );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsSoftDeleted() {
+    Enrollment enrollment = Enrollment.builder().enrollment(SOFT_DELETED_ENROLLMENT_UID).build();
+    when(preheat.getEnrollment(SOFT_DELETED_ENROLLMENT_UID)).thenReturn(getSoftDeletedEnrollment());
+    when(bundle.getStrategy(any(Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1113 );
-    }
+    assertHasError(reporter, enrollment, E1113);
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( ENROLLMENT_UID )
-            .build();
-        when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent() {
+    Enrollment enrollment = Enrollment.builder().enrollment(ENROLLMENT_UID).build();
+    when(preheat.getEnrollment(ENROLLMENT_UID)).thenReturn(getEnrollment());
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1080 );
-    }
+    assertHasError(reporter, enrollment, E1080);
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
-            .build();
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent() {
+    Enrollment enrollment = Enrollment.builder().enrollment(NOT_PRESENT_ENROLLMENT_UID).build();
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1081 );
-    }
+    assertHasError(reporter, enrollment, E1081);
+  }
 
-    private ProgramInstance getSoftDeletedEnrollment()
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( SOFT_DELETED_ENROLLMENT_UID );
-        programInstance.setDeleted( true );
-        return programInstance;
-    }
+  private ProgramInstance getSoftDeletedEnrollment() {
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid(SOFT_DELETED_ENROLLMENT_UID);
+    programInstance.setDeleted(true);
+    return programInstance;
+  }
 
-    private ProgramInstance getEnrollment()
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( ENROLLMENT_UID );
-        programInstance.setDeleted( false );
-        return programInstance;
-    }
+  private ProgramInstance getEnrollment() {
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid(ENROLLMENT_UID);
+    programInstance.setDeleted(false);
+    return programInstance;
+  }
 }

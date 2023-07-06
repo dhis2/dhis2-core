@@ -27,53 +27,40 @@
  */
 package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.fieldfiltering.FieldTransformer;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
 /**
  * Field transformer that returns the size of the value of a given key.
  *
- * Usage: "?fields=id,name::size,dataElementGroups::size"
+ * <p>Usage: "?fields=id,name::size,dataElementGroups::size"
  *
  * @author Morten Olav Hansen
  */
-public class SizeFieldTransformer implements FieldTransformer
-{
-    public static final SizeFieldTransformer INSTANCE = new SizeFieldTransformer();
+public class SizeFieldTransformer implements FieldTransformer {
+  public static final SizeFieldTransformer INSTANCE = new SizeFieldTransformer();
 
-    @Override
-    public JsonNode apply( String path, JsonNode value, JsonNode parent )
-    {
-        if ( !parent.isObject() )
-        {
-            return value;
-        }
-
-        String fieldName = getFieldName( path );
-
-        if ( value.isArray() )
-        {
-            ((ObjectNode) parent).put( fieldName, value.size() );
-        }
-        else if ( value.isTextual() )
-        {
-            ((ObjectNode) parent).put( fieldName, value.asText().length() );
-        }
-        else if ( value.isInt() )
-        {
-            ((ObjectNode) parent).put( fieldName, value.asInt() );
-        }
-        else if ( value.isLong() )
-        {
-            ((ObjectNode) parent).put( fieldName, value.asLong() );
-        }
-        else if ( value.isDouble() || value.isFloat() )
-        {
-            ((ObjectNode) parent).put( fieldName, value.asDouble() );
-        }
-
-        return value;
+  @Override
+  public JsonNode apply(String path, JsonNode value, JsonNode parent) {
+    if (!parent.isObject()) {
+      return value;
     }
+
+    String fieldName = getFieldName(path);
+
+    if (value.isArray()) {
+      ((ObjectNode) parent).put(fieldName, value.size());
+    } else if (value.isTextual()) {
+      ((ObjectNode) parent).put(fieldName, value.asText().length());
+    } else if (value.isInt()) {
+      ((ObjectNode) parent).put(fieldName, value.asInt());
+    } else if (value.isLong()) {
+      ((ObjectNode) parent).put(fieldName, value.asLong());
+    } else if (value.isDouble() || value.isFloat()) {
+      ((ObjectNode) parent).put(fieldName, value.asDouble());
+    }
+
+    return value;
+  }
 }

@@ -39,7 +39,6 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
@@ -54,358 +53,298 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.CheckedFunction;
 
 /**
- * RequestParamUtils are functions used to parse and transform tracker request
- * parameters. This class is intended to only house functions without any
- * dependencies on services or components.
+ * RequestParamUtils are functions used to parse and transform tracker request parameters. This
+ * class is intended to only house functions without any dependencies on services or components.
  */
-class RequestParamUtils
-{
-    private RequestParamUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
+class RequestParamUtils {
+  private RequestParamUtils() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  private static final char ESCAPE = '/';
+
+  private static final char COMMA_SEPARATOR = ',';
+
+  private static final String COMMA_STRING = Character.toString(COMMA_SEPARATOR);
+
+  private static final String ESCAPE_COMMA = ESCAPE + COMMA_STRING;
+
+  private static final String ESCAPE_COLON = ESCAPE + DIMENSION_NAME_SEP;
+
+  /**
+   * Negative lookahead to avoid wrong split when filter value contains colon. It skips colon
+   * escaped by slash
+   */
+  private static final Pattern FILTER_ITEM_SPLIT =
+      Pattern.compile("(?<!" + ESCAPE + ")" + DIMENSION_NAME_SEP);
+
+  /**
+   * Negative lookahead to avoid wrong split of comma-separated list of filters when one or more
+   * filter value contain comma. It skips comma escaped by slash
+   */
+  private static final Pattern FILTER_LIST_SPLIT =
+      Pattern.compile("(?<!" + ESCAPE + ")" + COMMA_SEPARATOR);
+
+  /**
+   * Apply func to given arg only if given arg is not empty otherwise return null.
+   *
+   * @param func function to be called if arg is not empty
+   * @param arg arg to be checked
+   * @return result of func
+   * @param <T> base identifiable object to be returned from func
+   */
+  static <T extends BaseIdentifiableObject> T applyIfNonEmpty(
+      Function<String, T> func, String arg) {
+    if (StringUtils.isEmpty(arg)) {
+      return null;
     }
 
-    private static final char ESCAPE = '/';
+    return func.apply(arg);
+  }
 
-    private static final char COMMA_SEPARATOR = ',';
+  /**
+   * Parse semicolon separated string of UIDs. Filters out invalid UIDs.
+   *
+   * @param input string to parse
+   * @return set of uids
+   */
+  static Set<String> parseAndFilterUids(String input) {
+    return parseUidString(input).filter(CodeGenerator::isValidUid).collect(Collectors.toSet());
+  }
 
-    private static final String COMMA_STRING = Character.toString( COMMA_SEPARATOR );
+  /**
+   * Parse semicolon separated string of UIDs.
+   *
+   * @param input string to parse
+   * @return set of uids
+   */
+  static Set<String> parseUids(String input) {
+    return parseUidString(input).collect(Collectors.toSet());
+  }
 
-    private static final String ESCAPE_COMMA = ESCAPE + COMMA_STRING;
+  private static Stream<String> parseUidString(String input) {
+    return CollectionUtils.emptyIfNull(TextUtils.splitToSet(input, TextUtils.SEMICOLON)).stream();
+  }
 
-    private static final String ESCAPE_COLON = ESCAPE + DIMENSION_NAME_SEP;
-
-    /**
-     * Negative lookahead to avoid wrong split when filter value contains colon.
-     * It skips colon escaped by slash
-     */
-    private static final Pattern FILTER_ITEM_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + DIMENSION_NAME_SEP );
-
-    /**
-     * Negative lookahead to avoid wrong split of comma-separated list of
-     * filters when one or more filter value contain comma. It skips comma
-     * escaped by slash
-     */
-    private static final Pattern FILTER_LIST_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + COMMA_SEPARATOR );
-
-    /**
-     * Apply func to given arg only if given arg is not empty otherwise return
-     * null.
-     *
-     * @param func function to be called if arg is not empty
-     * @param arg arg to be checked
-     * @return result of func
-     * @param <T> base identifiable object to be returned from func
-     */
-    static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
-    {
-        if ( StringUtils.isEmpty( arg ) )
-        {
-            return null;
-        }
-
-        return func.apply( arg );
+  /**
+   * Parse request parameter to filter tracked entity attributes using UID, operator and values.
+   * Refer to {@link #parseQueryItem(String, CheckedFunction)} for details on the expected item
+   * format.
+   *
+   * @param filterItem query item string composed of identifier, operator and value
+   * @param attributes tracked entity attribute map from identifiers to attributes
+   * @return query item of tracked entity attribute with attached query filters
+   */
+  public static List<QueryItem> parseAttributeQueryItems(
+      String filterItem, Map<String, TrackedEntityAttribute> attributes)
+      throws BadRequestException {
+    if (StringUtils.isEmpty(filterItem)) {
+      return new ArrayList<>();
     }
 
-    /**
-     * Parse semicolon separated string of UIDs. Filters out invalid UIDs.
-     *
-     * @param input string to parse
-     * @return set of uids
-     */
-    static Set<String> parseAndFilterUids( String input )
-    {
-        return parseUidString( input )
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
+    List<String> uidOperatorValues = filterList(filterItem);
+
+    List<QueryItem> itemList = new ArrayList<>();
+    for (String uidOperatorValue : uidOperatorValues) {
+      itemList.add(parseQueryItem(uidOperatorValue, id -> attributeToQueryItem(id, attributes)));
     }
 
-    /**
-     * Parse semicolon separated string of UIDs.
-     *
-     * @param input string to parse
-     * @return set of uids
-     */
-    static Set<String> parseUids( String input )
-    {
-        return parseUidString( input )
-            .collect( Collectors.toSet() );
+    return itemList;
+  }
+
+  /**
+   * Given an attribute filter list, first, it removes the escape chars in order to be able to split
+   * by comma and collect the filter list. Then, it recreates the original filters by restoring the
+   * escapes chars if any.
+   *
+   * @param filterItem
+   * @return a filter list split by comma
+   */
+  private static List<String> filterList(String filterItem) {
+    Map<Integer, Boolean> escapesToRestore = new HashMap<>();
+
+    StringBuilder filterListToEscape = new StringBuilder(filterItem);
+
+    List<String> filters = new LinkedList<>();
+
+    for (int i = 0; i < filterListToEscape.length() - 1; i++) {
+      if (filterListToEscape.charAt(i) == ESCAPE && filterListToEscape.charAt(i + 1) == ESCAPE) {
+        filterListToEscape.delete(i, i + 2);
+        escapesToRestore.put(i, false);
+      }
     }
 
-    private static Stream<String> parseUidString( String input )
-    {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
-            .stream();
+    String[] escapedFilterList = FILTER_LIST_SPLIT.split(filterListToEscape);
+
+    int beginning = 0;
+
+    for (String escapedFilter : escapedFilterList) {
+      filters.add(
+          restoreEscape(
+              escapesToRestore,
+              new StringBuilder(escapedFilter),
+              beginning,
+              escapedFilter.length()));
+      beginning += escapedFilter.length() + 1;
     }
 
-    /**
-     * Parse request parameter to filter tracked entity attributes using UID,
-     * operator and values. Refer to
-     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
-     * expected item format.
-     *
-     * @param filterItem query item string composed of identifier, operator and
-     *        value
-     * @param attributes tracked entity attribute map from identifiers to
-     *        attributes
-     * @return query item of tracked entity attribute with attached query
-     *         filters
-     */
+    return filters;
+  }
 
-    public static List<QueryItem> parseAttributeQueryItems( String filterItem,
-        Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
-    {
-        if ( StringUtils.isEmpty( filterItem ) )
-        {
-            return new ArrayList<>();
+  /**
+   * Restores the escape char in a filter based on the position in the original filter. It uses a
+   * pad as in a filter there can be more than one escape char removed.
+   *
+   * @param escapesToRestore
+   * @param filter
+   * @param beginning
+   * @param end
+   * @return a filter with restored escape chars
+   */
+  private static String restoreEscape(
+      Map<Integer, Boolean> escapesToRestore, StringBuilder filter, int beginning, int end) {
+    int pad = 0;
+    for (Map.Entry<Integer, Boolean> slashPositionInFilter : escapesToRestore.entrySet()) {
+      if (!slashPositionInFilter.getValue()) {
+        if (slashPositionInFilter.getKey() <= (beginning + end)) {
+          filter.insert(slashPositionInFilter.getKey() - beginning + pad++, ESCAPE);
+          escapesToRestore.put(slashPositionInFilter.getKey(), true);
         }
-
-        List<String> uidOperatorValues = filterList( filterItem );
-
-        List<QueryItem> itemList = new ArrayList<>();
-        for ( String uidOperatorValue : uidOperatorValues )
-        {
-            itemList.add( parseQueryItem( uidOperatorValue, id -> attributeToQueryItem( id, attributes ) ) );
-        }
-
-        return itemList;
+      }
     }
 
-    /**
-     * Given an attribute filter list, first, it removes the escape chars in
-     * order to be able to split by comma and collect the filter list. Then, it
-     * recreates the original filters by restoring the escapes chars if any.
-     *
-     * @param filterItem
-     * @return a filter list split by comma
-     */
-    private static List<String> filterList( String filterItem )
-    {
-        Map<Integer, Boolean> escapesToRestore = new HashMap<>();
+    return filter.toString();
+  }
 
-        StringBuilder filterListToEscape = new StringBuilder( filterItem );
-
-        List<String> filters = new LinkedList<>();
-
-        for ( int i = 0; i < filterListToEscape.length() - 1; i++ )
-        {
-            if ( filterListToEscape.charAt( i ) == ESCAPE
-                && filterListToEscape.charAt( i + 1 ) == ESCAPE )
-            {
-                filterListToEscape.delete( i, i + 2 );
-                escapesToRestore.put( i, false );
-            }
-        }
-
-        String[] escapedFilterList = FILTER_LIST_SPLIT
-            .split( filterListToEscape );
-
-        int beginning = 0;
-
-        for ( String escapedFilter : escapedFilterList )
-        {
-            filters.add( restoreEscape( escapesToRestore, new StringBuilder( escapedFilter ), beginning,
-                escapedFilter.length() ) );
-            beginning += escapedFilter.length() + 1;
-        }
-
-        return filters;
+  /**
+   * Parse request parameter to filter data elements using UID, operator and values. Refer to {@link
+   * #parseQueryItem(String, CheckedFunction)} for details on the expected item format.
+   *
+   * @param filterItem query item strings each composed of UID, operator and value
+   * @param uidToQueryItem function to translate the data element UID to a QueryItem
+   * @return query items each of a data element with attached query filters
+   */
+  public static List<QueryItem> parseDataElementQueryItems(
+      String filterItem, CheckedFunction<String, QueryItem> uidToQueryItem)
+      throws BadRequestException {
+    if (StringUtils.isEmpty(filterItem)) {
+      return new ArrayList<>();
     }
 
-    /**
-     * Restores the escape char in a filter based on the position in the
-     * original filter. It uses a pad as in a filter there can be more than one
-     * escape char removed.
-     *
-     * @param escapesToRestore
-     * @param filter
-     * @param beginning
-     * @param end
-     * @return a filter with restored escape chars
-     */
-    private static String restoreEscape( Map<Integer, Boolean> escapesToRestore, StringBuilder filter,
-        int beginning,
-        int end )
-    {
-        int pad = 0;
-        for ( Map.Entry<Integer, Boolean> slashPositionInFilter : escapesToRestore.entrySet() )
-        {
-            if ( !slashPositionInFilter.getValue() )
-            {
-                if ( slashPositionInFilter.getKey() <= (beginning + end) )
-                {
-                    filter.insert( slashPositionInFilter.getKey() - beginning + pad++, ESCAPE );
-                    escapesToRestore.put( slashPositionInFilter.getKey(), true );
-                }
-            }
-        }
+    List<String> uidOperatorValues = filterList(filterItem);
 
-        return filter.toString();
+    List<QueryItem> itemList = new ArrayList<>();
+    for (String uidOperatorValue : uidOperatorValues) {
+      itemList.add(parseQueryItem(uidOperatorValue, uidToQueryItem));
     }
 
-    /**
-     * Parse request parameter to filter data elements using UID, operator and
-     * values. Refer to {@link #parseQueryItem(String, CheckedFunction)} for
-     * details on the expected item format.
-     *
-     * @param filterItem query item strings each composed of UID, operator and
-     *        value
-     * @param uidToQueryItem function to translate the data element UID to a
-     *        QueryItem
-     * @return query items each of a data element with attached query filters
-     */
-    public static List<QueryItem> parseDataElementQueryItems( String filterItem,
-        CheckedFunction<String, QueryItem> uidToQueryItem )
-        throws BadRequestException
-    {
-        if ( StringUtils.isEmpty( filterItem ) )
-        {
-            return new ArrayList<>();
-        }
+    return itemList;
+  }
 
-        List<String> uidOperatorValues = filterList( filterItem );
-
-        List<QueryItem> itemList = new ArrayList<>();
-        for ( String uidOperatorValue : uidOperatorValues )
-        {
-            itemList.add( parseQueryItem( uidOperatorValue, uidToQueryItem ) );
-        }
-
-        return itemList;
+  private static QueryItem attributeToQueryItem(
+      String uid, Map<String, TrackedEntityAttribute> attributes) throws BadRequestException {
+    if (attributes.isEmpty()) {
+      throw new BadRequestException("Attribute does not exist: " + uid);
     }
 
-    private static QueryItem attributeToQueryItem( String uid, Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
-    {
-        if ( attributes.isEmpty() )
-        {
-            throw new BadRequestException( "Attribute does not exist: " + uid );
-        }
-
-        TrackedEntityAttribute at = attributes.get( uid );
-        if ( at == null )
-        {
-            throw new BadRequestException( "Attribute does not exist: " + uid );
-        }
-
-        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
+    TrackedEntityAttribute at = attributes.get(uid);
+    if (at == null) {
+      throw new BadRequestException("Attribute does not exist: " + uid);
     }
 
-    /**
-     * Creates a QueryItem with QueryFilters from the given item string.
-     * Expected item format is
-     * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
-     * is mandatory. Multiple operator:value pairs are allowed, If is not a
-     * multiple or single operator the query item is not valid.
-     * <p>
-     * The UID is passed to given map function which translates the UID to a
-     * QueryItem. A QueryFilter for each operator:value pair is then added to
-     * this QueryItem.
-     *
-     * @throws BadRequestException given invalid query item
-     */
-    public static QueryItem parseQueryItem( String items, CheckedFunction<String, QueryItem> uidToQueryItem )
-        throws BadRequestException
-    {
-        int uidIndex = items.indexOf( DIMENSION_NAME_SEP ) + 1;
+    return new QueryItem(
+        at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique());
+  }
 
-        if ( uidIndex == 0 || items.length() == uidIndex )
-        {
-            return uidToQueryItem.apply( items.replace( DIMENSION_NAME_SEP, "" ) );
-        }
+  /**
+   * Creates a QueryItem with QueryFilters from the given item string. Expected item format is
+   * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier is mandatory.
+   * Multiple operator:value pairs are allowed, If is not a multiple or single operator the query
+   * item is not valid.
+   *
+   * <p>The UID is passed to given map function which translates the UID to a QueryItem. A
+   * QueryFilter for each operator:value pair is then added to this QueryItem.
+   *
+   * @throws BadRequestException given invalid query item
+   */
+  public static QueryItem parseQueryItem(
+      String items, CheckedFunction<String, QueryItem> uidToQueryItem) throws BadRequestException {
+    int uidIndex = items.indexOf(DIMENSION_NAME_SEP) + 1;
 
-        QueryItem queryItem = uidToQueryItem.apply( items.substring( 0, uidIndex - 1 ) );
-
-        String[] filters = FILTER_ITEM_SPLIT.split( items.substring( uidIndex ) );
-
-        // single operator
-        if ( filters.length == 2 )
-        {
-            queryItem.getFilters()
-                .add( operatorValueQueryFilter( filters[0], filters[1], items ) );
-        }
-        // multiple operator
-        else if ( filters.length == 4 )
-        {
-            for ( int i = 0; i < filters.length; i += 2 )
-            {
-                queryItem.getFilters()
-                    .add( operatorValueQueryFilter( filters[i], filters[i + 1], items ) );
-            }
-        }
-        else
-        {
-            throw new BadRequestException( "Query item or filter is invalid: " + items );
-        }
-
-        return queryItem;
+    if (uidIndex == 0 || items.length() == uidIndex) {
+      return uidToQueryItem.apply(items.replace(DIMENSION_NAME_SEP, ""));
     }
 
-    /**
-     * Creates a QueryFilter from the given query string. Query is on format
-     * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ
-     * QueryOperator is used as operator if not specified. We split the query at
-     * the first delimiter, so the filter value can be any sequence of
-     * characters
-     *
-     * @throws BadRequestException given invalid query string
-     */
-    public static QueryFilter parseQueryFilter( String filter )
-        throws BadRequestException
-    {
-        if ( StringUtils.isEmpty( filter ) )
-        {
-            return null;
-        }
+    QueryItem queryItem = uidToQueryItem.apply(items.substring(0, uidIndex - 1));
 
-        if ( !filter.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
-        {
-            return new QueryFilter( QueryOperator.EQ, filter );
-        }
+    String[] filters = FILTER_ITEM_SPLIT.split(items.substring(uidIndex));
 
-        return operatorValueQueryFilter( FILTER_ITEM_SPLIT.split( filter ), filter );
+    // single operator
+    if (filters.length == 2) {
+      queryItem.getFilters().add(operatorValueQueryFilter(filters[0], filters[1], items));
+    }
+    // multiple operator
+    else if (filters.length == 4) {
+      for (int i = 0; i < filters.length; i += 2) {
+        queryItem.getFilters().add(operatorValueQueryFilter(filters[i], filters[i + 1], items));
+      }
+    } else {
+      throw new BadRequestException("Query item or filter is invalid: " + items);
     }
 
-    private static QueryFilter operatorValueQueryFilter( String[] operatorValue, String filter )
-        throws BadRequestException
-    {
-        if ( null == operatorValue || operatorValue.length < 2 )
-        {
-            throw new BadRequestException( "Query item or filter is invalid: " + filter );
-        }
+    return queryItem;
+  }
 
-        return operatorValueQueryFilter( operatorValue[0], operatorValue[1], filter );
+  /**
+   * Creates a QueryFilter from the given query string. Query is on format
+   * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ QueryOperator is used as
+   * operator if not specified. We split the query at the first delimiter, so the filter value can
+   * be any sequence of characters
+   *
+   * @throws BadRequestException given invalid query string
+   */
+  public static QueryFilter parseQueryFilter(String filter) throws BadRequestException {
+    if (StringUtils.isEmpty(filter)) {
+      return null;
     }
 
-    private static QueryFilter operatorValueQueryFilter( String operator, String value, String filter )
-        throws BadRequestException
-    {
-        if ( StringUtils.isEmpty( operator ) || StringUtils.isEmpty( value ) )
-        {
-            throw new BadRequestException( "Query item or filter is invalid: " + filter );
-        }
-
-        try
-        {
-            return new QueryFilter( QueryOperator.fromString( operator ), escapedFilterValue( value ) );
-
-        }
-        catch ( IllegalArgumentException exception )
-        {
-            throw new BadRequestException( "Query item or filter is invalid: " + filter );
-        }
+    if (!filter.contains(DimensionalObject.DIMENSION_NAME_SEP)) {
+      return new QueryFilter(QueryOperator.EQ, filter);
     }
 
-    /**
-     * Replace escaped comma or colon
-     *
-     * @param value
-     * @return
-     */
-    private static String escapedFilterValue( String value )
-    {
-        return value.replace( ESCAPE_COMMA, COMMA_STRING )
-            .replace( ESCAPE_COLON, DIMENSION_NAME_SEP );
+    return operatorValueQueryFilter(FILTER_ITEM_SPLIT.split(filter), filter);
+  }
+
+  private static QueryFilter operatorValueQueryFilter(String[] operatorValue, String filter)
+      throws BadRequestException {
+    if (null == operatorValue || operatorValue.length < 2) {
+      throw new BadRequestException("Query item or filter is invalid: " + filter);
     }
+
+    return operatorValueQueryFilter(operatorValue[0], operatorValue[1], filter);
+  }
+
+  private static QueryFilter operatorValueQueryFilter(String operator, String value, String filter)
+      throws BadRequestException {
+    if (StringUtils.isEmpty(operator) || StringUtils.isEmpty(value)) {
+      throw new BadRequestException("Query item or filter is invalid: " + filter);
+    }
+
+    try {
+      return new QueryFilter(QueryOperator.fromString(operator), escapedFilterValue(value));
+
+    } catch (IllegalArgumentException exception) {
+      throw new BadRequestException("Query item or filter is invalid: " + filter);
+    }
+  }
+
+  /**
+   * Replace escaped comma or colon
+   *
+   * @param value
+   * @return
+   */
+  private static String escapedFilterValue(String value) {
+    return value.replace(ESCAPE_COMMA, COMMA_STRING).replace(ESCAPE_COLON, DIMENSION_NAME_SEP);
+  }
 }

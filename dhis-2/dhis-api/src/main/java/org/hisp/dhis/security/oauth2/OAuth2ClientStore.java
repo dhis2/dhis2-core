@@ -32,16 +32,14 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface OAuth2ClientStore
-    extends IdentifiableObjectStore<OAuth2Client>
-{
-    String ID = OAuth2ClientStore.class.getName();
+public interface OAuth2ClientStore extends IdentifiableObjectStore<OAuth2Client> {
+  String ID = OAuth2ClientStore.class.getName();
 
-    /**
-     * Get OAuth2 client by cid.
-     *
-     * @param cid ClientID
-     * @return Matched OAuth2Client or null if not found
-     */
-    OAuth2Client getByClientId( String cid );
+  /**
+   * Get OAuth2 client by cid.
+   *
+   * @param cid ClientID
+   * @return Matched OAuth2Client or null if not found
+   */
+  OAuth2Client getByClientId(String cid);
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -39,130 +38,128 @@ import org.hisp.dhis.user.User;
 /**
  * @author Abyot Asalefew
  */
-public interface ProgramStageInstanceService
-{
-    String ID = ProgramStageInstanceService.class.getName();
+public interface ProgramStageInstanceService {
+  String ID = ProgramStageInstanceService.class.getName();
 
-    /**
-     * Adds a {@link ProgramStageInstance}
-     *
-     * @param programStageInstance The ProgramStageInstance to add.
-     * @return A generated unique id of the added {@link ProgramStageInstance}.
-     */
-    long addProgramStageInstance( ProgramStageInstance programStageInstance );
+  /**
+   * Adds a {@link ProgramStageInstance}
+   *
+   * @param programStageInstance The ProgramStageInstance to add.
+   * @return A generated unique id of the added {@link ProgramStageInstance}.
+   */
+  long addProgramStageInstance(ProgramStageInstance programStageInstance);
 
-    /**
-     * Adds a {@link ProgramStageInstance}
-     *
-     * @param programStageInstance The ProgramStageInstance to add.
-     * @param user the current user.
-     * @return A generated unique id of the added {@link ProgramStageInstance}.
-     */
-    long addProgramStageInstance( ProgramStageInstance programStageInstance, User user );
+  /**
+   * Adds a {@link ProgramStageInstance}
+   *
+   * @param programStageInstance The ProgramStageInstance to add.
+   * @param user the current user.
+   * @return A generated unique id of the added {@link ProgramStageInstance}.
+   */
+  long addProgramStageInstance(ProgramStageInstance programStageInstance, User user);
 
-    /**
-     * Soft deletes a {@link ProgramStageInstance}.
-     *
-     */
-    void deleteProgramStageInstance( ProgramStageInstance programStageInstance );
+  /** Soft deletes a {@link ProgramStageInstance}. */
+  void deleteProgramStageInstance(ProgramStageInstance programStageInstance);
 
-    /**
-     * Updates a {@link ProgramStageInstance}.
-     *
-     * @param programStageInstance the ProgramStageInstance to update.
-     */
-    void updateProgramStageInstance( ProgramStageInstance programStageInstance );
+  /**
+   * Updates a {@link ProgramStageInstance}.
+   *
+   * @param programStageInstance the ProgramStageInstance to update.
+   */
+  void updateProgramStageInstance(ProgramStageInstance programStageInstance);
 
-    /**
-     * Updates a {@link ProgramStageInstance}.
-     *
-     * @param programStageInstance the ProgramStageInstance to update.
-     * @param user the current user.
-     */
-    void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user );
+  /**
+   * Updates a {@link ProgramStageInstance}.
+   *
+   * @param programStageInstance the ProgramStageInstance to update.
+   * @param user the current user.
+   */
+  void updateProgramStageInstance(ProgramStageInstance programStageInstance, User user);
 
-    /**
-     * Updates a last sync timestamp on specified ProgramStageInstances
-     *
-     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the
-     *        lastSynchronized flag should be updated
-     * @param lastSynchronized The date of last successful sync
-     */
-    void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
+  /**
+   * Updates a last sync timestamp on specified ProgramStageInstances
+   *
+   * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the lastSynchronized flag
+   *     should be updated
+   * @param lastSynchronized The date of last successful sync
+   */
+  void updateProgramStageInstancesSyncTimestamp(
+      List<String> programStageInstanceUIDs, Date lastSynchronized);
 
-    /**
-     * Checks whether a {@link ProgramStageInstance} with the given identifier
-     * exists. Doesn't take into account the deleted values.
-     *
-     * @param uid the identifier.
-     */
-    boolean programStageInstanceExists( String uid );
+  /**
+   * Checks whether a {@link ProgramStageInstance} with the given identifier exists. Doesn't take
+   * into account the deleted values.
+   *
+   * @param uid the identifier.
+   */
+  boolean programStageInstanceExists(String uid);
 
-    /**
-     * Checks whether a {@link ProgramStageInstance} with the given identifier
-     * exists. Takes into accound also the deleted values.
-     *
-     * @param uid the identifier.
-     */
-    boolean programStageInstanceExistsIncludingDeleted( String uid );
+  /**
+   * Checks whether a {@link ProgramStageInstance} with the given identifier exists. Takes into
+   * accound also the deleted values.
+   *
+   * @param uid the identifier.
+   */
+  boolean programStageInstanceExistsIncludingDeleted(String uid);
 
-    /**
-     * Returns UIDs of existing ProgramStageInstances (including deleted) from
-     * the provided UIDs
-     *
-     * @param uids PSI UIDs to check
-     * @return Set containing UIDs of existing PSIs (including deleted)
-     */
-    List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids );
+  /**
+   * Returns UIDs of existing ProgramStageInstances (including deleted) from the provided UIDs
+   *
+   * @param uids PSI UIDs to check
+   * @return Set containing UIDs of existing PSIs (including deleted)
+   */
+  List<String> getProgramStageInstanceUidsIncludingDeleted(List<String> uids);
 
-    /**
-     * Returns a {@link ProgramStageInstance}.
-     *
-     * @param id the id of the ProgramStageInstance to return.
-     * @return the ProgramStageInstance with the given id.
-     */
-    ProgramStageInstance getProgramStageInstance( long id );
+  /**
+   * Returns a {@link ProgramStageInstance}.
+   *
+   * @param id the id of the ProgramStageInstance to return.
+   * @return the ProgramStageInstance with the given id.
+   */
+  ProgramStageInstance getProgramStageInstance(long id);
 
-    /**
-     * Returns the {@link ProgramStageInstance} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no match.
-     */
-    ProgramStageInstance getProgramStageInstance( String uid );
+  /**
+   * Returns the {@link ProgramStageInstance} with the given UID.
+   *
+   * @param uid the UID.
+   * @return the ProgramStageInstance with the given UID, or null if no match.
+   */
+  ProgramStageInstance getProgramStageInstance(String uid);
 
-    /**
-     * Gets the number of ProgramStageInstances added since the given number of
-     * days.
-     *
-     * @param days number of days.
-     * @return the number of ProgramStageInstances.
-     */
-    long getProgramStageInstanceCount( int days );
+  /**
+   * Gets the number of ProgramStageInstances added since the given number of days.
+   *
+   * @param days number of days.
+   * @return the number of ProgramStageInstances.
+   */
+  long getProgramStageInstanceCount(int days);
 
-    /**
-     * Creates a program stage instance.
-     *
-     * @param programInstance the ProgramInstance.
-     * @param programStage the ProgramStage.
-     * @param enrollmentDate the enrollment date.
-     * @param incidentDate date of the incident.
-     * @param organisationUnit the OrganisationUnit where the event took place.
-     * @return ProgramStageInstance the ProgramStageInstance which was created.
-     */
-    ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
-        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
+  /**
+   * Creates a program stage instance.
+   *
+   * @param programInstance the ProgramInstance.
+   * @param programStage the ProgramStage.
+   * @param enrollmentDate the enrollment date.
+   * @param incidentDate date of the incident.
+   * @param organisationUnit the OrganisationUnit where the event took place.
+   * @return ProgramStageInstance the ProgramStageInstance which was created.
+   */
+  ProgramStageInstance createProgramStageInstance(
+      ProgramInstance programInstance,
+      ProgramStage programStage,
+      Date enrollmentDate,
+      Date incidentDate,
+      OrganisationUnit organisationUnit);
 
-    /**
-     * Validates EventDataValues, handles files for File EventDataValues and
-     * creates audit logs for the upcoming create/save changes. DOES PERSIST the
-     * changes to the PSI object.
-     *
-     * @param programStageInstance the ProgramStageInstance that EventDataValues
-     *        belong to
-     * @param dataElementEventDataValueMap the map of DataElements and related
-     *        EventDataValues to update
-     */
-    void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance,
-        Map<DataElement, EventDataValue> dataElementEventDataValueMap );
+  /**
+   * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for
+   * the upcoming create/save changes. DOES PERSIST the changes to the PSI object.
+   *
+   * @param programStageInstance the ProgramStageInstance that EventDataValues belong to
+   * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to
+   *     update
+   */
+  void saveEventDataValuesAndSaveProgramStageInstance(
+      ProgramStageInstance programStageInstance,
+      Map<DataElement, EventDataValue> dataElementEventDataValueMap);
 }

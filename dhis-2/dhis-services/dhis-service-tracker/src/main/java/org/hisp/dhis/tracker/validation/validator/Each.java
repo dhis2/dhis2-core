@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.validation.validator;
 
 import java.util.Collection;
 import java.util.function.Function;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.TrackerDto;
@@ -40,64 +38,55 @@ import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 
 /**
- * Each is a {@link Validator} applying a given {@link Validator} to each
- * element in a collection of type R irrespective of whether the
- * {@link Validator} added an error to {@link Reporter} or not.
+ * Each is a {@link Validator} applying a given {@link Validator} to each element in a collection of
+ * type R irrespective of whether the {@link Validator} added an error to {@link Reporter} or not.
  *
  * @param <T> type of input to be mapped to a Collection of R
  * @param <R> type of input to be validated by given validator
  */
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public class Each<T, R> implements Validator<T>
-{
-    private final Function<T, ? extends Collection<R>> map;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class Each<T, R> implements Validator<T> {
+  private final Function<T, ? extends Collection<R>> map;
 
-    private final Validator<R> validator;
+  private final Validator<R> validator;
 
-    /**
-     * Create an {@link Each} that will apply given {@link Validator} of type R
-     * to each element in the {@code Collection<R>}. The input to the returned
-     * {@code Validator} is of type T which is mapped using given {@code map}
-     * function.
-     * <p>
-     * Use it for example when you have a {@code Validator<Note>} and want to
-     * validate every {@code Note} on an {@code Enrollment}.
-     * </p>
-     * You would then write
-     *
-     * <pre>
-     * {@code each(Enrollment::getNotes, noteValidator)}
-     * </pre>
-     *
-     * @param map function taking type T to Collection of R
-     * @param validator validator validating a single element of type R
-     * @return validator of type T
-     * @param <T> type of input to be mapped to a Collection of R
-     * @param <R> type of input to be validated by given validator
-     */
-    public static <T, R> Each<T, R> each( Function<T, ? extends Collection<R>> map, Validator<R> validator )
-    {
-        return new Each<>( map, validator );
+  /**
+   * Create an {@link Each} that will apply given {@link Validator} of type R to each element in the
+   * {@code Collection<R>}. The input to the returned {@code Validator} is of type T which is mapped
+   * using given {@code map} function.
+   *
+   * <p>Use it for example when you have a {@code Validator<Note>} and want to validate every {@code
+   * Note} on an {@code Enrollment}. You would then write
+   *
+   * <pre>
+   * {@code each(Enrollment::getNotes, noteValidator)}
+   * </pre>
+   *
+   * @param map function taking type T to Collection of R
+   * @param validator validator validating a single element of type R
+   * @return validator of type T
+   * @param <T> type of input to be mapped to a Collection of R
+   * @param <R> type of input to be validated by given validator
+   */
+  public static <T, R> Each<T, R> each(
+      Function<T, ? extends Collection<R>> map, Validator<R> validator) {
+    return new Each<>(map, validator);
+  }
+
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, T input) {
+    for (R in : map.apply(input)) {
+      if ((in instanceof TrackerDto && !validator.needsToRun(bundle.getStrategy((TrackerDto) in)))
+          || (!(in instanceof TrackerDto) && !validator.needsToRun(bundle.getImportStrategy()))) {
+        continue;
+      }
+
+      validator.validate(reporter, bundle, in);
     }
+  }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, T input )
-    {
-        for ( R in : map.apply( input ) )
-        {
-            if ( (in instanceof TrackerDto && !validator.needsToRun( bundle.getStrategy( (TrackerDto) in ) ))
-                || (!(in instanceof TrackerDto) && !validator.needsToRun( bundle.getImportStrategy() )) )
-            {
-                continue;
-            }
-
-            validator.validate( reporter, bundle, in );
-        }
-    }
-
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // Each is used to compose other Validators, so it should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // Each is used to compose other Validators, so it should always run
+  }
 }

@@ -30,93 +30,107 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
  * Tests the metadata check for categories with the same category options.
  *
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/categories_same_category_options.yaml}
+ * <p>{@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/categories/categories_same_category_options.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityCategoriesDuplicatedControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "categories_same_category_options";
+class DataIntegrityCategoriesDuplicatedControllerTest extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "categories_same_category_options";
 
-    private String categoryWithOptionsA;
+  private String categoryWithOptionsA;
 
-    private String categoryWithOptionsB;
+  private String categoryWithOptionsB;
 
-    private String categoryOptionRed;
+  private String categoryOptionRed;
 
-    @Test
-    void testCategoriesDuplicated()
-    {
+  @Test
+  void testCategoriesDuplicated() {
 
-        categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
+    categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-        categoryWithOptionsA = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
+    categoryWithOptionsA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'} ] }"));
 
-        categoryWithOptionsB = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Colour', 'shortName': 'Colour', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
+    categoryWithOptionsB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Colour', 'shortName': 'Colour', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'} ] }"));
 
-        assertNamedMetadataObjectExists( "categories", "default" );
-        assertNamedMetadataObjectExists( "categories", "Color" );
-        assertNamedMetadataObjectExists( "categories", "Colour" );
-        /*
-         * This percentage may seem strange, but is based on the number of
-         * duplicated category options
-         */
-        checkDataIntegritySummary( check, 1, 33, true );
+    assertNamedMetadataObjectExists("categories", "default");
+    assertNamedMetadataObjectExists("categories", "Color");
+    assertNamedMetadataObjectExists("categories", "Colour");
+    /*
+     * This percentage may seem strange, but is based on the number of
+     * duplicated category options
+     */
+    checkDataIntegritySummary(check, 1, 33, true);
 
-        Set<String> expectedCategories = Set.of( categoryWithOptionsA, categoryWithOptionsB );
-        Set<String> expectedMessages = Set.of( "(1) Colour", "(1) Color" );
-        checkDataIntegrityDetailsIssues( check, expectedCategories, expectedMessages, Set.of(), "categories" );
+    Set<String> expectedCategories = Set.of(categoryWithOptionsA, categoryWithOptionsB);
+    Set<String> expectedMessages = Set.of("(1) Colour", "(1) Color");
+    checkDataIntegrityDetailsIssues(
+        check, expectedCategories, expectedMessages, Set.of(), "categories");
+  }
 
-    }
+  @Test
+  void testCategoriesNotDuplicated() {
 
-    @Test
-    void testCategoriesNotDuplicated()
-    {
+    categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-        categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
+    String categoryOptionBlue =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Blue', 'shortName': 'Blue' }"));
 
-        String categoryOptionBlue = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Blue', 'shortName': 'Blue' }" ) );
+    categoryWithOptionsA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'} ] }"));
 
-        categoryWithOptionsA = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Color', 'shortName': 'Color', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionRed + "'} ] }" ) );
+    categoryWithOptionsB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{ 'name': 'Colour', 'shortName': 'Colour', 'dataDimensionType': 'DISAGGREGATION' ,"
+                    + "'categoryOptions' : [{'id' : '"
+                    + categoryOptionBlue
+                    + "'} ] }"));
 
-        categoryWithOptionsB = assertStatus( HttpStatus.CREATED,
-            POST( "/categories",
-                "{ 'name': 'Colour', 'shortName': 'Colour', 'dataDimensionType': 'DISAGGREGATION' ," +
-                    "'categoryOptions' : [{'id' : '" + categoryOptionBlue + "'} ] }" ) );
+    assertHasNoDataIntegrityIssues("categories", check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+  @Test
+  void testInvalidCategoriesDivideByZero() {
 
-    }
-
-    @Test
-    void testInvalidCategoriesDivideByZero()
-    {
-
-        // Expect a percentage here, since there should always be the default category
-        assertHasNoDataIntegrityIssues( "categories", check, true );
-
-    }
-
+    // Expect a percentage here, since there should always be the default category
+    assertHasNoDataIntegrityIssues("categories", check, true);
+  }
 }

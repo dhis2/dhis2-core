@@ -32,35 +32,28 @@ import java.time.ZoneId;
 import java.time.chrono.ChronoZonedDateTime;
 import java.util.Date;
 import java.util.Optional;
-
 import org.hisp.dhis.util.DateUtils;
 import org.mapstruct.Mapper;
 
 @Mapper
-public interface InstantMapper
-{
+public interface InstantMapper {
 
-    default Instant fromString( String dateAsString )
-    {
-        return DateUtils.instantFromDateAsString( dateAsString );
+  default Instant fromString(String dateAsString) {
+    return DateUtils.instantFromDateAsString(dateAsString);
+  }
+
+  default Instant fromDate(Date date) {
+    if (date instanceof java.sql.Date) {
+      return fromSqlDate((java.sql.Date) date);
     }
+    return DateUtils.instantFromDate(date);
+  }
 
-    default Instant fromDate( Date date )
-    {
-        if ( date instanceof java.sql.Date )
-        {
-            return fromSqlDate( (java.sql.Date) date );
-        }
-        return DateUtils.instantFromDate( date );
-    }
-
-    default Instant fromSqlDate( java.sql.Date date )
-    {
-        return Optional.ofNullable( date )
-            .map( java.sql.Date::toLocalDate )
-            .map( localDate -> localDate.atStartOfDay( ZoneId.systemDefault() ) )
-            .map( ChronoZonedDateTime::toInstant )
-            .orElse( null );
-    }
-
+  default Instant fromSqlDate(java.sql.Date date) {
+    return Optional.ofNullable(date)
+        .map(java.sql.Date::toLocalDate)
+        .map(localDate -> localDate.atStartOfDay(ZoneId.systemDefault()))
+        .map(ChronoZonedDateTime::toInstant)
+        .orElse(null);
+  }
 }

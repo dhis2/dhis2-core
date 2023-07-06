@@ -28,16 +28,15 @@
 package org.hisp.dhis.tracker.validation;
 
 /**
- * Validation represents an issue found by the validation process. It contains
- * information that help the client to understand and fix the problem.
+ * Validation represents an issue found by the validation process. It contains information that help
+ * the client to understand and fix the problem.
  */
-public interface Validation
-{
-    String getCode();
+public interface Validation {
+  String getCode();
 
-    String getMessage();
+  String getMessage();
 
-    String getType();
+  String getType();
 
-    String getUid();
+  String getUid();
 }

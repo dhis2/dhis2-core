@@ -29,44 +29,40 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-
 import org.hisp.dhis.period.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test the metadata check for periods which have the same period type and which
- * have the same start and end date. The test scenario is not possible to
- * recreate in current versions of DHIS2 because of a unique constraint placed
- * on the period type, start date and end date. Here, we will only test that the
- * check actually runs.
+ * Test the metadata check for periods which have the same period type and which have the same start
+ * and end date. The test scenario is not possible to recreate in current versions of DHIS2 because
+ * of a unique constraint placed on the period type, start date and end date. Here, we will only
+ * test that the check actually runs.
  *
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_end_date.yaml}
+ * <p>{@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_end_date.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityPeriodsSameStartEndDateControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    @Autowired
-    private PeriodService periodService;
+class DataIntegrityPeriodsSameStartEndDateControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  @Autowired private PeriodService periodService;
 
-    private static final String check = "periods_same_start_end_date";
+  private static final String check = "periods_same_start_end_date";
 
-    @Test
-    void testNoBadPeriodsExist()
-    {
+  @Test
+  void testNoBadPeriodsExist() {
 
-        PeriodType periodType = new MonthlyPeriodType();
-        Date date_future = Date.from( ZonedDateTime.now().plusYears( 1 ).plusDays( 1 ).toInstant() );
-        Period periodA = periodType.createPeriod( date_future );
-        periodService.addPeriod( periodA );
+    PeriodType periodType = new MonthlyPeriodType();
+    Date date_future = Date.from(ZonedDateTime.now().plusYears(1).plusDays(1).toInstant());
+    Period periodA = periodType.createPeriod(date_future);
+    periodService.addPeriod(periodA);
 
-        Date date_past = Date.from( ZonedDateTime.now().minusMonths( 5 ).toInstant() );
-        Period periodC = periodType.createPeriod( date_past );
-        periodService.addPeriod( periodC );
-        dbmsManager.clearSession();
+    Date date_past = Date.from(ZonedDateTime.now().minusMonths(5).toInstant());
+    Period periodC = periodType.createPeriod(date_past);
+    periodService.addPeriod(periodC);
+    dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( "periods", check, true );
-
-    }
+    assertHasNoDataIntegrityIssues("periods", check, true);
+  }
 }

@@ -34,20 +34,16 @@ import org.springframework.stereotype.Component;
  * @author Jim Grace
  */
 @Component
-public class PredictorGroupDeletionHandler extends IdObjectDeletionHandler<PredictorGroup>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( Predictor.class, this::deletePredictor );
-    }
+public class PredictorGroupDeletionHandler extends IdObjectDeletionHandler<PredictorGroup> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(Predictor.class, this::deletePredictor);
+  }
 
-    private void deletePredictor( Predictor predictor )
-    {
-        for ( PredictorGroup group : predictor.getGroups() )
-        {
-            group.getMembers().remove( predictor );
-            idObjectManager.updateNoAcl( group );
-        }
+  private void deletePredictor(Predictor predictor) {
+    for (PredictorGroup group : predictor.getGroups()) {
+      group.getMembers().remove(predictor);
+      idObjectManager.updateNoAcl(group);
     }
+  }
 }

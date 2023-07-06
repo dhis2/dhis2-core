@@ -29,28 +29,27 @@ package org.hisp.dhis.dataintegrity;
 
 /**
  * Database support for running data integrity checks.
- * <p>
- * Mainly this supports the YAML based checks that have SQL in the YAML.
+ *
+ * <p>Mainly this supports the YAML based checks that have SQL in the YAML.
  *
  * @author Jan Bernitt
  */
-public interface DataIntegrityStore
-{
-    /**
-     * Runs a query for a {@link DataIntegritySummary}
-     *
-     * @param check the check the SQL belongs to
-     * @param sql the native SQL to run from a YAML declaration
-     * @return the mapped summary
-     */
-    DataIntegritySummary querySummary( DataIntegrityCheck check, String sql );
+public interface DataIntegrityStore {
+  /**
+   * Runs a query for a {@link DataIntegritySummary}
+   *
+   * @param check the check the SQL belongs to
+   * @param sql the native SQL to run from a YAML declaration
+   * @return the mapped summary
+   */
+  DataIntegritySummary querySummary(DataIntegrityCheck check, String sql);
 
-    /**
-     * Runs a query for a {@link DataIntegrityDetails}.
-     *
-     * @param check the check the SQL belongs to
-     * @param sql the native SQL to run from a YAML declaration
-     * @return the mapped details
-     */
-    DataIntegrityDetails queryDetails( DataIntegrityCheck check, String sql );
+  /**
+   * Runs a query for a {@link DataIntegrityDetails}.
+   *
+   * @param check the check the SQL belongs to
+   * @param sql the native SQL to run from a YAML declaration
+   * @return the mapped details
+   */
+  DataIntegrityDetails queryDetails(DataIntegrityCheck check, String sql);
 }

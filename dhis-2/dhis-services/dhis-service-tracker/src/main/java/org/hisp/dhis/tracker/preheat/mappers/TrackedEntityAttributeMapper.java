@@ -33,30 +33,25 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    OptionSetMapper.class,
-    AttributeValueMapper.class
-} )
-public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute>
-{
-    TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityAttributeMapper.class );
+@Mapper(uses = {DebugMapper.class, OptionSetMapper.class, AttributeValueMapper.class})
+public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute> {
+  TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper(TrackedEntityAttributeMapper.class);
 
-    @Override
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "confidential" )
-    @Mapping( target = "unique" )
-    @Mapping( target = "generated" )
-    @Mapping( target = "pattern" )
-    @Mapping( target = "textPattern" )
-    @Mapping( target = "skipSynchronization" )
-    @Mapping( target = "valueType" )
-    @Mapping( target = "orgunitScope" )
-    @Mapping( target = "optionSet" )
-    TrackedEntityAttribute map( TrackedEntityAttribute trackedEntityType );
+  @Override
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "confidential")
+  @Mapping(target = "unique")
+  @Mapping(target = "generated")
+  @Mapping(target = "pattern")
+  @Mapping(target = "textPattern")
+  @Mapping(target = "skipSynchronization")
+  @Mapping(target = "valueType")
+  @Mapping(target = "orgunitScope")
+  @Mapping(target = "optionSet")
+  TrackedEntityAttribute map(TrackedEntityAttribute trackedEntityType);
 }

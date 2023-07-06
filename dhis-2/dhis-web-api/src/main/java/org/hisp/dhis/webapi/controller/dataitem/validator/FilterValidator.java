@@ -39,7 +39,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Custom.getProperty
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbreviations;
 
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -50,110 +49,91 @@ import org.hisp.dhis.webapi.controller.dataitem.Filter;
  *
  * @author maikel arabori
  */
-public class FilterValidator
-{
-    public static final byte FILTER_ATTRIBUTE_NAME = 0;
+public class FilterValidator {
+  public static final byte FILTER_ATTRIBUTE_NAME = 0;
 
-    public static final byte FILTER_OPERATOR = 1;
+  public static final byte FILTER_OPERATOR = 1;
 
-    private FilterValidator()
-    {
-    }
+  private FilterValidator() {}
 
-    /**
-     * Checks if the given set o filters are valid, and contains only filter
-     * names and operators supported.
-     *
-     * @param filters in the format filterName:eq:aWord
-     * @throws IllegalQueryException if the set contains a non-supported name or
-     *         operator, or and invalid syntax.
-     */
-    public static void checkNamesAndOperators( final Set<String> filters )
-    {
-        if ( isNotEmpty( filters ) )
+  /**
+   * Checks if the given set o filters are valid, and contains only filter names and operators
+   * supported.
+   *
+   * @param filters in the format filterName:eq:aWord
+   * @throws IllegalQueryException if the set contains a non-supported name or operator, or and
+   *     invalid syntax.
+   */
+  public static void checkNamesAndOperators(final Set<String> filters) {
+    if (isNotEmpty(filters)) {
+      for (final String filter : filters) {
         {
-            for ( final String filter : filters )
-            {
-                {
-                    final String[] filterAttributeValuePair = filter.split( ":" );
-                    final boolean filterHasCorrectForm = filterAttributeValuePair.length == 3;
+          final String[] filterAttributeValuePair = filter.split(":");
+          final boolean filterHasCorrectForm = filterAttributeValuePair.length == 3;
 
-                    if ( filterHasCorrectForm )
-                    {
-                        final String attributeName = trimToEmpty(
-                            filterAttributeValuePair[FILTER_ATTRIBUTE_NAME] );
+          if (filterHasCorrectForm) {
+            final String attributeName =
+                trimToEmpty(filterAttributeValuePair[FILTER_ATTRIBUTE_NAME]);
 
-                        final String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
+            final String operator = trimToEmpty(filterAttributeValuePair[FILTER_OPERATOR]);
 
-                        if ( !getNames().contains( attributeName ) && !getPropertyNames().contains( attributeName ) )
-                        {
-                            throw new IllegalQueryException( new ErrorMessage( E2034, attributeName ) );
-                        }
-
-                        if ( !getAbbreviations().contains( operator ) )
-                        {
-                            throw new IllegalQueryException( new ErrorMessage( E2035, operator ) );
-                        }
-
-                        if ( getCombinations().stream().noneMatch( combination -> filter.startsWith( combination ) ) )
-                        {
-                            throw new IllegalQueryException(
-                                new ErrorMessage( E2035, StringUtils.substringBeforeLast( filter, ":" ) ) );
-                        }
-                    }
-                    else
-                    {
-                        throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
-                    }
-                }
+            if (!getNames().contains(attributeName)
+                && !getPropertyNames().contains(attributeName)) {
+              throw new IllegalQueryException(new ErrorMessage(E2034, attributeName));
             }
-        }
-    }
 
-    /**
-     * Simply checks if the given set of filters contains any one of the
-     * provided prefixes.
-     *
-     * @param filters
-     * @param withPrefixes
-     * @return true if a filter prefix is found, false otherwise.
-     */
-    public static boolean containsFilterWithAnyOfPrefixes( final Set<String> filters, final String... withPrefixes )
-    {
-        if ( isNotEmpty( filters ) && withPrefixes != null && withPrefixes.length > 0 )
-        {
-            for ( final String filter : filters )
-            {
-                for ( final String prefix : withPrefixes )
-                {
-                    if ( filterHasPrefix( filter, prefix ) )
-                    {
-                        return true;
-                    }
-                }
+            if (!getAbbreviations().contains(operator)) {
+              throw new IllegalQueryException(new ErrorMessage(E2035, operator));
             }
-        }
 
-        return false;
+            if (getCombinations().stream()
+                .noneMatch(combination -> filter.startsWith(combination))) {
+              throw new IllegalQueryException(
+                  new ErrorMessage(E2035, StringUtils.substringBeforeLast(filter, ":")));
+            }
+          } else {
+            throw new IllegalQueryException(new ErrorMessage(E2014, filter));
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Simply checks if the given set of filters contains any one of the provided prefixes.
+   *
+   * @param filters
+   * @param withPrefixes
+   * @return true if a filter prefix is found, false otherwise.
+   */
+  public static boolean containsFilterWithAnyOfPrefixes(
+      final Set<String> filters, final String... withPrefixes) {
+    if (isNotEmpty(filters) && withPrefixes != null && withPrefixes.length > 0) {
+      for (final String filter : filters) {
+        for (final String prefix : withPrefixes) {
+          if (filterHasPrefix(filter, prefix)) {
+            return true;
+          }
+        }
+      }
     }
 
-    /**
-     * Simply checks if a given filter start the prefix provided.
-     *
-     * @param filter the full filter param, in the format: name:eq:someName,
-     *        where 'name' is the attribute and 'eq' is the operator
-     * @param prefix the prefix to be matched. See {@link Filter.Combination}
-     *        for valid ones
-     * @return true if the current filter starts with the given prefix, false
-     *         otherwise
-     */
-    public static boolean filterHasPrefix( final String filter, final String prefix )
-    {
-        if ( isNotBlank( prefix ) && isNotBlank( filter ) )
-        {
-            return trimToEmpty( filter ).startsWith( trimToEmpty( prefix ) );
-        }
+    return false;
+  }
 
-        return false;
+  /**
+   * Simply checks if a given filter start the prefix provided.
+   *
+   * @param filter the full filter param, in the format: name:eq:someName, where 'name' is the
+   *     attribute and 'eq' is the operator
+   * @param prefix the prefix to be matched. See {@link Filter.Combination} for valid ones
+   * @return true if the current filter starts with the given prefix, false otherwise
+   */
+  public static boolean filterHasPrefix(final String filter, final String prefix) {
+    if (isNotBlank(prefix) && isNotBlank(filter)) {
+      return trimToEmpty(filter).startsWith(trimToEmpty(prefix));
     }
+
+    return false;
+  }
 }

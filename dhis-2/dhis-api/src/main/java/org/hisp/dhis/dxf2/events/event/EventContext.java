@@ -28,63 +28,55 @@
 package org.hisp.dhis.dxf2.events.event;
 
 import java.util.Map;
-
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
-public class EventContext
-{
-    private final Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid;
+public class EventContext {
+  private final Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid;
 
-    private final Map<String, Program> programsByUid;
+  private final Map<String, Program> programsByUid;
 
-    private final Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs;
+  private final Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs;
 
-    private final Map<String, OrganisationUnit> orgUnitsByUid;
+  private final Map<String, OrganisationUnit> orgUnitsByUid;
 
-    public EventContext( Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid,
-        Map<String, Program> programsByUid,
-        Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs,
-        Map<String, OrganisationUnit> orgUnitsByUid )
-    {
-        this.trackedEntityOuInfoByUid = trackedEntityOuInfoByUid;
-        this.programsByUid = programsByUid;
-        this.orgUnitByTeiUidAndProgramUidPairs = orgUnitByTeiUidAndProgramUidPairs;
-        this.orgUnitsByUid = orgUnitsByUid;
-    }
+  public EventContext(
+      Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid,
+      Map<String, Program> programsByUid,
+      Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs,
+      Map<String, OrganisationUnit> orgUnitsByUid) {
+    this.trackedEntityOuInfoByUid = trackedEntityOuInfoByUid;
+    this.programsByUid = programsByUid;
+    this.orgUnitByTeiUidAndProgramUidPairs = orgUnitByTeiUidAndProgramUidPairs;
+    this.orgUnitsByUid = orgUnitsByUid;
+  }
 
-    public Map<String, TrackedEntityOuInfo> getTrackedEntityOuInfoByUid()
-    {
-        return trackedEntityOuInfoByUid;
-    }
+  public Map<String, TrackedEntityOuInfo> getTrackedEntityOuInfoByUid() {
+    return trackedEntityOuInfoByUid;
+  }
 
-    public Map<String, Program> getProgramsByUid()
-    {
-        return programsByUid;
-    }
+  public Map<String, Program> getProgramsByUid() {
+    return programsByUid;
+  }
 
-    public Map<Pair<String, String>, String> getOrgUnitByTeiUidAndProgramUidPairs()
-    {
-        return orgUnitByTeiUidAndProgramUidPairs;
-    }
+  public Map<Pair<String, String>, String> getOrgUnitByTeiUidAndProgramUidPairs() {
+    return orgUnitByTeiUidAndProgramUidPairs;
+  }
 
-    public Map<String, OrganisationUnit> getOrgUnitsByUid()
-    {
-        return orgUnitsByUid;
-    }
+  public Map<String, OrganisationUnit> getOrgUnitsByUid() {
+    return orgUnitsByUid;
+  }
 
-    @Data
-    @RequiredArgsConstructor
-    public static class TrackedEntityOuInfo
-    {
-        private final Long trackerEntityId;
+  @Data
+  @RequiredArgsConstructor
+  public static class TrackedEntityOuInfo {
+    private final Long trackerEntityId;
 
-        private final String trackedEntityUid;
+    private final String trackedEntityUid;
 
-        private final Long orgUnitId;
-    }
+    private final Long orgUnitId;
+  }
 }

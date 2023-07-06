@@ -28,13 +28,11 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.Date;
-
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 
@@ -43,38 +41,38 @@ import org.hisp.dhis.program.ProgramStageInstance;
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = false )
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public class ProgramNotificationInstanceParam extends BaseNotificationParam
-{
-    @Builder
-    public ProgramNotificationInstanceParam( Integer page, Integer pageSize, boolean skipPaging,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date scheduledAt )
-    {
-        super( page, pageSize, skipPaging );
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
-        this.scheduledAt = scheduledAt;
-    }
+public class ProgramNotificationInstanceParam extends BaseNotificationParam {
+  @Builder
+  public ProgramNotificationInstanceParam(
+      Integer page,
+      Integer pageSize,
+      boolean skipPaging,
+      ProgramInstance programInstance,
+      ProgramStageInstance programStageInstance,
+      Date scheduledAt) {
+    super(page, pageSize, skipPaging);
+    this.programInstance = programInstance;
+    this.programStageInstance = programStageInstance;
+    this.scheduledAt = scheduledAt;
+  }
 
-    private ProgramInstance programInstance;
+  private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramStageInstance programStageInstance;
 
-    private Date scheduledAt;
+  private Date scheduledAt;
 
-    public boolean hasProgramInstance()
-    {
-        return programInstance != null;
-    }
+  public boolean hasProgramInstance() {
+    return programInstance != null;
+  }
 
-    public boolean hasProgramStageInstance()
-    {
-        return programStageInstance != null;
-    }
+  public boolean hasProgramStageInstance() {
+    return programStageInstance != null;
+  }
 
-    public boolean hasScheduledAt()
-    {
-        return scheduledAt != null;
-    }
+  public boolean hasScheduledAt() {
+    return scheduledAt != null;
+  }
 }

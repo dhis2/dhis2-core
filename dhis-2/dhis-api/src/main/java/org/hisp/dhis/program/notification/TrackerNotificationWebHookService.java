@@ -28,27 +28,23 @@
 package org.hisp.dhis.program.notification;
 
 /**
- * Defines methods for handling of tracker web hook notifications associated
- * with {@link org.hisp.dhis.program.ProgramInstance} and
- * {@link org.hisp.dhis.program.ProgramStageInstance}
+ * Defines methods for handling of tracker web hook notifications associated with {@link
+ * org.hisp.dhis.program.ProgramInstance} and {@link org.hisp.dhis.program.ProgramStageInstance}
  *
  * @author Zubair Asghar
  */
-public interface TrackerNotificationWebHookService
-{
-    /**
-     * Sends web hook notifications linked to
-     * {@link org.hisp.dhis.program.ProgramInstance}
-     *
-     * @param programInstance to handle
-     */
-    void handleEnrollment( String programInstance );
+public interface TrackerNotificationWebHookService {
+  /**
+   * Sends web hook notifications linked to {@link org.hisp.dhis.program.ProgramInstance}
+   *
+   * @param programInstance to handle
+   */
+  void handleEnrollment(String programInstance);
 
-    /**
-     * Sends web hook notifications linked to
-     * {@link org.hisp.dhis.program.ProgramStageInstance}
-     *
-     * @param programStageInstance to handle
-     */
-    void handleEvent( String programStageInstance );
+  /**
+   * Sends web hook notifications linked to {@link org.hisp.dhis.program.ProgramStageInstance}
+   *
+   * @param programStageInstance to handle
+   */
+  void handleEvent(String programStageInstance);
 }

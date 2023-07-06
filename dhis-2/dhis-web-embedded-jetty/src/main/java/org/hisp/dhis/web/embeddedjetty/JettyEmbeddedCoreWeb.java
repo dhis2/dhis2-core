@@ -32,9 +32,7 @@ import static org.springframework.security.web.context.AbstractSecurityWebApplic
 
 import java.security.Security;
 import java.util.EnumSet;
-
 import javax.servlet.DispatcherType;
-
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -45,83 +43,77 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
-{
-    private static final int DEFAULT_HTTP_PORT = 9090;
+public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
+  private static final int DEFAULT_HTTP_PORT = 9090;
 
-    private static final String SERVER_HOSTNAME_OR_IP = "localhost";
+  private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
-    private static final Long elapsedSinceStart = System.currentTimeMillis();
+  private static final Long elapsedSinceStart = System.currentTimeMillis();
 
-    public JettyEmbeddedCoreWeb()
-    {
-        super();
-    }
+  public JettyEmbeddedCoreWeb() {
+    super();
+  }
 
-    public static void main( String[] args )
-        throws Exception
-    {
-        Security.setProperty( "crypto.policy", "unlimited" );
-        Security.setProperty( "networkaddress.cache.ttl", "FOREVER" );
-        Security.setProperty( "networkaddress.cache.negative.ttl", "10" );
+  public static void main(String[] args) throws Exception {
+    Security.setProperty("crypto.policy", "unlimited");
+    Security.setProperty("networkaddress.cache.ttl", "FOREVER");
+    Security.setProperty("networkaddress.cache.negative.ttl", "10");
 
-        setDefaultPropertyValue( "jetty.host", SERVER_HOSTNAME_OR_IP );
-        setDefaultPropertyValue( "jetty.http.port", String.valueOf( DEFAULT_HTTP_PORT ) );
+    setDefaultPropertyValue("jetty.host", SERVER_HOSTNAME_OR_IP);
+    setDefaultPropertyValue("jetty.http.port", String.valueOf(DEFAULT_HTTP_PORT));
 
-        /*
-         * This property is very import, this will instruct Spring to use
-         * special Spring config classes adapted to running in embedded Jetty.
-         *
-         * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
-         */
-        setDefaultPropertyValue( "spring.profiles.active", "embeddedJetty" );
+    /*
+     * This property is very import, this will instruct Spring to use
+     * special Spring config classes adapted to running in embedded Jetty.
+     *
+     * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
+     */
+    setDefaultPropertyValue("spring.profiles.active", "embeddedJetty");
 
-        JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
-        jettyEmbeddedCoreWeb.printBanner( "DHIS2 API Server" );
-        jettyEmbeddedCoreWeb.startJetty();
-    }
+    JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
+    jettyEmbeddedCoreWeb.printBanner("DHIS2 API Server");
+    jettyEmbeddedCoreWeb.startJetty();
+  }
 
-    public ServletContextHandler getServletContextHandler()
-    {
-        ServletContextHandler contextHandler = new ServletContextHandler( ServletContextHandler.SESSIONS );
-        contextHandler.setErrorHandler( null );
+  public ServletContextHandler getServletContextHandler() {
+    ServletContextHandler contextHandler =
+        new ServletContextHandler(ServletContextHandler.SESSIONS);
+    contextHandler.setErrorHandler(null);
 
-        RequestContextListener requestContextListener = new RequestContextListener();
-        contextHandler.addEventListener( requestContextListener );
+    RequestContextListener requestContextListener = new RequestContextListener();
+    contextHandler.addEventListener(requestContextListener);
 
-        AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
-        contextHandler.addEventListener( new ContextLoaderListener( webApplicationContext ) );
-        contextHandler.addEventListener( new StartupListener() );
-        contextHandler.addEventListener( new HttpSessionEventPublisher() );
+    AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
+    contextHandler.addEventListener(new ContextLoaderListener(webApplicationContext));
+    contextHandler.addEventListener(new StartupListener());
+    contextHandler.addEventListener(new HttpSessionEventPublisher());
 
-        // Spring Security Filter
-        contextHandler.addFilter(
-            new FilterHolder( new DelegatingFilterProxy( DEFAULT_FILTER_NAME ) ),
-            "/*",
-            EnumSet.allOf( DispatcherType.class ) );
+    // Spring Security Filter
+    contextHandler.addFilter(
+        new FilterHolder(new DelegatingFilterProxy(DEFAULT_FILTER_NAME)),
+        "/*",
+        EnumSet.allOf(DispatcherType.class));
 
-        ContextHandler.Context context = contextHandler.getServletContext();
+    ContextHandler.Context context = contextHandler.getServletContext();
 
-        setupServlets( context, webApplicationContext );
+    setupServlets(context, webApplicationContext);
 
-        context.addServlet( "GetModulesServlet", GetAppMenuServlet.class )
-            .addMapping( "/dhis-web-commons/menu/getModules.action" );
+    context
+        .addServlet("GetModulesServlet", GetAppMenuServlet.class)
+        .addMapping("/dhis-web-commons/menu/getModules.action");
 
-        context.addServlet( "RootPageServlet", RootPageServlet.class )
-            .addMapping( "/index.html" );
+    context.addServlet("RootPageServlet", RootPageServlet.class).addMapping("/index.html");
 
-        return contextHandler;
-    }
+    return contextHandler;
+  }
 
-    private static AnnotationConfigWebApplicationContext getWebApplicationContext()
-    {
-        AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
-        context.register( SpringConfiguration.class );
-        return context;
-    }
+  private static AnnotationConfigWebApplicationContext getWebApplicationContext() {
+    AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+    context.register(SpringConfiguration.class);
+    return context;
+  }
 
-    public static Long getElapsedMsSinceStart()
-    {
-        return System.currentTimeMillis() - elapsedSinceStart;
-    }
+  public static Long getElapsedMsSinceStart() {
+    return System.currentTimeMillis() - elapsedSinceStart;
+  }
 }

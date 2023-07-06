@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataapproval;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -36,28 +35,25 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  *
  * @author Jim Grace
  */
-public interface DataApprovalLevelStore
-    extends IdentifiableObjectStore<DataApprovalLevel>
-{
-    String ID = DataApprovalLevelStore.class.getName();
+public interface DataApprovalLevelStore extends IdentifiableObjectStore<DataApprovalLevel> {
+  String ID = DataApprovalLevelStore.class.getName();
 
-    // -------------------------------------------------------------------------
-    // Basic DataApprovalLevel
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Basic DataApprovalLevel
+  // -------------------------------------------------------------------------
 
-    /**
-     * Gets a list of all data approval levels, ordered by level in ascending
-     * order, i.e. from 1 to n.
-     *
-     * @return List of all data approval levels, ordered from 1 to n.
-     */
-    List<DataApprovalLevel> getAllDataApprovalLevels();
+  /**
+   * Gets a list of all data approval levels, ordered by level in ascending order, i.e. from 1 to n.
+   *
+   * @return List of all data approval levels, ordered from 1 to n.
+   */
+  List<DataApprovalLevel> getAllDataApprovalLevels();
 
-    /**
-     * Gets data approval levels by org unit level.
-     *
-     * @param orgUnitLevel the org unit level.
-     * @return a list of data approval levels, ordered by level number.
-     */
-    List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel( int orgUnitLevel );
+  /**
+   * Gets data approval levels by org unit level.
+   *
+   * @param orgUnitLevel the org unit level.
+   * @return a list of data approval levels, ordered by level number.
+   */
+  List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel(int orgUnitLevel);
 }

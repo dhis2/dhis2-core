@@ -30,18 +30,14 @@ package org.hisp.dhis.webapi.json.domain;
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
- *
  * @author Jason Pickering
  */
-public interface JsonCategoryOption extends JsonIdentifiableObject
-{
-    default JsonList<JsonCategory> getCategories()
-    {
-        return getList( "categories", JsonCategory.class );
-    }
+public interface JsonCategoryOption extends JsonIdentifiableObject {
+  default JsonList<JsonCategory> getCategories() {
+    return getList("categories", JsonCategory.class);
+  }
 
-    default JsonList<JsonCategoryOptionCombo> getCatOptionCombos()
-    {
-        return getList( "categoryOptionCombos", JsonCategoryOptionCombo.class );
-    }
+  default JsonList<JsonCategoryOptionCombo> getCatOptionCombos() {
+    return getList("categoryOptionCombos", JsonCategoryOptionCombo.class);
+  }
 }

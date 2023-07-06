@@ -32,24 +32,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class DimensionalObjectTest
-{
+class DimensionalObjectTest {
 
-    @Test
-    void testGetFilterItemsAsList()
-    {
-        BaseDimensionalObject objectA = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null,
-            null, null, null, "IN:uidA;uidB;uidC" );
-        List<String> expectedA = new ArrayList<>( Arrays.asList( "uidA", "uidB", "uidC" ) );
-        assertEquals( expectedA, objectA.getFilterItemsAsList() );
-        BaseDimensionalObject objectB = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null,
-            null, null, null, "EQ:uidA" );
-        assertEquals( null, objectB.getFilterItemsAsList() );
-    }
+  @Test
+  void testGetFilterItemsAsList() {
+    BaseDimensionalObject objectA =
+        new BaseDimensionalObject(
+            "dimA",
+            DimensionType.PROGRAM_DATA_ELEMENT,
+            null,
+            null,
+            null,
+            null,
+            "IN:uidA;uidB;uidC");
+    List<String> expectedA = new ArrayList<>(Arrays.asList("uidA", "uidB", "uidC"));
+    assertEquals(expectedA, objectA.getFilterItemsAsList());
+    BaseDimensionalObject objectB =
+        new BaseDimensionalObject(
+            "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, null, "EQ:uidA");
+    assertEquals(null, objectB.getFilterItemsAsList());
+  }
 }

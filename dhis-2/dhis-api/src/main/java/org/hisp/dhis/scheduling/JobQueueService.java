@@ -29,68 +29,59 @@ package org.hisp.dhis.scheduling;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * Job Queue API
  *
- * Job Queues are named sequences of {@link JobConfiguration}s triggered by a
- * CRON expression. They take the place of a job in the scheduler list.
+ * <p>Job Queues are named sequences of {@link JobConfiguration}s triggered by a CRON expression.
+ * They take the place of a job in the scheduler list.
  *
  * @author Jan Bernitt
  */
-public interface JobQueueService
-{
-    Set<String> getQueueNames();
+public interface JobQueueService {
+  Set<String> getQueueNames();
 
-    /**
-     * Returns the jobs in queue sequence order.
-     *
-     * @param name name of the queue
-     * @return all jobs that are part of the queue in execution order
-     * @throws NotFoundException when no such queue exists
-     */
-    List<JobConfiguration> getQueue( String name )
-        throws NotFoundException;
+  /**
+   * Returns the jobs in queue sequence order.
+   *
+   * @param name name of the queue
+   * @return all jobs that are part of the queue in execution order
+   * @throws NotFoundException when no such queue exists
+   */
+  List<JobConfiguration> getQueue(String name) throws NotFoundException;
 
-    /**
-     * Create a new queue sequence.
-     *
-     * @param name name of the queue
-     * @param cronExpression trigger CRON expression to start the queue sequence
-     * @param sequence UIDs of the {@link JobConfiguration}s to run
-     */
-    void createQueue( String name, String cronExpression, List<String> sequence )
-        throws NotFoundException,
-        ConflictException;
+  /**
+   * Create a new queue sequence.
+   *
+   * @param name name of the queue
+   * @param cronExpression trigger CRON expression to start the queue sequence
+   * @param sequence UIDs of the {@link JobConfiguration}s to run
+   */
+  void createQueue(String name, String cronExpression, List<String> sequence)
+      throws NotFoundException, ConflictException;
 
-    /**
-     * Update a queue sequence.
-     *
-     * @param name name of the queue
-     * @param newCronExpression trigger CRON expression to start the queue
-     *        sequence
-     * @param newSequence UIDs of the {@link JobConfiguration}s to run
-     */
-    void updateQueue( String name, String newCronExpression, List<String> newSequence )
-        throws NotFoundException,
-        ConflictException;
+  /**
+   * Update a queue sequence.
+   *
+   * @param name name of the queue
+   * @param newCronExpression trigger CRON expression to start the queue sequence
+   * @param newSequence UIDs of the {@link JobConfiguration}s to run
+   */
+  void updateQueue(String name, String newCronExpression, List<String> newSequence)
+      throws NotFoundException, ConflictException;
 
-    /**
-     * Deletes a queue sequence.
-     *
-     * When a sequence is disassembled the {@link JobConfiguration}s that were
-     * part of it get reset. This means their
-     * {@link JobConfiguration#getQueueName()},
-     * {@link JobConfiguration#getQueuePosition()} and their
-     * {@link JobConfiguration#getCronExpression()} are cleared. Also, they all
-     * get disabled by setting {@link JobConfiguration#isEnabled()} to
-     * {@code false}.
-     *
-     * @param name name of the queue
-     */
-    void deleteQueue( String name )
-        throws NotFoundException;
+  /**
+   * Deletes a queue sequence.
+   *
+   * <p>When a sequence is disassembled the {@link JobConfiguration}s that were part of it get
+   * reset. This means their {@link JobConfiguration#getQueueName()}, {@link
+   * JobConfiguration#getQueuePosition()} and their {@link JobConfiguration#getCronExpression()} are
+   * cleared. Also, they all get disabled by setting {@link JobConfiguration#isEnabled()} to {@code
+   * false}.
+   *
+   * @param name name of the queue
+   */
+  void deleteQueue(String name) throws NotFoundException;
 }

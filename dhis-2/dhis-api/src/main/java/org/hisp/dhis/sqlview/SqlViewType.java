@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.sqlview;
 
-public enum SqlViewType
-{
-    VIEW,
-    MATERIALIZED_VIEW,
-    QUERY
+public enum SqlViewType {
+  VIEW,
+  MATERIALIZED_VIEW,
+  QUERY
 }

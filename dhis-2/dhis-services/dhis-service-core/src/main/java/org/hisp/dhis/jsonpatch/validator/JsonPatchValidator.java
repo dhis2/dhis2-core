@@ -28,23 +28,22 @@
 package org.hisp.dhis.jsonpatch.validator;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author viet@dhis2.org
  */
-public class JsonPatchValidator
-    implements BulkPatchValidator
-{
-    @Override
-    public void validate( BulkPatchValidateParams params, Consumer<ErrorReport> addError )
-    {
-        if ( params.getSchema() != null && params.getEntity() == null )
-        {
-            addError.accept( new ErrorReport( params.getSchema().getKlass(), ErrorCode.E4014, params.getId(),
-                params.getSchema().getName() ) );
-        }
+public class JsonPatchValidator implements BulkPatchValidator {
+  @Override
+  public void validate(BulkPatchValidateParams params, Consumer<ErrorReport> addError) {
+    if (params.getSchema() != null && params.getEntity() == null) {
+      addError.accept(
+          new ErrorReport(
+              params.getSchema().getKlass(),
+              ErrorCode.E4014,
+              params.getId(),
+              params.getSchema().getName()));
     }
+  }
 }

@@ -42,23 +42,23 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.mapping.MapStore" )
-public class HibernateMapStore
-    extends HibernateIdentifiableObjectStore<Map> implements MapStore
-{
-    public HibernateMapStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Map.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.mapping.MapStore")
+public class HibernateMapStore extends HibernateIdentifiableObjectStore<Map> implements MapStore {
+  public HibernateMapStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(sessionFactory, jdbcTemplate, publisher, Map.class, currentUserService, aclService, true);
+  }
 
-    @Override
-    public int countMapViewMaps( MapView mapView )
-    {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct c) from Map c where :mapView in elements(c.mapViews)" );
-        query.setParameter( "mapView", mapView );
+  @Override
+  public int countMapViewMaps(MapView mapView) {
+    Query<Long> query =
+        getTypedQuery("select count(distinct c) from Map c where :mapView in elements(c.mapViews)");
+    query.setParameter("mapView", mapView);
 
-        return query.getSingleResult().intValue();
-    }
+    return query.getSingleResult().intValue();
+  }
 }

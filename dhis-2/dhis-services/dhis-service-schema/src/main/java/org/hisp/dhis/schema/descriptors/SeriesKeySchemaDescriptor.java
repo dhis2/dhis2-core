@@ -34,15 +34,13 @@ import org.hisp.dhis.visualization.SeriesKey;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SeriesKeySchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "seriesKey";
+public class SeriesKeySchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "seriesKey";
 
-    public static final String PLURAL = "seriesKeys";
+  public static final String PLURAL = "seriesKeys";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( SeriesKey.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(SeriesKey.class, SINGULAR, PLURAL);
+  }
 }

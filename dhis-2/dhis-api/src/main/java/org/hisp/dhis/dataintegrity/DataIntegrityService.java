@@ -30,62 +30,56 @@ package org.hisp.dhis.dataintegrity;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Fredrik Fjeld (old API)
  * @author Jan Bernitt (new API)
  */
-public interface DataIntegrityService
-{
-    /*
-     * Old API
-     */
+public interface DataIntegrityService {
+  /*
+   * Old API
+   */
 
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
-     *             {@link #getDetails(Set, long)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    @Nonnull
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
+  /**
+   * @deprecated Replaced by {@link #getSummaries(Set, long)} and {@link #getDetails(Set, long)},
+   *     kept for backwards compatibility until new UI exists
+   */
+  @Deprecated(since = "2.38", forRemoval = true)
+  @Nonnull
+  FlattenedDataIntegrityReport getReport(Set<String> checks, JobProgress progress);
 
-    /*
-     * New generic API
-     */
+  /*
+   * New generic API
+   */
 
-    default @Nonnull Collection<DataIntegrityCheck> getDataIntegrityChecks()
-    {
-        return getDataIntegrityChecks( Set.of() );
-    }
+  default @Nonnull Collection<DataIntegrityCheck> getDataIntegrityChecks() {
+    return getDataIntegrityChecks(Set.of());
+  }
 
-    @Nonnull
-    Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks );
+  @Nonnull
+  Collection<DataIntegrityCheck> getDataIntegrityChecks(Set<String> checks);
 
-    @Nonnull
-    Map<String, DataIntegritySummary> getSummaries( @Nonnull Set<String> checks, long timeout );
+  @Nonnull
+  Map<String, DataIntegritySummary> getSummaries(@Nonnull Set<String> checks, long timeout);
 
-    @Nonnull
-    Map<String, DataIntegrityDetails> getDetails( @Nonnull Set<String> checks, long timeout );
+  @Nonnull
+  Map<String, DataIntegrityDetails> getDetails(@Nonnull Set<String> checks, long timeout);
 
-    void runSummaryChecks( @Nonnull Set<String> checks, JobProgress progress );
+  void runSummaryChecks(@Nonnull Set<String> checks, JobProgress progress);
 
-    void runDetailsChecks( @Nonnull Set<String> checks, JobProgress progress );
+  void runDetailsChecks(@Nonnull Set<String> checks, JobProgress progress);
 
-    @Nonnull
-    Set<String> getRunningSummaryChecks();
+  @Nonnull
+  Set<String> getRunningSummaryChecks();
 
-    @Nonnull
-    Set<String> getRunningDetailsChecks();
+  @Nonnull
+  Set<String> getRunningDetailsChecks();
 
-    @Nonnull
-    Set<String> getCompletedSummaryChecks();
+  @Nonnull
+  Set<String> getCompletedSummaryChecks();
 
-    @Nonnull
-    Set<String> getCompletedDetailsChecks();
-
+  @Nonnull
+  Set<String> getCompletedDetailsChecks();
 }

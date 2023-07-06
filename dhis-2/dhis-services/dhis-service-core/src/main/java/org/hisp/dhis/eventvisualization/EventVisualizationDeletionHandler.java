@@ -29,7 +29,6 @@ package org.hisp.dhis.eventvisualization;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,66 +45,59 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventVisualizationDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<EventVisualization, EventVisualizationService>
-{
-    public EventVisualizationDeletionHandler( final EventVisualizationService eventVisualizationService )
-    {
-        super( new DeletionVeto( EventVisualization.class ), eventVisualizationService );
+    extends GenericAnalyticalObjectDeletionHandler<EventVisualization, EventVisualizationService> {
+  public EventVisualizationDeletionHandler(
+      final EventVisualizationService eventVisualizationService) {
+    super(new DeletionVeto(EventVisualization.class), eventVisualizationService);
+  }
+
+  @Override
+  protected void registerHandler() {
+    // generic
+    whenDeleting(Period.class, this::deletePeriod);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+    whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);
+
+    // special
+    whenDeleting(DataElement.class, this::deleteDataElementSpecial);
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private void deleteDataElementSpecial(DataElement dataElement) {
+    final List<EventVisualization> eventVisualizations =
+        service.getAnalyticalObjectsByDataDimension(dataElement);
+
+    for (final EventVisualization eventVisualization : eventVisualizations) {
+      eventVisualization
+          .getDataElementDimensions()
+          .removeIf(
+              trackedEntityDataElementDimension ->
+                  trackedEntityDataElementDimension.getDataElement().equals(dataElement));
+
+      service.update(eventVisualization);
     }
+  }
 
-    @Override
-    protected void registerHandler()
-    {
-        // generic
-        whenDeleting( Period.class, this::deletePeriod );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+  private void deleteProgramStage(ProgramStage programStage) {
+    final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
 
-        // special
-        whenDeleting( DataElement.class, this::deleteDataElementSpecial );
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
-        whenDeleting( Program.class, this::deleteProgram );
+    for (EventVisualization eventVisualization : eventVisualizations) {
+      if (eventVisualization.getProgramStage().equals(programStage)) {
+        service.delete(eventVisualization);
+      }
     }
+  }
 
-    private void deleteDataElementSpecial( DataElement dataElement )
-    {
-        final List<EventVisualization> eventVisualizations = service.getAnalyticalObjectsByDataDimension( dataElement );
+  private void deleteProgram(Program program) {
+    final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
 
-        for ( final EventVisualization eventVisualization : eventVisualizations )
-        {
-            eventVisualization.getDataElementDimensions()
-                .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
-                    .equals( dataElement ) );
-
-            service.update( eventVisualization );
-        }
+    for (final EventVisualization eventVisualization : eventVisualizations) {
+      if (eventVisualization.getProgram().equals(program)) {
+        service.delete(eventVisualization);
+      }
     }
-
-    private void deleteProgramStage( ProgramStage programStage )
-    {
-        final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
-
-        for ( EventVisualization eventVisualization : eventVisualizations )
-        {
-            if ( eventVisualization.getProgramStage().equals( programStage ) )
-            {
-                service.delete( eventVisualization );
-            }
-        }
-    }
-
-    private void deleteProgram( Program program )
-    {
-        final Collection<EventVisualization> eventVisualizations = service.getAllEventVisualizations();
-
-        for ( final EventVisualization eventVisualization : eventVisualizations )
-        {
-            if ( eventVisualization.getProgram().equals( program ) )
-            {
-                service.delete( eventVisualization );
-            }
-        }
-    }
+  }
 }

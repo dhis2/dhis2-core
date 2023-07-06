@@ -34,8 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -64,336 +65,343 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class EventQueryPlannerTest extends SingleSetupIntegrationTestBase
-{
+class EventQueryPlannerTest extends SingleSetupIntegrationTestBase {
 
-    private Program prA;
+  private Program prA;
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private DataElement deB;
+  private DataElement deB;
 
-    private DataElement deC;
+  private DataElement deC;
 
-    private DataElement deD;
+  private DataElement deD;
 
-    private DataElement deE;
+  private DataElement deE;
 
-    private ProgramDataElementDimensionItem pdeA;
+  private ProgramDataElementDimensionItem pdeA;
 
-    private ProgramDataElementDimensionItem pdeB;
+  private ProgramDataElementDimensionItem pdeB;
 
-    private ProgramDataElementDimensionItem pdeC;
+  private ProgramDataElementDimensionItem pdeC;
 
-    private ProgramDataElementDimensionItem pdeD;
+  private ProgramDataElementDimensionItem pdeD;
 
-    private ProgramDataElementDimensionItem pdeE;
+  private ProgramDataElementDimensionItem pdeE;
 
-    private TrackedEntityAttribute atA;
+  private TrackedEntityAttribute atA;
 
-    private TrackedEntityAttribute atB;
+  private TrackedEntityAttribute atB;
 
-    private ProgramTrackedEntityAttributeDimensionItem patA;
+  private ProgramTrackedEntityAttributeDimensionItem patA;
 
-    private ProgramTrackedEntityAttributeDimensionItem patB;
+  private ProgramTrackedEntityAttributeDimensionItem patB;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    private LegendSet lsA;
+  private LegendSet lsA;
 
-    private OptionSet osA;
+  private OptionSet osA;
 
-    @Autowired
-    private EventQueryPlanner queryPlanner;
+  @Autowired private EventQueryPlanner queryPlanner;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Override
-    public void setUpTest()
-    {
-        prA = createProgram( 'A' );
-        prA.setUid( "programuida" );
-        idObjectManager.save( prA );
-        deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
-        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
-        deE = createDataElement( 'E', ValueType.INTEGER, AggregationType.LAST,
-            DataElementDomain.TRACKER );
-        idObjectManager.save( deA );
-        idObjectManager.save( deB );
-        idObjectManager.save( deC );
-        idObjectManager.save( deD );
-        idObjectManager.save( deE );
-        pdeA = new ProgramDataElementDimensionItem( prA, deA );
-        pdeB = new ProgramDataElementDimensionItem( prA, deB );
-        pdeC = new ProgramDataElementDimensionItem( prA, deC );
-        pdeD = new ProgramDataElementDimensionItem( prA, deD );
-        pdeE = new ProgramDataElementDimensionItem( prA, deE );
-        atA = createTrackedEntityAttribute( 'A' );
-        atB = createTrackedEntityAttribute( 'B' );
-        idObjectManager.save( atA );
-        idObjectManager.save( atB );
-        patA = new ProgramTrackedEntityAttributeDimensionItem( prA, atA );
-        patB = new ProgramTrackedEntityAttributeDimensionItem( prA, atB );
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B', ouA );
-        ouC = createOrganisationUnit( 'C', ouA );
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        organisationUnitService.addOrganisationUnit( ouC );
-        lsA = createLegendSet( 'A' );
-        idObjectManager.save( lsA );
-        osA = new OptionSet( "OptionSetA", ValueType.TEXT );
-        idObjectManager.save( osA );
-    }
+  @Override
+  public void setUpTest() {
+    prA = createProgram('A');
+    prA.setUid("programuida");
+    idObjectManager.save(prA);
+    deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER);
+    deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER);
+    deC =
+        createDataElement(
+            'C',
+            ValueType.INTEGER,
+            AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER);
+    deD =
+        createDataElement(
+            'D',
+            ValueType.INTEGER,
+            AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER);
+    deE =
+        createDataElement('E', ValueType.INTEGER, AggregationType.LAST, DataElementDomain.TRACKER);
+    idObjectManager.save(deA);
+    idObjectManager.save(deB);
+    idObjectManager.save(deC);
+    idObjectManager.save(deD);
+    idObjectManager.save(deE);
+    pdeA = new ProgramDataElementDimensionItem(prA, deA);
+    pdeB = new ProgramDataElementDimensionItem(prA, deB);
+    pdeC = new ProgramDataElementDimensionItem(prA, deC);
+    pdeD = new ProgramDataElementDimensionItem(prA, deD);
+    pdeE = new ProgramDataElementDimensionItem(prA, deE);
+    atA = createTrackedEntityAttribute('A');
+    atB = createTrackedEntityAttribute('B');
+    idObjectManager.save(atA);
+    idObjectManager.save(atB);
+    patA = new ProgramTrackedEntityAttributeDimensionItem(prA, atA);
+    patB = new ProgramTrackedEntityAttributeDimensionItem(prA, atB);
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B', ouA);
+    ouC = createOrganisationUnit('C', ouA);
+    organisationUnitService.addOrganisationUnit(ouA);
+    organisationUnitService.addOrganisationUnit(ouB);
+    organisationUnitService.addOrganisationUnit(ouC);
+    lsA = createLegendSet('A');
+    idObjectManager.save(lsA);
+    osA = new OptionSet("OptionSetA", ValueType.TEXT);
+    idObjectManager.save(osA);
+  }
 
-    @Test
-    void testPlanAggregateQueryA()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 1, queries.size() );
-        EventQueryParams query = queries.get( 0 );
-        assertEquals( new DateTime( 2010, 6, 1, 0, 0 ).toDate(), query.getStartDate() );
-        assertEquals( new DateTime( 2012, 3, 20, 0, 0 ).toDate(), query.getEndDate() );
-        Partitions partitions = query.getPartitions();
-        Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );
-        assertEquals( 3, partitions.getPartitions().size() );
-        assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
-            query.getTableName() );
-    }
-
-    @Test
-    void testPlanAggregateQueryB()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withStartDate( new DateTime( 2010, 3, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2010, 9, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 1, queries.size() );
-        EventQueryParams query = queries.get( 0 );
-        assertEquals( new DateTime( 2010, 3, 1, 0, 0 ).toDate(), query.getStartDate() );
-        assertEquals( new DateTime( 2010, 9, 20, 0, 0 ).toDate(), query.getEndDate() );
-        Partitions partitions = query.getPartitions();
-        Partitions expected = new Partitions( Sets.newHashSet( 2010 ) );
-        assertEquals( 1, partitions.getPartitions().size() );
-        assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
-            query.getTableName() );
-    }
-
-    @Test
-    void testPlanAggregateQueryC()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( prA )
-            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) ).build();
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 2, queries.size() );
-        EventQueryParams queryA = queries.get( 0 );
-        EventQueryParams queryB = queries.get( 1 );
-        assertEquals( ouA, queryA.getOrganisationUnits().get( 0 ) );
-        assertEquals( ouB, queryB.getOrganisationUnits().get( 0 ) );
-        EventQueryParams query = queries.get( 0 );
-        Partitions partitions = query.getPartitions();
-        Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );
-        assertEquals( 3, partitions.getPartitions().size() );
-        assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
-            query.getTableName() );
-    }
-
-    @Test
-    void testPlanEventQueryA()
-    {
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
-            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
-        params = queryPlanner.planEventQuery( params );
-        assertEquals( new DateTime( 2010, 6, 1, 0, 0 ).toDate(), params.getStartDate() );
-        assertEquals( new DateTime( 2012, 3, 20, 0, 0 ).toDate(), params.getEndDate() );
-        Partitions partitions = params.getPartitions();
-        Partitions expected = new Partitions( Sets.newHashSet( 2010, 2011, 2012 ) );
-        assertEquals( 3, partitions.getPartitions().size() );
-        assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
-            params.getTableName() );
-    }
-
-    @Test
-    void testPlanEventQueryB()
-    {
-        EventQueryParams params = new EventQueryParams.Builder().withProgram( prA )
-            .withStartDate( new DateTime( 2010, 3, 1, 0, 0 ).toDate() )
-            .withEndDate( new DateTime( 2010, 9, 20, 0, 0 ).toDate() )
-            .withOrganisationUnits( Lists.newArrayList( ouA ) ).build();
-        params = queryPlanner.planEventQuery( params );
-        assertEquals( new DateTime( 2010, 3, 1, 0, 0 ).toDate(), params.getStartDate() );
-        assertEquals( new DateTime( 2010, 9, 20, 0, 0 ).toDate(), params.getEndDate() );
-        Partitions partitions = params.getPartitions();
-        Partitions expected = new Partitions( Sets.newHashSet( 2010 ) );
-        assertEquals( 1, partitions.getPartitions().size() );
-        assertEquals( expected, partitions );
-        assertEquals( PartitionUtils.getTableName( AnalyticsTableType.EVENT.getTableName(), prA ),
-            params.getTableName() );
-    }
-
-    @Test
-    void testFromDataQueryParams()
-    {
-        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeA, pdeB, pdeC, pdeD ) )
-            .withProgramAttributes( getList( patA, patB ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC ) )
-            .withPeriods( createPeriods( "200101", "200103", "200105", "200107" ) )
+  @Test
+  void testPlanAggregateQueryA() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(Lists.newArrayList(ouA))
             .build();
-        EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
-        assertEquals( 6, params.getItems().size() );
-        assertNull( params.getDimension( DimensionalObject.DATA_X_DIM_ID ) );
-        assertTrue( params.isAggregateData() );
-        for ( QueryItem item : params.getItems() )
-        {
-            assertEquals( prA, item.getProgram() );
-        }
-    }
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(1, queries.size());
+    EventQueryParams query = queries.get(0);
+    assertEquals(new DateTime(2010, 6, 1, 0, 0).toDate(), query.getStartDate());
+    assertEquals(new DateTime(2012, 3, 20, 0, 0).toDate(), query.getEndDate());
+    Partitions partitions = query.getPartitions();
+    Partitions expected = new Partitions(Sets.newHashSet(2010, 2011, 2012));
+    assertEquals(3, partitions.getPartitions().size());
+    assertEquals(expected, partitions);
+    assertEquals(
+        PartitionUtils.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
+        query.getTableName());
+  }
 
-    @Test
-    void testPlanAggregateDataQueryA()
-    {
-        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeA, pdeB, pdeC, pdeD ) )
-            .withProgramAttributes( getList( patA, patB ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC ) )
-            .withPeriods( createPeriods( "200101", "200103", "200105", "200107" ) )
+  @Test
+  void testPlanAggregateQueryB() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 3, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2010, 9, 20, 0, 0).toDate())
+            .withOrganisationUnits(Lists.newArrayList(ouA))
             .build();
-        EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 12, queries.size() );
-        for ( EventQueryParams query : queries )
-        {
-            assertTrue( query.hasValueDimension() );
-        }
-    }
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(1, queries.size());
+    EventQueryParams query = queries.get(0);
+    assertEquals(new DateTime(2010, 3, 1, 0, 0).toDate(), query.getStartDate());
+    assertEquals(new DateTime(2010, 9, 20, 0, 0).toDate(), query.getEndDate());
+    Partitions partitions = query.getPartitions();
+    Partitions expected = new Partitions(Sets.newHashSet(2010));
+    assertEquals(1, partitions.getPartitions().size());
+    assertEquals(expected, partitions);
+    assertEquals(
+        PartitionUtils.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
+        query.getTableName());
+  }
 
-    @Test
-    void testPlanAggregateDataQueryWithLastDataElement()
-    {
-        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeE ) )
-            .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( createPeriods( "200101", "200103", "200105", "200107" ) )
+  @Test
+  void testPlanAggregateQueryC() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(Lists.newArrayList(ouA, ouB))
             .build();
-        EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 4, queries.size() );
-        for ( EventQueryParams query : queries )
-        {
-            assertNotNull( query.getAggregationType() );
-            assertEquals( AggregationType.SUM, query.getAggregationType().getAggregationType() );
-            assertEquals( AggregationType.LAST, query.getAggregationType().getPeriodAggregationType() );
-            assertTrue( query.hasValueDimension() );
-        }
-    }
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(2, queries.size());
+    EventQueryParams queryA = queries.get(0);
+    EventQueryParams queryB = queries.get(1);
+    assertEquals(ouA, queryA.getOrganisationUnits().get(0));
+    assertEquals(ouB, queryB.getOrganisationUnits().get(0));
+    EventQueryParams query = queries.get(0);
+    Partitions partitions = query.getPartitions();
+    Partitions expected = new Partitions(Sets.newHashSet(2010, 2011, 2012));
+    assertEquals(3, partitions.getPartitions().size());
+    assertEquals(expected, partitions);
+    assertEquals(
+        PartitionUtils.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
+        query.getTableName());
+  }
 
-    @Test
-    void testPlanAggregateDataQueryWithQueryOverride()
-    {
-        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeE ) )
-            .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( createPeriods( "200101", "200103", "200105", "200107", "200109", "200111" ) )
-            .withAggregationType( new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.FIRST ) )
+  @Test
+  void testPlanEventQueryA() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withOrganisationUnits(Lists.newArrayList(ouA))
             .build();
-        EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 6, queries.size() );
-        for ( EventQueryParams query : queries )
-        {
-            assertNotNull( query.getAggregationType() );
-            assertEquals( AggregationType.AVERAGE, query.getAggregationType().getAggregationType() );
-            assertEquals( AggregationType.FIRST, query.getAggregationType().getPeriodAggregationType() );
-            assertTrue( query.hasValueDimension() );
-        }
-    }
+    params = queryPlanner.planEventQuery(params);
+    assertEquals(new DateTime(2010, 6, 1, 0, 0).toDate(), params.getStartDate());
+    assertEquals(new DateTime(2012, 3, 20, 0, 0).toDate(), params.getEndDate());
+    Partitions partitions = params.getPartitions();
+    Partitions expected = new Partitions(Sets.newHashSet(2010, 2011, 2012));
+    assertEquals(3, partitions.getPartitions().size());
+    assertEquals(expected, partitions);
+    assertEquals(
+        PartitionUtils.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
+        params.getTableName());
+  }
 
-    @Test
-    void testPlanAggregateDataQueryCollapseDataItems()
-    {
-        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeA, pdeB, pdeC, pdeD ) )
-            .withProgramAttributes( getList( patA, patB ) )
-            .withOrganisationUnits( getList( ouA, ouB, ouC ) )
-            .withPeriods( createPeriods( "200101", "200103", "200105", "200107" ) )
+  @Test
+  void testPlanEventQueryB() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 3, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2010, 9, 20, 0, 0).toDate())
+            .withOrganisationUnits(Lists.newArrayList(ouA))
             .build();
-        EventQueryParams params = new EventQueryParams.Builder( dataQueryParams ).withCollapseDataDimensions( true )
+    params = queryPlanner.planEventQuery(params);
+    assertEquals(new DateTime(2010, 3, 1, 0, 0).toDate(), params.getStartDate());
+    assertEquals(new DateTime(2010, 9, 20, 0, 0).toDate(), params.getEndDate());
+    Partitions partitions = params.getPartitions();
+    Partitions expected = new Partitions(Sets.newHashSet(2010));
+    assertEquals(1, partitions.getPartitions().size());
+    assertEquals(expected, partitions);
+    assertEquals(
+        PartitionUtils.getTableName(AnalyticsTableType.EVENT.getTableName(), prA),
+        params.getTableName());
+  }
+
+  @Test
+  void testFromDataQueryParams() {
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder()
+            .withProgramDataElements(getList(pdeA, pdeB, pdeC, pdeD))
+            .withProgramAttributes(getList(patA, patB))
+            .withOrganisationUnits(getList(ouA, ouB, ouC))
+            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
             .build();
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 12, queries.size() );
-        for ( EventQueryParams query : queries )
-        {
-            assertTrue( query.hasValueDimension() );
-            assertTrue( query.isCollapseDataDimensions() );
-        }
+    EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
+    assertEquals(6, params.getItems().size());
+    assertNull(params.getDimension(DimensionalObject.DATA_X_DIM_ID));
+    assertTrue(params.isAggregateData());
+    for (QueryItem item : params.getItems()) {
+      assertEquals(prA, item.getProgram());
     }
+  }
 
-    @Test
-    void testPlanAggregateDataQueryFirstValue()
-    {
-        testPlanAggregateDataQueryFirstOrLastValue( AnalyticsAggregationType.FIRST );
-    }
-
-    @Test
-    void testPlanAggregateDataQueryLastValue()
-    {
-        testPlanAggregateDataQueryFirstOrLastValue( AnalyticsAggregationType.LAST );
-    }
-
-    private void testPlanAggregateDataQueryFirstOrLastValue( AnalyticsAggregationType analyticsAggregationType )
-    {
-        DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeA ) )
-            .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( createPeriods( "200101", "200103", "200105", "200107" ) )
-            .withAggregationType( analyticsAggregationType )
+  @Test
+  void testPlanAggregateDataQueryA() {
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder()
+            .withProgramDataElements(getList(pdeA, pdeB, pdeC, pdeD))
+            .withProgramAttributes(getList(patA, patB))
+            .withOrganisationUnits(getList(ouA, ouB, ouC))
+            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
             .build();
-        EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
-        List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        assertEquals( 4, queries.size() );
-        for ( EventQueryParams query : queries )
-        {
-            assertEquals( 1, query.getPeriods().size() );
-            assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
-            assertEquals( PeriodTypeEnum.MONTHLY.getName().toLowerCase(),
-                query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
-            assertNotNull( query.getAggregationType() );
-            assertTrue( query.hasValueDimension() );
-        }
+    EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(12, queries.size());
+    for (EventQueryParams query : queries) {
+      assertTrue(query.hasValueDimension());
     }
+  }
+
+  @Test
+  void testPlanAggregateDataQueryWithLastDataElement() {
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder()
+            .withProgramDataElements(getList(pdeE))
+            .withOrganisationUnits(getList(ouA))
+            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .build();
+    EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(4, queries.size());
+    for (EventQueryParams query : queries) {
+      assertNotNull(query.getAggregationType());
+      assertEquals(AggregationType.SUM, query.getAggregationType().getAggregationType());
+      assertEquals(AggregationType.LAST, query.getAggregationType().getPeriodAggregationType());
+      assertTrue(query.hasValueDimension());
+    }
+  }
+
+  @Test
+  void testPlanAggregateDataQueryWithQueryOverride() {
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder()
+            .withProgramDataElements(getList(pdeE))
+            .withOrganisationUnits(getList(ouA))
+            .withPeriods(createPeriods("200101", "200103", "200105", "200107", "200109", "200111"))
+            .withAggregationType(
+                new AnalyticsAggregationType(AggregationType.AVERAGE, AggregationType.FIRST))
+            .build();
+    EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(6, queries.size());
+    for (EventQueryParams query : queries) {
+      assertNotNull(query.getAggregationType());
+      assertEquals(AggregationType.AVERAGE, query.getAggregationType().getAggregationType());
+      assertEquals(AggregationType.FIRST, query.getAggregationType().getPeriodAggregationType());
+      assertTrue(query.hasValueDimension());
+    }
+  }
+
+  @Test
+  void testPlanAggregateDataQueryCollapseDataItems() {
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder()
+            .withProgramDataElements(getList(pdeA, pdeB, pdeC, pdeD))
+            .withProgramAttributes(getList(patA, patB))
+            .withOrganisationUnits(getList(ouA, ouB, ouC))
+            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .build();
+    EventQueryParams params =
+        new EventQueryParams.Builder(dataQueryParams).withCollapseDataDimensions(true).build();
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(12, queries.size());
+    for (EventQueryParams query : queries) {
+      assertTrue(query.hasValueDimension());
+      assertTrue(query.isCollapseDataDimensions());
+    }
+  }
+
+  @Test
+  void testPlanAggregateDataQueryFirstValue() {
+    testPlanAggregateDataQueryFirstOrLastValue(AnalyticsAggregationType.FIRST);
+  }
+
+  @Test
+  void testPlanAggregateDataQueryLastValue() {
+    testPlanAggregateDataQueryFirstOrLastValue(AnalyticsAggregationType.LAST);
+  }
+
+  private void testPlanAggregateDataQueryFirstOrLastValue(
+      AnalyticsAggregationType analyticsAggregationType) {
+    DataQueryParams dataQueryParams =
+        DataQueryParams.newBuilder()
+            .withProgramDataElements(getList(pdeA))
+            .withOrganisationUnits(getList(ouA))
+            .withPeriods(createPeriods("200101", "200103", "200105", "200107"))
+            .withAggregationType(analyticsAggregationType)
+            .build();
+    EventQueryParams params = EventQueryParams.fromDataQueryParams(dataQueryParams);
+    List<EventQueryParams> queries = queryPlanner.planAggregateQuery(params);
+    assertEquals(4, queries.size());
+    for (EventQueryParams query : queries) {
+      assertEquals(1, query.getPeriods().size());
+      assertNotNull(query.getDimension(PERIOD_DIM_ID));
+      assertEquals(
+          PeriodTypeEnum.MONTHLY.getName().toLowerCase(),
+          query.getDimension(PERIOD_DIM_ID).getDimensionName());
+      assertNotNull(query.getAggregationType());
+      assertTrue(query.hasValueDimension());
+    }
+  }
 }

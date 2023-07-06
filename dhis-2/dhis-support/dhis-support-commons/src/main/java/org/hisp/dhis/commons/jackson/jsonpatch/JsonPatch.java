@@ -27,46 +27,36 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import java.util.List;
-
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.List;
+import lombok.Getter;
 
 /**
- * Container class for patch operations, allows to deserialize patches in the
- * format '[{...}, {...}]' and follows RFC 6902.
+ * Container class for patch operations, allows to deserialize patches in the format '[{...},
+ * {...}]' and follows RFC 6902.
  *
  * @see JsonPatchOperation
- *
  * @author Morten Olav Hansen
  */
 @Getter
-public class JsonPatch
-    implements Patch
-{
-    @JsonProperty
-    private final List<JsonPatchOperation> operations;
+public class JsonPatch implements Patch {
+  @JsonProperty private final List<JsonPatchOperation> operations;
 
-    @JsonCreator
-    public JsonPatch( List<JsonPatchOperation> operations )
-    {
-        this.operations = operations;
+  @JsonCreator
+  public JsonPatch(List<JsonPatchOperation> operations) {
+    this.operations = operations;
+  }
+
+  @Override
+  public JsonNode apply(JsonNode node) throws JsonPatchException {
+    JsonNode patched = node;
+
+    for (JsonPatchOperation op : operations) {
+      patched = op.apply(patched);
     }
 
-    @Override
-    public JsonNode apply( JsonNode node )
-        throws JsonPatchException
-    {
-        JsonNode patched = node;
-
-        for ( JsonPatchOperation op : operations )
-        {
-            patched = op.apply( patched );
-        }
-
-        return patched;
-    }
+    return patched;
+  }
 }

@@ -28,19 +28,17 @@
 package org.hisp.dhis.analytics.common;
 
 import java.util.Date;
-
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.relationship.RelationshipType;
 
 /**
- * Component responsible for generating a complete sub-query which fetches the
- * aggregated values of the specified Program Indicator. This component is
- * designed to be invoked when listing events or enrollments and the list
- * requires an additional value derived from the Program Indicator
+ * Component responsible for generating a complete sub-query which fetches the aggregated values of
+ * the specified Program Indicator. This component is designed to be invoked when listing events or
+ * enrollments and the list requires an additional value derived from the Program Indicator
  * expression/filter.
  *
- * For instance:
+ * <p>For instance:
  *
  * <pre>
  * SELECT
@@ -61,46 +59,46 @@ import org.hisp.dhis.relationship.RelationshipType;
  * FROM analytics_event_uy2gu8kt1jf as subax"
  * </pre>
  *
- * Note that this component does not add the {@code SELECT } keyword to the
- * generated query.
+ * Note that this component does not add the {@code SELECT } keyword to the generated query.
  *
  * @author Luciano Fiandesio
  */
-public interface ProgramIndicatorSubqueryBuilder
-{
-    /**
-     * Generates the program indicator sub-query to be used as aggregation
-     * column within an enrollment/event list query.
-     *
-     * @param programIndicator a {@link ProgramIndicator} object
-     * @param outerSqlEntity a {@link AnalyticsType} object, representing the
-     *        outer SQL contexNt.
-     * @param earliestStartDate the earliest reporting start date.
-     * @param latestDate the latest reporting end date.
-     *
-     * @return a string containing a program indicator sub-query.
-     */
-    String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator, AnalyticsType outerSqlEntity,
-        Date earliestStartDate, Date latestDate );
+public interface ProgramIndicatorSubqueryBuilder {
+  /**
+   * Generates the program indicator sub-query to be used as aggregation column within an
+   * enrollment/event list query.
+   *
+   * @param programIndicator a {@link ProgramIndicator} object
+   * @param outerSqlEntity a {@link AnalyticsType} object, representing the outer SQL contexNt.
+   * @param earliestStartDate the earliest reporting start date.
+   * @param latestDate the latest reporting end date.
+   * @return a string containing a program indicator sub-query.
+   */
+  String getAggregateClauseForProgramIndicator(
+      ProgramIndicator programIndicator,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate);
 
-    /**
-     * Generates the program indicator sub-query to be used as aggregation
-     * column within an enrollment/event list query. This method accepts a
-     * {@link RelationshipType} object, that is used to filter the program
-     * indicator values by the type of relationship specified. For instance,
-     * given a "Mother > Child" relationship type, this method will generated a
-     * SQL query that will fetch only the "Child" side of the relationship when
-     * aggregating the value for the program indicator.
-     *
-     * @param programIndicator the {@link ProgramIndicator}.
-     * @param relationshipType the {@link RelationshipType}.
-     * @param outerSqlEntity the {@link AnalyticsType} object, representing the
-     *        outer SQL context.
-     * @param earliestStartDate the earliest reporting start date.
-     * @param latestDate the latest reporting end date.
-     *
-     * @return a String containing a Program Indicator sub-query
-     */
-    String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator,
-        RelationshipType relationshipType, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate );
+  /**
+   * Generates the program indicator sub-query to be used as aggregation column within an
+   * enrollment/event list query. This method accepts a {@link RelationshipType} object, that is
+   * used to filter the program indicator values by the type of relationship specified. For
+   * instance, given a "Mother > Child" relationship type, this method will generated a SQL query
+   * that will fetch only the "Child" side of the relationship when aggregating the value for the
+   * program indicator.
+   *
+   * @param programIndicator the {@link ProgramIndicator}.
+   * @param relationshipType the {@link RelationshipType}.
+   * @param outerSqlEntity the {@link AnalyticsType} object, representing the outer SQL context.
+   * @param earliestStartDate the earliest reporting start date.
+   * @param latestDate the latest reporting end date.
+   * @return a String containing a Program Indicator sub-query
+   */
+  String getAggregateClauseForProgramIndicator(
+      ProgramIndicator programIndicator,
+      RelationshipType relationshipType,
+      AnalyticsType outerSqlEntity,
+      Date earliestStartDate,
+      Date latestDate);
 }

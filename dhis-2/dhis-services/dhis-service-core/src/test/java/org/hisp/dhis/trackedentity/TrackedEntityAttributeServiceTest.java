@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Optional;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.option.Option;
@@ -56,212 +55,204 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author David Katuscak
  */
-@ExtendWith( MockitoExtension.class )
-class TrackedEntityAttributeServiceTest
-{
+@ExtendWith(MockitoExtension.class)
+class TrackedEntityAttributeServiceTest {
 
-    @Mock
-    private TrackedEntityAttributeStore trackedEntityAttributeStore;
+  @Mock private TrackedEntityAttributeStore trackedEntityAttributeStore;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private TrackedEntityAttributeStore attributeStore;
+  @Mock private TrackedEntityAttributeStore attributeStore;
 
-    @Mock
-    private FileResourceService fileResourceService;
+  @Mock private FileResourceService fileResourceService;
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    @Mock
-    private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
+  @Mock private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
 
-    @Mock
-    private ProgramTrackedEntityAttributeStore programAttributeStore;
+  @Mock private ProgramTrackedEntityAttributeStore programAttributeStore;
 
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    private TrackedEntityInstance teiPassedInPayload;
+  private TrackedEntityInstance teiPassedInPayload;
 
-    private final String identicalTeiUid = "TeiUid12345";
+  private final String identicalTeiUid = "TeiUid12345";
 
-    private final String differentTeiUid = "TeiUid54321";
+  private final String differentTeiUid = "TeiUid54321";
 
-    private OrganisationUnit orgUnit;
+  private OrganisationUnit orgUnit;
 
-    private TrackedEntityAttribute tea;
+  private TrackedEntityAttribute tea;
 
-    @BeforeEach
-    public void setUp()
-    {
-        trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
-            trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
-            trackedEntityAttributeStore, entityTypeAttributeStore, programAttributeStore, organisationUnitService );
+  @BeforeEach
+  public void setUp() {
+    trackedEntityAttributeService =
+        new DefaultTrackedEntityAttributeService(
+            attributeStore,
+            programService,
+            trackedEntityTypeService,
+            fileResourceService,
+            userService,
+            currentUserService,
+            aclService,
+            trackedEntityAttributeStore,
+            entityTypeAttributeStore,
+            programAttributeStore,
+            organisationUnitService);
 
-        orgUnit = new OrganisationUnit( "orgUnitA" );
+    orgUnit = new OrganisationUnit("orgUnitA");
 
-        teiPassedInPayload = new TrackedEntityInstance();
-        teiPassedInPayload.setUid( identicalTeiUid );
-        teiPassedInPayload.setOrganisationUnit( orgUnit );
+    teiPassedInPayload = new TrackedEntityInstance();
+    teiPassedInPayload.setUid(identicalTeiUid);
+    teiPassedInPayload.setOrganisationUnit(orgUnit);
 
-        tea = new TrackedEntityAttribute();
-        tea.setUid( "TeaUid12345" );
-        tea.setUnique( true );
-        tea.setValueType( ValueType.TEXT );
-        tea.setOrgunitScope( false );
-    }
+    tea = new TrackedEntityAttribute();
+    tea.setUid("TeaUid12345");
+    tea.setUnique(true);
+    tea.setValueType(ValueType.TEXT);
+    tea.setOrgunitScope(false);
+  }
 
-    @Test
-    void shouldThrowWhenTeaIsNull()
-    {
-        assertThrows( IllegalArgumentException.class,
-            () -> trackedEntityAttributeService.validateValueType( null, "" ) );
-    }
+  @Test
+  void shouldThrowWhenTeaIsNull() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> trackedEntityAttributeService.validateValueType(null, ""));
+  }
 
-    @Test
-    void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
-    {
-        when( trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-                .thenReturn( Optional.of( identicalTeiUid ) );
+  @Test
+  void identicalTeiWithTheSameUniqueAttributeExistsInSystem() {
+    when(trackedEntityAttributeStore.getTrackedEntityInstanceUidWithUniqueAttributeValue(
+            any(TrackedEntityInstanceQueryParams.class)))
+        .thenReturn(Optional.of(identicalTeiUid));
 
-        String teaValue = "Firstname";
+    String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue,
-            teiPassedInPayload, orgUnit );
-        assertNull( result );
-    }
+    String result =
+        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
+            tea, teaValue, teiPassedInPayload, orgUnit);
+    assertNull(result);
+  }
 
-    @Test
-    void differentTeiWithTheSameUniqueAttributeExistsInSystem()
-    {
-        when( trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-                .thenReturn( Optional.of( differentTeiUid ) );
+  @Test
+  void differentTeiWithTheSameUniqueAttributeExistsInSystem() {
+    when(trackedEntityAttributeStore.getTrackedEntityInstanceUidWithUniqueAttributeValue(
+            any(TrackedEntityInstanceQueryParams.class)))
+        .thenReturn(Optional.of(differentTeiUid));
 
-        String teaValue = "Firstname";
+    String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue,
-            teiPassedInPayload, orgUnit );
-        assertNotNull( result );
-    }
+    String result =
+        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
+            tea, teaValue, teiPassedInPayload, orgUnit);
+    assertNotNull(result);
+  }
 
-    @Test
-    void attributeIsUniqueWithinTheSystem()
-    {
-        when( trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-                .thenReturn( Optional.empty() );
+  @Test
+  void attributeIsUniqueWithinTheSystem() {
+    when(trackedEntityAttributeStore.getTrackedEntityInstanceUidWithUniqueAttributeValue(
+            any(TrackedEntityInstanceQueryParams.class)))
+        .thenReturn(Optional.empty());
 
-        String teaValue = "Firstname";
+    String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue,
-            teiPassedInPayload, orgUnit );
-        assertNull( result );
-    }
+    String result =
+        trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
+            tea, teaValue, teiPassedInPayload, orgUnit);
+    assertNull(result);
+  }
 
-    @Test
-    void wrongValueToValueType()
-    {
-        tea.setValueType( ValueType.NUMBER );
-        String teaValue = "Firstname";
+  @Test
+  void wrongValueToValueType() {
+    tea.setValueType(ValueType.NUMBER);
+    String teaValue = "Firstname";
 
-        String result = trackedEntityAttributeService.validateValueType( tea, teaValue );
-        assertNotNull( result );
+    String result = trackedEntityAttributeService.validateValueType(tea, teaValue);
+    assertNotNull(result);
 
-        tea.setValueType( ValueType.BOOLEAN );
-        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
-        assertNotNull( result );
-    }
+    tea.setValueType(ValueType.BOOLEAN);
+    result = trackedEntityAttributeService.validateValueType(tea, teaValue);
+    assertNotNull(result);
+  }
 
-    @Test
-    void wrongValueToDateValueType()
-    {
-        tea.setValueType( ValueType.DATE );
-        String teaValue = "Firstname";
-        assertThrows( IllegalArgumentException.class,
-            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
-    }
+  @Test
+  void wrongValueToDateValueType() {
+    tea.setValueType(ValueType.DATE);
+    String teaValue = "Firstname";
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> trackedEntityAttributeService.validateValueType(tea, teaValue));
+  }
 
-    @Test
-    void correctValueToValueType()
-    {
-        String teaValue = "Firstname";
-        tea.setValueType( ValueType.TEXT );
+  @Test
+  void correctValueToValueType() {
+    String teaValue = "Firstname";
+    tea.setValueType(ValueType.TEXT);
 
-        String result = trackedEntityAttributeService.validateValueType( tea, teaValue );
-        assertNull( result );
+    String result = trackedEntityAttributeService.validateValueType(tea, teaValue);
+    assertNull(result);
 
-        tea.setValueType( ValueType.NUMBER );
-        teaValue = "123";
-        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
-        assertNull( result );
+    tea.setValueType(ValueType.NUMBER);
+    teaValue = "123";
+    result = trackedEntityAttributeService.validateValueType(tea, teaValue);
+    assertNull(result);
 
-        tea.setValueType( ValueType.BOOLEAN );
-        teaValue = String.valueOf( true );
-        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
-        assertNull( result );
+    tea.setValueType(ValueType.BOOLEAN);
+    teaValue = String.valueOf(true);
+    result = trackedEntityAttributeService.validateValueType(tea, teaValue);
+    assertNull(result);
 
-        tea.setValueType( ValueType.DATE );
-        teaValue = "2019-01-01";
-        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
-        assertNull( result );
-    }
+    tea.setValueType(ValueType.DATE);
+    teaValue = "2019-01-01";
+    result = trackedEntityAttributeService.validateValueType(tea, teaValue);
+    assertNull(result);
+  }
 
-    @Test
-    void successWhenTeaOptionValueIsValid()
-    {
-        tea.setUid( "uid" );
+  @Test
+  void successWhenTeaOptionValueIsValid() {
+    tea.setUid("uid");
 
-        OptionSet optionSet = new OptionSet();
-        Option option = new Option();
-        option.setCode( "CODE" );
+    OptionSet optionSet = new OptionSet();
+    Option option = new Option();
+    option.setCode("CODE");
 
-        Option option1 = new Option();
-        option1.setCode( "CODE1" );
+    Option option1 = new Option();
+    option1.setCode("CODE1");
 
-        optionSet.setOptions( Arrays.asList( null, option, option1 ) );
-        tea.setOptionSet( optionSet );
+    optionSet.setOptions(Arrays.asList(null, option, option1));
+    tea.setOptionSet(optionSet);
 
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "CODE" ) );
-    }
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "CODE"));
+  }
 
-    @Test
-    void failWhenTeaOptionValueIsNotValid()
-    {
-        tea.setUid( "uid" );
+  @Test
+  void failWhenTeaOptionValueIsNotValid() {
+    tea.setUid("uid");
 
-        OptionSet optionSet = new OptionSet();
-        Option option = new Option();
-        option.setCode( "CODE" );
+    OptionSet optionSet = new OptionSet();
+    Option option = new Option();
+    option.setCode("CODE");
 
-        Option option1 = new Option();
-        option1.setCode( "CODE1" );
+    Option option1 = new Option();
+    option1.setCode("CODE1");
 
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
-        tea.setOptionSet( optionSet );
+    optionSet.setOptions(Arrays.asList(option, option1));
+    tea.setOptionSet(optionSet);
 
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "COE" ) );
-    }
+    assertNotNull(trackedEntityAttributeService.validateValueType(tea, "COE"));
+  }
 
-    @Test
-    void doNothingWhenTeaOptionValueIsNull()
-    {
-        tea.setUid( "uid" );
-        assertNull( trackedEntityAttributeService.validateValueType( tea, "COE" ) );
-    }
+  @Test
+  void doNothingWhenTeaOptionValueIsNull() {
+    tea.setUid("uid");
+    assertNull(trackedEntityAttributeService.validateValueType(tea, "COE"));
+  }
 }

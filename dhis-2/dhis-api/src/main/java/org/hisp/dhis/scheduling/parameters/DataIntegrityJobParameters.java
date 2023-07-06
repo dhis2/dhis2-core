@@ -27,37 +27,31 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Set;
-
-import lombok.Getter;
-import lombok.Setter;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobParameters;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Jan Bernitt
  */
 @Getter
 @Setter
-public class DataIntegrityJobParameters implements JobParameters
-{
-    public enum DataIntegrityReportType
-    {
-        REPORT,
-        SUMMARY,
-        DETAILS
-    }
+public class DataIntegrityJobParameters implements JobParameters {
+  public enum DataIntegrityReportType {
+    REPORT,
+    SUMMARY,
+    DETAILS
+  }
 
-    @JsonProperty( required = false )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Set<String> checks;
+  @JsonProperty(required = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Set<String> checks;
 
-    @JsonProperty( required = false )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private DataIntegrityReportType type;
-
+  @JsonProperty(required = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private DataIntegrityReportType type;
 }

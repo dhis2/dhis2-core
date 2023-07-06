@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
@@ -60,89 +60,91 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @Controller
-@RequestMapping( value = ProgramDataElementDimensionItemSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProgramDataElementController
-{
-    private final QueryService queryService;
+@RequestMapping(value = ProgramDataElementDimensionItemSchemaDescriptor.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ProgramDataElementController {
+  private final QueryService queryService;
 
-    private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-    private final ContextService contextService;
+  private final ContextService contextService;
 
-    private final SchemaService schemaService;
+  private final SchemaService schemaService;
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    public ProgramDataElementController( QueryService queryService, FieldFilterService fieldFilterService,
-        ContextService contextService, SchemaService schemaService, ProgramService programService )
-    {
-        this.queryService = queryService;
-        this.fieldFilterService = fieldFilterService;
-        this.contextService = contextService;
-        this.schemaService = schemaService;
-        this.programService = programService;
+  public ProgramDataElementController(
+      QueryService queryService,
+      FieldFilterService fieldFilterService,
+      ContextService contextService,
+      SchemaService schemaService,
+      ProgramService programService) {
+    this.queryService = queryService;
+    this.fieldFilterService = fieldFilterService;
+    this.contextService = contextService;
+    this.schemaService = schemaService;
+    this.programService = programService;
+  }
+
+  @GetMapping
+  @SuppressWarnings("unchecked")
+  public @ResponseBody RootNode getObjectList(
+      @RequestParam Map<String, String> rpParameters, OrderParams orderParams)
+      throws QueryParserException {
+    Schema schema = schemaService.getDynamicSchema(ProgramDataElementDimensionItem.class);
+
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<Order> orders = orderParams.getOrders(schema);
+
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.ALL.getFields());
     }
 
-    @GetMapping
-    @SuppressWarnings( "unchecked" )
-    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters,
-        OrderParams orderParams )
-        throws QueryParserException
-    {
-        Schema schema = schemaService.getDynamicSchema( ProgramDataElementDimensionItem.class );
+    WebOptions options = new WebOptions(rpParameters);
+    WebMetadata metadata = new WebMetadata();
 
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<Order> orders = orderParams.getOrders( schema );
+    List<ProgramDataElementDimensionItem> programDataElements;
+    Query query =
+        queryService.getQueryFromUrl(
+            ProgramDataElementDimensionItem.class,
+            filters,
+            orders,
+            PaginationUtils.getPaginationData(options),
+            options.getRootJunction());
+    query.setDefaultOrder();
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
-
-        WebOptions options = new WebOptions( rpParameters );
-        WebMetadata metadata = new WebMetadata();
-
-        List<ProgramDataElementDimensionItem> programDataElements;
-        Query query = queryService.getQueryFromUrl( ProgramDataElementDimensionItem.class, filters, orders,
-            PaginationUtils.getPaginationData( options ), options.getRootJunction() );
-        query.setDefaultOrder();
-
-        if ( options.contains( "program" ) )
-        {
-            String programUid = options.get( "program" );
-            programDataElements = programService.getGeneratedProgramDataElements( programUid );
-            query.setObjects( programDataElements );
-        }
-
-        programDataElements = (List<ProgramDataElementDimensionItem>) queryService.query( query );
-
-        Pager pager = metadata.getPager();
-
-        if ( options.hasPaging() && pager == null )
-        {
-            pager = new Pager( options.getPage(), programDataElements.size(), options.getPageSize() );
-            programDataElements = PagerUtils.pageCollection( programDataElements, pager );
-        }
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( pager != null )
-        {
-            rootNode.addChild( NodeUtils.createPager( pager ) );
-        }
-
-        rootNode.addChild( fieldFilterService.toCollectionNode( ProgramDataElementDimensionItem.class,
-            new FieldFilterParams( programDataElements, fields ) ) );
-
-        return rootNode;
+    if (options.contains("program")) {
+      String programUid = options.get("program");
+      programDataElements = programService.getGeneratedProgramDataElements(programUid);
+      query.setObjects(programDataElements);
     }
+
+    programDataElements = (List<ProgramDataElementDimensionItem>) queryService.query(query);
+
+    Pager pager = metadata.getPager();
+
+    if (options.hasPaging() && pager == null) {
+      pager = new Pager(options.getPage(), programDataElements.size(), options.getPageSize());
+      programDataElements = PagerUtils.pageCollection(programDataElements, pager);
+    }
+
+    RootNode rootNode = NodeUtils.createMetadata();
+
+    if (pager != null) {
+      rootNode.addChild(NodeUtils.createPager(pager));
+    }
+
+    rootNode.addChild(
+        fieldFilterService.toCollectionNode(
+            ProgramDataElementDimensionItem.class,
+            new FieldFilterParams(programDataElements, fields)));
+
+    return rootNode;
+  }
 }

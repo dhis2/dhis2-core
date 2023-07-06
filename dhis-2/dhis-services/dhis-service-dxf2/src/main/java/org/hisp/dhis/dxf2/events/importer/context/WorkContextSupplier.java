@@ -28,14 +28,12 @@
 package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 
 /**
  * @author Luciano Fiandesio
  */
-public interface WorkContextSupplier<T>
-{
-    T get( ImportOptions importOptions, List<Event> events );
+public interface WorkContextSupplier<T> {
+  T get(ImportOptions importOptions, List<Event> events);
 }

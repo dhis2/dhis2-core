@@ -30,9 +30,7 @@ package org.hisp.dhis.webapi.strategy.old.tracker.imports.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -41,29 +39,20 @@ import org.hisp.dhis.webapi.strategy.old.tracker.imports.TrackedEntityInstanceSt
 import org.springframework.http.MediaType;
 
 @RequiredArgsConstructor
-public abstract class AbstractTrackedEntityInstanceStrategy implements TrackedEntityInstanceStrategyHandler
-{
-    protected final TrackedEntityInstanceService trackedEntityInstanceService;
+public abstract class AbstractTrackedEntityInstanceStrategy
+    implements TrackedEntityInstanceStrategyHandler {
+  protected final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    protected final AsyncTaskExecutor taskExecutor;
+  protected final AsyncTaskExecutor taskExecutor;
 
-    protected List<TrackedEntityInstance> getTrackedEntityInstancesListByMediaType( String mediaType,
-        InputStream inputStream )
-        throws IOException,
-        BadRequestException
-    {
-        if ( MediaType.valueOf( mediaType ).equals( MediaType.APPLICATION_JSON ) )
-        {
-            return trackedEntityInstanceService.getTrackedEntityInstancesJson( inputStream );
-        }
-        else if ( mediaType
-            .equals( MediaType.APPLICATION_XML_VALUE ) )
-        {
-            return trackedEntityInstanceService.getTrackedEntityInstancesXml( inputStream );
-        }
-        else
-        {
-            throw new BadRequestException( "Value " + mediaType + " not allowed as Media Type " );
-        }
+  protected List<TrackedEntityInstance> getTrackedEntityInstancesListByMediaType(
+      String mediaType, InputStream inputStream) throws IOException, BadRequestException {
+    if (MediaType.valueOf(mediaType).equals(MediaType.APPLICATION_JSON)) {
+      return trackedEntityInstanceService.getTrackedEntityInstancesJson(inputStream);
+    } else if (mediaType.equals(MediaType.APPLICATION_XML_VALUE)) {
+      return trackedEntityInstanceService.getTrackedEntityInstancesXml(inputStream);
+    } else {
+      throw new BadRequestException("Value " + mediaType + " not allowed as Media Type ");
     }
+  }
 }

@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -43,72 +42,78 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.jupiter.api.Test;
 
-class ProgramStageInstanceMapperTest
-{
+class ProgramStageInstanceMapperTest {
 
-    private final ProgramStageInstanceMapper programStageInstanceMapper;
+  private final ProgramStageInstanceMapper programStageInstanceMapper;
 
-    private final Event event;
+  private final Event event;
 
-    private final String dataElementUid = "ABC12345678";
+  private final String dataElementUid = "ABC12345678";
 
-    ProgramStageInstanceMapperTest()
-    {
-        // Identifiers
-        String dataElementCode = "DE_CODE";
-        String eventUid = "ABC23456789";
+  ProgramStageInstanceMapperTest() {
+    // Identifiers
+    String dataElementCode = "DE_CODE";
+    String eventUid = "ABC23456789";
 
-        // Set up DataElement
-        DataElement de = new DataElement();
-        de.setUid( dataElementUid );
-        de.setCode( dataElementCode );
+    // Set up DataElement
+    DataElement de = new DataElement();
+    de.setUid(dataElementUid);
+    de.setCode(dataElementCode);
 
-        // Set up DataValue; identifier is CODE.
-        DataValue dv = new DataValue();
-        dv.setDataElement( de.getCode() );
-        dv.setValue( "VALUE" );
+    // Set up DataValue; identifier is CODE.
+    DataValue dv = new DataValue();
+    dv.setDataElement(de.getCode());
+    dv.setValue("VALUE");
 
-        // Set up Event
-        Event event = new Event();
-        event.setUid( eventUid );
-        event.setEvent( eventUid );
-        event.setDataValues( Set.of( dv ) );
+    // Set up Event
+    Event event = new Event();
+    event.setUid(eventUid);
+    event.setEvent(eventUid);
+    event.setDataValues(Set.of(dv));
 
-        // Prepare WorkContext collections
-        Map<String, DataElement> dataElementMap = new HashMap<>();
-        Map<String, Set<EventDataValue>> dataValuesMap = new HashMap<>();
+    // Prepare WorkContext collections
+    Map<String, DataElement> dataElementMap = new HashMap<>();
+    Map<String, Set<EventDataValue>> dataValuesMap = new HashMap<>();
 
-        // populate dataElementMap. Identifier is CODE, value is the DataElement
-        dataElementMap.put( de.getCode(), de );
+    // populate dataElementMap. Identifier is CODE, value is the DataElement
+    dataElementMap.put(de.getCode(), de);
 
-        // convert DataValues to EventDataValues
-        dataValuesMap.put( event.getUid(), event.getDataValues().stream().map( r -> {
-            EventDataValue edv = new EventDataValue();
-            edv.setDataElement( r.getDataElement() );
-            edv.setValue( r.getValue() );
-            return edv;
-        } ).collect( Collectors.toSet() ) );
+    // convert DataValues to EventDataValues
+    dataValuesMap.put(
+        event.getUid(),
+        event.getDataValues().stream()
+            .map(
+                r -> {
+                  EventDataValue edv = new EventDataValue();
+                  edv.setDataElement(r.getDataElement());
+                  edv.setValue(r.getValue());
+                  return edv;
+                })
+            .collect(Collectors.toSet()));
 
-        // Initialize workContext, mapper and event.
-        this.programStageInstanceMapper = new ProgramStageInstanceMapper( WorkContext.builder()
-            .dataElementMap( dataElementMap )
-            .programStageInstanceMap( new HashMap<>() )
-            .programInstanceMap( new HashMap<>() )
-            .programsMap( new HashMap<>() )
-            .organisationUnitMap( new HashMap<>() )
-            .categoryOptionComboMap( new HashMap<>() )
-            .eventDataValueMap( dataValuesMap )
-            .importOptions( ImportOptions.getDefaultImportOptions().setIdScheme( "CODE" ) )
-            .build() );
+    // Initialize workContext, mapper and event.
+    this.programStageInstanceMapper =
+        new ProgramStageInstanceMapper(
+            WorkContext.builder()
+                .dataElementMap(dataElementMap)
+                .programStageInstanceMap(new HashMap<>())
+                .programInstanceMap(new HashMap<>())
+                .programsMap(new HashMap<>())
+                .organisationUnitMap(new HashMap<>())
+                .categoryOptionComboMap(new HashMap<>())
+                .eventDataValueMap(dataValuesMap)
+                .importOptions(ImportOptions.getDefaultImportOptions().setIdScheme("CODE"))
+                .build());
 
-        this.event = event;
-    }
+    this.event = event;
+  }
 
-    @Test
-    void mapShouldChangeIdentifierFromCodeToUid()
-    {
-        ProgramStageInstance psi = programStageInstanceMapper.map( event );
+  @Test
+  void mapShouldChangeIdentifierFromCodeToUid() {
+    ProgramStageInstance psi = programStageInstanceMapper.map(event);
 
-        assertTrue( psi.getEventDataValues().stream().anyMatch( dv -> dv.getDataElement().equals( dataElementUid ) ) );
-    }
+    assertTrue(
+        psi.getEventDataValues().stream()
+            .anyMatch(dv -> dv.getDataElement().equals(dataElementUid)));
+  }
 }

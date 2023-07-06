@@ -28,24 +28,21 @@
 package org.hisp.dhis.tracker.converter;
 
 import java.util.List;
-
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerConverterService<From, To>
-{
-    From to( To object );
+public interface TrackerConverterService<From, To> {
+  From to(To object);
 
-    List<From> to( List<To> objects );
+  List<From> to(List<To> objects);
 
-    To from( TrackerPreheat preheat, From object );
+  To from(TrackerPreheat preheat, From object);
 
-    List<To> from( TrackerPreheat preheat, List<From> objects );
+  List<To> from(TrackerPreheat preheat, List<From> objects);
 
-    default boolean isNewEntity( To entity )
-    {
-        return entity == null;
-    }
+  default boolean isNewEntity(To entity) {
+    return entity == null;
+  }
 }

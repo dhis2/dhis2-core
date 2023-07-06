@@ -27,27 +27,24 @@
  */
 package org.hisp.dhis.common;
 
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class Reference implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "uuid", namespace = DxfNamespaces.DXF_2_0 )
-    private String uuid;
+public class Reference implements Serializable {
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "uuid", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "uuid", namespace = DxfNamespaces.DXF_2_0)
+  private String uuid;
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "node", namespace = DxfNamespaces.DXF_2_0 )
-    private transient JsonNode node;
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "node", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "node", namespace = DxfNamespaces.DXF_2_0)
+  private transient JsonNode node;
 }

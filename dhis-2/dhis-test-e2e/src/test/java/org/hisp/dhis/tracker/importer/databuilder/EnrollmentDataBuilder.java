@@ -27,133 +27,113 @@
  */
 package org.hisp.dhis.tracker.importer.databuilder;
 
+import com.google.gson.JsonObject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EnrollmentDataBuilder implements TrackerImporterDataBuilder
-{
-    private JsonObjectBuilder jsonObjectBuilder;
+public class EnrollmentDataBuilder implements TrackerImporterDataBuilder {
+  private JsonObjectBuilder jsonObjectBuilder;
 
-    public EnrollmentDataBuilder()
-    {
-        jsonObjectBuilder = new JsonObjectBuilder();
-        // setStatus( "ACTIVE" );
-        setEnrollmentDate( Instant.now().minus( 1, ChronoUnit.HOURS ).toString() );
-        setIncidentDate( Instant.now().toString() );
+  public EnrollmentDataBuilder() {
+    jsonObjectBuilder = new JsonObjectBuilder();
+    // setStatus( "ACTIVE" );
+    setEnrollmentDate(Instant.now().minus(1, ChronoUnit.HOURS).toString());
+    setIncidentDate(Instant.now().toString());
+  }
+
+  public EnrollmentDataBuilder setId(String id) {
+    this.jsonObjectBuilder.addProperty("enrollment", id);
+    return this;
+  }
+
+  public EnrollmentDataBuilder setStatus(String status) {
+    jsonObjectBuilder.addProperty("status", status);
+
+    return this;
+  }
+
+  public EnrollmentDataBuilder setTei(String tei) {
+    jsonObjectBuilder.addProperty("trackedEntity", tei);
+
+    return this;
+  }
+
+  public EnrollmentDataBuilder setEnrollmentDate(String date) {
+    jsonObjectBuilder.addProperty("enrolledAt", date);
+    if (jsonObjectBuilder.build().has("events")) {
+      jsonObjectBuilder.addPropertyByJsonPath("events[0].occurredAt", date);
     }
+    return this;
+  }
 
-    public EnrollmentDataBuilder setId( String id )
-    {
-        this.jsonObjectBuilder.addProperty( "enrollment", id );
-        return this;
-    }
+  public EnrollmentDataBuilder setIncidentDate(String date) {
+    jsonObjectBuilder.addProperty("occurredAt", date);
 
-    public EnrollmentDataBuilder setStatus( String status )
-    {
-        jsonObjectBuilder.addProperty( "status", status );
+    return this;
+  }
 
-        return this;
-    }
+  public EnrollmentDataBuilder setProgram(String programId) {
+    jsonObjectBuilder.addProperty("program", programId);
 
-    public EnrollmentDataBuilder setTei( String tei )
-    {
-        jsonObjectBuilder.addProperty( "trackedEntity", tei );
+    return this;
+  }
 
-        return this;
-    }
+  public EnrollmentDataBuilder setOu(String ouId) {
+    jsonObjectBuilder.addProperty("orgUnit", ouId);
 
-    public EnrollmentDataBuilder setEnrollmentDate( String date )
-    {
-        jsonObjectBuilder.addProperty( "enrolledAt", date );
-        if ( jsonObjectBuilder.build().has( "events" ) )
-        {
-            jsonObjectBuilder.addPropertyByJsonPath( "events[0].occurredAt", date );
-        }
-        return this;
-    }
+    return this;
+  }
 
-    public EnrollmentDataBuilder setIncidentDate( String date )
-    {
-        jsonObjectBuilder.addProperty( "occurredAt", date );
+  public EnrollmentDataBuilder addEvent(EventDataBuilder builder) {
+    jsonObjectBuilder.addOrAppendToArray("events", builder.single());
+    return this;
+  }
 
-        return this;
-    }
+  public EnrollmentDataBuilder addEvent(String programStage, String orgUnit) {
+    return addEvent(programStage, orgUnit, "ACTIVE");
+  }
 
-    public EnrollmentDataBuilder setProgram( String programId )
-    {
-        jsonObjectBuilder.addProperty( "program", programId );
+  public EnrollmentDataBuilder addEvent(String programStage, String orgUnit, String status) {
+    // String eventDate = this.jsonObjectBuilder.build().get( "enrolledAt"
+    // ).getAsString();
 
-        return this;
-    }
+    return addEvent(
+        new EventDataBuilder().setProgramStage(programStage).setOu(orgUnit).setStatus(status));
+  }
 
-    public EnrollmentDataBuilder setOu( String ouId )
-    {
-        jsonObjectBuilder.addProperty( "orgUnit", ouId );
+  public EnrollmentDataBuilder addAttribute(String attributeId, String value) {
+    jsonObjectBuilder.addOrAppendToArray(
+        "attributes",
+        new JsonObjectBuilder()
+            .addProperty("attribute", attributeId)
+            .addProperty("value", value)
+            .build());
 
-        return this;
-    }
+    return this;
+  }
 
-    public EnrollmentDataBuilder addEvent( EventDataBuilder builder )
-    {
-        jsonObjectBuilder.addOrAppendToArray( "events",
-            builder.single() );
-        return this;
-    }
+  public JsonObject array(String program, String ou) {
+    setProgram(program).setOu(ou);
+    return array();
+  }
 
-    public EnrollmentDataBuilder addEvent( String programStage, String orgUnit )
-    {
-        return addEvent( programStage, orgUnit, "ACTIVE" );
-    }
+  public JsonObject array(String program, String ou, String tei, String status) {
+    setProgram(program).setOu(ou).setStatus(status).setTei(tei);
 
-    public EnrollmentDataBuilder addEvent( String programStage, String orgUnit, String status )
-    {
-        // String eventDate = this.jsonObjectBuilder.build().get( "enrolledAt"
-        // ).getAsString();
+    return array();
+  }
 
-        return addEvent(
-            new EventDataBuilder().setProgramStage( programStage ).setOu( orgUnit ).setStatus( status ) );
-    }
+  @Override
+  public JsonObject array() {
+    return jsonObjectBuilder.wrapIntoArray("enrollments");
+  }
 
-    public EnrollmentDataBuilder addAttribute( String attributeId, String value )
-    {
-        jsonObjectBuilder.addOrAppendToArray( "attributes", new JsonObjectBuilder()
-            .addProperty( "attribute", attributeId )
-            .addProperty( "value", value )
-            .build() );
-
-        return this;
-    }
-
-    public JsonObject array( String program, String ou )
-    {
-        setProgram( program ).setOu( ou );
-        return array();
-    }
-
-    public JsonObject array( String program, String ou, String tei, String status )
-    {
-        setProgram( program ).setOu( ou ).setStatus( status ).setTei( tei );
-
-        return array();
-    }
-
-    @Override
-    public JsonObject array()
-    {
-        return jsonObjectBuilder.wrapIntoArray( "enrollments" );
-    }
-
-    @Override
-    public JsonObject single()
-    {
-        return jsonObjectBuilder.build();
-    }
-
+  @Override
+  public JsonObject single() {
+    return jsonObjectBuilder.build();
+  }
 }

@@ -27,45 +27,36 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Value;
-
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.artemis.SerializableMessage;
 import org.hisp.dhis.tracker.TrackerImportParams;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-
 /**
- * Used by Apache Artemis to pass tracker import jobs from the /api/tracker
- * endpoint to the tracker import services.
+ * Used by Apache Artemis to pass tracker import jobs from the /api/tracker endpoint to the tracker
+ * import services.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Value
-@Builder( builderClassName = "TrackerMessageBuilder" )
-@JsonDeserialize( builder = TrackerMessage.TrackerMessageBuilder.class )
-public class TrackerMessage implements SerializableMessage
-{
-    @JsonProperty
-    private final String uid;
+@Builder(builderClassName = "TrackerMessageBuilder")
+@JsonDeserialize(builder = TrackerMessage.TrackerMessageBuilder.class)
+public class TrackerMessage implements SerializableMessage {
+  @JsonProperty private final String uid;
 
-    @JsonProperty
-    private final String authentication;
+  @JsonProperty private final String authentication;
 
-    @JsonProperty
-    private final TrackerImportParams trackerImportParams;
+  @JsonProperty private final TrackerImportParams trackerImportParams;
 
-    @Override
-    public MessageType getMessageType()
-    {
-        return MessageType.TRACKER_JOB;
-    }
+  @Override
+  public MessageType getMessageType() {
+    return MessageType.TRACKER_JOB;
+  }
 
-    @JsonPOJOBuilder( withPrefix = "" )
-    public static final class TrackerMessageBuilder
-    {
-    }
+  @JsonPOJOBuilder(withPrefix = "")
+  public static final class TrackerMessageBuilder {}
 }

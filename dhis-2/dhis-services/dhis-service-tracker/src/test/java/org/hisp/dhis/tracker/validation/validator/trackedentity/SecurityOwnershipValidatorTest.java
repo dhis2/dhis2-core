@@ -35,6 +35,8 @@ import static org.hisp.dhis.tracker.validation.validator.AssertValidations.asser
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,347 +63,339 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class SecurityOwnershipValidatorTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
 
-    private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
+  private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-    private static final String TEI_ID = "TEI_ID";
+  private static final String TEI_ID = "TEI_ID";
 
-    private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
 
-    private static final String PROGRAM_ID = "PROGRAM_ID";
+  private static final String PROGRAM_ID = "PROGRAM_ID";
 
-    private static final String PS_ID = "PS_ID";
+  private static final String PS_ID = "PS_ID";
 
-    private SecurityOwnershipValidator validator;
+  private SecurityOwnershipValidator validator;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    private User user;
+  private User user;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private TrackedEntityType trackedEntityType;
+  private TrackedEntityType trackedEntityType;
 
-    @BeforeEach
-    public void setUp()
-    {
-        when( bundle.getPreheat() ).thenReturn( preheat );
+  @BeforeEach
+  public void setUp() {
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        user = makeUser( "A" );
-        when( bundle.getUser() ).thenReturn( user );
+    user = makeUser("A");
+    when(bundle.getUser()).thenReturn(user);
 
-        organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnit.setUid( ORG_UNIT_ID );
+    organisationUnit = createOrganisationUnit('A');
+    organisationUnit.setUid(ORG_UNIT_ID);
 
-        trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityType.setUid( TEI_TYPE_ID );
-        Program program = createProgram( 'A' );
-        program.setUid( PROGRAM_ID );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        program.setTrackedEntityType( trackedEntityType );
+    trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setUid(TEI_TYPE_ID);
+    Program program = createProgram('A');
+    program.setUid(PROGRAM_ID);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setTrackedEntityType(trackedEntityType);
 
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStage.setUid( PS_ID );
+    ProgramStage programStage = createProgramStage('A', program);
+    programStage.setUid(PS_ID);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
 
-        validator = new SecurityOwnershipValidator( aclService, organisationUnitService );
-    }
+    validator = new SecurityOwnershipValidator(aclService, organisationUnitService);
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntity()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntity() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(getTEIWithNoProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyCaptureScopeIsCheckedForTrackedEntityCreation()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyCaptureScopeIsCheckedForTrackedEntityCreation() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifySearchScopeIsCheckedForTrackedEntityUpdate()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifySearchScopeIsCheckedForTrackedEntityUpdate() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyCaptureScopeIsCheckedForTrackedEntityDeletion()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyCaptureScopeIsCheckedForTrackedEntityDeletion() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(getTEIWithNoProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithDeleteProgramInstances() );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(getTEIWithDeleteProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getUser() ).thenReturn( deleteTeiAuthorisedUser() );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+    when(bundle.getUser()).thenReturn(deleteTeiAuthorisedUser());
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(getTEIWithProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getTrackedEntity(TEI_ID)).thenReturn(getTEIWithProgramInstances());
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertHasError( reporter, trackedEntity, E1100 );
-    }
+    assertHasError(reporter, trackedEntity, E1100);
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( false );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(false);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertHasError( reporter, trackedEntity, E1000 );
-    }
+    assertHasError(reporter, trackedEntity, E1000);
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( false );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(false);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertHasError( reporter, trackedEntity, E1003 );
-    }
+    assertHasError(reporter, trackedEntity, E1003);
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( false );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(false);
 
-        validator.validate( reporter, bundle, trackedEntity );
+    validator.validate(reporter, bundle, trackedEntity);
 
-        assertHasError( reporter, trackedEntity, E1001 );
-    }
+    assertHasError(reporter, trackedEntity, E1001);
+  }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
-    {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet() );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+  private TrackedEntityInstance getTEIWithNoProgramInstances() {
+    TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance(organisationUnit);
+    trackedEntityInstance.setUid(TEI_ID);
+    trackedEntityInstance.setProgramInstances(Sets.newHashSet());
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
 
-        return trackedEntityInstance;
-    }
+    return trackedEntityInstance;
+  }
 
-    private TrackedEntityInstance getTEIWithDeleteProgramInstances()
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setDeleted( true );
+  private TrackedEntityInstance getTEIWithDeleteProgramInstances() {
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setDeleted(true);
 
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet( programInstance ) );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+    TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance(organisationUnit);
+    trackedEntityInstance.setUid(TEI_ID);
+    trackedEntityInstance.setProgramInstances(Sets.newHashSet(programInstance));
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
 
-        return trackedEntityInstance;
-    }
+    return trackedEntityInstance;
+  }
 
-    private TrackedEntityInstance getTEIWithProgramInstances()
-    {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet( new ProgramInstance() ) );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+  private TrackedEntityInstance getTEIWithProgramInstances() {
+    TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance(organisationUnit);
+    trackedEntityInstance.setUid(TEI_ID);
+    trackedEntityInstance.setProgramInstances(Sets.newHashSet(new ProgramInstance()));
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
 
-        return trackedEntityInstance;
-    }
+    return trackedEntityInstance;
+  }
 
-    private User deleteTeiAuthorisedUser()
-    {
-        return makeUser( "A", Lists.newArrayList( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
-    }
+  private User deleteTeiAuthorisedUser() {
+    return makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.getAuthority()));
+  }
 }

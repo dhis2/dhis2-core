@@ -29,23 +29,21 @@ package org.hisp.dhis.user;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Contains minimal User info used for ACL check in
- * {@link org.hisp.dhis.common.IdentifiableObjectStore}
+ * Contains minimal User info used for ACL check in {@link
+ * org.hisp.dhis.common.IdentifiableObjectStore}
  */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CurrentUserGroupInfo
-{
-    private String userUID;
+public class CurrentUserGroupInfo {
+  private String userUID;
 
-    private Set<String> userGroupUIDs = new HashSet<>();
+  private Set<String> userGroupUIDs = new HashSet<>();
 }

@@ -27,196 +27,185 @@
  */
 package org.hisp.dhis.trackedentitydatavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
-
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackedEntityDataValueAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityDataValueAudit
-    implements Serializable
-{
-    private long id;
+@JacksonXmlRootElement(localName = "trackedEntityDataValueAudit", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityDataValueAudit implements Serializable {
+  private long id;
 
-    private DataElement dataElement;
+  private DataElement dataElement;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramStageInstance programStageInstance;
 
-    private Date created;
+  private Date created;
 
-    private String value;
+  private String value;
 
-    private Boolean providedElsewhere;
+  private Boolean providedElsewhere;
 
-    private String modifiedBy;
+  private String modifiedBy;
 
-    private AuditType auditType;
+  private AuditType auditType;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public TrackedEntityDataValueAudit()
-    {
+  public TrackedEntityDataValueAudit() {}
+
+  public TrackedEntityDataValueAudit(
+      DataElement dataElement,
+      ProgramStageInstance programStageInstance,
+      String value,
+      String modifiedBy,
+      boolean providedElsewhere,
+      AuditType auditType) {
+    this.dataElement = dataElement;
+    this.programStageInstance = programStageInstance;
+    this.providedElsewhere = providedElsewhere;
+    this.created = new Date();
+    this.value = value;
+    this.modifiedBy = modifiedBy;
+    this.auditType = auditType;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        dataElement,
+        programStageInstance,
+        created,
+        value,
+        providedElsewhere,
+        modifiedBy,
+        auditType);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public TrackedEntityDataValueAudit( DataElement dataElement, ProgramStageInstance programStageInstance,
-        String value, String modifiedBy, boolean providedElsewhere, AuditType auditType )
-    {
-        this.dataElement = dataElement;
-        this.programStageInstance = programStageInstance;
-        this.providedElsewhere = providedElsewhere;
-        this.created = new Date();
-        this.value = value;
-        this.modifiedBy = modifiedBy;
-        this.auditType = auditType;
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( dataElement, programStageInstance, created, value, providedElsewhere, modifiedBy,
-            auditType );
-    }
+    final TrackedEntityDataValueAudit other = (TrackedEntityDataValueAudit) obj;
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
+    return Objects.equals(this.dataElement, other.dataElement)
+        && Objects.equals(this.programStageInstance, other.programStageInstance)
+        && Objects.equals(this.created, other.created)
+        && Objects.equals(this.value, other.value)
+        && Objects.equals(this.providedElsewhere, other.providedElsewhere)
+        && Objects.equals(this.modifiedBy, other.modifiedBy)
+        && Objects.equals(this.auditType, other.auditType);
+  }
 
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
+  @Override
+  public String toString() {
+    return "[dataElement: '"
+        + dataElement.getUid()
+        + "', "
+        + "programStageInstance: '"
+        + programStageInstance.getUid()
+        + "', "
+        + "value: '"
+        + value
+        + "']";
+  }
 
-        final TrackedEntityDataValueAudit other = (TrackedEntityDataValueAudit) obj;
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-        return Objects.equals( this.dataElement, other.dataElement )
-            && Objects.equals( this.programStageInstance, other.programStageInstance )
-            && Objects.equals( this.created, other.created )
-            && Objects.equals( this.value, other.value )
-            && Objects.equals( this.providedElsewhere, other.providedElsewhere )
-            && Objects.equals( this.modifiedBy, other.modifiedBy )
-            && Objects.equals( this.auditType, other.auditType );
-    }
+  public long getId() {
+    return id;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[dataElement: '" + dataElement.getUid() + "', " +
-            "programStageInstance: '" + programStageInstance.getUid() + "', " +
-            "value: '" + value + "']";
-    }
+  public void setId(long id) {
+    this.id = id;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ProgramStageInstance getProgramStageInstance() {
+    return programStageInstance;
+  }
 
-    public long getId()
-    {
-        return id;
-    }
+  public void setProgramStageInstance(ProgramStageInstance programStageInstance) {
+    this.programStageInstance = programStageInstance;
+  }
 
-    public void setId( long id )
-    {
-        this.id = id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DataElement getDataElement() {
+    return dataElement;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
+  public void setDataElement(DataElement dataElement) {
+    this.dataElement = dataElement;
+  }
 
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        this.programStageInstance = programStageInstance;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getCreated() {
+    return created;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataElement getDataElement()
-    {
-        return dataElement;
-    }
+  public void setCreated(Date created) {
+    this.created = created;
+  }
 
-    public void setDataElement( DataElement dataElement )
-    {
-        this.dataElement = dataElement;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getValue() {
+    return value;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getCreated()
-    {
-        return created;
-    }
+  public void setValue(String value) {
+    this.value = value;
+  }
 
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean getProvidedElsewhere() {
+    return providedElsewhere;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getValue()
-    {
-        return value;
-    }
+  public void setProvidedElsewhere(boolean providedElsewhere) {
+    this.providedElsewhere = providedElsewhere;
+  }
 
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getModifiedBy() {
+    return modifiedBy;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getProvidedElsewhere()
-    {
-        return providedElsewhere;
-    }
+  public void setModifiedBy(String modifiedBy) {
+    this.modifiedBy = modifiedBy;
+  }
 
-    public void setProvidedElsewhere( boolean providedElsewhere )
-    {
-        this.providedElsewhere = providedElsewhere;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AuditType getAuditType() {
+    return auditType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getModifiedBy()
-    {
-        return modifiedBy;
-    }
-
-    public void setModifiedBy( String modifiedBy )
-    {
-        this.modifiedBy = modifiedBy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AuditType getAuditType()
-    {
-        return auditType;
-    }
-
-    public void setAuditType( AuditType auditType )
-    {
-        this.auditType = auditType;
-    }
+  public void setAuditType(AuditType auditType) {
+    this.auditType = auditType;
+  }
 }

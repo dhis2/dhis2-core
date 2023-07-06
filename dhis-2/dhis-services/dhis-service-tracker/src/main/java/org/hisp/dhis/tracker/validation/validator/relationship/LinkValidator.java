@@ -30,32 +30,27 @@ package org.hisp.dhis.tracker.validation.validator.relationship;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
 
 import java.util.Objects;
-
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 
-public class LinkValidator implements Validator<Relationship>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
-    {
-        validateRelationshipDoesNotLinkEntityToItself( reporter, relationship );
-    }
+public class LinkValidator implements Validator<Relationship> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    validateRelationshipDoesNotLinkEntityToItself(reporter, relationship);
+  }
 
-    private void validateRelationshipDoesNotLinkEntityToItself( Reporter reporter, Relationship relationship )
-    {
-        if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
-        {
-            reporter.addError( relationship, E4000, relationship.getRelationship() );
-        }
+  private void validateRelationshipDoesNotLinkEntityToItself(
+      Reporter reporter, Relationship relationship) {
+    if (Objects.equals(relationship.getFrom(), relationship.getTo())) {
+      reporter.addError(relationship, E4000, relationship.getRelationship());
     }
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy.isCreate();
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy.isCreate();
+  }
 }

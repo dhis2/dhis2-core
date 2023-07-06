@@ -35,87 +35,76 @@ import lombok.With;
  */
 @With
 @Value
-public class TrackedEntityInstanceParams
-{
-    public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true,
-        TrackedEntityInstanceEnrollmentParams.TRUE,
-        true,
-        true, false, false );
+public class TrackedEntityInstanceParams {
+  public static final TrackedEntityInstanceParams TRUE =
+      new TrackedEntityInstanceParams(
+          true, TrackedEntityInstanceEnrollmentParams.TRUE, true, true, false, false);
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false,
-        TrackedEntityInstanceEnrollmentParams.FALSE, false,
-        false, false, false );
+  public static final TrackedEntityInstanceParams FALSE =
+      new TrackedEntityInstanceParams(
+          false, TrackedEntityInstanceEnrollmentParams.FALSE, false, false, false, false);
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true,
-        TrackedEntityInstanceEnrollmentParams.TRUE,
-        true, true, true, true );
+  public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION =
+      new TrackedEntityInstanceParams(
+          true, TrackedEntityInstanceEnrollmentParams.TRUE, true, true, true, true);
 
-    private boolean includeRelationships;
+  private boolean includeRelationships;
 
-    private TrackedEntityInstanceEnrollmentParams teiEnrollmentParams;
+  private TrackedEntityInstanceEnrollmentParams teiEnrollmentParams;
 
-    private boolean includeProgramOwners;
+  private boolean includeProgramOwners;
 
-    private boolean includeAttributes;
+  private boolean includeAttributes;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    private boolean dataSynchronizationQuery;
+  private boolean dataSynchronizationQuery;
 
-    public boolean isIncludeRelationships()
-    {
-        return includeRelationships;
-    }
+  public boolean isIncludeRelationships() {
+    return includeRelationships;
+  }
 
-    public boolean isIncludeEnrollments()
-    {
-        return teiEnrollmentParams.isIncludeEnrollments();
-    }
+  public boolean isIncludeEnrollments() {
+    return teiEnrollmentParams.isIncludeEnrollments();
+  }
 
-    public boolean isIncludeProgramOwners()
-    {
-        return includeProgramOwners;
-    }
+  public boolean isIncludeProgramOwners() {
+    return includeProgramOwners;
+  }
 
-    public boolean isIncludeAttributes()
-    {
-        return includeAttributes;
-    }
+  public boolean isIncludeAttributes() {
+    return includeAttributes;
+  }
 
-    public boolean isIncludeDeleted()
-    {
-        return includeDeleted;
-    }
+  public boolean isIncludeDeleted() {
+    return includeDeleted;
+  }
 
-    public boolean isDataSynchronizationQuery()
-    {
-        return dataSynchronizationQuery;
-    }
+  public boolean isDataSynchronizationQuery() {
+    return dataSynchronizationQuery;
+  }
 
-    public EnrollmentParams getEnrollmentParams()
-    {
-        return this.teiEnrollmentParams.getEnrollmentParams();
-    }
+  public EnrollmentParams getEnrollmentParams() {
+    return this.teiEnrollmentParams.getEnrollmentParams();
+  }
 
-    public TrackedEntityInstanceParams withEnrollmentParams( EnrollmentParams enrollmentParams )
-    {
-        return this.withTeiEnrollmentParams( getTeiEnrollmentParams().withEnrollmentParams( enrollmentParams ) );
-    }
+  public TrackedEntityInstanceParams withEnrollmentParams(EnrollmentParams enrollmentParams) {
+    return this.withTeiEnrollmentParams(
+        getTeiEnrollmentParams().withEnrollmentParams(enrollmentParams));
+  }
 
-    public EventParams getEventParams()
-    {
-        return getEnrollmentParams().getEnrollmentEventsParams().getEventParams();
-    }
+  public EventParams getEventParams() {
+    return getEnrollmentParams().getEnrollmentEventsParams().getEventParams();
+  }
 
-    public TrackedEntityInstanceParams withEventParams( EventParams eventParams )
-    {
-        EnrollmentParams enrollmentParams = this.teiEnrollmentParams.getEnrollmentParams();
+  public TrackedEntityInstanceParams withEventParams(EventParams eventParams) {
+    EnrollmentParams enrollmentParams = this.teiEnrollmentParams.getEnrollmentParams();
 
-        EnrollmentEventsParams eventParamsToUpdate = enrollmentParams
-            .getEnrollmentEventsParams()
-            .withEventParams( eventParams );
+    EnrollmentEventsParams eventParamsToUpdate =
+        enrollmentParams.getEnrollmentEventsParams().withEventParams(eventParams);
 
-        return withTeiEnrollmentParams( this.teiEnrollmentParams.withEnrollmentParams( enrollmentParams
-            .withEnrollmentEventsParams( eventParamsToUpdate ) ) );
-    }
+    return withTeiEnrollmentParams(
+        this.teiEnrollmentParams.withEnrollmentParams(
+            enrollmentParams.withEnrollmentEventsParams(eventParamsToUpdate)));
+  }
 }

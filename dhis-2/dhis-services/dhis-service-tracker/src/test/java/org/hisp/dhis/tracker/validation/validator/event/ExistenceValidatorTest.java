@@ -51,130 +51,106 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class ExistenceValidatorTest
-{
-    private final static String SOFT_DELETED_EVENT_UID = "SoftDeletedEventId";
+@ExtendWith(MockitoExtension.class)
+class ExistenceValidatorTest {
+  private static final String SOFT_DELETED_EVENT_UID = "SoftDeletedEventId";
 
-    private final static String EVENT_UID = "EventId";
+  private static final String EVENT_UID = "EventId";
 
-    private final static String NOT_PRESENT_EVENT_UID = "NotPresentEventId";
+  private static final String NOT_PRESENT_EVENT_UID = "NotPresentEventId";
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private ExistenceValidator validator;
+  private ExistenceValidator validator;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        when( bundle.getPreheat() ).thenReturn( preheat );
+  @BeforeEach
+  void setUp() {
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
 
-        validator = new ExistenceValidator();
-    }
+    validator = new ExistenceValidator();
+  }
 
-    @Test
-    void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent()
-    {
-        Event event = Event.builder()
-            .event( NOT_PRESENT_EVENT_UID )
-            .build();
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+  @Test
+  void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent() {
+    Event event = Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEventValidationSuccessWhenEventIsNotPresent()
-    {
-        Event event = Event.builder()
-            .event( NOT_PRESENT_EVENT_UID )
-            .build();
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void verifyEventValidationSuccessWhenEventIsNotPresent() {
+    Event event = Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+    when(bundle.getStrategy(any(Event.class))).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEventValidationSuccessWhenIsUpdate()
-    {
-        Event event = Event.builder()
-            .event( EVENT_UID )
-            .build();
-        when( preheat.getEvent( EVENT_UID ) ).thenReturn( getEvent() );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void verifyEventValidationSuccessWhenIsUpdate() {
+    Event event = Event.builder().event(EVENT_UID).build();
+    when(preheat.getEvent(EVENT_UID)).thenReturn(getEvent());
+    when(bundle.getStrategy(any(Event.class))).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenIsSoftDeleted()
-    {
-        Event event = Event.builder()
-            .event( SOFT_DELETED_EVENT_UID )
-            .build();
-        when( preheat.getEvent( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+  @Test
+  void verifyEventValidationFailsWhenIsSoftDeleted() {
+    Event event = Event.builder().event(SOFT_DELETED_EVENT_UID).build();
+    when(preheat.getEvent(SOFT_DELETED_EVENT_UID)).thenReturn(getSoftDeletedEvent());
+    when(bundle.getStrategy(any(Event.class))).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1082 );
-    }
+    assertHasError(reporter, event, E1082);
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent()
-    {
-        Event event = Event.builder()
-            .event( EVENT_UID )
-            .build();
-        when( preheat.getEvent( EVENT_UID ) ).thenReturn( getEvent() );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+  @Test
+  void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent() {
+    Event event = Event.builder().event(EVENT_UID).build();
+    when(preheat.getEvent(EVENT_UID)).thenReturn(getEvent());
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1030 );
-    }
+    assertHasError(reporter, event, E1030);
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent()
-    {
-        Event event = Event.builder()
-            .event( NOT_PRESENT_EVENT_UID )
-            .build();
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+  @Test
+  void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent() {
+    Event event = Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1032 );
-    }
+    assertHasError(reporter, event, E1032);
+  }
 
-    private ProgramStageInstance getSoftDeletedEvent()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( SOFT_DELETED_EVENT_UID );
-        programStageInstance.setDeleted( true );
-        return programStageInstance;
-    }
+  private ProgramStageInstance getSoftDeletedEvent() {
+    ProgramStageInstance programStageInstance = new ProgramStageInstance();
+    programStageInstance.setUid(SOFT_DELETED_EVENT_UID);
+    programStageInstance.setDeleted(true);
+    return programStageInstance;
+  }
 
-    private ProgramStageInstance getEvent()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( EVENT_UID );
-        programStageInstance.setDeleted( false );
-        return programStageInstance;
-    }
+  private ProgramStageInstance getEvent() {
+    ProgramStageInstance programStageInstance = new ProgramStageInstance();
+    programStageInstance.setUid(EVENT_UID);
+    programStageInstance.setDeleted(false);
+    return programStageInstance;
+  }
 }

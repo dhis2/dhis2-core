@@ -33,26 +33,23 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar.
  */
-public class ProgramRuleStageEvent extends ApplicationEvent
-{
-    private long template;
+public class ProgramRuleStageEvent extends ApplicationEvent {
+  private long template;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramStageInstance programStageInstance;
 
-    public ProgramRuleStageEvent( Object source, long template, ProgramStageInstance programStageInstance )
-    {
-        super( source );
-        this.template = template;
-        this.programStageInstance = programStageInstance;
-    }
+  public ProgramRuleStageEvent(
+      Object source, long template, ProgramStageInstance programStageInstance) {
+    super(source);
+    this.template = template;
+    this.programStageInstance = programStageInstance;
+  }
 
-    public long getTemplate()
-    {
-        return template;
-    }
+  public long getTemplate() {
+    return template;
+  }
 
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
+  public ProgramStageInstance getProgramStageInstance() {
+    return programStageInstance;
+  }
 }
