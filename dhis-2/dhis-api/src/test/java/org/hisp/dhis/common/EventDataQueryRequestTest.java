@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
@@ -59,7 +60,7 @@ public class EventDataQueryRequestTest
         assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY" ) );
 
         eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY;YESTERDAY:INCIDENT_DATE" ) );
@@ -72,10 +73,10 @@ public class EventDataQueryRequestTest
             .fromCriteria( criteria )
             .build();
 
-        assertEquals( eventDataQueryRequest.getDimension(), Collections.emptySet() );
+        assertEquals( Collections.emptySet(), eventDataQueryRequest.getDimension() );
 
         eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(), Set.of( "pe:TODAY:INCIDENT_DATE" ) );
@@ -91,7 +92,7 @@ public class EventDataQueryRequestTest
         criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
 
         EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
+            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(),
@@ -109,7 +110,7 @@ public class EventDataQueryRequestTest
         criteria.setDimension( new HashSet<>( Set.of( "pe:LAST_MONTH" ) ) );
 
         EventDataQueryRequest eventDataQueryRequest = EventDataQueryRequest.builder()
-            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction() )
+            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
             .build();
 
         assertEquals( eventDataQueryRequest.getDimension(),

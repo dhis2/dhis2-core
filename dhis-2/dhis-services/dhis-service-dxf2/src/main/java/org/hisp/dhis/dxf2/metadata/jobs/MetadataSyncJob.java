@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +44,6 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.SynchronizationJob;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -159,15 +157,6 @@ public class MetadataSyncJob extends SynchronizationJob
             String customMessage = "Exception occurred while executing metadata sync task." + e.getMessage();
             log.error( customMessage, e );
         }
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            MetadataSyncJob.class );
-
-        return errorReport.orElse( super.validate() );
     }
 
     synchronized void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )

@@ -32,6 +32,7 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 import java.util.Arrays;
 import java.util.List;
 
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
@@ -69,7 +70,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -109,24 +109,18 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisConfigurationProvider dhisConfig;
 
-        @Bean
-        public static SessionRegistryImpl sessionRegistry()
-        {
-            return new org.springframework.security.core.session.SessionRegistryImpl();
-        }
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
         {
             http
                 .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
                 .sessionFixation().migrateSession()
                 .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                 .enableSessionUrlRewriting( false )
                 .maximumSessions( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                .expiredUrl( "/dhis-web-commons-security/logout.action" )
-                .sessionRegistry( sessionRegistry() );
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
         }
     }
 
@@ -165,6 +159,9 @@ public class DhisWebCommonsWebSecurityConfig
 
         @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
+
+        @Autowired
+        private ConfigurationService configurationService;
 
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
@@ -274,13 +271,13 @@ public class DhisWebCommonsWebSecurityConfig
                 .csrf()
                 .disable()
 
-                .addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+                .addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                     HeaderWriterFilter.class )
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         @Bean
@@ -296,11 +293,6 @@ public class DhisWebCommonsWebSecurityConfig
         {
             DefaultAuthenticationSuccessHandler successHandler = new DefaultAuthenticationSuccessHandler();
             successHandler.setRedirectStrategy( mappedRedirectStrategy() );
-            if ( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) != null )
-            {
-                successHandler.setSessionTimeout(
-                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT ) ) );
-            }
 
             return successHandler;
         }

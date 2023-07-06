@@ -240,6 +240,7 @@ public class DefaultEventQueryPlanner
                     .removeItemProgramIndicators()
                     .withProgramIndicator( programIndicator )
                     .withProgram( programIndicator.getProgram() )
+                    .withAggregationType( fromAggregationType( programIndicator.getAggregationTypeFallback() ) )
                     .build();
 
                 queries.add( query );

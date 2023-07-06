@@ -225,11 +225,15 @@ class EventImportValidationTest extends AbstractImportValidationTest
         trackerImportParams.setUser( user );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertEquals( 4, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1099 ) ) ) );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 
     @Test
@@ -264,6 +268,23 @@ class EventImportValidationTest extends AbstractImportValidationTest
         assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
         assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
+    }
+
+    @Test
+    void shouldSuccessfullyImportRepeatedEventsInEventProgram()
+        throws IOException
+    {
+        TrackerImportParams trackerImportParams = fromJson(
+            "tracker/validations/program_events_non-repeatable-programstage_part1.json",
+            userService.getUser( ADMIN_USER_UID ) );
+        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
+        trackerImportParams = fromJson( "tracker/validations/program_events_non-repeatable-programstage_part2.json",
+            userService.getUser( ADMIN_USER_UID ) );
+        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
+        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test

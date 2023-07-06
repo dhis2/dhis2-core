@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.OU_GEOMETRY;
 import static org.hisp.dhis.common.FallbackCoordinateFieldType.PSI_GEOMETRY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -74,7 +75,8 @@ import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -286,7 +288,10 @@ public class EventQueryParams
     protected Map<AnalyticsDateFilter, DateRange> dateRangeByDateFilter = new HashMap<>();
 
     @Getter
-    protected RequestTypeAware.EndpointItem endpointItem;
+    protected EndpointItem endpointItem;
+
+    @Getter
+    protected EndpointAction endpointAction;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -358,6 +363,7 @@ public class EventQueryParams
         params.dateRangeByDateFilter = this.dateRangeByDateFilter;
         params.skipPartitioning = this.skipPartitioning;
         params.endpointItem = this.endpointItem;
+        params.endpointAction = this.endpointAction;
         return params;
     }
 
@@ -891,6 +897,19 @@ public class EventQueryParams
     }
 
     /**
+     * Checks if a value dimension with a boolean value type exists.
+     *
+     * @return true if a value dimension with a boolean value type exists, false
+     *         if not.
+     */
+    public boolean hasBooleanValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isBoolean();
+    }
+
+    /**
      * Checks if a value dimension with a text value type exists.
      *
      * @return true if a value dimension with a text value type exists, false if
@@ -1122,6 +1141,11 @@ public class EventQueryParams
     public boolean isAggregateData()
     {
         return aggregateData;
+    }
+
+    public boolean isComingFromQuery()
+    {
+        return endpointAction == QUERY;
     }
 
     public Long getClusterSize()
@@ -1572,9 +1596,15 @@ public class EventQueryParams
             return params;
         }
 
-        public Builder withEndpointItem( RequestTypeAware.EndpointItem endpointItem )
+        public Builder withEndpointItem( EndpointItem endpointItem )
         {
             this.params.endpointItem = endpointItem;
+            return this;
+        }
+
+        public Builder withEndpointAction( EndpointAction endpointAction )
+        {
+            this.params.endpointAction = endpointAction;
             return this;
         }
     }

@@ -54,8 +54,8 @@ public enum ValueType
     TEXT( String.class, true ),
     LONG_TEXT( String.class, true ),
     LETTER( String.class, true ),
-    PHONE_NUMBER( String.class, false ),
-    EMAIL( String.class, false ),
+    PHONE_NUMBER( String.class, true ),
+    EMAIL( String.class, true ),
     BOOLEAN( Boolean.class, true ),
     TRUE_ONLY( Boolean.class, true ),
     DATE( LocalDate.class, false ),
@@ -69,12 +69,12 @@ public enum ValueType
     INTEGER_NEGATIVE( Integer.class, true ),
     INTEGER_ZERO_OR_POSITIVE( Integer.class, true ),
     TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
-    USERNAME( String.class, false ),
+    USERNAME( String.class, true ),
     COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     REFERENCE( Reference.class, false ),
     AGE( Date.class, false ),
-    URL( String.class, false ),
+    URL( String.class, true ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class ),
     GEOJSON( GeoJSON.class, false );
@@ -212,11 +212,9 @@ public enum ValueType
             return false;
         }
 
-        if ( this == TEXT )
+        if ( TEXT_TYPES.contains( this ) )
         {
-            return aggregationType == AggregationType.NONE ||
-                aggregationType == AggregationType.LAST_LAST_ORG_UNIT ||
-                aggregationType == AggregationType.FIRST_FIRST_ORG_UNIT;
+            return true;
         }
 
         return aggregationType != AggregationType.NONE;

@@ -31,6 +31,7 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
+import java.time.Clock;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -52,7 +53,6 @@ import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.scheduling.parameters.TestJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
-import org.hisp.dhis.scheduling.parameters.jackson.JobConfigurationSanitizer;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
@@ -61,7 +61,6 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -76,15 +75,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * The class uses a custom deserializer to handle several potential
  * {@link JobParameters}.
  *
- * Note that this class uses {@link JobConfigurationSanitizer} for serialization
- * which needs to be update when new properties are added.
- *
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
-@JsonDeserialize( converter = JobConfigurationSanitizer.class )
-public class JobConfiguration
-    extends BaseIdentifiableObject implements SecondaryMetadataObject
+public class JobConfiguration extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
     // -------------------------------------------------------------------------
     // Externally configurable properties
@@ -125,7 +119,7 @@ public class JobConfiguration
 
     private JobStatus jobStatus;
 
-    private Date nextExecutionTime;
+    private transient Date nextExecutionTime;
 
     private JobStatus lastExecutedStatus = JobStatus.NOT_STARTED;
 
@@ -192,7 +186,6 @@ public class JobConfiguration
         this.jobParameters = jobParameters;
         this.enabled = enabled;
         this.inMemoryJob = inMemoryJob;
-        setJobStatus( enabled ? SCHEDULED : DISABLED );
         init();
     }
 
@@ -223,7 +216,7 @@ public class JobConfiguration
         {
             return true;
         }
-        if ( this.jobStatus != other.getJobStatus() )
+        if ( this.getJobStatus() != other.getJobStatus() )
         {
             return true;
         }
@@ -300,6 +293,7 @@ public class JobConfiguration
     public void setCronExpression( String cronExpression )
     {
         this.cronExpression = cronExpression;
+        this.nextExecutionTime = null; // invalidate
     }
 
     @JacksonXmlProperty
@@ -364,6 +358,10 @@ public class JobConfiguration
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public JobStatus getJobStatus()
     {
+        if ( jobStatus == null )
+        {
+            jobStatus = enabled ? SCHEDULED : DISABLED;
+        }
         return jobStatus;
     }
 
@@ -376,27 +374,22 @@ public class JobConfiguration
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public Date getNextExecutionTime()
     {
-        return nextExecutionTime;
+        return nextExecutionTimeAfter( Clock.systemDefaultZone() );
     }
 
-    /**
-     * Only set next execution time if the job is not continuous.
-     */
-    public void setNextExecutionTime( Date nextExecutionTime )
+    public Date nextExecutionTimeAfter( Clock time )
     {
-        if ( cronExpression == null || cronExpression.equals( "" ) || cronExpression.equals( "* * * * * ?" ) )
+        if ( time == null || cronExpression == null || cronExpression.equals( "" )
+            || cronExpression.equals( "* * * * * ?" ) )
         {
-            return;
+            return null;
         }
-
-        if ( nextExecutionTime != null )
+        if ( nextExecutionTime == null || !nextExecutionTime.toInstant().isAfter( time.instant() ) )
         {
-            this.nextExecutionTime = nextExecutionTime;
+            this.nextExecutionTime = new CronTrigger( cronExpression )
+                .nextExecutionTime( new SimpleTriggerContext( time ) );
         }
-        else
-        {
-            this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
-        }
+        return nextExecutionTime;
     }
 
     @JacksonXmlProperty

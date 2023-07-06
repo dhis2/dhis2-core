@@ -118,7 +118,7 @@ public class DataValueController
 
     private final FileResourceService fileResourceService;
 
-    private final DataValidator dataValueValidation;
+    private final DataValidator dataValidator;
 
     private final FileResourceUtils fileResourceUtils;
 
@@ -146,7 +146,7 @@ public class DataValueController
         @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
-        DataValueCategoryDto attribute = dataValueValidation.getDataValueCategoryDto( cc, cp );
+        DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto( cc, cp );
 
         DataValueDto dataValue = new DataValueDto()
             .setDataElement( de )
@@ -186,14 +186,16 @@ public class DataValueController
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force,
-        @RequestParam MultipartFile file,
+        @RequestParam( required = false ) MultipartFile file,
         @CurrentUser User currentUser )
         throws WebMessageException,
         IOException
     {
-        DataValueCategoryDto attribute = dataValueValidation.getDataValueCategoryDto( cc, cp );
+        DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto( cc, cp );
 
-        FileResource fileResource = fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
+        FileResource fileResource = file == null
+            ? null
+            : fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
 
         DataValueDto dataValue = new DataValueDto()
             .setDataElement( de )
@@ -202,7 +204,7 @@ public class DataValueController
             .setPeriod( pe )
             .setOrgUnit( ou )
             .setDataSet( ds )
-            .setValue( fileResource.getUid() )
+            .setValue( fileResource == null ? null : fileResource.getUid() )
             .setComment( comment )
             .setFollowUp( followUp )
             .setForce( force );
@@ -210,8 +212,10 @@ public class DataValueController
         saveDataValueInternal( dataValue, currentUser );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
-        webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
-
+        if ( fileResource != null )
+        {
+            webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
+        }
         return webMessage;
     }
 
@@ -241,35 +245,35 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( dataValue.getDataElement() );
+        DataElement dataElement = dataValidator.getAndValidateDataElement( dataValue.getDataElement() );
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo(
+        CategoryOptionCombo categoryOptionCombo = dataValidator.getAndValidateCategoryOptionCombo(
             dataValue.getCategoryOptionCombo(), requireCategoryOptionCombo );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( attribute );
+        CategoryOptionCombo attributeOptionCombo = dataValidator.getAndValidateAttributeOptionCombo( attribute );
 
-        Period period = dataValueValidation.getAndValidatePeriod( dataValue.getPeriod() );
+        Period period = dataValidator.getAndValidatePeriod( dataValue.getPeriod() );
 
-        OrganisationUnit organisationUnit = dataValueValidation
+        OrganisationUnit organisationUnit = dataValidator
             .getAndValidateOrganisationUnit( dataValue.getOrgUnit() );
 
-        dataValueValidation.validateOrganisationUnitPeriod( organisationUnit, period );
+        dataValidator.validateOrganisationUnitPeriod( organisationUnit, period );
 
-        DataSet dataSet = dataValueValidation.getAndValidateOptionalDataSet( dataValue.getDataSet(), dataElement );
+        DataSet dataSet = dataValidator.getAndValidateOptionalDataSet( dataValue.getDataSet(), dataElement );
 
-        dataValueValidation.validateInvalidFuturePeriod( period, dataElement );
+        dataValidator.validateInvalidFuturePeriod( period, dataElement );
 
-        dataValueValidation.validateAttributeOptionCombo( attributeOptionCombo, period, dataSet, dataElement );
+        dataValidator.validateAttributeOptionCombo( attributeOptionCombo, period, dataSet, dataElement );
 
-        value = dataValueValidation.validateAndNormalizeDataValue( dataValue.getValue(), dataElement );
+        value = dataValidator.validateAndNormalizeDataValue( dataValue.getValue(), dataElement );
 
-        dataValueValidation.validateComment( dataValue.getComment() );
+        dataValidator.validateComment( dataValue.getComment() );
 
-        dataValueValidation.validateOptionSet( value, dataElement.getOptionSet(), dataElement );
+        dataValidator.validateOptionSet( value, dataElement.getOptionSet(), dataElement );
 
-        dataValueValidation.checkCategoryOptionComboAccess( currentUser, categoryOptionCombo );
+        dataValidator.checkCategoryOptionComboAccess( currentUser, categoryOptionCombo );
 
-        dataValueValidation.checkCategoryOptionComboAccess( currentUser, attributeOptionCombo );
+        dataValidator.checkCategoryOptionComboAccess( currentUser, attributeOptionCombo );
 
         // ---------------------------------------------------------------------
         // Optional constraints
@@ -302,7 +306,7 @@ public class DataValueController
 
         if ( !inputUtils.canForceDataInput( currentUser, dataValue.isForce() ) )
         {
-            dataValueValidation.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
+            dataValidator.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
                 attributeOptionCombo );
         }
 
@@ -310,7 +314,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        dataValueValidation.validateDataInputPeriodForDataElementAndPeriod( dataElement, dataSet, period );
+        dataValidator.validateDataInputPeriodForDataElementAndPeriod( dataElement, dataSet, period );
 
         // ---------------------------------------------------------------------
         // Assemble and save data value
@@ -320,8 +324,8 @@ public class DataValueController
 
         Date now = new Date();
 
-        DataValue persistedDataValue = dataValueService.getDataValue( dataElement, period, organisationUnit,
-            categoryOptionCombo, attributeOptionCombo );
+        DataValue persistedDataValue = dataValueService.getDataValue(
+            dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
 
         FileResource fileResource = null;
 
@@ -331,9 +335,10 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType().isFile() )
+            if ( dataElement.getValueType().isFile() && value != null )
             {
-                fileResource = dataValueValidation.validateAndSetAssigned( value, dataElement.getValueType(),
+                fileResource = dataValidator.validateAndSetAssigned( value,
+                    dataElement.getValueType(),
                     dataElement.getValueTypeOptions() );
             }
 
@@ -357,26 +362,29 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType().isFile() )
+            if ( dataElement.isFileType() )
             {
-                fileResource = dataValueValidation.validateAndSetAssigned( value, dataElement.getValueType(),
-                    dataElement.getValueTypeOptions() );
-            }
-
-            if ( dataElement.isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
-            {
-                try
+                if ( value != null )
                 {
-                    fileResourceService.deleteFileResource( persistedDataValue.getValue() );
+                    fileResource = dataValidator.validateAndSetAssigned( value,
+                        dataElement.getValueType(),
+                        dataElement.getValueTypeOptions() );
                 }
-                catch ( AuthorizationException exception )
+                else if ( retentionStrategy == FileResourceRetentionStrategy.NONE )
                 {
-                    // If we fail to delete the fileResource now, mark it as
-                    // unassigned for removal later
-                    fileResourceService.getFileResource( persistedDataValue.getValue() ).setAssigned( false );
-                }
+                    try
+                    {
+                        fileResourceService.deleteFileResource( persistedDataValue.getValue() );
+                    }
+                    catch ( AuthorizationException exception )
+                    {
+                        // If we fail to delete the fileResource now, mark it as
+                        // unassigned for removal later
+                        fileResourceService.getFileResource( persistedDataValue.getValue() ).setAssigned( false );
+                    }
 
-                persistedDataValue.setValue( StringUtils.EMPTY );
+                    persistedDataValue.setValue( StringUtils.EMPTY );
+                }
             }
 
             // -----------------------------------------------------------------
@@ -438,17 +446,19 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
+        DataElement dataElement = dataValidator.getAndValidateDataElement( de );
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = dataValidator.getAndValidateCategoryOptionCombo( co,
+            false );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = dataValidator.getAndValidateAttributeOptionCombo(
+            cc, cp );
 
-        Period period = dataValueValidation.getAndValidatePeriod( pe );
+        Period period = dataValidator.getAndValidatePeriod( pe );
 
-        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( ou );
+        OrganisationUnit organisationUnit = dataValidator.getAndValidateOrganisationUnit( ou );
 
-        DataSet dataSet = dataValueValidation.getAndValidateOptionalDataSet( ds, dataElement );
+        DataSet dataSet = dataValidator.getAndValidateOptionalDataSet( ds, dataElement );
 
         // ---------------------------------------------------------------------
         // Locking validation
@@ -456,7 +466,7 @@ public class DataValueController
 
         if ( !inputUtils.canForceDataInput( currentUser, force ) )
         {
-            dataValueValidation.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
+            dataValidator.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
                 attributeOptionCombo );
         }
 
@@ -464,7 +474,7 @@ public class DataValueController
         // Period validation
         // ---------------------------------------------------------------------
 
-        dataValueValidation.validateDataInputPeriodForDataElementAndPeriod( dataElement, dataSet, period );
+        dataValidator.validateDataInputPeriodForDataElementAndPeriod( dataElement, dataSet, period );
 
         // ---------------------------------------------------------------------
         // Delete data value
@@ -507,15 +517,17 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
+        DataElement dataElement = dataValidator.getAndValidateDataElement( de );
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = dataValidator.getAndValidateCategoryOptionCombo(
+            co, false );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = dataValidator.getAndValidateAttributeOptionCombo(
+            cc, cp );
 
-        Period period = dataValueValidation.getAndValidatePeriod( pe );
+        Period period = dataValidator.getAndValidatePeriod( pe );
 
-        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( ou );
+        OrganisationUnit organisationUnit = dataValidator.getAndValidateOrganisationUnit( ou );
 
         // ---------------------------------------------------------------------
         // Get data value
@@ -533,7 +545,7 @@ public class DataValueController
         // Data Sharing check
         // ---------------------------------------------------------------------
 
-        dataValueValidation.checkDataValueSharing( currentUser, dataValue );
+        dataValidator.checkDataValueSharing( currentUser, dataValue );
 
         List<String> value = new ArrayList<>();
         value.add( dataValue.getValue() );
@@ -555,7 +567,7 @@ public class DataValueController
             throw new IllegalQueryException( ErrorCode.E2033 );
         }
 
-        DataValue dataValue = dataValueValidation.getAndValidateDataValue( request );
+        DataValue dataValue = dataValidator.getAndValidateDataValue( request );
         dataValue.setFollowup( request.getFollowup() );
         dataValueService.updateDataValue( dataValue );
     }
@@ -571,11 +583,13 @@ public class DataValueController
         }
 
         List<DataValue> dataValues = new ArrayList<>();
-        for ( DataValueFollowUpRequest e : values )
+
+        for ( DataValueFollowUpRequest value : values )
         {
-            DataValue dataValue = dataValueValidation.getAndValidateDataValue( e );
-            dataValue.setFollowup( e.getFollowup() );
+            DataValue dataValue = dataValidator.getAndValidateDataValue( value );
+            dataValue.setFollowup( value.getFollowup() );
         }
+
         dataValueService.updateDataValues( dataValues );
     }
 
@@ -599,22 +613,24 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = dataValueValidation.getAndValidateDataElement( de );
+        DataElement dataElement = dataValidator.getAndValidateDataElement( de );
 
         if ( !dataElement.isFileType() )
         {
             throw new WebMessageException( conflict( "DataElement must be of type file" ) );
         }
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
+        CategoryOptionCombo categoryOptionCombo = dataValidator.getAndValidateCategoryOptionCombo(
+            co, false );
 
-        CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
+        CategoryOptionCombo attributeOptionCombo = dataValidator.getAndValidateAttributeOptionCombo(
+            cc, cp );
 
-        Period period = dataValueValidation.getAndValidatePeriod( pe );
+        Period period = dataValidator.getAndValidatePeriod( pe );
 
-        OrganisationUnit organisationUnit = dataValueValidation.getAndValidateOrganisationUnit( ou );
+        OrganisationUnit organisationUnit = dataValidator.getAndValidateOrganisationUnit( ou );
 
-        dataValueValidation.validateOrganisationUnitPeriod( organisationUnit, period );
+        dataValidator.validateOrganisationUnitPeriod( organisationUnit, period );
 
         // ---------------------------------------------------------------------
         // Get data value
