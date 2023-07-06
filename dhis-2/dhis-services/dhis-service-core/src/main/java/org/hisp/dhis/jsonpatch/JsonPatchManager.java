@@ -29,8 +29,11 @@ package org.hisp.dhis.jsonpatch;
 
 import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collection;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -43,113 +46,95 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
- * Small manager class to handle the JSON patch processing, handles converting
- * from/to JSON nodes, and then applying the JSON patch.
+ * Small manager class to handle the JSON patch processing, handles converting from/to JSON nodes,
+ * and then applying the JSON patch.
  *
  * @author Morten Olav Hansen
  */
 @Service
-public class JsonPatchManager
-{
-    private final ObjectMapper jsonMapper;
+public class JsonPatchManager {
+  private final ObjectMapper jsonMapper;
 
-    private final SchemaService schemaService;
+  private final SchemaService schemaService;
 
-    public JsonPatchManager(
-        ObjectMapper jsonMapper,
-        SchemaService schemaService )
-    {
-        this.jsonMapper = jsonMapper;
-        this.schemaService = schemaService;
+  public JsonPatchManager(ObjectMapper jsonMapper, SchemaService schemaService) {
+    this.jsonMapper = jsonMapper;
+    this.schemaService = schemaService;
+  }
+
+  /**
+   * Applies a JSON patch to any valid jackson java object. It uses valueToTree to convert from the
+   * object into a tree like node structure, and this is where the patch will be applied. This means
+   * that any property renaming etc will be followed.
+   *
+   * @param patch JsonPatch object with the operations it should apply.
+   * @param object Jackson Object to apply the patch to.
+   * @return New instance of the object with the patch applied.
+   */
+  @Transactional(readOnly = true)
+  @SuppressWarnings("unchecked")
+  public <T> T apply(JsonPatch patch, T object) throws JsonPatchException {
+    if (patch == null || object == null) {
+      return null;
     }
 
-    /**
-     * Applies a JSON patch to any valid jackson java object. It uses
-     * valueToTree to convert from the object into a tree like node structure,
-     * and this is where the patch will be applied. This means that any property
-     * renaming etc will be followed.
-     *
-     * @param patch JsonPatch object with the operations it should apply.
-     * @param object Jackson Object to apply the patch to.
-     * @return New instance of the object with the patch applied.
-     */
-    @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T> T apply( JsonPatch patch, T object )
-        throws JsonPatchException
-    {
-        if ( patch == null || object == null )
-        {
-            return null;
+    Schema schema = schemaService.getSchema(object.getClass());
+    JsonNode node = jsonMapper.valueToTree(object);
+
+    // since valueToTree does not properly handle our deeply nested classes,
+    // we need to make another trip to make sure all collections are
+    // correctly made into json nodes.
+    handleCollectionUpdates(object, schema, (ObjectNode) node);
+
+    node = patch.apply(node);
+    return (T)
+        jsonToObject(
+            node, object.getClass(), jsonMapper, ex -> new JsonPatchException(ex.getMessage()));
+  }
+
+  private <T> void handleCollectionUpdates(T object, Schema schema, ObjectNode node) {
+    for (Property property : schema.getProperties()) {
+
+      if (property.isCollection()) {
+        Object data = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+
+        Collection<?> collection = (Collection<?>) data;
+
+        if (CollectionUtils.isEmpty(collection)) {
+          continue;
         }
 
-        Schema schema = schemaService.getSchema( object.getClass() );
-        JsonNode node = jsonMapper.valueToTree( object );
+        if (BaseIdentifiableObject.class.isAssignableFrom(property.getItemKlass())
+            && !EmbeddedObject.class.isAssignableFrom(property.getItemKlass())) {
+          ArrayNode arrayNode = jsonMapper.createArrayNode();
 
-        // since valueToTree does not properly handle our deeply nested classes,
-        // we need to make another trip to make sure all collections are
-        // correctly made into json nodes.
-        handleCollectionUpdates( object, schema, (ObjectNode) node );
+          collection.forEach(
+              item ->
+                  arrayNode.add(
+                      jsonMapper.valueToTree(
+                          shallowCopyIdentifiableObject((BaseIdentifiableObject) item))));
 
-        node = patch.apply( node );
-        return (T) jsonToObject( node, object.getClass(), jsonMapper,
-            ex -> new JsonPatchException( ex.getMessage() ) );
-    }
-
-    private <T> void handleCollectionUpdates( T object, Schema schema, ObjectNode node )
-    {
-        for ( Property property : schema.getProperties() )
-        {
-
-            if ( property.isCollection() )
-            {
-                Object data = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-
-                Collection<?> collection = (Collection<?>) data;
-
-                if ( CollectionUtils.isEmpty( collection ) )
-                {
-                    continue;
-                }
-
-                if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() )
-                    && !EmbeddedObject.class.isAssignableFrom( property.getItemKlass() ) )
-                {
-                    ArrayNode arrayNode = jsonMapper.createArrayNode();
-
-                    collection.forEach( item -> arrayNode.add( jsonMapper.valueToTree(
-                        shallowCopyIdentifiableObject( (BaseIdentifiableObject) item ) ) ) );
-
-                    node.set( property.getCollectionName(), arrayNode );
-                }
-                else
-                {
-                    node.set( property.getCollectionName(), jsonMapper.valueToTree( data ) );
-                }
-            }
+          node.set(property.getCollectionName(), arrayNode);
+        } else {
+          node.set(property.getCollectionName(), jsonMapper.valueToTree(data));
         }
+      }
     }
+  }
 
-    /**
-     * Create a copy of given {@link BaseIdentifiableObject} but only with two
-     * properties: {@link BaseIdentifiableObject#setId(long)} and
-     * {@link BaseIdentifiableObject#setUid(String)}. No other properties will
-     * be copied.
-     *
-     * @param source the BaseIdentifiableObject to be cloned.
-     * @return a new BaseIdentifiableObject with id and uid properties.
-     */
-    private BaseIdentifiableObject shallowCopyIdentifiableObject( BaseIdentifiableObject source )
-    {
-        BaseIdentifiableObject clone = new BaseIdentifiableObject();
-        clone.setId( source.getId() );
-        clone.setUid( source.getUid() );
-        return clone;
-    }
+  /**
+   * Create a copy of given {@link BaseIdentifiableObject} but only with two properties: {@link
+   * BaseIdentifiableObject#setId(long)} and {@link BaseIdentifiableObject#setUid(String)}. No other
+   * properties will be copied.
+   *
+   * @param source the BaseIdentifiableObject to be cloned.
+   * @return a new BaseIdentifiableObject with id and uid properties.
+   */
+  private BaseIdentifiableObject shallowCopyIdentifiableObject(BaseIdentifiableObject source) {
+    BaseIdentifiableObject clone = new BaseIdentifiableObject();
+    clone.setId(source.getId());
+    clone.setUid(source.getUid());
+    return clone;
+  }
 }

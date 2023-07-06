@@ -30,9 +30,7 @@ package org.hisp.dhis.program;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -42,40 +40,35 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ProgramStageSectionDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class ProgramStageSectionDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final ProgramStageSectionService programStageSectionService;
+  private final ProgramStageSectionService programStageSectionService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
+  @Override
+  protected void register() {
+    whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+  }
+
+  private void deleteProgramIndicator(ProgramIndicator programIndicator) {
+    Collection<ProgramStageSection> sections =
+        idObjectManager.getAllNoAcl(ProgramStageSection.class);
+
+    for (ProgramStageSection section : sections) {
+      if (section.getProgramIndicators().remove(programIndicator)) {
+        idObjectManager.update(section);
+      }
     }
+  }
 
-    private void deleteProgramIndicator( ProgramIndicator programIndicator )
-    {
-        Collection<ProgramStageSection> sections = idObjectManager.getAllNoAcl( ProgramStageSection.class );
+  private void deleteProgramStage(ProgramStage programStage) {
+    List<ProgramStageSection> programStageSections =
+        new ArrayList<>(programStage.getProgramStageSections());
 
-        for ( ProgramStageSection section : sections )
-        {
-            if ( section.getProgramIndicators().remove( programIndicator ) )
-            {
-                idObjectManager.update( section );
-            }
-        }
+    for (ProgramStageSection programStageSection : programStageSections) {
+      programStage.getProgramStageSections().remove(programStageSection);
+      programStageSectionService.deleteProgramStageSection(programStageSection);
     }
-
-    private void deleteProgramStage( ProgramStage programStage )
-    {
-        List<ProgramStageSection> programStageSections = new ArrayList<>( programStage.getProgramStageSections() );
-
-        for ( ProgramStageSection programStageSection : programStageSections )
-        {
-            programStage.getProgramStageSections().remove( programStageSection );
-            programStageSectionService.deleteProgramStageSection( programStageSection );
-        }
-    }
+  }
 }

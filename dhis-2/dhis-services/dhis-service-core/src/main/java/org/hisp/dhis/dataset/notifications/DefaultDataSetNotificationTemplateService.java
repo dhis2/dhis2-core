@@ -28,61 +28,51 @@
 package org.hisp.dhis.dataset.notifications;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.springframework.stereotype.Service;
 
-/**
- * Created by zubair@dhis2.org on 20.07.17.
- */
+/** Created by zubair@dhis2.org on 20.07.17. */
 @Service
 @AllArgsConstructor
-public class DefaultDataSetNotificationTemplateService implements DataSetNotificationTemplateService
-{
-    private final DataSetNotificationTemplateStore store;
+public class DefaultDataSetNotificationTemplateService
+    implements DataSetNotificationTemplateService {
+  private final DataSetNotificationTemplateStore store;
 
-    @Override
-    public DataSetNotificationTemplate get( long id )
-    {
-        return store.get( id );
-    }
+  @Override
+  public DataSetNotificationTemplate get(long id) {
+    return store.get(id);
+  }
 
-    @Override
-    public DataSetNotificationTemplate get( String uid )
-    {
-        return store.getByUid( uid );
-    }
+  @Override
+  public DataSetNotificationTemplate get(String uid) {
+    return store.getByUid(uid);
+  }
 
-    @Override
-    public List<DataSetNotificationTemplate> getCompleteNotifications( DataSet dataSet )
-    {
-        return store.getNotificationsByTriggerType( dataSet, DataSetNotificationTrigger.DATA_SET_COMPLETION );
-    }
+  @Override
+  public List<DataSetNotificationTemplate> getCompleteNotifications(DataSet dataSet) {
+    return store.getNotificationsByTriggerType(
+        dataSet, DataSetNotificationTrigger.DATA_SET_COMPLETION);
+  }
 
-    @Override
-    public List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger )
-    {
-        return store.getScheduledNotifications( trigger );
-    }
+  @Override
+  public List<DataSetNotificationTemplate> getScheduledNotifications(NotificationTrigger trigger) {
+    return store.getScheduledNotifications(trigger);
+  }
 
-    @Override
-    public List<DataSetNotificationTemplate> getAll()
-    {
-        return store.getAll();
-    }
+  @Override
+  public List<DataSetNotificationTemplate> getAll() {
+    return store.getAll();
+  }
 
-    @Override
-    public void delete( DataSetNotificationTemplate template )
-    {
-        store.delete( template );
-    }
+  @Override
+  public void delete(DataSetNotificationTemplate template) {
+    store.delete(template);
+  }
 
-    @Override
-    public void save( DataSetNotificationTemplate template )
-    {
-        store.save( template );
-    }
+  @Override
+  public void save(DataSetNotificationTemplate template) {
+    store.save(template);
+  }
 }

@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.node.AbstractNode;
@@ -44,49 +43,42 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class PagingNodeTransformer implements NodeTransformer
-{
-    @Override
-    public String name()
-    {
-        return "paging";
+public class PagingNodeTransformer implements NodeTransformer {
+  @Override
+  public String name() {
+    return "paging";
+  }
+
+  @Override
+  public Node transform(Node node, List<String> args) {
+    checkNotNull(node);
+    checkArgument(
+        !args.isEmpty(),
+        "paging requires at least one parameter, .e.g: property|paging(page, pageSize)");
+    checkNotNull(node.getProperty());
+
+    int page;
+    int pageSize = Pager.DEFAULT_PAGE_SIZE;
+
+    try {
+      page = Integer.parseInt(args.get(0));
+
+      if (args.size() > 1) {
+        pageSize = Integer.parseInt(args.get(1));
+      }
+    } catch (NumberFormatException ex) {
+      return node;
     }
 
-    @Override
-    public Node transform( Node node, List<String> args )
-    {
-        checkNotNull( node );
-        checkArgument( !args.isEmpty(),
-            "paging requires at least one parameter, .e.g: property|paging(page, pageSize)" );
-        checkNotNull( node.getProperty() );
+    Property property = node.getProperty();
 
-        int page;
-        int pageSize = Pager.DEFAULT_PAGE_SIZE;
+    if (property.isCollection()) {
+      Pager pager = new Pager(page, node.getChildren().size(), pageSize);
+      ((AbstractNode) node).setChildren(PagerUtils.pageCollection(node.getChildren(), pager));
 
-        try
-        {
-            page = Integer.parseInt( args.get( 0 ) );
-
-            if ( args.size() > 1 )
-            {
-                pageSize = Integer.parseInt( args.get( 1 ) );
-            }
-        }
-        catch ( NumberFormatException ex )
-        {
-            return node;
-        }
-
-        Property property = node.getProperty();
-
-        if ( property.isCollection() )
-        {
-            Pager pager = new Pager( page, node.getChildren().size(), pageSize );
-            ((AbstractNode) node).setChildren( PagerUtils.pageCollection( node.getChildren(), pager ) );
-
-            return node;
-        }
-
-        return node;
+      return node;
     }
+
+    return node;
+  }
 }

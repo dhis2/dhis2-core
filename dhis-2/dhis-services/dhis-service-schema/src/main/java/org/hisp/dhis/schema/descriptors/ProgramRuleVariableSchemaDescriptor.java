@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.function.Function;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -38,57 +40,48 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-
 /**
  * @author markusbekken
  */
-public class ProgramRuleVariableSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "programRuleVariable";
+public class ProgramRuleVariableSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "programRuleVariable";
 
-    public static final String PLURAL = "programRuleVariables";
+  public static final String PLURAL = "programRuleVariables";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ProgramRuleVariable.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1600 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ProgramRuleVariable.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1600);
 
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAM_RULE_MANAGEMENT" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_RULE_MANAGEMENT" ) ) );
+    schema.add(
+        new Authority(AuthorityType.CREATE, Lists.newArrayList("F_PROGRAM_RULE_MANAGEMENT")));
+    schema.add(
+        new Authority(AuthorityType.DELETE, Lists.newArrayList("F_PROGRAM_RULE_MANAGEMENT")));
 
-        schema.setUniqueMultiPropertiesExctractors(
-            ImmutableMap.<Collection<String>, Collection<Function<IdentifiableObject, String>>> builder()
-                .put(
-                    ImmutableList.of( "name", "programuid" ),
-                    ImmutableList.of(
-                        nameExtractor(),
-                        programUidExtractor() ) )
-                .build() );
+    schema.setUniqueMultiPropertiesExctractors(
+        ImmutableMap.<Collection<String>, Collection<Function<IdentifiableObject, String>>>builder()
+            .put(
+                ImmutableList.of("name", "programuid"),
+                ImmutableList.of(nameExtractor(), programUidExtractor()))
+            .build());
 
-        return schema;
-    }
+    return schema;
+  }
 
-    private Function<IdentifiableObject, String> nameExtractor()
-    {
-        return o -> castAndExtract( o, BaseIdentifiableObject::getName );
-    }
+  private Function<IdentifiableObject, String> nameExtractor() {
+    return o -> castAndExtract(o, BaseIdentifiableObject::getName);
+  }
 
-    private Function<IdentifiableObject, String> programUidExtractor()
-    {
-        return o -> castAndExtract( o, programRuleVariable -> programRuleVariable.getProgram().getUid() );
-    }
+  private Function<IdentifiableObject, String> programUidExtractor() {
+    return o -> castAndExtract(o, programRuleVariable -> programRuleVariable.getProgram().getUid());
+  }
 
-    private String castAndExtract( Object o, Function<ProgramRuleVariable, String> extractor )
-    {
-        ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) o;
-        return extractor.apply( programRuleVariable );
-    };
-
+  private String castAndExtract(Object o, Function<ProgramRuleVariable, String> extractor) {
+    ProgramRuleVariable programRuleVariable = (ProgramRuleVariable) o;
+    return extractor.apply(programRuleVariable);
+  }
+  ;
 }

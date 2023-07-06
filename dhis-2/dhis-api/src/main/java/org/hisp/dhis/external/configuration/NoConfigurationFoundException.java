@@ -31,21 +31,16 @@ package org.hisp.dhis.external.configuration;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class NoConfigurationFoundException
-    extends Exception
-{
-    public NoConfigurationFoundException( String message )
-    {
-        super( message );
-    }
+public class NoConfigurationFoundException extends Exception {
+  public NoConfigurationFoundException(String message) {
+    super(message);
+  }
 
-    public NoConfigurationFoundException( Throwable throable )
-    {
-        super( throable );
-    }
+  public NoConfigurationFoundException(Throwable throable) {
+    super(throable);
+  }
 
-    public NoConfigurationFoundException( String message, Throwable trowable )
-    {
-        super( message, trowable );
-    }
+  public NoConfigurationFoundException(String message, Throwable trowable) {
+    super(message, trowable);
+  }
 }

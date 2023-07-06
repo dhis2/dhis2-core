@@ -33,30 +33,21 @@ import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
-/**
- * This implementer show warnings calculated by Rule Engine.
- *
- * @Author Enrico Colasante
- */
+/** This implementer show warnings calculated by Rule Engine. @Author Enrico Colasante */
 @Component
-public class ShowWarningValidator
-    extends ErrorWarningImplementer<RuleActionShowWarning>
-{
-    @Override
-    public Class<RuleActionShowWarning> getActionClass()
-    {
-        return RuleActionShowWarning.class;
-    }
+public class ShowWarningValidator extends ErrorWarningImplementer<RuleActionShowWarning> {
+  @Override
+  public Class<RuleActionShowWarning> getActionClass() {
+    return RuleActionShowWarning.class;
+  }
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return false;
-    }
+  @Override
+  public boolean isOnComplete() {
+    return false;
+  }
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return WARNING;
-    }
+  @Override
+  public IssueType getIssueType() {
+    return WARNING;
+  }
 }

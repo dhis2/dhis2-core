@@ -35,9 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
@@ -54,186 +54,185 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  * @author Dusan Bernat
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class CategoryOptionGroupResolverTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class CategoryOptionGroupResolverTest {
 
-    @Mock
-    private CategoryOptionGroupStore categoryOptionGroupStore;
+  @Mock private CategoryOptionGroupStore categoryOptionGroupStore;
 
-    @Mock
-    private CategoryOptionComboStore categoryOptionComboStore;
+  @Mock private CategoryOptionComboStore categoryOptionComboStore;
 
-    @Mock
-    private ExpressionService expressionService;
+  @Mock private ExpressionService expressionService;
 
-    private ExpressionResolver resolver;
+  private ExpressionResolver resolver;
 
-    private String uid1;
+  private String uid1;
 
-    private String uid2;
+  private String uid2;
 
-    private String uid3;
+  private String uid3;
 
-    private CategoryOptionCombo coc1;
+  private CategoryOptionCombo coc1;
 
-    private CategoryOptionCombo coc2;
+  private CategoryOptionCombo coc2;
 
-    private CategoryOptionCombo coc3;
+  private CategoryOptionCombo coc3;
 
-    DimensionalItemId dimensionalItemId;
+  DimensionalItemId dimensionalItemId;
 
-    private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
+  private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
 
-    @BeforeEach
-    public void setUp()
-    {
-        uid1 = CodeGenerator.generateUid();
+  @BeforeEach
+  public void setUp() {
+    uid1 = CodeGenerator.generateUid();
 
-        uid2 = CodeGenerator.generateUid();
+    uid2 = CodeGenerator.generateUid();
 
-        uid3 = CodeGenerator.generateUid();
+    uid3 = CodeGenerator.generateUid();
 
-        CategoryOptionGroup categoryOptionGroup = createCategoryOptionGroup( 'A' );
+    CategoryOptionGroup categoryOptionGroup = createCategoryOptionGroup('A');
 
-        coc1 = createCategoryOptionCombo( 'X' );
+    coc1 = createCategoryOptionCombo('X');
 
-        coc2 = createCategoryOptionCombo( 'Y' );
+    coc2 = createCategoryOptionCombo('Y');
 
-        coc3 = createCategoryOptionCombo( 'Z' );
+    coc3 = createCategoryOptionCombo('Z');
 
-        resolver = new CategoryOptionGroupResolver( expressionService, categoryOptionGroupStore,
-            categoryOptionComboStore );
+    resolver =
+        new CategoryOptionGroupResolver(
+            expressionService, categoryOptionGroupStore, categoryOptionComboStore);
 
-        when( categoryOptionGroupStore.getByUid( anyString() ) ).thenReturn( categoryOptionGroup );
+    when(categoryOptionGroupStore.getByUid(anyString())).thenReturn(categoryOptionGroup);
 
-        List<CategoryOptionCombo> cocList = new ArrayList<>();
+    List<CategoryOptionCombo> cocList = new ArrayList<>();
 
-        cocList.add( coc1 );
+    cocList.add(coc1);
 
-        cocList.add( coc2 );
+    cocList.add(coc2);
 
-        cocList.add( coc3 );
+    cocList.add(coc3);
 
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString(), anyString() ) )
-            .thenReturn( cocList );
-    }
+    when(categoryOptionComboStore.getCategoryOptionCombosByGroupUid(anyString(), anyString()))
+        .thenReturn(cocList);
+  }
 
-    @Test
-    void verifyExpressionIsResolvedProperly()
-    {
-        // arrange
+  @Test
+  void verifyExpressionIsResolvedProperly() {
+    // arrange
 
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_GROUP_PREFIX + uid2, uid3, createIndicatorExpression() );
+    dimensionalItemId =
+        new DimensionalItemId(
+            DimensionItemType.DATA_ELEMENT_OPERAND,
+            uid1,
+            CATEGORY_OPTION_GROUP_PREFIX + uid2,
+            uid3,
+            createIndicatorExpression());
 
-        String expression = createIndicatorExpression();
+    String expression = createIndicatorExpression();
 
-        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
-            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+    when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
+        .thenReturn(Sets.newHashSet(dimensionalItemId));
 
-        // act
+    // act
 
-        String resolvedExpression = resolver.resolve( expression );
+    String resolvedExpression = resolver.resolve(expression);
 
-        // assert
+    // assert
 
-        assertResolvedExpressionEquals( resolvedExpression, coc1.getUid(), coc2.getUid(), coc3.getUid() );
-    }
+    assertResolvedExpressionEquals(resolvedExpression, coc1.getUid(), coc2.getUid(), coc3.getUid());
+  }
 
-    @Test
-    void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
-    {
-        // arrange
+  @Test
+  void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem() {
+    // arrange
 
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            CATEGORY_OPTION_GROUP_PREFIX + uid2, uid3 );
+    dimensionalItemId =
+        new DimensionalItemId(
+            DimensionItemType.DATA_ELEMENT_OPERAND,
+            uid1,
+            CATEGORY_OPTION_GROUP_PREFIX + uid2,
+            uid3);
 
-        String expression = createIndicatorExpression();
+    String expression = createIndicatorExpression();
 
-        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
-            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+    when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
+        .thenReturn(Sets.newHashSet(dimensionalItemId));
 
-        // act
+    // act
 
-        String resolvedExpression = resolver.resolve( expression );
+    String resolvedExpression = resolver.resolve(expression);
 
-        // assert
+    // assert
 
-        assertEquals( expression, resolvedExpression );
-    }
+    assertEquals(expression, resolvedExpression);
+  }
 
-    @Test
-    void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
-    {
-        // arrange
+  @Test
+  void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1() {
+    // arrange
 
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            uid2, uid3, createIndicatorExpression() );
+    dimensionalItemId =
+        new DimensionalItemId(
+            DimensionItemType.DATA_ELEMENT_OPERAND, uid1, uid2, uid3, createIndicatorExpression());
 
-        String expression = createIndicatorExpression();
+    String expression = createIndicatorExpression();
 
-        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
-            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+    when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
+        .thenReturn(Sets.newHashSet(dimensionalItemId));
 
-        // act
+    // act
 
-        String resolvedExpression = resolver.resolve( expression );
+    String resolvedExpression = resolver.resolve(expression);
 
-        // assert
+    // assert
 
-        assertEquals( expression, resolvedExpression );
-    }
+    assertEquals(expression, resolvedExpression);
+  }
 
-    @Test
-    void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
-    {
-        // arrange
+  @Test
+  void verifyExpressionIsNotResolvedWhenExpressionIsNotValid() {
+    // arrange
 
-        dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
-            uid2, uid3, createIndicatorExpression() );
+    dimensionalItemId =
+        new DimensionalItemId(
+            DimensionItemType.DATA_ELEMENT_OPERAND, uid1, uid2, uid3, createIndicatorExpression());
 
-        String expression = "lsdjflakjdflkajdslfhaglakujdhfg";
+    String expression = "lsdjflakjdflkajdslfhaglakujdhfg";
 
-        when( expressionService.getExpressionDimensionalItemIds( expression, INDICATOR_EXPRESSION ) )
-            .thenReturn( Sets.newHashSet( dimensionalItemId ) );
+    when(expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION))
+        .thenReturn(Sets.newHashSet(dimensionalItemId));
 
-        // act
+    // act
 
-        String resolvedExpression = resolver.resolve( expression );
+    String resolvedExpression = resolver.resolve(expression);
 
-        // assert
+    // assert
 
-        assertEquals( expression, resolvedExpression );
-    }
+    assertEquals(expression, resolvedExpression);
+  }
 
-    private String createIndicatorExpression()
-    {
-        return String.format( "#{%s.coGroup:%s.%s}", uid1, uid2, uid3 );
-    }
+  private String createIndicatorExpression() {
+    return String.format("#{%s.coGroup:%s.%s}", uid1, uid2, uid3);
+  }
 
-    private void assertResolvedExpressionEquals( String result, String cocUid1, String cocUid2, String cocUid3 )
-    {
-        assertTrue( result.equals( formatExpression( cocUid1, cocUid2, cocUid3 ) )
-            || result.equals( formatExpression( cocUid1, cocUid3, cocUid2 ) )
-            || result.equals( formatExpression( cocUid2, cocUid3, cocUid1 ) )
-            || result.equals( formatExpression( cocUid2, cocUid1, cocUid3 ) )
-            || result.equals( formatExpression( cocUid3, cocUid1, cocUid2 ) )
-            || result.equals( formatExpression( cocUid3, cocUid2, cocUid1 ) ) );
-    }
+  private void assertResolvedExpressionEquals(
+      String result, String cocUid1, String cocUid2, String cocUid3) {
+    assertTrue(
+        result.equals(formatExpression(cocUid1, cocUid2, cocUid3))
+            || result.equals(formatExpression(cocUid1, cocUid3, cocUid2))
+            || result.equals(formatExpression(cocUid2, cocUid3, cocUid1))
+            || result.equals(formatExpression(cocUid2, cocUid1, cocUid3))
+            || result.equals(formatExpression(cocUid3, cocUid1, cocUid2))
+            || result.equals(formatExpression(cocUid3, cocUid2, cocUid1)));
+  }
 
-    private String formatExpression( String coc1_uid, String coc2_uid, String coc3_uid )
-    {
-        return String.format( "(#{%s.%s.%s}+#{%s.%s.%s}+#{%s.%s.%s})",
-            uid1, coc1_uid, uid3,
-            uid1, coc2_uid, uid3,
-            uid1, coc3_uid, uid3 );
-    }
+  private String formatExpression(String coc1_uid, String coc2_uid, String coc3_uid) {
+    return String.format(
+        "(#{%s.%s.%s}+#{%s.%s.%s}+#{%s.%s.%s})",
+        uid1, coc1_uid, uid3, uid1, coc2_uid, uid3, uid1, coc3_uid, uid3);
+  }
 }

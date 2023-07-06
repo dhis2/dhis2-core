@@ -31,7 +31,6 @@ import static org.hisp.dhis.web.WebClient.Accept;
 import static org.junit.jupiter.api.Assertions.assertLinesMatch;
 
 import java.util.List;
-
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -41,50 +40,50 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class GistCsvControllerTest extends AbstractGistControllerTest
-{
-    private static final MediaType TEXT_CSV = new MediaType( "text", "csv" );
+class GistCsvControllerTest extends AbstractGistControllerTest {
+  private static final MediaType TEXT_CSV = new MediaType("text", "csv");
 
-    @Test
-    void testList()
-    {
-        assertAllUserCsv( GET(
-            "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
-    }
+  @Test
+  void testList() {
+    assertAllUserCsv(
+        GET("/users/gist?fields=id,code,education,twitter,employer", Accept(TEXT_CSV)));
+  }
 
-    @Test
-    void testObject()
-    {
-        assertUserCsv( GET( "/users/" + getSuperuserUid() + "/gist?fields=id,code,education,twitter,employer",
-            Accept( TEXT_CSV ) ) );
-    }
+  @Test
+  void testObject() {
+    assertUserCsv(
+        GET(
+            "/users/" + getSuperuserUid() + "/gist?fields=id,code,education,twitter,employer",
+            Accept(TEXT_CSV)));
+  }
 
-    @Test
-    void testPropertyList()
-    {
-        String id = GET( "/userGroups/gist?fields=id&headless=true" ).content().getString( 0 ).string();
-        assertUserCsv(
-            GET( "/userGroups/" + id + "/users/gist?fields=id,code,education,twitter,employer", Accept( TEXT_CSV ) ) );
-    }
+  @Test
+  void testPropertyList() {
+    String id = GET("/userGroups/gist?fields=id&headless=true").content().getString(0).string();
+    assertUserCsv(
+        GET(
+            "/userGroups/" + id + "/users/gist?fields=id,code,education,twitter,employer",
+            Accept(TEXT_CSV)));
+  }
 
-    private void assertAllUserCsv( HttpResponse response )
-    {
-        List<String> split = List.of( response.content( TEXT_CSV.toString() ).split( "\n" ) );
-        List<User> allUsers = userService.getAllUsers();
+  private void assertAllUserCsv(HttpResponse response) {
+    List<String> split = List.of(response.content(TEXT_CSV.toString()).split("\n"));
+    List<User> allUsers = userService.getAllUsers();
 
-        assertLinesMatch( List.of( "id,code,education,twitter,employer",
-            allUsers.get( 0 ).getUid() + ",Codeadmin,,,",
-            allUsers.get( 1 ).getUid() + ",CodeuserA,,," ),
-            split );
-    }
+    assertLinesMatch(
+        List.of(
+            "id,code,education,twitter,employer",
+            allUsers.get(0).getUid() + ",Codeadmin,,,",
+            allUsers.get(1).getUid() + ",CodeuserA,,,"),
+        split);
+  }
 
-    private void assertUserCsv( HttpResponse response )
-    {
-        List<String> split = List.of( response.content( TEXT_CSV.toString() ).split( "\n" ) );
-        List<User> allUsers = userService.getAllUsers();
+  private void assertUserCsv(HttpResponse response) {
+    List<String> split = List.of(response.content(TEXT_CSV.toString()).split("\n"));
+    List<User> allUsers = userService.getAllUsers();
 
-        assertLinesMatch( List.of( "id,code,education,twitter,employer",
-            allUsers.get( 0 ).getUid() + ",Codeadmin,,," ),
-            split );
-    }
+    assertLinesMatch(
+        List.of("id,code,education,twitter,employer", allUsers.get(0).getUid() + ",Codeadmin,,,"),
+        split);
+  }
 }

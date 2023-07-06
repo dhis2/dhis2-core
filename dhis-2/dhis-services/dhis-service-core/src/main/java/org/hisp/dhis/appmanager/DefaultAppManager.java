@@ -42,11 +42,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
@@ -66,412 +63,363 @@ import org.springframework.stereotype.Component;
  * @author Saptarshi Purkayastha
  */
 @Slf4j
-@Component( "org.hisp.dhis.appmanager.AppManager" )
-public class DefaultAppManager
-    implements AppManager
-{
-    public static final String INVALID_FILTER_MSG = "Invalid filter: ";
+@Component("org.hisp.dhis.appmanager.AppManager")
+public class DefaultAppManager implements AppManager {
+  public static final String INVALID_FILTER_MSG = "Invalid filter: ";
 
-    private static final Set<String> EXCLUSION_APPS = Set.of( "Line Listing" );
+  private static final Set<String> EXCLUSION_APPS = Set.of("Line Listing");
 
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final AppStorageService localAppStorageService;
+  private final AppStorageService localAppStorageService;
 
-    private final AppStorageService jCloudsAppStorageService;
+  private final AppStorageService jCloudsAppStorageService;
 
-    private final DatastoreService datastoreService;
+  private final DatastoreService datastoreService;
 
-    /**
-     * In-memory storage of installed apps. Initially loaded on startup. Should
-     * not be cleared during runtime.
-     */
-    private final Cache<App> appCache;
+  /**
+   * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
+   * runtime.
+   */
+  private final Cache<App> appCache;
 
-    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
-        CurrentUserService currentUserService,
-        @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
-        @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
-        DatastoreService datastoreService, CacheBuilderProvider cacheBuilderProvider )
-    {
-        checkNotNull( dhisConfigurationProvider );
-        checkNotNull( currentUserService );
-        checkNotNull( localAppStorageService );
-        checkNotNull( jCloudsAppStorageService );
-        checkNotNull( datastoreService );
-        checkNotNull( cacheBuilderProvider );
+  public DefaultAppManager(
+      DhisConfigurationProvider dhisConfigurationProvider,
+      CurrentUserService currentUserService,
+      @Qualifier("org.hisp.dhis.appmanager.LocalAppStorageService")
+          AppStorageService localAppStorageService,
+      @Qualifier("org.hisp.dhis.appmanager.JCloudsAppStorageService")
+          AppStorageService jCloudsAppStorageService,
+      DatastoreService datastoreService,
+      CacheBuilderProvider cacheBuilderProvider) {
+    checkNotNull(dhisConfigurationProvider);
+    checkNotNull(currentUserService);
+    checkNotNull(localAppStorageService);
+    checkNotNull(jCloudsAppStorageService);
+    checkNotNull(datastoreService);
+    checkNotNull(cacheBuilderProvider);
 
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
-        this.currentUserService = currentUserService;
-        this.localAppStorageService = localAppStorageService;
-        this.jCloudsAppStorageService = jCloudsAppStorageService;
-        this.datastoreService = datastoreService;
-        this.appCache = cacheBuilderProvider.<App> newCacheBuilder()
-            .forRegion( "appCache" )
-            .build();
+    this.dhisConfigurationProvider = dhisConfigurationProvider;
+    this.currentUserService = currentUserService;
+    this.localAppStorageService = localAppStorageService;
+    this.jCloudsAppStorageService = jCloudsAppStorageService;
+    this.datastoreService = datastoreService;
+    this.appCache = cacheBuilderProvider.<App>newCacheBuilder().forRegion("appCache").build();
+  }
+
+  // -------------------------------------------------------------------------
+  // AppManagerService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public List<App> getApps(String contextPath) {
+    return getApps(contextPath, false);
+  }
+
+  @Override
+  public List<App> getApps(String contextPath, boolean skipCore) {
+    Predicate<App> filter = app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS;
+
+    if (skipCore) {
+      filter =
+          filter.and(
+              app -> !EXCLUSION_APPS.contains(trimToEmpty(app.getName())) && !app.isCoreApp());
     }
 
-    // -------------------------------------------------------------------------
-    // AppManagerService implementation
-    // -------------------------------------------------------------------------
+    List<App> apps = appCache.getAll().filter(filter).collect(Collectors.toList());
 
-    @Override
-    public List<App> getApps( String contextPath )
-    {
-        return getApps( contextPath, false );
+    apps.forEach(a -> a.init(contextPath));
+
+    return apps;
+  }
+
+  @Override
+  public List<App> getApps(AppType appType, int max) {
+    return getApps(null).stream()
+        .filter(app -> appType == app.getAppType())
+        .limit(max)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<App> getApps(AppType appType, int max, boolean skipCore) {
+    return getApps(null, skipCore).stream()
+        .filter(app -> appType == app.getAppType())
+        .limit(max)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public App getApp(String appName) {
+    // Checks for app.getUrlFriendlyName which is the key of AppMap
+
+    Optional<App> appOptional = appCache.getIfPresent(appName);
+    if (appOptional.isPresent()) {
+      return appOptional.get();
     }
 
-    @Override
-    public List<App> getApps( String contextPath, boolean skipCore )
-    {
-        Predicate<App> filter = app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS;
+    // If no apps are found, check for original name
+    return appCache
+        .getAll()
+        .filter(app -> app.getShortName().equals(appName))
+        .findFirst()
+        .orElse(null);
+  }
 
-        if ( skipCore )
-        {
-            filter = filter.and( app -> !EXCLUSION_APPS.contains( trimToEmpty( app.getName() ) ) && !app.isCoreApp() );
-        }
+  @Override
+  public List<App> getAppsByType(AppType appType, Collection<App> apps) {
+    return apps.stream().filter(app -> app.getAppType() == appType).collect(Collectors.toList());
+  }
 
-        List<App> apps = appCache.getAll().filter( filter ).collect( Collectors.toList() );
+  @Override
+  public List<App> getAppsByName(final String name, Collection<App> apps, final String operator) {
+    return apps.stream()
+        .filter(
+            app ->
+                (("ilike".equalsIgnoreCase(operator)
+                        && app.getName().toLowerCase().contains(name.toLowerCase()))
+                    || ("eq".equalsIgnoreCase(operator) && app.getName().equals(name))))
+        .collect(Collectors.toList());
+  }
 
-        apps.forEach( a -> a.init( contextPath ) );
+  @Override
+  public List<App> getAppsByShortName(
+      final String name, Collection<App> apps, final String operator) {
+    return apps.stream()
+        .filter(
+            app ->
+                (("ilike".equalsIgnoreCase(operator)
+                        && app.getShortName().toLowerCase().contains(name.toLowerCase()))
+                    || ("eq".equalsIgnoreCase(operator) && app.getShortName().equals(name))))
+        .collect(Collectors.toList());
+  }
 
-        return apps;
+  @Override
+  public List<App> getAppsByIsBundled(final boolean isBundled, Collection<App> apps) {
+    return apps.stream().filter(app -> app.isBundled() == isBundled).collect(Collectors.toList());
+  }
+
+  private void applyFilter(Set<App> apps, String key, String operator, String value) {
+    if ("appType".equalsIgnoreCase(key)) {
+      String appType = value != null ? value.toUpperCase() : null;
+      apps.retainAll(getAppsByType(AppType.valueOf(appType), apps));
+    } else if ("name".equalsIgnoreCase(key)) {
+      apps.retainAll(getAppsByName(value, apps, operator));
+    } else if ("shortName".equalsIgnoreCase(key)) {
+      apps.retainAll(getAppsByShortName(value, apps, operator));
+    } else if ("bundled".equalsIgnoreCase(key)) {
+      boolean isBundled = "true".equalsIgnoreCase(value);
+      apps.retainAll(getAppsByIsBundled(isBundled, apps));
+    }
+  }
+
+  @Override
+  public List<App> filterApps(List<String> filters, String contextPath) {
+    List<App> apps = getApps(contextPath);
+    Set<App> returnList = new HashSet<>(apps);
+
+    for (String filter : filters) {
+      String[] split = filter.split(":");
+
+      if (split.length != 3) {
+        throw new QueryParserException(INVALID_FILTER_MSG + filter);
+      }
+
+      if (!"name".equalsIgnoreCase(split[0])
+          && !"shortName".equalsIgnoreCase(split[0])
+          && !"eq".equalsIgnoreCase(split[1])) {
+        throw new QueryParserException(INVALID_FILTER_MSG + filter);
+      }
+
+      if ("bundled".equalsIgnoreCase(split[0])
+          && !"true".equalsIgnoreCase(split[2])
+          && !"false".equalsIgnoreCase(split[2])) {
+        throw new QueryParserException(INVALID_FILTER_MSG + filter);
+      }
+
+      applyFilter(returnList, split[0], split[1], split[2]);
     }
 
-    @Override
-    public List<App> getApps( AppType appType, int max )
-    {
-        return getApps( null ).stream()
-            .filter( app -> appType == app.getAppType() )
-            .limit( max )
-            .collect( Collectors.toList() );
+    return new ArrayList<>(returnList);
+  }
+
+  @Override
+  public App getApp(String key, String contextPath) {
+    Collection<App> apps = getApps(contextPath);
+
+    for (App app : apps) {
+      if (key.equals(app.getKey())) {
+        return app;
+      }
     }
 
-    @Override
-    public List<App> getApps( AppType appType, int max, boolean skipCore )
-    {
-        return getApps( null, skipCore ).stream()
-            .filter( app -> appType == app.getAppType() )
-            .limit( max )
-            .collect( Collectors.toList() );
+    return null;
+  }
+
+  @Override
+  public List<App> getAccessibleApps(String contextPath) {
+    User user = currentUserService.getCurrentUser();
+
+    return getApps(contextPath).stream()
+        .filter(a -> this.isAccessible(a, user))
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public AppStatus installApp(File file, String fileName) {
+    App app = jCloudsAppStorageService.installApp(file, fileName, appCache);
+
+    if (app.getAppState().ok()) {
+      appCache.put(app.getKey(), app);
+      registerKeyJsonValueProtection(app);
     }
 
-    @Override
-    public App getApp( String appName )
-    {
-        // Checks for app.getUrlFriendlyName which is the key of AppMap
+    return app.getAppState();
+  }
 
-        Optional<App> appOptional = appCache.getIfPresent( appName );
-        if ( appOptional.isPresent() )
-        {
-            return appOptional.get();
-        }
+  @Override
+  public boolean exists(String appName) {
+    return getApp(appName) != null;
+  }
 
-        // If no apps are found, check for original name
-        return appCache.getAll().filter( app -> app.getShortName().equals( appName ) ).findFirst().orElse( null );
+  @Override
+  public void deleteApp(App app, boolean deleteAppData) {
+    if (app != null) {
+      getAppStorageServiceByApp(app).deleteApp(app);
+      unregisterKeyJsonValueProtection(app);
+      if (deleteAppData) {
+        deleteAppData(app);
+      }
+
+      appCache.invalidate(app.getKey());
+    }
+  }
+
+  @Override
+  public boolean markAppToDelete(App app) {
+    boolean markedAppToDelete = false;
+
+    Optional<App> appOpt = appCache.get(app.getKey());
+
+    if (appOpt.isPresent()) {
+      markedAppToDelete = true;
+      App appFromCache = appOpt.get();
+      appFromCache.setAppState(AppStatus.DELETION_IN_PROGRESS);
+      appCache.put(app.getKey(), appFromCache);
     }
 
-    @Override
-    public List<App> getAppsByType( AppType appType, Collection<App> apps )
-    {
-        return apps.stream()
-            .filter( app -> app.getAppType() == appType )
-            .collect( Collectors.toList() );
+    return markedAppToDelete;
+  }
+
+  @Override
+  public String getAppHubUrl() {
+    String baseUrl =
+        StringUtils.trimToNull(
+            dhisConfigurationProvider.getProperty(ConfigurationKey.APPHUB_BASE_URL));
+    String apiUrl =
+        StringUtils.trimToNull(
+            dhisConfigurationProvider.getProperty(ConfigurationKey.APPHUB_API_URL));
+
+    return "{" + "\"baseUrl\": \"" + baseUrl + "\", " + "\"apiUrl\": \"" + apiUrl + "\"" + "}";
+  }
+
+  /**
+   * Reloads apps by triggering the process to discover apps from local filesystem and remote cloud
+   * storage and installing all detected apps. This method is invoked automatically on startup.
+   */
+  @Override
+  @PostConstruct
+  public void reloadApps() {
+    localAppStorageService.discoverInstalledApps().values().stream()
+        .filter(app -> !exists(app.getKey()))
+        .forEach(this::installApp);
+
+    jCloudsAppStorageService.discoverInstalledApps().values().stream()
+        .filter(app -> !exists(app.getKey()))
+        .forEach(this::installApp);
+  }
+
+  private void installApp(App app) {
+    appCache.put(app.getKey(), app);
+    registerKeyJsonValueProtection(app);
+  }
+
+  @Override
+  public boolean isAccessible(App app) {
+    return isAccessible(app, currentUserService.getCurrentUser());
+  }
+
+  @Override
+  public boolean isAccessible(App app, User user) {
+    if (app == null || app.getShortName() == null || user == null) {
+      return false;
     }
 
-    @Override
-    public List<App> getAppsByName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream().filter(
-            app -> (("ilike".equalsIgnoreCase( operator ) && app.getName().toLowerCase().contains( name.toLowerCase() ))
-                ||
-                ("eq".equalsIgnoreCase( operator ) && app.getName().equals( name ))) )
-            .collect( Collectors.toList() );
+    Set<String> auths = user.getAllAuthorities();
+
+    return auths.contains("ALL")
+        || auths.contains(WEB_MAINTENANCE_APPMANAGER_AUTHORITY)
+        || auths.contains(app.getSeeAppAuthority());
+  }
+
+  @Override
+  public App getAppByNamespace(String namespace) {
+    return getNamespaceMap().get(namespace);
+  }
+
+  @Override
+  public Resource getAppResource(App app, String pageName) throws IOException {
+    return getAppStorageServiceByApp(app).getAppResource(app, pageName);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private AppStorageService getAppStorageServiceByApp(App app) {
+    if (app != null && app.getAppStorageSource().equals(AppStorageSource.LOCAL)) {
+      return localAppStorageService;
+    } else {
+      return jCloudsAppStorageService;
     }
+  }
 
-    @Override
-    public List<App> getAppsByShortName( final String name, Collection<App> apps, final String operator )
-    {
-        return apps.stream()
-            .filter( app -> (("ilike".equalsIgnoreCase( operator )
-                && app.getShortName().toLowerCase().contains( name.toLowerCase() )) ||
-                ("eq".equalsIgnoreCase( operator ) && app.getShortName().equals( name ))) )
-            .collect( Collectors.toList() );
+  private Map<String, App> getNamespaceMap() {
+    Map<String, App> apps = new HashMap<>();
+
+    apps.putAll(jCloudsAppStorageService.getReservedNamespaces());
+    apps.putAll(localAppStorageService.getReservedNamespaces());
+
+    return apps;
+  }
+
+  private void deleteAppData(App app) {
+    String namespace = app.getActivities().getDhis().getNamespace();
+    if (namespace != null && !namespace.isEmpty()) {
+      datastoreService.deleteNamespace(namespace);
+      log.info(String.format("Deleted app namespace '%s'", namespace));
     }
+  }
 
-    @Override
-    public List<App> getAppsByIsBundled( final boolean isBundled, Collection<App> apps )
-    {
-        return apps
-            .stream()
-            .filter( app -> app.isBundled() == isBundled )
-            .collect( Collectors.toList() );
+  private void registerKeyJsonValueProtection(App app) {
+    String namespace = app.getActivities().getDhis().getNamespace();
+    if (namespace != null && !namespace.isEmpty()) {
+      String[] authorities =
+          app.getShortName() == null
+              ? new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY}
+              : new String[] {WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority()};
+      datastoreService.addProtection(
+          new DatastoreNamespaceProtection(
+              namespace, ProtectionType.RESTRICTED, true, authorities));
     }
+  }
 
-    private void applyFilter( Set<App> apps, String key, String operator, String value )
-    {
-        if ( "appType".equalsIgnoreCase( key ) )
-        {
-            String appType = value != null ? value.toUpperCase() : null;
-            apps.retainAll( getAppsByType( AppType.valueOf( appType ), apps ) );
-        }
-        else if ( "name".equalsIgnoreCase( key ) )
-        {
-            apps.retainAll( getAppsByName( value, apps, operator ) );
-        }
-        else if ( "shortName".equalsIgnoreCase( key ) )
-        {
-            apps.retainAll( getAppsByShortName( value, apps, operator ) );
-        }
-        else if ( "bundled".equalsIgnoreCase( key ) )
-        {
-            boolean isBundled = "true".equalsIgnoreCase( value );
-            apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
-        }
+  private void unregisterKeyJsonValueProtection(App app) {
+    String namespace = app.getActivities().getDhis().getNamespace();
+    if (namespace != null && !namespace.isEmpty()) {
+      datastoreService.removeProtection(namespace);
     }
-
-    @Override
-    public List<App> filterApps( List<String> filters, String contextPath )
-    {
-        List<App> apps = getApps( contextPath );
-        Set<App> returnList = new HashSet<>( apps );
-
-        for ( String filter : filters )
-        {
-            String[] split = filter.split( ":" );
-
-            if ( split.length != 3 )
-            {
-                throw new QueryParserException( INVALID_FILTER_MSG + filter );
-            }
-
-            if ( !"name".equalsIgnoreCase( split[0] ) && !"shortName".equalsIgnoreCase( split[0] )
-                && !"eq".equalsIgnoreCase( split[1] ) )
-            {
-                throw new QueryParserException( INVALID_FILTER_MSG + filter );
-            }
-
-            if ( "bundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
-                && !"false".equalsIgnoreCase( split[2] ) )
-            {
-                throw new QueryParserException( INVALID_FILTER_MSG + filter );
-            }
-
-            applyFilter( returnList, split[0], split[1], split[2] );
-        }
-
-        return new ArrayList<>( returnList );
-    }
-
-    @Override
-    public App getApp( String key, String contextPath )
-    {
-        Collection<App> apps = getApps( contextPath );
-
-        for ( App app : apps )
-        {
-            if ( key.equals( app.getKey() ) )
-            {
-                return app;
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public List<App> getAccessibleApps( String contextPath )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        return getApps( contextPath ).stream().filter( a -> this.isAccessible( a, user ) )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    public AppStatus installApp( File file, String fileName )
-    {
-        App app = jCloudsAppStorageService.installApp( file, fileName, appCache );
-
-        if ( app.getAppState().ok() )
-        {
-            appCache.put( app.getKey(), app );
-            registerKeyJsonValueProtection( app );
-        }
-
-        return app.getAppState();
-    }
-
-    @Override
-    public boolean exists( String appName )
-    {
-        return getApp( appName ) != null;
-    }
-
-    @Override
-    public void deleteApp( App app, boolean deleteAppData )
-    {
-        if ( app != null )
-        {
-            getAppStorageServiceByApp( app ).deleteApp( app );
-            unregisterKeyJsonValueProtection( app );
-            if ( deleteAppData )
-            {
-                deleteAppData( app );
-            }
-
-            appCache.invalidate( app.getKey() );
-        }
-    }
-
-    @Override
-    public boolean markAppToDelete( App app )
-    {
-        boolean markedAppToDelete = false;
-
-        Optional<App> appOpt = appCache.get( app.getKey() );
-
-        if ( appOpt.isPresent() )
-        {
-            markedAppToDelete = true;
-            App appFromCache = appOpt.get();
-            appFromCache.setAppState( AppStatus.DELETION_IN_PROGRESS );
-            appCache.put( app.getKey(), appFromCache );
-        }
-
-        return markedAppToDelete;
-    }
-
-    @Override
-    public String getAppHubUrl()
-    {
-        String baseUrl = StringUtils
-            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_BASE_URL ) );
-        String apiUrl = StringUtils
-            .trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL ) );
-
-        return "{" +
-            "\"baseUrl\": \"" + baseUrl + "\", " +
-            "\"apiUrl\": \"" + apiUrl + "\"" +
-            "}";
-    }
-
-    /**
-     * Reloads apps by triggering the process to discover apps from local
-     * filesystem and remote cloud storage and installing all detected apps.
-     * This method is invoked automatically on startup.
-     */
-    @Override
-    @PostConstruct
-    public void reloadApps()
-    {
-        localAppStorageService.discoverInstalledApps().values().stream()
-            .filter( app -> !exists( app.getKey() ) )
-            .forEach( this::installApp );
-
-        jCloudsAppStorageService.discoverInstalledApps().values().stream()
-            .filter( app -> !exists( app.getKey() ) )
-            .forEach( this::installApp );
-
-    }
-
-    private void installApp( App app )
-    {
-        appCache.put( app.getKey(), app );
-        registerKeyJsonValueProtection( app );
-    }
-
-    @Override
-    public boolean isAccessible( App app )
-    {
-        return isAccessible( app, currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    public boolean isAccessible( App app, User user )
-    {
-        if ( app == null || app.getShortName() == null || user == null )
-        {
-            return false;
-        }
-
-        Set<String> auths = user.getAllAuthorities();
-
-        return auths.contains( "ALL" ) ||
-            auths.contains( WEB_MAINTENANCE_APPMANAGER_AUTHORITY ) ||
-            auths.contains( app.getSeeAppAuthority() );
-    }
-
-    @Override
-    public App getAppByNamespace( String namespace )
-    {
-        return getNamespaceMap().get( namespace );
-    }
-
-    @Override
-    public Resource getAppResource( App app, String pageName )
-        throws IOException
-    {
-        return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private AppStorageService getAppStorageServiceByApp( App app )
-    {
-        if ( app != null && app.getAppStorageSource().equals( AppStorageSource.LOCAL ) )
-        {
-            return localAppStorageService;
-        }
-        else
-        {
-            return jCloudsAppStorageService;
-        }
-    }
-
-    private Map<String, App> getNamespaceMap()
-    {
-        Map<String, App> apps = new HashMap<>();
-
-        apps.putAll( jCloudsAppStorageService.getReservedNamespaces() );
-        apps.putAll( localAppStorageService.getReservedNamespaces() );
-
-        return apps;
-    }
-
-    private void deleteAppData( App app )
-    {
-        String namespace = app.getActivities().getDhis().getNamespace();
-        if ( namespace != null && !namespace.isEmpty() )
-        {
-            datastoreService.deleteNamespace( namespace );
-            log.info( String.format( "Deleted app namespace '%s'", namespace ) );
-        }
-    }
-
-    private void registerKeyJsonValueProtection( App app )
-    {
-        String namespace = app.getActivities().getDhis().getNamespace();
-        if ( namespace != null && !namespace.isEmpty() )
-        {
-            String[] authorities = app.getShortName() == null
-                ? new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY }
-                : new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority() };
-            datastoreService.addProtection(
-                new DatastoreNamespaceProtection( namespace, ProtectionType.RESTRICTED, true, authorities ) );
-        }
-    }
-
-    private void unregisterKeyJsonValueProtection( App app )
-    {
-        String namespace = app.getActivities().getDhis().getNamespace();
-        if ( namespace != null && !namespace.isEmpty() )
-        {
-            datastoreService.removeProtection( namespace );
-        }
-    }
+  }
 }

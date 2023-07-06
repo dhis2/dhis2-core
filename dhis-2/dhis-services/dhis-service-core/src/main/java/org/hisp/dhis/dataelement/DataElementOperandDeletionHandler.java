@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataelement;
 
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
@@ -38,22 +37,19 @@ import org.springframework.stereotype.Component;
  * @author Jim Grace
  */
 @Component
-public class DataElementOperandDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataElementOperand.class );
+public class DataElementOperandDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataElementOperand.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    // TODO masking real problem, we should control operands better and check
-    // associated objects regarding deletion
+  // TODO masking real problem, we should control operands better and check
+  // associated objects regarding deletion
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "select 1 from dataelementoperand where categoryoptioncomboid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", optionCombo.getId() ) );
-    }
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql = "select 1 from dataelementoperand where categoryoptioncomboid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", optionCombo.getId()));
+  }
 }

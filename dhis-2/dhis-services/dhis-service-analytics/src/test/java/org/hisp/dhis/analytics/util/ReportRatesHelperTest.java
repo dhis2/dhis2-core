@@ -34,7 +34,6 @@ import static org.hisp.dhis.analytics.util.ReportRatesHelper.getCalculatedTarget
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -46,70 +45,87 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class ReportRatesHelperTest
-{
+class ReportRatesHelperTest {
 
-    @Test
-    void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInDimension()
-    {
-        // Given
-        final Double theTarget = 10d;
-        final List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
-        final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        // Relates to "aDailyDataPeriodRow" objects
-        final int anyPositivePeriodInDimensionIndex = 1;
-        final List<String> aDailyDataPeriodRow = asList( "TuL8IOPzpHh", "20210415" );
-        final int anyTimeUnits = 2;
-        final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        // When
-        final Double actualResult = getCalculatedTarget( anyPositivePeriodInDimensionIndex, anyTimeUnits,
-            aDailyDataPeriodRow, theTarget, theDailyPeriodType, aDataSetDailyPeriodType, theFilterPeriods );
-        // Then
-        assertThat( actualResult, is( 20.0d ) );
-    }
+  @Test
+  void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInDimension() {
+    // Given
+    final Double theTarget = 10d;
+    final List<DimensionalItemObject> theFilterPeriods = asList(stubPeriod());
+    final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    // Relates to "aDailyDataPeriodRow" objects
+    final int anyPositivePeriodInDimensionIndex = 1;
+    final List<String> aDailyDataPeriodRow = asList("TuL8IOPzpHh", "20210415");
+    final int anyTimeUnits = 2;
+    final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    // When
+    final Double actualResult =
+        getCalculatedTarget(
+            anyPositivePeriodInDimensionIndex,
+            anyTimeUnits,
+            aDailyDataPeriodRow,
+            theTarget,
+            theDailyPeriodType,
+            aDataSetDailyPeriodType,
+            theFilterPeriods);
+    // Then
+    assertThat(actualResult, is(20.0d));
+  }
 
-    @Test
-    void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilter()
-    {
-        // Given
-        final Double theTarget = 10d;
-        final List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
-        final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        final int anyNegativePeriodInDimensionIndex = -1;
-        final int anyTimeUnits = 1;
-        final List<String> anyDataRow = asList( "TuL8IOPzpHh" );
-        final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        // When
-        final Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
-            theTarget, theDailyPeriodType, aDataSetDailyPeriodType, theFilterPeriods );
-        // Then
-        assertThat( actualResult, is( 10.0d ) );
-    }
+  @Test
+  void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilter() {
+    // Given
+    final Double theTarget = 10d;
+    final List<DimensionalItemObject> theFilterPeriods = asList(stubPeriod());
+    final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    final int anyNegativePeriodInDimensionIndex = -1;
+    final int anyTimeUnits = 1;
+    final List<String> anyDataRow = asList("TuL8IOPzpHh");
+    final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    // When
+    final Double actualResult =
+        getCalculatedTarget(
+            anyNegativePeriodInDimensionIndex,
+            anyTimeUnits,
+            anyDataRow,
+            theTarget,
+            theDailyPeriodType,
+            aDataSetDailyPeriodType,
+            theFilterPeriods);
+    // Then
+    assertThat(actualResult, is(10.0d));
+  }
 
-    @Test
-    void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilterAndMultiplePeriods()
-    {
-        // Given
-        final Double theTarget = 10d;
-        final List<DimensionalItemObject> multipleFilterPeriods = asList( stubPeriod(), stubPeriod(), stubPeriod() );
-        final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        final int anyNegativePeriodInDimensionIndex = -1;
-        final int anyTimeUnits = 2;
-        final List<String> anyDataRow = asList( "TuL8IOPzpHh" );
-        final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
-        // When
-        final Double actualResult = getCalculatedTarget( anyNegativePeriodInDimensionIndex, anyTimeUnits, anyDataRow,
-            theTarget, theDailyPeriodType, aDataSetDailyPeriodType, multipleFilterPeriods );
-        // Then
-        assertThat( actualResult, is( 60.0d ) );
-    }
+  @Test
+  void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInFilterAndMultiplePeriods() {
+    // Given
+    final Double theTarget = 10d;
+    final List<DimensionalItemObject> multipleFilterPeriods =
+        asList(stubPeriod(), stubPeriod(), stubPeriod());
+    final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    final int anyNegativePeriodInDimensionIndex = -1;
+    final int anyTimeUnits = 2;
+    final List<String> anyDataRow = asList("TuL8IOPzpHh");
+    final PeriodType aDataSetDailyPeriodType = DailyPeriodType.getByNameIgnoreCase("Daily");
+    // When
+    final Double actualResult =
+        getCalculatedTarget(
+            anyNegativePeriodInDimensionIndex,
+            anyTimeUnits,
+            anyDataRow,
+            theTarget,
+            theDailyPeriodType,
+            aDataSetDailyPeriodType,
+            multipleFilterPeriods);
+    // Then
+    assertThat(actualResult, is(60.0d));
+  }
 
-    public Period stubPeriod()
-    {
-        final Period p = new Period();
-        p.setStartDate( new Date() );
-        p.setEndDate( new Date() );
-        p.setPeriodType( DailyPeriodType.getByNameIgnoreCase( "daily" ) );
-        return p;
-    }
+  public Period stubPeriod() {
+    final Period p = new Period();
+    p.setStartDate(new Date());
+    p.setEndDate(new Date());
+    p.setPeriodType(DailyPeriodType.getByNameIgnoreCase("daily"));
+    return p;
+  }
 }

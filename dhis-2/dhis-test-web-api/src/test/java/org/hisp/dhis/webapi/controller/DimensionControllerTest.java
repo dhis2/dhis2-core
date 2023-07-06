@@ -44,47 +44,48 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.dimension.DimensionController} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.dimension.DimensionController} using (mocked)
+ * REST requests.
  *
  * @author Jan Bernitt
  */
-class DimensionControllerTest extends DhisControllerConvenienceTest
-{
+class DimensionControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    private String ccId;
+  private String ccId;
 
-    @BeforeEach
-    void setUp()
-    {
-        CategoryOption categoryOptionA = new CategoryOption( "Male" );
-        CategoryOption categoryOptionB = new CategoryOption( "Female" );
-        categoryService.addCategoryOption( categoryOptionA );
-        categoryService.addCategoryOption( categoryOptionB );
-        Category categoryA = new Category( "Gender", DataDimensionType.DISAGGREGATION );
-        categoryA.setShortName( categoryA.getName() );
-        categoryA.addCategoryOption( categoryOptionA );
-        categoryA.addCategoryOption( categoryOptionB );
-        categoryService.addCategory( categoryA );
-        CategoryCombo categoryComboA = new CategoryCombo( "Gender", DataDimensionType.DISAGGREGATION );
-        categoryComboA.addCategory( categoryA );
-        categoryService.addCategoryCombo( categoryComboA );
-        ccId = categoryComboA.getUid();
-    }
+  @BeforeEach
+  void setUp() {
+    CategoryOption categoryOptionA = new CategoryOption("Male");
+    CategoryOption categoryOptionB = new CategoryOption("Female");
+    categoryService.addCategoryOption(categoryOptionA);
+    categoryService.addCategoryOption(categoryOptionB);
+    Category categoryA = new Category("Gender", DataDimensionType.DISAGGREGATION);
+    categoryA.setShortName(categoryA.getName());
+    categoryA.addCategoryOption(categoryOptionA);
+    categoryA.addCategoryOption(categoryOptionB);
+    categoryService.addCategory(categoryA);
+    CategoryCombo categoryComboA = new CategoryCombo("Gender", DataDimensionType.DISAGGREGATION);
+    categoryComboA.addCategory(categoryA);
+    categoryService.addCategoryCombo(categoryComboA);
+    ccId = categoryComboA.getUid();
+  }
 
-    @Test
-    void testGetDimensionsForDataSet()
-    {
-        String dsId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
-            "{'name':'My data set', 'periodType':'Monthly', 'categoryCombo':{'id':'" + ccId + "'}}" ) );
-        JsonObject response = GET( "/dimensions/dataSet/{ds}", dsId ).content();
-        JsonArray dimensions = response.getArray( "dimensions" );
-        assertEquals( 1, dimensions.size() );
-        JsonObject gender = dimensions.getObject( 0 );
-        assertEquals( "Gender", gender.getString( "name" ).string() );
-    }
+  @Test
+  void testGetDimensionsForDataSet() {
+    String dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/",
+                "{'name':'My data set', 'periodType':'Monthly', 'categoryCombo':{'id':'"
+                    + ccId
+                    + "'}}"));
+    JsonObject response = GET("/dimensions/dataSet/{ds}", dsId).content();
+    JsonArray dimensions = response.getArray("dimensions");
+    assertEquals(1, dimensions.size());
+    JsonObject gender = dimensions.getObject(0);
+    assertEquals("Gender", gender.getString("name").string());
+  }
 }

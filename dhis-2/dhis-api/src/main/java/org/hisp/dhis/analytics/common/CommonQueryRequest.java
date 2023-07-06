@@ -31,41 +31,37 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 
 @Getter
 @Setter
-public class CommonQueryRequest
-{
-    private Collection<String> program = new HashSet<>();
+public class CommonQueryRequest {
+  private Collection<String> program = new HashSet<>();
 
-    private String userOrgUnit;
+  private String userOrgUnit;
 
-    private Set<String> dimension = new HashSet<>();
+  private Set<String> dimension = new HashSet<>();
 
-    private Set<String> filter = new HashSet<>();
+  private Set<String> filter = new HashSet<>();
 
-    private Set<String> headers = new HashSet<>();
+  private Set<String> headers = new HashSet<>();
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private Set<String> asc = new HashSet<>();
+  private Set<String> asc = new HashSet<>();
 
-    private Set<String> desc = new HashSet<>();
+  private Set<String> desc = new HashSet<>();
 
-    private boolean skipMeta;
+  private boolean skipMeta;
 
-    private boolean skipData;
+  private boolean skipData;
 
-    private IdScheme dataIdScheme = IdScheme.UID;
+  private IdScheme dataIdScheme = IdScheme.UID;
 
-    private boolean totalPages;
+  private boolean totalPages;
 
-    private Date relativePeriodDate;
-
+  private Date relativePeriodDate;
 }

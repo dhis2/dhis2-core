@@ -29,68 +29,52 @@ package org.hisp.dhis.eventvisualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.validation.constraints.NotNull;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.EmbeddedObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * This object represents an event repetition. It encapsulates all attributes
- * needed by the analytics engine during the query of different events (event
- * repetition).
+ * This object represents an event repetition. It encapsulates all attributes needed by the
+ * analytics engine during the query of different events (event repetition).
  *
  * @author maikel arabori
- *
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventRepetition implements Serializable, EmbeddedObject
-{
-    /**
-     * The attribute which the event repetition belongs to.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
-    private Attribute parent;
+public class EventRepetition implements Serializable, EmbeddedObject {
+  /** The attribute which the event repetition belongs to. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @NotNull
+  private Attribute parent;
 
-    /**
-     * The dimension associated with the event repedition.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
-    private String dimension;
+  /** The dimension associated with the event repedition. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @NotNull
+  private String dimension;
 
-    /**
-     * Represents the list of event indexes to be queried. It holds a list of
-     * integers that are interpreted as follows:
-     *
-     * // @formatter:off
-     *
-     * 1 = First event
-     * 2 = Second event
-     * 3 = Third event
-     * ...
-     * -2 = Third latest event
-     * -1 = Second latest event
-     * 0 = Latest event (default)
-     *
-     * // @formatter:on
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    @NotNull
-    private List<Integer> indexes = new ArrayList<>();
+  /**
+   * Represents the list of event indexes to be queried. It holds a list of integers that are
+   * interpreted as follows:
+   *
+   * <p>// @formatter:off
+   *
+   * <p>1 = First event 2 = Second event 3 = Third event ... -2 = Third latest event -1 = Second
+   * latest event 0 = Latest event (default)
+   *
+   * <p>// @formatter:on
+   */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  @NotNull
+  private List<Integer> indexes = new ArrayList<>();
 }

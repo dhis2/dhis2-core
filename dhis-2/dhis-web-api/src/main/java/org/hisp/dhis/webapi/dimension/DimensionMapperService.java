@@ -31,38 +31,35 @@ import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class DimensionMapperService
-{
-    private final Collection<DimensionMapper> mappers;
+public class DimensionMapperService {
+  private final Collection<DimensionMapper> mappers;
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
-    {
-        return toDimensionResponse( dimensions, null );
-    }
+  public Collection<DimensionResponse> toDimensionResponse(
+      Collection<BaseIdentifiableObject> dimensions) {
+    return toDimensionResponse(dimensions, null);
+  }
 
-    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions,
-        String prefix )
-    {
-        return dimensions.stream()
-            .map( bio -> toDimensionResponse( bio, prefix ) )
-            .collect( Collectors.toList() );
-    }
+  public Collection<DimensionResponse> toDimensionResponse(
+      Collection<BaseIdentifiableObject> dimensions, String prefix) {
+    return dimensions.stream()
+        .map(bio -> toDimensionResponse(bio, prefix))
+        .collect(Collectors.toList());
+  }
 
-    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
-    {
-        return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
-            .findFirst()
-            .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
-            .orElseThrow( () -> new IllegalArgumentException(
-                "Unsupported dimension type: " + getRealClass( dimension ) ) );
-    }
+  private DimensionResponse toDimensionResponse(BaseIdentifiableObject dimension, String prefix) {
+    return mappers.stream()
+        .filter(dimensionMapper -> dimensionMapper.supports(dimension))
+        .findFirst()
+        .map(dimensionMapper -> dimensionMapper.map(dimension, prefix))
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unsupported dimension type: " + getRealClass(dimension)));
+  }
 }

@@ -29,12 +29,12 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramStage;
@@ -51,153 +51,152 @@ import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 
-import com.google.common.collect.Lists;
-
 // TODO: Verify if we can remove checks on ProgramStage when Program Rule
 // validation is in place
 public abstract class AbstractRuleActionImplementer<T extends RuleAction>
-    implements RuleActionImplementer
-{
-    /**
-     * @return the class of the action that the implementer work with
-     */
-    abstract Class<T> getActionClass();
+    implements RuleActionImplementer {
+  /**
+   * @return the class of the action that the implementer work with
+   */
+  abstract Class<T> getActionClass();
 
-    /**
-     * Get the field from the action
-     *
-     * @param ruleAction to get the field from
-     * @return the field of the action
-     */
-    abstract String getField( T ruleAction );
+  /**
+   * Get the field from the action
+   *
+   * @param ruleAction to get the field from
+   * @return the field of the action
+   */
+  abstract String getField(T ruleAction);
 
-    /**
-     * Apply rule actions to events in the bundle
-     *
-     * @param eventActionRules Actions to be applied to the bundle
-     * @param bundle where to get the events from
-     * @return A list of program rule issues that can be either warnings or
-     *         errors
-     */
-    abstract List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActionRules,
-        TrackerBundle bundle );
+  /**
+   * Apply rule actions to events in the bundle
+   *
+   * @param eventActionRules Actions to be applied to the bundle
+   * @param bundle where to get the events from
+   * @return A list of program rule issues that can be either warnings or errors
+   */
+  abstract List<ProgramRuleIssue> applyToEvents(
+      Event event, List<EventActionRule> eventActionRules, TrackerBundle bundle);
 
-    /**
-     * Apply rule actions to enrollments in the bundle
-     *
-     * @param enrollmentActionRules Actions to be applied to the bundle
-     * @param bundle where to get the enrollments from
-     * @return A list of program rule issues that can be either warnings or
-     *         errors
-     */
-    abstract List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment,
-        List<EnrollmentActionRule> enrollmentActionRules, TrackerBundle bundle );
+  /**
+   * Apply rule actions to enrollments in the bundle
+   *
+   * @param enrollmentActionRules Actions to be applied to the bundle
+   * @param bundle where to get the enrollments from
+   * @return A list of program rule issues that can be either warnings or errors
+   */
+  abstract List<ProgramRuleIssue> applyToEnrollments(
+      Enrollment enrollment,
+      List<EnrollmentActionRule> enrollmentActionRules,
+      TrackerBundle bundle);
 
-    /**
-     * Get the content from the action.
-     *
-     * @param ruleAction to get the content from
-     * @return the content of the action
-     */
-    protected String getContent( T ruleAction )
-    {
-        return null;
+  /**
+   * Get the content from the action.
+   *
+   * @param ruleAction to get the content from
+   * @return the content of the action
+   */
+  protected String getContent(T ruleAction) {
+    return null;
+  }
+
+  @Override
+  public List<ProgramRuleIssue> validateEvent(
+      TrackerBundle bundle, List<RuleEffect> ruleEffects, Event event) {
+    List<EventActionRule> eventEffects = getEventEffects(event, ruleEffects, bundle);
+
+    return applyToEvents(event, eventEffects, bundle);
+  }
+
+  @Override
+  public List<ProgramRuleIssue> validateEnrollment(
+      TrackerBundle bundle, List<RuleEffect> ruleEffects, Enrollment enrollment) {
+    List<EnrollmentActionRule> enrollmentEffects =
+        getEnrollmentEffects(enrollment, ruleEffects, bundle);
+
+    return applyToEnrollments(enrollment, enrollmentEffects, bundle);
+  }
+
+  /**
+   * Filter the actions by - the action class of the implementer - events linked to data values that
+   * are part of a different Program Stage - events linked to data values that do not need to be
+   * validated
+   *
+   * @param effects a map of event and effects
+   * @param bundle
+   * @return A map of actions by event
+   */
+  public List<EventActionRule> getEventEffects(
+      Event event, List<RuleEffect> effects, TrackerBundle bundle) {
+    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+    Set<DataValue> dataValues = event.getDataValues();
+    return effects.stream()
+        .filter(effect -> getActionClass().isAssignableFrom(effect.ruleAction().getClass()))
+        .map(
+            effect ->
+                new EventActionRule(
+                    effect.ruleId(),
+                    effect.data(),
+                    getField((T) effect.ruleAction()),
+                    getContent((T) effect.ruleAction()),
+                    dataValues))
+        .filter(effect -> isDataElementPartOfProgramStage(effect.getField(), programStage))
+        .filter(effect -> needsToValidateDataValues(event, programStage))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Filter the actions by the action class of the implementer
+   *
+   * @param effects a map of enrollments and effects
+   * @param bundle
+   * @return A map of actions by enrollment
+   */
+  @SuppressWarnings("unchecked")
+  public List<EnrollmentActionRule> getEnrollmentEffects(
+      Enrollment enrollment, List<RuleEffect> effects, TrackerBundle bundle) {
+    List<Attribute> payloadTeiAttributes =
+        getTrackedEntity(bundle, enrollment.getTrackedEntity())
+            .map(TrackedEntity::getAttributes)
+            .orElse(Collections.emptyList());
+    List<Attribute> attributes = mergeAttributes(enrollment.getAttributes(), payloadTeiAttributes);
+
+    return effects.stream()
+        .filter(effect -> getActionClass().isAssignableFrom(effect.ruleAction().getClass()))
+        .map(
+            effect ->
+                new EnrollmentActionRule(
+                    effect.ruleId(),
+                    effect.data(),
+                    getField((T) effect.ruleAction()),
+                    getContent((T) effect.ruleAction()),
+                    attributes))
+        .collect(Collectors.toList());
+  }
+
+  private List<Attribute> mergeAttributes(
+      List<Attribute> enrollmentAttributes, List<Attribute> attributes) {
+
+    List<Attribute> mergedAttributes = Lists.newArrayList();
+    mergedAttributes.addAll(attributes);
+    mergedAttributes.addAll(enrollmentAttributes);
+    return mergedAttributes;
+  }
+
+  private boolean isDataElementPartOfProgramStage(
+      String dataElementUid, ProgramStage programStage) {
+    if (StringUtils.isEmpty(dataElementUid)) {
+      return true;
     }
 
-    @Override
-    public List<ProgramRuleIssue> validateEvent( TrackerBundle bundle, List<RuleEffect> ruleEffects, Event event )
-    {
-        List<EventActionRule> eventEffects = getEventEffects( event, ruleEffects, bundle );
+    return programStage.getDataElements().stream()
+        .map(BaseIdentifiableObject::getUid)
+        .anyMatch(de -> de.equals(dataElementUid));
+  }
 
-        return applyToEvents( event, eventEffects, bundle );
-    }
-
-    @Override
-    public List<ProgramRuleIssue> validateEnrollment( TrackerBundle bundle, List<RuleEffect> ruleEffects,
-        Enrollment enrollment )
-    {
-        List<EnrollmentActionRule> enrollmentEffects = getEnrollmentEffects( enrollment, ruleEffects, bundle );
-
-        return applyToEnrollments( enrollment, enrollmentEffects, bundle );
-    }
-
-    /**
-     * Filter the actions by - the action class of the implementer - events
-     * linked to data values that are part of a different Program Stage - events
-     * linked to data values that do not need to be validated
-     *
-     * @param effects a map of event and effects
-     * @param bundle
-     * @return A map of actions by event
-     */
-    public List<EventActionRule> getEventEffects( Event event, List<RuleEffect> effects, TrackerBundle bundle )
-    {
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        Set<DataValue> dataValues = event.getDataValues();
-        return effects
-            .stream()
-            .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-            .map( effect -> new EventActionRule( effect.ruleId(), effect.data(),
-                getField( (T) effect.ruleAction() ),
-                getContent( (T) effect.ruleAction() ), dataValues ) )
-            .filter( effect -> isDataElementPartOfProgramStage( effect.getField(), programStage ) )
-            .filter( effect -> needsToValidateDataValues( event, programStage ) )
-            .collect( Collectors.toList() );
-    }
-
-    /**
-     * Filter the actions by the action class of the implementer
-     *
-     * @param effects a map of enrollments and effects
-     * @param bundle
-     * @return A map of actions by enrollment
-     */
-    @SuppressWarnings( "unchecked" )
-    public List<EnrollmentActionRule> getEnrollmentEffects( Enrollment enrollment, List<RuleEffect> effects,
-        TrackerBundle bundle )
-    {
-        List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
-            .map( TrackedEntity::getAttributes )
-            .orElse( Collections.emptyList() );
-        List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(),
-            payloadTeiAttributes );
-
-        return effects
-            .stream()
-            .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-            .map( effect -> new EnrollmentActionRule( effect.ruleId(), effect.data(),
-                getField( (T) effect.ruleAction() ),
-                getContent( (T) effect.ruleAction() ), attributes ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<Attribute> mergeAttributes( List<Attribute> enrollmentAttributes, List<Attribute> attributes )
-    {
-
-        List<Attribute> mergedAttributes = Lists.newArrayList();
-        mergedAttributes.addAll( attributes );
-        mergedAttributes.addAll( enrollmentAttributes );
-        return mergedAttributes;
-    }
-
-    private boolean isDataElementPartOfProgramStage( String dataElementUid, ProgramStage programStage )
-    {
-        if ( StringUtils.isEmpty( dataElementUid ) )
-        {
-            return true;
-        }
-
-        return programStage.getDataElements()
-            .stream()
-            .map( BaseIdentifiableObject::getUid )
-            .anyMatch( de -> de.equals( dataElementUid ) );
-    }
-
-    private Optional<TrackedEntity> getTrackedEntity( TrackerBundle bundle, String teiUid )
-    {
-        return bundle.getTrackedEntities()
-            .stream()
-            .filter( e -> e.getTrackedEntity().equals( teiUid ) )
-            .findAny();
-    }
+  private Optional<TrackedEntity> getTrackedEntity(TrackerBundle bundle, String teiUid) {
+    return bundle.getTrackedEntities().stream()
+        .filter(e -> e.getTrackedEntity().equals(teiUid))
+        .findAny();
+  }
 }

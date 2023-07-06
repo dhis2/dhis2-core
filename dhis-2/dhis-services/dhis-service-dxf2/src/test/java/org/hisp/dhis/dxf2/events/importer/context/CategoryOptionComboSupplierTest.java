@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -55,196 +54,195 @@ import org.mockito.quality.Strictness;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptionCombo>
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptionCombo> {
 
-    private CategoryOptionComboSupplier subject;
+  private CategoryOptionComboSupplier subject;
 
-    @Mock
-    private ProgramSupplier programSupplier;
+  @Mock private ProgramSupplier programSupplier;
 
-    @Mock
-    private AttributeOptionComboLoader attributeOptionComboLoader;
+  @Mock private AttributeOptionComboLoader attributeOptionComboLoader;
 
-    @Mock
-    private ProgramStageInstanceSupplier programStageInstanceSupplier;
+  @Mock private ProgramStageInstanceSupplier programStageInstanceSupplier;
 
-    private Map<String, Program> programMap;
+  private Map<String, Program> programMap;
 
-    private Map<String, ProgramStageInstance> programStageInstanceMap;
+  private Map<String, ProgramStageInstance> programStageInstanceMap;
 
-    private Event event;
+  private Event event;
 
-    private Program program;
+  private Program program;
 
-    private ProgramStageInstance programStageInstance;
+  private ProgramStageInstance programStageInstance;
 
-    private CategoryOptionCombo coc;
+  private CategoryOptionCombo coc;
 
-    @BeforeEach
-    void setUp()
-    {
-        this.subject = new CategoryOptionComboSupplier( jdbcTemplate, programSupplier, attributeOptionComboLoader,
-            programStageInstanceSupplier );
-        programMap = new HashMap<>();
-        programStageInstanceMap = new HashMap<>();
-        // create a Program for the ProgramSupplier
-        program = new Program();
-        program.setId( 999L );
-        program.setUid( "prabcde" );
-        programMap.put( "prabcde", program );
-        // create a ProgramStageInstance for the ProgramStageInstanceSupplier
-        coc = new CategoryOptionCombo();
-        coc.setUid( "coc1" );
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setId( 888L );
-        programStageInstance.setUid( "psuid1" );
-        programStageInstance.setAttributeOptionCombo( coc );
-        programStageInstanceMap.put( "psuid1", programStageInstance );
-        // create event to import
-        event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
-        event.setAttributeOptionCombo( "aoc1234" );
-        event.setProgram( program.getUid() );
-    }
+  @BeforeEach
+  void setUp() {
+    this.subject =
+        new CategoryOptionComboSupplier(
+            jdbcTemplate,
+            programSupplier,
+            attributeOptionComboLoader,
+            programStageInstanceSupplier);
+    programMap = new HashMap<>();
+    programStageInstanceMap = new HashMap<>();
+    // create a Program for the ProgramSupplier
+    program = new Program();
+    program.setId(999L);
+    program.setUid("prabcde");
+    programMap.put("prabcde", program);
+    // create a ProgramStageInstance for the ProgramStageInstanceSupplier
+    coc = new CategoryOptionCombo();
+    coc.setUid("coc1");
+    programStageInstance = new ProgramStageInstance();
+    programStageInstance.setId(888L);
+    programStageInstance.setUid("psuid1");
+    programStageInstance.setAttributeOptionCombo(coc);
+    programStageInstanceMap.put("psuid1", programStageInstance);
+    // create event to import
+    event = new Event();
+    event.setUid(CodeGenerator.generateUid());
+    event.setAttributeOptionCombo("aoc1234");
+    event.setProgram(program.getUid());
+  }
 
-    @Test
-    void handleNullEvents()
-    {
-        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
-    }
+  @Test
+  void handleNullEvents() {
+    assertNotNull(subject.get(ImportOptions.getDefaultImportOptions(), null));
+  }
 
-    public void verifySupplier()
-    {
-        /*
-         * Case 1: Event has 'attributeOptionCombo' value set
-         */
-        case1( ImportOptions.getDefaultImportOptions() );
-        /*
-         * Case 2: Event has 'attributeOptionCombo' value set, but it's not
-         * found -> fetch default coc
-         */
-        case2( ImportOptions.getDefaultImportOptions() );
-        /*
-         * Case 3: Event has 'attributeCategoryOptions' value set
-         */
-        case3( ImportOptions.getDefaultImportOptions() );
-        /*
-         * Case 4: Event has no 'attributeCategoryOptions' or
-         * 'attributeOptionCombo' values set -> fetch default coc
-         */
-        case4( ImportOptions.getDefaultImportOptions() );
-        /*
-         * Case 5: Event has both 'attributeCategoryOptions' and
-         * 'attributeOptionCombo' values set attributeOptionCombo is used to
-         * fetch the coc
-         */
-        case5( ImportOptions.getDefaultImportOptions() );
-        /*
-         * Case 6: Event does not have 'attributeCategoryOptions' and program
-         * stage instance (persisted event) is used to fetch the coc
-         */
-        case6( ImportOptions.getDefaultImportOptions() );
-    }
+  public void verifySupplier() {
+    /*
+     * Case 1: Event has 'attributeOptionCombo' value set
+     */
+    case1(ImportOptions.getDefaultImportOptions());
+    /*
+     * Case 2: Event has 'attributeOptionCombo' value set, but it's not
+     * found -> fetch default coc
+     */
+    case2(ImportOptions.getDefaultImportOptions());
+    /*
+     * Case 3: Event has 'attributeCategoryOptions' value set
+     */
+    case3(ImportOptions.getDefaultImportOptions());
+    /*
+     * Case 4: Event has no 'attributeCategoryOptions' or
+     * 'attributeOptionCombo' values set -> fetch default coc
+     */
+    case4(ImportOptions.getDefaultImportOptions());
+    /*
+     * Case 5: Event has both 'attributeCategoryOptions' and
+     * 'attributeOptionCombo' values set attributeOptionCombo is used to
+     * fetch the coc
+     */
+    case5(ImportOptions.getDefaultImportOptions());
+    /*
+     * Case 6: Event does not have 'attributeCategoryOptions' and program
+     * stage instance (persisted event) is used to fetch the coc
+     */
+    case6(ImportOptions.getDefaultImportOptions());
+  }
 
-    private void case1( ImportOptions importOptions )
-    {
-        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
-        CategoryOptionCombo coc = new CategoryOptionCombo();
-        coc.setUid( event.getAttributeOptionCombo() );
-        when( attributeOptionComboLoader.getCategoryOptionCombo(
-            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(), event.getAttributeOptionCombo() ) )
-                .thenReturn( coc );
-        Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );
-        CategoryOptionCombo categoryOptionCombo = map.get( event.getUid() );
-        assertThat( categoryOptionCombo, is( notNullValue() ) );
-    }
-
-    private void case2( ImportOptions importOptions )
-    {
-        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
-        CategoryOptionCombo coc = new CategoryOptionCombo();
-        coc.setUid( "def123" );
-        coc.setName( "default " );
-        when( attributeOptionComboLoader.getCategoryOptionCombo(
-            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(), event.getAttributeOptionCombo() ) )
-                .thenReturn( null );
-        when( attributeOptionComboLoader.getDefault() ).thenReturn( coc );
-        Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );
-        CategoryOptionCombo categoryOptionCombo = map.get( event.getUid() );
-        assertThat( categoryOptionCombo, is( notNullValue() ) );
-        assertThat( categoryOptionCombo.getName(), is( coc.getName() ) );
-    }
-
-    private void case3( ImportOptions importOptions )
-    {
-        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
-        CategoryCombo catCombo = new CategoryCombo();
-        catCombo.setUid( CodeGenerator.generateUid() );
-        program.setCategoryCombo( catCombo );
-        // create event to import
-        Event event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
-        event.setAttributeCategoryOptions( "abcded;fghilm" );
-        event.setProgram( program.getUid() );
-        CategoryOptionCombo coc = new CategoryOptionCombo();
-        coc.setUid( CodeGenerator.generateUid() );
-        when( attributeOptionComboLoader.getAttributeOptionCombo( catCombo, event.getAttributeCategoryOptions(),
-            event.getAttributeOptionCombo(), importOptions.getIdSchemes().getCategoryOptionComboIdScheme() ) )
-                .thenReturn( coc );
-        Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );
-        CategoryOptionCombo categoryOptionCombo = map.get( event.getUid() );
-        assertThat( categoryOptionCombo, is( notNullValue() ) );
-        assertThat( categoryOptionCombo.getUid(), is( coc.getUid() ) );
-    }
-
-    private void case4( ImportOptions importOptions )
-    {
-        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
-        // create event to import
-        Event event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
-        event.setProgram( program.getUid() );
-        CategoryOptionCombo coc = new CategoryOptionCombo();
-        coc.setUid( CodeGenerator.generateUid() );
-        coc.setName( "default " );
-        when( attributeOptionComboLoader.getDefault() ).thenReturn( coc );
-        Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );
-        CategoryOptionCombo categoryOptionCombo = map.get( event.getUid() );
-        assertThat( categoryOptionCombo, is( notNullValue() ) );
-        assertThat( categoryOptionCombo.getUid(), is( coc.getUid() ) );
-    }
-
-    private void case5( ImportOptions importOptions )
-    {
-        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
-        event.setAttributeCategoryOptions( "abcde;fghilm" );
-        CategoryOptionCombo coc = new CategoryOptionCombo();
-        coc.setUid( CodeGenerator.generateUid() );
-        when( attributeOptionComboLoader.getCategoryOptionCombo(
-            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(), event.getAttributeOptionCombo() ) )
-                .thenReturn( coc );
-        Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( event ) );
-        CategoryOptionCombo categoryOptionCombo = map.get( event.getUid() );
-        assertThat( categoryOptionCombo, is( notNullValue() ) );
-        assertThat( categoryOptionCombo.getUid(), is( coc.getUid() ) );
-    }
-
-    private void case6( ImportOptions importOptions )
-    {
-        when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
-        when( programStageInstanceSupplier.get( eq( importOptions ), anyList() ) )
-            .thenReturn( programStageInstanceMap );
-        when( attributeOptionComboLoader.getCategoryOptionCombo(
+  private void case1(ImportOptions importOptions) {
+    when(programSupplier.get(eq(importOptions), anyList())).thenReturn(programMap);
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setUid(event.getAttributeOptionCombo());
+    when(attributeOptionComboLoader.getCategoryOptionCombo(
             importOptions.getIdSchemes().getCategoryOptionComboIdScheme(),
-            programStageInstance.getAttributeOptionCombo().getUid() ) ).thenReturn( coc );
-        Event eventWithoutAoc = new Event();
-        eventWithoutAoc.setUid( "psuid1" );
-        eventWithoutAoc.setProgram( program.getUid() );
-        Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( eventWithoutAoc ) );
-        CategoryOptionCombo categoryOptionCombo = map.get( eventWithoutAoc.getUid() );
-        assertThat( categoryOptionCombo, is( notNullValue() ) );
-        assertThat( categoryOptionCombo.getUid(), is( coc.getUid() ) );
-    }
+            event.getAttributeOptionCombo()))
+        .thenReturn(coc);
+    Map<String, CategoryOptionCombo> map = subject.get(importOptions, singletonList(event));
+    CategoryOptionCombo categoryOptionCombo = map.get(event.getUid());
+    assertThat(categoryOptionCombo, is(notNullValue()));
+  }
+
+  private void case2(ImportOptions importOptions) {
+    when(programSupplier.get(eq(importOptions), anyList())).thenReturn(programMap);
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setUid("def123");
+    coc.setName("default ");
+    when(attributeOptionComboLoader.getCategoryOptionCombo(
+            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(),
+            event.getAttributeOptionCombo()))
+        .thenReturn(null);
+    when(attributeOptionComboLoader.getDefault()).thenReturn(coc);
+    Map<String, CategoryOptionCombo> map = subject.get(importOptions, singletonList(event));
+    CategoryOptionCombo categoryOptionCombo = map.get(event.getUid());
+    assertThat(categoryOptionCombo, is(notNullValue()));
+    assertThat(categoryOptionCombo.getName(), is(coc.getName()));
+  }
+
+  private void case3(ImportOptions importOptions) {
+    when(programSupplier.get(eq(importOptions), anyList())).thenReturn(programMap);
+    CategoryCombo catCombo = new CategoryCombo();
+    catCombo.setUid(CodeGenerator.generateUid());
+    program.setCategoryCombo(catCombo);
+    // create event to import
+    Event event = new Event();
+    event.setUid(CodeGenerator.generateUid());
+    event.setAttributeCategoryOptions("abcded;fghilm");
+    event.setProgram(program.getUid());
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setUid(CodeGenerator.generateUid());
+    when(attributeOptionComboLoader.getAttributeOptionCombo(
+            catCombo,
+            event.getAttributeCategoryOptions(),
+            event.getAttributeOptionCombo(),
+            importOptions.getIdSchemes().getCategoryOptionComboIdScheme()))
+        .thenReturn(coc);
+    Map<String, CategoryOptionCombo> map = subject.get(importOptions, singletonList(event));
+    CategoryOptionCombo categoryOptionCombo = map.get(event.getUid());
+    assertThat(categoryOptionCombo, is(notNullValue()));
+    assertThat(categoryOptionCombo.getUid(), is(coc.getUid()));
+  }
+
+  private void case4(ImportOptions importOptions) {
+    when(programSupplier.get(eq(importOptions), anyList())).thenReturn(programMap);
+    // create event to import
+    Event event = new Event();
+    event.setUid(CodeGenerator.generateUid());
+    event.setProgram(program.getUid());
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setUid(CodeGenerator.generateUid());
+    coc.setName("default ");
+    when(attributeOptionComboLoader.getDefault()).thenReturn(coc);
+    Map<String, CategoryOptionCombo> map = subject.get(importOptions, singletonList(event));
+    CategoryOptionCombo categoryOptionCombo = map.get(event.getUid());
+    assertThat(categoryOptionCombo, is(notNullValue()));
+    assertThat(categoryOptionCombo.getUid(), is(coc.getUid()));
+  }
+
+  private void case5(ImportOptions importOptions) {
+    when(programSupplier.get(eq(importOptions), anyList())).thenReturn(programMap);
+    event.setAttributeCategoryOptions("abcde;fghilm");
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setUid(CodeGenerator.generateUid());
+    when(attributeOptionComboLoader.getCategoryOptionCombo(
+            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(),
+            event.getAttributeOptionCombo()))
+        .thenReturn(coc);
+    Map<String, CategoryOptionCombo> map = subject.get(importOptions, singletonList(event));
+    CategoryOptionCombo categoryOptionCombo = map.get(event.getUid());
+    assertThat(categoryOptionCombo, is(notNullValue()));
+    assertThat(categoryOptionCombo.getUid(), is(coc.getUid()));
+  }
+
+  private void case6(ImportOptions importOptions) {
+    when(programSupplier.get(eq(importOptions), anyList())).thenReturn(programMap);
+    when(programStageInstanceSupplier.get(eq(importOptions), anyList()))
+        .thenReturn(programStageInstanceMap);
+    when(attributeOptionComboLoader.getCategoryOptionCombo(
+            importOptions.getIdSchemes().getCategoryOptionComboIdScheme(),
+            programStageInstance.getAttributeOptionCombo().getUid()))
+        .thenReturn(coc);
+    Event eventWithoutAoc = new Event();
+    eventWithoutAoc.setUid("psuid1");
+    eventWithoutAoc.setProgram(program.getUid());
+    Map<String, CategoryOptionCombo> map =
+        subject.get(importOptions, singletonList(eventWithoutAoc));
+    CategoryOptionCombo categoryOptionCombo = map.get(eventWithoutAoc.getUid());
+    assertThat(categoryOptionCombo, is(notNullValue()));
+    assertThat(categoryOptionCombo.getUid(), is(coc.getUid()));
+  }
 }

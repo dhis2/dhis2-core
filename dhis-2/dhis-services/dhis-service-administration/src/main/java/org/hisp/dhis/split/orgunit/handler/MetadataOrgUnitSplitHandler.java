@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -41,98 +40,98 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
 @Service
 @AllArgsConstructor
-public class MetadataOrgUnitSplitHandler
-{
-    private final UserService userService;
+public class MetadataOrgUnitSplitHandler {
+  private final UserService userService;
 
-    private final ConfigurationService configService;
+  private final ConfigurationService configService;
 
-    public void splitDataSets( OrgUnitSplitRequest request )
-    {
-        Sets.newHashSet( request.getSource().getDataSets() ).forEach( ds -> {
-            ds.addOrganisationUnits( request.getTargets() );
-            ds.removeOrganisationUnit( request.getSource() );
-        } );
+  public void splitDataSets(OrgUnitSplitRequest request) {
+    Sets.newHashSet(request.getSource().getDataSets())
+        .forEach(
+            ds -> {
+              ds.addOrganisationUnits(request.getTargets());
+              ds.removeOrganisationUnit(request.getSource());
+            });
+  }
+
+  public void splitPrograms(OrgUnitSplitRequest request) {
+    Sets.newHashSet(request.getSource().getPrograms())
+        .forEach(
+            p -> {
+              p.addOrganisationUnits(request.getTargets());
+              p.removeOrganisationUnit(request.getSource());
+            });
+  }
+
+  public void splitOrgUnitGroups(OrgUnitSplitRequest request) {
+    Sets.newHashSet(request.getSource().getGroups())
+        .forEach(
+            oug -> {
+              oug.addOrganisationUnits(request.getTargets());
+              oug.removeOrganisationUnit(request.getSource());
+            });
+  }
+
+  public void splitCategoryOptions(OrgUnitSplitRequest request) {
+    Sets.newHashSet(request.getSource().getCategoryOptions())
+        .forEach(
+            co -> {
+              co.addOrganisationUnits(request.getTargets());
+              co.removeOrganisationUnit(request.getSource());
+            });
+  }
+
+  public void splitOrganisationUnits(OrgUnitSplitRequest request) {
+    Sets.newHashSet(request.getSource().getChildren())
+        .forEach(ou -> ou.updateParent(request.getPrimaryTarget()));
+  }
+
+  public void splitUsers(OrgUnitSplitRequest request) {
+    Set<OrganisationUnit> source = Sets.newHashSet(request.getSource());
+
+    List<User> dataCaptureUsers =
+        userService.getUsers(
+            new UserQueryParams().setCanSeeOwnRoles(true).setOrganisationUnits(source));
+
+    dataCaptureUsers.forEach(
+        u -> {
+          u.addOrganisationUnits(request.getTargets());
+          u.removeOrganisationUnit(request.getSource());
+        });
+
+    List<User> dataViewUsers =
+        userService.getUsers(
+            new UserQueryParams().setCanSeeOwnRoles(true).setDataViewOrganisationUnits(source));
+
+    dataViewUsers.forEach(
+        u -> {
+          u.getDataViewOrganisationUnits().addAll(request.getTargets());
+          u.getDataViewOrganisationUnits().remove(request.getSource());
+        });
+
+    List<User> teiSearchOrgUnits =
+        userService.getUsers(
+            new UserQueryParams().setCanSeeOwnRoles(true).setTeiSearchOrganisationUnits(source));
+
+    teiSearchOrgUnits.forEach(
+        u -> {
+          u.getTeiSearchOrganisationUnits().addAll(request.getTargets());
+          u.getTeiSearchOrganisationUnits().remove(request.getSource());
+        });
+  }
+
+  public void splitConfiguration(OrgUnitSplitRequest request) {
+    Configuration config = configService.getConfiguration();
+    OrganisationUnit selfRegistrationOrgUnit = config.getSelfRegistrationOrgUnit();
+
+    if (selfRegistrationOrgUnit != null && request.getSource().equals(selfRegistrationOrgUnit)) {
+      config.setSelfRegistrationOrgUnit(request.getPrimaryTarget());
+      configService.setConfiguration(config);
     }
-
-    public void splitPrograms( OrgUnitSplitRequest request )
-    {
-        Sets.newHashSet( request.getSource().getPrograms() ).forEach( p -> {
-            p.addOrganisationUnits( request.getTargets() );
-            p.removeOrganisationUnit( request.getSource() );
-        } );
-    }
-
-    public void splitOrgUnitGroups( OrgUnitSplitRequest request )
-    {
-        Sets.newHashSet( request.getSource().getGroups() ).forEach( oug -> {
-            oug.addOrganisationUnits( request.getTargets() );
-            oug.removeOrganisationUnit( request.getSource() );
-        } );
-    }
-
-    public void splitCategoryOptions( OrgUnitSplitRequest request )
-    {
-        Sets.newHashSet( request.getSource().getCategoryOptions() ).forEach( co -> {
-            co.addOrganisationUnits( request.getTargets() );
-            co.removeOrganisationUnit( request.getSource() );
-        } );
-    }
-
-    public void splitOrganisationUnits( OrgUnitSplitRequest request )
-    {
-        Sets.newHashSet( request.getSource().getChildren() ).forEach(
-            ou -> ou.updateParent( request.getPrimaryTarget() ) );
-    }
-
-    public void splitUsers( OrgUnitSplitRequest request )
-    {
-        Set<OrganisationUnit> source = Sets.newHashSet( request.getSource() );
-
-        List<User> dataCaptureUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnRoles( true )
-            .setOrganisationUnits( source ) );
-
-        dataCaptureUsers.forEach( u -> {
-            u.addOrganisationUnits( request.getTargets() );
-            u.removeOrganisationUnit( request.getSource() );
-        } );
-
-        List<User> dataViewUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnRoles( true )
-            .setDataViewOrganisationUnits( source ) );
-
-        dataViewUsers.forEach( u -> {
-            u.getDataViewOrganisationUnits().addAll( request.getTargets() );
-            u.getDataViewOrganisationUnits().remove( request.getSource() );
-        } );
-
-        List<User> teiSearchOrgUnits = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnRoles( true )
-            .setTeiSearchOrganisationUnits( source ) );
-
-        teiSearchOrgUnits.forEach( u -> {
-            u.getTeiSearchOrganisationUnits().addAll( request.getTargets() );
-            u.getTeiSearchOrganisationUnits().remove( request.getSource() );
-        } );
-    }
-
-    public void splitConfiguration( OrgUnitSplitRequest request )
-    {
-        Configuration config = configService.getConfiguration();
-        OrganisationUnit selfRegistrationOrgUnit = config.getSelfRegistrationOrgUnit();
-
-        if ( selfRegistrationOrgUnit != null && request.getSource().equals( selfRegistrationOrgUnit ) )
-        {
-            config.setSelfRegistrationOrgUnit( request.getPrimaryTarget() );
-            configService.setConfiguration( config );
-        }
-    }
+  }
 }

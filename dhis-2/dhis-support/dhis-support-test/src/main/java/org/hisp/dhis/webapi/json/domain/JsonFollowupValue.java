@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonObject;
 
@@ -37,105 +36,84 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonFollowupValue extends JsonObject
-{
-    default String getDe()
-    {
-        return getString( "de" ).string();
-    }
+public interface JsonFollowupValue extends JsonObject {
+  default String getDe() {
+    return getString("de").string();
+  }
 
-    default String getDeName()
-    {
-        return getString( "deName" ).string();
-    }
+  default String getDeName() {
+    return getString("deName").string();
+  }
 
-    default String getOu()
-    {
-        return getString( "ou" ).string();
-    }
+  default String getOu() {
+    return getString("ou").string();
+  }
 
-    default String getOuName()
-    {
-        return getString( "ouName" ).string();
-    }
+  default String getOuName() {
+    return getString("ouName").string();
+  }
 
-    default String getOuPath()
-    {
-        return getString( "ouPath" ).string();
-    }
+  default String getOuPath() {
+    return getString("ouPath").string();
+  }
 
-    default String getPe()
-    {
-        return getString( "pe" ).string();
-    }
+  default String getPe() {
+    return getString("pe").string();
+  }
 
-    default String getPeName()
-    {
-        return getString( "peName" ).string();
-    }
+  default String getPeName() {
+    return getString("peName").string();
+  }
 
-    default String getPeType()
-    {
-        return getString( "peType" ).string();
-    }
+  default String getPeType() {
+    return getString("peType").string();
+  }
 
-    default LocalDateTime getPeStartDate()
-    {
-        return get( "peStartDate", JsonDate.class ).date();
-    }
+  default LocalDateTime getPeStartDate() {
+    return get("peStartDate", JsonDate.class).date();
+  }
 
-    default LocalDateTime getPeEndDate()
-    {
-        return get( "peEndDate", JsonDate.class ).date();
-    }
+  default LocalDateTime getPeEndDate() {
+    return get("peEndDate", JsonDate.class).date();
+  }
 
-    default String getCoc()
-    {
-        return getString( "coc" ).string();
-    }
+  default String getCoc() {
+    return getString("coc").string();
+  }
 
-    default String getCocName()
-    {
-        return getString( "cocName" ).string();
-    }
+  default String getCocName() {
+    return getString("cocName").string();
+  }
 
-    default String getAoc()
-    {
-        return getString( "aoc" ).string();
-    }
+  default String getAoc() {
+    return getString("aoc").string();
+  }
 
-    default String getAocName()
-    {
-        return getString( "aocName" ).string();
-    }
+  default String getAocName() {
+    return getString("aocName").string();
+  }
 
-    default String getValue()
-    {
-        return getString( "value" ).string();
-    }
+  default String getValue() {
+    return getString("value").string();
+  }
 
-    default Double getValueAsNumber()
-    {
-        return getString( "value" ).parsed( Double::parseDouble );
-    }
+  default Double getValueAsNumber() {
+    return getString("value").parsed(Double::parseDouble);
+  }
 
-    default String getStoredBy()
-    {
-        return getString( "storedBy" ).string();
-    }
+  default String getStoredBy() {
+    return getString("storedBy").string();
+  }
 
-    default String getComment()
-    {
-        return getString( "comment" ).string();
-    }
+  default String getComment() {
+    return getString("comment").string();
+  }
 
-    default LocalDateTime getLastUpdated()
-    {
-        return get( "lastUpdated", JsonDate.class ).date();
-    }
+  default LocalDateTime getLastUpdated() {
+    return get("lastUpdated", JsonDate.class).date();
+  }
 
-    default LocalDateTime getCreated()
-    {
-        return get( "created", JsonDate.class ).date();
-    }
+  default LocalDateTime getCreated() {
+    return get("created", JsonDate.class).date();
+  }
 }

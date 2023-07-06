@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
+import com.google.common.collect.Lists;
 import java.beans.Introspector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -47,67 +46,57 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
- * This supplier collects all the references from the Tracker Import payload and
- * executes class-based strategies, based on the type of the object in the
- * payload.
+ * This supplier collects all the references from the Tracker Import payload and executes
+ * class-based strategies, based on the type of the object in the payload.
  *
  * @author Luciano Fiandesio
  */
 @Component
 @RequiredArgsConstructor
-public class ClassBasedSupplier
-    extends AbstractPreheatSupplier
-    implements ApplicationContextAware
-{
-    private ApplicationContext context;
+public class ClassBasedSupplier extends AbstractPreheatSupplier implements ApplicationContextAware {
+  private ApplicationContext context;
 
-    private final TrackerIdentifierCollector identifierCollector;
+  private final TrackerIdentifierCollector identifierCollector;
 
-    /**
-     * A Map correlating a Tracker class name to the preheat strategy class name
-     * to use to load the data
+  /**
+   * A Map correlating a Tracker class name to the preheat strategy class name to use to load the
+   * data
+   */
+  @Qualifier("preheatStrategies")
+  private final Map<String, String> classStrategies;
+
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    /*
+     * Collects all references from the payload and create a Map where key
+     * is the reference type (e.g. Enrollment) and the value is a Set of
+     * identifiers (e.g. a list of all Enrollment UIDs found in the payload)
      */
-    @Qualifier( "preheatStrategies" )
-    private final Map<String, String> classStrategies;
+    Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect(params);
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        /*
-         * Collects all references from the payload and create a Map where key
-         * is the reference type (e.g. Enrollment) and the value is a Set of
-         * identifiers (e.g. a list of all Enrollment UIDs found in the payload)
-         */
-        Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect( params );
+    identifierMap.forEach(
+        (key, identifiers) -> {
+          List<List<String>> splitList =
+              Lists.partition(new ArrayList<>(identifiers), Constant.SPLIT_LIST_PARTITION_SIZE);
 
-        identifierMap.forEach( ( key, identifiers ) -> {
+          final String bean =
+              classStrategies.getOrDefault(key.getSimpleName(), Constant.GENERIC_STRATEGY_BEAN);
 
-            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ),
-                Constant.SPLIT_LIST_PARTITION_SIZE );
+          if (bean.equals(Constant.GENERIC_STRATEGY_BEAN)) {
+            context
+                .getBean(Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class)
+                .add(key, splitList, preheat);
+          } else {
+            context
+                .getBean(Introspector.decapitalize(bean), ClassBasedSupplierStrategy.class)
+                .add(params, splitList, preheat);
+          }
+        });
+  }
 
-            final String bean = classStrategies.getOrDefault( key.getSimpleName(),
-                Constant.GENERIC_STRATEGY_BEAN );
-
-            if ( bean.equals( Constant.GENERIC_STRATEGY_BEAN ) )
-            {
-                context.getBean( Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class ).add( key,
-                    splitList, preheat );
-            }
-            else
-            {
-                context.getBean( Introspector.decapitalize( bean ), ClassBasedSupplierStrategy.class ).add( params,
-                    splitList, preheat );
-            }
-        } );
-    }
-
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-        throws BeansException
-    {
-        context = applicationContext;
-    }
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    context = applicationContext;
+  }
 }

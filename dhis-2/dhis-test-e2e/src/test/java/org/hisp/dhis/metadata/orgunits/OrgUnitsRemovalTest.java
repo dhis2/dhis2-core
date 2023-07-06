@@ -30,7 +30,6 @@ package org.hisp.dhis.metadata.orgunits;
 import static org.hamcrest.CoreMatchers.*;
 
 import java.io.File;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -43,80 +42,72 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnitsRemovalTest
-    extends ApiTest
-{
-    private OrgUnitActions orgUnitActions;
+public class OrgUnitsRemovalTest extends ApiTest {
+  private OrgUnitActions orgUnitActions;
 
-    private MetadataActions metadataActions;
+  private MetadataActions metadataActions;
 
-    private RestApiActions orgUnitGroupActions;
+  private RestApiActions orgUnitGroupActions;
 
-    private RestApiActions orgUnitSetActions;
+  private RestApiActions orgUnitSetActions;
 
-    private String parentId = "PIBHO8qBw9o";
+  private String parentId = "PIBHO8qBw9o";
 
-    private String groupId = "IViMsXfUyWn";
+  private String groupId = "IViMsXfUyWn";
 
-    private String setId = "XcKGktFuGFj";
+  private String setId = "XcKGktFuGFj";
 
-    @BeforeEach
-    public void beforeAll()
-    {
-        orgUnitActions = new OrgUnitActions();
-        orgUnitGroupActions = new RestApiActions( "/organisationUnitGroups" );
-        orgUnitSetActions = new RestApiActions( "/organisationUnitGroupSets" );
-        metadataActions = new MetadataActions();
+  @BeforeEach
+  public void beforeAll() {
+    orgUnitActions = new OrgUnitActions();
+    orgUnitGroupActions = new RestApiActions("/organisationUnitGroups");
+    orgUnitSetActions = new RestApiActions("/organisationUnitGroupSets");
+    metadataActions = new MetadataActions();
 
-        new LoginActions().loginAsSuperUser();
+    new LoginActions().loginAsSuperUser();
 
-        metadataActions
-            .importAndValidateMetadata( new File( "src/test/resources/metadata/orgunits/ou_with_group_and_set.json" ) );
+    metadataActions.importAndValidateMetadata(
+        new File("src/test/resources/metadata/orgunits/ou_with_group_and_set.json"));
+  }
 
-    }
+  @Test
+  public void shouldRemoveGroupReferenceWhenGroupIsDeleted() {
+    orgUnitGroupActions.delete(groupId).validate().statusCode(200);
 
-    @Test
-    public void shouldRemoveGroupReferenceWhenGroupIsDeleted()
-    {
-        orgUnitGroupActions.delete( groupId )
-            .validate()
-            .statusCode( 200 );
+    orgUnitActions
+        .get(parentId)
+        .validate()
+        .statusCode(200)
+        .body("organisationUnitGroups.id", is(Matchers.empty()));
+  }
 
-        orgUnitActions.get( parentId )
-            .validate()
-            .statusCode( 200 )
-            .body( "organisationUnitGroups.id", is( Matchers.empty() ) );
-    }
+  @Test
+  public void shouldRemoveSetReferenceWhenSetIsDeleted() {
+    orgUnitSetActions.delete(setId).validate().statusCode(200);
 
-    @Test
-    public void shouldRemoveSetReferenceWhenSetIsDeleted()
-    {
-        orgUnitSetActions.delete( setId )
-            .validate()
-            .statusCode( 200 );
+    orgUnitActions
+        .get(parentId)
+        .validate()
+        .statusCode(200)
+        .body("organisationUnitGroups.id", Matchers.contains(groupId));
 
-        orgUnitActions.get( parentId )
-            .validate()
-            .statusCode( 200 )
-            .body( "organisationUnitGroups.id", Matchers.contains( groupId ) );
+    orgUnitGroupActions
+        .get(groupId)
+        .validate()
+        .statusCode(200)
+        .body("groupSets.id", is(Matchers.empty()));
+  }
 
-        orgUnitGroupActions.get( groupId )
-            .validate()
-            .statusCode( 200 )
-            .body( "groupSets.id", is( Matchers.empty() ) );
-    }
-
-    @Test
-    public void shouldNotRemoveParentOrgUnit()
-    {
-        orgUnitActions.delete( parentId )
-            .validate()
-            .statusCode( 409 )
-            .body( "message",
-                containsStringIgnoringCase(
-                    "Object could not be deleted because it is associated with another object: OrganisationUnit" ) )
-            .body( "errorCode", equalTo( "E4030" ) );
-
-    }
-
+  @Test
+  public void shouldNotRemoveParentOrgUnit() {
+    orgUnitActions
+        .delete(parentId)
+        .validate()
+        .statusCode(409)
+        .body(
+            "message",
+            containsStringIgnoringCase(
+                "Object could not be deleted because it is associated with another object: OrganisationUnit"))
+        .body("errorCode", equalTo("E4030"));
+  }
 }

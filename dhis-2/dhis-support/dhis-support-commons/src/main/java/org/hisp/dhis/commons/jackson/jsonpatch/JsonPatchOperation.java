@@ -27,56 +27,47 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.core.JsonPointer;
 import lombok.Getter;
-
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveByIdOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.JsonPointer;
-
 /**
- * Encapsulates a JSON Patch Operation, 2 types of sub-classes exists, one which
- * support an additional 'value' field, and one that does not.
+ * Encapsulates a JSON Patch Operation, 2 types of sub-classes exists, one which support an
+ * additional 'value' field, and one that does not.
  *
- * Follows RFC 6902, and we currently support 3 operators (add, remove, replace)
+ * <p>Follows RFC 6902, and we currently support 3 operators (add, remove, replace)
  *
  * @see AddOperation
  * @see RemoveOperation
  * @see ReplaceOperation
- *
  * @author Morten Olav Hansen
  */
 @Getter
-@JsonSubTypes( {
-    @JsonSubTypes.Type( name = "add", value = AddOperation.class ),
-    @JsonSubTypes.Type( name = "remove", value = RemoveOperation.class ),
-    @JsonSubTypes.Type( name = "remove-by-id", value = RemoveByIdOperation.class ),
-    @JsonSubTypes.Type( name = "replace", value = ReplaceOperation.class )
-} )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "op" )
-public abstract class JsonPatchOperation
-    implements Patch
-{
-    @JsonProperty
-    protected final String op;
+@JsonSubTypes({
+  @JsonSubTypes.Type(name = "add", value = AddOperation.class),
+  @JsonSubTypes.Type(name = "remove", value = RemoveOperation.class),
+  @JsonSubTypes.Type(name = "remove-by-id", value = RemoveByIdOperation.class),
+  @JsonSubTypes.Type(name = "replace", value = ReplaceOperation.class)
+})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "op")
+public abstract class JsonPatchOperation implements Patch {
+  @JsonProperty protected final String op;
 
-    @JsonProperty
-    protected JsonPointer path;
+  @JsonProperty protected JsonPointer path;
 
-    protected JsonPatchOperation( final String op, final JsonPointer path )
-    {
-        this.op = op;
-        this.path = path;
-    }
+  protected JsonPatchOperation(final String op, final JsonPointer path) {
+    this.op = op;
+    this.path = path;
+  }
 
-    // TODO: To remove when we remove old UserCredentials compatibility layer
-    public void setPath( JsonPointer path )
-    {
-        this.path = path;
-    }
+  // TODO: To remove when we remove old UserCredentials compatibility layer
+  public void setPath(JsonPointer path) {
+    this.path = path;
+  }
 }

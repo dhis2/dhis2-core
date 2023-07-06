@@ -48,56 +48,55 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase
-{
+class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private TrackedEntityInstanceService instanceService;
+  @Autowired private TrackedEntityInstanceService instanceService;
 
-    @Test
-    void testValidateNoOrgUnitsModeAll()
-    {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
-        params.setTrackedEntityType( trackedEntityTypeA );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        instanceService.validate( params );
-    }
+  @Test
+  void testValidateNoOrgUnitsModeAll() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    TrackedEntityType trackedEntityTypeA = createTrackedEntityType('A');
+    params.setTrackedEntityType(trackedEntityTypeA);
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    instanceService.validate(params);
+  }
 
-    @Test
-    void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType()
-    {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> instanceService.validate( params ) );
-        assertEquals( "Either Program or Tracked entity type should be specified", exception.getMessage() );
-    }
+  @Test
+  void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    IllegalQueryException exception =
+        assertThrows(IllegalQueryException.class, () -> instanceService.validate(params));
+    assertEquals(
+        "Either Program or Tracked entity type should be specified", exception.getMessage());
+  }
 
-    @Test
-    void testIfUniqueFiltersArePresentInAttributesOrFilters()
-    {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        QueryItem nonUniq1 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE,
-            null, false );
-        QueryItem nonUniq2 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE,
-            null, false );
-        QueryItem uniq1 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE, null,
-            true );
-        QueryFilter qf = new QueryFilter( QueryOperator.EQ, "test" );
-        nonUniq1.getFilters().add( qf );
-        nonUniq2.getFilters().add( qf );
-        params.addAttribute( nonUniq1 );
-        params.addAttribute( nonUniq2 );
-        params.addAttribute( uniq1 );
-        assertEquals( params.hasUniqueFilter(), false );
-        uniq1.getFilters().add( qf );
-        assertEquals( params.hasUniqueFilter(), true );
-        params.getAttributes().clear();
-        params.addFilter( nonUniq1 );
-        params.addFilter( nonUniq2 );
-        assertEquals( params.hasUniqueFilter(), false );
-        params.addFilter( uniq1 );
-        assertEquals( params.hasUniqueFilter(), true );
-    }
+  @Test
+  void testIfUniqueFiltersArePresentInAttributesOrFilters() {
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    QueryItem nonUniq1 =
+        new QueryItem(
+            new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE, null, false);
+    QueryItem nonUniq2 =
+        new QueryItem(
+            new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE, null, false);
+    QueryItem uniq1 =
+        new QueryItem(
+            new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE, null, true);
+    QueryFilter qf = new QueryFilter(QueryOperator.EQ, "test");
+    nonUniq1.getFilters().add(qf);
+    nonUniq2.getFilters().add(qf);
+    params.addAttribute(nonUniq1);
+    params.addAttribute(nonUniq2);
+    params.addAttribute(uniq1);
+    assertEquals(params.hasUniqueFilter(), false);
+    uniq1.getFilters().add(qf);
+    assertEquals(params.hasUniqueFilter(), true);
+    params.getAttributes().clear();
+    params.addFilter(nonUniq1);
+    params.addFilter(nonUniq2);
+    assertEquals(params.hasUniqueFilter(), false);
+    params.addFilter(uniq1);
+    assertEquals(params.hasUniqueFilter(), true);
+  }
 }

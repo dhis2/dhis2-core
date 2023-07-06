@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.visualization;
 
-/**
- * Holds the normalized method type for OutlierAnalysis.
- */
-public enum NormalizedOutlierMethod
-{
-    Y_RESIDUALS_LINEAR
+/** Holds the normalized method type for OutlierAnalysis. */
+public enum NormalizedOutlierMethod {
+  Y_RESIDUALS_LINEAR
 }

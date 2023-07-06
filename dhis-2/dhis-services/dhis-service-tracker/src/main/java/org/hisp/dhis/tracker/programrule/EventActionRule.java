@@ -28,26 +28,22 @@
 package org.hisp.dhis.tracker.programrule;
 
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.domain.DataValue;
 
 @Getter
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class EventActionRule
-    implements ActionRule
-{
-    private final String ruleUid;
+public class EventActionRule implements ActionRule {
+  private final String ruleUid;
 
-    private final String data;
+  private final String data;
 
-    private final String field;
+  private final String field;
 
-    private String content;
+  private String content;
 
-    private Set<DataValue> dataValues;
+  private Set<DataValue> dataValues;
 }

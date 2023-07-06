@@ -32,12 +32,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -64,145 +63,127 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
-
+/** Zubair <rajazubair.asghar@gmail.com> */
 @RestController
-@RequestMapping( value = "/gateways" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SmsGatewayController
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@RequestMapping(value = "/gateways")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class SmsGatewayController {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private RenderService renderService;
+  @Autowired private RenderService renderService;
 
-    @Autowired
-    private GatewayAdministrationService gatewayAdminService;
+  @Autowired private GatewayAdministrationService gatewayAdminService;
 
-    @Autowired
-    private SmsConfigurationManager smsConfigurationManager;
+  @Autowired private SmsConfigurationManager smsConfigurationManager;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+  @Autowired private FieldFilterService fieldFilterService;
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // GET
+  // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<JsonRoot> getGateways( @RequestParam( defaultValue = "*" ) List<String> fields )
-    {
-        SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-        FieldFilterParams<?> params = FieldFilterParams.of( smsConfiguration.getGateways(), fields );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonRoot> getGateways(
+      @RequestParam(defaultValue = "*") List<String> fields) {
+    SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
+    FieldFilterParams<?> params = FieldFilterParams.of(smsConfiguration.getGateways(), fields);
 
-        return ResponseEntity.ok( JsonRoot.of( "gateways", fieldFilterService.toObjectNodes( params ) ) );
+    return ResponseEntity.ok(JsonRoot.of("gateways", fieldFilterService.toObjectNodes(params)));
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<ObjectNode> getGatewayConfiguration(
+      @PathVariable String uid, @RequestParam(defaultValue = "*") List<FieldPath> fields)
+      throws WebMessageException {
+    SmsGatewayConfig gateway = gatewayAdminService.getByUid(uid);
+
+    if (gateway == null) {
+      throw new WebMessageException(notFound("No gateway found"));
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<ObjectNode> getGatewayConfiguration( @PathVariable String uid,
-        @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
-        throws WebMessageException
-    {
-        SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
+    return ResponseEntity.ok(fieldFilterService.toObjectNode(gateway, fields));
+  }
 
-        if ( gateway == null )
-        {
-            throw new WebMessageException( notFound( "No gateway found" ) );
-        }
+  // -------------------------------------------------------------------------
+  // PUT,POST
+  // -------------------------------------------------------------------------
 
-        return ResponseEntity.ok( fieldFilterService.toObjectNode( gateway, fields ) );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @PutMapping("/default/{uid}")
+  @ResponseBody
+  public WebMessage setDefault(@PathVariable String uid) {
+    SmsGatewayConfig gateway = gatewayAdminService.getByUid(uid);
+
+    if (gateway == null) {
+      return notFound("No gateway found");
     }
 
-    // -------------------------------------------------------------------------
-    // PUT,POST
-    // -------------------------------------------------------------------------
+    gatewayAdminService.setDefaultGateway(gateway);
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @PutMapping( "/default/{uid}" )
-    @ResponseBody
-    public WebMessage setDefault( @PathVariable String uid )
-    {
-        SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
+    return ok(gateway.getName() + " is set to default");
+  }
 
-        if ( gateway == null )
-        {
-            return notFound( "No gateway found" );
-        }
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @PutMapping("/{uid}")
+  public WebMessage updateGateway(@PathVariable String uid, HttpServletRequest request)
+      throws IOException {
+    SmsGatewayConfig config = gatewayAdminService.getByUid(uid);
 
-        gatewayAdminService.setDefaultGateway( gateway );
-
-        return ok( gateway.getName() + " is set to default" );
+    if (config == null) {
+      return notFound("No gateway found");
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @PutMapping( "/{uid}" )
-    public WebMessage updateGateway( @PathVariable String uid, HttpServletRequest request )
-        throws IOException
-    {
-        SmsGatewayConfig config = gatewayAdminService.getByUid( uid );
+    SmsGatewayConfig updatedConfig =
+        renderService.fromJson(request.getInputStream(), SmsGatewayConfig.class);
 
-        if ( config == null )
-        {
-            return notFound( "No gateway found" );
-        }
-
-        SmsGatewayConfig updatedConfig = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
-
-        if ( gatewayAdminService.hasDefaultGateway() && updatedConfig.isDefault() && !config.isDefault() )
-        {
-            return conflict( "Default gateway already exists" );
-        }
-
-        gatewayAdminService.updateGateway( config, updatedConfig );
-
-        return ok( String.format( "Gateway with uid: %s has been updated", uid ) );
+    if (gatewayAdminService.hasDefaultGateway()
+        && updatedConfig.isDefault()
+        && !config.isDefault()) {
+      return conflict("Default gateway already exists");
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @PostMapping
-    @ResponseBody
-    public WebMessage addGateway( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
+    gatewayAdminService.updateGateway(config, updatedConfig);
 
-        if ( config == null )
-        {
-            return conflict( "Cannot de-serialize SMS configurations" );
-        }
+    return ok(String.format("Gateway with uid: %s has been updated", uid));
+  }
 
-        gatewayAdminService.addGateway( config );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @PostMapping
+  @ResponseBody
+  public WebMessage addGateway(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    SmsGatewayConfig config =
+        renderService.fromJson(request.getInputStream(), SmsGatewayConfig.class);
 
-        return ok( "Gateway configuration added" )
-            .setLocation( "/gateways/" + config.getUid() );
+    if (config == null) {
+      return conflict("Cannot de-serialize SMS configurations");
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
+    gatewayAdminService.addGateway(config);
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @DeleteMapping( "/{uid}" )
-    @ResponseBody
-    public WebMessage removeGateway( @PathVariable String uid )
-    {
-        SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
+    return ok("Gateway configuration added").setLocation("/gateways/" + config.getUid());
+  }
 
-        if ( gateway == null )
-        {
-            return notFound( "No gateway found with id: " + uid );
-        }
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
 
-        gatewayAdminService.removeGatewayByUid( uid );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @DeleteMapping("/{uid}")
+  @ResponseBody
+  public WebMessage removeGateway(@PathVariable String uid) {
+    SmsGatewayConfig gateway = gatewayAdminService.getByUid(uid);
 
-        return ok( "Gateway removed successfully" );
+    if (gateway == null) {
+      return notFound("No gateway found with id: " + uid);
     }
+
+    gatewayAdminService.removeGatewayByUid(uid);
+
+    return ok("Gateway removed successfully");
+  }
 }

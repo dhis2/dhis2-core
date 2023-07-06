@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import lombok.Builder;
-import lombok.Value;
-
-import org.hisp.dhis.tracker.TrackerType;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Value;
+import org.hisp.dhis.tracker.TrackerType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,59 +39,58 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Value
 @Builder
-public class TrackerErrorReport
-{
-    private final String errorMessage;
+public class TrackerErrorReport {
+  private final String errorMessage;
 
-    private final TrackerErrorCode errorCode;
+  private final TrackerErrorCode errorCode;
 
-    private final TrackerType trackerType;
+  private final TrackerType trackerType;
 
-    private final String uid;
+  private final String uid;
 
-    @JsonCreator
-    public TrackerErrorReport( @JsonProperty( "message" ) String errorMessage,
-        @JsonProperty( "errorCode" ) TrackerErrorCode errorCode,
-        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.errorMessage = errorMessage;
-        this.errorCode = errorCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
-    }
+  @JsonCreator
+  public TrackerErrorReport(
+      @JsonProperty("message") String errorMessage,
+      @JsonProperty("errorCode") TrackerErrorCode errorCode,
+      @JsonProperty("trackerType") TrackerType trackerType,
+      @JsonProperty("uid") String uid) {
+    this.errorMessage = errorMessage;
+    this.errorCode = errorCode;
+    this.trackerType = trackerType;
+    this.uid = uid;
+  }
 
-    @JsonProperty
-    public TrackerErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
+  @JsonProperty
+  public TrackerErrorCode getErrorCode() {
+    return errorCode;
+  }
 
-    @JsonProperty
-    public String getMessage()
-    {
-        return errorMessage;
-    }
+  @JsonProperty
+  public String getMessage() {
+    return errorMessage;
+  }
 
-    @JsonProperty
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
+  @JsonProperty
+  public TrackerType getTrackerType() {
+    return trackerType;
+  }
 
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
+  @JsonProperty
+  public String getUid() {
+    return uid;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "TrackerErrorReport{" +
-            "message=" + errorMessage +
-            ", errorCode=" + errorCode +
-            ", trackerEntityType=" + trackerType +
-            ", uid=" + uid +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "TrackerErrorReport{"
+        + "message="
+        + errorMessage
+        + ", errorCode="
+        + errorCode
+        + ", trackerEntityType="
+        + trackerType
+        + ", uid="
+        + uid
+        + '}';
+  }
 }

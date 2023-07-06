@@ -28,12 +28,9 @@
 package org.hisp.dhis.dxf2.monitoring;
 
 import java.util.Date;
-
 import javax.annotation.PostConstruct;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -59,103 +56,88 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @AllArgsConstructor
-@Service( "org.hisp.dhis.dxf2.monitoring.MonitoringService" )
-public class DefaultMonitoringService
-    implements MonitoringService
-{
-    private static final int PUSH_INTERVAL = DateTimeConstants.MILLIS_PER_MINUTE * 5;
+@Service("org.hisp.dhis.dxf2.monitoring.MonitoringService")
+public class DefaultMonitoringService implements MonitoringService {
+  private static final int PUSH_INTERVAL = DateTimeConstants.MILLIS_PER_MINUTE * 5;
 
-    private static final int PUSH_INITIAL_DELAY = DateTimeConstants.MILLIS_PER_SECOND * 30;
+  private static final int PUSH_INITIAL_DELAY = DateTimeConstants.MILLIS_PER_SECOND * 30;
 
-    private final SystemService systemService;
+  private final SystemService systemService;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    private final RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
-    private final TaskScheduler scheduler;
+  private final TaskScheduler scheduler;
 
-    @PostConstruct
-    public void init()
-    {
-        Date date = new DateTime().plus( PUSH_INITIAL_DELAY ).toDate();
+  @PostConstruct
+  public void init() {
+    Date date = new DateTime().plus(PUSH_INITIAL_DELAY).toDate();
 
-        String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
+    String url = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL);
 
-        if ( StringUtils.isNotBlank( url ) )
-        {
-            log.info( String.format( "Monitoring service configured, URL: %s", url ) );
-        }
-
-        scheduler.scheduleWithFixedDelay( this::pushMonitoringInfo, date, PUSH_INTERVAL );
-
-        log.info( "Scheduled monitoring service" );
+    if (StringUtils.isNotBlank(url)) {
+      log.info(String.format("Monitoring service configured, URL: %s", url));
     }
 
-    @Override
-    public void pushMonitoringInfo()
-    {
-        final Date startTime = new Date();
+    scheduler.scheduleWithFixedDelay(this::pushMonitoringInfo, date, PUSH_INTERVAL);
 
-        String url = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
-        String username = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_USERNAME );
-        String password = config.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL );
+    log.info("Scheduled monitoring service");
+  }
 
-        if ( StringUtils.isBlank( url ) )
-        {
-            log.debug( "Monitoring service URL not configured, aborting monitoring request" );
-            return;
-        }
+  @Override
+  public void pushMonitoringInfo() {
+    final Date startTime = new Date();
 
-        SystemInfo systemInfo = systemService.getSystemInfo();
+    String url = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL);
+    String username = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_USERNAME);
+    String password = config.getProperty(ConfigurationKey.SYSTEM_MONITORING_URL);
 
-        if ( systemInfo == null )
-        {
-            log.warn( "System info not available, aborting monitoring request" );
-            return;
-        }
-
-        systemInfo.clearSensitiveInfo();
-
-        HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
-
-        if ( StringUtils.isNotBlank( username ) && StringUtils.isNotBlank( password ) )
-        {
-            headersBuilder.withBasicAuth( username, password );
-        }
-
-        HttpEntity<SystemInfo> requestEntity = new HttpEntity<>( systemInfo, headersBuilder.build() );
-
-        ResponseEntity<String> response = null;
-        HttpStatus sc = null;
-
-        try
-        {
-            response = restTemplate.postForEntity( url, requestEntity, String.class );
-            sc = response.getStatusCode();
-        }
-        catch ( HttpClientErrorException | HttpServerErrorException ex )
-        {
-            log.warn( String.format( "Monitoring request failed, status code: %s", sc ), ex );
-            return;
-        }
-        catch ( ResourceAccessException ex )
-        {
-            log.info( "Monitoring request failed, network is unreachable" );
-            return;
-        }
-
-        if ( response != null && sc != null && sc.is2xxSuccessful() )
-        {
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime );
-
-            log.debug( String.format( "Monitoring request successfully sent, url: %s", url ) );
-        }
-        else
-        {
-            log.warn( String.format( "Monitoring request was unsuccessful, status code: %s", sc ) );
-        }
+    if (StringUtils.isBlank(url)) {
+      log.debug("Monitoring service URL not configured, aborting monitoring request");
+      return;
     }
+
+    SystemInfo systemInfo = systemService.getSystemInfo();
+
+    if (systemInfo == null) {
+      log.warn("System info not available, aborting monitoring request");
+      return;
+    }
+
+    systemInfo.clearSensitiveInfo();
+
+    HttpHeadersBuilder headersBuilder = new HttpHeadersBuilder().withContentTypeJson();
+
+    if (StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password)) {
+      headersBuilder.withBasicAuth(username, password);
+    }
+
+    HttpEntity<SystemInfo> requestEntity = new HttpEntity<>(systemInfo, headersBuilder.build());
+
+    ResponseEntity<String> response = null;
+    HttpStatus sc = null;
+
+    try {
+      response = restTemplate.postForEntity(url, requestEntity, String.class);
+      sc = response.getStatusCode();
+    } catch (HttpClientErrorException | HttpServerErrorException ex) {
+      log.warn(String.format("Monitoring request failed, status code: %s", sc), ex);
+      return;
+    } catch (ResourceAccessException ex) {
+      log.info("Monitoring request failed, network is unreachable");
+      return;
+    }
+
+    if (response != null && sc != null && sc.is2xxSuccessful()) {
+      systemSettingManager.saveSystemSetting(
+          SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH, startTime);
+
+      log.debug(String.format("Monitoring request successfully sent, url: %s", url));
+    } else {
+      log.warn(String.format("Monitoring request was unsuccessful, status code: %s", sc));
+    }
+  }
 }

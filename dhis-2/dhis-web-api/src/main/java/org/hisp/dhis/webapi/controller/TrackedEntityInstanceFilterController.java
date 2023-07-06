@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceFilterSchemaDescriptor;
@@ -40,38 +39,33 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @Controller
-@RequestMapping( value = TrackedEntityInstanceFilterSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
+@RequestMapping(value = TrackedEntityInstanceFilterSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
 public class TrackedEntityInstanceFilterController
-    extends AbstractCrudController<TrackedEntityInstanceFilter>
-{
-    private final TrackedEntityInstanceFilterService teiFilterService;
+    extends AbstractCrudController<TrackedEntityInstanceFilter> {
+  private final TrackedEntityInstanceFilterService teiFilterService;
 
-    public TrackedEntityInstanceFilterController( TrackedEntityInstanceFilterService teiFilterService )
-    {
-        this.teiFilterService = teiFilterService;
-    }
+  public TrackedEntityInstanceFilterController(
+      TrackedEntityInstanceFilterService teiFilterService) {
+    this.teiFilterService = teiFilterService;
+  }
 
-    @Override
-    public void preCreateEntity( TrackedEntityInstanceFilter teiFilter )
-    {
-        List<String> errors = teiFilterService.validate( teiFilter );
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
+  @Override
+  public void preCreateEntity(TrackedEntityInstanceFilter teiFilter) {
+    List<String> errors = teiFilterService.validate(teiFilter);
+    if (!errors.isEmpty()) {
+      throw new IllegalQueryException(errors.toString());
     }
+  }
 
-    @Override
-    public void preUpdateEntity( TrackedEntityInstanceFilter oldTeiFilter, TrackedEntityInstanceFilter newTeiFilter )
-    {
-        List<String> errors = teiFilterService.validate( newTeiFilter );
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
+  @Override
+  public void preUpdateEntity(
+      TrackedEntityInstanceFilter oldTeiFilter, TrackedEntityInstanceFilter newTeiFilter) {
+    List<String> errors = teiFilterService.validate(newTeiFilter);
+    if (!errors.isEmpty()) {
+      throw new IllegalQueryException(errors.toString());
     }
+  }
 }

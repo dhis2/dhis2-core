@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.analytics.analyze;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,11 +37,8 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import javax.validation.constraints.NotNull;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,126 +46,106 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Dusan Bernat
  */
 @Slf4j
 @Service
-public class RequestExecutionPlanStore implements ExecutionPlanStore
-{
-    private final Map<String, List<ExecutionPlan>> executionPlanMap = new HashMap<>();
+public class RequestExecutionPlanStore implements ExecutionPlanStore {
+  private final Map<String, List<ExecutionPlan>> executionPlanMap = new HashMap<>();
 
-    @NotNull
-    private final JdbcTemplate jdbcTemplate;
+  @NotNull private final JdbcTemplate jdbcTemplate;
 
-    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool( 10 );
+  private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(10);
 
-    public RequestExecutionPlanStore( @Qualifier( "executionPlanJdbcTemplate" ) JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
+  public RequestExecutionPlanStore(
+      @Qualifier("executionPlanJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  @Override
+  public void addExecutionPlan(String key, String sql) {
+
+    ExecutionPlan executionPlan = new ExecutionPlan();
+
+    executionPlan.setQuery(sql);
+
+    JsonNode root = getExecutionPlan(sql);
+
+    if (root != null && root.get(0) != null && root.get(0).get("Plan") != null) {
+      JsonNode plan = root.get(0).get("Plan");
+
+      executionPlan.setPlan(plan);
+
+      double execTime =
+          root.get(0).get("Execution Time") != null
+              ? root.get(0).get("Execution Time").asDouble()
+              : 0.0;
+
+      double planTime =
+          root.get(0).get("Planning Time") != null
+              ? root.get(0).get("Planning Time").asDouble()
+              : 0.0;
+
+      executionPlan.setExecutionTime(execTime);
+
+      executionPlan.setPlanningTime(planTime);
+
+      executionPlan.setTimeInMillis(Precision.round(execTime + planTime, 3));
     }
 
-    @Override
-    public void addExecutionPlan( String key, String sql )
-    {
+    synchronized (this) {
+      if (executionPlanMap.containsKey(key)) {
+        List<ExecutionPlan> oldList = executionPlanMap.get(key);
 
-        ExecutionPlan executionPlan = new ExecutionPlan();
+        List<ExecutionPlan> newList = new ArrayList<>(oldList);
 
-        executionPlan.setQuery( sql );
+        newList.add(executionPlan);
 
-        JsonNode root = getExecutionPlan( sql );
-
-        if ( root != null && root.get( 0 ) != null && root.get( 0 ).get( "Plan" ) != null )
-        {
-            JsonNode plan = root.get( 0 ).get( "Plan" );
-
-            executionPlan.setPlan( plan );
-
-            double execTime = root.get( 0 ).get( "Execution Time" ) != null
-                ? root.get( 0 ).get( "Execution Time" ).asDouble()
-                : 0.0;
-
-            double planTime = root.get( 0 ).get( "Planning Time" ) != null
-                ? root.get( 0 ).get( "Planning Time" ).asDouble()
-                : 0.0;
-
-            executionPlan.setExecutionTime( execTime );
-
-            executionPlan.setPlanningTime( planTime );
-
-            executionPlan.setTimeInMillis( Precision.round( execTime + planTime, 3 ) );
-        }
-
-        synchronized ( this )
-        {
-            if ( executionPlanMap.containsKey( key ) )
-            {
-                List<ExecutionPlan> oldList = executionPlanMap.get( key );
-
-                List<ExecutionPlan> newList = new ArrayList<>( oldList );
-
-                newList.add( executionPlan );
-
-                executionPlanMap.replace( key, newList );
-            }
-            else
-            {
-                executionPlanMap.put( key, List.of( executionPlan ) );
-            }
-        }
+        executionPlanMap.replace(key, newList);
+      } else {
+        executionPlanMap.put(key, List.of(executionPlan));
+      }
     }
+  }
 
-    private JsonNode getExecutionPlan( String sql )
-    {
+  private JsonNode getExecutionPlan(String sql) {
 
-        ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = new ObjectMapper();
 
-        try
-        {
-            SqlRowSet rowSet = jdbcTemplate.queryForRowSet( "EXPLAIN (ANALYZE true, COSTS true, FORMAT json) " + sql );
+    try {
+      SqlRowSet rowSet =
+          jdbcTemplate.queryForRowSet("EXPLAIN (ANALYZE true, COSTS true, FORMAT json) " + sql);
 
-            if ( rowSet.next() )
-            {
-                String json = rowSet.getString( 1 );
+      if (rowSet.next()) {
+        String json = rowSet.getString(1);
 
-                return objectMapper.readTree( json );
-            }
-        }
-        catch ( Exception e )
-        {
-            try
-            {
-                return objectMapper.readTree( "{ \"error\": " + "\"" + e.getMessage() + "\"}" );
-            }
-            catch ( JsonProcessingException ex )
-            {
-                log.error( ex.getMessage(), ex );
-
-                return null;
-            }
-        }
+        return objectMapper.readTree(json);
+      }
+    } catch (Exception e) {
+      try {
+        return objectMapper.readTree("{ \"error\": " + "\"" + e.getMessage() + "\"}");
+      } catch (JsonProcessingException ex) {
+        log.error(ex.getMessage(), ex);
 
         return null;
+      }
     }
 
-    @Override
-    public List<ExecutionPlan> getExecutionPlans( String key )
-    {
-        if ( executionPlanMap.containsKey( key ) )
-        {
-            return executionPlanMap.get( key );
-        }
+    return null;
+  }
 
-        return new ArrayList<>();
+  @Override
+  public List<ExecutionPlan> getExecutionPlans(String key) {
+    if (executionPlanMap.containsKey(key)) {
+      return executionPlanMap.get(key);
     }
 
-    @Override
-    public void removeExecutionPlans( String key )
-    {
-        executorService.schedule( () -> executionPlanMap.remove( key ), 2, TimeUnit.SECONDS );
-    }
+    return new ArrayList<>();
+  }
+
+  @Override
+  public void removeExecutionPlans(String key) {
+    executorService.schedule(() -> executionPlanMap.remove(key), 2, TimeUnit.SECONDS);
+  }
 }

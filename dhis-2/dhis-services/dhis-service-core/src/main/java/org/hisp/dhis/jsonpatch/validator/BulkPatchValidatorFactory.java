@@ -29,13 +29,11 @@ package org.hisp.dhis.jsonpatch.validator;
 
 import java.util.List;
 
-/**
- * Factory class to create an instance of {@link BulkPatchValidator}
- */
-public class BulkPatchValidatorFactory
-{
-    public static final List<BulkPatchValidator> SHARING = List.of( new SharingSchemaValidator(),
-        new SharingJsonPatchValidator() );
+/** Factory class to create an instance of {@link BulkPatchValidator} */
+public class BulkPatchValidatorFactory {
+  public static final List<BulkPatchValidator> SHARING =
+      List.of(new SharingSchemaValidator(), new SharingJsonPatchValidator());
 
-    public static final List<BulkPatchValidator> DEFAULT = List.of( new SchemaValidator(), new JsonPatchValidator() );
+  public static final List<BulkPatchValidator> DEFAULT =
+      List.of(new SchemaValidator(), new JsonPatchValidator());
 }

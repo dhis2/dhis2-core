@@ -34,11 +34,10 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.controller.exception.NotFoundException.notFoundUid;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -69,124 +68,103 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
  * REST API for going through the states of {@link MetadataProposal}s.
  *
  * @author Jan Bernitt
  */
 @Controller
-@RequestMapping( "/metadata/proposals" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping("/metadata/proposals")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class MetadataWorkflowController extends AbstractGistReadOnlyController<MetadataProposal>
-{
+public class MetadataWorkflowController extends AbstractGistReadOnlyController<MetadataProposal> {
 
-    private final MetadataWorkflowService service;
+  private final MetadataWorkflowService service;
 
-    @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<JsonNode> getProposal( @PathVariable( "uid" ) String uid,
-        HttpServletRequest request,
-        HttpServletResponse response )
-        throws NotFoundException
-    {
-        return getObjectGist( uid, request, response );
+  @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonNode> getProposal(
+      @PathVariable("uid") String uid, HttpServletRequest request, HttpServletResponse response)
+      throws NotFoundException {
+    return getObjectGist(uid, request, response);
+  }
+
+  @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
+  public ResponseEntity<JsonNode> getProposals(
+      HttpServletRequest request, HttpServletResponse response) {
+    return getObjectListGist(request, response);
+  }
+
+  @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage proposeProposal(@RequestBody MetadataProposeParams params) {
+    try {
+      MetadataProposal proposal = service.propose(params);
+      return created()
+          .setLocation(MetadataProposalSchemaDescriptor.API_ENDPOINT + "/" + proposal.getUid());
+    } catch (IllegalStateException ex) {
+      return badRequest(ex.getMessage());
+    } catch (MetadataValidationException ex) {
+      return importReport(ex.getReport());
     }
+  }
 
-    @GetMapping( value = "", produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<JsonNode> getProposals(
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        return getObjectListGist( request, response );
+  @PutMapping(
+      value = "/{uid}",
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage adjustProposal(
+      @PathVariable("uid") String uid, @RequestBody(required = false) MetadataAdjustParams params)
+      throws NotFoundException {
+    checkProposalExists(uid);
+    try {
+      service.adjust(uid, params);
+      return ok();
+    } catch (IllegalStateException ex) {
+      return badRequest(ex.getMessage());
+    } catch (MetadataValidationException ex) {
+      return importReport(ex.getReport());
     }
+  }
 
-    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage proposeProposal( @RequestBody MetadataProposeParams params )
-    {
-        try
-        {
-            MetadataProposal proposal = service.propose( params );
-            return created().setLocation( MetadataProposalSchemaDescriptor.API_ENDPOINT + "/" + proposal.getUid() );
-        }
-        catch ( IllegalStateException ex )
-        {
-            return badRequest( ex.getMessage() );
-        }
-        catch ( MetadataValidationException ex )
-        {
-            return importReport( ex.getReport() );
-        }
+  @PostMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage acceptProposal(@PathVariable("uid") String uid) throws NotFoundException {
+    MetadataProposal proposal = checkProposalExists(uid);
+    ImportReport report = service.accept(proposal);
+    if (report.getStatus() != Status.OK) {
+      return importReport(report);
     }
+    if (proposal.getType() == MetadataProposalType.ADD) {
+      String objUid = report.getFirstObjectReport().getUid();
+      Schema schema = schemaService.getSchema(proposal.getTarget().getType());
+      return created(schema.getSingular() + " created")
+          .setLocation(schema.getRelativeApiEndpoint() + "/" + objUid);
+    }
+    return ok();
+  }
 
-    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage adjustProposal( @PathVariable( "uid" ) String uid,
-        @RequestBody( required = false ) MetadataAdjustParams params )
-        throws NotFoundException
-    {
-        checkProposalExists( uid );
-        try
-        {
-            service.adjust( uid, params );
-            return ok();
-        }
-        catch ( IllegalStateException ex )
-        {
-            return badRequest( ex.getMessage() );
-        }
-        catch ( MetadataValidationException ex )
-        {
-            return importReport( ex.getReport() );
-        }
-    }
+  @PatchMapping(value = "/{uid}", consumes = MediaType.TEXT_PLAIN_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void opposeProposal(
+      @PathVariable("uid") String uid, @RequestBody(required = false) String reason)
+      throws NotFoundException {
+    service.oppose(checkProposalExists(uid), reason);
+  }
 
-    @PostMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage acceptProposal( @PathVariable( "uid" ) String uid )
-        throws NotFoundException
-    {
-        MetadataProposal proposal = checkProposalExists( uid );
-        ImportReport report = service.accept( proposal );
-        if ( report.getStatus() != Status.OK )
-        {
-            return importReport( report );
-        }
-        if ( proposal.getType() == MetadataProposalType.ADD )
-        {
-            String objUid = report.getFirstObjectReport().getUid();
-            Schema schema = schemaService.getSchema( proposal.getTarget().getType() );
-            return created( schema.getSingular() + " created" )
-                .setLocation( schema.getRelativeApiEndpoint() + "/" + objUid );
-        }
-        return ok();
-    }
+  @DeleteMapping(value = "/{uid}", consumes = MediaType.TEXT_PLAIN_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void rejectProposal(
+      @PathVariable("uid") String uid, @RequestBody(required = false) String reason)
+      throws NotFoundException {
+    service.reject(checkProposalExists(uid), reason);
+  }
 
-    @PatchMapping( value = "/{uid}", consumes = MediaType.TEXT_PLAIN_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void opposeProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
-        throws NotFoundException
-    {
-        service.oppose( checkProposalExists( uid ), reason );
+  private MetadataProposal checkProposalExists(String uid) throws NotFoundException {
+    MetadataProposal proposal = service.getByUid(uid);
+    if (proposal == null) {
+      throw notFoundUid(uid);
     }
-
-    @DeleteMapping( value = "/{uid}", consumes = MediaType.TEXT_PLAIN_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void rejectProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
-        throws NotFoundException
-    {
-        service.reject( checkProposalExists( uid ), reason );
-    }
-
-    private MetadataProposal checkProposalExists( String uid )
-        throws NotFoundException
-    {
-        MetadataProposal proposal = service.getByUid( uid );
-        if ( proposal == null )
-        {
-            throw notFoundUid( uid );
-        }
-        return proposal;
-    }
+    return proposal;
+  }
 }

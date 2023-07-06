@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.tracker.config;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.AssignedUserValidationHook;
 import org.hisp.dhis.tracker.validation.hooks.EnrollmentAttributeValidationHook;
@@ -60,87 +61,79 @@ import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHo
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
-
 /**
- * Configuration class for the tracker importer validation hook ordering. The
- * Hooks will be run in the same order they appear in this class.
+ * Configuration class for the tracker importer validation hook ordering. The Hooks will be run in
+ * the same order they appear in this class.
  *
  * @author Luca Cambi <luca@dhis2.org>
  */
-@Configuration( "trackerImportValidationConfig" )
-public class TrackerValidationConfig
-{
-    private final Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> validationHooks;
+@Configuration("trackerImportValidationConfig")
+public class TrackerValidationConfig {
+  private final Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> validationHooks;
 
-    public TrackerValidationConfig( Collection<TrackerValidationHook> hooks )
-    {
-        validationHooks = byClass( hooks );
-    }
+  public TrackerValidationConfig(Collection<TrackerValidationHook> hooks) {
+    validationHooks = byClass(hooks);
+  }
 
-    private Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> byClass(
-        Collection<TrackerValidationHook> items )
-    {
-        return items.stream()
-            .collect( Collectors.toMap(
-                TrackerValidationHook::getClass,
-                Functions.identity() ) );
-    }
+  private Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> byClass(
+      Collection<TrackerValidationHook> items) {
+    return items.stream()
+        .collect(Collectors.toMap(TrackerValidationHook::getClass, Functions.identity()));
+  }
 
-    @Bean
-    public List<TrackerValidationHook> ruleEngineValidationHooks()
-    {
-        return getHookByClass( ImmutableList.of( EnrollmentRuleValidationHook.class,
+  @Bean
+  public List<TrackerValidationHook> ruleEngineValidationHooks() {
+    return getHookByClass(
+        ImmutableList.of(
+            EnrollmentRuleValidationHook.class,
             EventRuleValidationHook.class,
             TrackedEntityAttributeValidationHook.class,
             EnrollmentAttributeValidationHook.class,
-            EventDataValuesValidationHook.class ) );
-    }
+            EventDataValuesValidationHook.class));
+  }
 
-    @Bean
-    public List<TrackerValidationHook> validationHooks()
-    {
-        return getHookByClass( ImmutableList.of( PreCheckUidValidationHook.class,
+  @Bean
+  public List<TrackerValidationHook> validationHooks() {
+    return getHookByClass(
+        ImmutableList.of(
+            PreCheckUidValidationHook.class,
             PreCheckExistenceValidationHook.class,
             PreCheckMandatoryFieldsValidationHook.class,
             PreCheckMetaValidationHook.class,
             PreCheckUpdatableFieldsValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
             PreCheckSecurityOwnershipValidationHook.class,
-
             TrackedEntityAttributeValidationHook.class,
-
             EnrollmentNoteValidationHook.class,
             EnrollmentInExistingValidationHook.class,
             EnrollmentGeoValidationHook.class,
             EnrollmentDateValidationHook.class,
             EnrollmentAttributeValidationHook.class,
-
             EventCategoryOptValidationHook.class,
             EventDateValidationHook.class,
             EventGeoValidationHook.class,
             EventNoteValidationHook.class,
             EventDataValuesValidationHook.class,
-
             RelationshipsValidationHook.class,
-
             AssignedUserValidationHook.class,
+            RepeatedEventsValidationHook.class)); // This
+    // validation
+    // must be run
+    // after
+    // all the Event validations
+    // because it needs to consider all and only the valid events
+  }
 
-            RepeatedEventsValidationHook.class ) ); // This
-                                                    // validation
-                                                    // must be run
-        // after
-        // all the Event validations
-        // because it needs to consider all and only the valid events
-    }
-
-    private List<TrackerValidationHook> getHookByClass( List<Class<? extends TrackerValidationHook>> hookClasses )
-    {
-        return hookClasses.stream().map( hookClass -> Optional.ofNullable( validationHooks.get( hookClass ) )
-            .orElseThrow(
-                () -> new IllegalArgumentException( "Unable to find validation hook by class: " + hookClass ) ) )
-            .collect( Collectors.toUnmodifiableList() );
-    }
-
+  private List<TrackerValidationHook> getHookByClass(
+      List<Class<? extends TrackerValidationHook>> hookClasses) {
+    return hookClasses.stream()
+        .map(
+            hookClass ->
+                Optional.ofNullable(validationHooks.get(hookClass))
+                    .orElseThrow(
+                        () ->
+                            new IllegalArgumentException(
+                                "Unable to find validation hook by class: " + hookClass)))
+        .collect(Collectors.toUnmodifiableList());
+  }
 }

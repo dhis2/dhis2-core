@@ -28,7 +28,6 @@
 package org.hisp.dhis.minmax;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,30 +39,25 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class MinMaxDataElementDeletionHandler extends DeletionHandler
-{
-    private final MinMaxDataElementService minMaxDataElementService;
+public class MinMaxDataElementDeletionHandler extends DeletionHandler {
+  private final MinMaxDataElementService minMaxDataElementService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
+  }
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        minMaxDataElementService.removeMinMaxDataElements( dataElement );
-    }
+  private void deleteDataElement(DataElement dataElement) {
+    minMaxDataElementService.removeMinMaxDataElements(dataElement);
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit source )
-    {
-        minMaxDataElementService.removeMinMaxDataElements( source );
-    }
+  private void deleteOrganisationUnit(OrganisationUnit source) {
+    minMaxDataElementService.removeMinMaxDataElements(source);
+  }
 
-    private void deleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        minMaxDataElementService.removeMinMaxDataElements( optionCombo );
-    }
+  private void deleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    minMaxDataElementService.removeMinMaxDataElements(optionCombo);
+  }
 }

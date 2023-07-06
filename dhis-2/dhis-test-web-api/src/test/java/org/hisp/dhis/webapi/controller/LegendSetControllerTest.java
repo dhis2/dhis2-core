@@ -38,28 +38,32 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class LegendSetControllerTest extends DhisControllerConvenienceTest
-{
+class LegendSetControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPostJsonObject()
-    {
-        assertWebMessage( "Created", 201, "OK", null,
-            POST( "/legendSets/", "{'name':'LS'}" ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testPostJsonObject() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        null,
+        POST("/legendSets/", "{'name':'LS'}").content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testPutJsonObject()
-    {
-        String id = assertStatus( HttpStatus.CREATED, POST( "/legendSets/", "{'name':'LS'}" ) );
-        assertWebMessage( "OK", 200, "OK", null,
-            PUT( "/legendSets/" + id, "{'name':'New LS'}" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPutJsonObject() {
+    String id = assertStatus(HttpStatus.CREATED, POST("/legendSets/", "{'name':'LS'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        null,
+        PUT("/legendSets/" + id, "{'name':'New LS'}").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testDeleteObject()
-    {
-        String id = assertStatus( HttpStatus.CREATED, POST( "/legendSets/", "{'name':'LS'}" ) );
-        assertWebMessage( "OK", 200, "OK", null, DELETE( "/legendSets/" + id ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteObject() {
+    String id = assertStatus(HttpStatus.CREATED, POST("/legendSets/", "{'name':'LS'}"));
+    assertWebMessage("OK", 200, "OK", null, DELETE("/legendSets/" + id).content(HttpStatus.OK));
+  }
 }

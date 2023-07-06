@@ -57,143 +57,143 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class PreCheckExistenceValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
-    {
-        TrackerImportStrategy importStrategy = bundle.getStrategy( trackedEntity );
+public class PreCheckExistenceValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateTrackedEntity(
+      ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
+    TrackerImportStrategy importStrategy = bundle.getStrategy(trackedEntity);
 
-        TrackedEntityInstance existingTe = bundle.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+    TrackedEntityInstance existingTe =
+        bundle.getTrackedEntityInstance(trackedEntity.getTrackedEntity());
 
-        // If the tracked entity is soft-deleted no operation is allowed
-        if ( existingTe != null && existingTe.isDeleted() )
-        {
-            reporter.addError( trackedEntity, E1114, trackedEntity.getTrackedEntity() );
-            return;
-        }
-
-        if ( existingTe != null && importStrategy.isCreate() )
-        {
-            reporter.addError( trackedEntity, E1002, trackedEntity.getTrackedEntity() );
-        }
-        else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( trackedEntity, E1063, trackedEntity.getTrackedEntity() );
-        }
+    // If the tracked entity is soft-deleted no operation is allowed
+    if (existingTe != null && existingTe.isDeleted()) {
+      reporter.addError(trackedEntity, E1114, trackedEntity.getTrackedEntity());
+      return;
     }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        TrackerImportStrategy importStrategy = bundle.getStrategy( enrollment );
+    if (existingTe != null && importStrategy.isCreate()) {
+      reporter.addError(trackedEntity, E1002, trackedEntity.getTrackedEntity());
+    } else if (existingTe == null && importStrategy.isUpdateOrDelete()) {
+      reporter.addError(trackedEntity, E1063, trackedEntity.getTrackedEntity());
+    }
+  }
 
-        ProgramInstance existingPi = bundle.getProgramInstance( enrollment.getEnrollment() );
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    TrackerImportStrategy importStrategy = bundle.getStrategy(enrollment);
 
-        // If the tracked entity is soft-deleted no operation is allowed
-        if ( existingPi != null && existingPi.isDeleted() )
-        {
-            reporter.addError( enrollment, E1113, enrollment.getEnrollment() );
-            return;
-        }
+    ProgramInstance existingPi = bundle.getProgramInstance(enrollment.getEnrollment());
 
-        if ( existingPi != null && importStrategy.isCreate() )
-        {
-            reporter.addError( enrollment, E1080, enrollment.getEnrollment() );
-        }
-        else if ( existingPi == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( enrollment, E1081, enrollment.getEnrollment() );
-        }
+    // If the tracked entity is soft-deleted no operation is allowed
+    if (existingPi != null && existingPi.isDeleted()) {
+      reporter.addError(enrollment, E1113, enrollment.getEnrollment());
+      return;
     }
 
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        TrackerImportStrategy importStrategy = bundle.getStrategy( event );
+    if (existingPi != null && importStrategy.isCreate()) {
+      reporter.addError(enrollment, E1080, enrollment.getEnrollment());
+    } else if (existingPi == null && importStrategy.isUpdateOrDelete()) {
+      reporter.addError(enrollment, E1081, enrollment.getEnrollment());
+    }
+  }
 
-        ProgramStageInstance existingPsi = bundle.getProgramStageInstance( event.getEvent() );
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, TrackerBundle bundle, Event event) {
+    TrackerImportStrategy importStrategy = bundle.getStrategy(event);
 
-        // If the event is soft-deleted no operation is allowed
-        if ( existingPsi != null && existingPsi.isDeleted() )
-        {
-            reporter.addError( event, E1082, event.getEvent() );
-            return;
-        }
+    ProgramStageInstance existingPsi = bundle.getProgramStageInstance(event.getEvent());
 
-        if ( existingPsi != null && importStrategy.isCreate() )
-        {
-            reporter.addError( event, E1030, event.getEvent() );
-        }
-        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( event, E1032, event.getEvent() );
-        }
+    // If the event is soft-deleted no operation is allowed
+    if (existingPsi != null && existingPsi.isDeleted()) {
+      reporter.addError(event, E1082, event.getEvent());
+      return;
     }
 
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-
-        org.hisp.dhis.relationship.Relationship existingRelationship = bundle.getPreheat()
-            .getRelationship( relationship.getRelationship() );
-        TrackerImportStrategy importStrategy = bundle.getStrategy( relationship );
-
-        validateRelationshipNotDeleted( reporter, existingRelationship, relationship );
-        validateRelationshipNotUpdated( reporter, existingRelationship, relationship, importStrategy );
-        validateNewRelationshipNotExistAlready( reporter, existingRelationship, relationship, importStrategy );
-        validateUpdatedOrDeletedRelationshipExists( reporter, existingRelationship, relationship, importStrategy );
+    if (existingPsi != null && importStrategy.isCreate()) {
+      reporter.addError(event, E1030, event.getEvent());
+    } else if (existingPsi == null && importStrategy.isUpdateOrDelete()) {
+      reporter.addError(event, E1032, event.getEvent());
     }
+  }
 
-    private void validateRelationshipNotDeleted( ValidationErrorReporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship )
-    {
-        reporter.addErrorIf( () -> existingRelationship != null && existingRelationship.isDeleted(), relationship,
-            E4017, relationship.getRelationship() );
-    }
+  @Override
+  public void validateRelationship(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Relationship relationship) {
 
-    private void validateRelationshipNotUpdated( ValidationErrorReporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship,
-        TrackerImportStrategy importStrategy )
-    {
-        reporter.addWarningIf(
-            () -> existingRelationship != null && !existingRelationship.isDeleted() && importStrategy.isUpdate(),
-            relationship, E4015, relationship.getRelationship() );
-    }
+    org.hisp.dhis.relationship.Relationship existingRelationship =
+        bundle.getPreheat().getRelationship(relationship.getRelationship());
+    TrackerImportStrategy importStrategy = bundle.getStrategy(relationship);
 
-    private void validateNewRelationshipNotExistAlready( ValidationErrorReporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship,
-        TrackerImportStrategy importStrategy )
-    {
-        reporter.addErrorIf(
-            () -> existingRelationship != null && !existingRelationship.isDeleted() && importStrategy.isCreate(),
-            relationship, E4015, relationship.getRelationship() );
-    }
+    validateRelationshipNotDeleted(reporter, existingRelationship, relationship);
+    validateRelationshipNotUpdated(reporter, existingRelationship, relationship, importStrategy);
+    validateNewRelationshipNotExistAlready(
+        reporter, existingRelationship, relationship, importStrategy);
+    validateUpdatedOrDeletedRelationshipExists(
+        reporter, existingRelationship, relationship, importStrategy);
+  }
 
-    private void validateUpdatedOrDeletedRelationshipExists( ValidationErrorReporter reporter,
-        org.hisp.dhis.relationship.Relationship existingRelationship,
-        Relationship relationship,
-        TrackerImportStrategy importStrategy )
-    {
-        reporter.addErrorIf( () -> existingRelationship == null && importStrategy.isUpdateOrDelete(), relationship,
-            E4016, relationship.getRelationship() );
-    }
+  private void validateRelationshipNotDeleted(
+      ValidationErrorReporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship) {
+    reporter.addErrorIf(
+        () -> existingRelationship != null && existingRelationship.isDeleted(),
+        relationship,
+        E4017,
+        relationship.getRelationship());
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true;
-    }
+  private void validateRelationshipNotUpdated(
+      ValidationErrorReporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship,
+      TrackerImportStrategy importStrategy) {
+    reporter.addWarningIf(
+        () ->
+            existingRelationship != null
+                && !existingRelationship.isDeleted()
+                && importStrategy.isUpdate(),
+        relationship,
+        E4015,
+        relationship.getRelationship());
+  }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
+  private void validateNewRelationshipNotExistAlready(
+      ValidationErrorReporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship,
+      TrackerImportStrategy importStrategy) {
+    reporter.addErrorIf(
+        () ->
+            existingRelationship != null
+                && !existingRelationship.isDeleted()
+                && importStrategy.isCreate(),
+        relationship,
+        E4015,
+        relationship.getRelationship());
+  }
+
+  private void validateUpdatedOrDeletedRelationshipExists(
+      ValidationErrorReporter reporter,
+      org.hisp.dhis.relationship.Relationship existingRelationship,
+      Relationship relationship,
+      TrackerImportStrategy importStrategy) {
+    reporter.addErrorIf(
+        () -> existingRelationship == null && importStrategy.isUpdateOrDelete(),
+        relationship,
+        E4016,
+        relationship.getRelationship());
+  }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
+
+  @Override
+  public boolean skipOnError() {
+    return true;
+  }
 }

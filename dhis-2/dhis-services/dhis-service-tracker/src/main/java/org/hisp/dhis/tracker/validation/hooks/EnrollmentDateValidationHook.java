@@ -38,7 +38,6 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Objects;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -50,54 +49,46 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentDateValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        validateMandatoryDates( reporter, enrollment );
+public class EnrollmentDateValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    validateMandatoryDates(reporter, enrollment);
 
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
+    Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
 
-        validateEnrollmentDatesNotInFuture( reporter, program, enrollment );
+    validateEnrollmentDatesNotInFuture(reporter, program, enrollment);
 
-        if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
-            Objects.isNull( enrollment.getOccurredAt() ) )
-        {
-            reporter.addError( enrollment, E1023, enrollment.getOccurredAt() );
-        }
+    if (Boolean.TRUE.equals(program.getDisplayIncidentDate())
+        && Objects.isNull(enrollment.getOccurredAt())) {
+      reporter.addError(enrollment, E1023, enrollment.getOccurredAt());
+    }
+  }
+
+  private void validateMandatoryDates(ValidationErrorReporter reporter, Enrollment enrollment) {
+    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
+
+    if (Objects.isNull(enrollment.getEnrolledAt())) {
+      reporter.addError(enrollment, E1025, enrollment.getEnrolledAt());
+    }
+  }
+
+  private void validateEnrollmentDatesNotInFuture(
+      ValidationErrorReporter reporter, Program program, Enrollment enrollment) {
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
+    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
+
+    final LocalDate now = LocalDate.now();
+    if (Objects.nonNull(enrollment.getEnrolledAt())
+        && Boolean.FALSE.equals(program.getSelectEnrollmentDatesInFuture())
+        && enrollment.getEnrolledAt().atOffset(ZoneOffset.UTC).toLocalDate().isAfter(now)) {
+      reporter.addError(enrollment, E1020, enrollment.getEnrolledAt());
     }
 
-    private void validateMandatoryDates( ValidationErrorReporter reporter, Enrollment enrollment )
-    {
-        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-
-        if ( Objects.isNull( enrollment.getEnrolledAt() ) )
-        {
-            reporter.addError( enrollment, E1025, enrollment.getEnrolledAt() );
-        }
+    if (Objects.nonNull(enrollment.getOccurredAt())
+        && Boolean.FALSE.equals(program.getSelectIncidentDatesInFuture())
+        && enrollment.getOccurredAt().atOffset(ZoneOffset.UTC).toLocalDate().isAfter(now)) {
+      reporter.addError(enrollment, E1021, enrollment.getOccurredAt());
     }
-
-    private void validateEnrollmentDatesNotInFuture( ValidationErrorReporter reporter, Program program,
-        Enrollment enrollment )
-    {
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-
-        final LocalDate now = LocalDate.now();
-        if ( Objects.nonNull( enrollment.getEnrolledAt() )
-            && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
-            && enrollment.getEnrolledAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
-        {
-            reporter.addError( enrollment, E1020, enrollment.getEnrolledAt() );
-        }
-
-        if ( Objects.nonNull( enrollment.getOccurredAt() )
-            && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
-            && enrollment.getOccurredAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
-        {
-            reporter.addError( enrollment, E1021, enrollment.getOccurredAt() );
-        }
-    }
+  }
 }

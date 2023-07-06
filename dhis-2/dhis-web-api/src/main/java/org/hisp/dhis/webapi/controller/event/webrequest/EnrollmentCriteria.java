@@ -31,12 +31,10 @@ import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTran
 
 import java.util.Date;
 import java.util.Optional;
-
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -47,64 +45,53 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 @Data
 @NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String ou;
+public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter {
+  private String ou;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private String program;
+  private String program;
 
-    private ProgramStatus programStatus;
+  private ProgramStatus programStatus;
 
-    private Boolean followUp;
+  private Boolean followUp;
 
-    private Date lastUpdated;
+  private Date lastUpdated;
 
-    private String lastUpdatedDuration;
+  private String lastUpdatedDuration;
 
-    private Date programStartDate;
+  private Date programStartDate;
 
-    private Date programEndDate;
+  private Date programEndDate;
 
-    private String trackedEntityType;
+  private String trackedEntityType;
 
-    private String trackedEntityInstance;
+  private String trackedEntityInstance;
 
-    private String enrollment;
+  private String enrollment;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    private Boolean paging;
+  private Boolean paging;
 
-    @Override
-    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return translate( dtoFieldName, LegacyDtoToEntityFieldTranslator.values() );
-    }
+  @Override
+  public Optional<String> translateField(String dtoFieldName, boolean isLegacy) {
+    return translate(dtoFieldName, LegacyDtoToEntityFieldTranslator.values());
+  }
 
+  /** Dto to database field translator for old tracker Enrollment export controller */
+  @RequiredArgsConstructor
+  private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier {
     /**
-     * Dto to database field translator for old tracker Enrollment export
-     * controller
+     * this enum names must be the same as org.hisp.dhis.dxf2.events.enrollment.Enrollment fields,
+     * just with different case
+     *
+     * <p>example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated --> LAST_UPDATED
      */
-    @RequiredArgsConstructor
-    private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.dxf2.events.enrollment.Enrollment fields, just with
-         * different case
-         *
-         * example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated
-         * --> LAST_UPDATED
-         */
-        ENROLLMENT( "uid" ),
-        TRACKED_ENTITY( "pi.entityInstance.uid" ),
-        TRACKED_ENTITY_INSTANCE( "pi.entityInstance.uid" );
+    ENROLLMENT("uid"),
+    TRACKED_ENTITY("pi.entityInstance.uid"),
+    TRACKED_ENTITY_INSTANCE("pi.entityInstance.uid");
 
-        @Getter
-        private final String entityName;
-
-    }
-
+    @Getter private final String entityName;
+  }
 }

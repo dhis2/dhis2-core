@@ -32,9 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,54 +48,67 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Viet Nguyen
  */
-@Repository( "org.hisp.dhis.program.ProgramStageDataElementStore" )
+@Repository("org.hisp.dhis.program.ProgramStageDataElementStore")
 public class HibernateProgramStageDataElementStore
     extends HibernateIdentifiableObjectStore<ProgramStageDataElement>
-    implements ProgramStageDataElementStore
-{
-    public HibernateProgramStageDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageDataElement.class, currentUserService, aclService,
-            false );
-    }
+    implements ProgramStageDataElementStore {
+  public HibernateProgramStageDataElementStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramStageDataElement.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "programStage" ), programStage ) )
-            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("programStage"), programStage))
+            .addPredicate(root -> builder.equal(root.get("dataElement"), dataElement)));
+  }
 
-    @Override
-    public List<ProgramStageDataElement> getProgramStageDataElements( DataElement dataElement )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
-    }
+  @Override
+  public List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("dataElement"), dataElement)));
+  }
 
-    @Override
-    public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue()
-    {
-        final String sql = "select ps.uid as ps_uid, de.uid as de_uid from programstagedataelement psde " +
-            "join programstage ps on psde.programstageid = ps.programstageid " +
-            "join dataelement de on psde.dataelementid = de.dataelementid " +
-            "where psde.programstageid in (select distinct ( programstageid ) from programstageinstance psi where psi.lastupdated > psi.lastsynchronized) "
-            +
-            "and psde.skipsynchronization = true";
+  @Override
+  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue() {
+    final String sql =
+        "select ps.uid as ps_uid, de.uid as de_uid from programstagedataelement psde "
+            + "join programstage ps on psde.programstageid = ps.programstageid "
+            + "join dataelement de on psde.dataelementid = de.dataelementid "
+            + "where psde.programstageid in (select distinct ( programstageid ) from programstageinstance psi where psi.lastupdated > psi.lastsynchronized) "
+            + "and psde.skipsynchronization = true";
 
-        final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
-        jdbcTemplate.query( sql, rs -> {
-            String programStageUid = rs.getString( "ps_uid" );
-            String dataElementUid = rs.getString( "de_uid" );
+    final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
+    jdbcTemplate.query(
+        sql,
+        rs -> {
+          String programStageUid = rs.getString("ps_uid");
+          String dataElementUid = rs.getString("de_uid");
 
-            psdesWithSkipSync.computeIfAbsent( programStageUid, p -> new HashSet<>() ).add( dataElementUid );
-        } );
+          psdesWithSkipSync
+              .computeIfAbsent(programStageUid, p -> new HashSet<>())
+              .add(dataElementUid);
+        });
 
-        return psdesWithSkipSync;
-    }
+    return psdesWithSkipSync;
+  }
 }

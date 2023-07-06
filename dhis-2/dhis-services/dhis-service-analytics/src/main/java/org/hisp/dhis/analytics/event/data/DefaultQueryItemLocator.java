@@ -38,9 +38,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -77,228 +75,234 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class DefaultQueryItemLocator
-    implements QueryItemLocator
-{
-    private final ProgramStageService programStageService;
+public class DefaultQueryItemLocator implements QueryItemLocator {
+  private final ProgramStageService programStageService;
 
-    private final DataElementService dataElementService;
+  private final DataElementService dataElementService;
 
-    private final TrackedEntityAttributeService attributeService;
+  private final TrackedEntityAttributeService attributeService;
 
-    private final ProgramIndicatorService programIndicatorService;
+  private final ProgramIndicatorService programIndicatorService;
 
-    private final LegendSetService legendSetService;
+  private final LegendSetService legendSetService;
 
-    private final RelationshipTypeService relationshipTypeService;
+  private final RelationshipTypeService relationshipTypeService;
 
-    private final DataQueryService dataQueryService;
+  private final DataQueryService dataQueryService;
 
-    @Override
-    public QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type )
-    {
-        checkNotNull( program, "Program can not be null" );
+  @Override
+  public QueryItem getQueryItemFromDimension(
+      String dimension, Program program, EventOutputType type) {
+    checkNotNull(program, "Program can not be null");
 
-        LegendSet legendSet = getLegendSet( dimension );
+    LegendSet legendSet = getLegendSet(dimension);
 
-        return getDataElement( dimension, program, legendSet, type )
-            .orElseGet( () -> getTrackedEntityAttribute( dimension, program, legendSet )
-                .orElseGet( () -> getProgramIndicator( dimension, program, legendSet )
-                    // if not DE, TEA or PI, we try to get as dynamic dimension
-                    .orElseGet( () -> getDynamicDimension( dimension )
-                        .orElseThrow(
-                            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E7224, dimension ) ) ) ) ) );
+    return getDataElement(dimension, program, legendSet, type)
+        .orElseGet(
+            () ->
+                getTrackedEntityAttribute(dimension, program, legendSet)
+                    .orElseGet(
+                        () ->
+                            getProgramIndicator(dimension, program, legendSet)
+                                // if not DE, TEA or PI, we try to get as dynamic dimension
+                                .orElseGet(
+                                    () ->
+                                        getDynamicDimension(dimension)
+                                            .orElseThrow(
+                                                () ->
+                                                    new IllegalQueryException(
+                                                        new ErrorMessage(
+                                                            ErrorCode.E7224, dimension))))));
+  }
+
+  /**
+   * Given a UID representing a dimension, tries to check if it exists, and if true, returns a
+   * QueryItem using the passed UID
+   *
+   * @param dimension an UID representing a dimension
+   * @return a query item wrapping the specified dimension.
+   */
+  private Optional<QueryItem> getDynamicDimension(String dimension) {
+    return Optional.ofNullable(
+            dataQueryService.getDimension(
+                dimension,
+                Collections.emptyList(),
+                (Date) null,
+                Collections.emptyList(),
+                null,
+                true,
+                IdScheme.UID))
+        .map(PrimaryKeyObject::getUid)
+        .map(BaseDimensionalItemObject::new)
+        .map(QueryItem::new);
+  }
+
+  private LegendSet getLegendSet(String dimension) {
+    dimension = RepeatableStageParamsHelper.removeRepeatableStageParams(dimension);
+
+    String[] legendSplit = dimension.split(ITEM_SEP);
+
+    return legendSplit.length > 1 && legendSplit[1] != null
+        ? legendSetService.getLegendSet(legendSplit[1])
+        : null;
+  }
+
+  private String getElement(String dimension, int pos) {
+
+    String dim =
+        StringUtils.substringBefore(
+            RepeatableStageParamsHelper.removeRepeatableStageParams(dimension), ITEM_SEP);
+
+    String[] dimSplit = dim.split("\\" + PROGRAMSTAGE_SEP);
+
+    return dimSplit.length == 1 ? dimSplit[0] : dimSplit[pos];
+  }
+
+  private String getFirstElement(String dimension) {
+    return getElement(dimension, 0);
+  }
+
+  private String getSecondElement(String dimension) {
+    return getElement(dimension, 1);
+  }
+
+  private Optional<QueryItem> getDataElement(
+      String dimension, Program program, LegendSet legendSet, EventOutputType type) {
+    QueryItem qi = null;
+
+    ProgramStage programStage = getProgramStageOrFail(dimension);
+
+    DataElement de = dataElementService.getDataElement(getSecondElement(dimension));
+
+    if (de != null && program.containsDataElement(de)) {
+      ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
+
+      qi =
+          new QueryItem(
+              de, program, legendSet, valueType, de.getAggregationType(), de.getOptionSet());
+
+      if (programStage != null) {
+        qi.setProgramStage(programStage);
+
+        qi.setRepeatableStageParams(getRepeatableStageParams(dimension));
+      } else if (type != null && type.equals(EventOutputType.ENROLLMENT)) {
+        throwIllegalQueryEx(ErrorCode.E7225, dimension);
+      }
     }
 
-    /**
-     * Given a UID representing a dimension, tries to check if it exists, and if
-     * true, returns a QueryItem using the passed UID
-     *
-     * @param dimension an UID representing a dimension
-     * @return a query item wrapping the specified dimension.
-     */
-    private Optional<QueryItem> getDynamicDimension( String dimension )
-    {
-        return Optional.ofNullable(
-            dataQueryService.getDimension( dimension, Collections.emptyList(), (Date) null,
-                Collections.emptyList(), null, true, IdScheme.UID ) )
-            .map( PrimaryKeyObject::getUid )
-            .map( BaseDimensionalItemObject::new )
-            .map( QueryItem::new );
+    return Optional.ofNullable(qi);
+  }
+
+  private Optional<QueryItem> getTrackedEntityAttribute(
+      String dimension, Program program, LegendSet legendSet) {
+    QueryItem qi = null;
+
+    TrackedEntityAttribute at =
+        attributeService.getTrackedEntityAttribute(getSecondElement(dimension));
+
+    if (at != null && program.containsAttribute(at)) {
+      ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
+
+      qi =
+          new QueryItem(
+              at, program, legendSet, valueType, at.getAggregationType(), at.getOptionSet());
+
+      ProgramStage programStage = getProgramStageOrFail(dimension);
+
+      if (programStage != null) {
+        qi.setProgramStage(programStage);
+      }
     }
 
-    private LegendSet getLegendSet( String dimension )
-    {
-        dimension = RepeatableStageParamsHelper.removeRepeatableStageParams( dimension );
+    return Optional.ofNullable(qi);
+  }
 
-        String[] legendSplit = dimension.split( ITEM_SEP );
+  private Optional<QueryItem> getProgramIndicator(
+      String dimension, Program program, LegendSet legendSet) {
+    QueryItem qi = null;
 
-        return legendSplit.length > 1 && legendSplit[1] != null ? legendSetService.getLegendSet( legendSplit[1] )
-            : null;
-    }
+    RelationshipType relationshipType = getRelationshipTypeOrFail(dimension);
 
-    private String getElement( String dimension, int pos )
-    {
+    ProgramIndicator pi =
+        programIndicatorService.getProgramIndicatorByUid(getSecondElement(dimension));
 
-        String dim = StringUtils.substringBefore( RepeatableStageParamsHelper.removeRepeatableStageParams( dimension ),
-            ITEM_SEP );
+    // Only allow a program indicator from a different program to be added
+    // when a relationship type is present
 
-        String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
+    if (pi != null) {
+      ProgramStage programStage = getProgramStageOrFail(dimension);
 
-        return dimSplit.length == 1 ? dimSplit[0] : dimSplit[pos];
-
-    }
-
-    private String getFirstElement( String dimension )
-    {
-        return getElement( dimension, 0 );
-    }
-
-    private String getSecondElement( String dimension )
-    {
-        return getElement( dimension, 1 );
-    }
-
-    private Optional<QueryItem> getDataElement( String dimension, Program program, LegendSet legendSet,
-        EventOutputType type )
-    {
-        QueryItem qi = null;
-
-        ProgramStage programStage = getProgramStageOrFail( dimension );
-
-        DataElement de = dataElementService.getDataElement( getSecondElement( dimension ) );
-
-        if ( de != null && program.containsDataElement( de ) )
-        {
-            ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
-
-            qi = new QueryItem( de, program, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
-
-            if ( programStage != null )
-            {
-                qi.setProgramStage( programStage );
-
-                qi.setRepeatableStageParams( getRepeatableStageParams( dimension ) );
-            }
-            else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
-            {
-                throwIllegalQueryEx( ErrorCode.E7225, dimension );
-            }
+      if (relationshipType != null) {
+        qi =
+            new QueryItem(
+                pi,
+                program,
+                legendSet,
+                ValueType.NUMBER,
+                pi.getAggregationType(),
+                null,
+                relationshipType);
+      } else {
+        if (program.getProgramIndicators().contains(pi)) {
+          qi =
+              new QueryItem(
+                  pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null);
         }
+      }
 
-        return Optional.ofNullable( qi );
+      if (qi != null && programStage != null) {
+        qi.setProgramStage(programStage);
+      }
     }
 
-    private Optional<QueryItem> getTrackedEntityAttribute( String dimension, Program program,
-        LegendSet legendSet )
-    {
-        QueryItem qi = null;
+    return Optional.ofNullable(qi);
+  }
 
-        TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( getSecondElement( dimension ) );
+  private ProgramStage getProgramStageOrFail(String dimension) {
+    BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail(dimension);
 
-        if ( at != null && program.containsAttribute( at ) )
-        {
-            ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
+    return (baseIdentifiableObject instanceof ProgramStage
+        ? (ProgramStage) baseIdentifiableObject
+        : null);
+  }
 
-            qi = new QueryItem( at, program, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
+  private static RepeatableStageParams getRepeatableStageParams(String dimension) {
+    try {
+      RepeatableStageParams repeatableStageParams =
+          RepeatableStageParamsHelper.getRepeatableStageParams(dimension);
 
-            ProgramStage programStage = getProgramStageOrFail( dimension );
+      repeatableStageParams.setDimension(dimension);
 
-            if ( programStage != null )
-            {
-                qi.setProgramStage( programStage );
-            }
-        }
+      return repeatableStageParams;
+    } catch (InvalidRepeatableStageParamsException e) {
+      ErrorMessage errorMessage = new ErrorMessage(dimension, ErrorCode.E1101);
 
-        return Optional.ofNullable( qi );
+      throw new IllegalQueryException(errorMessage);
+    }
+  }
+
+  private RelationshipType getRelationshipTypeOrFail(String dimension) {
+    BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail(dimension);
+    return (baseIdentifiableObject instanceof RelationshipType
+        ? (RelationshipType) baseIdentifiableObject
+        : null);
+  }
+
+  private BaseIdentifiableObject getIdObjectOrFail(String dimension) {
+    Stream<Supplier<BaseIdentifiableObject>> fetchers =
+        Stream.of(
+            () -> relationshipTypeService.getRelationshipType(getFirstElement(dimension)),
+            () -> programStageService.getProgramStage(getFirstElement(dimension)));
+
+    boolean requiresIdObject = dimension.split("\\" + PROGRAMSTAGE_SEP).length > 1;
+
+    Optional<BaseIdentifiableObject> found =
+        fetchers.map(Supplier::get).filter(Objects::nonNull).findFirst();
+
+    if (requiresIdObject && found.isEmpty()) {
+      throwIllegalQueryEx(ErrorCode.E7226, dimension);
     }
 
-    private Optional<QueryItem> getProgramIndicator( String dimension, Program program, LegendSet legendSet )
-    {
-        QueryItem qi = null;
-
-        RelationshipType relationshipType = getRelationshipTypeOrFail( dimension );
-
-        ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( getSecondElement( dimension ) );
-
-        // Only allow a program indicator from a different program to be added
-        // when a relationship type is present
-
-        if ( pi != null )
-        {
-            ProgramStage programStage = getProgramStageOrFail( dimension );
-
-            if ( relationshipType != null )
-            {
-                qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null,
-                    relationshipType );
-            }
-            else
-            {
-                if ( program.getProgramIndicators().contains( pi ) )
-                {
-                    qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
-                }
-            }
-
-            if ( qi != null && programStage != null )
-            {
-                qi.setProgramStage( programStage );
-            }
-        }
-
-        return Optional.ofNullable( qi );
-    }
-
-    private ProgramStage getProgramStageOrFail( String dimension )
-    {
-        BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail( dimension );
-
-        return (baseIdentifiableObject instanceof ProgramStage
-            ? (ProgramStage) baseIdentifiableObject
-            : null);
-    }
-
-    private static RepeatableStageParams getRepeatableStageParams( String dimension )
-    {
-        try
-        {
-            RepeatableStageParams repeatableStageParams = RepeatableStageParamsHelper
-                .getRepeatableStageParams( dimension );
-
-            repeatableStageParams.setDimension( dimension );
-
-            return repeatableStageParams;
-        }
-        catch ( InvalidRepeatableStageParamsException e )
-        {
-            ErrorMessage errorMessage = new ErrorMessage( dimension, ErrorCode.E1101 );
-
-            throw new IllegalQueryException( errorMessage );
-        }
-    }
-
-    private RelationshipType getRelationshipTypeOrFail( String dimension )
-    {
-        BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail( dimension );
-        return (baseIdentifiableObject instanceof RelationshipType ? (RelationshipType) baseIdentifiableObject : null);
-    }
-
-    private BaseIdentifiableObject getIdObjectOrFail( String dimension )
-    {
-        Stream<Supplier<BaseIdentifiableObject>> fetchers = Stream.of(
-            () -> relationshipTypeService.getRelationshipType( getFirstElement( dimension ) ),
-            () -> programStageService.getProgramStage( getFirstElement( dimension ) ) );
-
-        boolean requiresIdObject = dimension.split( "\\" + PROGRAMSTAGE_SEP ).length > 1;
-
-        Optional<BaseIdentifiableObject> found = fetchers.map( Supplier::get ).filter( Objects::nonNull ).findFirst();
-
-        if ( requiresIdObject && found.isEmpty() )
-        {
-            throwIllegalQueryEx( ErrorCode.E7226, dimension );
-        }
-
-        return found.orElse( null );
-    }
+    return found.orElse(null);
+  }
 }

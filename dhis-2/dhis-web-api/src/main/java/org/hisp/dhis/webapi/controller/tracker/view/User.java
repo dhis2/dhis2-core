@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Enrico Colasante
@@ -41,20 +40,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User
-{
-    @JsonProperty
-    private String uid;
+public class User {
+  @JsonProperty private String uid;
 
-    @JsonProperty
-    private String username;
+  @JsonProperty private String username;
 
-    @JsonProperty
-    private String firstName;
+  @JsonProperty private String firstName;
 
-    @JsonProperty
-    private String surname;
+  @JsonProperty private String surname;
 
-    @JsonProperty
-    private String displayName;
+  @JsonProperty private String displayName;
 }

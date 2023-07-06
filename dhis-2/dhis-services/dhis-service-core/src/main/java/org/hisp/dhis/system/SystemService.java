@@ -30,7 +30,6 @@ package org.hisp.dhis.system;
 /**
  * @author Lars Helge Overland
  */
-public interface SystemService
-{
-    SystemInfo getSystemInfo();
+public interface SystemService {
+  SystemInfo getSystemInfo();
 }

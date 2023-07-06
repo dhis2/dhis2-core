@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.dimension.mappers;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,40 +39,35 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.mappers.ProgramStageDataElementMapper;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
+class ProgramStageDataElementMapperTest {
 
-class ProgramStageDataElementMapperTest
-{
+  private static final ValueType VALUE_TYPE = ValueType.TEXT;
 
-    private static final ValueType VALUE_TYPE = ValueType.TEXT;
+  private static final String DATA_ELEMENT_UID = "DEUID";
 
-    private static final String DATA_ELEMENT_UID = "DEUID";
+  private static final String PROGRAM_STAGE_UID = "PSUID";
 
-    private static final String PROGRAM_STAGE_UID = "PSUID";
+  @Test
+  void testProgramStageDataElementMapper() {
+    asserter(
+        new ProgramStageDataElementMapper(),
+        ProgramStageDataElement::new,
+        ImmutableList.of(this::setDataElement, this::setProgramStage),
+        ImmutableList.of(
+            Pair.of(DimensionResponse::getValueType, VALUE_TYPE),
+            Pair.of(DimensionResponse::getId, PROGRAM_STAGE_UID + "." + DATA_ELEMENT_UID)));
+  }
 
-    @Test
-    void testProgramStageDataElementMapper()
-    {
-        asserter( new ProgramStageDataElementMapper(),
-            ProgramStageDataElement::new,
-            ImmutableList.of( this::setDataElement, this::setProgramStage ),
-            ImmutableList.of(
-                Pair.of( DimensionResponse::getValueType, VALUE_TYPE ),
-                Pair.of( DimensionResponse::getId, PROGRAM_STAGE_UID + "." + DATA_ELEMENT_UID ) ) );
-    }
+  private void setDataElement(ProgramStageDataElement programStageDataElement) {
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(DATA_ELEMENT_UID);
+    dataElement.setValueType(VALUE_TYPE);
+    programStageDataElement.setDataElement(dataElement);
+  }
 
-    private void setDataElement( ProgramStageDataElement programStageDataElement )
-    {
-        DataElement dataElement = new DataElement();
-        dataElement.setUid( DATA_ELEMENT_UID );
-        dataElement.setValueType( VALUE_TYPE );
-        programStageDataElement.setDataElement( dataElement );
-    }
-
-    private void setProgramStage( ProgramStageDataElement programStageDataElement )
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( PROGRAM_STAGE_UID );
-        programStageDataElement.setProgramStage( programStage );
-    }
+  private void setProgramStage(ProgramStageDataElement programStageDataElement) {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(PROGRAM_STAGE_UID);
+    programStageDataElement.setProgramStage(programStage);
+  }
 }

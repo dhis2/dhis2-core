@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,75 +49,76 @@ import org.springframework.mock.env.MockEnvironment;
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class HibernateDatabaseInfoProviderTest
-{
+@ExtendWith(MockitoExtension.class)
+class HibernateDatabaseInfoProviderTest {
 
-    @Mock
-    private DhisConfigurationProvider config;
+  @Mock private DhisConfigurationProvider config;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    private MockEnvironment environment = new MockEnvironment();
+  private MockEnvironment environment = new MockEnvironment();
 
-    @Mock
-    private ResultSet resultSet;
+  @Mock private ResultSet resultSet;
 
-    private HibernateDatabaseInfoProvider provider;
+  private HibernateDatabaseInfoProvider provider;
 
-    @BeforeEach
-    public void setUp()
-    {
-        environment.setActiveProfiles( "prod" );
-        provider = new HibernateDatabaseInfoProvider( config, jdbcTemplate, environment );
-    }
+  @BeforeEach
+  public void setUp() {
+    environment.setActiveProfiles("prod");
+    provider = new HibernateDatabaseInfoProvider(config, jdbcTemplate, environment);
+  }
 
-    @SuppressWarnings( "unchecked" )
-    @Test
-    void init()
-        throws SQLException
-    {
-        Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select 'checking db connection';" ),
-            Mockito.eq( String.class ) ) ).thenReturn( "" );
+  @SuppressWarnings("unchecked")
+  @Test
+  void init() throws SQLException {
+    Mockito.when(
+            jdbcTemplate.queryForObject(
+                Mockito.eq("select 'checking db connection';"), Mockito.eq(String.class)))
+        .thenReturn("");
 
-        Mockito.when(
-            jdbcTemplate.queryForObject( Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
-            .thenReturn( "2" );
+    Mockito.when(
+            jdbcTemplate.queryForObject(
+                Mockito.eq("select postgis_full_version();"), Mockito.eq(String.class)))
+        .thenReturn("2");
 
-        Mockito.when(
-            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='pg_trgm';" ),
-                Mockito.eq( String.class ) ) )
-            .thenReturn( "pg_trgm" );
+    Mockito.when(
+            jdbcTemplate.queryForObject(
+                Mockito.eq("SELECT extname from pg_extension where extname='pg_trgm';"),
+                Mockito.eq(String.class)))
+        .thenReturn("pg_trgm");
 
-        Mockito.when(
-            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='btree_gin';" ),
-                Mockito.eq( String.class ) ) )
-            .thenReturn( "btree_gin" );
+    Mockito.when(
+            jdbcTemplate.queryForObject(
+                Mockito.eq("SELECT extname from pg_extension where extname='btree_gin';"),
+                Mockito.eq(String.class)))
+        .thenReturn("btree_gin");
 
-        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) )
-            .thenReturn( "jdbc:postgresql:dhisx" );
-        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_USERNAME ) ) ).thenReturn( "dhisy" );
-        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_PASSWORD ) ) ).thenReturn( "dhisz" );
+    Mockito.when(config.getProperty(Mockito.eq(ConfigurationKey.CONNECTION_URL)))
+        .thenReturn("jdbc:postgresql:dhisx");
+    Mockito.when(config.getProperty(Mockito.eq(ConfigurationKey.CONNECTION_USERNAME)))
+        .thenReturn("dhisy");
+    Mockito.when(config.getProperty(Mockito.eq(ConfigurationKey.CONNECTION_PASSWORD)))
+        .thenReturn("dhisz");
 
-        Mockito.when( resultSet.getString( Mockito.eq( 1 ) ) )
-            .thenReturn( "PostgreSQL 10.5, compiled by Visual C++ build 1800, 64-bit" );
-        Mockito.when( resultSet.getString( Mockito.eq( 2 ) ) ).thenReturn( "dhis2" );
-        Mockito.when( resultSet.getString( Mockito.eq( 3 ) ) ).thenReturn( "dhis" );
+    Mockito.when(resultSet.getString(Mockito.eq(1)))
+        .thenReturn("PostgreSQL 10.5, compiled by Visual C++ build 1800, 64-bit");
+    Mockito.when(resultSet.getString(Mockito.eq(2))).thenReturn("dhis2");
+    Mockito.when(resultSet.getString(Mockito.eq(3))).thenReturn("dhis");
 
-        Mockito
-            .when( jdbcTemplate.queryForObject( Mockito.eq( "select version(),current_catalog,current_user" ),
-                Mockito.isA( RowMapper.class ) ) )
-            .thenAnswer( invocation -> ((RowMapper<?>) invocation.getArgument( 1 )).mapRow( resultSet, 1 ) );
+    Mockito.when(
+            jdbcTemplate.queryForObject(
+                Mockito.eq("select version(),current_catalog,current_user"),
+                Mockito.isA(RowMapper.class)))
+        .thenAnswer(invocation -> ((RowMapper<?>) invocation.getArgument(1)).mapRow(resultSet, 1));
 
-        provider.init();
+    provider.init();
 
-        final DatabaseInfo databaseInfo = provider.getDatabaseInfo();
-        assertEquals( "jdbc:postgresql:dhisx", databaseInfo.getUrl() );
-        assertEquals( "dhis2", databaseInfo.getName() );
-        assertEquals( "dhis", databaseInfo.getUser() );
-        assertEquals( "dhisz", databaseInfo.getPassword() );
-        assertEquals( "PostgreSQL 10.5", databaseInfo.getDatabaseVersion() );
-        assertTrue( databaseInfo.isSpatialSupport() );
-    }
+    final DatabaseInfo databaseInfo = provider.getDatabaseInfo();
+    assertEquals("jdbc:postgresql:dhisx", databaseInfo.getUrl());
+    assertEquals("dhis2", databaseInfo.getName());
+    assertEquals("dhis", databaseInfo.getUser());
+    assertEquals("dhisz", databaseInfo.getPassword());
+    assertEquals("PostgreSQL 10.5", databaseInfo.getDatabaseVersion());
+    assertTrue(databaseInfo.isSpatialSupport());
+  }
 }

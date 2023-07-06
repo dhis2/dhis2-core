@@ -30,11 +30,8 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public class MaintenanceModeException
-    extends RuntimeException
-{
-    public MaintenanceModeException( String message )
-    {
-        super( message );
-    }
+public class MaintenanceModeException extends RuntimeException {
+  public MaintenanceModeException(String message) {
+    super(message);
+  }
 }

@@ -27,84 +27,67 @@
  */
 package org.hisp.dhis.sharing;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorReport;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class CascadeSharingReport
-{
-    @JsonProperty
-    private List<ErrorReport> errorReports = new ArrayList<>();
+public class CascadeSharingReport {
+  @JsonProperty private List<ErrorReport> errorReports = new ArrayList<>();
 
-    /**
-     * Number of DashboardItem updated for cascade sharing
-     */
-    @JsonProperty
-    private int countUpdatedDashboardItems = 0;
+  /** Number of DashboardItem updated for cascade sharing */
+  @JsonProperty private int countUpdatedDashboardItems = 0;
 
-    /**
-     * Map contains objects that will be updated for cascade sharing.
-     * <p>
-     * Key: Object Class name
-     * <p>
-     * Value: Set of UIDs of updated objects
-     */
-    @JsonProperty
-    private Map<String, Set<IdObject>> updateObjects = new HashMap<>();
+  /**
+   * Map contains objects that will be updated for cascade sharing.
+   *
+   * <p>Key: Object Class name
+   *
+   * <p>Value: Set of UIDs of updated objects
+   */
+  @JsonProperty private Map<String, Set<IdObject>> updateObjects = new HashMap<>();
 
-    public void addUpdatedObject( String key, IdentifiableObject object )
-    {
-        Set<IdObject> typeReport = getUpdateObjects().get( key );
+  public void addUpdatedObject(String key, IdentifiableObject object) {
+    Set<IdObject> typeReport = getUpdateObjects().get(key);
 
-        if ( typeReport == null )
-        {
-            typeReport = new HashSet<>();
-        }
-
-        typeReport.add( new IdObject( object.getUid(), object.getDisplayName() ) );
-        getUpdateObjects().put( key, typeReport );
+    if (typeReport == null) {
+      typeReport = new HashSet<>();
     }
 
-    public void incUpdatedDashboardItem()
-    {
-        countUpdatedDashboardItems++;
+    typeReport.add(new IdObject(object.getUid(), object.getDisplayName()));
+    getUpdateObjects().put(key, typeReport);
+  }
+
+  public void incUpdatedDashboardItem() {
+    countUpdatedDashboardItems++;
+  }
+
+  public boolean hasErrors() {
+    return !CollectionUtils.isEmpty(errorReports);
+  }
+
+  public class IdObject {
+    @JsonProperty private String id;
+
+    @JsonProperty private String name;
+
+    public IdObject(String id, String name) {
+      this.id = id;
+      this.name = name;
     }
-
-    public boolean hasErrors()
-    {
-        return !CollectionUtils.isEmpty( errorReports );
-    }
-
-    public class IdObject
-    {
-        @JsonProperty
-        private String id;
-
-        @JsonProperty
-        private String name;
-
-        public IdObject( String id, String name )
-        {
-            this.id = id;
-            this.name = name;
-        }
-    }
+  }
 }

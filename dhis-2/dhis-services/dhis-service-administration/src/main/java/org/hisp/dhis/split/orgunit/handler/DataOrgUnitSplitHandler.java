@@ -29,7 +29,6 @@ package org.hisp.dhis.split.orgunit.handler;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.springframework.stereotype.Service;
@@ -42,45 +41,44 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 @AllArgsConstructor
-public class DataOrgUnitSplitHandler
-{
-    private static final String PARAM_ORG_UNIT = "organisationUnit";
+public class DataOrgUnitSplitHandler {
+  private static final String PARAM_ORG_UNIT = "organisationUnit";
 
-    private static final String PARAM_SOURCE = "source";
+  private static final String PARAM_SOURCE = "source";
 
-    private final SessionFactory sessionFactory;
+  private final SessionFactory sessionFactory;
 
-    @Transactional
-    public void splitData( OrgUnitSplitRequest request )
-    {
-        migrate( request, "DataValueAudit", PARAM_ORG_UNIT );
-        migrate( request, "DataValue", PARAM_SOURCE );
-        migrate( request, "DataApprovalAudit", PARAM_ORG_UNIT );
-        migrate( request, "DataApproval", PARAM_ORG_UNIT );
-        migrate( request, "LockException", PARAM_ORG_UNIT );
-        migrate( request, "ValidationResult", PARAM_ORG_UNIT );
-        migrate( request, "MinMaxDataElement", PARAM_SOURCE );
-        migrate( request, "Interpretation", PARAM_ORG_UNIT );
+  @Transactional
+  public void splitData(OrgUnitSplitRequest request) {
+    migrate(request, "DataValueAudit", PARAM_ORG_UNIT);
+    migrate(request, "DataValue", PARAM_SOURCE);
+    migrate(request, "DataApprovalAudit", PARAM_ORG_UNIT);
+    migrate(request, "DataApproval", PARAM_ORG_UNIT);
+    migrate(request, "LockException", PARAM_ORG_UNIT);
+    migrate(request, "ValidationResult", PARAM_ORG_UNIT);
+    migrate(request, "MinMaxDataElement", PARAM_SOURCE);
+    migrate(request, "Interpretation", PARAM_ORG_UNIT);
 
-        migrate( request, "ProgramMessage", "recipients." + PARAM_ORG_UNIT );
-        migrate( request, "ProgramStageInstance", PARAM_ORG_UNIT );
-        migrate( request, "ProgramInstance", PARAM_ORG_UNIT );
-        migrate( request, "ProgramOwnershipHistory", PARAM_ORG_UNIT );
-        migrate( request, "TrackedEntityProgramOwner", PARAM_ORG_UNIT );
-        migrate( request, "TrackedEntityInstance", PARAM_ORG_UNIT );
-    }
+    migrate(request, "ProgramMessage", "recipients." + PARAM_ORG_UNIT);
+    migrate(request, "ProgramStageInstance", PARAM_ORG_UNIT);
+    migrate(request, "ProgramInstance", PARAM_ORG_UNIT);
+    migrate(request, "ProgramOwnershipHistory", PARAM_ORG_UNIT);
+    migrate(request, "TrackedEntityProgramOwner", PARAM_ORG_UNIT);
+    migrate(request, "TrackedEntityInstance", PARAM_ORG_UNIT);
+  }
 
-    private void migrate( OrgUnitSplitRequest request, String entity, String property )
-    {
-        String hql = String.format(
-            "update %s e set e.%s = :target where e.%s = :source",
-            entity, property, property );
+  private void migrate(OrgUnitSplitRequest request, String entity, String property) {
+    String hql =
+        String.format(
+            "update %s e set e.%s = :target where e.%s = :source", entity, property, property);
 
-        log.debug( "Update data HQL: '{}'", hql );
+    log.debug("Update data HQL: '{}'", hql);
 
-        sessionFactory.getCurrentSession().createQuery( hql )
-            .setParameter( "source", request.getSource() )
-            .setParameter( "target", request.getPrimaryTarget() )
-            .executeUpdate();
-    }
+    sessionFactory
+        .getCurrentSession()
+        .createQuery(hql)
+        .setParameter("source", request.getSource())
+        .setParameter("target", request.getPrimaryTarget())
+        .executeUpdate();
+  }
 }

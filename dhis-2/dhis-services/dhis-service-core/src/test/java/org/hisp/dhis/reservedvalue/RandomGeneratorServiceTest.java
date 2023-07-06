@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,139 +43,137 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class RandomGeneratorServiceTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class RandomGeneratorServiceTest {
 
-    @InjectMocks
-    private RandomGeneratorService randomGeneratorService;
+  @InjectMocks private RandomGeneratorService randomGeneratorService;
 
-    @Test
-    void shouldGenerateRandomInteger()
-        throws Exception
-    {
-        int randomLength = 1;
-        String textPattern = IntStream.range( 0, randomLength ).mapToObj( i -> "#" ).collect( Collectors.joining() );
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        assertEquals( RANDOM_GENERATION_CHUNK, randomList.size() );
-        Pattern pattern = Pattern.compile( "-?\\d+(\\.\\d+)?" );
-        randomList.forEach( r -> {
-            assertTrue( pattern.matcher( r ).matches() );
-            assertEquals( randomLength, r.length() );
-        } );
-    }
+  @Test
+  void shouldGenerateRandomInteger() throws Exception {
+    int randomLength = 1;
+    String textPattern =
+        IntStream.range(0, randomLength).mapToObj(i -> "#").collect(Collectors.joining());
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    assertEquals(RANDOM_GENERATION_CHUNK, randomList.size());
+    Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+    randomList.forEach(
+        r -> {
+          assertTrue(pattern.matcher(r).matches());
+          assertEquals(randomLength, r.length());
+        });
+  }
 
-    @Test
-    void shouldGenerateRandomIntegers()
-        throws Exception
-    {
-        int randomLength = 5;
-        String textPattern = IntStream.range( 0, randomLength ).mapToObj( i -> "#" ).collect( Collectors.joining() );
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        assertEquals( RANDOM_GENERATION_CHUNK * 2 + 1, randomList.size() );
-        Pattern pattern = Pattern.compile( "-?\\d+(\\.\\d+)?" );
-        randomList.forEach( r -> {
-            assertTrue( pattern.matcher( r ).matches() );
-            assertEquals( randomLength, r.length() );
-        } );
-    }
+  @Test
+  void shouldGenerateRandomIntegers() throws Exception {
+    int randomLength = 5;
+    String textPattern =
+        IntStream.range(0, randomLength).mapToObj(i -> "#").collect(Collectors.joining());
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    assertEquals(RANDOM_GENERATION_CHUNK * 2 + 1, randomList.size());
+    Pattern pattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+    randomList.forEach(
+        r -> {
+          assertTrue(pattern.matcher(r).matches());
+          assertEquals(randomLength, r.length());
+        });
+  }
 
-    @Test
-    void shouldGenerateRandomLowerCases()
-        throws Exception
-    {
-        int randomLength = 5;
-        String textPattern = IntStream.range( 0, randomLength ).mapToObj( i -> "x" ).collect( Collectors.joining() );
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        randomList.forEach( r -> {
-            assertEquals( r, r.toLowerCase() );
-            assertEquals( randomLength, r.length() );
-        } );
-    }
+  @Test
+  void shouldGenerateRandomLowerCases() throws Exception {
+    int randomLength = 5;
+    String textPattern =
+        IntStream.range(0, randomLength).mapToObj(i -> "x").collect(Collectors.joining());
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    randomList.forEach(
+        r -> {
+          assertEquals(r, r.toLowerCase());
+          assertEquals(randomLength, r.length());
+        });
+  }
 
-    @Test
-    void shouldGenerateRandomUpperCases()
-        throws Exception
-    {
-        int randomLength = 5;
-        String textPattern = IntStream.range( 0, randomLength ).mapToObj( i -> "X" ).collect( Collectors.joining() );
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        randomList.forEach( r -> {
-            assertEquals( r, r.toUpperCase() );
-            assertEquals( randomLength, r.length() );
-        } );
-    }
+  @Test
+  void shouldGenerateRandomUpperCases() throws Exception {
+    int randomLength = 5;
+    String textPattern =
+        IntStream.range(0, randomLength).mapToObj(i -> "X").collect(Collectors.joining());
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    randomList.forEach(
+        r -> {
+          assertEquals(r, r.toUpperCase());
+          assertEquals(randomLength, r.length());
+        });
+  }
 
-    @Test
-    void shouldGenerateRandomMixedUpperLoweCaseLetters()
-        throws Exception
-    {
-        String textPattern = "xxxXXX";
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        randomList.forEach( r -> {
-            IntStream.range( 0, 3 ).forEach( i -> assertTrue( Character.isLowerCase( r.charAt( i ) ) ) );
-            IntStream.range( 3, 6 ).forEach( i -> assertTrue( Character.isUpperCase( r.charAt( i ) ) ) );
-        } );
-    }
+  @Test
+  void shouldGenerateRandomMixedUpperLoweCaseLetters() throws Exception {
+    String textPattern = "xxxXXX";
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    randomList.forEach(
+        r -> {
+          IntStream.range(0, 3).forEach(i -> assertTrue(Character.isLowerCase(r.charAt(i))));
+          IntStream.range(3, 6).forEach(i -> assertTrue(Character.isUpperCase(r.charAt(i))));
+        });
+  }
 
-    @Test
-    void shouldGenerateRandomMixedLettersAndIntegers()
-        throws Exception
-    {
-        String textPattern = "xx###";
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        assertEquals( RANDOM_GENERATION_CHUNK * 3, randomList.size() );
-        randomList.forEach( r -> {
-            IntStream.range( 0, 2 ).forEach( i -> assertTrue( Character.isLowerCase( r.charAt( i ) ) ) );
-            IntStream.range( 2, 5 ).forEach( i -> assertTrue( Character.isDigit( r.charAt( i ) ) ) );
-        } );
-    }
+  @Test
+  void shouldGenerateRandomMixedLettersAndIntegers() throws Exception {
+    String textPattern = "xx###";
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    assertEquals(RANDOM_GENERATION_CHUNK * 3, randomList.size());
+    randomList.forEach(
+        r -> {
+          IntStream.range(0, 2).forEach(i -> assertTrue(Character.isLowerCase(r.charAt(i))));
+          IntStream.range(2, 5).forEach(i -> assertTrue(Character.isDigit(r.charAt(i))));
+        });
+  }
 
-    @Test
-    void shouldGenerateRandomAll()
-        throws Exception
-    {
-        String textPattern = "***XXX###";
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        randomList.forEach( r -> {
-            IntStream.range( 0, 3 ).forEach(
-                i -> assertTrue( Character.isLetter( r.charAt( i ) ) || Character.isDigit( r.charAt( i ) ) ) );
-            IntStream.range( 3, 6 ).forEach( i -> assertTrue( Character.isUpperCase( r.charAt( i ) ) ) );
-            IntStream.range( 6, 9 ).forEach( i -> assertTrue( Character.isDigit( r.charAt( i ) ) ) );
-        } );
-    }
+  @Test
+  void shouldGenerateRandomAll() throws Exception {
+    String textPattern = "***XXX###";
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    randomList.forEach(
+        r -> {
+          IntStream.range(0, 3)
+              .forEach(
+                  i ->
+                      assertTrue(
+                          Character.isLetter(r.charAt(i)) || Character.isDigit(r.charAt(i))));
+          IntStream.range(3, 6).forEach(i -> assertTrue(Character.isUpperCase(r.charAt(i))));
+          IntStream.range(6, 9).forEach(i -> assertTrue(Character.isDigit(r.charAt(i))));
+        });
+  }
 
-    @Test
-    void shouldGenerateMixed()
-        throws Exception
-    {
-        String textPattern = "XXxx##*";
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        randomList.forEach( r -> {
-            IntStream.range( 0, 2 ).forEach( i -> assertTrue( Character.isUpperCase( r.charAt( i ) ) ) );
-            IntStream.range( 2, 4 ).forEach( i -> assertTrue( Character.isLowerCase( r.charAt( i ) ) ) );
-            IntStream.range( 4, 6 ).forEach( i -> assertTrue( Character.isDigit( r.charAt( i ) ) ) );
-            IntStream.range( 6, 7 ).forEach(
-                i -> assertTrue( Character.isLetter( r.charAt( i ) ) || Character.isDigit( r.charAt( i ) ) ) );
-        } );
-    }
+  @Test
+  void shouldGenerateMixed() throws Exception {
+    String textPattern = "XXxx##*";
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    randomList.forEach(
+        r -> {
+          IntStream.range(0, 2).forEach(i -> assertTrue(Character.isUpperCase(r.charAt(i))));
+          IntStream.range(2, 4).forEach(i -> assertTrue(Character.isLowerCase(r.charAt(i))));
+          IntStream.range(4, 6).forEach(i -> assertTrue(Character.isDigit(r.charAt(i))));
+          IntStream.range(6, 7)
+              .forEach(
+                  i ->
+                      assertTrue(
+                          Character.isLetter(r.charAt(i)) || Character.isDigit(r.charAt(i))));
+        });
+  }
 
-    @Test
-    void shouldGenerateFromLongSegment()
-        throws Exception
-    {
-        String textPattern = String.join( "", Collections.nCopies( 50, "x" ) );
-        randomGeneratorService.setSegmentParameter( textPattern );
-        List<String> randomList = randomGeneratorService.call();
-        assertEquals( randomList.get( 0 ).length(), 50 );
-    }
+  @Test
+  void shouldGenerateFromLongSegment() throws Exception {
+    String textPattern = String.join("", Collections.nCopies(50, "x"));
+    randomGeneratorService.setSegmentParameter(textPattern);
+    List<String> randomList = randomGeneratorService.call();
+    assertEquals(randomList.get(0).length(), 50);
+  }
 }

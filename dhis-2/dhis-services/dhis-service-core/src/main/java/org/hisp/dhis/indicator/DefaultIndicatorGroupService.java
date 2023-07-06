@@ -35,21 +35,19 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Stian Sandvold
  */
-@Transactional( readOnly = true )
-@Service( "org.hisp.dhis.indicator.IndicatorGroupService" )
-public class DefaultIndicatorGroupService implements IndicatorGroupService
-{
-    private HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
+@Transactional(readOnly = true)
+@Service("org.hisp.dhis.indicator.IndicatorGroupService")
+public class DefaultIndicatorGroupService implements IndicatorGroupService {
+  private HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
-    public DefaultIndicatorGroupService(
-        @Qualifier( "org.hisp.dhis.indicator.IndicatorGroupStore" ) HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
-    {
-        this.indicatorGroupStore = indicatorGroupStore;
-    }
+  public DefaultIndicatorGroupService(
+      @Qualifier("org.hisp.dhis.indicator.IndicatorGroupStore")
+          HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore) {
+    this.indicatorGroupStore = indicatorGroupStore;
+  }
 
-    @Override
-    public IndicatorGroup getIndicatorGroupByUid( String uid )
-    {
-        return indicatorGroupStore.getByUid( uid );
-    }
+  @Override
+  public IndicatorGroup getIndicatorGroupByUid(String uid) {
+    return indicatorGroupStore.getByUid(uid);
+  }
 }

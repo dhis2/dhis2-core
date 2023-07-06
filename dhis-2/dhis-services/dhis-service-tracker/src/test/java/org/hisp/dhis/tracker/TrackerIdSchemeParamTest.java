@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Set;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
@@ -44,125 +43,115 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 
-class TrackerIdSchemeParamTest
-{
+class TrackerIdSchemeParamTest {
 
-    @Test
-    void toMetadataIdentifierUIDFromString()
-    {
+  @Test
+  void toMetadataIdentifierUIDFromString() {
 
-        MetadataIdentifier id = TrackerIdSchemeParam.UID.toMetadataIdentifier( "z3Z4TD3oBCP" );
+    MetadataIdentifier id = TrackerIdSchemeParam.UID.toMetadataIdentifier("z3Z4TD3oBCP");
 
-        assertEquals( UID, id.getIdScheme() );
-        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
-    }
+    assertEquals(UID, id.getIdScheme());
+    assertEquals("z3Z4TD3oBCP", id.getIdentifier());
+  }
 
-    @Test
-    void toMetadataIdentifierCodeFromString()
-    {
+  @Test
+  void toMetadataIdentifierCodeFromString() {
 
-        MetadataIdentifier id = TrackerIdSchemeParam.CODE.toMetadataIdentifier( "AB" );
+    MetadataIdentifier id = TrackerIdSchemeParam.CODE.toMetadataIdentifier("AB");
 
-        assertEquals( CODE, id.getIdScheme() );
-        assertEquals( "AB", id.getIdentifier() );
-    }
+    assertEquals(CODE, id.getIdScheme());
+    assertEquals("AB", id.getIdentifier());
+  }
 
-    @Test
-    void toMetadataIdentifierAttributeFromString()
-    {
+  @Test
+  void toMetadataIdentifierAttributeFromString() {
 
-        TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute( "z3Z4TD3oBCP" );
+    TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute("z3Z4TD3oBCP");
 
-        MetadataIdentifier id = param.toMetadataIdentifier( "AB" );
+    MetadataIdentifier id = param.toMetadataIdentifier("AB");
 
-        assertEquals( ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
-        assertEquals( "AB", id.getAttributeValue() );
-    }
+    assertEquals(ATTRIBUTE, id.getIdScheme());
+    assertEquals("z3Z4TD3oBCP", id.getIdentifier());
+    assertEquals("AB", id.getAttributeValue());
+  }
 
-    @Test
-    void toMetadataIdentifierAttributeFromStringNull()
-    {
+  @Test
+  void toMetadataIdentifierAttributeFromStringNull() {
 
-        TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute( "z3Z4TD3oBCP" );
+    TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute("z3Z4TD3oBCP");
 
-        MetadataIdentifier id = param.toMetadataIdentifier( (String) null );
+    MetadataIdentifier id = param.toMetadataIdentifier((String) null);
 
-        assertEquals( ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
-        assertNull( id.getAttributeValue() );
-    }
+    assertEquals(ATTRIBUTE, id.getIdScheme());
+    assertEquals("z3Z4TD3oBCP", id.getIdentifier());
+    assertNull(id.getAttributeValue());
+  }
 
-    @Test
-    void toMetadataIdentifierUIDFromIdentifiableObject()
-    {
+  @Test
+  void toMetadataIdentifierUIDFromIdentifiableObject() {
 
-        Program program = new Program();
-        program.setUid( "z3Z4TD3oBCP" );
-        MetadataIdentifier id = TrackerIdSchemeParam.UID.toMetadataIdentifier( program );
+    Program program = new Program();
+    program.setUid("z3Z4TD3oBCP");
+    MetadataIdentifier id = TrackerIdSchemeParam.UID.toMetadataIdentifier(program);
 
-        assertEquals( UID, id.getIdScheme() );
-        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
-    }
+    assertEquals(UID, id.getIdScheme());
+    assertEquals("z3Z4TD3oBCP", id.getIdentifier());
+  }
 
-    @Test
-    void toMetadataIdentifierUIDFromIdentifiableObjectNull()
-    {
+  @Test
+  void toMetadataIdentifierUIDFromIdentifiableObjectNull() {
 
-        MetadataIdentifier id = TrackerIdSchemeParam.UID.toMetadataIdentifier( (IdentifiableObject) null );
+    MetadataIdentifier id =
+        TrackerIdSchemeParam.UID.toMetadataIdentifier((IdentifiableObject) null);
 
-        assertEquals( UID, id.getIdScheme() );
-        assertNull( id.getIdentifier() );
-    }
+    assertEquals(UID, id.getIdScheme());
+    assertNull(id.getIdentifier());
+  }
 
-    @Test
-    void toMetadataIdentifierNameFromIdentifiableObject()
-    {
+  @Test
+  void toMetadataIdentifierNameFromIdentifiableObject() {
 
-        Program program = new Program( "programA" );
-        MetadataIdentifier id = TrackerIdSchemeParam.NAME.toMetadataIdentifier( program );
+    Program program = new Program("programA");
+    MetadataIdentifier id = TrackerIdSchemeParam.NAME.toMetadataIdentifier(program);
 
-        assertEquals( NAME, id.getIdScheme() );
-        assertEquals( "programA", id.getIdentifier() );
-    }
+    assertEquals(NAME, id.getIdScheme());
+    assertEquals("programA", id.getIdentifier());
+  }
 
-    @Test
-    void toMetadataIdentifierAttributeFromIdentifiableObject()
-    {
+  @Test
+  void toMetadataIdentifierAttributeFromIdentifiableObject() {
 
-        TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute( "z3Z4TD3oBCP" );
-        Program program = new Program();
-        Attribute att = new Attribute( "z3Z4TD3oBCP" );
-        program.setAttributeValues(
-            Set.of( new AttributeValue( att, "sunshine" ), attributeValue( "grass" ), attributeValue( "rocks" ) ) );
+    TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute("z3Z4TD3oBCP");
+    Program program = new Program();
+    Attribute att = new Attribute("z3Z4TD3oBCP");
+    program.setAttributeValues(
+        Set.of(
+            new AttributeValue(att, "sunshine"), attributeValue("grass"), attributeValue("rocks")));
 
-        MetadataIdentifier id = param.toMetadataIdentifier( program );
+    MetadataIdentifier id = param.toMetadataIdentifier(program);
 
-        assertEquals( ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
-        assertEquals( "sunshine", id.getAttributeValue() );
-    }
+    assertEquals(ATTRIBUTE, id.getIdScheme());
+    assertEquals("z3Z4TD3oBCP", id.getIdentifier());
+    assertEquals("sunshine", id.getAttributeValue());
+  }
 
-    @Test
-    void toMetadataIdentifierAttributeFromIdentifiableObjectNull()
-    {
+  @Test
+  void toMetadataIdentifierAttributeFromIdentifiableObjectNull() {
 
-        TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute( "z3Z4TD3oBCP" );
+    TrackerIdSchemeParam param = TrackerIdSchemeParam.ofAttribute("z3Z4TD3oBCP");
 
-        MetadataIdentifier id = param.toMetadataIdentifier( (IdentifiableObject) null );
+    MetadataIdentifier id = param.toMetadataIdentifier((IdentifiableObject) null);
 
-        assertEquals( ATTRIBUTE, id.getIdScheme() );
-        assertEquals( "z3Z4TD3oBCP", id.getIdentifier() );
-        assertNull( id.getAttributeValue() );
-    }
+    assertEquals(ATTRIBUTE, id.getIdScheme());
+    assertEquals("z3Z4TD3oBCP", id.getIdentifier());
+    assertNull(id.getAttributeValue());
+  }
 
-    private AttributeValue attributeValue( String value )
-    {
-        return attributeValue( CodeGenerator.generateUid(), value );
-    }
+  private AttributeValue attributeValue(String value) {
+    return attributeValue(CodeGenerator.generateUid(), value);
+  }
 
-    private AttributeValue attributeValue( String uid, String value )
-    {
-        return new AttributeValue( new Attribute( uid ), value );
-    }
+  private AttributeValue attributeValue(String uid, String value) {
+    return new AttributeValue(new Attribute(uid), value);
+  }
 }

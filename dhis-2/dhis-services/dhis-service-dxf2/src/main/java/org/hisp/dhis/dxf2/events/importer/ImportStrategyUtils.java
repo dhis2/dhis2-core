@@ -32,20 +32,20 @@ import org.hisp.dhis.importexport.ImportStrategy;
 /**
  * @author Luciano Fiandesio
  */
-public class ImportStrategyUtils
-{
-    public static boolean isUpdate( ImportStrategy importStrategy )
-    {
-        return importStrategy.isCreateAndUpdate() || importStrategy.isUpdate() || importStrategy.isSync();
-    }
+public class ImportStrategyUtils {
+  public static boolean isUpdate(ImportStrategy importStrategy) {
+    return importStrategy.isCreateAndUpdate()
+        || importStrategy.isUpdate()
+        || importStrategy.isSync();
+  }
 
-    public static boolean isInsert( ImportStrategy importStrategy )
-    {
-        return importStrategy.isCreateAndUpdate() || importStrategy.isCreate() || importStrategy.isSync();
-    }
+  public static boolean isInsert(ImportStrategy importStrategy) {
+    return importStrategy.isCreateAndUpdate()
+        || importStrategy.isCreate()
+        || importStrategy.isSync();
+  }
 
-    public static boolean isDelete( ImportStrategy importStrategy )
-    {
-        return importStrategy.isDelete() || importStrategy.isSync();
-    }
+  public static boolean isDelete(ImportStrategy importStrategy) {
+    return importStrategy.isDelete() || importStrategy.isSync();
+  }
 }

@@ -33,9 +33,8 @@ import org.mapstruct.Mapping;
 
 @Mapper
 public interface ProgramOwnerMapper
-    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
-{
-    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner> {
+  @Mapping(target = "orgUnit", source = "ownerOrgUnit")
+  @Mapping(target = "trackedEntity", source = "trackedEntityInstance")
+  ProgramOwner from(org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner);
 }

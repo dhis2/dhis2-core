@@ -28,10 +28,8 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.Optional;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,44 +48,51 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class DefaultsSupplier extends AbstractPreheatSupplier
-{
+public class DefaultsSupplier extends AbstractPreheatSupplier {
 
-    private static final int CACHE_TTL = 720; // 12h
+  private static final int CACHE_TTL = 720; // 12h
 
-    private static final long CACHE_CAPACITY = 10;
+  private static final long CACHE_CAPACITY = 10;
 
-    @NonNull
-    private final IdentifiableObjectManager manager;
+  @NonNull private final IdentifiableObjectManager manager;
 
-    @NonNull
-    private final PreheatCacheService cache;
+  @NonNull private final PreheatCacheService cache;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        // not using manager.getDefaults() as the collections of the entities
-        // are still hibernate proxies
-        // this leads to lazy init exceptions with - no session. reason is the
-        // defaults are cached in another thread
-        // and the session is closed. using manager.getDefaults() and
-        // session.merge(entity) works, but we would not
-        // benefit from caching.
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    // not using manager.getDefaults() as the collections of the entities
+    // are still hibernate proxies
+    // this leads to lazy init exceptions with - no session. reason is the
+    // defaults are cached in another thread
+    // and the session is closed. using manager.getDefaults() and
+    // session.merge(entity) works, but we would not
+    // benefit from caching.
 
-        preheatDefault( preheat, Category.class, CategoryMapper.INSTANCE, Category.DEFAULT_NAME );
-        preheatDefault( preheat, CategoryCombo.class, CategoryComboMapper.INSTANCE,
-            CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        preheatDefault( preheat, CategoryOption.class, CategoryOptionMapper.INSTANCE, CategoryOption.DEFAULT_NAME );
-        preheatDefault( preheat, CategoryOptionCombo.class, CategoryOptionComboMapper.INSTANCE,
-            CategoryOptionCombo.DEFAULT_NAME );
-    }
+    preheatDefault(preheat, Category.class, CategoryMapper.INSTANCE, Category.DEFAULT_NAME);
+    preheatDefault(
+        preheat,
+        CategoryCombo.class,
+        CategoryComboMapper.INSTANCE,
+        CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME);
+    preheatDefault(
+        preheat, CategoryOption.class, CategoryOptionMapper.INSTANCE, CategoryOption.DEFAULT_NAME);
+    preheatDefault(
+        preheat,
+        CategoryOptionCombo.class,
+        CategoryOptionComboMapper.INSTANCE,
+        CategoryOptionCombo.DEFAULT_NAME);
+  }
 
-    private <T extends IdentifiableObject> void preheatDefault( TrackerPreheat preheat, Class<T> klass,
-        PreheatMapper<T> mapper, String name )
-    {
-        Optional<T> metadata = (Optional<T>) cache.get( DefaultsSupplier.class.getName(), klass.getName(),
-            ( k, n ) -> Optional.ofNullable( mapper.map( manager.getByName( klass, name ) ) ),
-            CACHE_TTL, CACHE_CAPACITY );
-        metadata.ifPresent( t -> preheat.putDefault( klass, t ) );
-    }
+  private <T extends IdentifiableObject> void preheatDefault(
+      TrackerPreheat preheat, Class<T> klass, PreheatMapper<T> mapper, String name) {
+    Optional<T> metadata =
+        (Optional<T>)
+            cache.get(
+                DefaultsSupplier.class.getName(),
+                klass.getName(),
+                (k, n) -> Optional.ofNullable(mapper.map(manager.getByName(klass, name))),
+                CACHE_TTL,
+                CACHE_CAPACITY);
+    metadata.ifPresent(t -> preheat.putDefault(klass, t));
+  }
 }

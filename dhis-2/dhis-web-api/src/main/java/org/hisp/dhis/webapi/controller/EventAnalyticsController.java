@@ -33,14 +33,12 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
-
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
@@ -72,384 +70,427 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class EventAnalyticsController
-{
-    private static final String RESOURCE_PATH = "/analytics/events";
+public class EventAnalyticsController {
+  private static final String RESOURCE_PATH = "/analytics/events";
 
-    private static final String EXPLAIN_PATH = "/explain";
+  private static final String EXPLAIN_PATH = "/explain";
 
-    @NonNull
-    private final EventDataQueryService eventDataService;
+  @NonNull private final EventDataQueryService eventDataService;
 
-    @NonNull
-    private final EventAnalyticsService analyticsService;
+  @NonNull private final EventAnalyticsService analyticsService;
 
-    @NonNull
-    private final ContextUtils contextUtils;
+  @NonNull private final ContextUtils contextUtils;
 
-    @NonNull
-    private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
+  @NonNull private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
-    @NonNull
-    private final EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
+  @NonNull private final EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
-    @NotNull
-    private final ExecutionPlanStore executionPlanStore;
+  @NotNull private final ExecutionPlanStore executionPlanStore;
 
-    @NotNull
-    private final DimensionMapperService dimensionMapperService;
+  @NotNull private final DimensionMapperService dimensionMapperService;
 
-    @NotNull
-    private final SystemSettingManager systemSettingManager;
+  @NotNull private final SystemSettingManager systemSettingManager;
 
-    // -------------------------------------------------------------------------
-    // Aggregate
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Aggregate
+  // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+      value = RESOURCE_PATH + "/aggregate/{program}" + EXPLAIN_PATH,
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainAggregateJson( // JSON, JSONP
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
 
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true, AGGREGATE );
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, AGGREGATE);
 
-        configResponseForJson( response );
+    configResponseForJson(response);
 
-        Grid grid = analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
-            getItemsFromParam( criteria.getRows() ) );
+    Grid grid =
+        analyticsService.getAggregatedEventData(
+            params,
+            getItemsFromParam(criteria.getColumns()),
+            getItemsFromParam(criteria.getRows()));
 
-        if ( params.analyzeOnly() )
-        {
-            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
-        }
-
-        return grid;
+    if (params.analyzeOnly()) {
+      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(params.getExplainOrderId()));
     }
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public @ResponseBody Grid getAggregateJson( // JSON, JSONP
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, AGGREGATE );
+    return grid;
+  }
 
-        configResponseForJson( response );
+  @GetMapping(
+      value = RESOURCE_PATH + "/aggregate/{program}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getAggregateJson( // JSON, JSONP
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
-        return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
-            getItemsFromParam( criteria.getRows() ) );
-    }
+    configResponseForJson(response);
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.xml" )
-    public void getAggregateXml(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toXml( getAggregatedGridWithAttachment( criteria, program, apiVersion,
-            ContextUtils.CONTENT_TYPE_XML, "events.xml", response ), response.getOutputStream() );
-    }
+    return analyticsService.getAggregatedEventData(
+        params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.xls" )
-    public void getAggregateXls(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toXls( getAggregatedGridWithAttachment( criteria, program, apiVersion,
-            ContextUtils.CONTENT_TYPE_EXCEL, "events.xls", response ), response.getOutputStream() );
-    }
+  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.xml")
+  public void getAggregateXml(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXml(
+        getAggregatedGridWithAttachment(
+            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML, "events.xml", response),
+        response.getOutputStream());
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.csv" )
-    public void getAggregateCsv(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toCsv( getAggregatedGridWithAttachment( criteria, program, apiVersion,
-            ContextUtils.CONTENT_TYPE_CSV, "events.csv", response ), response.getWriter() );
-    }
+  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.xls")
+  public void getAggregateXls(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXls(
+        getAggregatedGridWithAttachment(
+            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "events.xls", response),
+        response.getOutputStream());
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.html" )
-    public void getAggregateHtml(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toHtml( getAggregatedGridWithAttachment( criteria, program, apiVersion,
-            ContextUtils.CONTENT_TYPE_HTML, "events.html", response ), response.getWriter() );
-    }
+  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.csv")
+  public void getAggregateCsv(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toCsv(
+        getAggregatedGridWithAttachment(
+            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "events.csv", response),
+        response.getWriter());
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}.html+css" )
-    public void getAggregateHtmlCss(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toHtmlCss( getAggregatedGridWithAttachment( criteria, program, apiVersion,
-            ContextUtils.CONTENT_TYPE_HTML, "events.html", response ), response.getWriter() );
-    }
+  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.html")
+  public void getAggregateHtml(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toHtml(
+        getAggregatedGridWithAttachment(
+            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML, "events.html", response),
+        response.getWriter());
+  }
 
-    @ResponseBody
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/dimensions", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
-        @RequestParam String programStageId,
-        @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionsCriteria dimensionsCriteria,
-        HttpServletResponse response )
-    {
-        configResponseForJson( response );
-        return dimensionFilteringAndPagingService
-            .pageAndFilter(
-                dimensionMapperService.toDimensionResponse(
-                    eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
-                dimensionsCriteria,
-                fields );
-    }
+  @GetMapping(value = RESOURCE_PATH + "/aggregate/{program}.html+css")
+  public void getAggregateHtmlCss(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toHtmlCss(
+        getAggregatedGridWithAttachment(
+            criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML, "events.html", response),
+        response.getWriter());
+  }
 
-    // -------------------------------------------------------------------------
-    // Count / rectangle
-    // -------------------------------------------------------------------------
+  @ResponseBody
+  @GetMapping(
+      value = RESOURCE_PATH + "/aggregate/dimensions",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
+      @RequestParam String programStageId,
+      @RequestParam(defaultValue = "*") List<String> fields,
+      DimensionsCriteria dimensionsCriteria,
+      HttpServletResponse response) {
+    configResponseForJson(response);
+    return dimensionFilteringAndPagingService.pageAndFilter(
+        dimensionMapperService.toDimensionResponse(
+            eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId(programStageId),
+            programStageId),
+        dimensionsCriteria,
+        fields);
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/count/{program}", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public @ResponseBody Rectangle getCountJson( // JSON, JSONP
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, OTHER );
+  // -------------------------------------------------------------------------
+  // Count / rectangle
+  // -------------------------------------------------------------------------
 
-        configResponseForJson( response );
+  @GetMapping(
+      value = RESOURCE_PATH + "/count/{program}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Rectangle getCountJson( // JSON, JSONP
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, OTHER);
 
-        return analyticsService.getRectangle( params );
-    }
+    configResponseForJson(response);
 
-    // -------------------------------------------------------------------------
-    // Clustering
-    // -------------------------------------------------------------------------
+    return analyticsService.getRectangle(params);
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/cluster/{program}", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public @ResponseBody Grid getClusterJson( // JSON, JSONP
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        @RequestParam Long clusterSize,
-        @RequestParam String bbox,
-        @RequestParam( required = false ) boolean includeClusterPoints,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, OTHER );
+  // -------------------------------------------------------------------------
+  // Clustering
+  // -------------------------------------------------------------------------
 
-        params = new EventQueryParams.Builder( params )
-            .withClusterSize( clusterSize )
-            .withBbox( bbox )
-            .withIncludeClusterPoints( includeClusterPoints )
+  @GetMapping(
+      value = RESOURCE_PATH + "/cluster/{program}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getClusterJson( // JSON, JSONP
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      @RequestParam Long clusterSize,
+      @RequestParam String bbox,
+      @RequestParam(required = false) boolean includeClusterPoints,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, OTHER);
+
+    params =
+        new EventQueryParams.Builder(params)
+            .withClusterSize(clusterSize)
+            .withBbox(bbox)
+            .withIncludeClusterPoints(includeClusterPoints)
             .build();
 
-        configResponseForJson( response );
+    configResponseForJson(response);
 
-        return analyticsService.getEventClusters( params );
+    return analyticsService.getEventClusters(params);
+  }
+
+  // -------------------------------------------------------------------------
+  // Query
+  // -------------------------------------------------------------------------
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+      value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH,
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, QUERY);
+
+    configResponseForJson(response);
+
+    Grid grid = analyticsService.getEvents(params);
+
+    if (params.analyzeOnly()) {
+      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(params.getExplainOrderId()));
     }
 
-    // -------------------------------------------------------------------------
-    // Query
-    // -------------------------------------------------------------------------
+    return grid;
+  }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}" + EXPLAIN_PATH, produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true, QUERY );
+  @GetMapping(
+      value = RESOURCE_PATH + "/query/{program}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getQueryJson( // JSON, JSONP
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-        configResponseForJson( response );
+    configResponseForJson(response);
 
-        Grid grid = analyticsService.getEvents( params );
+    return analyticsService.getEvents(params);
+  }
 
-        if ( params.analyzeOnly() )
-        {
-            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( params.getExplainOrderId() ) );
-        }
+  @GetMapping(value = RESOURCE_PATH + "/query/{program}.xml")
+  public void getQueryXml(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXml(
+        getListGridWithAttachment(
+            criteria,
+            program,
+            apiVersion,
+            ContextUtils.CONTENT_TYPE_XML,
+            "events.xml",
+            false,
+            response),
+        response.getOutputStream());
+  }
 
-        return grid;
-    }
+  @GetMapping(value = RESOURCE_PATH + "/query/{program}.xls")
+  public void getQueryXls(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toXls(
+        getListGridWithAttachment(
+            criteria,
+            program,
+            apiVersion,
+            ContextUtils.CONTENT_TYPE_EXCEL,
+            "events.xls",
+            true,
+            response),
+        response.getOutputStream());
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public @ResponseBody Grid getQueryJson( // JSON, JSONP
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+  @GetMapping(value = RESOURCE_PATH + "/query/{program}.csv")
+  public void getQueryCsv(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toCsv(
+        getListGridWithAttachment(
+            criteria,
+            program,
+            apiVersion,
+            ContextUtils.CONTENT_TYPE_CSV,
+            "events.csv",
+            true,
+            response),
+        response.getWriter());
+  }
 
-        configResponseForJson( response );
+  @GetMapping(value = RESOURCE_PATH + "/query/{program}.html")
+  public void getQueryHtml(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toHtml(
+        getListGridWithAttachment(
+            criteria,
+            program,
+            apiVersion,
+            ContextUtils.CONTENT_TYPE_HTML,
+            "events.html",
+            false,
+            response),
+        response.getWriter());
+  }
 
-        return analyticsService.getEvents( params );
-    }
+  @GetMapping(value = RESOURCE_PATH + "/query/{program}.html+css")
+  public void getQueryHtmlCss(
+      @PathVariable String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    GridUtils.toHtmlCss(
+        getListGridWithAttachment(
+            criteria,
+            program,
+            apiVersion,
+            ContextUtils.CONTENT_TYPE_HTML,
+            "events.html",
+            false,
+            response),
+        response.getWriter());
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}.xml" )
-    public void getQueryXml(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toXml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
-            "events.xml", false, response ), response.getOutputStream() );
-    }
+  @ResponseBody
+  @GetMapping(
+      value = RESOURCE_PATH + "/query/dimensions",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
+      @RequestParam String programStageId,
+      @RequestParam(defaultValue = "*") List<String> fields,
+      DimensionsCriteria dimensionsCriteria,
+      HttpServletResponse response) {
+    configResponseForJson(response);
+    return dimensionFilteringAndPagingService.pageAndFilter(
+        dimensionMapperService.toDimensionResponse(
+            eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId(programStageId),
+            programStageId),
+        dimensionsCriteria,
+        fields);
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}.xls" )
-    public void getQueryXls(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toXls( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
-            "events.xls", true, response ), response.getOutputStream() );
-    }
+  private Grid getAggregatedGridWithAttachment(
+      EventsAnalyticsQueryCriteria criteria,
+      String program,
+      DhisApiVersion apiVersion,
+      String contentType,
+      String file,
+      HttpServletResponse response)
+      throws Exception {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, AGGREGATE);
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}.csv" )
-    public void getQueryCsv(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toCsv( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
-            "events.csv", true, response ), response.getWriter() );
-    }
+    contextUtils.configureResponse(
+        response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, false);
+    return analyticsService.getAggregatedEventData(
+        params, getItemsFromParam(criteria.getColumns()), getItemsFromParam(criteria.getRows()));
+  }
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}.html" )
-    public void getQueryHtml(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toHtml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", false, response ), response.getWriter() );
-    }
+  private Grid getListGridWithAttachment(
+      EventsAnalyticsQueryCriteria criteria,
+      String program,
+      DhisApiVersion apiVersion,
+      String contentType,
+      String file,
+      boolean attachment,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}.html+css" )
-    public void getQueryHtmlCss(
-        @PathVariable String program,
-        EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        GridUtils.toHtmlCss( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", false, response ), response.getWriter() );
-    }
+    contextUtils.configureResponse(
+        response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment);
+    return analyticsService.getEvents(params);
+  }
 
-    @ResponseBody
-    @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
-        @RequestParam String programStageId,
-        @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionsCriteria dimensionsCriteria,
-        HttpServletResponse response )
-    {
-        configResponseForJson( response );
-        return dimensionFilteringAndPagingService
-            .pageAndFilter(
-                dimensionMapperService.toDimensionResponse(
-                    eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
-                    programStageId ),
-                dimensionsCriteria,
-                fields );
-    }
+  private EventQueryParams getEventQueryParams(
+      String program,
+      EventsAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      boolean analyzeOnly,
+      EndpointAction endpointAction) {
+    criteria.definePageSize(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT));
 
-    private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
-        DhisApiVersion apiVersion,
-        String contentType, String file,
-        HttpServletResponse response )
-        throws Exception
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, AGGREGATE );
+    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
+        criteria,
+        systemSettingManager.getSystemSetting(
+            SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
 
-        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            file, false );
-        return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
-            getItemsFromParam( criteria.getRows() ) );
-    }
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
+            .fromCriteria(
+                (EventsAnalyticsQueryCriteria)
+                    criteria
+                        .withEndpointAction(endpointAction)
+                        .withEndpointItem(RequestTypeAware.EndpointItem.EVENT))
+            .program(program)
+            .apiVersion(apiVersion)
+            .build();
 
-    private Grid getListGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
-        DhisApiVersion apiVersion,
-        String contentType, String file, boolean attachment,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+    return eventDataService.getFromRequest(request, analyzeOnly);
+  }
 
-        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment );
-        return analyticsService.getEvents( params );
-    }
-
-    private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion, boolean analyzeOnly, EndpointAction endpointAction )
-    {
-        criteria
-            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
-
-        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( criteria,
-            systemSettingManager.getSystemSetting( SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class ) );
-
-        EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( endpointAction )
-                .withEndpointItem( RequestTypeAware.EndpointItem.EVENT ) )
-            .program( program )
-            .apiVersion( apiVersion ).build();
-
-        return eventDataService.getFromRequest( request, analyzeOnly );
-    }
-
-    private void configResponseForJson( HttpServletResponse response )
-    {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
-    }
+  private void configResponseForJson(HttpServletResponse response) {
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+  }
 }

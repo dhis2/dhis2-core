@@ -27,102 +27,90 @@
  */
 package org.hisp.dhis.system.notification;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
-
 import javax.annotation.Nonnull;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-public class InMemoryNotifier implements Notifier
-{
-    public static final int MAX_POOL_TYPE_SIZE = 500;
+public class InMemoryNotifier implements Notifier {
+  public static final int MAX_POOL_TYPE_SIZE = 500;
 
-    private final NotificationMap notificationMap = new NotificationMap( MAX_POOL_TYPE_SIZE );
+  private final NotificationMap notificationMap = new NotificationMap(MAX_POOL_TYPE_SIZE);
 
-    @Override
-    public Notifier notify( JobConfiguration id, @Nonnull NotificationLevel level, String message,
-        boolean completed, NotificationDataType dataType, JsonNode data )
-    {
-        if ( id != null && !(level != null && level.isOff()) )
-        {
-            Notification notification = new Notification( level, id.getJobType(), new Date(), message, completed,
-                dataType, data );
+  @Override
+  public Notifier notify(
+      JobConfiguration id,
+      @Nonnull NotificationLevel level,
+      String message,
+      boolean completed,
+      NotificationDataType dataType,
+      JsonNode data) {
+    if (id != null && !(level != null && level.isOff())) {
+      Notification notification =
+          new Notification(level, id.getJobType(), new Date(), message, completed, dataType, data);
 
-            if ( id.isInMemoryJob() && !StringUtils.isEmpty( id.getUid() ) )
-            {
-                notification.setUid( id.getUid() );
-            }
+      if (id.isInMemoryJob() && !StringUtils.isEmpty(id.getUid())) {
+        notification.setUid(id.getUid());
+      }
 
-            notificationMap.add( id, notification );
+      notificationMap.add(id, notification);
 
-            NotificationLoggerUtil.log( log, level, message );
-        }
-
-        return this;
+      NotificationLoggerUtil.log(log, level, message);
     }
 
-    @Override
-    public Map<JobType, Map<String, Deque<Notification>>> getNotifications()
-    {
-        return notificationMap.getNotifications();
+    return this;
+  }
+
+  @Override
+  public Map<JobType, Map<String, Deque<Notification>>> getNotifications() {
+    return notificationMap.getNotifications();
+  }
+
+  @Override
+  public Deque<Notification> getNotificationsByJobId(JobType jobType, String jobId) {
+    return notificationMap.getNotificationsByJobId(jobType, jobId);
+  }
+
+  @Override
+  public Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType) {
+    return notificationMap.getNotificationsWithType(jobType);
+  }
+
+  @Override
+  public Notifier clear(JobConfiguration id) {
+    if (id != null) {
+      notificationMap.clear(id);
     }
 
-    @Override
-    public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
-    {
-        return notificationMap.getNotificationsByJobId( jobType, jobId );
+    return this;
+  }
+
+  @Override
+  public <T> Notifier addJobSummary(
+      JobConfiguration id, NotificationLevel level, T jobSummary, Class<T> jobSummaryType) {
+    if (id != null && !(level != null && level.isOff())) {
+      notificationMap.addSummary(id, jobSummary);
     }
 
-    @Override
-    public Map<String, Deque<Notification>> getNotificationsByJobType( JobType jobType )
-    {
-        return notificationMap.getNotificationsWithType( jobType );
-    }
+    return this;
+  }
 
-    @Override
-    public Notifier clear( JobConfiguration id )
-    {
-        if ( id != null )
-        {
-            notificationMap.clear( id );
-        }
+  @Override
+  public Map<String, Object> getJobSummariesForJobType(JobType jobType) {
+    return notificationMap.getJobSummariesForJobType(jobType);
+  }
 
-        return this;
-    }
-
-    @Override
-    public <T> Notifier addJobSummary( JobConfiguration id, NotificationLevel level, T jobSummary,
-        Class<T> jobSummaryType )
-    {
-        if ( id != null && !(level != null && level.isOff()) )
-        {
-            notificationMap.addSummary( id, jobSummary );
-        }
-
-        return this;
-    }
-
-    @Override
-    public Map<String, Object> getJobSummariesForJobType( JobType jobType )
-    {
-        return notificationMap.getJobSummariesForJobType( jobType );
-    }
-
-    @Override
-    public Object getJobSummaryByJobId( JobType jobType, String jobId )
-    {
-        return notificationMap.getSummary( jobType, jobId );
-    }
+  @Override
+  public Object getJobSummaryByJobId(JobType jobType, String jobId) {
+    return notificationMap.getSummary(jobType, jobId);
+  }
 }

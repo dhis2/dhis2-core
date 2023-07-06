@@ -29,9 +29,7 @@ package org.hisp.dhis.programrule.action.validation;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
@@ -51,62 +49,75 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Zubair Asghar
  */
-
 @Component
-public class ProgramRuleActionValidationContextLoader
-{
-    @Nonnull
-    private final ProgramRuleActionValidationService validationService;
+public class ProgramRuleActionValidationContextLoader {
+  @Nonnull private final ProgramRuleActionValidationService validationService;
 
-    private final IdentifiableObjectManager objectManager;
+  private final IdentifiableObjectManager objectManager;
 
-    public ProgramRuleActionValidationContextLoader(
-        @Nonnull ProgramRuleActionValidationService actionValidationService, IdentifiableObjectManager manager )
-    {
-        this.validationService = actionValidationService;
-        this.objectManager = manager;
+  public ProgramRuleActionValidationContextLoader(
+      @Nonnull ProgramRuleActionValidationService actionValidationService,
+      IdentifiableObjectManager manager) {
+    this.validationService = actionValidationService;
+    this.objectManager = manager;
+  }
+
+  @Transactional(readOnly = true)
+  public ProgramRuleActionValidationContext load(
+      Preheat preheat, PreheatIdentifier preheatIdentifier, ProgramRuleAction ruleAction) {
+    ProgramRule rule =
+        preheat.get(preheatIdentifier, ProgramRule.class, ruleAction.getProgramRule());
+
+    Program program = preheat.get(preheatIdentifier, Program.class, rule.getProgram());
+
+    if (program == null) {
+      program = objectManager.get(Program.class, rule.getProgram().getUid());
+      preheat.put(preheatIdentifier, program);
     }
 
-    @Transactional( readOnly = true )
-    public ProgramRuleActionValidationContext load( Preheat preheat, PreheatIdentifier preheatIdentifier,
-        ProgramRuleAction ruleAction )
-    {
-        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class,
-            ruleAction.getProgramRule() );
+    List<ProgramStage> stages =
+        preheat.getAll(preheatIdentifier, new ArrayList<>(program.getProgramStages()));
 
-        Program program = preheat.get( preheatIdentifier, Program.class, rule.getProgram() );
-
-        if ( program == null )
-        {
-            program = objectManager.get( Program.class, rule.getProgram().getUid() );
-            preheat.put( preheatIdentifier, program );
-        }
-
-        List<ProgramStage> stages = preheat.getAll( preheatIdentifier, new ArrayList<>( program.getProgramStages() ) );
-
-        return ProgramRuleActionValidationContext.builder()
-            .programRule( rule )
-            .program( program )
-            .programStages( stages )
-            .dataElement( ruleAction.hasDataElement()
-                ? preheat.get( preheatIdentifier, DataElement.class, ruleAction.getDataElement() )
-                : null )
-            .trackedEntityAttribute(
-                ruleAction.hasTrackedEntityAttribute() ? preheat.get( preheatIdentifier, TrackedEntityAttribute.class,
-                    ruleAction.getAttribute() ) : null )
-            .notificationTemplate(
-                ruleAction.hasNotification() ? preheat.get( preheatIdentifier, ProgramNotificationTemplate.class,
-                    ruleAction.getTemplateUid() ) : null )
-            .programStageSection(
-                ruleAction.hasProgramStageSection() ? preheat.get( preheatIdentifier, ProgramStageSection.class,
-                    ruleAction.getProgramStageSection() ) : null )
-            .programStage( ruleAction.hasProgramStage() ? preheat.get( preheatIdentifier, ProgramStage.class,
-                ruleAction.getProgramStage() ) : null )
-            .option( ruleAction.hasOption() ? preheat.get( preheatIdentifier, Option.class,
-                ruleAction.getOption() ) : null )
-            .optionGroup( ruleAction.hasOptionGroup() ? preheat.get( preheatIdentifier, OptionGroup.class,
-                ruleAction.getOptionGroup() ) : null )
-            .programRuleActionValidationService( validationService )
-            .build();
-    }
+    return ProgramRuleActionValidationContext.builder()
+        .programRule(rule)
+        .program(program)
+        .programStages(stages)
+        .dataElement(
+            ruleAction.hasDataElement()
+                ? preheat.get(preheatIdentifier, DataElement.class, ruleAction.getDataElement())
+                : null)
+        .trackedEntityAttribute(
+            ruleAction.hasTrackedEntityAttribute()
+                ? preheat.get(
+                    preheatIdentifier, TrackedEntityAttribute.class, ruleAction.getAttribute())
+                : null)
+        .notificationTemplate(
+            ruleAction.hasNotification()
+                ? preheat.get(
+                    preheatIdentifier,
+                    ProgramNotificationTemplate.class,
+                    ruleAction.getTemplateUid())
+                : null)
+        .programStageSection(
+            ruleAction.hasProgramStageSection()
+                ? preheat.get(
+                    preheatIdentifier,
+                    ProgramStageSection.class,
+                    ruleAction.getProgramStageSection())
+                : null)
+        .programStage(
+            ruleAction.hasProgramStage()
+                ? preheat.get(preheatIdentifier, ProgramStage.class, ruleAction.getProgramStage())
+                : null)
+        .option(
+            ruleAction.hasOption()
+                ? preheat.get(preheatIdentifier, Option.class, ruleAction.getOption())
+                : null)
+        .optionGroup(
+            ruleAction.hasOptionGroup()
+                ? preheat.get(preheatIdentifier, OptionGroup.class, ruleAction.getOptionGroup())
+                : null)
+        .programRuleActionValidationService(validationService)
+        .build();
+  }
 }

@@ -30,46 +30,45 @@ package org.hisp.dhis.analytics.event;
 import org.hisp.dhis.common.Grid;
 
 /**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
+ * This interface is responsible for retrieving aggregated event data. Data will be returned in a
+ * grid object or as a dimensional key-value mapping.
  *
  * @author Markus Bekken
  */
-public interface EnrollmentAnalyticsService
-{
-    String ITEM_TEI = "tei";
+public interface EnrollmentAnalyticsService {
+  String ITEM_TEI = "tei";
 
-    String ITEM_PI = "pi";
+  String ITEM_PI = "pi";
 
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+  String ITEM_ENROLLMENT_DATE = "enrollmentdate";
 
-    String ITEM_INCIDENT_DATE = "incidentdate";
+  String ITEM_INCIDENT_DATE = "incidentdate";
 
-    String ITEM_STORED_BY = "storedby";
+  String ITEM_STORED_BY = "storedby";
 
-    String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
+  String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
 
-    String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
+  String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
 
-    String ITEM_LAST_UPDATED = "lastupdated";
+  String ITEM_LAST_UPDATED = "lastupdated";
 
-    String ITEM_GEOMETRY = "geometry";
+  String ITEM_GEOMETRY = "geometry";
 
-    String ITEM_LONGITUDE = "longitude";
+  String ITEM_LONGITUDE = "longitude";
 
-    String ITEM_LATITUDE = "latitude";
+  String ITEM_LATITUDE = "latitude";
 
-    String ITEM_ORG_UNIT_NAME = "ouname";
+  String ITEM_ORG_UNIT_NAME = "ouname";
 
-    String ITEM_ORG_UNIT_CODE = "oucode";
+  String ITEM_ORG_UNIT_CODE = "oucode";
 
-    String ITEM_PROGRAM_STATUS = "programstatus";
+  String ITEM_PROGRAM_STATUS = "programstatus";
 
-    /**
-     * Returns a list of enrollments matching the given query.
-     *
-     * @param params the envent query parameters.
-     * @return enrollments with event data as a Grid object.
-     */
-    Grid getEnrollments( EventQueryParams params );
+  /**
+   * Returns a list of enrollments matching the given query.
+   *
+   * @param params the envent query parameters.
+   * @return enrollments with event data as a Grid object.
+   */
+  Grid getEnrollments(EventQueryParams params);
 }

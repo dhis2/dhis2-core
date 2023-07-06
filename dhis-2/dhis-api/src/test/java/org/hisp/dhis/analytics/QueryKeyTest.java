@@ -31,84 +31,80 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.Locale;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-class QueryKeyTest
-{
-    @Test
-    void testAsPlainKey()
-    {
-        String key = new QueryKey()
-            .add( "dimension", "dx" )
-            .add( "dimension", "pe" )
-            .add( "filter", "ou" )
-            .add( "aggregationType", AggregationType.SUM )
-            .add( "skipMeta", true )
-            .add( "locale", Locale.FRENCH )
+class QueryKeyTest {
+  @Test
+  void testAsPlainKey() {
+    String key =
+        new QueryKey()
+            .add("dimension", "dx")
+            .add("dimension", "pe")
+            .add("filter", "ou")
+            .add("aggregationType", AggregationType.SUM)
+            .add("skipMeta", true)
+            .add("locale", Locale.FRENCH)
             .asPlainKey();
 
-        assertEquals( "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true-locale:fr", key );
-    }
+    assertEquals(
+        "dimension:dx-dimension:pe-filter:ou-aggregationType:SUM-skipMeta:true-locale:fr", key);
+  }
 
-    @Test
-    void testAsPlainKeyB()
-    {
-        String key = new QueryKey()
-            .add( "dimension", "dx" )
-            .add( "filter", "pe" )
-            .add( "filter", "ou" )
-            .add( "aggregationType", AggregationType.AVERAGE )
-            .add( "skipMeta", true )
+  @Test
+  void testAsPlainKeyB() {
+    String key =
+        new QueryKey()
+            .add("dimension", "dx")
+            .add("filter", "pe")
+            .add("filter", "ou")
+            .add("aggregationType", AggregationType.AVERAGE)
+            .add("skipMeta", true)
             .asPlainKey();
 
-        assertEquals( "dimension:dx-filter:pe-filter:ou-aggregationType:AVERAGE-skipMeta:true", key );
-    }
+    assertEquals("dimension:dx-filter:pe-filter:ou-aggregationType:AVERAGE-skipMeta:true", key);
+  }
 
-    @Test
-    void testAsPlainKeyC()
-    {
-        String key = new QueryKey()
-            .add( "dimension", "dx" )
-            .add( "locale", null )
+  @Test
+  void testAsPlainKeyC() {
+    String key = new QueryKey().add("dimension", "dx").add("locale", null).asPlainKey();
+
+    assertEquals("dimension:dx-locale:null", key);
+  }
+
+  @Test
+  void testAsPlainKeyIgnoreNull() {
+    String key =
+        new QueryKey()
+            .add("dimension", "dx")
+            .add("filter", "ou")
+            .addIgnoreNull("valueType", null)
+            .addIgnoreNull("locale", null)
             .asPlainKey();
 
-        assertEquals( "dimension:dx-locale:null", key );
-    }
+    assertEquals("dimension:dx-filter:ou", key);
+  }
 
-    @Test
-    void testAsPlainKeyIgnoreNull()
-    {
-        String key = new QueryKey()
-            .add( "dimension", "dx" )
-            .add( "filter", "ou" )
-            .addIgnoreNull( "valueType", null )
-            .addIgnoreNull( "locale", null )
+  @Test
+  void testNoCollision() {
+    String keyA =
+        new QueryKey()
+            .add("dimension", "dx")
+            .add("dimension", "aZASaK6ebLC")
+            .add("filter", "ou")
+            .add("aggregationType", AggregationType.SUM)
             .asPlainKey();
 
-        assertEquals( "dimension:dx-filter:ou", key );
-    }
-
-    @Test
-    void testNoCollision()
-    {
-        String keyA = new QueryKey()
-            .add( "dimension", "dx" )
-            .add( "dimension", "aZASaK6ebLC" )
-            .add( "filter", "ou" )
-            .add( "aggregationType", AggregationType.SUM )
+    String keyB =
+        new QueryKey()
+            .add("dimension", "dx")
+            .add("dimension", "aZASaK6ebLD")
+            .add("filter", "ou")
+            .add("aggregationType", AggregationType.SUM)
             .asPlainKey();
 
-        String keyB = new QueryKey()
-            .add( "dimension", "dx" )
-            .add( "dimension", "aZASaK6ebLD" )
-            .add( "filter", "ou" )
-            .add( "aggregationType", AggregationType.SUM )
-            .asPlainKey();
-
-        assertNotEquals( keyA, keyB );
-    }
+    assertNotEquals(keyA, keyB);
+  }
 }

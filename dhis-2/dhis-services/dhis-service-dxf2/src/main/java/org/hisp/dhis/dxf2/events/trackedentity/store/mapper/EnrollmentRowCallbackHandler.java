@@ -54,7 +54,6 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuer
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.util.DateUtils;
@@ -62,52 +61,47 @@ import org.hisp.dhis.util.DateUtils;
 /**
  * @author Luciano Fiandesio
  */
-public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
-{
-    @Override
-    Enrollment getItem( ResultSet rs )
-        throws SQLException
-    {
-        return getEnrollment( rs );
-    }
+public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment> {
+  @Override
+  Enrollment getItem(ResultSet rs) throws SQLException {
+    return getEnrollment(rs);
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return "tei_uid";
-    }
+  @Override
+  String getKeyColumn() {
+    return "tei_uid";
+  }
 
-    private Enrollment getEnrollment( ResultSet rs )
-        throws SQLException
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( rs.getString( getColumnName( UID ) ) );
+  private Enrollment getEnrollment(ResultSet rs) throws SQLException {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(rs.getString(getColumnName(UID)));
 
-        MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) )
-            .ifPresent( enrollment::setGeometry );
+    MapperGeoUtils.resolveGeometry(rs.getBytes(getColumnName(GEOMETRY)))
+        .ifPresent(enrollment::setGeometry);
 
-        enrollment.setTrackedEntityType( rs.getString( getColumnName( TEI_TYPE_UID ) ) );
-        enrollment.setTrackedEntityInstance( rs.getString( getColumnName( TEI_UID ) ) );
-        enrollment.setOrgUnit( rs.getString( getColumnName( ORGUNIT_UID ) ) );
-        enrollment.setOrgUnitName( rs.getString( getColumnName( ORGUNIT_NAME ) ) );
-        enrollment.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
-        enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATEDCLIENT ) ) ) );
-        setUserInfoSnapshot( rs, getColumnName( CREATED_BY ), enrollment::setCreatedByUserInfo );
-        enrollment.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
-        enrollment
-            .setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATEDCLIENT ) ) ) );
-        setUserInfoSnapshot( rs, getColumnName( LAST_UPDATED_BY ), enrollment::setLastUpdatedByUserInfo );
-        enrollment.setProgram( rs.getString( getColumnName( PROGRAM_UID ) ) );
-        enrollment.setStatus( EnrollmentStatus.fromStatusString( rs.getString( getColumnName( STATUS ) ) ) );
-        enrollment.setEnrollmentDate( rs.getTimestamp( getColumnName( ENROLLMENTDATE ) ) );
-        enrollment.setIncidentDate( rs.getTimestamp( getColumnName( INCIDENTDATE ) ) );
-        final boolean followup = rs.getBoolean( getColumnName( FOLLOWUP ) );
-        enrollment.setFollowup( rs.wasNull() ? null : followup );
-        enrollment.setCompletedDate( rs.getTimestamp( getColumnName( COMPLETED ) ) );
-        enrollment.setCompletedBy( rs.getString( getColumnName( COMPLETEDBY ) ) );
-        enrollment.setStoredBy( rs.getString( getColumnName( STOREDBY ) ) );
-        enrollment.setDeleted( rs.getBoolean( getColumnName( DELETED ) ) );
-        enrollment.setId( rs.getLong( getColumnName( ID ) ) );
-        return enrollment;
-    }
+    enrollment.setTrackedEntityType(rs.getString(getColumnName(TEI_TYPE_UID)));
+    enrollment.setTrackedEntityInstance(rs.getString(getColumnName(TEI_UID)));
+    enrollment.setOrgUnit(rs.getString(getColumnName(ORGUNIT_UID)));
+    enrollment.setOrgUnitName(rs.getString(getColumnName(ORGUNIT_NAME)));
+    enrollment.setCreated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATED))));
+    enrollment.setCreatedAtClient(
+        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATEDCLIENT))));
+    setUserInfoSnapshot(rs, getColumnName(CREATED_BY), enrollment::setCreatedByUserInfo);
+    enrollment.setLastUpdated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATED))));
+    enrollment.setLastUpdatedAtClient(
+        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATEDCLIENT))));
+    setUserInfoSnapshot(rs, getColumnName(LAST_UPDATED_BY), enrollment::setLastUpdatedByUserInfo);
+    enrollment.setProgram(rs.getString(getColumnName(PROGRAM_UID)));
+    enrollment.setStatus(EnrollmentStatus.fromStatusString(rs.getString(getColumnName(STATUS))));
+    enrollment.setEnrollmentDate(rs.getTimestamp(getColumnName(ENROLLMENTDATE)));
+    enrollment.setIncidentDate(rs.getTimestamp(getColumnName(INCIDENTDATE)));
+    final boolean followup = rs.getBoolean(getColumnName(FOLLOWUP));
+    enrollment.setFollowup(rs.wasNull() ? null : followup);
+    enrollment.setCompletedDate(rs.getTimestamp(getColumnName(COMPLETED)));
+    enrollment.setCompletedBy(rs.getString(getColumnName(COMPLETEDBY)));
+    enrollment.setStoredBy(rs.getString(getColumnName(STOREDBY)));
+    enrollment.setDeleted(rs.getBoolean(getColumnName(DELETED)));
+    enrollment.setId(rs.getLong(getColumnName(ID)));
+    return enrollment;
+  }
 }

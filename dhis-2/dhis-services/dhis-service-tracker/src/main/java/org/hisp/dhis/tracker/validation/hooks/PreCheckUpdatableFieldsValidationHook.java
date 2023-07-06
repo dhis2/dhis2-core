@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -52,51 +51,58 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class PreCheckUpdatableFieldsValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter,
-        TrackerBundle bundle, TrackedEntity trackedEntity )
-    {
-        TrackedEntityInstance trackedEntityInstance = bundle
-            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+public class PreCheckUpdatableFieldsValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateTrackedEntity(
+      ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
+    TrackedEntityInstance trackedEntityInstance =
+        bundle.getTrackedEntityInstance(trackedEntity.getTrackedEntity());
 
-        reporter.addErrorIf(
-            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
-            trackedEntity, E1126, "trackedEntityType" );
-    }
+    reporter.addErrorIf(
+        () ->
+            !trackedEntity
+                .getTrackedEntityType()
+                .isEqualTo(trackedEntityInstance.getTrackedEntityType()),
+        trackedEntity,
+        E1126,
+        "trackedEntityType");
+  }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        ProgramInstance pi = bundle.getProgramInstance( enrollment.getEnrollment() );
-        Program program = pi.getProgram();
-        TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    ProgramInstance pi = bundle.getProgramInstance(enrollment.getEnrollment());
+    Program program = pi.getProgram();
+    TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
 
-        reporter.addErrorIf( () -> !enrollment.getProgram().isEqualTo( program ), enrollment, E1127,
-            "program" );
-        reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
-            E1127, "trackedEntity" );
-    }
+    reporter.addErrorIf(
+        () -> !enrollment.getProgram().isEqualTo(program), enrollment, E1127, "program");
+    reporter.addErrorIf(
+        () -> !trackedEntityInstance.getUid().equals(enrollment.getTrackedEntity()),
+        enrollment,
+        E1127,
+        "trackedEntity");
+  }
 
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        ProgramStageInstance programStageInstance = bundle.getProgramStageInstance( event.getEvent() );
-        ProgramStage programStage = programStageInstance.getProgramStage();
-        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, TrackerBundle bundle, Event event) {
+    ProgramStageInstance programStageInstance = bundle.getProgramStageInstance(event.getEvent());
+    ProgramStage programStage = programStageInstance.getProgramStage();
+    ProgramInstance programInstance = programStageInstance.getProgramInstance();
 
-        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
-            "programStage" );
-        reporter.addErrorIf(
-            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
-            event, E1128, "enrollment" );
-    }
+    reporter.addErrorIf(
+        () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
+    reporter.addErrorIf(
+        () ->
+            event.getEnrollment() != null
+                && !event.getEnrollment().equals(programInstance.getUid()),
+        event,
+        E1128,
+        "enrollment");
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy == TrackerImportStrategy.UPDATE;
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == TrackerImportStrategy.UPDATE;
+  }
 }

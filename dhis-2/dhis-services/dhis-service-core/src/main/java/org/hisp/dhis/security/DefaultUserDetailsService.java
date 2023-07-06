@@ -29,7 +29,6 @@ package org.hisp.dhis.security;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.dao.DataAccessException;
@@ -43,25 +42,20 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-@Service( "userDetailsService" )
+@Service("userDetailsService")
 @AllArgsConstructor
-public class DefaultUserDetailsService
-    implements UserDetailsService
-{
-    private final UserService userService;
+public class DefaultUserDetailsService implements UserDetailsService {
+  private final UserService userService;
 
-    @Override
-    @Transactional( readOnly = true )
-    public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
-    {
-        User user = userService.getUserByUsername( username );
-        if ( user == null )
-        {
-            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
-        }
-
-        return userService.validateAndCreateUserDetails( user, user.getPassword() );
+  @Override
+  @Transactional(readOnly = true)
+  public UserDetails loadUserByUsername(String username)
+      throws UsernameNotFoundException, DataAccessException {
+    User user = userService.getUserByUsername(username);
+    if (user == null) {
+      throw new UsernameNotFoundException(String.format("Username '%s' not found.", username));
     }
+
+    return userService.validateAndCreateUserDetails(user, user.getPassword());
+  }
 }

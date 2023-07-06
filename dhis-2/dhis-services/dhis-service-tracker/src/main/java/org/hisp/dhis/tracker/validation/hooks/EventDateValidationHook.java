@@ -40,7 +40,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
-
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -58,102 +57,84 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EventDateValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        TrackerPreheat preheat = bundle.getPreheat();
+public class EventDateValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, TrackerBundle bundle, Event event) {
+    TrackerPreheat preheat = bundle.getPreheat();
 
-        Program program = preheat.getProgram( event.getProgram() );
+    Program program = preheat.getProgram(event.getProgram());
 
-        if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
-        {
-            reporter.addError( event, E1031, event );
-            return;
-        }
-
-        if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
-        {
-            reporter.addError( event, E1050, event );
-            return;
-        }
-
-        validateExpiryDays( reporter, bundle, event, program );
-        validatePeriodType( reporter, event, program );
+    if (event.getOccurredAt() == null && occuredAtDateIsMandatory(event, program)) {
+      reporter.addError(event, E1031, event);
+      return;
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
-        Program program )
-    {
-        User actingUser = bundle.getUser();
-
-        checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );
-        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-
-        if ( actingUser.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-        {
-            return;
-        }
-
-        if ( (program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus()) )
-        {
-            if ( event.getCompletedAt() == null )
-            {
-                reporter.addErrorIfNull( event.getCompletedAt(), event, E1042, event );
-            }
-            else
-            {
-                if ( now().isAfter( event.getCompletedAt().plus( ofDays( program.getCompleteEventsExpiryDays() ) ) ) )
-                {
-                    reporter.addError( event, E1043, event );
-                }
-            }
-        }
+    if (event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus()) {
+      reporter.addError(event, E1050, event);
+      return;
     }
 
-    private void validatePeriodType( ValidationErrorReporter reporter, Event event, Program program )
-    {
-        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+    validateExpiryDays(reporter, bundle, event, program);
+    validatePeriodType(reporter, event, program);
+  }
 
-        PeriodType periodType = program.getExpiryPeriodType();
+  private void validateExpiryDays(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Event event, Program program) {
+    User actingUser = bundle.getUser();
 
-        if ( periodType == null || program.getExpiryDays() == 0 )
-        {
-            // Nothing more to check here, return out
-            return;
-        }
+    checkNotNull(actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL);
+    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
+    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
-        Instant referenceDate = Optional.of( event )
-            .map( Event::getOccurredAt )
-            .orElseGet( event::getScheduledAt );
-
-        if ( referenceDate == null )
-        {
-            reporter.addError( event, E1046, event );
-            return;
-        }
-
-        Period period = periodType.createPeriod( new Date() );
-
-        if ( referenceDate.isBefore( period.getStartDate().toInstant() ) )
-        {
-            reporter.addError( event, E1047, event );
-        }
+    if (actingUser.isAuthorized(Authorities.F_EDIT_EXPIRED.getAuthority())) {
+      return;
     }
 
-    private boolean occuredAtDateIsMandatory( Event event, Program program )
-    {
-        if ( program.isWithoutRegistration() )
-        {
-            return true;
+    if ((program.getCompleteEventsExpiryDays() > 0 && EventStatus.COMPLETED == event.getStatus())) {
+      if (event.getCompletedAt() == null) {
+        reporter.addErrorIfNull(event.getCompletedAt(), event, E1042, event);
+      } else {
+        if (now()
+            .isAfter(event.getCompletedAt().plus(ofDays(program.getCompleteEventsExpiryDays())))) {
+          reporter.addError(event, E1043, event);
         }
-
-        EventStatus eventStatus = event.getStatus();
-
-        return eventStatus == EventStatus.ACTIVE || eventStatus == EventStatus.COMPLETED;
+      }
     }
+  }
+
+  private void validatePeriodType(ValidationErrorReporter reporter, Event event, Program program) {
+    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
+    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
+
+    PeriodType periodType = program.getExpiryPeriodType();
+
+    if (periodType == null || program.getExpiryDays() == 0) {
+      // Nothing more to check here, return out
+      return;
+    }
+
+    Instant referenceDate =
+        Optional.of(event).map(Event::getOccurredAt).orElseGet(event::getScheduledAt);
+
+    if (referenceDate == null) {
+      reporter.addError(event, E1046, event);
+      return;
+    }
+
+    Period period = periodType.createPeriod(new Date());
+
+    if (referenceDate.isBefore(period.getStartDate().toInstant())) {
+      reporter.addError(event, E1047, event);
+    }
+  }
+
+  private boolean occuredAtDateIsMandatory(Event event, Program program) {
+    if (program.isWithoutRegistration()) {
+      return true;
+    }
+
+    EventStatus eventStatus = event.getStatus();
+
+    return eventStatus == EventStatus.ACTIVE || eventStatus == EventStatus.COMPLETED;
+  }
 }

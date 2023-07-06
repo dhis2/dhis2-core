@@ -29,24 +29,19 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import lombok.Data;
 
-/**
- * Represents a line object to be used by the OutlierAnalysis class.
- */
+/** Represents a line object to be used by the OutlierAnalysis class. */
 @Data
-public class OutlierLine implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean enabled;
+public class OutlierLine implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private boolean enabled;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Double value;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Double value;
 }

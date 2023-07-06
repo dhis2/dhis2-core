@@ -36,11 +36,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Set;
-
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -88,253 +86,224 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = MapSchemaDescriptor.API_ENDPOINT )
-public class MapController
-    extends AbstractCrudController<Map>
-{
-    private static final int MAP_MIN_WIDTH = 140;
+@RequestMapping(value = MapSchemaDescriptor.API_ENDPOINT)
+public class MapController extends AbstractCrudController<Map> {
+  private static final int MAP_MIN_WIDTH = 140;
 
-    private static final int MAP_MIN_HEIGHT = 25;
+  private static final int MAP_MIN_HEIGHT = 25;
 
-    @Autowired
-    private MappingService mappingService;
+  @Autowired private MappingService mappingService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    @Autowired
-    private MapGenerationService mapGenerationService;
+  @Autowired private MapGenerationService mapGenerationService;
 
-    @Autowired
-    private DimensionService dimensionService;
+  @Autowired private DimensionService dimensionService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    @Autowired
-    private AttributeService attributeService;
+  @Autowired private AttributeService attributeService;
 
-    // --------------------------------------------------------------------------
-    // CRUD
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // CRUD
+  // --------------------------------------------------------------------------
 
-    @Override
-    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @ResponseBody
-    public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser,
-        HttpServletRequest request )
-        throws Exception
-    {
-        Map map = mappingService.getMap( uid );
+  @Override
+  @PutMapping(value = "/{uid}", consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @ResponseBody
+  public WebMessage putJsonObject(
+      @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request)
+      throws Exception {
+    Map map = mappingService.getMap(uid);
 
-        if ( map == null )
-        {
-            return notFound( "Map does not exist: " + uid );
-        }
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-
-        Map newMap = deserializeJsonEntity( request );
-        newMap.setUid( uid );
-
-        mergeService.merge( new MergeParams<>( newMap, map )
-            .setMergeMode( params.getMergeMode() )
-            .setSkipSharing( params.isSkipSharing() )
-            .setSkipTranslation( params.isSkipTranslation() ) );
-        mappingService.updateMap( map );
-        return null;
+    if (map == null) {
+      return notFound("Map does not exist: " + uid);
     }
 
-    @Override
-    protected void preUpdateEntity( Map map, Map newMap )
-    {
-        map.getMapViews().clear();
+    MetadataImportParams params =
+        importService.getParamsFromMap(contextService.getParameterValuesMap());
 
-        if ( newMap.getCreatedBy() == null )
-        {
-            map.setCreatedBy( null );
-        }
+    Map newMap = deserializeJsonEntity(request);
+    newMap.setUid(uid);
+
+    mergeService.merge(
+        new MergeParams<>(newMap, map)
+            .setMergeMode(params.getMergeMode())
+            .setSkipSharing(params.isSkipSharing())
+            .setSkipTranslation(params.isSkipTranslation()));
+    mappingService.updateMap(map);
+    return null;
+  }
+
+  @Override
+  protected void preUpdateEntity(Map map, Map newMap) {
+    map.getMapViews().clear();
+
+    if (newMap.getCreatedBy() == null) {
+      map.setCreatedBy(null);
+    }
+  }
+
+  @Override
+  protected Map deserializeJsonEntity(HttpServletRequest request) throws IOException {
+    Map map = super.deserializeJsonEntity(request);
+    mergeMap(map);
+
+    return map;
+  }
+
+  // --------------------------------------------------------------------------
+  // Get data
+  // --------------------------------------------------------------------------
+
+  @GetMapping(value = {"/{uid}/data", "/{uid}/data.png"})
+  public void getMapData(
+      @PathVariable String uid,
+      @RequestParam(value = "date", required = false) Date date,
+      @RequestParam(value = "ou", required = false) String ou,
+      @RequestParam(required = false) Integer width,
+      @RequestParam(required = false) Integer height,
+      @RequestParam(value = "attachment", required = false) boolean attachment,
+      HttpServletResponse response)
+      throws Exception {
+    Map map = mappingService.getMapNoAcl(uid);
+
+    if (map == null) {
+      throw new WebMessageException(notFound("Map does not exist: " + uid));
     }
 
-    @Override
-    protected Map deserializeJsonEntity( HttpServletRequest request )
-        throws IOException
-    {
-        Map map = super.deserializeJsonEntity( request );
-        mergeMap( map );
-
-        return map;
+    if (width != null && width < MAP_MIN_WIDTH) {
+      throw new WebMessageException(conflict("Min map width is " + MAP_MIN_WIDTH + ": " + width));
     }
 
-    // --------------------------------------------------------------------------
-    // Get data
-    // --------------------------------------------------------------------------
-
-    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
-    public void getMapData( @PathVariable String uid,
-        @RequestParam( value = "date", required = false ) Date date,
-        @RequestParam( value = "ou", required = false ) String ou,
-        @RequestParam( required = false ) Integer width,
-        @RequestParam( required = false ) Integer height,
-        @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response )
-        throws Exception
-    {
-        Map map = mappingService.getMapNoAcl( uid );
-
-        if ( map == null )
-        {
-            throw new WebMessageException( notFound( "Map does not exist: " + uid ) );
-        }
-
-        if ( width != null && width < MAP_MIN_WIDTH )
-        {
-            throw new WebMessageException(
-                conflict( "Min map width is " + MAP_MIN_WIDTH + ": " + width ) );
-        }
-
-        if ( height != null && height < MAP_MIN_HEIGHT )
-        {
-            throw new WebMessageException(
-                conflict( "Min map height is " + MAP_MIN_HEIGHT + ": " + height ) );
-        }
-
-        OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
-
-        renderMapViewPng( map, date, unit, width, height, attachment, response );
+    if (height != null && height < MAP_MIN_HEIGHT) {
+      throw new WebMessageException(
+          conflict("Min map height is " + MAP_MIN_HEIGHT + ": " + height));
     }
 
-    // --------------------------------------------------------------------------
-    // Hooks
-    // --------------------------------------------------------------------------
+    OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit(ou) : null;
 
-    @Override
-    public void postProcessResponseEntity( Map map, WebOptions options, java.util.Map<String, String> parameters )
-        throws Exception
-    {
-        I18nFormat format = i18nManager.getI18nFormat();
+    renderMapViewPng(map, date, unit, width, height, attachment, response);
+  }
 
-        Set<OrganisationUnit> roots = currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
+  // --------------------------------------------------------------------------
+  // Hooks
+  // --------------------------------------------------------------------------
 
-        for ( MapView view : map.getMapViews() )
-        {
-            view.populateAnalyticalProperties();
+  @Override
+  public void postProcessResponseEntity(
+      Map map, WebOptions options, java.util.Map<String, String> parameters) throws Exception {
+    I18nFormat format = i18nManager.getI18nFormat();
 
-            for ( OrganisationUnit organisationUnit : view.getOrganisationUnits() )
-            {
-                view.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
-            }
+    Set<OrganisationUnit> roots =
+        currentUserService.getCurrentUser().getDataViewOrganisationUnitsWithFallback();
 
-            if ( view.getPeriods() != null && !view.getPeriods().isEmpty() )
-            {
-                for ( Period period : view.getPeriods() )
-                {
-                    period.setName( format.formatPeriod( period ) );
-                }
-            }
+    for (MapView view : map.getMapViews()) {
+      view.populateAnalyticalProperties();
 
-            if ( !StringUtils.isEmpty( view.getOrgUnitField() ) )
-            {
-                Attribute attribute = attributeService.getAttribute( view.getOrgUnitField() );
-                if ( attribute != null )
-                {
-                    view.setOrgUnitFieldDisplayName( attribute.getDisplayName() );
-                }
-            }
+      for (OrganisationUnit organisationUnit : view.getOrganisationUnits()) {
+        view.getParentGraphMap()
+            .put(organisationUnit.getUid(), organisationUnit.getParentGraph(roots));
+      }
+
+      if (view.getPeriods() != null && !view.getPeriods().isEmpty()) {
+        for (Period period : view.getPeriods()) {
+          period.setName(format.formatPeriod(period));
         }
+      }
+
+      if (!StringUtils.isEmpty(view.getOrgUnitField())) {
+        Attribute attribute = attributeService.getAttribute(view.getOrgUnitField());
+        if (attribute != null) {
+          view.setOrgUnitFieldDisplayName(attribute.getDisplayName());
+        }
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Supportive methods
+  // --------------------------------------------------------------------------
+
+  private void mergeMap(Map map) {
+    if (map.getCreatedBy() != null) {
+      map.setCreatedBy(userService.getUser(map.getCreatedBy().getUid()));
+    } else {
+      map.setCreatedBy(currentUserService.getCurrentUser());
     }
 
-    // --------------------------------------------------------------------------
-    // Supportive methods
-    // --------------------------------------------------------------------------
+    map.getMapViews().forEach(this::mergeMapView);
+  }
 
-    private void mergeMap( Map map )
-    {
-        if ( map.getCreatedBy() != null )
-        {
-            map.setCreatedBy( userService.getUser( map.getCreatedBy().getUid() ) );
-        }
-        else
-        {
-            map.setCreatedBy( currentUserService.getCurrentUser() );
-        }
+  private void mergeMapView(MapView view) {
+    view.setAutoFields();
 
-        map.getMapViews().forEach( this::mergeMapView );
+    dimensionService.mergeAnalyticalObject(view);
+    dimensionService.mergeEventAnalyticalObject(view);
+
+    view.getColumnDimensions().clear();
+    view.getFilterDimensions().clear();
+
+    view.getColumnDimensions().addAll(getDimensions(view.getColumns()));
+    view.getFilterDimensions().addAll(getDimensions(view.getFilters()));
+
+    if (view.getLegendSet() != null) {
+      view.setLegendSet(idObjectManager.get(LegendSet.class, view.getLegendSet().getUid()));
     }
 
-    private void mergeMapView( MapView view )
-    {
-        view.setAutoFields();
-
-        dimensionService.mergeAnalyticalObject( view );
-        dimensionService.mergeEventAnalyticalObject( view );
-
-        view.getColumnDimensions().clear();
-        view.getFilterDimensions().clear();
-
-        view.getColumnDimensions().addAll( getDimensions( view.getColumns() ) );
-        view.getFilterDimensions().addAll( getDimensions( view.getFilters() ) );
-
-        if ( view.getLegendSet() != null )
-        {
-            view.setLegendSet( idObjectManager.get( LegendSet.class, view.getLegendSet().getUid() ) );
-        }
-
-        if ( view.getOrganisationUnitGroupSet() != null )
-        {
-            view.setOrganisationUnitGroupSet(
-                idObjectManager.get( OrganisationUnitGroupSet.class, view.getOrganisationUnitGroupSet().getUid() ) );
-        }
-
-        if ( view.getProgram() != null )
-        {
-            view.setProgram( programService.getProgram( view.getProgram().getUid() ) );
-        }
-
-        if ( view.getProgramStage() != null )
-        {
-            view.setProgramStage( programStageService.getProgramStage( view.getProgramStage().getUid() ) );
-        }
-
-        if ( view.getTrackedEntityType() != null )
-        {
-            view.setTrackedEntityType(
-                idObjectManager.get( TrackedEntityType.class, view.getTrackedEntityType().getUid() ) );
-        }
+    if (view.getOrganisationUnitGroupSet() != null) {
+      view.setOrganisationUnitGroupSet(
+          idObjectManager.get(
+              OrganisationUnitGroupSet.class, view.getOrganisationUnitGroupSet().getUid()));
     }
 
-    private void renderMapViewPng( Map map, Date date, OrganisationUnit unit, Integer width, Integer height,
-        boolean attachment, HttpServletResponse response )
-        throws Exception
-    {
-        BufferedImage image = mapGenerationService.generateMapImage( map, date, unit, width, height );
-
-        if ( image != null )
-        {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG,
-                CacheStrategy.RESPECT_SYSTEM_SETTING, "map.png", attachment );
-
-            ImageIO.write( image, "PNG", response.getOutputStream() );
-        }
-        else
-        {
-            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-        }
+    if (view.getProgram() != null) {
+      view.setProgram(programService.getProgram(view.getProgram().getUid()));
     }
+
+    if (view.getProgramStage() != null) {
+      view.setProgramStage(programStageService.getProgramStage(view.getProgramStage().getUid()));
+    }
+
+    if (view.getTrackedEntityType() != null) {
+      view.setTrackedEntityType(
+          idObjectManager.get(TrackedEntityType.class, view.getTrackedEntityType().getUid()));
+    }
+  }
+
+  private void renderMapViewPng(
+      Map map,
+      Date date,
+      OrganisationUnit unit,
+      Integer width,
+      Integer height,
+      boolean attachment,
+      HttpServletResponse response)
+      throws Exception {
+    BufferedImage image = mapGenerationService.generateMapImage(map, date, unit, width, height);
+
+    if (image != null) {
+      contextUtils.configureResponse(
+          response,
+          ContextUtils.CONTENT_TYPE_PNG,
+          CacheStrategy.RESPECT_SYSTEM_SETTING,
+          "map.png",
+          attachment);
+
+      ImageIO.write(image, "PNG", response.getOutputStream());
+    } else {
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
+  }
 }

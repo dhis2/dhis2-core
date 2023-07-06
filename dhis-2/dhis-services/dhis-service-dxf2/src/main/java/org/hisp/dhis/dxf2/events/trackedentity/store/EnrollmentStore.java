@@ -27,53 +27,49 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import com.google.common.collect.Multimap;
 import java.util.List;
-
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
-public interface EnrollmentStore
-{
-    /**
-     *
-     * @param ids a list of {@see TrackedEntityInstance} Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Enrollment} objects
-     */
-    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx );
+public interface EnrollmentStore {
+  /**
+   * @param ids a list of {@see TrackedEntityInstance} Primary Keys
+   * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the key a List of {@see
+   *     Enrollment} objects
+   */
+  Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds(
+      List<Long> ids, AggregateContext ctx);
 
-    /**
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Note} objects
-     */
-    Multimap<String, Note> getNotes( List<Long> ids );
+  /**
+   * @param ids a list of {@see Enrollment} Primary Keys
+   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Note}
+   *     objects
+   */
+  Multimap<String, Note> getNotes(List<Long> ids);
 
-    /**
-     * Fetches all the relationships having the Program Instance id specified in
-     * the arg as "left" or "right" relationship
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Relationship} objects
-     */
-    Multimap<String, Relationship> getRelationships( List<Long> ids, AggregateContext ctx );
+  /**
+   * Fetches all the relationships having the Program Instance id specified in the arg as "left" or
+   * "right" relationship
+   *
+   * @param ids a list of {@see Enrollment} Primary Keys
+   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see
+   *     Relationship} objects
+   */
+  Multimap<String, Relationship> getRelationships(List<Long> ids, AggregateContext ctx);
 
-    /**
-     * Fetches all the attributes
-     *
-     * @param ids a list of enrollment ids
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Attribute} objects
-     */
-    Multimap<String, Attribute> getAttributes( List<Long> ids, AggregateContext ctx );
+  /**
+   * Fetches all the attributes
+   *
+   * @param ids a list of enrollment ids
+   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Attribute}
+   *     objects
+   */
+  Multimap<String, Attribute> getAttributes(List<Long> ids, AggregateContext ctx);
 }

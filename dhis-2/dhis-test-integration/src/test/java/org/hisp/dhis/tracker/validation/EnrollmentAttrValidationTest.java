@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
-
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
@@ -45,154 +44,131 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class EnrollmentAttrValidationTest extends TrackerTest
-{
-    @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+class EnrollmentAttrValidationTest extends TrackerTest {
+  @Autowired protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/tracker_basic_metadata_mandatory_attr.json" );
-        injectAdminUser();
-        assertNoErrors(
-            trackerImportService.importTracker( fromJson( "tracker/validations/enrollments_te_te-data_2.json" ) ) );
-        manager.flush();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/tracker_basic_metadata_mandatory_attr.json");
+    injectAdminUser();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            fromJson("tracker/validations/enrollments_te_te-data_2.json")));
+    manager.flush();
+  }
 
-    @Test
-    void failValidationWhenTrackedEntityAttributeHasWrongOptionValue()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/enrollments_te_with_invalid_option_value.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+  @Test
+  void failValidationWhenTrackedEntityAttributeHasWrongOptionValue() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_with_invalid_option_value.json");
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1125 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1125);
+  }
 
-    @Test
-    void successValidationWhenTrackedEntityAttributeHasValidOptionValue()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/enrollments_te_with_valid_option_value.json" );
+  @Test
+  void successValidationWhenTrackedEntityAttributeHasValidOptionValue() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_with_valid_option_value.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertNoErrors( trackerImportReport );
-    }
+    assertNoErrors(trackerImportReport);
+  }
 
-    @Test
-    void testAttributesMissingUid()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/enrollments_te_attr-missing-uuid.json" );
+  @Test
+  void testAttributesMissingUid() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_attr-missing-uuid.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1075 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1075);
+  }
 
-    @Test
-    void testAttributesMissingValues()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/enrollments_te_attr-missing-value.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1076 );
-    }
+  @Test
+  void testAttributesMissingValues() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_attr-missing-value.json");
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1076);
+  }
 
-    @Test
-    void testAttributesMissingTeA()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_attr-non-existing.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1006 );
-    }
+  @Test
+  void testAttributesMissingTeA() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_attr-non-existing.json");
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1006);
+  }
 
-    @Test
-    void testAttributesMissingMandatory()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1018 );
-    }
+  @Test
+  void testAttributesMissingMandatory() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_attr-missing-mandatory.json");
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1018);
+  }
 
-    @Test
-    void testAttributesUniquenessInSameTei()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
+  @Test
+  void testAttributesUniquenessInSameTei() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_unique_attr_same_tei.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertNoErrors( trackerImportReport );
-    }
+    assertNoErrors(trackerImportReport);
+  }
 
-    @Test
-    void testAttributesUniquenessAlreadyInDB()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
+  @Test
+  void testAttributesUniquenessAlreadyInDB() throws IOException {
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_te_te-data_3.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertNoErrors( trackerImportReport );
+    assertNoErrors(trackerImportReport);
 
-        manager.flush();
-        manager.clear();
+    manager.flush();
+    manager.clear();
 
-        params = fromJson( "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
+    params = fromJson("tracker/validations/enrollments_te_unique_attr_same_tei.json");
 
-        trackerImportReport = trackerImportService.importTracker( params );
+    trackerImportReport = trackerImportService.importTracker(params);
 
-        assertNoErrors( trackerImportReport );
+    assertNoErrors(trackerImportReport);
 
-        manager.flush();
-        manager.clear();
+    manager.flush();
+    manager.clear();
 
-        params = fromJson( "tracker/validations/enrollments_te_unique_attr_in_db.json" );
+    params = fromJson("tracker/validations/enrollments_te_unique_attr_in_db.json");
 
-        trackerImportReport = trackerImportService.importTracker( params );
+    trackerImportReport = trackerImportService.importTracker(params);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1064 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1064);
+  }
 
-    @Test
-    void testAttributesUniquenessInDifferentTeis()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
-        assertNoErrors( trackerImportService.importTracker( params ) );
-        manager.flush();
-        manager.clear();
-        params = fromJson( "tracker/validations/enrollments_te_unique_attr.json" );
+  @Test
+  void testAttributesUniquenessInDifferentTeis() throws IOException {
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_te_te-data_3.json");
+    assertNoErrors(trackerImportService.importTracker(params));
+    manager.flush();
+    manager.clear();
+    params = fromJson("tracker/validations/enrollments_te_unique_attr.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertHasErrors( trackerImportReport, 2, TrackerErrorCode.E1064 );
-    }
+    assertHasErrors(trackerImportReport, 2, TrackerErrorCode.E1064);
+  }
 
-    @Test
-    void testAttributesOnlyProgramAttrAllowed()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson(
-            "tracker/validations/enrollments_te_attr-only-program-attr.json" );
+  @Test
+  void testAttributesOnlyProgramAttrAllowed() throws IOException {
+    TrackerImportParams params =
+        fromJson("tracker/validations/enrollments_te_attr-only-program-attr.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1019 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1019);
+  }
 }

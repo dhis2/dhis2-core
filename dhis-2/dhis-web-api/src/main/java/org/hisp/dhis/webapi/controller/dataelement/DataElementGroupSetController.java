@@ -37,8 +37,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = DataElementGroupSetSchemaDescriptor.API_ENDPOINT )
-public class DataElementGroupSetController
-    extends AbstractCrudController<DataElementGroupSet>
-{
-}
+@RequestMapping(value = DataElementGroupSetSchemaDescriptor.API_ENDPOINT)
+public class DataElementGroupSetController extends AbstractCrudController<DataElementGroupSet> {}

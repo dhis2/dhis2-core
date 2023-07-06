@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -50,149 +49,152 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Chau Thu Tran
  */
-@Service( "org.hisp.dhis.program.ProgramExpressionService" )
-public class DefaultProgramExpressionService
-    implements ProgramExpressionService
-{
-    private static final String REGEXP = "\\[(" + OBJECT_PROGRAM_STAGE_DATAELEMENT + "|" + OBJECT_PROGRAM_STAGE + ")"
-        + SEPARATOR_OBJECT + "([a-zA-Z0-9\\- ]+[" + SEPARATOR_ID + "([a-zA-Z0-9\\- ]|" + DUE_DATE + "|" + REPORT_DATE
-        + ")+]*)\\]";
+@Service("org.hisp.dhis.program.ProgramExpressionService")
+public class DefaultProgramExpressionService implements ProgramExpressionService {
+  private static final String REGEXP =
+      "\\[("
+          + OBJECT_PROGRAM_STAGE_DATAELEMENT
+          + "|"
+          + OBJECT_PROGRAM_STAGE
+          + ")"
+          + SEPARATOR_OBJECT
+          + "([a-zA-Z0-9\\- ]+["
+          + SEPARATOR_ID
+          + "([a-zA-Z0-9\\- ]|"
+          + DUE_DATE
+          + "|"
+          + REPORT_DATE
+          + ")+]*)\\]";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final GenericStore<ProgramExpression> programExpressionStore;
+  private final GenericStore<ProgramExpression> programExpressionStore;
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    private final DataElementService dataElementService;
+  private final DataElementService dataElementService;
 
-    public DefaultProgramExpressionService(
-        @Qualifier( "org.hisp.dhis.program.ProgramExpressionStore" ) GenericStore<ProgramExpression> programExpressionStore,
-        ProgramStageService programStageService, DataElementService dataElementService )
-    {
-        checkNotNull( programExpressionStore );
-        checkNotNull( programStageService );
-        checkNotNull( dataElementService );
+  public DefaultProgramExpressionService(
+      @Qualifier("org.hisp.dhis.program.ProgramExpressionStore")
+          GenericStore<ProgramExpression> programExpressionStore,
+      ProgramStageService programStageService,
+      DataElementService dataElementService) {
+    checkNotNull(programExpressionStore);
+    checkNotNull(programStageService);
+    checkNotNull(dataElementService);
 
-        this.programExpressionStore = programExpressionStore;
-        this.programStageService = programStageService;
-        this.dataElementService = dataElementService;
-    }
+    this.programExpressionStore = programExpressionStore;
+    this.programStageService = programStageService;
+    this.dataElementService = dataElementService;
+  }
 
-    // -------------------------------------------------------------------------
-    // ProgramExpression CRUD operations
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramExpression CRUD operations
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addProgramExpression( ProgramExpression programExpression )
-    {
-        programExpressionStore.save( programExpression );
-        return programExpression.getId();
-    }
+  @Override
+  @Transactional
+  public long addProgramExpression(ProgramExpression programExpression) {
+    programExpressionStore.save(programExpression);
+    return programExpression.getId();
+  }
 
-    @Override
-    @Transactional
-    public void updateProgramExpression( ProgramExpression programExpression )
-    {
-        programExpressionStore.update( programExpression );
-    }
+  @Override
+  @Transactional
+  public void updateProgramExpression(ProgramExpression programExpression) {
+    programExpressionStore.update(programExpression);
+  }
 
-    @Override
-    @Transactional
-    public void deleteProgramExpression( ProgramExpression programExpression )
-    {
-        programExpressionStore.delete( programExpression );
-    }
+  @Override
+  @Transactional
+  public void deleteProgramExpression(ProgramExpression programExpression) {
+    programExpressionStore.delete(programExpression);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramExpression getProgramExpression( long id )
-    {
-        return programExpressionStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramExpression getProgramExpression(long id) {
+    return programExpressionStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public String getExpressionDescription( String programExpression )
-    {
-        StringBuffer description = new StringBuffer();
+  @Override
+  @Transactional(readOnly = true)
+  public String getExpressionDescription(String programExpression) {
+    StringBuffer description = new StringBuffer();
 
-        Pattern pattern = Pattern.compile( REGEXP );
-        Matcher matcher = pattern.matcher( programExpression );
-        int countFormula = 0;
+    Pattern pattern = Pattern.compile(REGEXP);
+    Matcher matcher = pattern.matcher(programExpression);
+    int countFormula = 0;
 
-        while ( matcher.find() )
-        {
-            countFormula++;
+    while (matcher.find()) {
+      countFormula++;
 
-            String match = matcher.group();
-            String key = matcher.group( 1 );
-            match = match.replaceAll( "[\\[\\]]", "" );
+      String match = matcher.group();
+      String key = matcher.group(1);
+      match = match.replaceAll("[\\[\\]]", "");
 
-            String[] info = match.split( SEPARATOR_OBJECT );
-            String[] ids = info[1].split( SEPARATOR_ID );
+      String[] info = match.split(SEPARATOR_OBJECT);
+      String[] ids = info[1].split(SEPARATOR_ID);
 
-            ProgramStage programStage = programStageService.getProgramStage( ids[0] );
-            String name = ids[1];
+      ProgramStage programStage = programStageService.getProgramStage(ids[0]);
+      String name = ids[1];
 
-            if ( programStage == null )
-            {
-                return INVALID_CONDITION;
-            }
-            else if ( !name.equals( DUE_DATE ) && !name.equals( REPORT_DATE ) )
-            {
-                DataElement dataElement = dataElementService.getDataElement( name );
+      if (programStage == null) {
+        return INVALID_CONDITION;
+      } else if (!name.equals(DUE_DATE) && !name.equals(REPORT_DATE)) {
+        DataElement dataElement = dataElementService.getDataElement(name);
 
-                if ( dataElement == null )
-                {
-                    return INVALID_CONDITION;
-                }
-                else
-                {
-                    name = dataElement.getDisplayName();
-                }
-            }
-
-            matcher.appendReplacement( description,
-                "[" + key + ProgramExpression.SEPARATOR_OBJECT + programStage.getDisplayName() + SEPARATOR_ID + name
-                    + "]" );
+        if (dataElement == null) {
+          return INVALID_CONDITION;
+        } else {
+          name = dataElement.getDisplayName();
         }
+      }
 
-        StringBuffer tail = new StringBuffer();
-        matcher.appendTail( tail );
-
-        if ( countFormula > 1 || !tail.toString().isEmpty() || (countFormula == 0 && !tail.toString().isEmpty()) )
-        {
-            return INVALID_CONDITION;
-        }
-
-        return description.toString();
+      matcher.appendReplacement(
+          description,
+          "["
+              + key
+              + ProgramExpression.SEPARATOR_OBJECT
+              + programStage.getDisplayName()
+              + SEPARATOR_ID
+              + name
+              + "]");
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Collection<DataElement> getDataElements( String programExpression )
-    {
-        Collection<DataElement> dataElements = new HashSet<>();
+    StringBuffer tail = new StringBuffer();
+    matcher.appendTail(tail);
 
-        Pattern pattern = Pattern.compile( REGEXP );
-        Matcher matcher = pattern.matcher( programExpression );
-
-        while ( matcher.find() )
-        {
-            String match = matcher.group();
-            match = match.replaceAll( "[\\[\\]]", "" );
-
-            String[] info = match.split( SEPARATOR_OBJECT );
-            String[] ids = info[1].split( SEPARATOR_ID );
-
-            DataElement dataElement = dataElementService.getDataElement( ids[1] );
-            dataElements.add( dataElement );
-        }
-
-        return dataElements;
+    if (countFormula > 1
+        || !tail.toString().isEmpty()
+        || (countFormula == 0 && !tail.toString().isEmpty())) {
+      return INVALID_CONDITION;
     }
+
+    return description.toString();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Collection<DataElement> getDataElements(String programExpression) {
+    Collection<DataElement> dataElements = new HashSet<>();
+
+    Pattern pattern = Pattern.compile(REGEXP);
+    Matcher matcher = pattern.matcher(programExpression);
+
+    while (matcher.find()) {
+      String match = matcher.group();
+      match = match.replaceAll("[\\[\\]]", "");
+
+      String[] info = match.split(SEPARATOR_OBJECT);
+      String[] ids = info[1].split(SEPARATOR_ID);
+
+      DataElement dataElement = dataElementService.getDataElement(ids[1]);
+      dataElements.add(dataElement);
+    }
+
+    return dataElements;
+  }
 }

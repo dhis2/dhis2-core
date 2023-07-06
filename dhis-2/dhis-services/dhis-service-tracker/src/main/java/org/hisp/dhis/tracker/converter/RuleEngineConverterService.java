@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.converter;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
@@ -37,15 +36,12 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
  *
  * @author Enrico Colasante
  */
-public interface RuleEngineConverterService<From, To>
-    extends TrackerConverterService<From, To>
-{
-    To fromForRuleEngine( TrackerPreheat preheat, From object );
+public interface RuleEngineConverterService<From, To> extends TrackerConverterService<From, To> {
+  To fromForRuleEngine(TrackerPreheat preheat, From object);
 
-    default List<To> fromForRuleEngine( TrackerPreheat preheat, List<From> objects )
-    {
-        return objects.stream()
-            .map( object -> fromForRuleEngine( preheat, object ) )
-            .collect( Collectors.toList() );
-    }
+  default List<To> fromForRuleEngine(TrackerPreheat preheat, List<From> objects) {
+    return objects.stream()
+        .map(object -> fromForRuleEngine(preheat, object))
+        .collect(Collectors.toList());
+  }
 }

@@ -30,9 +30,7 @@ package org.hisp.dhis.sms.listener;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -57,104 +55,100 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Component( "org.hisp.dhis.sms.listener.DhisMessageAlertListener" )
+@Component("org.hisp.dhis.sms.listener.DhisMessageAlertListener")
 @Transactional
-public class DhisMessageAlertListener
-    extends
-    CommandSMSListener
-{
-    private final SMSCommandService smsCommandService;
+public class DhisMessageAlertListener extends CommandSMSListener {
+  private final SMSCommandService smsCommandService;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    public DhisMessageAlertListener( ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
-        UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        MessageService messageService )
-    {
-        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
-            currentUserService, incomingSmsService, smsSender );
+  public DhisMessageAlertListener(
+      ProgramInstanceService programInstanceService,
+      CategoryService dataElementCategoryService,
+      ProgramStageInstanceService programStageInstanceService,
+      UserService userService,
+      CurrentUserService currentUserService,
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      SMSCommandService smsCommandService,
+      MessageService messageService) {
+    super(
+        programInstanceService,
+        dataElementCategoryService,
+        programStageInstanceService,
+        userService,
+        currentUserService,
+        incomingSmsService,
+        smsSender);
 
-        checkNotNull( smsCommandService );
-        checkNotNull( messageService );
+    checkNotNull(smsCommandService);
+    checkNotNull(messageService);
 
-        this.smsCommandService = smsCommandService;
-        this.messageService = messageService;
-    }
+    this.smsCommandService = smsCommandService;
+    this.messageService = messageService;
+  }
 
-    @Override
-    protected SMSCommand getSMSCommand( IncomingSms sms )
-    {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.ALERT_PARSER );
-    }
+  @Override
+  protected SMSCommand getSMSCommand(IncomingSms sms) {
+    return smsCommandService.getSMSCommand(SmsUtils.getCommandString(sms), ParserType.ALERT_PARSER);
+  }
 
-    @Override
-    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
-    {
-        String message = sms.getText();
+  @Override
+  protected void postProcess(
+      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+    String message = sms.getText();
 
-        UserGroup userGroup = smsCommand.getUserGroup();
+    UserGroup userGroup = smsCommand.getUserGroup();
 
-        if ( userGroup != null )
-        {
-            Collection<User> users = Collections.singleton( sms.getCreatedBy() );
+    if (userGroup != null) {
+      Collection<User> users = Collections.singleton(sms.getCreatedBy());
 
-            if ( users != null && users.size() > 1 )
-            {
-                String messageMoreThanOneUser = smsCommand.getMoreThanOneOrgUnitMessage();
+      if (users != null && users.size() > 1) {
+        String messageMoreThanOneUser = smsCommand.getMoreThanOneOrgUnitMessage();
 
-                if ( messageMoreThanOneUser.trim().isEmpty() )
-                {
-                    messageMoreThanOneUser = SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE;
-                }
-
-                for ( Iterator<User> i = users.iterator(); i.hasNext(); )
-                {
-                    User user = i.next();
-                    messageMoreThanOneUser += " " + user.getName();
-                    if ( i.hasNext() )
-                    {
-                        messageMoreThanOneUser += ",";
-                    }
-                }
-
-                throw new SMSParserException( messageMoreThanOneUser );
-            }
-            else if ( users != null && users.size() == 1 )
-            {
-                User sender = users.iterator().next();
-
-                Set<User> receivers = new HashSet<>( userGroup.getMembers() );
-                messageService.sendMessage( new MessageConversationParams.Builder( receivers, sender,
-                    smsCommand.getName(), message, MessageType.SYSTEM, null ).build() );
-
-                Set<User> feedbackList = new HashSet<>();
-                feedbackList.add( sender );
-
-                String confirmMessage = smsCommand.getReceivedMessage();
-
-                if ( confirmMessage == null )
-                {
-                    confirmMessage = SMSCommand.ALERT_FEEDBACK;
-                }
-
-                if ( smsSender.isConfigured() )
-                {
-                    smsSender.sendMessage( smsCommand.getName(), confirmMessage, null, null, feedbackList, false );
-                }
-                else
-                {
-                    log.info( "No sms configuration found." );
-                }
-
-                update( sms, SmsMessageStatus.PROCESSED, true );
-            }
-            else if ( users == null || users.size() == 0 )
-            {
-                throw new SMSParserException(
-                    "No user associated with this phone number. Please contact your supervisor." );
-            }
+        if (messageMoreThanOneUser.trim().isEmpty()) {
+          messageMoreThanOneUser = SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE;
         }
+
+        for (Iterator<User> i = users.iterator(); i.hasNext(); ) {
+          User user = i.next();
+          messageMoreThanOneUser += " " + user.getName();
+          if (i.hasNext()) {
+            messageMoreThanOneUser += ",";
+          }
+        }
+
+        throw new SMSParserException(messageMoreThanOneUser);
+      } else if (users != null && users.size() == 1) {
+        User sender = users.iterator().next();
+
+        Set<User> receivers = new HashSet<>(userGroup.getMembers());
+        messageService.sendMessage(
+            new MessageConversationParams.Builder(
+                    receivers, sender, smsCommand.getName(), message, MessageType.SYSTEM, null)
+                .build());
+
+        Set<User> feedbackList = new HashSet<>();
+        feedbackList.add(sender);
+
+        String confirmMessage = smsCommand.getReceivedMessage();
+
+        if (confirmMessage == null) {
+          confirmMessage = SMSCommand.ALERT_FEEDBACK;
+        }
+
+        if (smsSender.isConfigured()) {
+          smsSender.sendMessage(
+              smsCommand.getName(), confirmMessage, null, null, feedbackList, false);
+        } else {
+          log.info("No sms configuration found.");
+        }
+
+        update(sms, SmsMessageStatus.PROCESSED, true);
+      } else if (users == null || users.size() == 0) {
+        throw new SMSParserException(
+            "No user associated with this phone number. Please contact your supervisor.");
+      }
     }
+  }
 }

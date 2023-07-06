@@ -30,18 +30,16 @@ package org.hisp.dhis.dataelement;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 /**
- * When storing DataValues without associated dimensions there is a need to
- * refer to a default dimension. This populator persists a CategoryCombo named
- * by the CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME property and a corresponding
+ * When storing DataValues without associated dimensions there is a need to refer to a default
+ * dimension. This populator persists a CategoryCombo named by the
+ * CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME property and a corresponding
  * DataElementCatoryOptionCombo which should be used for this purpose.
  *
  * @author Lars Helge Overland
@@ -49,74 +47,66 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
  * @version $Id$
  */
 @Slf4j
-public class DataElementDefaultDimensionPopulator
-    extends TransactionContextStartupRoutine
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class DataElementDefaultDimensionPopulator extends TransactionContextStartupRoutine {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final DataElementService dataElementService;
+  private final DataElementService dataElementService;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    public DataElementDefaultDimensionPopulator( DataElementService dataElementService,
-        CategoryService categoryService )
-    {
-        checkNotNull( dataElementService );
-        checkNotNull( categoryService );
-        this.dataElementService = dataElementService;
-        this.categoryService = categoryService;
+  public DataElementDefaultDimensionPopulator(
+      DataElementService dataElementService, CategoryService categoryService) {
+    checkNotNull(dataElementService);
+    checkNotNull(categoryService);
+    this.dataElementService = dataElementService;
+    this.categoryService = categoryService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Execute
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void executeInTransaction() {
+    Category defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
+
+    if (defaultCategory == null) {
+      categoryService.generateDefaultDimension();
+
+      defaultCategory = categoryService.getCategoryByName(Category.DEFAULT_NAME);
+
+      log.info("Added default category");
     }
 
-    // -------------------------------------------------------------------------
-    // Execute
-    // -------------------------------------------------------------------------
+    categoryService.updateCategory(defaultCategory);
 
-    @Override
-    public void executeInTransaction()
-    {
-        Category defaultCategory = categoryService.getCategoryByName( Category.DEFAULT_NAME );
+    String defaultName = CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
-        if ( defaultCategory == null )
-        {
-            categoryService.generateDefaultDimension();
+    CategoryCombo categoryCombo = categoryService.getCategoryComboByName(defaultName);
 
-            defaultCategory = categoryService.getCategoryByName( Category.DEFAULT_NAME );
+    if (categoryCombo == null) {
+      categoryService.generateDefaultDimension();
 
-            log.info( "Added default category" );
-        }
+      log.info("Added default dataelement dimension");
 
-        categoryService.updateCategory( defaultCategory );
-
-        String defaultName = CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-
-        CategoryCombo categoryCombo = categoryService.getCategoryComboByName( defaultName );
-
-        if ( categoryCombo == null )
-        {
-            categoryService.generateDefaultDimension();
-
-            log.info( "Added default dataelement dimension" );
-
-            categoryCombo = categoryService.getCategoryComboByName( defaultName );
-        }
-
-        // ---------------------------------------------------------------------
-        // Any data elements without dimensions need to be associated at least
-        // with the default dimension
-        // ---------------------------------------------------------------------
-
-        Collection<DataElement> dataElements = dataElementService.getAllDataElements();
-
-        for ( DataElement dataElement : dataElements )
-        {
-            if ( dataElement.getCategoryCombo() == null )
-            {
-                dataElement.setCategoryCombo( categoryCombo );
-
-                dataElementService.updateDataElement( dataElement );
-            }
-        }
+      categoryCombo = categoryService.getCategoryComboByName(defaultName);
     }
+
+    // ---------------------------------------------------------------------
+    // Any data elements without dimensions need to be associated at least
+    // with the default dimension
+    // ---------------------------------------------------------------------
+
+    Collection<DataElement> dataElements = dataElementService.getAllDataElements();
+
+    for (DataElement dataElement : dataElements) {
+      if (dataElement.getCategoryCombo() == null) {
+        dataElement.setCategoryCombo(categoryCombo);
+
+        dataElementService.updateDataElement(dataElement);
+      }
+    }
+  }
 }

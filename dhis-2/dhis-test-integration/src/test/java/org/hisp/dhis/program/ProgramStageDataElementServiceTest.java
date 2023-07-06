@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -45,132 +45,121 @@ import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageDataElementServiceTest extends IntegrationTestBase
-{
+class ProgramStageDataElementServiceTest extends IntegrationTestBase {
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private ProgramStage stageA;
+  private ProgramStage stageA;
 
-    private ProgramStage stageB;
+  private ProgramStage stageB;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private DataElement dataElementB;
+  private DataElement dataElementB;
 
-    private ProgramStageDataElement stageDataElementA;
+  private ProgramStageDataElement stageDataElementA;
 
-    private ProgramStageDataElement stageDataElementB;
+  private ProgramStageDataElement stageDataElementB;
 
-    @Override
-    public void setUpTest()
-    {
-        organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-        Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programService.addProgram( program );
-        stageA = new ProgramStage( "A", program );
-        stageA.setSortOrder( 1 );
-        stageA.setUid( "StageA" );
-        programStageService.saveProgramStage( stageA );
-        stageB = new ProgramStage( "B", program );
-        stageB.setSortOrder( 2 );
-        programStageService.saveProgramStage( stageB );
-        Set<ProgramStage> programStages = new HashSet<>();
-        programStages.add( stageA );
-        programStages.add( stageB );
-        program.setProgramStages( programStages );
-        programService.updateProgram( program );
-        dataElementA = createDataElement( 'A' );
-        dataElementB = createDataElement( 'B' );
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        stageDataElementA = new ProgramStageDataElement( stageA, dataElementA, false, 1 );
-        stageDataElementB = new ProgramStageDataElement( stageA, dataElementB, false, 2 );
-    }
+  @Override
+  public void setUpTest() {
+    organisationUnit = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(organisationUnit);
+    Program program = createProgram('A', new HashSet<>(), organisationUnit);
+    programService.addProgram(program);
+    stageA = new ProgramStage("A", program);
+    stageA.setSortOrder(1);
+    stageA.setUid("StageA");
+    programStageService.saveProgramStage(stageA);
+    stageB = new ProgramStage("B", program);
+    stageB.setSortOrder(2);
+    programStageService.saveProgramStage(stageB);
+    Set<ProgramStage> programStages = new HashSet<>();
+    programStages.add(stageA);
+    programStages.add(stageB);
+    program.setProgramStages(programStages);
+    programService.updateProgram(program);
+    dataElementA = createDataElement('A');
+    dataElementB = createDataElement('B');
+    dataElementService.addDataElement(dataElementA);
+    dataElementService.addDataElement(dataElementB);
+    stageDataElementA = new ProgramStageDataElement(stageA, dataElementA, false, 1);
+    stageDataElementB = new ProgramStageDataElement(stageA, dataElementB, false, 2);
+  }
 
-    @Test
-    void testAddProgramStageDataElement()
-    {
-        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        programStageDataElementService.addProgramStageDataElement( stageDataElementB );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementB ) );
-    }
+  @Test
+  void testAddProgramStageDataElement() {
+    programStageDataElementService.addProgramStageDataElement(stageDataElementA);
+    programStageDataElementService.addProgramStageDataElement(stageDataElementB);
+    assertNotNull(programStageDataElementService.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementService.get(stageA, dataElementB));
+  }
 
-    @Test
-    void testUpdateProgramStageDataElement()
-    {
-        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementA ) );
-        assertFalse( programStageDataElementService.get( stageA, dataElementA ).isCompulsory() );
-        assertFalse( programStageDataElementService.get( stageA, dataElementA ).getSkipAnalytics() );
-        stageDataElementA.setCompulsory( true );
-        stageDataElementA.setSkipAnalytics( true );
-        programStageDataElementService.updateProgramStageDataElement( stageDataElementA );
-        assertTrue( programStageDataElementService.get( stageA, dataElementA ).isCompulsory() );
-        assertTrue( programStageDataElementService.get( stageA, dataElementA ).getSkipAnalytics() );
-    }
+  @Test
+  void testUpdateProgramStageDataElement() {
+    programStageDataElementService.addProgramStageDataElement(stageDataElementA);
+    assertNotNull(programStageDataElementService.get(stageA, dataElementA));
+    assertFalse(programStageDataElementService.get(stageA, dataElementA).isCompulsory());
+    assertFalse(programStageDataElementService.get(stageA, dataElementA).getSkipAnalytics());
+    stageDataElementA.setCompulsory(true);
+    stageDataElementA.setSkipAnalytics(true);
+    programStageDataElementService.updateProgramStageDataElement(stageDataElementA);
+    assertTrue(programStageDataElementService.get(stageA, dataElementA).isCompulsory());
+    assertTrue(programStageDataElementService.get(stageA, dataElementA).getSkipAnalytics());
+  }
 
-    @Test
-    void testDeleteProgramStageDataElement()
-    {
-        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        programStageDataElementService.addProgramStageDataElement( stageDataElementB );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementB ) );
-        programStageDataElementService.deleteProgramStageDataElement( stageDataElementA );
-        assertNull( programStageDataElementService.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementB ) );
-        programStageDataElementService.deleteProgramStageDataElement( stageDataElementB );
-        assertNull( programStageDataElementService.get( stageA, dataElementA ) );
-        assertNull( programStageDataElementService.get( stageA, dataElementB ) );
-    }
+  @Test
+  void testDeleteProgramStageDataElement() {
+    programStageDataElementService.addProgramStageDataElement(stageDataElementA);
+    programStageDataElementService.addProgramStageDataElement(stageDataElementB);
+    assertNotNull(programStageDataElementService.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementService.get(stageA, dataElementB));
+    programStageDataElementService.deleteProgramStageDataElement(stageDataElementA);
+    assertNull(programStageDataElementService.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementService.get(stageA, dataElementB));
+    programStageDataElementService.deleteProgramStageDataElement(stageDataElementB);
+    assertNull(programStageDataElementService.get(stageA, dataElementA));
+    assertNull(programStageDataElementService.get(stageA, dataElementB));
+  }
 
-    @Test
-    void testGetByStageElement()
-    {
-        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        programStageDataElementService.addProgramStageDataElement( stageDataElementB );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementService.get( stageA, dataElementB ) );
-    }
+  @Test
+  void testGetByStageElement() {
+    programStageDataElementService.addProgramStageDataElement(stageDataElementA);
+    programStageDataElementService.addProgramStageDataElement(stageDataElementB);
+    assertNotNull(programStageDataElementService.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementService.get(stageA, dataElementB));
+  }
 
-    @Test
-    void testGetAllProgramStageDataElements()
-    {
-        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        programStageDataElementService.addProgramStageDataElement( stageDataElementB );
-        assertTrue( equals( programStageDataElementService.getAllProgramStageDataElements(), stageDataElementA,
-            stageDataElementB ) );
-    }
+  @Test
+  void testGetAllProgramStageDataElements() {
+    programStageDataElementService.addProgramStageDataElement(stageDataElementA);
+    programStageDataElementService.addProgramStageDataElement(stageDataElementB);
+    assertTrue(
+        equals(
+            programStageDataElementService.getAllProgramStageDataElements(),
+            stageDataElementA,
+            stageDataElementB));
+  }
 
-    @Test
-    void testRemoveReferencedDataElement()
-    {
-        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
-        stageA.getProgramStageDataElements().addAll( ImmutableSet.of( stageDataElementA ) );
-        programStageService.updateProgramStage( stageA );
-        assertThrows( DeleteNotAllowedException.class, () -> dataElementService.deleteDataElement( dataElementA ) );
-    }
+  @Test
+  void testRemoveReferencedDataElement() {
+    programStageDataElementService.addProgramStageDataElement(stageDataElementA);
+    stageA.getProgramStageDataElements().addAll(ImmutableSet.of(stageDataElementA));
+    programStageService.updateProgramStage(stageA);
+    assertThrows(
+        DeleteNotAllowedException.class, () -> dataElementService.deleteDataElement(dataElementA));
+  }
 }

@@ -41,9 +41,10 @@ import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -68,233 +69,312 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class QueryPlannerGroupByAggregationTypeTest
-{
-    private QueryPlanner subject;
+@ExtendWith(MockitoExtension.class)
+class QueryPlannerGroupByAggregationTypeTest {
+  private QueryPlanner subject;
 
-    @Mock
-    private PartitionManager partitionManager;
+  @Mock private PartitionManager partitionManager;
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new DefaultQueryPlanner( partitionManager );
-    }
+  @BeforeEach
+  public void setUp() {
+    subject = new DefaultQueryPlanner(partitionManager);
+  }
 
-    @Test
-    void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent()
-    {
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
-        // DataQueryParams with **two** DataElement with different data type as
-        // dimension
-        DataQueryParams queryParams = DataQueryParams.newBuilder().withDimensions(
-            // PERIOD DIMENSION
-            Lists.newArrayList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                        createDataElement( 'B', ValueType.TEXT, AggregationType.COUNT,
-                            DataElementDomain.AGGREGATE ) ) ) ) )
-            .withFilters( Lists.newArrayList(
-                // OU FILTER
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
-
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasSize( 2 ) );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasItem(
-            both( hasProperty( "aggregationType", hasProperty( "aggregationType", is( AggregationType.AVERAGE ) ) ) )
-                .and( hasProperty( "aggregationType", hasProperty( "dataType", is( DataType.NUMERIC ) ) ) ) ) );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasItem(
-            both( hasProperty( "aggregationType", hasProperty( "aggregationType", is( AggregationType.AVERAGE ) ) ) )
-                .and( hasProperty( "aggregationType", hasProperty( "dataType", is( DataType.TEXT ) ) ) ) ) );
-    }
-
-    @Test
-    void verifySingleNonDataElementRetainAggregationTypeButNullDataType()
-    {
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
-        // DataQueryParams with **one** Indicator
-        DataQueryParams queryParams = DataQueryParams.newBuilder().withDimensions(
-            // PERIOD DIMENSION
-            Lists.newArrayList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    Lists.newArrayList( createIndicator( 'A', createIndicatorType( 'A' ) ) ) ) ) )
-            .withFilters( Lists.newArrayList(
-                // OU FILTER
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
-
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasItem(
-            both( hasProperty( "aggregationType", hasProperty( "aggregationType", is( AggregationType.AVERAGE ) ) ) )
-                .and( hasProperty( "aggregationType", hasProperty( "dataType", is( nullValue() ) ) ) ) ) );
-    }
-
-    @Test
-    void verifyASingleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
-    {
-        // DataQueryParams with **one** DataElement as filter
-        DataQueryParams queryParams = createDataQueryParams(
-            new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                Lists.newArrayList( createDataElement( 'A', ValueType.INTEGER, AggregationType.MAX ) ) ) );
-
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
-        DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );
-
-        assertTrue( dataQueryParam.getAggregationType().isAggregationType( AggregationType.MAX ) );
-
-        // Expect the datatype = NUMERIC (which will allow the SQL generator to
-        // pick-up
-        // the proper SQL function)
-        assertThat( dataQueryParam.getAggregationType().getDataType(), is( DataType.NUMERIC ) );
-        assertThat( dataQueryParam.getPeriods(), hasSize( 1 ) );
-        assertThat( dataQueryParam.getFilterDataElements(), hasSize( 1 ) );
-        assertThat( dataQueryParam.getFilterOrganisationUnits(), hasSize( 1 ) );
-    }
-
-    @Test
-    void verifyMultipleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
-    {
-        // DataQueryParams with **two** DataElement as filter
-        // Both have DataType NUMERIC and AggregationType SUM
-        DataQueryParams queryParams = createDataQueryParams( new BaseDimensionalObject( "dx", DimensionType.DATA_X,
-            DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                createDataElement( 'B', new CategoryCombo() ) ) ) );
-
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
-        DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );
-
-        assertTrue( dataQueryParam.getAggregationType().isAggregationType( AggregationType.SUM ) );
-        assertThat( dataQueryParam.getAggregationType().getDataType(), is( DataType.NUMERIC ) );
-        assertThat( dataQueryParam.getPeriods(), hasSize( 1 ) );
-        assertThat( dataQueryParam.getFilterDataElements(), hasSize( 2 ) );
-        assertThat( dataQueryParam.getFilterOrganisationUnits(), hasSize( 1 ) );
-    }
-
-    @Test
-    void verifyMultipleDataElementAsFilterHavingDifferentAggTypeDoNotRetainAggregationType()
-    {
-        // DataQueryParams with **two** DataElement as filter
-        // Both have DataType NUMERIC but different AggregationType
-        DataQueryParams queryParams = createDataQueryParams( new BaseDimensionalObject( "dx", DimensionType.DATA_X,
-            DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                createDataElement( 'B', ValueType.INTEGER, AggregationType.COUNT ) ) ) );
-
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
-        DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );
-        // Aggregation type defaults to SUM
-        assertDefaultAggregationType( dataQueryParam );
-        assertThat( dataQueryParam.getAggregationType().getDataType(), is( nullValue() ) );
-        assertThat( dataQueryParam.getPeriods(), hasSize( 1 ) );
-        assertThat( dataQueryParam.getFilterDataElements(), hasSize( 2 ) );
-        assertThat( dataQueryParam.getFilterOrganisationUnits(), hasSize( 1 ) );
-    }
-
-    @Test
-    void verifyMultipleDataElementAsFilterHavingDifferentAggTypeRetainAggregationType()
-    {
-        // DataQueryParams with **two** DataElement as filter
-        // Both have DataType NUMERIC but different AggregationType
-        // Aggregation type is overridden (COUNT)
-        DataQueryParams queryParams = createDataQueryParamsWithAggregationType(
-            new BaseDimensionalObject( "dx", DimensionType.DATA_X,
-                DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                    createDataElement( 'B', ValueType.INTEGER, AggregationType.COUNT ) ) ),
-            AnalyticsAggregationType.COUNT );
-
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
-        DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );
-        // Aggregation type defaults to SUM
-        assertDefaultAggregationType( dataQueryParam );
-        assertThat( dataQueryParam.getAggregationType().getDataType(), is( nullValue() ) );
-        assertThat( dataQueryParam.getPeriods(), hasSize( 1 ) );
-        assertThat( dataQueryParam.getFilterDataElements(), hasSize( 2 ) );
-        assertThat( dataQueryParam.getFilterOrganisationUnits(), hasSize( 1 ) );
-    }
-
-    @Test
-    void verifyMultipleDataElementAsFilterHavingDifferentDataTypeDoNotRetainAggregationType()
-    {
-        // DataQueryParams with **two** DataElement as filter
-        // One Data Element has Type Numeric
-        // Aggregation type is overridden (COUNT)
-        DataQueryParams queryParams = createDataQueryParamsWithAggregationType(
-            new BaseDimensionalObject( "dx", DimensionType.DATA_X,
-                DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                    createDataElement( 'B', ValueType.TEXT, AggregationType.COUNT ) ) ),
-            AnalyticsAggregationType.COUNT );
-
-        DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
-
-        assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
-        DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );
-        // Aggregation type defaults to SUM
-        assertDefaultAggregationType( dataQueryParam );
-        assertThat( dataQueryParam.getAggregationType().getDataType(), is( nullValue() ) );
-        assertThat( dataQueryParam.getPeriods(), hasSize( 1 ) );
-        assertThat( dataQueryParam.getFilterDataElements(), hasSize( 2 ) );
-        assertThat( dataQueryParam.getFilterOrganisationUnits(), hasSize( 1 ) );
-    }
-
-    private DataQueryParams createDataQueryParams( BaseDimensionalObject filterDataElements )
-    {
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
-
-        return DataQueryParams.newBuilder().withDimensions(
-            // PERIOD DIMENSION
-            Lists.newArrayList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
-            .withFilters( Lists.newArrayList(
-                // OU FILTER
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ),
-                // DATA ELEMENT AS FILTER
-                filterDataElements ) )
+  @Test
+  void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent() {
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    // DataQueryParams with **two** DataElement with different data type as
+    // dimension
+    DataQueryParams queryParams =
+        DataQueryParams.newBuilder()
+            .withDimensions(
+                // PERIOD DIMENSION
+                Lists.newArrayList(
+                    new BaseDimensionalObject("pe", DimensionType.PERIOD, periods),
+                    new BaseDimensionalObject(
+                        "dx",
+                        DimensionType.DATA_X,
+                        DISPLAY_NAME_DATA_X,
+                        "display name",
+                        Lists.newArrayList(
+                            createDataElement('A', new CategoryCombo()),
+                            createDataElement(
+                                'B',
+                                ValueType.TEXT,
+                                AggregationType.COUNT,
+                                DataElementDomain.AGGREGATE)))))
+            .withFilters(
+                Lists.newArrayList(
+                    // OU FILTER
+                    new BaseDimensionalObject(
+                        "ou",
+                        DimensionType.ORGANISATION_UNIT,
+                        null,
+                        DISPLAY_NAME_ORGUNIT,
+                        ImmutableList.of(
+                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
+            .withAggregationType(AnalyticsAggregationType.AVERAGE)
             .build();
-    }
 
-    private DataQueryParams createDataQueryParamsWithAggregationType( BaseDimensionalObject filterDataElements,
-        AnalyticsAggregationType analyticsAggregationType )
-    {
+    DataQueryGroups dataQueryGroups =
+        subject.planQuery(
+            queryParams,
+            QueryPlannerParams.newBuilder().withTableType(AnalyticsTableType.DATA_VALUE).build());
 
-        return createDataQueryParams( filterDataElements )
-            .copyTo( DataQueryParams.newBuilder().withAggregationType( analyticsAggregationType ).build() );
-    }
+    assertThat(dataQueryGroups.getAllQueries(), hasSize(2));
 
-    private void assertDefaultAggregationType( DataQueryParams dataQueryParam )
-    {
-        assertTrue( dataQueryParam.getAggregationType().isAggregationType( AggregationType.SUM ) );
-    }
+    assertThat(
+        dataQueryGroups.getAllQueries(),
+        hasItem(
+            both(hasProperty(
+                    "aggregationType", hasProperty("aggregationType", is(AggregationType.AVERAGE))))
+                .and(
+                    hasProperty(
+                        "aggregationType", hasProperty("dataType", is(DataType.NUMERIC))))));
+
+    assertThat(
+        dataQueryGroups.getAllQueries(),
+        hasItem(
+            both(hasProperty(
+                    "aggregationType", hasProperty("aggregationType", is(AggregationType.AVERAGE))))
+                .and(hasProperty("aggregationType", hasProperty("dataType", is(DataType.TEXT))))));
+  }
+
+  @Test
+  void verifySingleNonDataElementRetainAggregationTypeButNullDataType() {
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+    // DataQueryParams with **one** Indicator
+    DataQueryParams queryParams =
+        DataQueryParams.newBuilder()
+            .withDimensions(
+                // PERIOD DIMENSION
+                Lists.newArrayList(
+                    new BaseDimensionalObject("pe", DimensionType.PERIOD, periods),
+                    new BaseDimensionalObject(
+                        "dx",
+                        DimensionType.DATA_X,
+                        DISPLAY_NAME_DATA_X,
+                        "display name",
+                        Lists.newArrayList(createIndicator('A', createIndicatorType('A'))))))
+            .withFilters(
+                Lists.newArrayList(
+                    // OU FILTER
+                    new BaseDimensionalObject(
+                        "ou",
+                        DimensionType.ORGANISATION_UNIT,
+                        null,
+                        DISPLAY_NAME_ORGUNIT,
+                        ImmutableList.of(
+                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
+            .withAggregationType(AnalyticsAggregationType.AVERAGE)
+            .build();
+
+    DataQueryGroups dataQueryGroups =
+        subject.planQuery(
+            queryParams,
+            QueryPlannerParams.newBuilder().withTableType(AnalyticsTableType.DATA_VALUE).build());
+
+    assertThat(dataQueryGroups.getAllQueries(), hasSize(1));
+
+    assertThat(
+        dataQueryGroups.getAllQueries(),
+        hasItem(
+            both(hasProperty(
+                    "aggregationType", hasProperty("aggregationType", is(AggregationType.AVERAGE))))
+                .and(hasProperty("aggregationType", hasProperty("dataType", is(nullValue()))))));
+  }
+
+  @Test
+  void verifyASingleDataElementAsFilterRetainAggregationTypeAndAggregationDataType() {
+    // DataQueryParams with **one** DataElement as filter
+    DataQueryParams queryParams =
+        createDataQueryParams(
+            new BaseDimensionalObject(
+                "dx",
+                DimensionType.DATA_X,
+                DISPLAY_NAME_DATA_X,
+                "display name",
+                Lists.newArrayList(
+                    createDataElement('A', ValueType.INTEGER, AggregationType.MAX))));
+
+    DataQueryGroups dataQueryGroups =
+        subject.planQuery(
+            queryParams,
+            QueryPlannerParams.newBuilder().withTableType(AnalyticsTableType.DATA_VALUE).build());
+
+    assertThat(dataQueryGroups.getAllQueries(), hasSize(1));
+    DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get(0);
+
+    assertTrue(dataQueryParam.getAggregationType().isAggregationType(AggregationType.MAX));
+
+    // Expect the datatype = NUMERIC (which will allow the SQL generator to
+    // pick-up
+    // the proper SQL function)
+    assertThat(dataQueryParam.getAggregationType().getDataType(), is(DataType.NUMERIC));
+    assertThat(dataQueryParam.getPeriods(), hasSize(1));
+    assertThat(dataQueryParam.getFilterDataElements(), hasSize(1));
+    assertThat(dataQueryParam.getFilterOrganisationUnits(), hasSize(1));
+  }
+
+  @Test
+  void verifyMultipleDataElementAsFilterRetainAggregationTypeAndAggregationDataType() {
+    // DataQueryParams with **two** DataElement as filter
+    // Both have DataType NUMERIC and AggregationType SUM
+    DataQueryParams queryParams =
+        createDataQueryParams(
+            new BaseDimensionalObject(
+                "dx",
+                DimensionType.DATA_X,
+                DISPLAY_NAME_DATA_X,
+                "display name",
+                Lists.newArrayList(
+                    createDataElement('A', new CategoryCombo()),
+                    createDataElement('B', new CategoryCombo()))));
+
+    DataQueryGroups dataQueryGroups =
+        subject.planQuery(
+            queryParams,
+            QueryPlannerParams.newBuilder().withTableType(AnalyticsTableType.DATA_VALUE).build());
+
+    assertThat(dataQueryGroups.getAllQueries(), hasSize(1));
+    DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get(0);
+
+    assertTrue(dataQueryParam.getAggregationType().isAggregationType(AggregationType.SUM));
+    assertThat(dataQueryParam.getAggregationType().getDataType(), is(DataType.NUMERIC));
+    assertThat(dataQueryParam.getPeriods(), hasSize(1));
+    assertThat(dataQueryParam.getFilterDataElements(), hasSize(2));
+    assertThat(dataQueryParam.getFilterOrganisationUnits(), hasSize(1));
+  }
+
+  @Test
+  void verifyMultipleDataElementAsFilterHavingDifferentAggTypeDoNotRetainAggregationType() {
+    // DataQueryParams with **two** DataElement as filter
+    // Both have DataType NUMERIC but different AggregationType
+    DataQueryParams queryParams =
+        createDataQueryParams(
+            new BaseDimensionalObject(
+                "dx",
+                DimensionType.DATA_X,
+                DISPLAY_NAME_DATA_X,
+                "display name",
+                Lists.newArrayList(
+                    createDataElement('A', new CategoryCombo()),
+                    createDataElement('B', ValueType.INTEGER, AggregationType.COUNT))));
+
+    DataQueryGroups dataQueryGroups =
+        subject.planQuery(
+            queryParams,
+            QueryPlannerParams.newBuilder().withTableType(AnalyticsTableType.DATA_VALUE).build());
+
+    assertThat(dataQueryGroups.getAllQueries(), hasSize(1));
+    DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get(0);
+    // Aggregation type defaults to SUM
+    assertDefaultAggregationType(dataQueryParam);
+    assertThat(dataQueryParam.getAggregationType().getDataType(), is(nullValue()));
+    assertThat(dataQueryParam.getPeriods(), hasSize(1));
+    assertThat(dataQueryParam.getFilterDataElements(), hasSize(2));
+    assertThat(dataQueryParam.getFilterOrganisationUnits(), hasSize(1));
+  }
+
+  @Test
+  void verifyMultipleDataElementAsFilterHavingDifferentAggTypeRetainAggregationType() {
+    // DataQueryParams with **two** DataElement as filter
+    // Both have DataType NUMERIC but different AggregationType
+    // Aggregation type is overridden (COUNT)
+    DataQueryParams queryParams =
+        createDataQueryParamsWithAggregationType(
+            new BaseDimensionalObject(
+                "dx",
+                DimensionType.DATA_X,
+                DISPLAY_NAME_DATA_X,
+                "display name",
+                Lists.newArrayList(
+                    createDataElement('A', new CategoryCombo()),
+                    createDataElement('B', ValueType.INTEGER, AggregationType.COUNT))),
+            AnalyticsAggregationType.COUNT);
+
+    DataQueryGroups dataQueryGroups =
+        subject.planQuery(
+            queryParams,
+            QueryPlannerParams.newBuilder().withTableType(AnalyticsTableType.DATA_VALUE).build());
+
+    assertThat(dataQueryGroups.getAllQueries(), hasSize(1));
+    DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get(0);
+    // Aggregation type defaults to SUM
+    assertDefaultAggregationType(dataQueryParam);
+    assertThat(dataQueryParam.getAggregationType().getDataType(), is(nullValue()));
+    assertThat(dataQueryParam.getPeriods(), hasSize(1));
+    assertThat(dataQueryParam.getFilterDataElements(), hasSize(2));
+    assertThat(dataQueryParam.getFilterOrganisationUnits(), hasSize(1));
+  }
+
+  @Test
+  void verifyMultipleDataElementAsFilterHavingDifferentDataTypeDoNotRetainAggregationType() {
+    // DataQueryParams with **two** DataElement as filter
+    // One Data Element has Type Numeric
+    // Aggregation type is overridden (COUNT)
+    DataQueryParams queryParams =
+        createDataQueryParamsWithAggregationType(
+            new BaseDimensionalObject(
+                "dx",
+                DimensionType.DATA_X,
+                DISPLAY_NAME_DATA_X,
+                "display name",
+                Lists.newArrayList(
+                    createDataElement('A', new CategoryCombo()),
+                    createDataElement('B', ValueType.TEXT, AggregationType.COUNT))),
+            AnalyticsAggregationType.COUNT);
+
+    DataQueryGroups dataQueryGroups =
+        subject.planQuery(
+            queryParams,
+            QueryPlannerParams.newBuilder().withTableType(AnalyticsTableType.DATA_VALUE).build());
+
+    assertThat(dataQueryGroups.getAllQueries(), hasSize(1));
+    DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get(0);
+    // Aggregation type defaults to SUM
+    assertDefaultAggregationType(dataQueryParam);
+    assertThat(dataQueryParam.getAggregationType().getDataType(), is(nullValue()));
+    assertThat(dataQueryParam.getPeriods(), hasSize(1));
+    assertThat(dataQueryParam.getFilterDataElements(), hasSize(2));
+    assertThat(dataQueryParam.getFilterOrganisationUnits(), hasSize(1));
+  }
+
+  private DataQueryParams createDataQueryParams(BaseDimensionalObject filterDataElements) {
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+
+    return DataQueryParams.newBuilder()
+        .withDimensions(
+            // PERIOD DIMENSION
+            Lists.newArrayList(new BaseDimensionalObject("pe", DimensionType.PERIOD, periods)))
+        .withFilters(
+            Lists.newArrayList(
+                // OU FILTER
+                new BaseDimensionalObject(
+                    "ou",
+                    DimensionType.ORGANISATION_UNIT,
+                    null,
+                    DISPLAY_NAME_ORGUNIT,
+                    ImmutableList.of(new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2"))),
+                // DATA ELEMENT AS FILTER
+                filterDataElements))
+        .build();
+  }
+
+  private DataQueryParams createDataQueryParamsWithAggregationType(
+      BaseDimensionalObject filterDataElements, AnalyticsAggregationType analyticsAggregationType) {
+
+    return createDataQueryParams(filterDataElements)
+        .copyTo(DataQueryParams.newBuilder().withAggregationType(analyticsAggregationType).build());
+  }
+
+  private void assertDefaultAggregationType(DataQueryParams dataQueryParam) {
+    assertTrue(dataQueryParam.getAggregationType().isAggregationType(AggregationType.SUM));
+  }
 }

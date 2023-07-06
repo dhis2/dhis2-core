@@ -37,7 +37,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.Date;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
@@ -52,69 +51,67 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 /**
- * Tests the {@link AccountExpiryAlertJob} using mocks to only test the logic of
- * the job.
+ * Tests the {@link AccountExpiryAlertJob} using mocks to only test the logic of the job.
  *
  * @author Jan Bernitt
  */
-class AccountExpiryAlertJobTest
-{
+class AccountExpiryAlertJobTest {
 
-    private final UserService userService = mock( UserService.class );
+  private final UserService userService = mock(UserService.class);
 
-    private final MessageSender messageSender = mock( MessageSender.class );
+  private final MessageSender messageSender = mock(MessageSender.class);
 
-    private final SystemSettingManager settingManager = mock( SystemSettingManager.class );
+  private final SystemSettingManager settingManager = mock(SystemSettingManager.class);
 
-    private final AccountExpiryAlertJob job = new AccountExpiryAlertJob( userService, messageSender, settingManager );
+  private final AccountExpiryAlertJob job =
+      new AccountExpiryAlertJob(userService, messageSender, settingManager);
 
-    @BeforeEach
-    void setUp()
-    {
-        // mock normal run conditions
-        when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( true );
-        when( settingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS ) ).thenReturn( 7 );
-    }
+  @BeforeEach
+  void setUp() {
+    // mock normal run conditions
+    when(settingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)).thenReturn(true);
+    when(settingManager.getIntSetting(SettingKey.ACCOUNT_EXPIRES_IN_DAYS)).thenReturn(7);
+  }
 
-    @Test
-    void testDisabledJobDoesNotExecute()
-    {
-        when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( false );
-        job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
-        verify( userService, never() ).getExpiringUserAccounts( anyInt() );
-    }
+  @Test
+  void testDisabledJobDoesNotExecute() {
+    when(settingManager.getBoolSetting(SettingKey.ACCOUNT_EXPIRY_ALERT)).thenReturn(false);
+    job.execute(new JobConfiguration(), NoopJobProgress.INSTANCE);
+    verify(userService, never()).getExpiringUserAccounts(anyInt());
+  }
 
-    @Test
-    void testEnabledJobSendsEmail()
-    {
-        when( userService.getExpiringUserAccounts( anyInt() ) ).thenReturn( singletonList(
-            new UserAccountExpiryInfo( "username", "email@example.com", Date.valueOf( "2021-08-23" ) ) ) );
-        job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
-        ArgumentCaptor<String> subject = ArgumentCaptor.forClass( String.class );
-        ArgumentCaptor<String> text = ArgumentCaptor.forClass( String.class );
-        ArgumentCaptor<String> recipient = ArgumentCaptor.forClass( String.class );
-        verify( messageSender ).sendMessage( subject.capture(), text.capture(), recipient.capture() );
-        assertEquals( "Account Expiry Alert", subject.getValue() );
-        assertEquals(
-            "Dear username, your account is about to expire on 2021-08-23. If your use of the account needs to continue, get in touch with your system administrator.",
-            text.getValue() );
-        assertEquals( "email@example.com", recipient.getValue() );
-    }
+  @Test
+  void testEnabledJobSendsEmail() {
+    when(userService.getExpiringUserAccounts(anyInt()))
+        .thenReturn(
+            singletonList(
+                new UserAccountExpiryInfo(
+                    "username", "email@example.com", Date.valueOf("2021-08-23"))));
+    job.execute(new JobConfiguration(), NoopJobProgress.INSTANCE);
+    ArgumentCaptor<String> subject = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> text = ArgumentCaptor.forClass(String.class);
+    ArgumentCaptor<String> recipient = ArgumentCaptor.forClass(String.class);
+    verify(messageSender).sendMessage(subject.capture(), text.capture(), recipient.capture());
+    assertEquals("Account Expiry Alert", subject.getValue());
+    assertEquals(
+        "Dear username, your account is about to expire on 2021-08-23. If your use of the account needs to continue, get in touch with your system administrator.",
+        text.getValue());
+    assertEquals("email@example.com", recipient.getValue());
+  }
 
-    @Test
-    void testValidate()
-    {
-        when( messageSender.isConfigured() ).thenReturn( true );
-        assertNull( job.validate() );
-    }
+  @Test
+  void testValidate() {
+    when(messageSender.isConfigured()).thenReturn(true);
+    assertNull(job.validate());
+  }
 
-    @Test
-    void testValidate_Error()
-    {
-        when( messageSender.isConfigured() ).thenReturn( false );
-        ErrorReport report = job.validate();
-        assertEquals( ErrorCode.E7010, report.getErrorCode() );
-        assertEquals( "Failed to validate job runtime: `EMAIL gateway configuration does not exist`",
-            report.getMessage() );
-    }
+  @Test
+  void testValidate_Error() {
+    when(messageSender.isConfigured()).thenReturn(false);
+    ErrorReport report = job.validate();
+    assertEquals(ErrorCode.E7010, report.getErrorCode());
+    assertEquals(
+        "Failed to validate job runtime: `EMAIL gateway configuration does not exist`",
+        report.getMessage());
+  }
 }

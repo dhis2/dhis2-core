@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -46,48 +45,41 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerEventBundleServiceTest extends TrackerTest
-{
-    @Autowired
-    private TrackerImportService trackerImportService;
+class TrackerEventBundleServiceTest extends TrackerTest {
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+  @Autowired private ProgramStageInstanceStore programStageInstanceStore;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/event_metadata.json" );
-        injectAdminUser();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/event_metadata.json");
+    injectAdminUser();
+  }
 
-    @Test
-    void testCreateSingleEventData()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-        assertEquals( 8, trackerImportParams.getEvents().size() );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+  @Test
+  void testCreateSingleEventData() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/event_events_and_enrollment.json");
+    assertEquals(8, trackerImportParams.getEvents().size());
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
+    assertNoErrors(trackerImportReport);
 
-        List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
-        assertEquals( 8, programStageInstances.size() );
-    }
+    List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
+    assertEquals(8, programStageInstances.size());
+  }
 
-    @Test
-    void testUpdateSingleEventData()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
-        assertEquals( 8, programStageInstanceStore.getAll().size() );
+  @Test
+  void testUpdateSingleEventData() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/event_events_and_enrollment.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
+    assertNoErrors(trackerImportReport);
+    assertEquals(8, programStageInstanceStore.getAll().size());
 
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertNoErrors( trackerImportReport );
+    trackerImportReport = trackerImportService.importTracker(trackerImportParams);
+    assertNoErrors(trackerImportReport);
 
-        assertEquals( 8, programStageInstanceStore.getAll().size() );
-    }
+    assertEquals(8, programStageInstanceStore.getAll().size());
+  }
 }

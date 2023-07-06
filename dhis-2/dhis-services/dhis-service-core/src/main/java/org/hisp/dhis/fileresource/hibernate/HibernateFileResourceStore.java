@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.fileresource.hibernate;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.fileresource.FileResource;
@@ -42,53 +42,62 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ImmutableSet;
+@Repository("org.hisp.dhis.fileresource.FileResourceStore")
+public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore<FileResource>
+    implements FileResourceStore {
+  private static final Set<String> IMAGE_CONTENT_TYPES =
+      new ImmutableSet.Builder<String>()
+          .add("image/jpg")
+          .add("image/png")
+          .add("image/jpeg")
+          .build();
 
-@Repository( "org.hisp.dhis.fileresource.FileResourceStore" )
-public class HibernateFileResourceStore
-    extends HibernateIdentifiableObjectStore<FileResource>
-    implements FileResourceStore
-{
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
+  public HibernateFileResourceStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        FileResource.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    public HibernateFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, FileResource.class, currentUserService, aclService, false );
-    }
-
-    @Override
-    public List<FileResource> getExpiredFileResources( DateTime expires )
-    {
-        List<FileResource> results = getSession()
-            .createNativeQuery( "select fr.* " +
-                "from fileresource fr " +
-                "inner join (select dva.value " +
-                "from datavalueaudit dva " +
-                "where dva.created < :date " +
-                "and dva.audittype in ('DELETE', 'UPDATE') " +
-                "and dva.dataelementid in " +
-                "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva " +
-                "on dva.value = fr.uid " +
-                "where fr.isassigned = true; ", FileResource.class )
-            .setParameter( "date", expires.toDate() )
+  @Override
+  public List<FileResource> getExpiredFileResources(DateTime expires) {
+    List<FileResource> results =
+        getSession()
+            .createNativeQuery(
+                "select fr.* "
+                    + "from fileresource fr "
+                    + "inner join (select dva.value "
+                    + "from datavalueaudit dva "
+                    + "where dva.created < :date "
+                    + "and dva.audittype in ('DELETE', 'UPDATE') "
+                    + "and dva.dataelementid in "
+                    + "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva "
+                    + "on dva.value = fr.uid "
+                    + "where fr.isassigned = true; ",
+                FileResource.class)
+            .setParameter("date", expires.toDate())
             .getResultList();
 
-        return results;
-    }
+    return results;
+  }
 
-    @Override
-    public List<FileResource> getAllUnProcessedImages()
-    {
-        return getQuery(
-            "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
-                .setParameter( "domains", FileResourceDomain.getDomainForMultipleImages() )
-                .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
-                .setParameter( "hasMultipleStorageFiles", false )
-                .setMaxResults( 50 ).getResultList();
-    }
+  @Override
+  public List<FileResource> getAllUnProcessedImages() {
+    return getQuery(
+            "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles")
+        .setParameter("domains", FileResourceDomain.getDomainForMultipleImages())
+        .setParameter("contentTypes", IMAGE_CONTENT_TYPES)
+        .setParameter("hasMultipleStorageFiles", false)
+        .setMaxResults(50)
+        .getResultList();
+  }
 }

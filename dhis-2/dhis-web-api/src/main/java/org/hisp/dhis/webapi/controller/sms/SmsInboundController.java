@@ -35,11 +35,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -64,154 +61,144 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
+/** Zubair <rajazubair.asghar@gmail.com> */
 @RestController
-@RequestMapping( value = "/sms/inbound" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = "/sms/inbound")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class SmsInboundController extends AbstractCrudController<IncomingSms>
-{
-    private final IncomingSmsService incomingSMSService;
+public class SmsInboundController extends AbstractCrudController<IncomingSms> {
+  private final IncomingSmsService incomingSMSService;
 
-    private final RenderService renderService;
+  private final RenderService renderService;
 
-    private final SMSCommandService smsCommandService;
+  private final SMSCommandService smsCommandService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    // -------------------------------------------------------------------------
-    // POST
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // POST
+  // -------------------------------------------------------------------------
 
-    @PostMapping( produces = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    @ResponseBody
-    public WebMessage receiveSMSMessage( @RequestParam String originator,
-        @RequestParam( required = false ) Date receivedTime, @RequestParam String message,
-        @RequestParam( defaultValue = "Unknown", required = false ) String gateway, @CurrentUser User currentUser )
-        throws WebMessageException
-    {
-        if ( originator == null || originator.length() <= 0 )
-        {
-            return conflict( "Originator must be specified" );
-        }
-
-        if ( message == null || message.length() <= 0 )
-        {
-            return conflict( "Message must be specified" );
-        }
-
-        long smsId = incomingSMSService.save( message, originator, gateway, receivedTime,
-            getUserByPhoneNumber( originator, message, currentUser ) );
-
-        return ok( "Received SMS: " + smsId );
+  @PostMapping(produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @ResponseBody
+  public WebMessage receiveSMSMessage(
+      @RequestParam String originator,
+      @RequestParam(required = false) Date receivedTime,
+      @RequestParam String message,
+      @RequestParam(defaultValue = "Unknown", required = false) String gateway,
+      @CurrentUser User currentUser)
+      throws WebMessageException {
+    if (originator == null || originator.length() <= 0) {
+      return conflict("Originator must be specified");
     }
 
-    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    @ResponseBody
-    public WebMessage receiveSMSMessage( HttpServletRequest request, @CurrentUser User currentUser )
-        throws WebMessageException,
-        IOException
-    {
-        IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
-        sms.setCreatedBy( getUserByPhoneNumber( sms.getOriginator(), sms.getText(), currentUser ) );
-
-        long smsId = incomingSMSService.save( sms );
-
-        return ok( "Received SMS: " + smsId );
+    if (message == null || message.length() <= 0) {
+      return conflict("Message must be specified");
     }
 
-    @PostMapping( value = "/import", produces = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    @ResponseBody
-    public WebMessage importUnparsedSMSMessages()
-    {
-        List<IncomingSms> importMessageList = incomingSMSService.getAllUnparsedMessages();
+    long smsId =
+        incomingSMSService.save(
+            message,
+            originator,
+            gateway,
+            receivedTime,
+            getUserByPhoneNumber(originator, message, currentUser));
 
-        for ( IncomingSms sms : importMessageList )
-        {
-            incomingSMSService.update( sms );
-        }
+    return ok("Received SMS: " + smsId);
+  }
 
-        return ok( "Import successful" );
+  @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @ResponseBody
+  public WebMessage receiveSMSMessage(HttpServletRequest request, @CurrentUser User currentUser)
+      throws WebMessageException, IOException {
+    IncomingSms sms = renderService.fromJson(request.getInputStream(), IncomingSms.class);
+    sms.setCreatedBy(getUserByPhoneNumber(sms.getOriginator(), sms.getText(), currentUser));
+
+    long smsId = incomingSMSService.save(sms);
+
+    return ok("Received SMS: " + smsId);
+  }
+
+  @PostMapping(value = "/import", produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @ResponseBody
+  public WebMessage importUnparsedSMSMessages() {
+    List<IncomingSms> importMessageList = incomingSMSService.getAllUnparsedMessages();
+
+    for (IncomingSms sms : importMessageList) {
+      incomingSMSService.update(sms);
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
+    return ok("Import successful");
+  }
 
-    @DeleteMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    @ResponseBody
-    public WebMessage deleteInboundMessage( @PathVariable String uid )
-    {
-        IncomingSms sms = incomingSMSService.get( uid );
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
 
-        if ( sms == null )
-        {
-            return notFound( "No IncomingSms with id '" + uid + "' was found." );
-        }
+  @DeleteMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @ResponseBody
+  public WebMessage deleteInboundMessage(@PathVariable String uid) {
+    IncomingSms sms = incomingSMSService.get(uid);
 
-        incomingSMSService.delete( uid );
-
-        return ok( "IncomingSms with " + uid + " deleted" );
+    if (sms == null) {
+      return notFound("No IncomingSms with id '" + uid + "' was found.");
     }
 
-    @DeleteMapping( produces = APPLICATION_JSON_VALUE )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    @ResponseBody
-    public WebMessage deleteInboundMessages( @RequestParam List<String> ids )
-    {
-        ids.forEach( incomingSMSService::delete );
+    incomingSMSService.delete(uid);
 
-        return ok( "Objects deleted" );
+    return ok("IncomingSms with " + uid + " deleted");
+  }
+
+  @DeleteMapping(produces = APPLICATION_JSON_VALUE)
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')")
+  @ResponseBody
+  public WebMessage deleteInboundMessages(@RequestParam List<String> ids) {
+    ids.forEach(incomingSMSService::delete);
+
+    return ok("Objects deleted");
+  }
+
+  // -------------------------------------------------------------------------
+  // SUPPORTIVE METHOD
+  // -------------------------------------------------------------------------
+
+  private User getUserByPhoneNumber(String phoneNumber, String text, User currentUser)
+      throws WebMessageException {
+    SMSCommand unregisteredParser =
+        smsCommandService.getSMSCommand(
+            SmsUtils.getCommandString(text), ParserType.UNREGISTERED_PARSER);
+
+    List<User> users = userService.getUsersByPhoneNumber(phoneNumber);
+
+    if (SmsUtils.isBase64(text)) {
+      return handleCompressedCommands(currentUser, phoneNumber);
     }
 
-    // -------------------------------------------------------------------------
-    // SUPPORTIVE METHOD
-    // -------------------------------------------------------------------------
+    if (users == null || users.isEmpty()) {
+      if (unregisteredParser != null) {
+        return null;
+      }
 
-    private User getUserByPhoneNumber( String phoneNumber, String text, User currentUser )
-        throws WebMessageException
-    {
-        SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ),
-            ParserType.UNREGISTERED_PARSER );
-
-        List<User> users = userService.getUsersByPhoneNumber( phoneNumber );
-
-        if ( SmsUtils.isBase64( text ) )
-        {
-            return handleCompressedCommands( currentUser, phoneNumber );
-        }
-
-        if ( users == null || users.isEmpty() )
-        {
-            if ( unregisteredParser != null )
-            {
-                return null;
-            }
-
-            // No user belong to this phone number
-            throw new WebMessageException(
-                conflict( "User's phone number is not registered in the system" ) );
-        }
-
-        return users.iterator().next();
+      // No user belong to this phone number
+      throw new WebMessageException(
+          conflict("User's phone number is not registered in the system"));
     }
 
-    private User handleCompressedCommands( User currentUser, String phoneNumber )
-        throws WebMessageException
-    {
-        if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
-        {
-            // current user does not belong to this number
-            throw new WebMessageException(
-                conflict( "Originator's number does not match user's Phone number" ) );
-        }
+    return users.iterator().next();
+  }
 
-        return currentUser;
+  private User handleCompressedCommands(User currentUser, String phoneNumber)
+      throws WebMessageException {
+    if (currentUser != null && !phoneNumber.equals(currentUser.getPhoneNumber())) {
+      // current user does not belong to this number
+      throw new WebMessageException(
+          conflict("Originator's number does not match user's Phone number"));
     }
+
+    return currentUser;
+  }
 }

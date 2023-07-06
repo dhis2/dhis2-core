@@ -27,48 +27,40 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.function.Consumer;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-
 import org.hisp.dhis.program.UserInfoSnapshot;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class JsonbToObjectHelper {
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class JsonbToObjectHelper
-{
+  private static final ObjectMapper MAPPER;
 
-    private final static ObjectMapper MAPPER;
+  static {
+    MAPPER = new ObjectMapper();
+    MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    MAPPER.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+  }
 
-    static
-    {
-        MAPPER = new ObjectMapper();
-        MAPPER.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
-        MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        MAPPER.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
-    }
+  static void setUserInfoSnapshot(
+      ResultSet rs, String columnName, Consumer<UserInfoSnapshot> applier) throws SQLException {
+    Optional.ofNullable(rs.getObject(columnName))
+        .map(Object::toString)
+        .map(JsonbToObjectHelper::safelyConvert)
+        .ifPresent(applier);
+  }
 
-    static void setUserInfoSnapshot( ResultSet rs, String columnName,
-        Consumer<UserInfoSnapshot> applier )
-        throws SQLException
-    {
-        Optional.ofNullable( rs.getObject( columnName ) )
-            .map( Object::toString )
-            .map( JsonbToObjectHelper::safelyConvert )
-            .ifPresent( applier );
-    }
-
-    @SneakyThrows
-    static UserInfoSnapshot safelyConvert( String userInfoSnapshotAsString )
-    {
-        return MAPPER.readValue( userInfoSnapshotAsString, UserInfoSnapshot.class );
-    }
+  @SneakyThrows
+  static UserInfoSnapshot safelyConvert(String userInfoSnapshotAsString) {
+    return MAPPER.readValue(userInfoSnapshotAsString, UserInfoSnapshot.class);
+  }
 }

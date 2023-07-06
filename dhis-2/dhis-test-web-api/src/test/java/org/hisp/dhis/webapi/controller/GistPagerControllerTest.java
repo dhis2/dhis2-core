@@ -34,52 +34,50 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.gist.GistPager} related features of the Gist
- * API.
+ * Tests the {@link org.hisp.dhis.gist.GistPager} related features of the Gist API.
  *
  * @author Jan Bernitt
  */
-class GistPagerControllerTest extends AbstractGistControllerTest
-{
+class GistPagerControllerTest extends AbstractGistControllerTest {
 
-    @Test
-    void testPager_Total_ResultBased()
-    {
-        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true", getSuperuserUid() )
+  @Test
+  void testPager_Total_ResultBased() {
+    JsonObject gist =
+        GET("/users/{uid}/userGroups/gist?fields=name,users&total=true", getSuperuserUid())
             .content();
-        assertHasPager( gist, 1, 50, 1 );
-    }
+    assertHasPager(gist, 1, 50, 1);
+  }
 
-    @Test
-    void testPager_Total_CountQueryNonExistingPage()
-    {
-        JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true&page=6", getSuperuserUid() )
+  @Test
+  void testPager_Total_CountQueryNonExistingPage() {
+    JsonObject gist =
+        GET("/users/{uid}/userGroups/gist?fields=name,users&total=true&page=6", getSuperuserUid())
             .content();
-        assertHasPager( gist, 6, 50, 1 );
-    }
+    assertHasPager(gist, 6, 50, 1);
+  }
 
-    @Test
-    void testPager_Total_CountQuery()
-    {
-        // create some members we can count a total for
-        createDataSetsForOrganisationUnit( 10, orgUnitId, "extra" );
-        String url = "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra";
-        JsonObject gist = GET( url, orgUnitId ).content();
-        assertHasPager( gist, 1, 3, 10 );
-        // now page 2
-        gist = GET( url + "&page=2", orgUnitId ).content();
-        assertHasPager( gist, 2, 3, 10 );
-        assertEquals(
-            "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra&page=1"
-                .replace( "{id}", orgUnitId ),
-            gist.getObject( "pager" ).getString( "prevPage" ).string() );
-        assertEquals(
-            "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra&page=3"
-                .replace( "{id}", orgUnitId ),
-            gist.getObject( "pager" ).getString( "nextPage" ).string() );
-        JsonArray dataSets = gist.getArray( "dataSets" );
-        assertEquals( "extra3", dataSets.getObject( 0 ).getString( "name" ).string() );
-        assertEquals( "extra4", dataSets.getObject( 1 ).getString( "name" ).string() );
-        assertEquals( "extra5", dataSets.getObject( 2 ).getString( "name" ).string() );
-    }
+  @Test
+  void testPager_Total_CountQuery() {
+    // create some members we can count a total for
+    createDataSetsForOrganisationUnit(10, orgUnitId, "extra");
+    String url =
+        "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra";
+    JsonObject gist = GET(url, orgUnitId).content();
+    assertHasPager(gist, 1, 3, 10);
+    // now page 2
+    gist = GET(url + "&page=2", orgUnitId).content();
+    assertHasPager(gist, 2, 3, 10);
+    assertEquals(
+        "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra&page=1"
+            .replace("{id}", orgUnitId),
+        gist.getObject("pager").getString("prevPage").string());
+    assertEquals(
+        "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra&page=3"
+            .replace("{id}", orgUnitId),
+        gist.getObject("pager").getString("nextPage").string());
+    JsonArray dataSets = gist.getArray("dataSets");
+    assertEquals("extra3", dataSets.getObject(0).getString("name").string());
+    assertEquals("extra4", dataSets.getObject(1).getString("name").string());
+    assertEquals("extra5", dataSets.getObject(2).getString("name").string());
+  }
 }

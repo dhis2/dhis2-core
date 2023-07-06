@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.user.CurrentUser;
@@ -43,55 +42,47 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = IdentifiableObjectController.RESOURCE_PATH )
-public class IdentifiableObjectController
-    extends AbstractCrudController<IdentifiableObject>
-{
-    public static final String RESOURCE_PATH = "/identifiableObjects";
+@RequestMapping(value = IdentifiableObjectController.RESOURCE_PATH)
+public class IdentifiableObjectController extends AbstractCrudController<IdentifiableObject> {
+  public static final String RESOURCE_PATH = "/identifiableObjects";
 
-    @Override
-    public List<IdentifiableObject> getEntity( String uid, WebOptions options )
-    {
-        List<IdentifiableObject> identifiableObjects = Lists.newArrayList();
-        Optional<IdentifiableObject> optional = Optional.ofNullable( manager.find( uid ) );
-        optional.ifPresent( identifiableObjects::add );
+  @Override
+  public List<IdentifiableObject> getEntity(String uid, WebOptions options) {
+    List<IdentifiableObject> identifiableObjects = Lists.newArrayList();
+    Optional<IdentifiableObject> optional = Optional.ofNullable(manager.find(uid));
+    optional.ifPresent(identifiableObjects::add);
 
-        return identifiableObjects;
-    }
+    return identifiableObjects;
+  }
 
-    @Override
-    public WebMessage postXmlObject( HttpServletRequest request )
-        throws Exception
-    {
-        throw new HttpRequestMethodNotSupportedException( "POST" );
-    }
+  @Override
+  public WebMessage postXmlObject(HttpServletRequest request) throws Exception {
+    throw new HttpRequestMethodNotSupportedException("POST");
+  }
 
-    @Override
-    public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
-    {
-        throw new HttpRequestMethodNotSupportedException( "POST" );
-    }
+  @Override
+  public WebMessage postJsonObject(HttpServletRequest request) throws Exception {
+    throw new HttpRequestMethodNotSupportedException("POST");
+  }
 
-    @Override
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
-        HttpServletRequest request )
-        throws Exception
-    {
-        throw new HttpRequestMethodNotSupportedException( "PUT" );
-    }
+  @Override
+  public WebMessage putJsonObject(
+      @PathVariable("uid") String pvUid, @CurrentUser User currentUser, HttpServletRequest request)
+      throws Exception {
+    throw new HttpRequestMethodNotSupportedException("PUT");
+  }
 
-    @Override
-    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        throw new HttpRequestMethodNotSupportedException( "DELETE" );
-    }
+  @Override
+  public WebMessage deleteObject(
+      @PathVariable("uid") String pvUid,
+      @CurrentUser User currentUser,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    throw new HttpRequestMethodNotSupportedException("DELETE");
+  }
 }

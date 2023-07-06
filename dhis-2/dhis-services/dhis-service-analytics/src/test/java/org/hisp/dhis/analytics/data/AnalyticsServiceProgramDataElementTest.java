@@ -39,11 +39,11 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -60,59 +60,63 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Luciano Fiandesio
  */
-class AnalyticsServiceProgramDataElementTest extends
-    AnalyticsServiceBaseTest
-{
-    /**
-     * This test verifies that a call to the Analytics Service with a Data
-     * Element of type Program Data Element, triggers a call to the Event
-     * Analytics Service
-     */
-    @Test
-    void verifyProgramDataElementInQueryCallsEventsAnalytics()
-    {
-        ArgumentCaptor<EventQueryParams> capturedParams = ArgumentCaptor.forClass( EventQueryParams.class );
+class AnalyticsServiceProgramDataElementTest extends AnalyticsServiceBaseTest {
+  /**
+   * This test verifies that a call to the Analytics Service with a Data Element of type Program
+   * Data Element, triggers a call to the Event Analytics Service
+   */
+  @Test
+  void verifyProgramDataElementInQueryCallsEventsAnalytics() {
+    ArgumentCaptor<EventQueryParams> capturedParams =
+        ArgumentCaptor.forClass(EventQueryParams.class);
 
-        DataElement de1 = createDataElement( 'A' );
-        Program pr1 = createProgram( 'P' );
-        ProgramDataElementDimensionItem pded1 = new ProgramDataElementDimensionItem( pr1, de1 );
+    DataElement de1 = createDataElement('A');
+    Program pr1 = createProgram('P');
+    ProgramDataElementDimensionItem pded1 = new ProgramDataElementDimensionItem(pr1, de1);
 
-        DataQueryParams params = DataQueryParams.newBuilder().withAggregationType( AnalyticsAggregationType.AVERAGE )
-            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
-            .withDataElements( newArrayList( pded1 ) ).withIgnoreLimit( true )
-            .withFilters( Collections.singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withAggregationType(AnalyticsAggregationType.AVERAGE)
+            .withPeriod(new Period(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
+            .withDataElements(newArrayList(pded1))
+            .withIgnoreLimit(true)
+            .withFilters(
+                Collections.singletonList(
+                    new BaseDimensionalObject(
+                        "ou",
+                        DimensionType.ORGANISATION_UNIT,
+                        null,
+                        DISPLAY_NAME_ORGUNIT,
+                        ImmutableList.of(
+                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        Map<String, Object> emptyData = new HashMap<>();
+    Map<String, Object> emptyData = new HashMap<>();
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( emptyData ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.DATA_VALUE), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(emptyData));
 
-        when( eventAnalyticsService.getAggregatedEventData( any( EventQueryParams.class ) ) )
-            .thenReturn( new ListGrid() );
+    when(eventAnalyticsService.getAggregatedEventData(any(EventQueryParams.class)))
+        .thenReturn(new ListGrid());
 
-        target.getAggregatedDataValueGrid( params );
+    target.getAggregatedDataValueGrid(params);
 
-        verify( eventAnalyticsService ).getAggregatedEventData( capturedParams.capture() );
-        EventQueryParams data = capturedParams.getValue();
+    verify(eventAnalyticsService).getAggregatedEventData(capturedParams.capture());
+    EventQueryParams data = capturedParams.getValue();
 
-        assertThat( data.hasValueDimension(), is( false ) );
-        assertThat( data.getItems(), hasSize( 1 ) );
-        assertThat( data.getItems().get( 0 ).getItemId(), is( de1.getUid() ) );
-        assertThat( data.getDimensions(), hasSize( 1 ) );
-        assertThat( data.getDimensions().get( 0 ).getDimensionType(), is( DimensionType.PERIOD ) );
-        assertThat( data.getFilters(), hasSize( 1 ) );
-        assertThat( data.getFilters().get( 0 ).getDimensionType(), is( DimensionType.ORGANISATION_UNIT ) );
-        assertThat( data.getAggregationType(), is( AnalyticsAggregationType.AVERAGE ) );
-    }
+    assertThat(data.hasValueDimension(), is(false));
+    assertThat(data.getItems(), hasSize(1));
+    assertThat(data.getItems().get(0).getItemId(), is(de1.getUid()));
+    assertThat(data.getDimensions(), hasSize(1));
+    assertThat(data.getDimensions().get(0).getDimensionType(), is(DimensionType.PERIOD));
+    assertThat(data.getFilters(), hasSize(1));
+    assertThat(data.getFilters().get(0).getDimensionType(), is(DimensionType.ORGANISATION_UNIT));
+    assertThat(data.getAggregationType(), is(AnalyticsAggregationType.AVERAGE));
+  }
 }

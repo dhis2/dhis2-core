@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -58,125 +57,119 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
-{
-    // We need to pick a future date as lastUpdated is automatically set to now
-    // and cannot be changed
-    private static final Date TOMORROW = DateUtils.getDateForTomorrow( 0 );
+class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase {
+  // We need to pick a future date as lastUpdated is automatically set to now
+  // and cannot be changed
+  private static final Date TOMORROW = DateUtils.getDateForTomorrow(0);
 
-    private static final String TEI_NOT_IN_SYNC_UID = "ABCDEFGHI01";
+  private static final String TEI_NOT_IN_SYNC_UID = "ABCDEFGHI01";
 
-    private static final String SYNCHRONIZED_TEI_UID = "ABCDEFGHI02";
+  private static final String SYNCHRONIZED_TEI_UID = "ABCDEFGHI02";
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private TrackedEntityInstanceService subject;
+  @Autowired private TrackedEntityInstanceService subject;
 
-    private TrackedEntityInstanceQueryParams queryParams;
+  private TrackedEntityInstanceQueryParams queryParams;
 
-    private TrackedEntityInstanceParams params;
+  private TrackedEntityInstanceParams params;
 
-    private void prepareDataForTest()
-    {
-        TrackedEntityAttribute teaA = createTrackedEntityAttribute( 'a' );
-        TrackedEntityAttribute teaB = createTrackedEntityAttribute( 'b' );
-        teaB.setSkipSynchronization( true );
-        manager.save( teaA );
-        manager.save( teaB );
-        TrackedEntityType tet = createTrackedEntityType( 'a' );
-        TrackedEntityTypeAttribute tetaA = new TrackedEntityTypeAttribute( tet, teaA, true, false );
-        TrackedEntityTypeAttribute tetaB = new TrackedEntityTypeAttribute( tet, teaB, true, false );
-        tet.getTrackedEntityTypeAttributes().add( tetaA );
-        tet.getTrackedEntityTypeAttributes().add( tetaB );
-        manager.save( tet );
-        OrganisationUnit ou = createOrganisationUnit( 'a' );
-        manager.save( ou );
-        TrackedEntityInstance teiToSync = createTrackedEntityInstance( 'a', ou, teaA );
-        teiToSync.setTrackedEntityType( tet );
-        teiToSync.setUid( TEI_NOT_IN_SYNC_UID );
-        TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', teiToSync, teaB );
-        TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', teiToSync, teaA );
-        manager.save( teiToSync );
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavA );
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavB );
-        teiToSync.getTrackedEntityAttributeValues().addAll( List.of( teavA, teavB ) );
-        manager.update( teiToSync );
-        TrackedEntityInstance alreadySynchronizedTei = createTrackedEntityInstance( 'b', ou );
-        alreadySynchronizedTei.setTrackedEntityType( tet );
-        alreadySynchronizedTei.setLastSynchronized( TOMORROW );
-        alreadySynchronizedTei.setUid( SYNCHRONIZED_TEI_UID );
-        manager.save( alreadySynchronizedTei );
-    }
+  private void prepareDataForTest() {
+    TrackedEntityAttribute teaA = createTrackedEntityAttribute('a');
+    TrackedEntityAttribute teaB = createTrackedEntityAttribute('b');
+    teaB.setSkipSynchronization(true);
+    manager.save(teaA);
+    manager.save(teaB);
+    TrackedEntityType tet = createTrackedEntityType('a');
+    TrackedEntityTypeAttribute tetaA = new TrackedEntityTypeAttribute(tet, teaA, true, false);
+    TrackedEntityTypeAttribute tetaB = new TrackedEntityTypeAttribute(tet, teaB, true, false);
+    tet.getTrackedEntityTypeAttributes().add(tetaA);
+    tet.getTrackedEntityTypeAttributes().add(tetaB);
+    manager.save(tet);
+    OrganisationUnit ou = createOrganisationUnit('a');
+    manager.save(ou);
+    TrackedEntityInstance teiToSync = createTrackedEntityInstance('a', ou, teaA);
+    teiToSync.setTrackedEntityType(tet);
+    teiToSync.setUid(TEI_NOT_IN_SYNC_UID);
+    TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue('b', teiToSync, teaB);
+    TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue('a', teiToSync, teaA);
+    manager.save(teiToSync);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teavA);
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teavB);
+    teiToSync.getTrackedEntityAttributeValues().addAll(List.of(teavA, teavB));
+    manager.update(teiToSync);
+    TrackedEntityInstance alreadySynchronizedTei = createTrackedEntityInstance('b', ou);
+    alreadySynchronizedTei.setTrackedEntityType(tet);
+    alreadySynchronizedTei.setLastSynchronized(TOMORROW);
+    alreadySynchronizedTei.setUid(SYNCHRONIZED_TEI_UID);
+    manager.save(alreadySynchronizedTei);
+  }
 
-    @Override
-    public void setUpTest()
-    {
-        userService = _userService;
-        User user = createUserWithAuth( "userUID0001" );
-        manager.save( user );
-        prepareSyncParams();
-        prepareDataForTest();
-    }
+  @Override
+  public void setUpTest() {
+    userService = _userService;
+    User user = createUserWithAuth("userUID0001");
+    manager.save(user);
+    prepareSyncParams();
+    prepareDataForTest();
+  }
 
-    private void prepareSyncParams()
-    {
-        queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setIncludeDeleted( true );
-        params = new TrackedEntityInstanceParams( false, TrackedEntityInstanceEnrollmentParams.FALSE, false, false,
-            true, true );
-    }
+  private void prepareSyncParams() {
+    queryParams = new TrackedEntityInstanceQueryParams();
+    queryParams.setIncludeDeleted(true);
+    params =
+        new TrackedEntityInstanceParams(
+            false, TrackedEntityInstanceEnrollmentParams.FALSE, false, false, true, true);
+  }
 
-    @Test
-    void shouldReturnAllTeisWhenNotSyncQuery()
-    {
-        queryParams.setSynchronizationQuery( false );
-        queryParams.setSkipChangedBefore( null );
+  @Test
+  void shouldReturnAllTeisWhenNotSyncQuery() {
+    queryParams.setSynchronizationQuery(false);
+    queryParams.setSkipChangedBefore(null);
 
-        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
-            .getTrackedEntityInstances( queryParams, params, true, true );
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis =
+        subject.getTrackedEntityInstances(queryParams, params, true, true);
 
-        assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID, SYNCHRONIZED_TEI_UID ),
-            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ) );
-        assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
-    }
+    assertContainsOnly(
+        List.of(TEI_NOT_IN_SYNC_UID, SYNCHRONIZED_TEI_UID),
+        fetchedTeis.stream().map(t -> t.getTrackedEntityInstance()).collect(Collectors.toList()));
+    assertEquals(1, getTeiByUid(fetchedTeis, TEI_NOT_IN_SYNC_UID).getAttributes().size());
+  }
 
-    @Test
-    void shouldNotSynchronizeTeiUpdatedBeforeLastSync()
-    {
-        queryParams.setSynchronizationQuery( true );
-        queryParams.setSkipChangedBefore( null );
+  @Test
+  void shouldNotSynchronizeTeiUpdatedBeforeLastSync() {
+    queryParams.setSynchronizationQuery(true);
+    queryParams.setSkipChangedBefore(null);
 
-        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
-            .getTrackedEntityInstances( queryParams, params, true, true );
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis =
+        subject.getTrackedEntityInstances(queryParams, params, true, true);
 
-        assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID ),
-            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ) );
-        assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
-    }
+    assertContainsOnly(
+        List.of(TEI_NOT_IN_SYNC_UID),
+        fetchedTeis.stream().map(t -> t.getTrackedEntityInstance()).collect(Collectors.toList()));
+    assertEquals(1, getTeiByUid(fetchedTeis, TEI_NOT_IN_SYNC_UID).getAttributes().size());
+  }
 
-    @Test
-    void shouldNotSynchronizeTeiUpdatedBeforeSkipChangedBeforeDate()
-    {
-        queryParams.setSynchronizationQuery( true );
-        queryParams.setSkipChangedBefore( TOMORROW );
+  @Test
+  void shouldNotSynchronizeTeiUpdatedBeforeSkipChangedBeforeDate() {
+    queryParams.setSynchronizationQuery(true);
+    queryParams.setSkipChangedBefore(TOMORROW);
 
-        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
-            .getTrackedEntityInstances( queryParams, params, true, true );
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis =
+        subject.getTrackedEntityInstances(queryParams, params, true, true);
 
-        assertIsEmpty( fetchedTeis );
-    }
+    assertIsEmpty(fetchedTeis);
+  }
 
-    private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance getTeiByUid(
-        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> teis, String teiUid )
-    {
-        return teis.stream().filter( t -> Objects.equals( t.getTrackedEntityInstance(), teiUid ) ).findAny().get();
-    }
+  private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance getTeiByUid(
+      List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> teis, String teiUid) {
+    return teis.stream()
+        .filter(t -> Objects.equals(t.getTrackedEntityInstance(), teiUid))
+        .findAny()
+        .get();
+  }
 }

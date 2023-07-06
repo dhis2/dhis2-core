@@ -27,48 +27,52 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-public class TrackerImporterAssertErrors
-{
-    private TrackerImporterAssertErrors()
-    {
-        throw new IllegalArgumentException( "Don't make an instance of me!" );
-    }
+public class TrackerImporterAssertErrors {
+  private TrackerImporterAssertErrors() {
+    throw new IllegalArgumentException("Don't make an instance of me!");
+  }
 
-    public static final String TRACKED_ENTITY_CANT_BE_NULL = "TrackedEntity can't be null";
+  public static final String TRACKED_ENTITY_CANT_BE_NULL = "TrackedEntity can't be null";
 
-    public static final String TRACKED_ENTITY_TYPE_CANT_BE_NULL = "TrackedEntityType can't be null";
+  public static final String TRACKED_ENTITY_TYPE_CANT_BE_NULL = "TrackedEntityType can't be null";
 
-    public static final String USER_CANT_BE_NULL = "User can't be null";
+  public static final String USER_CANT_BE_NULL = "User can't be null";
 
-    public static final String EVENT_CANT_BE_NULL = "Event can't be null";
+  public static final String EVENT_CANT_BE_NULL = "Event can't be null";
 
-    public static final String PROGRAM_CANT_BE_NULL = "Program can't be null";
+  public static final String PROGRAM_CANT_BE_NULL = "Program can't be null";
 
-    public static final String TRACKED_ENTITY_INSTANCE_CANT_BE_NULL = "TrackedEntityInstance can't be null";
+  public static final String TRACKED_ENTITY_INSTANCE_CANT_BE_NULL =
+      "TrackedEntityInstance can't be null";
 
-    public static final String ATTRIBUTE_VALUE_MAP_CANT_BE_NULL = "AttributeValueMap can't be null";
+  public static final String ATTRIBUTE_VALUE_MAP_CANT_BE_NULL = "AttributeValueMap can't be null";
 
-    public static final String ATTRIBUTE_CANT_BE_NULL = "Attribute can't be null";
+  public static final String ATTRIBUTE_CANT_BE_NULL = "Attribute can't be null";
 
-    public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";
+  public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";
 
-    public static final String PROGRAM_INSTANCE_CANT_BE_NULL = "ProgramInstance can't be null";
+  public static final String PROGRAM_INSTANCE_CANT_BE_NULL = "ProgramInstance can't be null";
 
-    public static final String ORGANISATION_UNIT_CANT_BE_NULL = "OrganisationUnit can't be null";
+  public static final String ORGANISATION_UNIT_CANT_BE_NULL = "OrganisationUnit can't be null";
 
-    public static final String OWNER_ORGANISATION_UNIT_CANT_BE_NULL = "Owner OrganisationUnit can't be null";
+  public static final String OWNER_ORGANISATION_UNIT_CANT_BE_NULL =
+      "Owner OrganisationUnit can't be null";
 
-    public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL = "TrackedEntityAttributeValue can't be null";
+  public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL =
+      "TrackedEntityAttributeValue can't be null";
 
-    public static final String TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL = "TrackedEntityAttribute can't be null";
+  public static final String TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL =
+      "TrackedEntityAttribute can't be null";
 
-    public static final String PROGRAM_STAGE_CANT_BE_NULL = "ProgramStage can't be null";
+  public static final String PROGRAM_STAGE_CANT_BE_NULL = "ProgramStage can't be null";
 
-    public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL = "ProgramStageInstance can't be null";
+  public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL =
+      "ProgramStageInstance can't be null";
 
-    public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL = "CategoryOptionCombo can't be null";
+  public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL =
+      "CategoryOptionCombo can't be null";
 
-    public static final String DATE_STRING_CANT_BE_NULL = "Date string can not be null";
+  public static final String DATE_STRING_CANT_BE_NULL = "Date string can not be null";
 
-    public static final String GEOMETRY_CANT_BE_NULL = "Geometry can not be null";
+  public static final String GEOMETRY_CANT_BE_NULL = "Geometry can not be null";
 }

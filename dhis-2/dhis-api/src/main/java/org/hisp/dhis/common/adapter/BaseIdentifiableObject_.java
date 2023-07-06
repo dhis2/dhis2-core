@@ -28,19 +28,17 @@
 package org.hisp.dhis.common.adapter;
 
 /**
- * This class defines metadata model property's names of
- * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
- * supporting type-safe queries with JPA Criteria API. TODO: This should be
- * replaced with JPAMetaModelEntityProcessor's auto generated class
+ * This class defines metadata model property's names of {@link
+ * org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help supporting type-safe
+ * queries with JPA Criteria API. TODO: This should be replaced with JPAMetaModelEntityProcessor's
+ * auto generated class
  */
-public class BaseIdentifiableObject_
-{
-    public static final String CREATED_BY = "createdBy";
+public class BaseIdentifiableObject_ {
+  public static final String CREATED_BY = "createdBy";
 
-    public static final String TRANSLATIONS = "translations";
+  public static final String TRANSLATIONS = "translations";
 
-    public static final String SHARING = "sharing";
+  public static final String SHARING = "sharing";
 
-    public static final String ATTRIBUTE_VALUES = "attributeValues";
-
+  public static final String ATTRIBUTE_VALUES = "attributeValues";
 }

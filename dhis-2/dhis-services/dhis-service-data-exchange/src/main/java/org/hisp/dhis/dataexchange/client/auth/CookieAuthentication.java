@@ -30,22 +30,17 @@ package org.hisp.dhis.dataexchange.client.auth;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpHeaders;
 
 @Getter
 @RequiredArgsConstructor
-public class CookieAuthentication
-    implements Authentication
-{
-    @NonNull
-    private final String sessionId;
+public class CookieAuthentication implements Authentication {
+  @NonNull private final String sessionId;
 
-    @Override
-    public HttpHeaders withAuthentication( HttpHeaders headers )
-    {
-        String value = String.format( "JSESSIONID=%s", sessionId );
-        headers.set( HttpHeaders.COOKIE, value );
-        return headers;
-    }
+  @Override
+  public HttpHeaders withAuthentication(HttpHeaders headers) {
+    String value = String.format("JSESSIONID=%s", sessionId);
+    headers.set(HttpHeaders.COOKIE, value);
+    return headers;
+  }
 }

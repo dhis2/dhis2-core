@@ -37,8 +37,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = CategoryOptionGroupSchemaDescriptor.API_ENDPOINT )
-public class CategoryOptionGroupController
-    extends AbstractCrudController<CategoryOptionGroup>
-{
-}
+@RequestMapping(value = CategoryOptionGroupSchemaDescriptor.API_ENDPOINT)
+public class CategoryOptionGroupController extends AbstractCrudController<CategoryOptionGroup> {}

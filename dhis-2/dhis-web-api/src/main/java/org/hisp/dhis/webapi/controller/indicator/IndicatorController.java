@@ -53,37 +53,33 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = IndicatorSchemaDescriptor.API_ENDPOINT )
-public class IndicatorController
-    extends AbstractCrudController<Indicator>
-{
-    @Autowired
-    private ExpressionService expressionService;
+@RequestMapping(value = IndicatorSchemaDescriptor.API_ENDPOINT)
+public class IndicatorController extends AbstractCrudController<Indicator> {
+  @Autowired private ExpressionService expressionService;
 
-    @Autowired
-    private ExpressionResolverCollection resolvers;
+  @Autowired private ExpressionResolverCollection resolvers;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage getExpressionDescription( @RequestBody String expression )
-    {
-        String resolvingExpression = expression;
+  @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage getExpressionDescription(@RequestBody String expression) {
+    String resolvingExpression = expression;
 
-        for ( ExpressionResolver resolver : resolvers.getExpressionResolvers() )
-        {
-            resolvingExpression = resolver.resolve( resolvingExpression );
-        }
-
-        String resolvedExpression = resolvingExpression;
-        ExpressionValidationOutcome result = expressionService.expressionIsValid( resolvedExpression,
-            INDICATOR_EXPRESSION );
-
-        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
-            .setDescription( result::isValid,
-                () -> expressionService.getExpressionDescription( resolvedExpression, INDICATOR_EXPRESSION ) )
-            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
+    for (ExpressionResolver resolver : resolvers.getExpressionResolvers()) {
+      resolvingExpression = resolver.resolve(resolvingExpression);
     }
+
+    String resolvedExpression = resolvingExpression;
+    ExpressionValidationOutcome result =
+        expressionService.expressionIsValid(resolvedExpression, INDICATOR_EXPRESSION);
+
+    return new DescriptiveWebMessage(result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK)
+        .setDescription(
+            result::isValid,
+            () ->
+                expressionService.getExpressionDescription(
+                    resolvedExpression, INDICATOR_EXPRESSION))
+        .setMessage(i18nManager.getI18n().getString(result.getKey()));
+  }
 }

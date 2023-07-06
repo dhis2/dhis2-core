@@ -40,62 +40,85 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class LockExceptionControllerTest extends DhisControllerConvenienceTest
-{
+class LockExceptionControllerTest extends DhisControllerConvenienceTest {
 
-    private String ouId;
+  private String ouId;
 
-    private String dsId;
+  private String dsId;
 
-    @BeforeEach
-    void setUp()
-    {
-        dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
-        ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        assertStatus( HttpStatus.OK, POST( "/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId ) );
-    }
+  @BeforeEach
+  void setUp() {
+    dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}"));
+    ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    assertStatus(HttpStatus.OK, POST("/organisationUnits/{ou}/dataSets/{ds}", ouId, dsId));
+  }
 
-    @Test
-    void testAddLockException()
-    {
-        assertWebMessage( "Created", 201, "OK", "LockException created successfully.",
-            POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testAddLockException() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "LockException created successfully.",
+        POST("/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId)
+            .content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testAddLockException_UnauthorizedUser()
-    {
-        switchToNewUser( "guest", "F_DATASET_PUBLIC_ADD" );
+  @Test
+  void testAddLockException_UnauthorizedUser() {
+    switchToNewUser("guest", "F_DATASET_PUBLIC_ADD");
 
-        assertWebMessage( "Forbidden", 403, "ERROR",
-            "You can only add a lock exceptions to your data capture organisation units.",
-            POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId ).content( HttpStatus.FORBIDDEN ) );
-    }
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "You can only add a lock exceptions to your data capture organisation units.",
+        POST("/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId)
+            .content(HttpStatus.FORBIDDEN));
+  }
 
-    @Test
-    void testAddLockException_DataSetNotLinked()
-    {
-        String dsId2 = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
-        assertWebMessage( "Conflict", 409, "ERROR",
-            format( "None of the target organisation unit(s) %s is linked to the specified data set: %s",
-                ouId, dsId2 ),
-            POST( "/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId2 ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLockException_DataSetNotLinked() {
+    String dsId2 =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        format(
+            "None of the target organisation unit(s) %s is linked to the specified data set: %s",
+            ouId, dsId2),
+        POST("/lockExceptions/?ou={ou}&pe=2021-01&ds={ds}", ouId, dsId2)
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddLockException_NoOrgUnit()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "OrganisationUnit ID is invalid.",
-            POST( "/lockExceptions/?ou=&pe=2021-01&ds=" + dsId ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLockException_NoOrgUnit() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "OrganisationUnit ID is invalid.",
+        POST("/lockExceptions/?ou=&pe=2021-01&ds=" + dsId).content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddLockException_IllegalOrgUnit()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Can't find OrganisationUnit with id =xyz",
-            POST( "/lockExceptions/?ou=xyz&pe=2021-01&ds=" + dsId ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testAddLockException_IllegalOrgUnit() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Can't find OrganisationUnit with id =xyz",
+        POST("/lockExceptions/?ou=xyz&pe=2021-01&ds=" + dsId).content(HttpStatus.CONFLICT));
+  }
 }

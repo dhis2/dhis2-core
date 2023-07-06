@@ -29,7 +29,6 @@ package org.hisp.dhis.actions.metadata;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -37,19 +36,17 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class CategoryOptionActions
-    extends RestApiActions
-{
-    public CategoryOptionActions()
-    {
-        super( "/categoryOptions" );
-    }
+public class CategoryOptionActions extends RestApiActions {
+  public CategoryOptionActions() {
+    super("/categoryOptions");
+  }
 
-    public ApiResponse getOrgUnitsAssociations( String... categoryOptionUids )
-    {
-        return get( "/orgUnits", new QueryParamsBuilder().add(
-            Arrays.stream( categoryOptionUids )
-                .collect( Collectors.joining( ",", "categoryOptions=", "" ) ) ) );
-    }
-
+  public ApiResponse getOrgUnitsAssociations(String... categoryOptionUids) {
+    return get(
+        "/orgUnits",
+        new QueryParamsBuilder()
+            .add(
+                Arrays.stream(categoryOptionUids)
+                    .collect(Collectors.joining(",", "categoryOptions=", ""))));
+  }
 }

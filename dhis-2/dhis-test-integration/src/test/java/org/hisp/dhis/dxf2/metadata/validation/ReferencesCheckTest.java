@@ -29,11 +29,11 @@ package org.hisp.dhis.dxf2.metadata.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
@@ -57,64 +57,65 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+public class ReferencesCheckTest extends SingleSetupIntegrationTestBase {
+  @Autowired private SchemaValidator schemaValidator;
 
-public class ReferencesCheckTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private SchemaValidator schemaValidator;
+  @Autowired private SchemaService schemaService;
 
-    @Autowired
-    private SchemaService schemaService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private ObjectBundleHooks objectBundleHooks;
 
-    @Autowired
-    private ObjectBundleHooks objectBundleHooks;
+  private ValidationContext validationContext;
 
-    private ValidationContext validationContext;
+  @Override
+  public void setUpTest() {
+    validationContext =
+        new ValidationContext(
+            this.objectBundleHooks,
+            this.schemaValidator,
+            this.aclService,
+            this.userService,
+            this.schemaService);
+  }
 
-    @Override
-    public void setUpTest()
-    {
-        validationContext = new ValidationContext( this.objectBundleHooks, this.schemaValidator, this.aclService,
-            this.userService, this.schemaService );
-    }
+  @Test
+  void testCheckReferenceErrorReport() {
+    ObjectBundle bundle = createObjectBundle();
+    Indicator indicator = new Indicator();
+    indicator.setUid("indicatorUid");
+    indicator.setName("indicatorA");
+    IndicatorType indicatorType = new IndicatorType();
+    indicator.setName("indicatorTypeA");
+    indicator.setIndicatorType(indicatorType);
 
-    @Test
-    void testCheckReferenceErrorReport()
-    {
-        ObjectBundle bundle = createObjectBundle();
-        Indicator indicator = new Indicator();
-        indicator.setUid( "indicatorUid" );
-        indicator.setName( "indicatorA" );
-        IndicatorType indicatorType = new IndicatorType();
-        indicator.setName( "indicatorTypeA" );
-        indicator.setIndicatorType( indicatorType );
+    ReferencesCheck referencesCheck = new ReferencesCheck();
+    TypeReport report =
+        referencesCheck.check(
+            bundle,
+            Indicator.class,
+            Collections.emptyList(),
+            Lists.newArrayList(indicator),
+            ImportStrategy.CREATE,
+            validationContext);
+    Assertions.assertTrue(report.hasErrorReports());
 
-        ReferencesCheck referencesCheck = new ReferencesCheck();
-        TypeReport report = referencesCheck.check( bundle, Indicator.class, Collections.emptyList(),
-            Lists.newArrayList( indicator ), ImportStrategy.CREATE, validationContext );
-        Assertions.assertTrue( report.hasErrorReports() );
+    ObjectReport objectReport = report.getObjectReports().get(0);
+    assertEquals(indicator.getDisplayName(), objectReport.getDisplayName());
 
-        ObjectReport objectReport = report.getObjectReports().get( 0 );
-        assertEquals( indicator.getDisplayName(), objectReport.getDisplayName() );
+    ErrorReport errorReport = report.getObjectReports().get(0).getErrorReports().get(0);
+    assertEquals(ErrorCode.E5002, errorReport.getErrorCode());
+    assertEquals(indicator.getUid(), errorReport.getMainId());
+    assertEquals("indicatorType", errorReport.getErrorProperty());
+  }
 
-        ErrorReport errorReport = report.getObjectReports().get( 0 ).getErrorReports().get( 0 );
-        assertEquals( ErrorCode.E5002, errorReport.getErrorCode() );
-        assertEquals( indicator.getUid(), errorReport.getMainId() );
-        assertEquals( "indicatorType", errorReport.getErrorProperty() );
-    }
-
-    private ObjectBundle createObjectBundle()
-    {
-        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
-        Preheat preheat = new Preheat();
-        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
-        return new ObjectBundle( objectBundleParams, preheat, objectMap );
-    }
+  private ObjectBundle createObjectBundle() {
+    ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+    Preheat preheat = new Preheat();
+    final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap =
+        new HashMap<>();
+    return new ObjectBundle(objectBundleParams, preheat, objectMap);
+  }
 }

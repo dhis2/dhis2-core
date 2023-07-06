@@ -32,7 +32,6 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.Map;
-
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -62,116 +61,106 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  */
 @RestController
-@RequestMapping( value = JobConfigurationSchemaDescriptor.API_ENDPOINT )
-public class JobConfigurationController
-    extends AbstractCrudController<JobConfiguration>
-{
-    private final JobConfigurationService jobConfigurationService;
+@RequestMapping(value = JobConfigurationSchemaDescriptor.API_ENDPOINT)
+public class JobConfigurationController extends AbstractCrudController<JobConfiguration> {
+  private final JobConfigurationService jobConfigurationService;
 
-    private final SchedulingManager schedulingManager;
+  private final SchedulingManager schedulingManager;
 
-    public JobConfigurationController( JobConfigurationService jobConfigurationService,
-        SchedulingManager schedulingManager )
-    {
-        this.jobConfigurationService = jobConfigurationService;
-        this.schedulingManager = schedulingManager;
+  public JobConfigurationController(
+      JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager) {
+    this.jobConfigurationService = jobConfigurationService;
+    this.schedulingManager = schedulingManager;
+  }
+
+  @GetMapping(
+      value = "/jobTypesExtended",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended() {
+    return jobConfigurationService.getJobParametersSchema();
+  }
+
+  @GetMapping(value = "/jobTypes", produces = APPLICATION_JSON_VALUE)
+  public JobTypes getJobTypeInfo() {
+    return new JobTypes(jobConfigurationService.getJobTypeInfo());
+  }
+
+  @PostMapping(
+      value = "{uid}/execute",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public ObjectReport executeJobConfiguration(@PathVariable("uid") String uid)
+      throws NotFoundException {
+    JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid(uid);
+
+    if (jobConfiguration == null) {
+      throw NotFoundException.notFoundUid(uid);
     }
 
-    @GetMapping( value = "/jobTypesExtended", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
-    public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended()
-    {
-        return jobConfigurationService.getJobParametersSchema();
+    ObjectReport objectReport = new ObjectReport(JobConfiguration.class, 0);
+
+    boolean success = schedulingManager.executeNow(jobConfiguration);
+
+    if (!success) {
+      objectReport.addErrorReport(
+          new ErrorReport(
+              JobConfiguration.class,
+              new ErrorMessage(ErrorCode.E7006, jobConfiguration.getName())));
     }
 
-    @GetMapping( value = "/jobTypes", produces = APPLICATION_JSON_VALUE )
-    public JobTypes getJobTypeInfo()
-    {
-        return new JobTypes( jobConfigurationService.getJobTypeInfo() );
+    return objectReport;
+  }
+
+  @Override
+  protected void preCreateEntity(JobConfiguration jobConfiguration) throws WebMessageException {
+    checkConfigurable(
+        jobConfiguration, HttpStatus.BAD_REQUEST, "Job %s must be configurable but was not.");
+  }
+
+  @Override
+  protected void preUpdateEntity(JobConfiguration before, JobConfiguration after)
+      throws WebMessageException {
+    checkConfigurable(
+        before, HttpStatus.UNPROCESSABLE_ENTITY, "Job %s is a system job that cannot be modified.");
+    checkConfigurable(after, HttpStatus.CONFLICT, "Job %s can not be changed into a system job.");
+  }
+
+  @Override
+  protected void preDeleteEntity(JobConfiguration jobConfiguration) throws WebMessageException {
+    checkConfigurable(
+        jobConfiguration,
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        "Job %s is a system job that cannot be deleted.");
+  }
+
+  @Override
+  protected void preUpdateItems(JobConfiguration jobConfiguration, IdentifiableObjects items)
+      throws Exception {
+    checkConfigurable(
+        jobConfiguration,
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        "Job %s is a system job that cannot be modified.");
+  }
+
+  @Override
+  protected void postPatchEntity(JobConfiguration jobConfiguration) {
+    if (!jobConfiguration.isEnabled()) {
+      schedulingManager.stop(jobConfiguration);
     }
-
-    @PostMapping( value = "{uid}/execute", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
-        throws NotFoundException
-    {
-        JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
-
-        if ( jobConfiguration == null )
-        {
-            throw NotFoundException.notFoundUid( uid );
-        }
-
-        ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
-
-        boolean success = schedulingManager.executeNow( jobConfiguration );
-
-        if ( !success )
-        {
-            objectReport.addErrorReport( new ErrorReport( JobConfiguration.class,
-                new ErrorMessage( ErrorCode.E7006, jobConfiguration.getName() ) ) );
-        }
-
-        return objectReport;
+    jobConfigurationService.refreshScheduling(jobConfiguration);
+    if (jobConfiguration.getJobStatus() != DISABLED) {
+      schedulingManager.schedule(jobConfiguration);
     }
+  }
 
-    @Override
-    protected void preCreateEntity( JobConfiguration jobConfiguration )
-        throws WebMessageException
-    {
-        checkConfigurable( jobConfiguration, HttpStatus.BAD_REQUEST, "Job %s must be configurable but was not." );
+  private void checkConfigurable(JobConfiguration configuration, HttpStatus status, String message)
+      throws WebMessageException {
+    if (!configuration.isConfigurable()) {
+      String identifier = configuration.getUid();
+      if (identifier == null) {
+        identifier = configuration.getName();
+      }
+      throw new WebMessageException(
+          createWebMessage(String.format(message, identifier), Status.ERROR, status));
     }
-
-    @Override
-    protected void preUpdateEntity( JobConfiguration before, JobConfiguration after )
-        throws WebMessageException
-    {
-        checkConfigurable( before, HttpStatus.UNPROCESSABLE_ENTITY, "Job %s is a system job that cannot be modified." );
-        checkConfigurable( after, HttpStatus.CONFLICT, "Job %s can not be changed into a system job." );
-    }
-
-    @Override
-    protected void preDeleteEntity( JobConfiguration jobConfiguration )
-        throws WebMessageException
-    {
-        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
-            "Job %s is a system job that cannot be deleted." );
-    }
-
-    @Override
-    protected void preUpdateItems( JobConfiguration jobConfiguration, IdentifiableObjects items )
-        throws Exception
-    {
-        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
-            "Job %s is a system job that cannot be modified." );
-    }
-
-    @Override
-    protected void postPatchEntity( JobConfiguration jobConfiguration )
-    {
-        if ( !jobConfiguration.isEnabled() )
-        {
-            schedulingManager.stop( jobConfiguration );
-        }
-        jobConfigurationService.refreshScheduling( jobConfiguration );
-        if ( jobConfiguration.getJobStatus() != DISABLED )
-        {
-            schedulingManager.schedule( jobConfiguration );
-        }
-    }
-
-    private void checkConfigurable( JobConfiguration configuration, HttpStatus status, String message )
-        throws WebMessageException
-    {
-        if ( !configuration.isConfigurable() )
-        {
-            String identifier = configuration.getUid();
-            if ( identifier == null )
-            {
-                identifier = configuration.getName();
-            }
-            throw new WebMessageException(
-                createWebMessage( String.format( message, identifier ), Status.ERROR, status ) );
-        }
-    }
-
+  }
 }

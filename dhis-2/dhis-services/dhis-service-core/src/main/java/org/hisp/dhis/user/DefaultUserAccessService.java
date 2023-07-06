@@ -30,7 +30,6 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,53 +39,47 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.user.UserAccessService" )
-public class DefaultUserAccessService implements UserAccessService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.user.UserAccessService")
+public class DefaultUserAccessService implements UserAccessService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private GenericStore<UserAccess> userAccessStore;
+  private GenericStore<UserAccess> userAccessStore;
 
-    public DefaultUserAccessService(
-        @Qualifier( "org.hisp.dhis.user.UserAccessStore" ) GenericStore<UserAccess> userAccessStore )
-    {
+  public DefaultUserAccessService(
+      @Qualifier("org.hisp.dhis.user.UserAccessStore") GenericStore<UserAccess> userAccessStore) {
 
-        checkNotNull( userAccessStore );
+    checkNotNull(userAccessStore);
 
-        this.userAccessStore = userAccessStore;
-    }
+    this.userAccessStore = userAccessStore;
+  }
 
-    // -------------------------------------------------------------------------
-    // UserGroupAccess
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // UserGroupAccess
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void addUserAccess( UserAccess userAccess )
-    {
-        userAccessStore.save( userAccess );
-    }
+  @Override
+  @Transactional
+  public void addUserAccess(UserAccess userAccess) {
+    userAccessStore.save(userAccess);
+  }
 
-    @Override
-    @Transactional
-    public void updateUserAccess( UserAccess userAccess )
-    {
-        userAccessStore.update( userAccess );
-    }
+  @Override
+  @Transactional
+  public void updateUserAccess(UserAccess userAccess) {
+    userAccessStore.update(userAccess);
+  }
 
-    @Override
-    @Transactional
-    public void deleteUserAccess( UserAccess userAccess )
-    {
-        userAccessStore.delete( userAccess );
-    }
+  @Override
+  @Transactional
+  public void deleteUserAccess(UserAccess userAccess) {
+    userAccessStore.delete(userAccess);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<UserAccess> getAllUserAccesses()
-    {
-        return userAccessStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserAccess> getAllUserAccesses() {
+    return userAccessStore.getAll();
+  }
 }

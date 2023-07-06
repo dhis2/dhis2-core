@@ -29,11 +29,10 @@ package org.hisp.dhis.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import javax.imageio.ImageIO;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -56,371 +55,357 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableSet;
-
 /**
  * @author Abyot Asalefew
  */
-@Service( "org.hisp.dhis.trackedentity.TrackedEntityAttributeService" )
-public class DefaultTrackedEntityAttributeService
-    implements TrackedEntityAttributeService
-{
-    private static final int VALUE_MAX_LENGTH = 50000;
+@Service("org.hisp.dhis.trackedentity.TrackedEntityAttributeService")
+public class DefaultTrackedEntityAttributeService implements TrackedEntityAttributeService {
+  private static final int VALUE_MAX_LENGTH = 50000;
 
-    private static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String> builder().add(
-        ImageIO.getReaderFormatNames() ).build();
+  private static final Set<String> VALID_IMAGE_FORMATS =
+      ImmutableSet.<String>builder().add(ImageIO.getReaderFormatNames()).build();
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final TrackedEntityAttributeStore attributeStore;
+  private final TrackedEntityAttributeStore attributeStore;
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    private final TrackedEntityTypeService trackedEntityTypeService;
+  private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final FileResourceService fileResourceService;
+  private final FileResourceService fileResourceService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final TrackedEntityAttributeStore trackedEntityAttributeStore;
+  private final TrackedEntityAttributeStore trackedEntityAttributeStore;
 
-    private final TrackedEntityTypeAttributeStore entityTypeAttributeStore;
+  private final TrackedEntityTypeAttributeStore entityTypeAttributeStore;
 
-    private final ProgramTrackedEntityAttributeStore programAttributeStore;
+  private final ProgramTrackedEntityAttributeStore programAttributeStore;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    public DefaultTrackedEntityAttributeService( TrackedEntityAttributeStore attributeStore,
-        ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
-        FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
-        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore,
-        TrackedEntityTypeAttributeStore entityTypeAttributeStore,
-        ProgramTrackedEntityAttributeStore programAttributeStore,
-        OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( attributeStore );
-        checkNotNull( programService );
-        checkNotNull( trackedEntityTypeService );
-        checkNotNull( fileResourceService );
-        checkNotNull( userService );
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-        checkNotNull( trackedEntityAttributeStore );
-        checkNotNull( entityTypeAttributeStore );
-        checkNotNull( programAttributeStore );
-        checkNotNull( organisationUnitService );
+  public DefaultTrackedEntityAttributeService(
+      TrackedEntityAttributeStore attributeStore,
+      ProgramService programService,
+      TrackedEntityTypeService trackedEntityTypeService,
+      FileResourceService fileResourceService,
+      UserService userService,
+      CurrentUserService currentUserService,
+      AclService aclService,
+      TrackedEntityAttributeStore trackedEntityAttributeStore,
+      TrackedEntityTypeAttributeStore entityTypeAttributeStore,
+      ProgramTrackedEntityAttributeStore programAttributeStore,
+      OrganisationUnitService organisationUnitService) {
+    checkNotNull(attributeStore);
+    checkNotNull(programService);
+    checkNotNull(trackedEntityTypeService);
+    checkNotNull(fileResourceService);
+    checkNotNull(userService);
+    checkNotNull(currentUserService);
+    checkNotNull(aclService);
+    checkNotNull(trackedEntityAttributeStore);
+    checkNotNull(entityTypeAttributeStore);
+    checkNotNull(programAttributeStore);
+    checkNotNull(organisationUnitService);
 
-        this.attributeStore = attributeStore;
-        this.programService = programService;
-        this.trackedEntityTypeService = trackedEntityTypeService;
-        this.fileResourceService = fileResourceService;
-        this.userService = userService;
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-        this.trackedEntityAttributeStore = trackedEntityAttributeStore;
-        this.entityTypeAttributeStore = entityTypeAttributeStore;
-        this.programAttributeStore = programAttributeStore;
-        this.organisationUnitService = organisationUnitService;
+    this.attributeStore = attributeStore;
+    this.programService = programService;
+    this.trackedEntityTypeService = trackedEntityTypeService;
+    this.fileResourceService = fileResourceService;
+    this.userService = userService;
+    this.currentUserService = currentUserService;
+    this.aclService = aclService;
+    this.trackedEntityAttributeStore = trackedEntityAttributeStore;
+    this.entityTypeAttributeStore = entityTypeAttributeStore;
+    this.programAttributeStore = programAttributeStore;
+    this.organisationUnitService = organisationUnitService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void deleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    attributeStore.delete(attribute);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttribute> getAllTrackedEntityAttributes() {
+    return attributeStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TrackedEntityAttribute getTrackedEntityAttribute(long id) {
+    return attributeStore.get(id);
+  }
+
+  @Override
+  @Transactional
+  public long addTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    attributeStore.save(attribute);
+    return attribute.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    attributeStore.update(attribute);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TrackedEntityAttribute getTrackedEntityAttributeByName(String name) {
+    return attributeStore.getByName(name);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public TrackedEntityAttribute getTrackedEntityAttribute(String uid) {
+    return attributeStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttribute> getTrackedEntityAttributes(List<String> uids) {
+    return attributeStore.getByUid(uids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttribute> getTrackedEntityAttributesById(List<Long> ids) {
+    return attributeStore.getById(ids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
+      boolean displayOnVisitSchedule) {
+    return attributeStore.getByDisplayOnVisitSchedule(displayOnVisitSchedule);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram() {
+    return attributeStore.getDisplayInListNoProgram();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String validateAttributeUniquenessWithinScope(
+      TrackedEntityAttribute trackedEntityAttribute,
+      String value,
+      TrackedEntityInstance trackedEntityInstance,
+      OrganisationUnit organisationUnit) {
+    Assert.notNull(trackedEntityAttribute, "tracked entity attribute is required.");
+    Assert.notNull(value, "tracked entity attribute value is required.");
+
+    TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+    params.addAttribute(
+        new QueryItem(
+            trackedEntityAttribute,
+            QueryOperator.EQ,
+            value,
+            trackedEntityAttribute.getValueType(),
+            trackedEntityAttribute.getAggregationType(),
+            trackedEntityAttribute.getOptionSet()));
+
+    if (trackedEntityAttribute.getOrgUnitScopeNullSafe()) {
+      Assert.notNull(organisationUnit, "organisation unit is required for org unit scope");
+      params.addOrganisationUnit(organisationUnit);
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+    Optional<String> fetchedTeiUid =
+        trackedEntityAttributeStore.getTrackedEntityInstanceUidWithUniqueAttributeValue(params);
 
-    @Override
-    @Transactional
-    public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        attributeStore.delete( attribute );
+    if (fetchedTeiUid.isPresent()
+        && (trackedEntityInstance == null
+            || !fetchedTeiUid.get().equals(trackedEntityInstance.getUid()))) {
+      return "Non-unique attribute value '"
+          + value
+          + "' for attribute "
+          + trackedEntityAttribute.getUid();
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getAllTrackedEntityAttributes()
-    {
-        return attributeStore.getAll();
+    return null;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String validateValueType(TrackedEntityAttribute trackedEntityAttribute, String value) {
+    Assert.notNull(trackedEntityAttribute, "tracked entity attribute is required");
+    ValueType valueType = trackedEntityAttribute.getValueType();
+
+    String errorValue = StringUtils.substring(value, 0, 30);
+
+    if (value.length() > VALUE_MAX_LENGTH) {
+      return "Value length is greater than 50000 chars for attribute "
+          + trackedEntityAttribute.getUid();
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public TrackedEntityAttribute getTrackedEntityAttribute( long id )
-    {
-        return attributeStore.get( id );
+    if (ValueType.NUMBER == valueType && !MathUtils.isNumeric(value)) {
+      return "Value '"
+          + errorValue
+          + "' is not a valid numeric type for attribute "
+          + trackedEntityAttribute.getUid();
+    } else if (ValueType.BOOLEAN == valueType && !MathUtils.isBool(value)) {
+      return "Value '"
+          + errorValue
+          + "' is not a valid boolean type for attribute "
+          + trackedEntityAttribute.getUid();
+    } else if (ValueType.DATE == valueType && DateUtils.parseDate(value) == null) {
+      return "Value '"
+          + errorValue
+          + "' is not a valid date type for attribute "
+          + trackedEntityAttribute.getUid();
+    } else if (ValueType.TRUE_ONLY == valueType && !"true".equals(value)) {
+      return "Value '"
+          + errorValue
+          + "' is not true (true-only type) for attribute "
+          + trackedEntityAttribute.getUid();
+    } else if (ValueType.USERNAME == valueType) {
+      if (userService.getUserByUsername(value) == null) {
+        return "Value '"
+            + errorValue
+            + "' is not a valid username for attribute "
+            + trackedEntityAttribute.getUid();
+      }
+    } else if (ValueType.DATE == valueType && !DateUtils.dateIsValid(value)) {
+      return "Value '"
+          + errorValue
+          + "' is not a valid date for attribute "
+          + trackedEntityAttribute.getUid();
+    } else if (ValueType.DATETIME == valueType && !DateUtils.dateTimeIsValid(value)) {
+      return "Value '"
+          + errorValue
+          + "' is not a valid datetime for attribute "
+          + trackedEntityAttribute.getUid();
+    } else if (ValueType.IMAGE == valueType) {
+      return validateImage(value);
+    } else if (null != trackedEntityAttribute.getOptionSet()
+        && trackedEntityAttribute.getOptionSet().getOptions().stream()
+            .filter(Objects::nonNull)
+            .noneMatch(o -> o.getCode().equalsIgnoreCase(value))) {
+      return "Value '"
+          + errorValue
+          + "' is not a valid option for attribute "
+          + trackedEntityAttribute.getUid()
+          + " and option set "
+          + trackedEntityAttribute.getOptionSet().getUid();
+    } else if (ValueType.FILE_RESOURCE == valueType
+        && fileResourceService.getFileResource(value) == null) {
+      return "Value '" + value + "' is not a valid file resource.";
+    } else if (ValueType.ORGANISATION_UNIT == valueType
+        && organisationUnitService.getOrganisationUnit(value) == null) {
+      return "Value '" + value + "' is not a valid organisation unit.";
     }
 
-    @Override
-    @Transactional
-    public long addTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        attributeStore.save( attribute );
-        return attribute.getId();
+    return null;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes() {
+    return getAllUserReadableTrackedEntityAttributes(currentUserService.getCurrentUser());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(User user) {
+    List<Program> programs = programService.getAllPrograms();
+    List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+
+    return getAllUserReadableTrackedEntityAttributes(user, programs, trackedEntityTypes);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes(
+      User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes) {
+    Set<TrackedEntityAttribute> attributes = new HashSet<>();
+
+    if (programs != null && !programs.isEmpty()) {
+      attributes.addAll(
+          programAttributeStore.getAttributes(
+              programs.stream()
+                  .filter(program -> aclService.canDataRead(user, program))
+                  .collect(Collectors.toList())));
     }
 
-    @Override
-    @Transactional
-    public void updateTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        attributeStore.update( attribute );
+    if (trackedEntityTypes != null && !trackedEntityTypes.isEmpty()) {
+      attributes.addAll(
+          entityTypeAttributeStore.getAttributes(
+              trackedEntityTypes.stream()
+                  .filter(trackedEntityType -> aclService.canDataRead(user, trackedEntityType))
+                  .collect(Collectors.toList())));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public TrackedEntityAttribute getTrackedEntityAttributeByName( String name )
-    {
-        return attributeStore.getByName( name );
+    return attributes;
+  }
+
+  @Override
+  public ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute(
+      Program program, TrackedEntityAttribute trackedEntityAttribute) {
+    return programAttributeStore.get(program, trackedEntityAttribute);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes() {
+    return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();
+  }
+
+  // -------------------------------------------------------------------------
+  // ProgramTrackedEntityAttribute
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes() {
+    return getAllTrackedEntityAttributes().stream()
+        .filter(TrackedEntityAttribute::isSystemWideUnique)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes() {
+    return getAllTrackedEntityAttributes().stream()
+        .filter(TrackedEntityAttribute::isUnique)
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
+    return this.trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
+    return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram();
+  }
+
+  private String validateImage(String uid) {
+    FileResource fileResource = fileResourceService.getFileResource(uid);
+
+    if (fileResource == null) {
+      return "Value '" + uid + "' is not the uid of a file";
+    } else if (!VALID_IMAGE_FORMATS.contains(fileResource.getFormat())) {
+      return "File resource with uid '" + uid + "' is not a valid image";
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public TrackedEntityAttribute getTrackedEntityAttribute( String uid )
-    {
-        return attributeStore.getByUid( uid );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getTrackedEntityAttributes( List<String> uids )
-    {
-        return attributeStore.getByUid( uids );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesById( List<Long> ids )
-    {
-        return attributeStore.getById( ids );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
-        boolean displayOnVisitSchedule )
-    {
-        return attributeStore.getByDisplayOnVisitSchedule( displayOnVisitSchedule );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram()
-    {
-        return attributeStore.getDisplayInListNoProgram();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
-        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit )
-    {
-        Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required." );
-        Assert.notNull( value, "tracked entity attribute value is required." );
-
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.addAttribute(
-            new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
-                trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
-
-        if ( trackedEntityAttribute.getOrgUnitScopeNullSafe() )
-        {
-            Assert.notNull( organisationUnit, "organisation unit is required for org unit scope" );
-            params.addOrganisationUnit( organisationUnit );
-        }
-
-        Optional<String> fetchedTeiUid = trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
-
-        if ( fetchedTeiUid.isPresent()
-            && (trackedEntityInstance == null || !fetchedTeiUid.get().equals( trackedEntityInstance.getUid() )) )
-        {
-            return "Non-unique attribute value '" + value + "' for attribute " + trackedEntityAttribute.getUid();
-        }
-
-        return null;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value )
-    {
-        Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required" );
-        ValueType valueType = trackedEntityAttribute.getValueType();
-
-        String errorValue = StringUtils.substring( value, 0, 30 );
-
-        if ( value.length() > VALUE_MAX_LENGTH )
-        {
-            return "Value length is greater than 50000 chars for attribute " + trackedEntityAttribute.getUid();
-        }
-
-        if ( ValueType.NUMBER == valueType && !MathUtils.isNumeric( value ) )
-        {
-            return "Value '" + errorValue + "' is not a valid numeric type for attribute "
-                + trackedEntityAttribute.getUid();
-        }
-        else if ( ValueType.BOOLEAN == valueType && !MathUtils.isBool( value ) )
-        {
-            return "Value '" + errorValue + "' is not a valid boolean type for attribute "
-                + trackedEntityAttribute.getUid();
-        }
-        else if ( ValueType.DATE == valueType && DateUtils.parseDate( value ) == null )
-        {
-            return "Value '" + errorValue + "' is not a valid date type for attribute "
-                + trackedEntityAttribute.getUid();
-        }
-        else if ( ValueType.TRUE_ONLY == valueType && !"true".equals( value ) )
-        {
-            return "Value '" + errorValue + "' is not true (true-only type) for attribute "
-                + trackedEntityAttribute.getUid();
-        }
-        else if ( ValueType.USERNAME == valueType )
-        {
-            if ( userService.getUserByUsername( value ) == null )
-            {
-                return "Value '" + errorValue + "' is not a valid username for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-        }
-        else if ( ValueType.DATE == valueType && !DateUtils.dateIsValid( value ) )
-        {
-            return "Value '" + errorValue + "' is not a valid date for attribute " + trackedEntityAttribute.getUid();
-        }
-        else if ( ValueType.DATETIME == valueType && !DateUtils.dateTimeIsValid( value ) )
-        {
-            return "Value '" + errorValue + "' is not a valid datetime for attribute "
-                + trackedEntityAttribute.getUid();
-        }
-        else if ( ValueType.IMAGE == valueType )
-        {
-            return validateImage( value );
-        }
-        else if ( null != trackedEntityAttribute.getOptionSet()
-            && trackedEntityAttribute.getOptionSet().getOptions().stream().filter( Objects::nonNull )
-                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ) )
-        {
-            return "Value '" + errorValue + "' is not a valid option for attribute " +
-                trackedEntityAttribute.getUid() + " and option set " + trackedEntityAttribute.getOptionSet().getUid();
-        }
-        else if ( ValueType.FILE_RESOURCE == valueType && fileResourceService.getFileResource( value ) == null )
-        {
-            return "Value '" + value + "' is not a valid file resource.";
-        }
-        else if ( ValueType.ORGANISATION_UNIT == valueType
-            && organisationUnitService.getOrganisationUnit( value ) == null )
-        {
-            return "Value '" + value + "' is not a valid organisation unit.";
-        }
-
-        return null;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
-    {
-        return getAllUserReadableTrackedEntityAttributes( currentUserService.getCurrentUser() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user )
-    {
-        List<Program> programs = programService.getAllPrograms();
-        List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
-
-        return getAllUserReadableTrackedEntityAttributes( user, programs, trackedEntityTypes );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs,
-        List<TrackedEntityType> trackedEntityTypes )
-    {
-        Set<TrackedEntityAttribute> attributes = new HashSet<>();
-
-        if ( programs != null && !programs.isEmpty() )
-        {
-            attributes.addAll( programAttributeStore.getAttributes(
-                programs.stream().filter( program -> aclService.canDataRead( user, program ) )
-                    .collect( Collectors.toList() ) ) );
-        }
-
-        if ( trackedEntityTypes != null && !trackedEntityTypes.isEmpty() )
-        {
-            attributes.addAll( entityTypeAttributeStore.getAttributes(
-                trackedEntityTypes.stream()
-                    .filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect(
-                        Collectors.toList() ) ) );
-        }
-
-        return attributes;
-    }
-
-    @Override
-    public ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( Program program,
-        TrackedEntityAttribute trackedEntityAttribute )
-    {
-        return programAttributeStore.get( program, trackedEntityAttribute );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes()
-    {
-        return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();
-    }
-
-    // -------------------------------------------------------------------------
-    // ProgramTrackedEntityAttribute
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()
-    {
-        return getAllTrackedEntityAttributes().stream().filter( TrackedEntityAttribute::isSystemWideUnique )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes()
-    {
-        return getAllTrackedEntityAttributes().stream().filter( TrackedEntityAttribute::isUnique )
-            .collect( Collectors.toList() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
-    {
-        return this.trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
-    {
-        return this.trackedEntityAttributeStore.getTrackedEntityAttributesByProgram();
-    }
-
-    private String validateImage( String uid )
-    {
-        FileResource fileResource = fileResourceService.getFileResource( uid );
-
-        if ( fileResource == null )
-        {
-            return "Value '" + uid + "' is not the uid of a file";
-        }
-        else if ( !VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
-        {
-            return "File resource with uid '" + uid + "' is not a valid image";
-        }
-
-        return null;
-    }
+    return null;
+  }
 }

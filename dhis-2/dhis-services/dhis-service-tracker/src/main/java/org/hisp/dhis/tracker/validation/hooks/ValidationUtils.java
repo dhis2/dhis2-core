@@ -34,13 +34,13 @@ import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1125;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.option.Option;
@@ -59,159 +59,144 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.locationtech.jts.geom.Geometry;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-public class ValidationUtils
-{
-    private ValidationUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
+public class ValidationUtils {
+  private ValidationUtils() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  static void validateGeometry(
+      ValidationErrorReporter reporter,
+      TrackerDto dto,
+      Geometry geometry,
+      FeatureType featureType) {
+    checkNotNull(geometry, GEOMETRY_CANT_BE_NULL);
+
+    if (featureType == null) {
+      reporter.addError(dto, TrackerErrorCode.E1074);
+      return;
     }
 
-    static void validateGeometry( ValidationErrorReporter reporter, TrackerDto dto, Geometry geometry,
-        FeatureType featureType )
-    {
-        checkNotNull( geometry, GEOMETRY_CANT_BE_NULL );
+    FeatureType typeFromName = FeatureType.getTypeFromName(geometry.getGeometryType());
 
-        if ( featureType == null )
-        {
-            reporter.addError( dto, TrackerErrorCode.E1074 );
-            return;
+    if (FeatureType.NONE == featureType || featureType != typeFromName) {
+      reporter.addError(dto, TrackerErrorCode.E1012, featureType.name());
+    }
+  }
+
+  protected static List<Note> validateNotes(
+      ValidationErrorReporter reporter,
+      TrackerPreheat preheat,
+      TrackerDto dto,
+      List<Note> notesToCheck) {
+    final List<Note> notes = new ArrayList<>();
+    for (Note note : notesToCheck) {
+      if (isNotEmpty(note.getValue())) // Ignore notes with no text
+      {
+        // If a note having the same UID already exist in the db, raise
+        // warning, ignore the note and continue
+        if (isNotEmpty(note.getNote()) && preheat.getNote(note.getNote()).isPresent()) {
+          reporter.addWarning(dto, TrackerErrorCode.E1119, note.getNote());
+        } else {
+          notes.add(note);
         }
+      }
+    }
+    return notes;
+  }
 
-        FeatureType typeFromName = FeatureType.getTypeFromName( geometry.getGeometryType() );
+  public static List<MetadataIdentifier> validateMandatoryDataValue(
+      ProgramStage programStage, Event event, List<MetadataIdentifier> mandatoryDataElements) {
+    List<MetadataIdentifier> notPresentMandatoryDataElements = Lists.newArrayList();
 
-        if ( FeatureType.NONE == featureType || featureType != typeFromName )
-        {
-            reporter.addError( dto, TrackerErrorCode.E1012, featureType.name() );
-        }
+    if (!needsToValidateDataValues(event, programStage)) {
+      return notPresentMandatoryDataElements;
     }
 
-    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerPreheat preheat, TrackerDto dto,
-        List<Note> notesToCheck )
-    {
-        final List<Note> notes = new ArrayList<>();
-        for ( Note note : notesToCheck )
-        {
-            if ( isNotEmpty( note.getValue() ) ) // Ignore notes with no text
-            {
-                // If a note having the same UID already exist in the db, raise
-                // warning, ignore the note and continue
-                if ( isNotEmpty( note.getNote() ) && preheat.getNote( note.getNote() ).isPresent() )
-                {
-                    reporter.addWarning( dto, TrackerErrorCode.E1119, note.getNote() );
-                }
-                else
-                {
-                    notes.add( note );
-                }
-            }
-        }
-        return notes;
+    Set<MetadataIdentifier> eventDataElements =
+        event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());
+
+    for (MetadataIdentifier mandatoryDataElement : mandatoryDataElements) {
+      if (!eventDataElements.contains(mandatoryDataElement)) {
+        notPresentMandatoryDataElements.add(mandatoryDataElement);
+      }
     }
 
-    public static List<MetadataIdentifier> validateMandatoryDataValue( ProgramStage programStage,
-        Event event, List<MetadataIdentifier> mandatoryDataElements )
-    {
-        List<MetadataIdentifier> notPresentMandatoryDataElements = Lists.newArrayList();
+    return notPresentMandatoryDataElements;
+  }
 
-        if ( !needsToValidateDataValues( event, programStage ) )
-        {
-            return notPresentMandatoryDataElements;
-        }
+  public static boolean needsToValidateDataValues(Event event, ProgramStage programStage) {
+    if (event.getStatus().equals(EventStatus.SCHEDULE)
+        || event.getStatus().equals(EventStatus.SKIPPED)) {
+      return false;
+    } else if (programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE)
+        && event.getStatus().equals(EventStatus.COMPLETED)) {
+      return true;
+    } else {
+      return !programStage.getValidationStrategy().equals(ValidationStrategy.ON_COMPLETE);
+    }
+  }
 
-        Set<MetadataIdentifier> eventDataElements = event.getDataValues().stream()
-            .map( DataValue::getDataElement )
-            .collect( Collectors.toSet() );
+  public static void addIssuesToReporter(
+      ValidationErrorReporter reporter, TrackerDto dto, List<ProgramRuleIssue> programRuleIssues) {
+    programRuleIssues.stream()
+        .filter(issue -> issue.getIssueType().equals(ERROR))
+        .forEach(
+            issue -> {
+              List<String> args = Lists.newArrayList(issue.getRuleUid());
+              args.addAll(issue.getArgs());
+              reporter.addError(dto, issue.getIssueCode(), args.toArray());
+            });
 
-        for ( MetadataIdentifier mandatoryDataElement : mandatoryDataElements )
-        {
-            if ( !eventDataElements.contains( mandatoryDataElement ) )
-            {
-                notPresentMandatoryDataElements.add( mandatoryDataElement );
-            }
-        }
+    programRuleIssues.stream()
+        .filter(issue -> issue.getIssueType().equals(WARNING))
+        .forEach(
+            issue -> {
+              List<String> args = Lists.newArrayList(issue.getRuleUid());
+              args.addAll(issue.getArgs());
+              reporter.addWarning(dto, issue.getIssueCode(), args.toArray());
+            });
+  }
 
-        return notPresentMandatoryDataElements;
+  public static boolean trackedEntityInstanceExist(TrackerBundle bundle, String teiUid) {
+    return bundle.getTrackedEntityInstance(teiUid) != null
+        || bundle.getPreheat().getReference(teiUid).isPresent();
+  }
+
+  public static boolean enrollmentExist(TrackerBundle bundle, String enrollmentUid) {
+    return bundle.getProgramInstance(enrollmentUid) != null
+        || bundle.getPreheat().getReference(enrollmentUid).isPresent();
+  }
+
+  public static boolean eventExist(TrackerBundle bundle, String eventUid) {
+    return bundle.getProgramStageInstance(eventUid) != null
+        || bundle.getPreheat().getReference(eventUid).isPresent();
+  }
+
+  public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
+      ValidationErrorReporter reporter, TrackerDto dto, T optionalObject, String value) {
+    if (value == null) {
+      return;
     }
 
-    public static boolean needsToValidateDataValues( Event event, ProgramStage programStage )
-    {
-        if ( event.getStatus().equals( EventStatus.SCHEDULE ) || event.getStatus().equals( EventStatus.SKIPPED ) )
-        {
-            return false;
-        }
-        else if ( programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE )
-            && event.getStatus().equals( EventStatus.COMPLETED ) )
-        {
-            return true;
-        }
-        else
-        {
-            return !programStage.getValidationStrategy().equals( ValidationStrategy.ON_COMPLETE );
-        }
-    }
-
-    public static void addIssuesToReporter( ValidationErrorReporter reporter, TrackerDto dto,
-        List<ProgramRuleIssue> programRuleIssues )
-    {
-        programRuleIssues
-            .stream()
-            .filter( issue -> issue.getIssueType().equals( ERROR ) )
-            .forEach( issue -> {
-                List<String> args = Lists.newArrayList( issue.getRuleUid() );
-                args.addAll( issue.getArgs() );
-                reporter.addError( dto, issue.getIssueCode(), args.toArray() );
-            } );
-
-        programRuleIssues
-            .stream()
-            .filter( issue -> issue.getIssueType().equals( WARNING ) )
-            .forEach(
-                issue -> {
-                    List<String> args = Lists.newArrayList( issue.getRuleUid() );
-                    args.addAll( issue.getArgs() );
-                    reporter.addWarning( dto, issue.getIssueCode(), args.toArray() );
-                } );
-    }
-
-    public static boolean trackedEntityInstanceExist( TrackerBundle bundle, String teiUid )
-    {
-        return bundle.getTrackedEntityInstance( teiUid ) != null
-            || bundle.getPreheat().getReference( teiUid ).isPresent();
-    }
-
-    public static boolean enrollmentExist( TrackerBundle bundle, String enrollmentUid )
-    {
-        return bundle.getProgramInstance( enrollmentUid ) != null
-            || bundle.getPreheat().getReference( enrollmentUid ).isPresent();
-    }
-
-    public static boolean eventExist( TrackerBundle bundle, String eventUid )
-    {
-        return bundle.getProgramStageInstance( eventUid ) != null
-            || bundle.getPreheat().getReference( eventUid ).isPresent();
-    }
-
-    public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
-        TrackerDto dto,
-        T optionalObject, String value )
-    {
-        if ( value == null )
-        {
-            return;
-        }
-
-        Optional.ofNullable( optionalObject.getOptionSet() )
-            .ifPresent( optionSet -> reporter.addErrorIf(
-                () -> optionSet.getOptions().stream().filter( Objects::nonNull )
-                    .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ),
-                dto, E1125, value,
-                optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
-                optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull ).map( Option::getCode )
-                    .collect( Collectors.joining( "," ) ) ) );
-    }
+    Optional.ofNullable(optionalObject.getOptionSet())
+        .ifPresent(
+            optionSet ->
+                reporter.addErrorIf(
+                    () ->
+                        optionSet.getOptions().stream()
+                            .filter(Objects::nonNull)
+                            .noneMatch(o -> o.getCode().equalsIgnoreCase(value)),
+                    dto,
+                    E1125,
+                    value,
+                    optionalObject.getUid(),
+                    optionalObject.getClass().getSimpleName(),
+                    optionalObject.getOptionSet().getOptions().stream()
+                        .filter(Objects::nonNull)
+                        .map(Option::getCode)
+                        .collect(Collectors.joining(","))));
+  }
 }

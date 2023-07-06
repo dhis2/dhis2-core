@@ -29,7 +29,6 @@ package org.hisp.dhis.minmax;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -38,24 +37,23 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /**
  * @author Kristian Nordal
  */
-public interface MinMaxDataElementStore
-    extends GenericStore<MinMaxDataElement>
-{
-    String ID = MinMaxDataElementStore.class.getName();
+public interface MinMaxDataElementStore extends GenericStore<MinMaxDataElement> {
+  String ID = MinMaxDataElementStore.class.getName();
 
-    MinMaxDataElement get( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
+  MinMaxDataElement get(
+      OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo);
 
-    List<MinMaxDataElement> get( OrganisationUnit source, Collection<DataElement> dataElements );
+  List<MinMaxDataElement> get(OrganisationUnit source, Collection<DataElement> dataElements);
 
-    List<MinMaxDataElement> query( MinMaxDataElementQueryParams query );
+  List<MinMaxDataElement> query(MinMaxDataElementQueryParams query);
 
-    int countMinMaxDataElements( MinMaxDataElementQueryParams query );
+  int countMinMaxDataElements(MinMaxDataElementQueryParams query);
 
-    void delete( OrganisationUnit organisationUnit );
+  void delete(OrganisationUnit organisationUnit);
 
-    void delete( DataElement dataElement );
+  void delete(DataElement dataElement);
 
-    void delete( CategoryOptionCombo optionCombo );
+  void delete(CategoryOptionCombo optionCombo);
 
-    void delete( Collection<DataElement> dataElements, OrganisationUnit parent );
+  void delete(Collection<DataElement> dataElements, OrganisationUnit parent);
 }

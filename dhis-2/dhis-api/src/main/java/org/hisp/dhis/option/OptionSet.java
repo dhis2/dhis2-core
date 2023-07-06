@@ -27,6 +27,13 @@
  */
 package org.hisp.dhis.option;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,7 +41,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -43,202 +49,167 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.VersionedObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.Nulls;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "optionSet", namespace = DxfNamespaces.DXF_2_0 )
-public class OptionSet
-    extends BaseIdentifiableObject
-    implements VersionedObject, MetadataObject
-{
-    private List<Option> options = new ArrayList<>();
+@JacksonXmlRootElement(localName = "optionSet", namespace = DxfNamespaces.DXF_2_0)
+public class OptionSet extends BaseIdentifiableObject implements VersionedObject, MetadataObject {
+  private List<Option> options = new ArrayList<>();
 
-    private ValueType valueType;
+  private ValueType valueType;
 
-    private int version;
+  private int version;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public OptionSet()
-    {
-    }
+  public OptionSet() {}
 
-    public OptionSet( String name, ValueType valueType )
-    {
-        this.name = name;
-        this.valueType = valueType;
-    }
+  public OptionSet(String name, ValueType valueType) {
+    this.name = name;
+    this.valueType = valueType;
+  }
 
-    public OptionSet( String name, ValueType valueType, List<Option> options )
-    {
-        this.name = name;
-        this.valueType = valueType;
-        this.options = options;
-    }
+  public OptionSet(String name, ValueType valueType, List<Option> options) {
+    this.name = name;
+    this.valueType = valueType;
+    this.options = options;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public void addOption( Option option )
-    {
-        if ( option.getSortOrder() == null )
-        {
-            this.options.add( option );
+  public void addOption(Option option) {
+    if (option.getSortOrder() == null) {
+      this.options.add(option);
+    } else {
+      boolean added = false;
+      final int size = this.options.size();
+      for (int i = 0; i < size; i++) {
+        Option thisOption = this.options.get(i);
+        if (thisOption.getSortOrder() == null
+            || thisOption.getSortOrder() > option.getSortOrder()) {
+          this.options.add(i, option);
+          added = true;
+          break;
         }
-        else
-        {
-            boolean added = false;
-            final int size = this.options.size();
-            for ( int i = 0; i < size; i++ )
-            {
-                Option thisOption = this.options.get( i );
-                if ( thisOption.getSortOrder() == null || thisOption.getSortOrder() > option.getSortOrder() )
-                {
-                    this.options.add( i, option );
-                    added = true;
-                    break;
-                }
-            }
-            if ( !added )
-            {
-                this.options.add( option );
-            }
-        }
-        option.setOptionSet( this );
+      }
+      if (!added) {
+        this.options.add(option);
+      }
+    }
+    option.setOptionSet(this);
+  }
+
+  public void removeAllOptions() {
+    options.clear();
+  }
+
+  public void removeOption(Option option) {
+    if (!CollectionUtils.isEmpty(options)) {
+      options.remove(option);
+    }
+  }
+
+  @Override
+  public int increaseVersion() {
+    return ++version;
+  }
+
+  public boolean hasAllOptions(Collection<String> optionCodes) {
+    for (String code : optionCodes) {
+      if (getOptionByCode(code) == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public List<String> getOptionValues() {
+    return options.stream()
+        .filter(Objects::nonNull)
+        .map(Option::getName)
+        .collect(Collectors.toList());
+  }
+
+  public List<String> getOptionCodes() {
+    return options.stream()
+        .filter(Objects::nonNull)
+        .map(Option::getCode)
+        .collect(Collectors.toList());
+  }
+
+  public Set<String> getOptionCodesAsSet() {
+    return options.stream()
+        .filter(Objects::nonNull)
+        .map(Option::getCode)
+        .collect(Collectors.toSet());
+  }
+
+  public Option getOptionByCode(String code) {
+    for (Option option : options) {
+      if (option != null && option.getCode().equals(code)) {
+        return option;
+      }
     }
 
-    public void removeAllOptions()
-    {
-        options.clear();
+    return null;
+  }
+
+  public Option getOptionByUid(String uid) {
+    for (Option option : options) {
+      if (option != null && option.getUid().equals(uid)) {
+        return option;
+      }
     }
 
-    public void removeOption( Option option )
-    {
-        if ( !CollectionUtils.isEmpty( options ) )
-        {
-            options.remove( option );
-        }
-    }
+    return null;
+  }
 
-    @Override
-    public int increaseVersion()
-    {
-        return ++version;
-    }
+  public Map<String, String> getOptionCodePropertyMap(IdScheme idScheme) {
+    return options.stream()
+        .filter(Objects::nonNull)
+        .collect(Collectors.toMap(Option::getCode, o -> o.getPropertyValue(idScheme)));
+  }
 
-    public boolean hasAllOptions( Collection<String> optionCodes )
-    {
-        for ( String code : optionCodes )
-        {
-            if ( getOptionByCode( code ) == null )
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public List<String> getOptionValues()
-    {
-        return options.stream().filter( Objects::nonNull ).map( Option::getName ).collect( Collectors.toList() );
-    }
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "options", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "option", namespace = DxfNamespaces.DXF_2_0)
+  public List<Option> getOptions() {
+    return options;
+  }
 
-    public List<String> getOptionCodes()
-    {
-        return options.stream().filter( Objects::nonNull ).map( Option::getCode ).collect( Collectors.toList() );
-    }
+  @JsonSetter(contentNulls = Nulls.SKIP)
+  public void setOptions(List<Option> options) {
+    this.options = options;
+  }
 
-    public Set<String> getOptionCodesAsSet()
-    {
-        return options.stream().filter( Objects::nonNull ).map( Option::getCode ).collect( Collectors.toSet() );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ValueType getValueType() {
+    return valueType;
+  }
 
-    public Option getOptionByCode( String code )
-    {
-        for ( Option option : options )
-        {
-            if ( option != null && option.getCode().equals( code ) )
-            {
-                return option;
-            }
-        }
+  public void setValueType(ValueType valueType) {
+    this.valueType = valueType;
+  }
 
-        return null;
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getVersion() {
+    return version;
+  }
 
-    public Option getOptionByUid( String uid )
-    {
-        for ( Option option : options )
-        {
-            if ( option != null && option.getUid().equals( uid ) )
-            {
-                return option;
-            }
-        }
-
-        return null;
-    }
-
-    public Map<String, String> getOptionCodePropertyMap( IdScheme idScheme )
-    {
-        return options.stream().filter( Objects::nonNull )
-            .collect( Collectors.toMap( Option::getCode, o -> o.getPropertyValue( idScheme ) ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "options", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Option> getOptions()
-    {
-        return options;
-    }
-
-    @JsonSetter( contentNulls = Nulls.SKIP )
-    public void setOptions( List<Option> options )
-    {
-        this.options = options;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ValueType getValueType()
-    {
-        return valueType;
-    }
-
-    public void setValueType( ValueType valueType )
-    {
-        this.valueType = valueType;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getVersion()
-    {
-        return version;
-    }
-
-    @Override
-    public void setVersion( int version )
-    {
-        this.version = version;
-    }
-
+  @Override
+  public void setVersion(int version) {
+    this.version = version;
+  }
 }

@@ -28,26 +28,22 @@
 package org.hisp.dhis.tracker.programrule;
 
 import java.util.List;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
 /**
- * A single issue from rule engine that can be either be a Warning or an Error.
- *
- * @Author Enrico Colasante
+ * A single issue from rule engine that can be either be a Warning or an Error. @Author Enrico
+ * Colasante
  */
 @RequiredArgsConstructor
 @Getter
-public class ProgramRuleIssue
-{
-    private final String ruleUid;
+public class ProgramRuleIssue {
+  private final String ruleUid;
 
-    private final TrackerErrorCode issueCode;
+  private final TrackerErrorCode issueCode;
 
-    private final List<String> args;
+  private final List<String> args;
 
-    private final IssueType issueType;
+  private final IssueType issueType;
 }

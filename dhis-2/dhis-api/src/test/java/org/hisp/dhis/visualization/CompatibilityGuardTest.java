@@ -36,7 +36,6 @@ import static org.hisp.dhis.visualization.CompatibilityGuard.keepAxesReadingComp
 import static org.hisp.dhis.visualization.CompatibilityGuard.keepLegendReadingCompatibility;
 
 import java.util.List;
-
 import org.hisp.dhis.common.Font;
 import org.hisp.dhis.common.FontStyle;
 import org.junit.jupiter.api.Test;
@@ -46,110 +45,121 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class CompatibilityGuardTest
-{
-    @Test
-    void testKeepLegendReadingCompatibility()
-    {
-        // Given
-        Visualization visualization = mockVisualizationWithLegend();
+class CompatibilityGuardTest {
+  @Test
+  void testKeepLegendReadingCompatibility() {
+    // Given
+    Visualization visualization = mockVisualizationWithLegend();
 
-        // When
-        keepLegendReadingCompatibility( visualization );
+    // When
+    keepLegendReadingCompatibility(visualization);
 
-        // Then
-        assertThat( visualization.getFontStyle().getLegend(),
-            is( equalTo( visualization.getSeriesKey().getLabel().getFontStyle() ) ) );
-        assertThat( visualization.getFontStyle().getLegend().getFont(),
-            is( equalTo( visualization.getSeriesKey().getLabel().getFontStyle().getFont() ) ) );
-    }
+    // Then
+    assertThat(
+        visualization.getFontStyle().getLegend(),
+        is(equalTo(visualization.getSeriesKey().getLabel().getFontStyle())));
+    assertThat(
+        visualization.getFontStyle().getLegend().getFont(),
+        is(equalTo(visualization.getSeriesKey().getLabel().getFontStyle().getFont())));
+  }
 
-    @Test
-    void testKeepAxesReadingCompatibility()
-    {
-        // Given
-        Visualization visualization = mockVisualizationWithAxes();
+  @Test
+  void testKeepAxesReadingCompatibility() {
+    // Given
+    Visualization visualization = mockVisualizationWithAxes();
 
-        // When
-        keepAxesReadingCompatibility( visualization );
+    // When
+    keepAxesReadingCompatibility(visualization);
 
-        // Then
-        // # Fist axis assertions
-        assertThat( visualization.getFontStyle().getSeriesAxisLabel(),
-            is( equalTo( visualization.getAxes().get( 0 ).getLabel().getFontStyle() ) ) );
-        assertThat( visualization.getFontStyle().getVerticalAxisTitle(),
-            is( equalTo( visualization.getAxes().get( 0 ).getTitle().getFontStyle() ) ) );
-        // Ranges
-        assertThat( visualization.getRangeAxisDecimals(),
-            is( equalTo( visualization.getAxes().get( 0 ).getDecimals() ) ) );
-        assertThat( visualization.getRangeAxisMaxValue(),
-            is( equalTo( visualization.getAxes().get( 0 ).getMaxValue().doubleValue() ) ) );
-        assertThat( visualization.getRangeAxisMinValue(),
-            is( equalTo( visualization.getAxes().get( 0 ).getMinValue().doubleValue() ) ) );
-        assertThat( visualization.getRangeAxisSteps(), is( equalTo( visualization.getAxes().get( 0 ).getSteps() ) ) );
-        // Target line
-        assertThat( visualization.getFontStyle().getTargetLineLabel(),
-            is( equalTo( visualization.getAxes().get( 0 ).getTargetLine().getTitle().getFontStyle() ) ) );
-        assertThat( visualization.getTargetLineLabel(),
-            is( equalTo( visualization.getAxes().get( 0 ).getTargetLine().getTitle().getText() ) ) );
-        assertThat( visualization.getTargetLineValue(),
-            is( equalTo( visualization.getAxes().get( 0 ).getTargetLine().getValue().doubleValue() ) ) );
-        // Base line
-        assertThat( visualization.getFontStyle().getBaseLineLabel(),
-            is( equalTo( visualization.getAxes().get( 0 ).getBaseLine().getTitle().getFontStyle() ) ) );
-        assertThat( visualization.getBaseLineLabel(),
-            is( equalTo( visualization.getAxes().get( 0 ).getBaseLine().getTitle().getText() ) ) );
-        assertThat( visualization.getBaseLineValue(),
-            is( equalTo( visualization.getAxes().get( 0 ).getBaseLine().getValue().doubleValue() ) ) );
-        // # Second axis assertions
-        assertThat( visualization.getFontStyle().getHorizontalAxisTitle(),
-            is( equalTo( visualization.getAxes().get( 1 ).getTitle().getFontStyle() ) ) );
-        assertThat( visualization.getDomainAxisLabel(),
-            is( equalTo( visualization.getAxes().get( 1 ).getTitle().getText() ) ) );
-    }
+    // Then
+    // # Fist axis assertions
+    assertThat(
+        visualization.getFontStyle().getSeriesAxisLabel(),
+        is(equalTo(visualization.getAxes().get(0).getLabel().getFontStyle())));
+    assertThat(
+        visualization.getFontStyle().getVerticalAxisTitle(),
+        is(equalTo(visualization.getAxes().get(0).getTitle().getFontStyle())));
+    // Ranges
+    assertThat(
+        visualization.getRangeAxisDecimals(),
+        is(equalTo(visualization.getAxes().get(0).getDecimals())));
+    assertThat(
+        visualization.getRangeAxisMaxValue(),
+        is(equalTo(visualization.getAxes().get(0).getMaxValue().doubleValue())));
+    assertThat(
+        visualization.getRangeAxisMinValue(),
+        is(equalTo(visualization.getAxes().get(0).getMinValue().doubleValue())));
+    assertThat(
+        visualization.getRangeAxisSteps(), is(equalTo(visualization.getAxes().get(0).getSteps())));
+    // Target line
+    assertThat(
+        visualization.getFontStyle().getTargetLineLabel(),
+        is(equalTo(visualization.getAxes().get(0).getTargetLine().getTitle().getFontStyle())));
+    assertThat(
+        visualization.getTargetLineLabel(),
+        is(equalTo(visualization.getAxes().get(0).getTargetLine().getTitle().getText())));
+    assertThat(
+        visualization.getTargetLineValue(),
+        is(equalTo(visualization.getAxes().get(0).getTargetLine().getValue().doubleValue())));
+    // Base line
+    assertThat(
+        visualization.getFontStyle().getBaseLineLabel(),
+        is(equalTo(visualization.getAxes().get(0).getBaseLine().getTitle().getFontStyle())));
+    assertThat(
+        visualization.getBaseLineLabel(),
+        is(equalTo(visualization.getAxes().get(0).getBaseLine().getTitle().getText())));
+    assertThat(
+        visualization.getBaseLineValue(),
+        is(equalTo(visualization.getAxes().get(0).getBaseLine().getValue().doubleValue())));
+    // # Second axis assertions
+    assertThat(
+        visualization.getFontStyle().getHorizontalAxisTitle(),
+        is(equalTo(visualization.getAxes().get(1).getTitle().getFontStyle())));
+    assertThat(
+        visualization.getDomainAxisLabel(),
+        is(equalTo(visualization.getAxes().get(1).getTitle().getText())));
+  }
 
-    private Visualization mockVisualizationWithLegend()
-    {
-        SeriesKey legend = new SeriesKey();
-        StyledObject label = new StyledObject();
-        FontStyle fontStyle = new FontStyle();
-        fontStyle.setFont( Font.ARIAL );
-        label.setFontStyle( fontStyle );
-        legend.setLabel( label );
-        Visualization visualization = new Visualization();
-        visualization.setSeriesKey( legend );
-        return visualization;
-    }
+  private Visualization mockVisualizationWithLegend() {
+    SeriesKey legend = new SeriesKey();
+    StyledObject label = new StyledObject();
+    FontStyle fontStyle = new FontStyle();
+    fontStyle.setFont(Font.ARIAL);
+    label.setFontStyle(fontStyle);
+    legend.setLabel(label);
+    Visualization visualization = new Visualization();
+    visualization.setSeriesKey(legend);
+    return visualization;
+  }
 
-    private Visualization mockVisualizationWithAxes()
-    {
-        StyledObject title = new StyledObject();
-        title.setText( "Some title" );
-        StyledObject label = new StyledObject();
-        label.setText( "Some label" );
-        Line baseLine = new Line();
-        baseLine.setTitle( title );
-        baseLine.setValue( 20.0 );
-        Line targetLine = new Line();
-        targetLine.setTitle( title );
-        targetLine.setValue( 40.0 );
-        AxisV2 firstAxis = new AxisV2();
-        firstAxis.setMaxValue( 1.0 );
-        firstAxis.setDecimals( 2 );
-        firstAxis.setIndex( 0 );
-        firstAxis.setMinValue( 3.0 );
-        firstAxis.setSteps( 4 );
-        firstAxis.setBaseLine( baseLine );
-        firstAxis.setLabel( label );
-        firstAxis.setTargetLine( targetLine );
-        firstAxis.setTitle( title );
-        firstAxis.setType( RANGE );
-        AxisV2 secondAxis = new AxisV2();
-        secondAxis.setLabel( label );
-        secondAxis.setTitle( title );
-        List<AxisV2> axes = newArrayList( firstAxis, secondAxis );
-        Visualization visualization = new Visualization();
-        visualization.setAxes( axes );
-        return visualization;
-    }
+  private Visualization mockVisualizationWithAxes() {
+    StyledObject title = new StyledObject();
+    title.setText("Some title");
+    StyledObject label = new StyledObject();
+    label.setText("Some label");
+    Line baseLine = new Line();
+    baseLine.setTitle(title);
+    baseLine.setValue(20.0);
+    Line targetLine = new Line();
+    targetLine.setTitle(title);
+    targetLine.setValue(40.0);
+    AxisV2 firstAxis = new AxisV2();
+    firstAxis.setMaxValue(1.0);
+    firstAxis.setDecimals(2);
+    firstAxis.setIndex(0);
+    firstAxis.setMinValue(3.0);
+    firstAxis.setSteps(4);
+    firstAxis.setBaseLine(baseLine);
+    firstAxis.setLabel(label);
+    firstAxis.setTargetLine(targetLine);
+    firstAxis.setTitle(title);
+    firstAxis.setType(RANGE);
+    AxisV2 secondAxis = new AxisV2();
+    secondAxis.setLabel(label);
+    secondAxis.setTitle(title);
+    List<AxisV2> axes = newArrayList(firstAxis, secondAxis);
+    Visualization visualization = new Visualization();
+    visualization.setAxes(axes);
+    return visualization;
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.dashboard;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -37,24 +36,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DashboardDeletionHandler extends DeletionHandler
-{
-    private final DashboardService dashboardService;
+public class DashboardDeletionHandler extends DeletionHandler {
+  private final DashboardService dashboardService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DashboardItem.class, this::deleteDashboardItem );
+  @Override
+  protected void register() {
+    whenDeleting(DashboardItem.class, this::deleteDashboardItem);
+  }
+
+  private void deleteDashboardItem(DashboardItem dashboardItem) {
+    Dashboard dashboard = dashboardService.getDashboardFromDashboardItem(dashboardItem);
+
+    if (dashboard != null) {
+      dashboard.getItems().remove(dashboardItem);
+      dashboardService.updateDashboard(dashboard);
     }
-
-    private void deleteDashboardItem( DashboardItem dashboardItem )
-    {
-        Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( dashboardItem );
-
-        if ( dashboard != null )
-        {
-            dashboard.getItems().remove( dashboardItem );
-            dashboardService.updateDashboard( dashboard );
-        }
-    }
+  }
 }

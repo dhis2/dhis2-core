@@ -32,13 +32,11 @@ import org.hisp.dhis.schema.Property;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class AbstractNodePropertyConverter implements NodePropertyConverter
-{
-    @Override
-    public boolean canConvertTo( Property property, Object value )
-    {
-        return false;
-    }
+public abstract class AbstractNodePropertyConverter implements NodePropertyConverter {
+  @Override
+  public boolean canConvertTo(Property property, Object value) {
+    return false;
+  }
 
-    public abstract Node convertTo( Property property, Object value );
+  public abstract Node convertTo(Property property, Object value);
 }

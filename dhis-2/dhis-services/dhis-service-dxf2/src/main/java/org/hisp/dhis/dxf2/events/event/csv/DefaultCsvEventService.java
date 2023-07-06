@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.dxf2.events.event.csv;
 
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -42,136 +48,119 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvParser;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.dxf2.events.event.csv.CsvEventService" )
-public class DefaultCsvEventService
-    implements CsvEventService<Event>
-{
-    private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
+@Service("org.hisp.dhis.dxf2.events.event.csv.CsvEventService")
+public class DefaultCsvEventService implements CsvEventService<Event> {
+  private static final CsvMapper CSV_MAPPER =
+      new CsvMapper().enable(CsvParser.Feature.WRAP_AS_ARRAY);
 
-    private static final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
-        .withLineSeparator( "\n" );
+  private static final CsvSchema CSV_SCHEMA =
+      CSV_MAPPER.schemaFor(CsvEventDataValue.class).withLineSeparator("\n");
 
-    private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile( "^'|'$" );
+  private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile("^'|'$");
 
-    @Override
-    public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
-        throws IOException
-    {
-        ObjectWriter writer = CSV_MAPPER.writer( CSV_SCHEMA.withUseHeader( withHeader ) );
+  @Override
+  public void writeEvents(OutputStream outputStream, List<Event> events, boolean withHeader)
+      throws IOException {
+    ObjectWriter writer = CSV_MAPPER.writer(CSV_SCHEMA.withUseHeader(withHeader));
 
-        List<CsvEventDataValue> dataValues = new ArrayList<>();
+    List<CsvEventDataValue> dataValues = new ArrayList<>();
 
-        for ( Event event : events )
-        {
-            CsvEventDataValue templateDataValue = new CsvEventDataValue();
-            templateDataValue.setEvent( event.getEvent() );
-            templateDataValue.setStatus( event.getStatus() != null ? event.getStatus().name() : null );
-            templateDataValue.setProgram( event.getProgram() );
-            templateDataValue.setProgramStage( event.getProgramStage() );
-            templateDataValue.setEnrollment( event.getEnrollment() );
-            templateDataValue.setOrgUnit( event.getOrgUnit() );
-            templateDataValue.setEventDate( event.getEventDate() );
-            templateDataValue.setDueDate( event.getDueDate() );
-            templateDataValue.setStoredBy( event.getStoredBy() );
-            templateDataValue.setCompletedDate( event.getCompletedDate() );
-            templateDataValue.setCompletedBy( event.getCompletedBy() );
+    for (Event event : events) {
+      CsvEventDataValue templateDataValue = new CsvEventDataValue();
+      templateDataValue.setEvent(event.getEvent());
+      templateDataValue.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
+      templateDataValue.setProgram(event.getProgram());
+      templateDataValue.setProgramStage(event.getProgramStage());
+      templateDataValue.setEnrollment(event.getEnrollment());
+      templateDataValue.setOrgUnit(event.getOrgUnit());
+      templateDataValue.setEventDate(event.getEventDate());
+      templateDataValue.setDueDate(event.getDueDate());
+      templateDataValue.setStoredBy(event.getStoredBy());
+      templateDataValue.setCompletedDate(event.getCompletedDate());
+      templateDataValue.setCompletedBy(event.getCompletedBy());
 
-            if ( event.getGeometry() != null )
-            {
-                templateDataValue.setGeometry( event.getGeometry().toText() );
+      if (event.getGeometry() != null) {
+        templateDataValue.setGeometry(event.getGeometry().toText());
 
-                if ( event.getGeometry().getGeometryType().equals( "Point" ) )
-                {
-                    templateDataValue.setLongitude( event.getGeometry().getCoordinate().x );
-                    templateDataValue.setLatitude( event.getGeometry().getCoordinate().y );
-                }
-            }
+        if (event.getGeometry().getGeometryType().equals("Point")) {
+          templateDataValue.setLongitude(event.getGeometry().getCoordinate().x);
+          templateDataValue.setLatitude(event.getGeometry().getCoordinate().y);
+        }
+      }
 
-            for ( DataValue value : event.getDataValues() )
-            {
-                CsvEventDataValue dataValue = new CsvEventDataValue( templateDataValue );
-                dataValue.setDataElement( value.getDataElement() );
-                dataValue.setValue( value.getValue() );
-                dataValue.setProvidedElsewhere( value.getProvidedElsewhere() );
+      for (DataValue value : event.getDataValues()) {
+        CsvEventDataValue dataValue = new CsvEventDataValue(templateDataValue);
+        dataValue.setDataElement(value.getDataElement());
+        dataValue.setValue(value.getValue());
+        dataValue.setProvidedElsewhere(value.getProvidedElsewhere());
 
-                if ( value.getStoredBy() != null )
-                {
-                    dataValue.setStoredBy( value.getStoredBy() );
-                }
-
-                dataValues.add( dataValue );
-            }
+        if (value.getStoredBy() != null) {
+          dataValue.setStoredBy(value.getStoredBy());
         }
 
-        writer.writeValue( outputStream, dataValues );
+        dataValues.add(dataValue);
+      }
     }
 
-    @Override
-    public List<Event> readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException,
-        ParseException
-    {
-        List<Event> events = Lists.newArrayList();
+    writer.writeValue(outputStream, dataValues);
+  }
 
-        ObjectReader reader = CSV_MAPPER.readerFor( CsvEventDataValue.class )
-            .with( CSV_SCHEMA.withSkipFirstDataRow( skipFirst ) );
+  @Override
+  public List<Event> readEvents(InputStream inputStream, boolean skipFirst)
+      throws IOException, ParseException {
+    List<Event> events = Lists.newArrayList();
 
-        MappingIterator<CsvEventDataValue> iterator = reader.readValues( inputStream );
-        Event event = new Event();
-        event.setEvent( "not_valid" );
+    ObjectReader reader =
+        CSV_MAPPER
+            .readerFor(CsvEventDataValue.class)
+            .with(CSV_SCHEMA.withSkipFirstDataRow(skipFirst));
 
-        while ( iterator.hasNext() )
-        {
-            CsvEventDataValue dataValue = iterator.next();
+    MappingIterator<CsvEventDataValue> iterator = reader.readValues(inputStream);
+    Event event = new Event();
+    event.setEvent("not_valid");
 
-            if ( !event.getEvent().equals( dataValue.getEvent() ) )
-            {
-                event = new Event();
-                event.setEvent( dataValue.getEvent() );
-                event.setStatus( StringUtils.isEmpty( dataValue.getStatus() )
-                    ? EventStatus.ACTIVE
-                    : Enum.valueOf( EventStatus.class, dataValue.getStatus() ) );
-                event.setProgram( dataValue.getProgram() );
-                event.setProgramStage( dataValue.getProgramStage() );
-                event.setEnrollment( dataValue.getEnrollment() );
-                event.setOrgUnit( dataValue.getOrgUnit() );
-                event.setEventDate( dataValue.getEventDate() );
-                event.setDueDate( dataValue.getDueDate() );
-                event.setCompletedDate( dataValue.getCompletedDate() );
-                event.setCompletedBy( dataValue.getCompletedBy() );
+    while (iterator.hasNext()) {
+      CsvEventDataValue dataValue = iterator.next();
 
-                if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
-                {
-                    event.setGeometry( new WKTReader()
-                        .read( TRIM_SINGLE_QUOTES.matcher( dataValue.getGeometry() ).replaceAll( "" ) ) );
-                }
-                else if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
-                {
-                    event.setGeometry( new WKTReader()
-                        .read( "Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")" ) );
-                }
+      if (!event.getEvent().equals(dataValue.getEvent())) {
+        event = new Event();
+        event.setEvent(dataValue.getEvent());
+        event.setStatus(
+            StringUtils.isEmpty(dataValue.getStatus())
+                ? EventStatus.ACTIVE
+                : Enum.valueOf(EventStatus.class, dataValue.getStatus()));
+        event.setProgram(dataValue.getProgram());
+        event.setProgramStage(dataValue.getProgramStage());
+        event.setEnrollment(dataValue.getEnrollment());
+        event.setOrgUnit(dataValue.getOrgUnit());
+        event.setEventDate(dataValue.getEventDate());
+        event.setDueDate(dataValue.getDueDate());
+        event.setCompletedDate(dataValue.getCompletedDate());
+        event.setCompletedBy(dataValue.getCompletedBy());
 
-                events.add( event );
-            }
-
-            DataValue value = new DataValue( dataValue.getDataElement(), dataValue.getValue() );
-            value.setStoredBy( dataValue.getStoredBy() );
-            value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-
-            event.getDataValues().add( value );
+        if (StringUtils.isNotBlank(dataValue.getGeometry())) {
+          event.setGeometry(
+              new WKTReader()
+                  .read(TRIM_SINGLE_QUOTES.matcher(dataValue.getGeometry()).replaceAll("")));
+        } else if (dataValue.getLongitude() != null && dataValue.getLatitude() != null) {
+          event.setGeometry(
+              new WKTReader()
+                  .read("Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")"));
         }
 
-        return events;
+        events.add(event);
+      }
+
+      DataValue value = new DataValue(dataValue.getDataElement(), dataValue.getValue());
+      value.setStoredBy(dataValue.getStoredBy());
+      value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
+
+      event.getDataValues().add(value);
     }
+
+    return events;
+  }
 }

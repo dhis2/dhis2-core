@@ -27,35 +27,28 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import java.util.Optional;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Jan Bernitt
  */
 @Getter
 @Setter
-public class AggregateDataExchangeJobParameters implements JobParameters
-{
-    @JsonProperty
-    private List<String> dataExchangeIds;
+public class AggregateDataExchangeJobParameters implements JobParameters {
+  @JsonProperty private List<String> dataExchangeIds;
 
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( dataExchangeIds == null || dataExchangeIds.isEmpty() )
-        {
-            return Optional.of( new ErrorReport( getClass(), ErrorCode.E4000, "dataExchangeIds" ) );
-        }
-        return Optional.empty();
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (dataExchangeIds == null || dataExchangeIds.isEmpty()) {
+      return Optional.of(new ErrorReport(getClass(), ErrorCode.E4000, "dataExchangeIds"));
     }
+    return Optional.empty();
+  }
 }

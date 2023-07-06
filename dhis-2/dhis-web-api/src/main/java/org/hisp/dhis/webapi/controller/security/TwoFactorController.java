@@ -39,11 +39,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
-
 import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -72,147 +69,127 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Morten Svanaes
  */
 @RestController
-@RequestMapping( value = "/2fa" )
-@ApiVersion( { DhisApiVersion.DEFAULT,
-    DhisApiVersion.ALL } )
+@RequestMapping(value = "/2fa")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class TwoFactorController
-{
-    private final UserService defaultUserService;
+public class TwoFactorController {
+  private final UserService defaultUserService;
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    @GetMapping( value = "/qrCode", produces = "image/png" )
-    @ResponseStatus( HttpStatus.ACCEPTED )
-    public void generateQRCode( @CurrentUser User currentUser, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
-    {
-        if ( currentUser == null )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
-        }
-
-        if ( currentUser.getTwoFA() )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
-        }
-
-        // TODO: This needs to be reversed when DHIS2-13333 gets merged.
-        // defaultUserService.generateTwoFactorSecret( currentUser );
-
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-
-        List<ErrorCode> errorCodes = new ArrayList<>();
-
-        String qrContent = TwoFactoryAuthenticationUtils.generateQrContent( appName, currentUser,
-            errorCodes::add );
-
-        if ( !errorCodes.isEmpty() )
-        {
-            throw new WebMessageException( conflict( errorCodes.get( 0 ).getMessage(), errorCodes.get( 0 ) ) );
-        }
-
-        byte[] qrCode = TwoFactoryAuthenticationUtils.generateQRCode( qrContent, 200, 200,
-            errorCodes::add );
-
-        if ( !errorCodes.isEmpty() )
-        {
-            throw new WebMessageException( conflict( errorCodes.get( 0 ).getMessage(), errorCodes.get( 0 ) ) );
-        }
-
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write( qrCode );
+  @GetMapping(value = "/qrCode", produces = "image/png")
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
+      throws IOException, WebMessageException {
+    if (currentUser == null) {
+      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
 
-    /**
-     * @deprecated Use {@link #generateQRCode}.
-     * @param currentUser
-     * @return
-     * @throws WebMessageException
-     */
-    @Deprecated( since = "2.39" )
-    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.ACCEPTED )
-    @ResponseBody
-    public Map<String, Object> getQrCode( @CurrentUser User currentUser )
-        throws WebMessageException
-    {
-        if ( currentUser == null )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
-        }
-
-        // TODO: This needs to be reversed when DHIS2-13333 gets merged.
-        if ( !currentUser.getTwoFA() && currentUser.getSecret() == null )
-        {
-            defaultUserService.generateTwoFactorSecret( currentUser );
-        }
-
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-        String url = TwoFactoryAuthenticationUtils.generateQrUrl( appName, currentUser );
-
-        Map<String, Object> map = new HashMap<>();
-        map.put( "url", url );
-
-        return map;
+    if (currentUser.getTwoFA()) {
+      throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
     }
 
-    @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage authenticate(
-        @RequestParam String code, @CurrentUser User currentUser )
-    {
-        if ( currentUser == null )
-        {
-            throw new BadCredentialsException( "No current user" );
-        }
+    // TODO: This needs to be reversed when DHIS2-13333 gets merged.
+    // defaultUserService.generateTwoFactorSecret( currentUser );
 
-        if ( !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
-        {
-            return unauthorized( "2FA code not authenticated" );
-        }
-        else
-        {
-            return ok( "2FA code authenticated" );
-        }
+    String appName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+
+    List<ErrorCode> errorCodes = new ArrayList<>();
+
+    String qrContent =
+        TwoFactoryAuthenticationUtils.generateQrContent(appName, currentUser, errorCodes::add);
+
+    if (!errorCodes.isEmpty()) {
+      throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
     }
 
-    @PostMapping( value = "/enable", consumes = { "text/*", "application/*" } )
-    @ResponseStatus( HttpStatus.OK )
-    @ResponseBody
-    public void enable(
-        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
-    {
-        validateCode( currentUser, body.get( "code" ) );
-        defaultUserService.set2FA( currentUser, true );
+    byte[] qrCode =
+        TwoFactoryAuthenticationUtils.generateQRCode(qrContent, 200, 200, errorCodes::add);
+
+    if (!errorCodes.isEmpty()) {
+      throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
     }
 
-    @PostMapping( value = "/disable", consumes = { "text/*", "application/*" } )
-    @ResponseStatus( HttpStatus.OK )
-    @ResponseBody
-    public void disable(
-        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
-    {
-        validateCode( currentUser, body.get( "code" ) );
-        defaultUserService.set2FA( currentUser, false );
+    OutputStream outputStream = response.getOutputStream();
+    outputStream.write(qrCode);
+  }
+
+  /**
+   * @deprecated Use {@link #generateQRCode}.
+   * @param currentUser
+   * @return
+   * @throws WebMessageException
+   */
+  @Deprecated(since = "2.39")
+  @GetMapping(value = "/qr", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @ResponseBody
+  public Map<String, Object> getQrCode(@CurrentUser User currentUser) throws WebMessageException {
+    if (currentUser == null) {
+      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
 
-    private static void validateCode( User currentUser, String code )
-        throws WebMessageException
-    {
-        if ( currentUser == null )
-        {
-            throw new BadCredentialsException( "No current user" );
-        }
-
-        if ( code == null || !LongValidator.getInstance().isValid( code )
-            || !TwoFactoryAuthenticationUtils.verify( currentUser, code ) )
-        {
-            throw new WebMessageException( conflict( E3023.getMessage(), E3023 ) );
-        }
+    // TODO: This needs to be reversed when DHIS2-13333 gets merged.
+    if (!currentUser.getTwoFA() && currentUser.getSecret() == null) {
+      defaultUserService.generateTwoFactorSecret(currentUser);
     }
 
+    String appName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
+    String url = TwoFactoryAuthenticationUtils.generateQrUrl(appName, currentUser);
+
+    Map<String, Object> map = new HashMap<>();
+    map.put("url", url);
+
+    return map;
+  }
+
+  @GetMapping(value = "/authenticate", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage authenticate(@RequestParam String code, @CurrentUser User currentUser) {
+    if (currentUser == null) {
+      throw new BadCredentialsException("No current user");
+    }
+
+    if (!TwoFactoryAuthenticationUtils.verify(currentUser, code)) {
+      return unauthorized("2FA code not authenticated");
+    } else {
+      return ok("2FA code authenticated");
+    }
+  }
+
+  @PostMapping(
+      value = "/enable",
+      consumes = {"text/*", "application/*"})
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public void enable(
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      throws WebMessageException {
+    validateCode(currentUser, body.get("code"));
+    defaultUserService.set2FA(currentUser, true);
+  }
+
+  @PostMapping(
+      value = "/disable",
+      consumes = {"text/*", "application/*"})
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public void disable(
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      throws WebMessageException {
+    validateCode(currentUser, body.get("code"));
+    defaultUserService.set2FA(currentUser, false);
+  }
+
+  private static void validateCode(User currentUser, String code) throws WebMessageException {
+    if (currentUser == null) {
+      throw new BadCredentialsException("No current user");
+    }
+
+    if (code == null
+        || !LongValidator.getInstance().isValid(code)
+        || !TwoFactoryAuthenticationUtils.verify(currentUser, code)) {
+      throw new WebMessageException(conflict(E3023.getMessage(), E3023));
+    }
+  }
 }

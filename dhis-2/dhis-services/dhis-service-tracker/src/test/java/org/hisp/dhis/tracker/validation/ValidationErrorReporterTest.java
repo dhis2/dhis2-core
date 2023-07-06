@@ -37,56 +37,57 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.junit.jupiter.api.Test;
 
-class ValidationErrorReporterTest
-{
+class ValidationErrorReporterTest {
 
-    @Test
-    void hasErrorReportFound()
-    {
+  @Test
+  void hasErrorReportFound() {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
-        reporter.addError( eventError() );
+    ValidationErrorReporter reporter =
+        new ValidationErrorReporter(TrackerIdSchemeParams.builder().build());
+    reporter.addError(eventError());
 
-        assertTrue( reporter.hasErrorReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
-    }
+    assertTrue(reporter.hasErrorReport(r -> TrackerType.EVENT.equals(r.getTrackerType())));
+  }
 
-    @Test
-    void hasErrorReportNotFound()
-    {
+  @Test
+  void hasErrorReportNotFound() {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
-        reporter.addError( eventError() );
+    ValidationErrorReporter reporter =
+        new ValidationErrorReporter(TrackerIdSchemeParams.builder().build());
+    reporter.addError(eventError());
 
-        assertFalse( reporter.hasErrorReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
-    }
+    assertFalse(
+        reporter.hasErrorReport(r -> TrackerType.TRACKED_ENTITY.equals(r.getTrackerType())));
+  }
 
-    @Test
-    void hasWarningReportFound()
-    {
+  @Test
+  void hasWarningReportFound() {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
-        reporter.addWarning( eventWarning() );
+    ValidationErrorReporter reporter =
+        new ValidationErrorReporter(TrackerIdSchemeParams.builder().build());
+    reporter.addWarning(eventWarning());
 
-        assertTrue( reporter.hasWarningReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
-    }
+    assertTrue(reporter.hasWarningReport(r -> TrackerType.EVENT.equals(r.getTrackerType())));
+  }
 
-    @Test
-    void hasWarningReportNotFound()
-    {
+  @Test
+  void hasWarningReportNotFound() {
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( TrackerIdSchemeParams.builder().build() );
-        reporter.addWarning( eventWarning() );
+    ValidationErrorReporter reporter =
+        new ValidationErrorReporter(TrackerIdSchemeParams.builder().build());
+    reporter.addWarning(eventWarning());
 
-        assertFalse( reporter.hasWarningReport( r -> TrackerType.TRACKED_ENTITY.equals( r.getTrackerType() ) ) );
-    }
+    assertFalse(
+        reporter.hasWarningReport(r -> TrackerType.TRACKED_ENTITY.equals(r.getTrackerType())));
+  }
 
-    private TrackerErrorReport eventError()
-    {
-        return new TrackerErrorReport( "some error", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
-    }
+  private TrackerErrorReport eventError() {
+    return new TrackerErrorReport(
+        "some error", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS");
+  }
 
-    private TrackerWarningReport eventWarning()
-    {
-        return new TrackerWarningReport( "some warning", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS" );
-    }
+  private TrackerWarningReport eventWarning() {
+    return new TrackerWarningReport(
+        "some warning", TrackerErrorCode.E1000, TrackerType.EVENT, "JgDfHAGzzfS");
+  }
 }

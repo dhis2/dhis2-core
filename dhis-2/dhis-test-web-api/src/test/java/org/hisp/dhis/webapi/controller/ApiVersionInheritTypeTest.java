@@ -40,24 +40,23 @@ import org.springframework.mock.web.MockHttpSession;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ApiVersionInheritTypeTest extends DhisWebSpringTest
-{
+class ApiVersionInheritTypeTest extends DhisWebSpringTest {
 
-    @Test
-    void testGetInherited()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testInheritedFromBase";
-        mvc.perform( get( endpoint ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( post( endpoint + "/abc" ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( get( "/31" + endpoint ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( post( "/31" + endpoint + "/abc" ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( get( "/32" + endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/32" + endpoint + "/abc" ).session( session ) ).andExpect( status().isMethodNotAllowed() );
-        mvc.perform( put( "/32" + endpoint + "/abc" ).session( session ) ).andExpect( status().isMethodNotAllowed() );
-        mvc.perform( delete( "/32" + endpoint + "/abc" ).session( session ) )
-            .andExpect( status().isMethodNotAllowed() );
-        mvc.perform( post( "/32" + endpoint + "/abc" ).session( session ) ).andExpect( status().isOk() );
-    }
+  @Test
+  void testGetInherited() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    String endpoint = "/type/testInheritedFromBase";
+    mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
+    mvc.perform(post(endpoint + "/abc").session(session)).andExpect(status().isNotFound());
+    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isNotFound());
+    mvc.perform(post("/31" + endpoint + "/abc").session(session)).andExpect(status().isNotFound());
+    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/32" + endpoint + "/abc").session(session))
+        .andExpect(status().isMethodNotAllowed());
+    mvc.perform(put("/32" + endpoint + "/abc").session(session))
+        .andExpect(status().isMethodNotAllowed());
+    mvc.perform(delete("/32" + endpoint + "/abc").session(session))
+        .andExpect(status().isMethodNotAllowed());
+    mvc.perform(post("/32" + endpoint + "/abc").session(session)).andExpect(status().isOk());
+  }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.config;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.DefaultSelectionTreeManager;
@@ -59,87 +61,80 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-@Order( 3200 )
-public class AuthoritiesProviderConfig
-{
+@Order(3200)
+public class AuthoritiesProviderConfig {
 
-    @Autowired
-    private SecurityService securityService;
+  @Autowired private SecurityService securityService;
 
-    @Autowired
-    private ModuleManager moduleManager;
+  @Autowired private ModuleManager moduleManager;
 
-    @Autowired
-    private SchemaService schemaService;
+  @Autowired private SchemaService schemaService;
 
-    @Autowired
-    private AppManager appManager;
+  @Autowired private AppManager appManager;
 
-    @Autowired
-    @Qualifier( "org.hisp.dhis.user.CurrentUserService" )
-    public CurrentUserService currentUserService;
+  @Autowired
+  @Qualifier("org.hisp.dhis.user.CurrentUserService")
+  public CurrentUserService currentUserService;
 
-    @Autowired
-    @Qualifier( "accessDecisionManager" )
-    public AccessDecisionManager accessDecisionManager;
+  @Autowired
+  @Qualifier("accessDecisionManager")
+  public AccessDecisionManager accessDecisionManager;
 
-    @Autowired
-    public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+  @Autowired public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
-    @Autowired
-    @Qualifier( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
-    public OrganisationUnitService organisationUnitService;
+  @Autowired
+  @Qualifier("org.hisp.dhis.organisationunit.OrganisationUnitService")
+  public OrganisationUnitService organisationUnitService;
 
-    @Primary
-    @Bean( "org.hisp.dhis.security.SystemAuthoritiesProvider" )
-    public SystemAuthoritiesProvider systemAuthoritiesProvider()
-    {
-        SchemaAuthoritiesProvider schemaAuthoritiesProvider = new SchemaAuthoritiesProvider( schemaService );
-        AppsSystemAuthoritiesProvider appsSystemAuthoritiesProvider = new AppsSystemAuthoritiesProvider( appManager );
+  @Primary
+  @Bean("org.hisp.dhis.security.SystemAuthoritiesProvider")
+  public SystemAuthoritiesProvider systemAuthoritiesProvider() {
+    SchemaAuthoritiesProvider schemaAuthoritiesProvider =
+        new SchemaAuthoritiesProvider(schemaService);
+    AppsSystemAuthoritiesProvider appsSystemAuthoritiesProvider =
+        new AppsSystemAuthoritiesProvider(appManager);
 
-        DetectingSystemAuthoritiesProvider detectingSystemAuthoritiesProvider = new DetectingSystemAuthoritiesProvider();
-        detectingSystemAuthoritiesProvider.setRequiredAuthoritiesProvider( requiredAuthoritiesProvider() );
+    DetectingSystemAuthoritiesProvider detectingSystemAuthoritiesProvider =
+        new DetectingSystemAuthoritiesProvider();
+    detectingSystemAuthoritiesProvider.setRequiredAuthoritiesProvider(
+        requiredAuthoritiesProvider());
 
-        CompositeSystemAuthoritiesProvider provider = new CompositeSystemAuthoritiesProvider();
-        provider.setSources( ImmutableSet.of(
-            new CachingSystemAuthoritiesProvider( detectingSystemAuthoritiesProvider ),
-            new CachingSystemAuthoritiesProvider( moduleSystemAuthoritiesProvider() ),
-            new CachingSystemAuthoritiesProvider( simpleSystemAuthoritiesProvider() ),
+    CompositeSystemAuthoritiesProvider provider = new CompositeSystemAuthoritiesProvider();
+    provider.setSources(
+        ImmutableSet.of(
+            new CachingSystemAuthoritiesProvider(detectingSystemAuthoritiesProvider),
+            new CachingSystemAuthoritiesProvider(moduleSystemAuthoritiesProvider()),
+            new CachingSystemAuthoritiesProvider(simpleSystemAuthoritiesProvider()),
             schemaAuthoritiesProvider,
-            appsSystemAuthoritiesProvider ) );
-        return provider;
-    }
+            appsSystemAuthoritiesProvider));
+    return provider;
+  }
 
-    private SystemAuthoritiesProvider simpleSystemAuthoritiesProvider()
-    {
-        SimpleSystemAuthoritiesProvider provider = new SimpleSystemAuthoritiesProvider();
-        provider.setAuthorities( DefaultAdminUserPopulator.ALL_AUTHORITIES );
-        return provider;
-    }
+  private SystemAuthoritiesProvider simpleSystemAuthoritiesProvider() {
+    SimpleSystemAuthoritiesProvider provider = new SimpleSystemAuthoritiesProvider();
+    provider.setAuthorities(DefaultAdminUserPopulator.ALL_AUTHORITIES);
+    return provider;
+  }
 
-    @Bean
-    public RequiredAuthoritiesProvider requiredAuthoritiesProvider()
-    {
-        DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
-        provider.setRequiredAuthoritiesKey( "requiredAuthorities" );
-        provider.setAnyAuthoritiesKey( "anyAuthorities" );
-        provider.setGlobalAttributes( ImmutableSet.of( "M_MODULE_ACCESS_VOTER_ENABLED" ) );
-        return provider;
-    }
+  @Bean
+  public RequiredAuthoritiesProvider requiredAuthoritiesProvider() {
+    DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
+    provider.setRequiredAuthoritiesKey("requiredAuthorities");
+    provider.setAnyAuthoritiesKey("anyAuthorities");
+    provider.setGlobalAttributes(ImmutableSet.of("M_MODULE_ACCESS_VOTER_ENABLED"));
+    return provider;
+  }
 
-    private ModuleSystemAuthoritiesProvider moduleSystemAuthoritiesProvider()
-    {
-        ModuleSystemAuthoritiesProvider provider = new ModuleSystemAuthoritiesProvider();
-        provider.setAuthorityPrefix( "M_" );
-        provider.setModuleManager( moduleManager );
-        provider.setExcludes( ImmutableSet.of(
+  private ModuleSystemAuthoritiesProvider moduleSystemAuthoritiesProvider() {
+    ModuleSystemAuthoritiesProvider provider = new ModuleSystemAuthoritiesProvider();
+    provider.setAuthorityPrefix("M_");
+    provider.setModuleManager(moduleManager);
+    provider.setExcludes(
+        ImmutableSet.of(
             "dhis-web-commons-menu",
             "dhis-web-commons-menu-management",
             "dhis-web-commons-oust",
@@ -154,48 +149,46 @@ public class AuthoritiesProviderConfig
             "dhis-web-commons-about",
             "dhis-web-apps",
             "dhis-web-api-mobile",
-            "dhis-web-portal" ) );
-        return provider;
-    }
+            "dhis-web-portal"));
+    return provider;
+  }
 
-    @Bean( "org.hisp.dhis.security.intercept.XWorkSecurityInterceptor" )
-    public XWorkSecurityInterceptor xWorkSecurityInterceptor()
-        throws Exception
-    {
-        DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
-        provider.setRequiredAuthoritiesKey( "requiredAuthorities" );
-        provider.setAnyAuthoritiesKey( "anyAuthorities" );
-        provider.setGlobalAttributes( ImmutableSet.of( "M_MODULE_ACCESS_VOTER_ENABLED" ) );
+  @Bean("org.hisp.dhis.security.intercept.XWorkSecurityInterceptor")
+  public XWorkSecurityInterceptor xWorkSecurityInterceptor() throws Exception {
+    DefaultRequiredAuthoritiesProvider provider = new DefaultRequiredAuthoritiesProvider();
+    provider.setRequiredAuthoritiesKey("requiredAuthorities");
+    provider.setAnyAuthoritiesKey("anyAuthorities");
+    provider.setGlobalAttributes(ImmutableSet.of("M_MODULE_ACCESS_VOTER_ENABLED"));
 
-        SpringSecurityActionAccessResolver resolver = new SpringSecurityActionAccessResolver();
-        resolver.setRequiredAuthoritiesProvider( provider );
-        resolver.setAccessDecisionManager( accessDecisionManager );
+    SpringSecurityActionAccessResolver resolver = new SpringSecurityActionAccessResolver();
+    resolver.setRequiredAuthoritiesProvider(provider);
+    resolver.setAccessDecisionManager(accessDecisionManager);
 
-        XWorkSecurityInterceptor interceptor = new XWorkSecurityInterceptor();
-        interceptor.setAccessDecisionManager( accessDecisionManager );
-        interceptor.setValidateConfigAttributes( false );
-        interceptor.setRequiredAuthoritiesProvider( provider );
-        interceptor.setActionAccessResolver( resolver );
-        interceptor.setSecurityService( securityService );
+    XWorkSecurityInterceptor interceptor = new XWorkSecurityInterceptor();
+    interceptor.setAccessDecisionManager(accessDecisionManager);
+    interceptor.setValidateConfigAttributes(false);
+    interceptor.setRequiredAuthoritiesProvider(provider);
+    interceptor.setActionAccessResolver(resolver);
+    interceptor.setSecurityService(securityService);
 
-        return interceptor;
-    }
+    return interceptor;
+  }
 
-    @Bean( "org.hisp.dhis.security.intercept.LoginInterceptor" )
-    public LoginInterceptor loginInterceptor()
-    {
-        RestrictOrganisationUnitsAction unitsAction = new RestrictOrganisationUnitsAction();
-        unitsAction.setCurrentUserService( currentUserService );
-        DefaultOrganisationUnitSelectionManager selectionManager = new DefaultOrganisationUnitSelectionManager();
-        selectionManager.setOrganisationUnitService( organisationUnitService );
-        unitsAction.setSelectionManager( selectionManager );
-        DefaultSelectionTreeManager selectionTreeManager = new DefaultSelectionTreeManager();
-        selectionTreeManager.setOrganisationUnitService( organisationUnitService );
-        unitsAction.setSelectionTreeManager( selectionTreeManager );
+  @Bean("org.hisp.dhis.security.intercept.LoginInterceptor")
+  public LoginInterceptor loginInterceptor() {
+    RestrictOrganisationUnitsAction unitsAction = new RestrictOrganisationUnitsAction();
+    unitsAction.setCurrentUserService(currentUserService);
+    DefaultOrganisationUnitSelectionManager selectionManager =
+        new DefaultOrganisationUnitSelectionManager();
+    selectionManager.setOrganisationUnitService(organisationUnitService);
+    unitsAction.setSelectionManager(selectionManager);
+    DefaultSelectionTreeManager selectionTreeManager = new DefaultSelectionTreeManager();
+    selectionTreeManager.setOrganisationUnitService(organisationUnitService);
+    unitsAction.setSelectionTreeManager(selectionTreeManager);
 
-        LoginInterceptor interceptor = new LoginInterceptor();
-        interceptor.setActions( ImmutableList.of( unitsAction ) );
+    LoginInterceptor interceptor = new LoginInterceptor();
+    interceptor.setActions(ImmutableList.of(unitsAction));
 
-        return interceptor;
-    }
+    return interceptor;
+  }
 }

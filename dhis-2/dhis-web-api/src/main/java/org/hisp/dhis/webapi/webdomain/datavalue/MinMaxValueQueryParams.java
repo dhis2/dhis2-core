@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
 import javax.validation.constraints.NotBlank;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,15 +44,11 @@ import lombok.Setter;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class MinMaxValueQueryParams
-{
-    @NotBlank
-    private String de;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class MinMaxValueQueryParams {
+  @NotBlank private String de;
 
-    @NotBlank
-    private String ou;
+  @NotBlank private String ou;
 
-    @NotBlank
-    private String co;
+  @NotBlank private String co;
 }

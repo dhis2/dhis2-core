@@ -42,83 +42,74 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AttributeStoreTest extends TransactionalIntegrationTest
-{
+class AttributeStoreTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private AttributeStore attributeStore;
+  @Autowired private AttributeStore attributeStore;
 
-    private Attribute atA;
+  private Attribute atA;
 
-    private Attribute atB;
+  private Attribute atB;
 
-    @Override
-    protected void setUpTest()
-    {
-        atA = new Attribute();
-        atA.setName( "attribute_simple" );
-        atA.setValueType( ValueType.TEXT );
-        atA.setIndicatorAttribute( true );
-        atA.setDataElementAttribute( true );
-        atB = new Attribute();
-        atB.setName( "attribute_with_options" );
-        atB.setValueType( ValueType.TEXT );
-        atB.setOrganisationUnitAttribute( true );
-        atB.setDataElementAttribute( true );
-        attributeStore.save( atA );
-        attributeStore.save( atB );
-    }
+  @Override
+  protected void setUpTest() {
+    atA = new Attribute();
+    atA.setName("attribute_simple");
+    atA.setValueType(ValueType.TEXT);
+    atA.setIndicatorAttribute(true);
+    atA.setDataElementAttribute(true);
+    atB = new Attribute();
+    atB.setName("attribute_with_options");
+    atB.setValueType(ValueType.TEXT);
+    atB.setOrganisationUnitAttribute(true);
+    atB.setDataElementAttribute(true);
+    attributeStore.save(atA);
+    attributeStore.save(atB);
+  }
 
-    @Test
-    void testGetDataElementAttributes()
-    {
-        assertEquals( 2, attributeStore.getAttributes( DataElement.class ).size() );
-    }
+  @Test
+  void testGetDataElementAttributes() {
+    assertEquals(2, attributeStore.getAttributes(DataElement.class).size());
+  }
 
-    @Test
-    void testGetIndicatorAttributes()
-    {
-        assertEquals( 1, attributeStore.getAttributes( Indicator.class ).size() );
-    }
+  @Test
+  void testGetIndicatorAttributes() {
+    assertEquals(1, attributeStore.getAttributes(Indicator.class).size());
+  }
 
-    @Test
-    void testGetOrganisationUnitAttributes()
-    {
-        assertEquals( 1, attributeStore.getAttributes( OrganisationUnit.class ).size() );
-    }
+  @Test
+  void testGetOrganisationUnitAttributes() {
+    assertEquals(1, attributeStore.getAttributes(OrganisationUnit.class).size());
+  }
 
-    @Test
-    void testGetSupportedClasses()
-    {
-        Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
-        attribute.setDataElementAttribute( true );
-        assertEquals( 1, attribute.getSupportedClasses().size() );
-        assertTrue( attribute.getSupportedClasses().contains( DataElement.class ) );
-        attribute.setDataElementAttribute( false );
-        attribute.setIndicatorAttribute( true );
-        attribute.setIndicatorGroupAttribute( true );
-        assertEquals( 2, attribute.getSupportedClasses().size() );
-        assertTrue( attribute.getSupportedClasses().contains( Indicator.class ) );
-        assertTrue( attribute.getSupportedClasses().contains( IndicatorGroup.class ) );
-    }
+  @Test
+  void testGetSupportedClasses() {
+    Attribute attribute = new Attribute("AttributeName", ValueType.TEXT);
+    attribute.setDataElementAttribute(true);
+    assertEquals(1, attribute.getSupportedClasses().size());
+    assertTrue(attribute.getSupportedClasses().contains(DataElement.class));
+    attribute.setDataElementAttribute(false);
+    attribute.setIndicatorAttribute(true);
+    attribute.setIndicatorGroupAttribute(true);
+    assertEquals(2, attribute.getSupportedClasses().size());
+    assertTrue(attribute.getSupportedClasses().contains(Indicator.class));
+    assertTrue(attribute.getSupportedClasses().contains(IndicatorGroup.class));
+  }
 
-    @Test
-    void testGetMandatoryAttributes()
-    {
-        Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
-        attribute.setDataElementAttribute( true );
-        attribute.setMandatory( true );
-        attributeStore.save( attribute );
-        assertEquals( 1, attributeStore.getMandatoryAttributes( DataElement.class ).size() );
-    }
+  @Test
+  void testGetMandatoryAttributes() {
+    Attribute attribute = new Attribute("AttributeName", ValueType.TEXT);
+    attribute.setDataElementAttribute(true);
+    attribute.setMandatory(true);
+    attributeStore.save(attribute);
+    assertEquals(1, attributeStore.getMandatoryAttributes(DataElement.class).size());
+  }
 
-    @Test
-    void testGetUniqueAttributes()
-    {
-        Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
-        attribute.setDataElementAttribute( true );
-        attribute.setUnique( true );
-        attributeStore.save( attribute );
-        assertEquals( 1, attributeStore.getUniqueAttributes( DataElement.class ).size() );
-    }
+  @Test
+  void testGetUniqueAttributes() {
+    Attribute attribute = new Attribute("AttributeName", ValueType.TEXT);
+    attribute.setDataElementAttribute(true);
+    attribute.setUnique(true);
+    attributeStore.save(attribute);
+    assertEquals(1, attributeStore.getUniqueAttributes(DataElement.class).size());
+  }
 }

@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
-public interface ActionRule
-{
-    String getRuleUid();
+public interface ActionRule {
+  String getRuleUid();
 
-    String getData();
+  String getData();
 
-    String getField();
+  String getField();
 
-    String getContent();
+  String getContent();
 }

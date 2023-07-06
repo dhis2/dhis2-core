@@ -28,9 +28,7 @@
 package org.hisp.dhis.pushanalysis.scheduling;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.pushanalysis.PushAnalysisService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -44,25 +42,21 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class PushAnalysisJob implements Job
-{
-    private final PushAnalysisService pushAnalysisService;
+public class PushAnalysisJob implements Job {
+  private final PushAnalysisService pushAnalysisService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.PUSH_ANALYSIS;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.PUSH_ANALYSIS;
+  }
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        PushAnalysisJobParameters params = (PushAnalysisJobParameters) config.getJobParameters();
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    PushAnalysisJobParameters params = (PushAnalysisJobParameters) config.getJobParameters();
 
-        List<String> pushAnalysis = params.getPushAnalysis();
-        progress.startingProcess( "Push analysis for " + pushAnalysis );
-        pushAnalysisService.runPushAnalysis( pushAnalysis, progress );
-        progress.completedProcess( null );
-    }
-
+    List<String> pushAnalysis = params.getPushAnalysis();
+    progress.startingProcess("Push analysis for " + pushAnalysis);
+    pushAnalysisService.runPushAnalysis(pushAnalysis, progress);
+    progress.completedProcess(null);
+  }
 }

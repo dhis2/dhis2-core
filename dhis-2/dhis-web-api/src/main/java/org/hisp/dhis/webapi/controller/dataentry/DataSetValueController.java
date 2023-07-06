@@ -32,9 +32,7 @@ import static org.hisp.dhis.webapi.webdomain.dataentry.DataEntryDtoMapper.toDto;
 
 import java.util.List;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -64,47 +62,48 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetValueController
-{
-    private final DataValueService dataValueService;
+@RequestMapping("/dataEntry")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataSetValueController {
+  private final DataValueService dataValueService;
 
-    private final MinMaxDataElementService minMaxValueService;
+  private final MinMaxDataElementService minMaxValueService;
 
-    private final DataSetService dataSetService;
+  private final DataSetService dataSetService;
 
-    private final CompleteDataSetRegistrationService registrationService;
+  private final CompleteDataSetRegistrationService registrationService;
 
-    private final DataValidator dataValidator;
+  private final DataValidator dataValidator;
 
-    @GetMapping( "/dataValues" )
-    public DataValuesDto getDataValueSet( DataSetValueQueryParams params )
-    {
-        DataSet ds = dataValidator.getAndValidateDataSet( params.getDs() );
-        Period pe = dataValidator.getAndValidatePeriod( params.getPe() );
-        OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( params.getOu() );
-        CategoryOptionCombo ao = dataValidator.getAndValidateAttributeOptionCombo( params.getCc(), params.getCp() );
+  @GetMapping("/dataValues")
+  public DataValuesDto getDataValueSet(DataSetValueQueryParams params) {
+    DataSet ds = dataValidator.getAndValidateDataSet(params.getDs());
+    Period pe = dataValidator.getAndValidatePeriod(params.getPe());
+    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(params.getOu());
+    CategoryOptionCombo ao =
+        dataValidator.getAndValidateAttributeOptionCombo(params.getCc(), params.getCp());
 
-        DataExportParams exportParams = new DataExportParams()
-            .setDataSets( Set.of( ds ) )
-            .setPeriods( Set.of( pe ) )
-            .setOrganisationUnits( Set.of( ou ) )
-            .setAttributeOptionCombos( Set.of( ao ) );
+    DataExportParams exportParams =
+        new DataExportParams()
+            .setDataSets(Set.of(ds))
+            .setPeriods(Set.of(pe))
+            .setOrganisationUnits(Set.of(ou))
+            .setAttributeOptionCombos(Set.of(ao));
 
-        List<DataValue> dataValues = dataValueService.getDataValues( exportParams );
+    List<DataValue> dataValues = dataValueService.getDataValues(exportParams);
 
-        List<MinMaxDataElement> minMaxValues = minMaxValueService.getMinMaxDataElements( ou, ds.getDataElements() );
+    List<MinMaxDataElement> minMaxValues =
+        minMaxValueService.getMinMaxDataElements(ou, ds.getDataElements());
 
-        LockStatus lockStatus = dataSetService.getLockStatus( ds, pe, ou, ao );
+    LockStatus lockStatus = dataSetService.getLockStatus(ds, pe, ou, ao);
 
-        CompleteDataSetRegistration registration = registrationService
-            .getCompleteDataSetRegistration( ds, pe, ou, ao );
+    CompleteDataSetRegistration registration =
+        registrationService.getCompleteDataSetRegistration(ds, pe, ou, ao);
 
-        return new DataValuesDto()
-            .setDataValues( mapToList( dataValues, DataValueDtoMapper::toDto ) )
-            .setMinMaxValues( mapToList( minMaxValues, DataValueDtoMapper::toDto ) )
-            .setLockStatus( lockStatus )
-            .setCompleteStatus( registration != null ? toDto( registration ) : new CompleteStatusDto() );
-    }
+    return new DataValuesDto()
+        .setDataValues(mapToList(dataValues, DataValueDtoMapper::toDto))
+        .setMinMaxValues(mapToList(minMaxValues, DataValueDtoMapper::toDto))
+        .setLockStatus(lockStatus)
+        .setCompleteStatus(registration != null ? toDto(registration) : new CompleteStatusDto());
+  }
 }

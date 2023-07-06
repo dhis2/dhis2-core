@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.AuditType;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents a data value audit record.
@@ -45,34 +42,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class DataValueAuditDto
-{
-    @JsonProperty
-    private String dataElement;
+public class DataValueAuditDto {
+  @JsonProperty private String dataElement;
 
-    @JsonProperty
-    private String period;
+  @JsonProperty private String period;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String categoryOptionCombo;
+  @JsonProperty private String categoryOptionCombo;
 
-    @JsonProperty
-    private String attributeOptionCombo;
+  @JsonProperty private String attributeOptionCombo;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 
-    @JsonProperty
-    private String modifiedBy;
+  @JsonProperty private String modifiedBy;
 
-    @JsonProperty
-    private Date created;
+  @JsonProperty private Date created;
 
-    @JsonProperty
-    private AuditType auditType;
+  @JsonProperty private AuditType auditType;
 }

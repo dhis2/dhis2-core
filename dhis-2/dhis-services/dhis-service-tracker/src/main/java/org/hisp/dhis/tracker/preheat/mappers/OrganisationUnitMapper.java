@@ -34,36 +34,29 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    AttributeValueMapper.class
-} )
-public interface OrganisationUnitMapper
-    extends PreheatMapper<OrganisationUnit>
-{
-    OrganisationUnitMapper INSTANCE = Mappers.getMapper( OrganisationUnitMapper.class );
+@Mapper(uses = {AttributeValueMapper.class})
+public interface OrganisationUnitMapper extends PreheatMapper<OrganisationUnit> {
+  OrganisationUnitMapper INSTANCE = Mappers.getMapper(OrganisationUnitMapper.class);
 
-    @Override
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses" )
-    @Mapping( target = "userAccesses" )
-    @Mapping( target = "parent", qualifiedByName = "parentMapper" )
-    OrganisationUnit map( OrganisationUnit organisationUnit );
+  @Override
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "user")
+  @Mapping(target = "publicAccess")
+  @Mapping(target = "externalAccess")
+  @Mapping(target = "userGroupAccesses")
+  @Mapping(target = "userAccesses")
+  @Mapping(target = "parent", qualifiedByName = "parentMapper")
+  OrganisationUnit map(OrganisationUnit organisationUnit);
 
-    /**
-     * Makes sure that the parent OU is only mapped by fetching the UID
-     *
-     */
-    @Named( "parentMapper" )
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "uid" )
-    @Mapping( target = "parent", qualifiedByName = "parentMapper" )
-    OrganisationUnit fetchParent( OrganisationUnit organisationUnit );
+  /** Makes sure that the parent OU is only mapped by fetching the UID */
+  @Named("parentMapper")
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  @Mapping(target = "parent", qualifiedByName = "parentMapper")
+  OrganisationUnit fetchParent(OrganisationUnit organisationUnit);
 }

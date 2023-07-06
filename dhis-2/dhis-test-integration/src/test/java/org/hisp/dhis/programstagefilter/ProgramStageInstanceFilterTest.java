@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -41,129 +40,123 @@ import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramStageInstanceFilterTest extends SingleSetupIntegrationTestBase
-{
+class ProgramStageInstanceFilterTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private ProgramStageInstanceFilterService psiFilterService;
+  @Autowired private ProgramStageInstanceFilterService psiFilterService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    private Program programA;
+  private Program programA;
 
-    private Program programB;
+  private Program programB;
 
-    @Override
-    public void setUpTest()
-    {
-        programA = createProgram( 'A' );
-        programB = createProgram( 'B' );
-        programService.addProgram( programA );
-        programService.addProgram( programB );
+  @Override
+  public void setUpTest() {
+    programA = createProgram('A');
+    programB = createProgram('B');
+    programService.addProgram(programA);
+    programService.addProgram(programB);
+  }
+
+  @Test
+  void testValidatenvalidEventFilterWithMissingProgram() {
+    ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter('1', null, null);
+    List<String> errors = psiFilterService.validate(psiFilter);
+    assertNotNull(errors);
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).contains("Program should be specified for event filters"));
+  }
+
+  @Test
+  void testValidateInvalidEventFilterWithInvalidProgram() {
+    ProgramStageInstanceFilter psiFilter =
+        createProgramStageInstanceFilter('1', "ABCDEF12345", null);
+    List<String> errors = psiFilterService.validate(psiFilter);
+    assertNotNull(errors);
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).contains("Program is specified but does not exist"));
+  }
+
+  @Test
+  void testValidateInvalidEventFilterWithInvalidProgramStage() {
+    ProgramStageInstanceFilter psiFilter =
+        createProgramStageInstanceFilter('1', programA.getUid(), "ABCDEF12345");
+    List<String> errors = psiFilterService.validate(psiFilter);
+    assertNotNull(errors);
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).contains("Program stage is specified but does not exist"));
+  }
+
+  @Test
+  void testValidateInvalidEventFilterWithInvalidOrganisationUnit() {
+    ProgramStageInstanceFilter psiFilter =
+        createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventQueryCriteria eqc = new EventQueryCriteria();
+    eqc.setOrganisationUnit("ABCDEF12345");
+    psiFilter.setEventQueryCriteria(eqc);
+    List<String> errors = psiFilterService.validate(psiFilter);
+    assertNotNull(errors);
+    assertEquals(1, errors.size());
+    assertTrue(errors.get(0).contains("Org unit is specified but does not exist"));
+  }
+
+  @Test
+  void testValidateInvalidEventFilterWithDataFilterAndEventUids() {
+    ProgramStageInstanceFilter psiFilter =
+        createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventQueryCriteria eqc = new EventQueryCriteria();
+    eqc.setEvents(Collections.singleton("abcdefghijklm"));
+    eqc.setDataFilters(Collections.singletonList(new EventDataFilter()));
+    psiFilter.setEventQueryCriteria(eqc);
+    List<String> errors = psiFilterService.validate(psiFilter);
+    assertNotNull(errors);
+    assertEquals(1, errors.size());
+    assertTrue(
+        errors.get(0).contains("Event UIDs and filters can not be specified at the same time"));
+  }
+
+  @Test
+  void testValidateInvalidEventFilterWithIncorrectAssignedUserMode() {
+    ProgramStageInstanceFilter psiFilter =
+        createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventQueryCriteria eqc = new EventQueryCriteria();
+    eqc.setAssignedUserMode(AssignedUserSelectionMode.CURRENT);
+    eqc.setAssignedUsers(Collections.singleton("abcdefghijklm"));
+    psiFilter.setEventQueryCriteria(eqc);
+    List<String> errors = psiFilterService.validate(psiFilter);
+    assertNotNull(errors);
+    assertEquals(1, errors.size());
+    assertTrue(
+        errors
+            .get(0)
+            .contains("Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED"));
+  }
+
+  @Test
+  void testValidateEventFilterSuccessfully() {
+    ProgramStageInstanceFilter psiFilter =
+        createProgramStageInstanceFilter('1', programA.getUid(), null);
+    EventQueryCriteria eqc = new EventQueryCriteria();
+    eqc.setAssignedUserMode(AssignedUserSelectionMode.CURRENT);
+    psiFilter.setEventQueryCriteria(eqc);
+    List<String> errors = psiFilterService.validate(psiFilter);
+    assertNotNull(errors);
+    assertEquals(0, errors.size());
+  }
+
+  private static ProgramStageInstanceFilter createProgramStageInstanceFilter(
+      char uniqueCharacter, String program, String programStage) {
+    ProgramStageInstanceFilter psiFilter = new ProgramStageInstanceFilter();
+    psiFilter.setAutoFields();
+    psiFilter.setName("eventFilterName" + uniqueCharacter);
+    psiFilter.setCode("eventFilterCode" + uniqueCharacter);
+    psiFilter.setDescription("eventFilterDescription" + uniqueCharacter);
+    if (program != null) {
+      psiFilter.setProgram(program);
     }
-
-    @Test
-    void testValidatenvalidEventFilterWithMissingProgram()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', null, null );
-        List<String> errors = psiFilterService.validate( psiFilter );
-        assertNotNull( errors );
-        assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).contains( "Program should be specified for event filters" ) );
+    if (programStage != null) {
+      psiFilter.setProgramStage(programStage);
     }
-
-    @Test
-    void testValidateInvalidEventFilterWithInvalidProgram()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', "ABCDEF12345", null );
-        List<String> errors = psiFilterService.validate( psiFilter );
-        assertNotNull( errors );
-        assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).contains( "Program is specified but does not exist" ) );
-    }
-
-    @Test
-    void testValidateInvalidEventFilterWithInvalidProgramStage()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(),
-            "ABCDEF12345" );
-        List<String> errors = psiFilterService.validate( psiFilter );
-        assertNotNull( errors );
-        assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).contains( "Program stage is specified but does not exist" ) );
-    }
-
-    @Test
-    void testValidateInvalidEventFilterWithInvalidOrganisationUnit()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        EventQueryCriteria eqc = new EventQueryCriteria();
-        eqc.setOrganisationUnit( "ABCDEF12345" );
-        psiFilter.setEventQueryCriteria( eqc );
-        List<String> errors = psiFilterService.validate( psiFilter );
-        assertNotNull( errors );
-        assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).contains( "Org unit is specified but does not exist" ) );
-    }
-
-    @Test
-    void testValidateInvalidEventFilterWithDataFilterAndEventUids()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        EventQueryCriteria eqc = new EventQueryCriteria();
-        eqc.setEvents( Collections.singleton( "abcdefghijklm" ) );
-        eqc.setDataFilters( Collections.singletonList( new EventDataFilter() ) );
-        psiFilter.setEventQueryCriteria( eqc );
-        List<String> errors = psiFilterService.validate( psiFilter );
-        assertNotNull( errors );
-        assertEquals( 1, errors.size() );
-        assertTrue( errors.get( 0 ).contains( "Event UIDs and filters can not be specified at the same time" ) );
-    }
-
-    @Test
-    void testValidateInvalidEventFilterWithIncorrectAssignedUserMode()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        EventQueryCriteria eqc = new EventQueryCriteria();
-        eqc.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
-        eqc.setAssignedUsers( Collections.singleton( "abcdefghijklm" ) );
-        psiFilter.setEventQueryCriteria( eqc );
-        List<String> errors = psiFilterService.validate( psiFilter );
-        assertNotNull( errors );
-        assertEquals( 1, errors.size() );
-        assertTrue(
-            errors.get( 0 ).contains( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" ) );
-    }
-
-    @Test
-    void testValidateEventFilterSuccessfully()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        EventQueryCriteria eqc = new EventQueryCriteria();
-        eqc.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
-        psiFilter.setEventQueryCriteria( eqc );
-        List<String> errors = psiFilterService.validate( psiFilter );
-        assertNotNull( errors );
-        assertEquals( 0, errors.size() );
-    }
-
-    private static ProgramStageInstanceFilter createProgramStageInstanceFilter( char uniqueCharacter, String program,
-        String programStage )
-    {
-        ProgramStageInstanceFilter psiFilter = new ProgramStageInstanceFilter();
-        psiFilter.setAutoFields();
-        psiFilter.setName( "eventFilterName" + uniqueCharacter );
-        psiFilter.setCode( "eventFilterCode" + uniqueCharacter );
-        psiFilter.setDescription( "eventFilterDescription" + uniqueCharacter );
-        if ( program != null )
-        {
-            psiFilter.setProgram( program );
-        }
-        if ( programStage != null )
-        {
-            psiFilter.setProgramStage( programStage );
-        }
-        return psiFilter;
-    }
+    return psiFilter;
+  }
 }

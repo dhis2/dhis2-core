@@ -29,7 +29,6 @@ package org.hisp.dhis.dashboard;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
@@ -42,65 +41,65 @@ import org.hisp.dhis.visualization.Visualization;
 /**
  * @author Lars Helge Overland
  */
-public interface DashboardService
-{
-    String ID = DashboardService.class.getName();
+public interface DashboardService {
+  String ID = DashboardService.class.getName();
 
-    // -------------------------------------------------------------------------
-    // Dashboard
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dashboard
+  // -------------------------------------------------------------------------
 
-    DashboardSearchResult search( String query );
+  DashboardSearchResult search(String query);
 
-    DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount );
+  DashboardSearchResult search(
+      String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount);
 
-    DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes );
+  DashboardSearchResult search(String query, Set<DashboardItemType> maxTypes);
 
-    DashboardSearchResult search( Set<DashboardItemType> maxTypes, Integer count, Integer maxCount );
+  DashboardSearchResult search(Set<DashboardItemType> maxTypes, Integer count, Integer maxCount);
 
-    DashboardSearchResult search( Set<DashboardItemType> maxTypes );
+  DashboardSearchResult search(Set<DashboardItemType> maxTypes);
 
-    DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid );
+  DashboardItem addItemContent(String dashboardUid, DashboardItemType type, String contentUid);
 
-    void mergeDashboard( Dashboard dashboard );
+  void mergeDashboard(Dashboard dashboard);
 
-    void mergeDashboardItem( DashboardItem item );
+  void mergeDashboardItem(DashboardItem item);
 
-    long saveDashboard( Dashboard dashboard );
+  long saveDashboard(Dashboard dashboard);
 
-    void updateDashboard( Dashboard dashboard );
+  void updateDashboard(Dashboard dashboard);
 
-    void deleteDashboard( Dashboard dashboard );
+  void deleteDashboard(Dashboard dashboard);
 
-    Dashboard getDashboard( long id );
+  Dashboard getDashboard(long id);
 
-    Dashboard getDashboard( String uid );
+  Dashboard getDashboard(String uid);
 
-    // -------------------------------------------------------------------------
-    // DashboardItem
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DashboardItem
+  // -------------------------------------------------------------------------
 
-    void updateDashboardItem( DashboardItem item );
+  void updateDashboardItem(DashboardItem item);
 
-    DashboardItem getDashboardItem( String uid );
+  DashboardItem getDashboardItem(String uid);
 
-    Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
+  Dashboard getDashboardFromDashboardItem(DashboardItem dashboardItem);
 
-    void deleteDashboardItem( DashboardItem item );
+  void deleteDashboardItem(DashboardItem item);
 
-    List<DashboardItem> getVisualizationDashboardItems( Visualization visualization );
+  List<DashboardItem> getVisualizationDashboardItems(Visualization visualization);
 
-    List<DashboardItem> getEventVisualizationDashboardItems( EventVisualization eventVisualization );
+  List<DashboardItem> getEventVisualizationDashboardItems(EventVisualization eventVisualization);
 
-    List<DashboardItem> getEventChartDashboardItems( EventChart eventChart );
+  List<DashboardItem> getEventChartDashboardItems(EventChart eventChart);
 
-    List<DashboardItem> getMapDashboardItems( Map map );
+  List<DashboardItem> getMapDashboardItems(Map map);
 
-    List<DashboardItem> getEventReportDashboardItems( EventReport eventReport );
+  List<DashboardItem> getEventReportDashboardItems(EventReport eventReport);
 
-    List<DashboardItem> getUserDashboardItems( User user );
+  List<DashboardItem> getUserDashboardItems(User user);
 
-    List<DashboardItem> getReportDashboardItems( Report report );
+  List<DashboardItem> getReportDashboardItems(Report report);
 
-    List<DashboardItem> getDocumentDashboardItems( Document document );
+  List<DashboardItem> getDocumentDashboardItems(Document document);
 }

@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.datasummary;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * DataSummary object to transfer System Statistics
@@ -39,86 +38,75 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Joao Antunes
  */
 @JacksonXmlRootElement
-public class DataSummary
-{
-    private Map<String, Long> objectCounts = new HashMap<>();
+public class DataSummary {
+  private Map<String, Long> objectCounts = new HashMap<>();
 
-    private Map<Integer, Integer> activeUsers = new HashMap<>();
+  private Map<Integer, Integer> activeUsers = new HashMap<>();
 
-    private Map<String, Integer> userInvitations = new HashMap<>();
+  private Map<String, Integer> userInvitations = new HashMap<>();
 
-    private Map<Integer, Integer> dataValueCount = new HashMap<>();
+  private Map<Integer, Integer> dataValueCount = new HashMap<>();
 
-    private Map<Integer, Long> eventCount = new HashMap<>();
+  private Map<Integer, Long> eventCount = new HashMap<>();
 
-    public DataSummary()
-    {
-    }
+  public DataSummary() {}
 
-    public DataSummary( Map<String, Long> objectCounts,
-        Map<Integer, Integer> activeUsers, Map<String, Integer> userInvitations,
-        Map<Integer, Integer> dataValueCount, Map<Integer, Long> eventCount )
-    {
-        this.objectCounts = objectCounts;
-        this.activeUsers = activeUsers;
-        this.userInvitations = userInvitations;
-        this.dataValueCount = dataValueCount;
-        this.eventCount = eventCount;
-    }
+  public DataSummary(
+      Map<String, Long> objectCounts,
+      Map<Integer, Integer> activeUsers,
+      Map<String, Integer> userInvitations,
+      Map<Integer, Integer> dataValueCount,
+      Map<Integer, Long> eventCount) {
+    this.objectCounts = objectCounts;
+    this.activeUsers = activeUsers;
+    this.userInvitations = userInvitations;
+    this.dataValueCount = dataValueCount;
+    this.eventCount = eventCount;
+  }
 
-    @JsonProperty
-    public Map<String, Long> getObjectCounts()
-    {
-        return objectCounts;
-    }
+  @JsonProperty
+  public Map<String, Long> getObjectCounts() {
+    return objectCounts;
+  }
 
-    public void setObjectCounts( Map<String, Long> objectCounts )
-    {
-        this.objectCounts = objectCounts;
-    }
+  public void setObjectCounts(Map<String, Long> objectCounts) {
+    this.objectCounts = objectCounts;
+  }
 
-    @JsonProperty
-    public Map<Integer, Integer> getActiveUsers()
-    {
-        return activeUsers;
-    }
+  @JsonProperty
+  public Map<Integer, Integer> getActiveUsers() {
+    return activeUsers;
+  }
 
-    public void setActiveUsers( Map<Integer, Integer> activeUsers )
-    {
-        this.activeUsers = activeUsers;
-    }
+  public void setActiveUsers(Map<Integer, Integer> activeUsers) {
+    this.activeUsers = activeUsers;
+  }
 
-    @JsonProperty
-    public Map<String, Integer> getUserInvitations()
-    {
-        return userInvitations;
-    }
+  @JsonProperty
+  public Map<String, Integer> getUserInvitations() {
+    return userInvitations;
+  }
 
-    public void setUserInvitations( Map<String, Integer> userInvitations )
-    {
-        this.userInvitations = userInvitations;
-    }
+  public void setUserInvitations(Map<String, Integer> userInvitations) {
+    this.userInvitations = userInvitations;
+  }
 
-    @JsonProperty
-    public Map<Integer, Integer> getDataValueCount()
-    {
-        return dataValueCount;
-    }
+  @JsonProperty
+  public Map<Integer, Integer> getDataValueCount() {
+    return dataValueCount;
+  }
 
-    public void setDataValueCount( Map<Integer, Integer> dataValueCount )
-    {
-        this.dataValueCount = dataValueCount;
-    }
+  public void setDataValueCount(Map<Integer, Integer> dataValueCount) {
+    this.dataValueCount = dataValueCount;
+  }
 
-    @JsonProperty
-    public Map<Integer, Long> getEventCount()
-    {
-        return eventCount;
-    }
+  @JsonProperty
+  public Map<Integer, Long> getEventCount() {
+    return eventCount;
+  }
 
-    @JsonProperty
-    public void setEventCount( Map<Integer, Long> eventCount )
-    {
-        this.eventCount = eventCount;
-    }
+  @JsonProperty
+  public void setEventCount(Map<Integer, Long> eventCount) {
+    this.eventCount = eventCount;
+  }
 }

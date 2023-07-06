@@ -40,22 +40,17 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentGeoValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
+public class EnrollmentGeoValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
 
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
-        if ( enrollment.getGeometry() != null )
-        {
-            ValidationUtils.validateGeometry( reporter, enrollment,
-                enrollment.getGeometry(),
-                program.getFeatureType() );
-        }
+    if (enrollment.getGeometry() != null) {
+      ValidationUtils.validateGeometry(
+          reporter, enrollment, enrollment.getGeometry(), program.getFeatureType());
     }
-
+  }
 }

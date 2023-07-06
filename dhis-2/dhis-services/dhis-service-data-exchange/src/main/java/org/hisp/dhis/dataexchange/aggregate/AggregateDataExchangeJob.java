@@ -30,9 +30,7 @@ package org.hisp.dhis.dataexchange.aggregate;
 import static java.lang.String.format;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -48,53 +46,44 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class AggregateDataExchangeJob implements Job
-{
-    private final AggregateDataExchangeService dataExchangeService;
+public class AggregateDataExchangeJob implements Job {
+  private final AggregateDataExchangeService dataExchangeService;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.AGGREGATE_DATA_EXCHANGE;
+  @Override
+  public JobType getJobType() {
+    return JobType.AGGREGATE_DATA_EXCHANGE;
+  }
+
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    notifier.clear(config);
+    AggregateDataExchangeJobParameters params =
+        (AggregateDataExchangeJobParameters) config.getJobParameters();
+
+    List<String> dataExchangeIds = params.getDataExchangeIds();
+    progress.startingProcess(
+        format("Aggregate data exchange of %d exchange(s) started", dataExchangeIds.size()));
+    ImportSummaries allSummaries = new ImportSummaries();
+    for (String dataExchangeId : dataExchangeIds) {
+      AggregateDataExchange exchange;
+      try {
+        exchange = dataExchangeService.getById(dataExchangeId);
+      } catch (IllegalQueryException ex) {
+        progress.startingStage("exchange aggregate data for exchange with ID " + dataExchangeId);
+        progress.failedStage(ex);
+        allSummaries.addImportSummary(new ImportSummary(ImportStatus.ERROR, ex.getMessage()));
+        continue;
+      }
+      allSummaries.addImportSummaries(dataExchangeService.exchangeData(exchange, progress));
     }
-
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        notifier.clear( config );
-        AggregateDataExchangeJobParameters params = (AggregateDataExchangeJobParameters) config.getJobParameters();
-
-        List<String> dataExchangeIds = params.getDataExchangeIds();
-        progress
-            .startingProcess( format( "Aggregate data exchange of %d exchange(s) started", dataExchangeIds.size() ) );
-        ImportSummaries allSummaries = new ImportSummaries();
-        for ( String dataExchangeId : dataExchangeIds )
-        {
-            AggregateDataExchange exchange;
-            try
-            {
-                exchange = dataExchangeService.getById( dataExchangeId );
-            }
-            catch ( IllegalQueryException ex )
-            {
-                progress.startingStage( "exchange aggregate data for exchange with ID " + dataExchangeId );
-                progress.failedStage( ex );
-                allSummaries.addImportSummary( new ImportSummary( ImportStatus.ERROR, ex.getMessage() ) );
-                continue;
-            }
-            allSummaries.addImportSummaries( dataExchangeService.exchangeData( exchange, progress ) );
-        }
-        notifier.addJobSummary( config, NotificationLevel.INFO, allSummaries, ImportSummaries.class );
-        ImportStatus status = allSummaries.getStatus();
-        if ( status == ImportStatus.ERROR )
-        {
-            progress.failedProcess( "Aggregate data exchange completed with errors" );
-        }
-        else
-        {
-            progress.completedProcess( "Aggregate data exchange completed with status " + status );
-        }
+    notifier.addJobSummary(config, NotificationLevel.INFO, allSummaries, ImportSummaries.class);
+    ImportStatus status = allSummaries.getStatus();
+    if (status == ImportStatus.ERROR) {
+      progress.failedProcess("Aggregate data exchange completed with errors");
+    } else {
+      progress.completedProcess("Aggregate data exchange completed with status " + status);
     }
+  }
 }

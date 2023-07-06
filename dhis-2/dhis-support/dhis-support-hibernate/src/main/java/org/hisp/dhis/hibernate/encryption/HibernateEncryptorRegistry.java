@@ -27,59 +27,49 @@
  */
 package org.hisp.dhis.hibernate.encryption;
 
+import com.google.common.collect.Maps;
 import java.util.Map;
-
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
-import com.google.common.collect.Maps;
-
 /**
- * Singleton registry for all (named) Hibernate Encryptors.
- * {@link org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType
- * EncryptedStringUserType} depends on this singleton to access the appropriate
- * encryptor(s).
+ * Singleton registry for all (named) Hibernate Encryptors. {@link
+ * org.hisp.dhis.hibernate.encryption.type.EncryptedStringUserType EncryptedStringUserType} depends
+ * on this singleton to access the appropriate encryptor(s).
  *
  * @author Halvdan Hoem Grelland
  */
-public final class HibernateEncryptorRegistry
-{
-    private static final HibernateEncryptorRegistry INSTANCE = new HibernateEncryptorRegistry();
+public final class HibernateEncryptorRegistry {
+  private static final HibernateEncryptorRegistry INSTANCE = new HibernateEncryptorRegistry();
 
-    private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
+  private final Map<String, PBEStringEncryptor> encryptors = Maps.newHashMap();
 
-    private HibernateEncryptorRegistry()
-    {
-    }
+  private HibernateEncryptorRegistry() {}
 
-    /**
-     * Returns the (singleton) instance of the registry.
-     *
-     * @return this registry.
-     */
-    public static HibernateEncryptorRegistry getInstance()
-    {
-        return INSTANCE;
-    }
+  /**
+   * Returns the (singleton) instance of the registry.
+   *
+   * @return this registry.
+   */
+  public static HibernateEncryptorRegistry getInstance() {
+    return INSTANCE;
+  }
 
-    /**
-     * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by
-     * name.
-     *
-     * @param encryptors a map of names and encryptors.
-     */
-    public synchronized void setEncryptors( Map<String, PBEStringEncryptor> encryptors )
-    {
-        INSTANCE.encryptors.putAll( encryptors );
-    }
+  /**
+   * Registers the given {@link PBEStringEncryptor PBEStringEncryptors} by name.
+   *
+   * @param encryptors a map of names and encryptors.
+   */
+  public synchronized void setEncryptors(Map<String, PBEStringEncryptor> encryptors) {
+    INSTANCE.encryptors.putAll(encryptors);
+  }
 
-    /**
-     * Get encryptor from registry by name.
-     *
-     * @param name the name of the encryptor.
-     * @return an instance of {@link PBEStringEncryptor} or null.
-     */
-    public PBEStringEncryptor getEncryptor( String name )
-    {
-        return INSTANCE.encryptors.get( name );
-    }
+  /**
+   * Get encryptor from registry by name.
+   *
+   * @param name the name of the encryptor.
+   * @return an instance of {@link PBEStringEncryptor} or null.
+   */
+  public PBEStringEncryptor getEncryptor(String name) {
+    return INSTANCE.encryptors.get(name);
+  }
 }

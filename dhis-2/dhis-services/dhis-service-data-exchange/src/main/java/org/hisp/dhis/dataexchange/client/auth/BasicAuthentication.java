@@ -30,7 +30,6 @@ package org.hisp.dhis.dataexchange.client.auth;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpHeaders;
 
 /**
@@ -40,19 +39,14 @@ import org.springframework.http.HttpHeaders;
  */
 @Getter
 @RequiredArgsConstructor
-public class BasicAuthentication
-    implements Authentication
-{
-    @NonNull
-    private final String username;
+public class BasicAuthentication implements Authentication {
+  @NonNull private final String username;
 
-    @NonNull
-    private final String password;
+  @NonNull private final String password;
 
-    @Override
-    public HttpHeaders withAuthentication( HttpHeaders headers )
-    {
-        headers.setBasicAuth( username, password );
-        return headers;
-    }
+  @Override
+  public HttpHeaders withAuthentication(HttpHeaders headers) {
+    headers.setBasicAuth(username, password);
+    return headers;
+  }
 }

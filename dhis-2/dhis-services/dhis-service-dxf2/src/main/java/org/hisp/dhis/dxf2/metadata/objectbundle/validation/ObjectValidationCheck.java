@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -37,59 +36,67 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * Base interface for a {@link ValidationCheck} that only checks objects and
- * creates {@link ObjectReport}s for those that are ignored.
- * <p>
- * Instead of returning a full {@link TypeReport} its
- * {@link #check(ObjectBundle, Class, List, List, ImportStrategy, ValidationContext, Consumer)}
- * has an extra {@link Consumer} argument which is called by implementations to
- * add {@link ObjectReport}s.
- * <p>
- * This is used to avoid to create and return an empty {@link TypeReport} that
- * is not the null object created by {@link TypeReport#empty(Class)}.
+ * Base interface for a {@link ValidationCheck} that only checks objects and creates {@link
+ * ObjectReport}s for those that are ignored.
+ *
+ * <p>Instead of returning a full {@link TypeReport} its {@link #check(ObjectBundle, Class, List,
+ * List, ImportStrategy, ValidationContext, Consumer)} has an extra {@link Consumer} argument which
+ * is called by implementations to add {@link ObjectReport}s.
+ *
+ * <p>This is used to avoid to create and return an empty {@link TypeReport} that is not the null
+ * object created by {@link TypeReport#empty(Class)}.
  *
  * @author Jan Bernitt
  */
 @FunctionalInterface
-public interface ObjectValidationCheck extends ValidationCheck
-{
+public interface ObjectValidationCheck extends ValidationCheck {
 
-    @Override
-    default <T extends IdentifiableObject> TypeReport check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context )
-    {
-        // NB. The box is there so we only create an instance of TypeReport
-        // when it is actually needed which we must assume is not often
-        TypeReport[] reportBox = new TypeReport[1];
-        check( bundle, klass, persistedObjects, nonPersistedObjects, importStrategy, context, objectReport -> {
-            TypeReport report = reportBox[0];
-            if ( report == null )
-            {
-                report = new TypeReport( klass );
-                reportBox[0] = report;
-            }
-            report.addObjectReport( objectReport );
-            report.getStats().incIgnored();
-        } );
-        return reportBox[0] == null ? TypeReport.empty( klass ) : reportBox[0];
-    }
+  @Override
+  default <T extends IdentifiableObject> TypeReport check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context) {
+    // NB. The box is there so we only create an instance of TypeReport
+    // when it is actually needed which we must assume is not often
+    TypeReport[] reportBox = new TypeReport[1];
+    check(
+        bundle,
+        klass,
+        persistedObjects,
+        nonPersistedObjects,
+        importStrategy,
+        context,
+        objectReport -> {
+          TypeReport report = reportBox[0];
+          if (report == null) {
+            report = new TypeReport(klass);
+            reportBox[0] = report;
+          }
+          report.addObjectReport(objectReport);
+          report.getStats().incIgnored();
+        });
+    return reportBox[0] == null ? TypeReport.empty(klass) : reportBox[0];
+  }
 
-    /**
-     * Same as
-     * {@link ValidationCheck#check(ObjectBundle, Class, List, List, ImportStrategy, ValidationContext)}
-     * except that instead of returning a {@link TypeReport} it as an extra
-     * parameter that consumes {@link ObjectReport} for which it will assume
-     * that an object has errors and is ignored.
-     *
-     * @see ValidationCheck#check(ObjectBundle, Class, List, List,
-     *      ImportStrategy, ValidationContext)
-     *
-     * @param addReports called by the implementation for each object which has
-     *        errors and should be ignored. The passed {@link ObjectReport} is
-     *        added to the outer {@link TypeReport}.
-     */
-    <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports );
+  /**
+   * Same as {@link ValidationCheck#check(ObjectBundle, Class, List, List, ImportStrategy,
+   * ValidationContext)} except that instead of returning a {@link TypeReport} it as an extra
+   * parameter that consumes {@link ObjectReport} for which it will assume that an object has errors
+   * and is ignored.
+   *
+   * @see ValidationCheck#check(ObjectBundle, Class, List, List, ImportStrategy, ValidationContext)
+   * @param addReports called by the implementation for each object which has errors and should be
+   *     ignored. The passed {@link ObjectReport} is added to the outer {@link TypeReport}.
+   */
+  <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports);
 }

@@ -34,48 +34,41 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * Possible conflicts related to imported {@link DataSet} during a
- * {@link DataValueSet} import.
+ * Possible conflicts related to imported {@link DataSet} during a {@link DataValueSet} import.
  *
  * @author Jan Bernitt
  */
-public enum DataValueSetImportConflict implements ImportConflictDescriptor
-{
+public enum DataValueSetImportConflict implements ImportConflictDescriptor {
+  DATASET_NOT_FOUND(ErrorCode.E7600, "dataSet", DataSet.class),
+  DATASET_NOT_ACCESSIBLE(ErrorCode.E7601, "dataSet", DataSet.class),
+  ORG_UNIT_NOT_FOUND(ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class),
+  ATTR_OPTION_COMBO_NOT_FOUND(
+      ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class, DataSet.class);
 
-    DATASET_NOT_FOUND( ErrorCode.E7600, "dataSet", DataSet.class ),
-    DATASET_NOT_ACCESSIBLE( ErrorCode.E7601, "dataSet", DataSet.class ),
-    ORG_UNIT_NOT_FOUND( ErrorCode.E7603, "orgUnit", OrganisationUnit.class, DataSet.class ),
-    ATTR_OPTION_COMBO_NOT_FOUND( ErrorCode.E7604, "attributeOptionCombo", CategoryOptionCombo.class,
-        DataSet.class );
+  private final ErrorCode errorCode;
 
-    private final ErrorCode errorCode;
+  private String property;
 
-    private String property;
+  private Class<?>[] objectTypes;
 
-    private Class<?>[] objectTypes;
+  DataValueSetImportConflict(ErrorCode errorCode, String property, Class<?>... objectTypes) {
+    this.errorCode = errorCode;
+    this.property = property;
+    this.objectTypes = objectTypes;
+  }
 
-    DataValueSetImportConflict( ErrorCode errorCode, String property, Class<?>... objectTypes )
-    {
-        this.errorCode = errorCode;
-        this.property = property;
-        this.objectTypes = objectTypes;
-    }
+  @Override
+  public Class<?>[] getObjectTypes() {
+    return objectTypes;
+  }
 
-    @Override
-    public Class<?>[] getObjectTypes()
-    {
-        return objectTypes;
-    }
+  @Override
+  public String getProperty() {
+    return property;
+  }
 
-    @Override
-    public String getProperty()
-    {
-        return property;
-    }
-
-    @Override
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
+  @Override
+  public ErrorCode getErrorCode() {
+    return errorCode;
+  }
 }

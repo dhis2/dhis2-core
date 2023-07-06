@@ -34,6 +34,9 @@ import static org.hisp.dhis.validation.Importance.HIGH;
 import static org.hisp.dhis.validation.Importance.LOW;
 import static org.hisp.dhis.validation.Importance.MEDIUM;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumMap;
@@ -49,12 +52,9 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.validation.constraints.NotNull;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -74,10 +74,6 @@ import org.hisp.dhis.validation.ValidationResultService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Sets;
-
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -85,398 +81,396 @@ import com.google.common.collect.Sets;
 @Service
 @Transactional
 @AllArgsConstructor
-public class DefaultValidationNotificationService implements ValidationNotificationService
-{
-    private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT = vr -> Objects.nonNull( vr ) &&
-        Objects.nonNull( vr.getValidationRule() ) &&
-        !vr.getValidationRule().getNotificationTemplates().isEmpty();
+public class DefaultValidationNotificationService implements ValidationNotificationService {
+  private static final Predicate<ValidationResult> IS_APPLICABLE_RESULT =
+      vr ->
+          Objects.nonNull(vr)
+              && Objects.nonNull(vr.getValidationRule())
+              && !vr.getValidationRule().getNotificationTemplates().isEmpty();
 
-    private final NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
+  private final NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    private final ValidationResultService validationResultService;
+  private final ValidationResultService validationResultService;
 
-    @Override
-    public Set<ValidationResult> sendNotifications( Collection<ValidationResult> validationResults,
-        JobProgress progress )
-    {
-        if ( validationResults.isEmpty() )
-        {
-            return Set.of();
-        }
-
-        // Filter out un-applicable validation results and put in (natural)
-        // order
-        progress.startingStage( "Filtering results with rule and template " );
-        Set<ValidationResult> applicableResults = progress.runStage( Set.of(),
-            () -> validationResults.stream()
-                .filter( IS_APPLICABLE_RESULT )
-                .collect( Collectors.toCollection( TreeSet::new ) ) );
-
-        progress.startingStage(
-            format( "Creating notifications for %d validation results", applicableResults.size() ) );
-        Map<SendStrategy, Map<Set<User>, NotificationMessage>> notifications = progress.runStage( Map.of(),
-            () -> createNotifications( applicableResults ) );
-
-        Set<Entry<Set<User>, NotificationMessage>> singleNotifications = notifications
-            .getOrDefault( SendStrategy.SINGLE_NOTIFICATION, Map.of() ).entrySet();
-        if ( !singleNotifications.isEmpty() )
-        {
-            progress.startingStage( "Sending single notification(s)", singleNotifications.size(), SKIP_ITEM_OUTLIER );
-            progress.runStage( singleNotifications,
-                entry -> format( "Sending notification %s to %d users", entry.getValue().getSubject(),
-                    entry.getKey().size() ),
-                entry -> sendNotification( entry.getKey(), entry.getValue() ) );
-        }
-
-        Set<Entry<Set<User>, NotificationMessage>> summaryNotifications = notifications
-            .getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, Map.of() ).entrySet();
-        if ( !summaryNotifications.isEmpty() )
-        {
-            progress.startingStage( "Sending summary notification(s)", summaryNotifications.size(), SKIP_ITEM_OUTLIER );
-            progress.runStage( summaryNotifications,
-                entry -> format( "Sending notification %s to %d users", entry.getValue().getSubject(),
-                    entry.getKey().size() ),
-                entry -> sendNotification( entry.getKey(), entry.getValue() ) );
-        }
-        return applicableResults;
+  @Override
+  public Set<ValidationResult> sendNotifications(
+      Collection<ValidationResult> validationResults, JobProgress progress) {
+    if (validationResults.isEmpty()) {
+      return Set.of();
     }
 
-    private Map<SendStrategy, Map<Set<User>, NotificationMessage>> createNotifications(
-        Set<ValidationResult> applicableResults )
-    {
-        // Transform into distinct pairs of ValidationRule and
-        // ValidationNotificationTemplate
-        SortedSet<MessagePair> messagePairs = createMessagePairs( applicableResults );
+    // Filter out un-applicable validation results and put in (natural)
+    // order
+    progress.startingStage("Filtering results with rule and template ");
+    Set<ValidationResult> applicableResults =
+        progress.runStage(
+            Set.of(),
+            () ->
+                validationResults.stream()
+                    .filter(IS_APPLICABLE_RESULT)
+                    .collect(Collectors.toCollection(TreeSet::new)));
 
-        // Segregate MessagePairs based on SendStrategy
-        Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = segregateMessagePairBasedOnStrategy( messagePairs );
+    progress.startingStage(
+        format("Creating notifications for %d validation results", applicableResults.size()));
+    Map<SendStrategy, Map<Set<User>, NotificationMessage>> notifications =
+        progress.runStage(Map.of(), () -> createNotifications(applicableResults));
 
-        Map<SendStrategy, Map<Set<User>, NotificationMessage>> notifications = new EnumMap<>( SendStrategy.class );
-
-        notifications.put( SendStrategy.SINGLE_NOTIFICATION, createSingleNotifications(
-            segregatedMap.getOrDefault( SendStrategy.SINGLE_NOTIFICATION, new TreeSet<>() ) ) );
-
-        notifications.put( SendStrategy.COLLECTIVE_SUMMARY, createSummaryNotifications(
-            segregatedMap.getOrDefault( SendStrategy.COLLECTIVE_SUMMARY, new TreeSet<>() ) ) );
-        return notifications;
+    Set<Entry<Set<User>, NotificationMessage>> singleNotifications =
+        notifications.getOrDefault(SendStrategy.SINGLE_NOTIFICATION, Map.of()).entrySet();
+    if (!singleNotifications.isEmpty()) {
+      progress.startingStage(
+          "Sending single notification(s)", singleNotifications.size(), SKIP_ITEM_OUTLIER);
+      progress.runStage(
+          singleNotifications,
+          entry ->
+              format(
+                  "Sending notification %s to %d users",
+                  entry.getValue().getSubject(), entry.getKey().size()),
+          entry -> sendNotification(entry.getKey(), entry.getValue()));
     }
 
-    @Override
-    public void sendUnsentNotifications( JobProgress progress )
-    {
-        progress.startingStage( "Finding not yet reported validation results" );
-        List<ValidationResult> unreportedResults = progress.runStage( List.of(),
-            validationResultService::getAllUnReportedValidationResults );
+    Set<Entry<Set<User>, NotificationMessage>> summaryNotifications =
+        notifications.getOrDefault(SendStrategy.COLLECTIVE_SUMMARY, Map.of()).entrySet();
+    if (!summaryNotifications.isEmpty()) {
+      progress.startingStage(
+          "Sending summary notification(s)", summaryNotifications.size(), SKIP_ITEM_OUTLIER);
+      progress.runStage(
+          summaryNotifications,
+          entry ->
+              format(
+                  "Sending notification %s to %d users",
+                  entry.getValue().getSubject(), entry.getKey().size()),
+          entry -> sendNotification(entry.getKey(), entry.getValue()));
+    }
+    return applicableResults;
+  }
 
-        Set<ValidationResult> applicableResults = sendNotifications( unreportedResults, progress );
+  private Map<SendStrategy, Map<Set<User>, NotificationMessage>> createNotifications(
+      Set<ValidationResult> applicableResults) {
+    // Transform into distinct pairs of ValidationRule and
+    // ValidationNotificationTemplate
+    SortedSet<MessagePair> messagePairs = createMessagePairs(applicableResults);
 
-        progress.startingStage( "Updating results" );
-        progress.runStage( () -> {
-            applicableResults.forEach( vr -> vr.setNotificationSent( true ) );
-            validationResultService.updateValidationResults( applicableResults );
-        } );
+    // Segregate MessagePairs based on SendStrategy
+    Map<SendStrategy, SortedSet<MessagePair>> segregatedMap =
+        segregateMessagePairBasedOnStrategy(messagePairs);
+
+    Map<SendStrategy, Map<Set<User>, NotificationMessage>> notifications =
+        new EnumMap<>(SendStrategy.class);
+
+    notifications.put(
+        SendStrategy.SINGLE_NOTIFICATION,
+        createSingleNotifications(
+            segregatedMap.getOrDefault(SendStrategy.SINGLE_NOTIFICATION, new TreeSet<>())));
+
+    notifications.put(
+        SendStrategy.COLLECTIVE_SUMMARY,
+        createSummaryNotifications(
+            segregatedMap.getOrDefault(SendStrategy.COLLECTIVE_SUMMARY, new TreeSet<>())));
+    return notifications;
+  }
+
+  @Override
+  public void sendUnsentNotifications(JobProgress progress) {
+    progress.startingStage("Finding not yet reported validation results");
+    List<ValidationResult> unreportedResults =
+        progress.runStage(List.of(), validationResultService::getAllUnReportedValidationResults);
+
+    Set<ValidationResult> applicableResults = sendNotifications(unreportedResults, progress);
+
+    progress.startingStage("Updating results");
+    progress.runStage(
+        () -> {
+          applicableResults.forEach(vr -> vr.setNotificationSent(true));
+          validationResultService.updateValidationResults(applicableResults);
+        });
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private Map<SendStrategy, SortedSet<MessagePair>> segregateMessagePairBasedOnStrategy(
+      SortedSet<MessagePair> messagePairs) {
+    Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = new EnumMap<>(SendStrategy.class);
+
+    for (MessagePair messagePair : messagePairs) {
+      if (SendStrategy.SINGLE_NOTIFICATION.equals(messagePair.template.getSendStrategy())) {
+        segregatedMap
+            .computeIfAbsent(SendStrategy.SINGLE_NOTIFICATION, k -> new TreeSet<>())
+            .add(messagePair);
+      } else {
+        segregatedMap
+            .computeIfAbsent(SendStrategy.COLLECTIVE_SUMMARY, k -> new TreeSet<>())
+            .add(messagePair);
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return segregatedMap;
+  }
 
-    private Map<SendStrategy, SortedSet<MessagePair>> segregateMessagePairBasedOnStrategy(
-        SortedSet<MessagePair> messagePairs )
-    {
-        Map<SendStrategy, SortedSet<MessagePair>> segregatedMap = new EnumMap<>( SendStrategy.class );
+  private Map<Set<User>, NotificationMessage> createSingleNotifications(
+      SortedSet<MessagePair> messagePairs) {
+    BiMap<Set<User>, NotificationMessage> singleNotificationCollection = HashBiMap.create();
 
-        for ( MessagePair messagePair : messagePairs )
-        {
-            if ( SendStrategy.SINGLE_NOTIFICATION.equals( messagePair.template.getSendStrategy() ) )
-            {
-                segregatedMap.computeIfAbsent( SendStrategy.SINGLE_NOTIFICATION, k -> new TreeSet<>() )
-                    .add( messagePair );
-            }
-            else
-            {
-                segregatedMap.computeIfAbsent( SendStrategy.COLLECTIVE_SUMMARY, k -> new TreeSet<>() )
-                    .add( messagePair );
-            }
-        }
+    for (MessagePair messagePair : messagePairs) {
+      NotificationMessage notificationMessage =
+          notificationMessageRenderer.render(messagePair.result, messagePair.template);
 
-        return segregatedMap;
+      notificationMessage.setPriority(
+          getPriority(messagePair.result.getValidationRule().getImportance()));
+
+      singleNotificationCollection.put(new HashSet<>(), notificationMessage);
+
+      resolveRecipients(messagePair)
+          .forEach(
+              user -> singleNotificationCollection.inverse().get(notificationMessage).add(user));
     }
 
-    private Map<Set<User>, NotificationMessage> createSingleNotifications( SortedSet<MessagePair> messagePairs )
-    {
-        BiMap<Set<User>, NotificationMessage> singleNotificationCollection = HashBiMap.create();
+    return singleNotificationCollection;
+  }
 
-        for ( MessagePair messagePair : messagePairs )
-        {
-            NotificationMessage notificationMessage = notificationMessageRenderer
-                .render( messagePair.result, messagePair.template );
+  private Map<Set<User>, NotificationMessage> createSummaryNotifications(
+      SortedSet<MessagePair> messagePairs) {
+    // Group the set of MessagePair into divisions representing a single
+    // summarized message and its recipients
+    Map<Set<User>, SortedSet<MessagePair>> groupedByRecipientsForSummary =
+        createRecipientsToMessagePairsMap(messagePairs);
 
-            notificationMessage.setPriority( getPriority( messagePair.result.getValidationRule().getImportance() ) );
+    // Flatten the grouped and sorted MessagePairs into single
+    // NotificationMessages
 
-            singleNotificationCollection.put( new HashSet<>(), notificationMessage );
+    return createSummaryNotificationMessages(groupedByRecipientsForSummary, new Date());
+  }
 
-            resolveRecipients( messagePair )
-                .forEach( user -> singleNotificationCollection.inverse().get( notificationMessage ).add( user ) );
-        }
-
-        return singleNotificationCollection;
-    }
-
-    private Map<Set<User>, NotificationMessage> createSummaryNotifications( SortedSet<MessagePair> messagePairs )
-    {
-        // Group the set of MessagePair into divisions representing a single
-        // summarized message and its recipients
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipientsForSummary = createRecipientsToMessagePairsMap(
-            messagePairs );
-
-        // Flatten the grouped and sorted MessagePairs into single
-        // NotificationMessages
-
-        return createSummaryNotificationMessages(
-            groupedByRecipientsForSummary, new Date() );
-    }
-
-    private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages(
-        Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients, final Date validationDate )
-    {
-        final Map<MessagePair, NotificationMessage> renderedNotificationsMap = groupedByRecipients.entrySet().stream()
-            .flatMap( entry -> entry.getValue().stream() )
+  private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages(
+      Map<Set<User>, SortedSet<MessagePair>> groupedByRecipients, final Date validationDate) {
+    final Map<MessagePair, NotificationMessage> renderedNotificationsMap =
+        groupedByRecipients.entrySet().stream()
+            .flatMap(entry -> entry.getValue().stream())
             .distinct()
-            .collect( Collectors.toMap( p -> p, p -> notificationMessageRenderer.render( p.result, p.template ) ) );
-
-        // Collect all pre-rendered messages into summaries and return mapped by
-        // recipients
-        return groupedByRecipients.entrySet().stream()
             .collect(
                 Collectors.toMap(
-                    Entry::getKey,
-                    e -> createSummarizedMessage( e.getValue(), renderedNotificationsMap, validationDate ) ) );
-    }
+                    p -> p, p -> notificationMessageRenderer.render(p.result, p.template)));
 
-    /**
-     * Creates a summarized message from the given MessagePairs and pre-rendered
-     * map of NotificationMessages. The messages generated by each distinct
-     * MessagePair are concatenated in their given order.
-     */
-    private static NotificationMessage createSummarizedMessage(
-        SortedSet<MessagePair> pairs, final Map<MessagePair, NotificationMessage> renderedNotificationsMap,
-        final Date validationDate )
-    {
-        Map<Importance, Long> counts = pairs.stream()
-            .map( m -> m.result.getValidationRule().getImportance() )
-            .collect( Collectors.groupingBy( Function.identity(), Collectors.counting() ) );
+    // Collect all pre-rendered messages into summaries and return mapped by
+    // recipients
+    return groupedByRecipients.entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Entry::getKey,
+                e ->
+                    createSummarizedMessage(
+                        e.getValue(), renderedNotificationsMap, validationDate)));
+  }
 
-        String subject = format(
-            "Validation violations as of %s",
-            DateUtils.getLongDateString( validationDate ) );
+  /**
+   * Creates a summarized message from the given MessagePairs and pre-rendered map of
+   * NotificationMessages. The messages generated by each distinct MessagePair are concatenated in
+   * their given order.
+   */
+  private static NotificationMessage createSummarizedMessage(
+      SortedSet<MessagePair> pairs,
+      final Map<MessagePair, NotificationMessage> renderedNotificationsMap,
+      final Date validationDate) {
+    Map<Importance, Long> counts =
+        pairs.stream()
+            .map(m -> m.result.getValidationRule().getImportance())
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-        String message = format(
+    String subject =
+        format("Validation violations as of %s", DateUtils.getLongDateString(validationDate));
+
+    String message =
+        format(
             "Violations: High %d, medium %d, low %d",
-            counts.getOrDefault( HIGH, 0L ),
-            counts.getOrDefault( Importance.MEDIUM, 0L ),
-            counts.getOrDefault( LOW, 0L ) );
+            counts.getOrDefault(HIGH, 0L),
+            counts.getOrDefault(Importance.MEDIUM, 0L),
+            counts.getOrDefault(LOW, 0L));
 
-        // Concatenate the notifications in sorted order, divide by double
-        // linebreak
+    // Concatenate the notifications in sorted order, divide by double
+    // linebreak
 
-        message = message + pairs.stream().sorted()
-            .map( renderedNotificationsMap::get )
-            .map( n -> format( "%s%s%s", n.getSubject(), LN, n.getMessage() ) )
-            .reduce( "", ( initStr, newStr ) -> format( "%s%s%s", initStr, LN + LN, newStr ) );
+    message =
+        message
+            + pairs.stream()
+                .sorted()
+                .map(renderedNotificationsMap::get)
+                .map(n -> format("%s%s%s", n.getSubject(), LN, n.getMessage()))
+                .reduce("", (initStr, newStr) -> format("%s%s%s", initStr, LN + LN, newStr));
 
-        NotificationMessage notificationMessage = new NotificationMessage( subject, message );
-        notificationMessage.setPriority( getPriority(
-            counts.getOrDefault( HIGH, 0L ) > 0 ? HIGH : counts.getOrDefault( MEDIUM, 0L ) > 0 ? MEDIUM : LOW ) );
+    NotificationMessage notificationMessage = new NotificationMessage(subject, message);
+    notificationMessage.setPriority(
+        getPriority(
+            counts.getOrDefault(HIGH, 0L) > 0
+                ? HIGH
+                : counts.getOrDefault(MEDIUM, 0L) > 0 ? MEDIUM : LOW));
 
-        return notificationMessage;
+    return notificationMessage;
+  }
+
+  private static MessageConversationPriority getPriority(Importance importance) {
+    if (importance.equals(HIGH)) {
+      return MessageConversationPriority.HIGH;
+    } else if (importance.equals(MEDIUM)) {
+      return MessageConversationPriority.MEDIUM;
+    } else if (importance.equals(LOW)) {
+      return MessageConversationPriority.LOW;
     }
 
-    private static MessageConversationPriority getPriority( Importance importance )
-    {
-        if ( importance.equals( HIGH ) )
-        {
-            return MessageConversationPriority.HIGH;
-        }
-        else if ( importance.equals( MEDIUM ) )
-        {
-            return MessageConversationPriority.MEDIUM;
-        }
-        else if ( importance.equals( LOW ) )
-        {
-            return MessageConversationPriority.LOW;
-        }
+    return MessageConversationPriority.NONE;
+  }
 
-        return MessageConversationPriority.NONE;
+  private static SortedSet<MessagePair> createMessagePairs(Set<ValidationResult> results) {
+    return results.stream()
+        .flatMap(
+            result ->
+                result.getValidationRule().getNotificationTemplates().stream()
+                    .map(template -> new MessagePair(result, template)))
+        .collect(Collectors.toCollection(TreeSet::new));
+  }
+
+  private static Map<Set<User>, SortedSet<MessagePair>> createRecipientsToMessagePairsMap(
+      SortedSet<MessagePair> messagePairs) {
+    // Map each user to a distinct set of MessagePair
+    Map<User, SortedSet<MessagePair>> singleUserToMessagePairs =
+        getMessagePairsPerSingleUser(messagePairs);
+
+    // Group each distinct SortedSet of MessagePair for the distinct Set of
+    // recipient Users
+    return groupRecipientsForMessagePairs(singleUserToMessagePairs);
+  }
+
+  private static Map<User, SortedSet<MessagePair>> getMessagePairsPerSingleUser(
+      SortedSet<MessagePair> messagePairs) {
+    Map<User, SortedSet<MessagePair>> messagePairsPerUsers = new HashMap<>();
+
+    for (MessagePair pair : messagePairs) {
+      Set<User> usersForThisPair = resolveRecipients(pair);
+
+      for (User user : usersForThisPair) {
+        messagePairsPerUsers.computeIfAbsent(user, k -> new TreeSet<>()).add(pair);
+      }
     }
 
-    private static SortedSet<MessagePair> createMessagePairs( Set<ValidationResult> results )
-    {
-        return results.stream()
-            .flatMap( result -> result.getValidationRule().getNotificationTemplates().stream()
-                .map( template -> new MessagePair( result, template ) ) )
-            .collect( Collectors.toCollection( TreeSet::new ) );
+    return messagePairsPerUsers;
+  }
+
+  private static Map<Set<User>, SortedSet<MessagePair>> groupRecipientsForMessagePairs(
+      Map<User, SortedSet<MessagePair>> messagePairsPerUser) {
+    BiMap<Set<User>, SortedSet<MessagePair>> grouped = HashBiMap.create();
+
+    for (Entry<User, SortedSet<MessagePair>> entry : messagePairsPerUser.entrySet()) {
+      User user = entry.getKey();
+      SortedSet<MessagePair> setOfPairs = entry.getValue();
+
+      if (grouped.containsValue(setOfPairs)) {
+        // Value exists -> Add user to the existing key set
+        grouped.inverse().get(setOfPairs).add(user);
+      } else {
+        // Value doesn't exist -> Add the [user, set] as a new entry
+        grouped.put(Sets.newHashSet(user), setOfPairs);
+      }
     }
 
-    private static Map<Set<User>, SortedSet<MessagePair>> createRecipientsToMessagePairsMap(
-        SortedSet<MessagePair> messagePairs )
-    {
-        // Map each user to a distinct set of MessagePair
-        Map<User, SortedSet<MessagePair>> singleUserToMessagePairs = getMessagePairsPerSingleUser( messagePairs );
+    return grouped;
+  }
 
-        // Group each distinct SortedSet of MessagePair for the distinct Set of
-        // recipient Users
-        return groupRecipientsForMessagePairs( singleUserToMessagePairs );
+  /** Resolve all distinct recipients for the given MessagePair. */
+  private static Set<User> resolveRecipients(MessagePair pair) {
+    ValidationResult validationResult = pair.result;
+    ValidationNotificationTemplate template = pair.template;
+
+    // Limit recipients to be withing org unit hierarchy only, effectively
+    // producing a cross-cut of all users in the configured user groups.
+
+    final boolean limitToHierarchy =
+        BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly());
+
+    final boolean parentOrgUnitOnly =
+        BooleanUtils.toBoolean(template.getNotifyParentOrganisationUnitOnly());
+
+    Set<OrganisationUnit> orgUnitsToInclude = Sets.newHashSet();
+
+    Set<User> recipients =
+        template.getRecipientUserGroups().stream()
+            .flatMap(ug -> ug.getMembers().stream())
+            .collect(Collectors.toSet());
+
+    if (limitToHierarchy) {
+      orgUnitsToInclude.add(validationResult.getOrganisationUnit()); // Include
+      // self
+      orgUnitsToInclude.addAll(validationResult.getOrganisationUnit().getAncestors());
+
+      recipients =
+          recipients.stream()
+              .filter(user -> orgUnitsToInclude.contains(user.getOrganisationUnit()))
+              .collect(Collectors.toSet());
+    } else if (parentOrgUnitOnly) {
+      Set<User> parents = Sets.newHashSet();
+      recipients.forEach(user -> parents.addAll(user.getOrganisationUnit().getParent().getUsers()));
+
+      return parents;
     }
 
-    private static Map<User, SortedSet<MessagePair>> getMessagePairsPerSingleUser( SortedSet<MessagePair> messagePairs )
-    {
-        Map<User, SortedSet<MessagePair>> messagePairsPerUsers = new HashMap<>();
+    return recipients;
+  }
 
-        for ( MessagePair pair : messagePairs )
-        {
-            Set<User> usersForThisPair = resolveRecipients( pair );
+  private void sendNotification(Set<User> users, NotificationMessage notificationMessage) {
+    messageService.sendValidationMessage(
+        users,
+        notificationMessage.getSubject(),
+        notificationMessage.getMessage(),
+        notificationMessage.getPriority());
+  }
 
-            for ( User user : usersForThisPair )
-            {
-                messagePairsPerUsers.computeIfAbsent( user, k -> new TreeSet<>() ).add( pair );
-            }
-        }
+  // -------------------------------------------------------------------------
+  // Internal classes
+  // -------------------------------------------------------------------------
 
-        return messagePairsPerUsers;
+  /**
+   * Wrapper for a distinct pair of ValidationResult and template which correspond to one single
+   * (rendered) message.
+   *
+   * <p>The natural order reflects the ordering of the contained ValidationResult.
+   */
+  private static class MessagePair implements Comparable<MessagePair> {
+    final ValidationResult result;
+
+    final ValidationNotificationTemplate template;
+
+    private MessagePair(ValidationResult result, ValidationNotificationTemplate template) {
+      this.result = result;
+      this.template = template;
     }
 
-    private static Map<Set<User>, SortedSet<MessagePair>> groupRecipientsForMessagePairs(
-        Map<User, SortedSet<MessagePair>> messagePairsPerUser )
-    {
-        BiMap<Set<User>, SortedSet<MessagePair>> grouped = HashBiMap.create();
+    @Override
+    public boolean equals(Object other) {
+      if (this == other) return true;
 
-        for ( Entry<User, SortedSet<MessagePair>> entry : messagePairsPerUser.entrySet() )
-        {
-            User user = entry.getKey();
-            SortedSet<MessagePair> setOfPairs = entry.getValue();
+      if (!(other instanceof MessagePair)) return false;
 
-            if ( grouped.containsValue( setOfPairs ) )
-            {
-                // Value exists -> Add user to the existing key set
-                grouped.inverse().get( setOfPairs ).add( user );
-            }
-            else
-            {
-                // Value doesn't exist -> Add the [user, set] as a new entry
-                grouped.put( Sets.newHashSet( user ), setOfPairs );
-            }
-        }
+      MessagePair that = (MessagePair) other;
 
-        return grouped;
+      return new EqualsBuilder()
+          .append(result, that.result)
+          .append(template, that.template)
+          .isEquals();
     }
 
-    /**
-     * Resolve all distinct recipients for the given MessagePair.
-     */
-    private static Set<User> resolveRecipients( MessagePair pair )
-    {
-        ValidationResult validationResult = pair.result;
-        ValidationNotificationTemplate template = pair.template;
-
-        // Limit recipients to be withing org unit hierarchy only, effectively
-        // producing a cross-cut of all users in the configured user groups.
-
-        final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
-
-        final boolean parentOrgUnitOnly = BooleanUtils.toBoolean( template.getNotifyParentOrganisationUnitOnly() );
-
-        Set<OrganisationUnit> orgUnitsToInclude = Sets.newHashSet();
-
-        Set<User> recipients = template.getRecipientUserGroups().stream()
-            .flatMap( ug -> ug.getMembers().stream() ).collect( Collectors.toSet() );
-
-        if ( limitToHierarchy )
-        {
-            orgUnitsToInclude.add( validationResult.getOrganisationUnit() ); // Include
-                                                                             // self
-            orgUnitsToInclude.addAll( validationResult.getOrganisationUnit().getAncestors() );
-
-            recipients = recipients.stream()
-                .filter( user -> orgUnitsToInclude.contains( user.getOrganisationUnit() ) )
-                .collect( Collectors.toSet() );
-        }
-        else if ( parentOrgUnitOnly )
-        {
-            Set<User> parents = Sets.newHashSet();
-            recipients.forEach( user -> parents.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
-
-            return parents;
-        }
-
-        return recipients;
+    @Override
+    public int hashCode() {
+      return new HashCodeBuilder(17, 37).append(result).append(template).toHashCode();
     }
 
-    private void sendNotification( Set<User> users, NotificationMessage notificationMessage )
-    {
-        messageService.sendValidationMessage( users, notificationMessage.getSubject(), notificationMessage.getMessage(),
-            notificationMessage.getPriority() );
+    @Override
+    public int compareTo(@NotNull MessagePair other) {
+      return new CompareToBuilder()
+          .append(this.result, other.result)
+          .append(this.template, other.template)
+          .build();
     }
-
-    // -------------------------------------------------------------------------
-    // Internal classes
-    // -------------------------------------------------------------------------
-
-    /**
-     * Wrapper for a distinct pair of ValidationResult and template which
-     * correspond to one single (rendered) message.
-     * <p>
-     * The natural order reflects the ordering of the contained
-     * ValidationResult.
-     */
-    private static class MessagePair
-        implements Comparable<MessagePair>
-    {
-        final ValidationResult result;
-
-        final ValidationNotificationTemplate template;
-
-        private MessagePair( ValidationResult result, ValidationNotificationTemplate template )
-        {
-            this.result = result;
-            this.template = template;
-        }
-
-        @Override
-        public boolean equals( Object other )
-        {
-            if ( this == other )
-                return true;
-
-            if ( !(other instanceof MessagePair) )
-                return false;
-
-            MessagePair that = (MessagePair) other;
-
-            return new EqualsBuilder()
-                .append( result, that.result )
-                .append( template, that.template )
-                .isEquals();
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return new HashCodeBuilder( 17, 37 )
-                .append( result )
-                .append( template )
-                .toHashCode();
-        }
-
-        @Override
-        public int compareTo( @NotNull MessagePair other )
-        {
-            return new CompareToBuilder()
-                .append( this.result, other.result )
-                .append( this.template, other.template )
-                .build();
-        }
-    }
+  }
 }

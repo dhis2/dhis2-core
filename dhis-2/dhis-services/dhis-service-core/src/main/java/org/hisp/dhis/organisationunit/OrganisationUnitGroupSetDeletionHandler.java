@@ -28,7 +28,6 @@
 package org.hisp.dhis.organisationunit;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -38,22 +37,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class OrganisationUnitGroupSetDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class OrganisationUnitGroupSetDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+  }
 
-    private void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
-    {
-        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
-        {
-            groupSet.getOrganisationUnitGroups().remove( group );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+  private void deleteOrganisationUnitGroup(OrganisationUnitGroup group) {
+    for (OrganisationUnitGroupSet groupSet : group.getGroupSets()) {
+      groupSet.getOrganisationUnitGroups().remove(group);
+      idObjectManager.updateNoAcl(groupSet);
     }
+  }
 }

@@ -32,83 +32,67 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ValueGeneratorService
-{
-    private final SequentialNumberCounterStore sequentialNumberCounterStore;
+public class ValueGeneratorService {
+  private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
-    private final RandomGeneratorService randomGeneratorService;
+  private final RandomGeneratorService randomGeneratorService;
 
-    public List<String> generateValues( TextPatternSegment segment, TextPattern textPattern, String key,
-        int numberOfValues )
-        throws ReserveValueException,
-        InterruptedException,
-        ExecutionException
-    {
-        List<String> generatedValues = new ArrayList<>();
+  public List<String> generateValues(
+      TextPatternSegment segment, TextPattern textPattern, String key, int numberOfValues)
+      throws ReserveValueException, InterruptedException, ExecutionException {
+    List<String> generatedValues = new ArrayList<>();
 
-        switch ( segment.getMethod() )
-        {
+    switch (segment.getMethod()) {
+      case SEQUENTIAL:
+        BigInteger maxValue = BigInteger.TEN.pow(segment.getParameter().length());
+        List<Integer> generatedNumbers =
+            sequentialNumberCounterStore.getNextValues(
+                textPattern.getOwnerUid(), key, numberOfValues);
 
-        case SEQUENTIAL:
+        boolean outOfValues = generatedNumbers.stream().anyMatch(n -> maxValue.intValue() <= n);
 
-            BigInteger maxValue = BigInteger.TEN.pow( segment.getParameter().length() );
-            List<Integer> generatedNumbers = sequentialNumberCounterStore
-                .getNextValues( textPattern.getOwnerUid(), key, numberOfValues );
-
-            boolean outOfValues = generatedNumbers.stream()
-                .anyMatch( n -> maxValue.intValue() <= n );
-
-            if ( outOfValues )
-            {
-                throw new ReserveValueException( "Unable to reserve value, no new values available." );
-            }
-
-            generatedValues.addAll(
-                generatedNumbers
-                    .stream()
-                    .map( n -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
-                    .collect( Collectors.toList() ) );
-
-            break;
-
-        case RANDOM:
-
-            List<Future<List<String>>> resultList = new ArrayList<>();
-
-            ExecutorService executorService = Executors.newFixedThreadPool( 10 );
-
-            randomGeneratorService.setSegmentParameter( segment.getParameter() );
-
-            for ( int i = 0; i < numberOfValues; i++ )
-            {
-                Future<List<String>> result = executorService
-                    .submit( randomGeneratorService );
-                resultList.add( result );
-            }
-
-            for ( Future<List<String>> result : resultList )
-            {
-                generatedValues.addAll( result.get() );
-            }
-
-            executorService.shutdown();
-
-            break;
-
-        default:
-            break;
-
+        if (outOfValues) {
+          throw new ReserveValueException("Unable to reserve value, no new values available.");
         }
 
-        return generatedValues;
+        generatedValues.addAll(
+            generatedNumbers.stream()
+                .map(n -> String.format("%0" + segment.getParameter().length() + "d", n))
+                .collect(Collectors.toList()));
+
+        break;
+
+      case RANDOM:
+        List<Future<List<String>>> resultList = new ArrayList<>();
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        randomGeneratorService.setSegmentParameter(segment.getParameter());
+
+        for (int i = 0; i < numberOfValues; i++) {
+          Future<List<String>> result = executorService.submit(randomGeneratorService);
+          resultList.add(result);
+        }
+
+        for (Future<List<String>> result : resultList) {
+          generatedValues.addAll(result.get());
+        }
+
+        executorService.shutdown();
+
+        break;
+
+      default:
+        break;
     }
+
+    return generatedValues;
+  }
 }

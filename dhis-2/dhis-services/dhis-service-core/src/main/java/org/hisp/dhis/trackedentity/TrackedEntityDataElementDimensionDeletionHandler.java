@@ -28,9 +28,7 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.legend.LegendSet;
@@ -42,31 +40,29 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler
-{
-    private final SessionFactory sessionFactory;
+public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler {
+  private final SessionFactory sessionFactory;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
+  @Override
+  protected void register() {
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void deleteLegendSet(LegendSet legendSet) {
+    // TODO Move this get-method to service layer
+
+    Query query =
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet");
+    query.setParameter("legendSet", legendSet);
+
+    List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
+
+    for (TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions) {
+      dataElementDimension.setLegendSet(null);
+      sessionFactory.getCurrentSession().update(dataElementDimension);
     }
-
-    @SuppressWarnings( "unchecked" )
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        // TODO Move this get-method to service layer
-
-        Query query = sessionFactory.getCurrentSession()
-            .createQuery( "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet" );
-        query.setParameter( "legendSet", legendSet );
-
-        List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
-
-        for ( TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions )
-        {
-            dataElementDimension.setLegendSet( null );
-            sessionFactory.getCurrentSession().update( dataElementDimension );
-        }
-    }
+  }
 }

@@ -35,9 +35,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
@@ -63,238 +61,210 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
-{
-    public static final String USERNAME = "username";
+public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
+  public static final String USERNAME = "username";
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final FileResourceService fileResourceService;
+  private final FileResourceService fileResourceService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final SecurityService securityService;
+  private final SecurityService securityService;
 
-    private final UserSettingService userSettingService;
+  private final UserSettingService userSettingService;
 
-    @Override
-    public void validate( User user, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoFields( user );
+  @Override
+  public void validate(User user, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    // TODO: To remove when we remove old UserCredentials compatibility
+    populateUserCredentialsDtoFields(user);
 
-        if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername(),
-            user.isInvitation() ) )
-        {
-            addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4049, USERNAME, user.getUsername() )
-                    .setErrorProperty( USERNAME ) );
-        }
-
-        boolean usernameExists = userService.getUserByUsername( user.getUsername() ) != null;
-
-        if ( (bundle.getImportMode().isCreate() && usernameExists) )
-        {
-            addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4054, USERNAME, user.getUsername() )
-                    .setErrorProperty( USERNAME ) );
-        }
-
-        User existingUser = userService.getUser( user.getUid() );
-
-        if ( bundle.getImportMode().isUpdate() && existingUser != null && user.getUsername() != null &&
-            !user.getUsername().equals( existingUser.getUsername() ) )
-        {
-            addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4056, USERNAME, user.getUsername() )
-                    .setErrorProperty( USERNAME ) );
-        }
-
-        if ( user.getUserRoles() == null || user.getUserRoles().isEmpty() )
-        {
-            addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4055, USERNAME, user.getUsername() )
-                    .setErrorProperty( USERNAME ) );
-        }
-
-        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
-        {
-            addReports.accept(
-                new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp" )
-                    .setErrorProperty( "whatsApp" ) );
-        }
+    if (bundle.getImportMode().isCreate()
+        && !ValidationUtils.usernameIsValid(user.getUsername(), user.isInvitation())) {
+      addReports.accept(
+          new ErrorReport(User.class, ErrorCode.E4049, USERNAME, user.getUsername())
+              .setErrorProperty(USERNAME));
     }
 
-    @Override
-    public void preCreate( User user, ObjectBundle bundle )
-    {
-        if ( user == null )
-            return;
+    boolean usernameExists = userService.getUserByUsername(user.getUsername()) != null;
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null )
-        {
-            user.getCogsDimensionConstraints().addAll(
-                currentUser.getCogsDimensionConstraints() );
-
-            user.getCatDimensionConstraints().addAll(
-                currentUser.getCatDimensionConstraints() );
-        }
+    if ((bundle.getImportMode().isCreate() && usernameExists)) {
+      addReports.accept(
+          new ErrorReport(User.class, ErrorCode.E4054, USERNAME, user.getUsername())
+              .setErrorProperty(USERNAME));
     }
 
-    @Override
-    public void postCreate( User user, ObjectBundle bundle )
-    {
-        if ( !StringUtils.isEmpty( user.getPassword() ) )
-        {
-            userService.encodeAndSetPassword( user, user.getPassword() );
-        }
+    User existingUser = userService.getUser(user.getUid());
 
-        if ( user.getAvatar() != null )
-        {
-            FileResource fileResource = fileResourceService.getFileResource( user.getAvatar().getUid() );
-            fileResource.setAssigned( true );
-            fileResourceService.updateFileResource( fileResource );
-        }
-
-        preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-        sessionFactory.getCurrentSession().update( user );
-        userSettingService.saveUserSettings( user.getSettings(), user );
+    if (bundle.getImportMode().isUpdate()
+        && existingUser != null
+        && user.getUsername() != null
+        && !user.getUsername().equals(existingUser.getUsername())) {
+      addReports.accept(
+          new ErrorReport(User.class, ErrorCode.E4056, USERNAME, user.getUsername())
+              .setErrorProperty(USERNAME));
     }
 
-    @Override
-    public void preUpdate( User user, User persisted, ObjectBundle bundle )
-    {
-        if ( user == null )
-            return;
-
-        bundle.putExtras( user, "preUpdateUser", user );
-
-        if ( persisted.getAvatar() != null
-            && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() )) )
-        {
-            FileResource fileResource = fileResourceService.getFileResource( persisted.getAvatar().getUid() );
-            fileResourceService.updateFileResource( fileResource );
-
-            if ( user.getAvatar() != null )
-            {
-                fileResource = fileResourceService.getFileResource( user.getAvatar().getUid() );
-                fileResource.setAssigned( true );
-                fileResourceService.updateFileResource( fileResource );
-            }
-        }
-
-        securityService.validate2FAUpdate( persisted.getTwoFA(), user.getTwoFA(), persisted );
+    if (user.getUserRoles() == null || user.getUserRoles().isEmpty()) {
+      addReports.accept(
+          new ErrorReport(User.class, ErrorCode.E4055, USERNAME, user.getUsername())
+              .setErrorProperty(USERNAME));
     }
 
-    @Override
-    public void postUpdate( User persistedUser, ObjectBundle bundle )
-    {
-        final User preUpdateUser = (User) bundle.getExtras( persistedUser, "preUpdateUser" );
+    if (user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp(user.getWhatsApp())) {
+      addReports.accept(
+          new ErrorReport(User.class, ErrorCode.E4027, user.getWhatsApp(), "whatsApp")
+              .setErrorProperty("whatsApp"));
+    }
+  }
 
-        if ( !StringUtils.isEmpty( preUpdateUser.getPassword() ) )
-        {
-            userService.encodeAndSetPassword( persistedUser, preUpdateUser.getPassword() );
-            sessionFactory.getCurrentSession().update( persistedUser );
-        }
+  @Override
+  public void preCreate(User user, ObjectBundle bundle) {
+    if (user == null) return;
 
-        bundle.removeExtras( persistedUser, "preUpdateUser" );
-        userSettingService.saveUserSettings( persistedUser.getSettings(), persistedUser );
+    User currentUser = currentUserService.getCurrentUser();
+
+    if (currentUser != null) {
+      user.getCogsDimensionConstraints().addAll(currentUser.getCogsDimensionConstraints());
+
+      user.getCatDimensionConstraints().addAll(currentUser.getCatDimensionConstraints());
+    }
+  }
+
+  @Override
+  public void postCreate(User user, ObjectBundle bundle) {
+    if (!StringUtils.isEmpty(user.getPassword())) {
+      userService.encodeAndSetPassword(user, user.getPassword());
     }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public void postCommit( ObjectBundle bundle )
-    {
-        Iterable<User> objects = bundle.getObjects( User.class );
-        Map<String, Map<String, Object>> userReferences = bundle.getObjectReferences( User.class );
-
-        if ( userReferences == null || userReferences.isEmpty() )
-        {
-            return;
-        }
-
-        for ( User identifiableObject : objects )
-        {
-            User user = identifiableObject;
-
-            user = bundle.getPreheat().get( bundle.getPreheatIdentifier(), user );
-
-            Map<String, Object> userReferenceMap = userReferences.get( identifiableObject.getUid() );
-
-            if ( user == null || userReferenceMap == null || userReferenceMap.isEmpty() )
-            {
-                continue;
-            }
-
-            Set<UserRole> userRoles = (Set<UserRole>) userReferenceMap.get( "userRoles" );
-            user.setUserRoles( Objects.requireNonNullElseGet( userRoles, HashSet::new ) );
-
-            Set<OrganisationUnit> organisationUnits = (Set<OrganisationUnit>) userReferenceMap
-                .get( "organisationUnits" );
-            user.setOrganisationUnits( organisationUnits );
-
-            Set<OrganisationUnit> dataViewOrganisationUnits = (Set<OrganisationUnit>) userReferenceMap
-                .get( "dataViewOrganisationUnits" );
-            user.setDataViewOrganisationUnits( dataViewOrganisationUnits );
-
-            Set<OrganisationUnit> teiSearchOrganisationUnits = (Set<OrganisationUnit>) userReferenceMap
-                .get( "teiSearchOrganisationUnits" );
-            user.setTeiSearchOrganisationUnits( teiSearchOrganisationUnits );
-
-            user.setCreatedBy( (User) userReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
-
-            if ( user.getCreatedBy() == null )
-            {
-                user.setCreatedBy( bundle.getUser() );
-            }
-
-            user.setLastUpdatedBy( bundle.getUser() );
-
-            preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
-
-            handleNoAccessRoles( user, bundle, userRoles );
-
-            sessionFactory.getCurrentSession().update( user );
-        }
+    if (user.getAvatar() != null) {
+      FileResource fileResource = fileResourceService.getFileResource(user.getAvatar().getUid());
+      fileResource.setAssigned(true);
+      fileResourceService.updateFileResource(fileResource);
     }
 
-    /**
-     * If currentUser doesn't have read access to a UserRole, and it is included
-     * in the payload, then that UserRole should not be removed from updating
-     * User.
-     *
-     * @param user the updating User.
-     * @param bundle the ObjectBundle.
-     */
-    private void handleNoAccessRoles( User user, ObjectBundle bundle, Set<UserRole> userRoles )
-    {
-        Set<UserRole> roles = user
-            .getUserRoles();
-        Set<String> currentRoles = roles.stream().map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
+    preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
+    sessionFactory.getCurrentSession().update(user);
+    userSettingService.saveUserSettings(user.getSettings(), user);
+  }
 
-        if ( userRoles != null )
-        {
-            userRoles.stream()
-                .filter( role -> !currentRoles.contains( role.getUid() ) )
-                .forEach( role -> {
-                    UserRole persistedRole = bundle.getPreheat().get( PreheatIdentifier.UID, role );
+  @Override
+  public void preUpdate(User user, User persisted, ObjectBundle bundle) {
+    if (user == null) return;
 
-                    if ( persistedRole == null )
-                    {
-                        persistedRole = manager.getNoAcl( UserRole.class, role.getUid() );
-                    }
+    bundle.putExtras(user, "preUpdateUser", user);
 
-                    if ( !aclService.canRead( bundle.getUser(), persistedRole ) )
-                    {
-                        roles.add( persistedRole );
-                    }
-                } );
-        }
+    if (persisted.getAvatar() != null
+        && (user.getAvatar() == null
+            || !persisted.getAvatar().getUid().equals(user.getAvatar().getUid()))) {
+      FileResource fileResource =
+          fileResourceService.getFileResource(persisted.getAvatar().getUid());
+      fileResourceService.updateFileResource(fileResource);
+
+      if (user.getAvatar() != null) {
+        fileResource = fileResourceService.getFileResource(user.getAvatar().getUid());
+        fileResource.setAssigned(true);
+        fileResourceService.updateFileResource(fileResource);
+      }
     }
+
+    securityService.validate2FAUpdate(persisted.getTwoFA(), user.getTwoFA(), persisted);
+  }
+
+  @Override
+  public void postUpdate(User persistedUser, ObjectBundle bundle) {
+    final User preUpdateUser = (User) bundle.getExtras(persistedUser, "preUpdateUser");
+
+    if (!StringUtils.isEmpty(preUpdateUser.getPassword())) {
+      userService.encodeAndSetPassword(persistedUser, preUpdateUser.getPassword());
+      sessionFactory.getCurrentSession().update(persistedUser);
+    }
+
+    bundle.removeExtras(persistedUser, "preUpdateUser");
+    userSettingService.saveUserSettings(persistedUser.getSettings(), persistedUser);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public void postCommit(ObjectBundle bundle) {
+    Iterable<User> objects = bundle.getObjects(User.class);
+    Map<String, Map<String, Object>> userReferences = bundle.getObjectReferences(User.class);
+
+    if (userReferences == null || userReferences.isEmpty()) {
+      return;
+    }
+
+    for (User identifiableObject : objects) {
+      User user = identifiableObject;
+
+      user = bundle.getPreheat().get(bundle.getPreheatIdentifier(), user);
+
+      Map<String, Object> userReferenceMap = userReferences.get(identifiableObject.getUid());
+
+      if (user == null || userReferenceMap == null || userReferenceMap.isEmpty()) {
+        continue;
+      }
+
+      Set<UserRole> userRoles = (Set<UserRole>) userReferenceMap.get("userRoles");
+      user.setUserRoles(Objects.requireNonNullElseGet(userRoles, HashSet::new));
+
+      Set<OrganisationUnit> organisationUnits =
+          (Set<OrganisationUnit>) userReferenceMap.get("organisationUnits");
+      user.setOrganisationUnits(organisationUnits);
+
+      Set<OrganisationUnit> dataViewOrganisationUnits =
+          (Set<OrganisationUnit>) userReferenceMap.get("dataViewOrganisationUnits");
+      user.setDataViewOrganisationUnits(dataViewOrganisationUnits);
+
+      Set<OrganisationUnit> teiSearchOrganisationUnits =
+          (Set<OrganisationUnit>) userReferenceMap.get("teiSearchOrganisationUnits");
+      user.setTeiSearchOrganisationUnits(teiSearchOrganisationUnits);
+
+      user.setCreatedBy((User) userReferenceMap.get(BaseIdentifiableObject_.CREATED_BY));
+
+      if (user.getCreatedBy() == null) {
+        user.setCreatedBy(bundle.getUser());
+      }
+
+      user.setLastUpdatedBy(bundle.getUser());
+
+      preheatService.connectReferences(user, bundle.getPreheat(), bundle.getPreheatIdentifier());
+
+      handleNoAccessRoles(user, bundle, userRoles);
+
+      sessionFactory.getCurrentSession().update(user);
+    }
+  }
+
+  /**
+   * If currentUser doesn't have read access to a UserRole, and it is included in the payload, then
+   * that UserRole should not be removed from updating User.
+   *
+   * @param user the updating User.
+   * @param bundle the ObjectBundle.
+   */
+  private void handleNoAccessRoles(User user, ObjectBundle bundle, Set<UserRole> userRoles) {
+    Set<UserRole> roles = user.getUserRoles();
+    Set<String> currentRoles =
+        roles.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toSet());
+
+    if (userRoles != null) {
+      userRoles.stream()
+          .filter(role -> !currentRoles.contains(role.getUid()))
+          .forEach(
+              role -> {
+                UserRole persistedRole = bundle.getPreheat().get(PreheatIdentifier.UID, role);
+
+                if (persistedRole == null) {
+                  persistedRole = manager.getNoAcl(UserRole.class, role.getUid());
+                }
+
+                if (!aclService.canRead(bundle.getUser(), persistedRole)) {
+                  roles.add(persistedRole);
+                }
+              });
+    }
+  }
 }

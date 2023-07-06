@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -41,20 +40,18 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * Contains validators for UID types of {@link ValueType} such as
- * {@link ValueType#ORGANISATION_UNIT}, {@link ValueType#FILE_RESOURCE}.
- * <p>
- * The first argument of this {@link BiFunction} is the value of the
- * {@link AttributeValue} which needs to be validated, which is the UID of the
- * current object.
- * <p>
- * The second argument is the {@link Predicate} which responsible for checking
- * object existence by calling
- * {@link IdentifiableObjectManager#get(Class, String)}
- * <p>
- * The function returns a list of {@link ErrorReport}
- * <p>
- * Example:
+ * Contains validators for UID types of {@link ValueType} such as {@link
+ * ValueType#ORGANISATION_UNIT}, {@link ValueType#FILE_RESOURCE}.
+ *
+ * <p>The first argument of this {@link BiFunction} is the value of the {@link AttributeValue} which
+ * needs to be validated, which is the UID of the current object.
+ *
+ * <p>The second argument is the {@link Predicate} which responsible for checking object existence
+ * by calling {@link IdentifiableObjectManager#get(Class, String)}
+ *
+ * <p>The function returns a list of {@link ErrorReport}
+ *
+ * <p>Example:
  *
  * <pre>
  * {@code EntityCheck.isOrganisationUnitExist.apply( value, klass -> manager.get( klass, value ) != null ) }
@@ -64,18 +61,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  */
 @FunctionalInterface
 public interface EntityCheck
-    extends BiFunction<String, Predicate<Class<? extends IdentifiableObject>>, List<ErrorReport>>
-{
-    EntityCheck empty = ( str, predicate ) -> List.of();
+    extends BiFunction<String, Predicate<Class<? extends IdentifiableObject>>, List<ErrorReport>> {
+  EntityCheck empty = (str, predicate) -> List.of();
 
-    EntityCheck isOrganisationUnitExist = check( OrganisationUnit.class, ErrorCode.E6019 );
+  EntityCheck isOrganisationUnitExist = check(OrganisationUnit.class, ErrorCode.E6019);
 
-    EntityCheck isFileResourceExist = check( FileResource.class, ErrorCode.E6019 );
+  EntityCheck isFileResourceExist = check(FileResource.class, ErrorCode.E6019);
 
-    static EntityCheck check( Class<? extends IdentifiableObject> klass, ErrorCode errorCode )
-    {
-        return ( str, predicate ) -> !predicate.test( klass )
-            ? List.of( new ErrorReport( AttributeValue.class, errorCode, str, klass.getSimpleName() ) )
+  static EntityCheck check(Class<? extends IdentifiableObject> klass, ErrorCode errorCode) {
+    return (str, predicate) ->
+        !predicate.test(klass)
+            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str, klass.getSimpleName()))
             : List.of();
-    }
+  }
 }

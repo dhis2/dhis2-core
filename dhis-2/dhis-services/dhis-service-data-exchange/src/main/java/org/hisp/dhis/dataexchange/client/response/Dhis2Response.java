@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.dataexchange.client.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.springframework.http.HttpStatus;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DHIS 2 API response.
@@ -44,22 +42,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Dhis2Response
-{
-    @JsonProperty
-    private Status status;
+public class Dhis2Response {
+  @JsonProperty private Status status;
 
-    @JsonProperty
-    private Integer httpStatusCode;
+  @JsonProperty private Integer httpStatusCode;
 
-    @JsonProperty
-    private ErrorCode errorCode;
+  @JsonProperty private ErrorCode errorCode;
 
-    @JsonProperty
-    private String message;
+  @JsonProperty private String message;
 
-    public HttpStatus getHttpStatus()
-    {
-        return httpStatusCode != null ? HttpStatus.valueOf( httpStatusCode ) : null;
-    }
+  public HttpStatus getHttpStatus() {
+    return httpStatusCode != null ? HttpStatus.valueOf(httpStatusCode) : null;
+  }
 }

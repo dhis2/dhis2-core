@@ -31,74 +31,58 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum PreheatIdentifier
-{
-    /**
-     * Preheat using UID identifiers.
-     */
-    UID,
+public enum PreheatIdentifier {
+  /** Preheat using UID identifiers. */
+  UID,
 
-    /**
-     * Preheat using CODE identifiers.
-     */
-    CODE;
+  /** Preheat using CODE identifiers. */
+  CODE;
 
-    public <T extends IdentifiableObject> String getIdentifier( T object )
-    {
-        switch ( this )
-        {
-        case UID:
-            return object.getUid();
-        case CODE:
-            return object.getCode();
-        }
-        throw new RuntimeException( "Unhandled identifier type." );
+  public <T extends IdentifiableObject> String getIdentifier(T object) {
+    switch (this) {
+      case UID:
+        return object.getUid();
+      case CODE:
+        return object.getCode();
+    }
+    throw new RuntimeException("Unhandled identifier type.");
+  }
+
+  public <T extends IdentifiableObject> List<String> getIdentifiers(T object) {
+    switch (this) {
+      case UID:
+        return singletonList(object.getUid());
+      case CODE:
+        return singletonList(object.getCode());
+    }
+    return emptyList();
+  }
+
+  /** Get the column name of the Identifier to be used in JPA Query. */
+  public String getIdentifierColumnName() {
+    switch (this) {
+      case UID:
+        return "id";
+      case CODE:
+        return "code";
+    }
+    throw new RuntimeException("Unhandled identifier type.");
+  }
+
+  public <T extends IdentifiableObject> String getIdentifiersWithName(T object) {
+    List<String> identifiers = getIdentifiers(object);
+    String name = StringUtils.isEmpty(object.getDisplayName()) ? null : object.getDisplayName();
+
+    if (name == null) {
+      return identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
     }
 
-    public <T extends IdentifiableObject> List<String> getIdentifiers( T object )
-    {
-        switch ( this )
-        {
-        case UID:
-            return singletonList( object.getUid() );
-        case CODE:
-            return singletonList( object.getCode() );
-        }
-        return emptyList();
-    }
-
-    /**
-     * Get the column name of the Identifier to be used in JPA Query.
-     */
-    public String getIdentifierColumnName()
-    {
-        switch ( this )
-        {
-        case UID:
-            return "id";
-        case CODE:
-            return "code";
-        }
-        throw new RuntimeException( "Unhandled identifier type." );
-    }
-
-    public <T extends IdentifiableObject> String getIdentifiersWithName( T object )
-    {
-        List<String> identifiers = getIdentifiers( object );
-        String name = StringUtils.isEmpty( object.getDisplayName() ) ? null : object.getDisplayName();
-
-        if ( name == null )
-        {
-            return identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
-        }
-
-        return name + " " + identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
-    }
+    return name + " " + identifiers.toString() + " (" + object.getClass().getSimpleName() + ")";
+  }
 }

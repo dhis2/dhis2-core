@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.command;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -41,20 +40,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class SMSCommandDeletionHandler extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCommand.class );
+public class SMSCommandDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(SMSCommand.class);
 
-    private final SMSCommandService smsCommandService;
+  private final SMSCommandService smsCommandService;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataSet.class, this::allowDeleteDataSet );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataSet.class, this::allowDeleteDataSet);
+  }
 
-    private DeletionVeto allowDeleteDataSet( DataSet dataSet )
-    {
-        return smsCommandService.countDataSetSmsCommands( dataSet ) == 0 ? ACCEPT : VETO;
-    }
+  private DeletionVeto allowDeleteDataSet(DataSet dataSet) {
+    return smsCommandService.countDataSetSmsCommands(dataSet) == 0 ? ACCEPT : VETO;
+  }
 }

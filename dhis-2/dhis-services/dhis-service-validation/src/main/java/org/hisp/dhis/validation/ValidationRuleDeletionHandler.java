@@ -28,9 +28,7 @@
 package org.hisp.dhis.validation;
 
 import java.util.Iterator;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -40,43 +38,36 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ValidationRuleDeletionHandler extends DeletionHandler
-{
-    private final ValidationRuleService validationRuleService;
+public class ValidationRuleDeletionHandler extends DeletionHandler {
+  private final ValidationRuleService validationRuleService;
 
-    @Override
-    protected void register()
-    {
-        whenDeletingEmbedded( Expression.class, this::deleteExpression );
-        whenDeleting( ValidationRuleGroup.class, this::deleteValidationRuleGroup );
+  @Override
+  protected void register() {
+    whenDeletingEmbedded(Expression.class, this::deleteExpression);
+    whenDeleting(ValidationRuleGroup.class, this::deleteValidationRuleGroup);
+  }
+
+  private void deleteExpression(Expression expression) {
+    Iterator<ValidationRule> iterator = validationRuleService.getAllValidationRules().iterator();
+
+    while (iterator.hasNext()) {
+      ValidationRule rule = iterator.next();
+
+      Expression leftSide = rule.getLeftSide();
+      Expression rightSide = rule.getRightSide();
+
+      if ((leftSide != null && leftSide.equals(expression))
+          || (rightSide != null && rightSide.equals(expression))) {
+        iterator.remove();
+        validationRuleService.deleteValidationRule(rule);
+      }
     }
+  }
 
-    private void deleteExpression( Expression expression )
-    {
-        Iterator<ValidationRule> iterator = validationRuleService.getAllValidationRules().iterator();
-
-        while ( iterator.hasNext() )
-        {
-            ValidationRule rule = iterator.next();
-
-            Expression leftSide = rule.getLeftSide();
-            Expression rightSide = rule.getRightSide();
-
-            if ( (leftSide != null && leftSide.equals( expression )) ||
-                (rightSide != null && rightSide.equals( expression )) )
-            {
-                iterator.remove();
-                validationRuleService.deleteValidationRule( rule );
-            }
-        }
+  private void deleteValidationRuleGroup(ValidationRuleGroup validationRuleGroup) {
+    for (ValidationRule rule : validationRuleGroup.getMembers()) {
+      rule.getGroups().remove(validationRuleGroup);
+      validationRuleService.updateValidationRule(rule);
     }
-
-    private void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
-    {
-        for ( ValidationRule rule : validationRuleGroup.getMembers() )
-        {
-            rule.getGroups().remove( validationRuleGroup );
-            validationRuleService.updateValidationRule( rule );
-        }
-    }
+  }
 }

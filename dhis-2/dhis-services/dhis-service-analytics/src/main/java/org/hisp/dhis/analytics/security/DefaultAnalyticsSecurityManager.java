@@ -39,10 +39,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
@@ -72,334 +70,318 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.AnalyticsSecurityManager" )
+@Component("org.hisp.dhis.analytics.AnalyticsSecurityManager")
 @RequiredArgsConstructor
-public class DefaultAnalyticsSecurityManager
-    implements AnalyticsSecurityManager
-{
-    private static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
+public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager {
+  private static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
 
-    private final DataApprovalLevelService approvalLevelService;
+  private final DataApprovalLevelService approvalLevelService;
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    private final DimensionService dimensionService;
+  private final DimensionService dimensionService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    // -------------------------------------------------------------------------
-    // AnalyticsSecurityManager implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // AnalyticsSecurityManager implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional( readOnly = true )
-    public void decideAccess( DataQueryParams params )
-    {
-        User user = currentUserService.getCurrentUser();
+  @Override
+  @Transactional(readOnly = true)
+  public void decideAccess(DataQueryParams params) {
+    User user = currentUserService.getCurrentUser();
 
-        decideAccessDataViewOrganisationUnits( params, user );
-        decideAccessDataReadObjects( params, user );
+    decideAccessDataViewOrganisationUnits(params, user);
+    decideAccessDataReadObjects(params, user);
+  }
+
+  /**
+   * Checks whether the given user has data view access to organisation units.
+   *
+   * @param params the data query parameters.
+   * @param user the user to check.
+   * @throws IllegalQueryException if user does not have access.
+   */
+  private void decideAccessDataViewOrganisationUnits(DataQueryParams params, User user)
+      throws IllegalQueryException {
+    List<OrganisationUnit> queryOrgUnits = params.getAllTypedOrganisationUnits();
+
+    if (queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit()) {
+      return; // Allow if no
     }
 
-    /**
-     * Checks whether the given user has data view access to organisation units.
-     *
-     * @param params the data query parameters.
-     * @param user the user to check.
-     * @throws IllegalQueryException if user does not have access.
-     */
-    private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
-        throws IllegalQueryException
-    {
-        List<OrganisationUnit> queryOrgUnits = params.getAllTypedOrganisationUnits();
+    Set<OrganisationUnit> viewOrgUnits = user.getDataViewOrganisationUnits();
 
-        if ( queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit() )
-        {
-            return; // Allow if no
-        }
+    Integer maxOrgUnitLevel = user.getDataViewMaxOrganisationUnitLevel();
 
-        Set<OrganisationUnit> viewOrgUnits = user.getDataViewOrganisationUnits();
+    for (OrganisationUnit queryOrgUnit : queryOrgUnits) {
+      boolean descendant = queryOrgUnit.isDescendant(viewOrgUnits);
 
-        Integer maxOrgUnitLevel = user.getDataViewMaxOrganisationUnitLevel();
+      if (!descendant) {
+        throwIllegalQueryEx(ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid());
+      }
 
-        for ( OrganisationUnit queryOrgUnit : queryOrgUnits )
-        {
-            boolean descendant = queryOrgUnit.isDescendant( viewOrgUnits );
+      if (maxOrgUnitLevel != null && queryOrgUnit.getLevel() > maxOrgUnitLevel) {
+        throwIllegalQueryEx(ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid());
+      }
+    }
+  }
 
-            if ( !descendant )
-            {
-                throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
-            }
+  /**
+   * Checks whether the given user has data read access to all programs,
+   * program stages, data sets and category options in the request.
+   *
+   * @param params the {@link {@link DataQueryParams}.
+   * @param user the user to check.
+   * @throws IllegalQueryException if user does not have access.
+   */
+  @Transactional(readOnly = true)
+  public void decideAccessDataReadObjects(DataQueryParams params, User user)
+      throws IllegalQueryException {
+    Set<IdentifiableObject> objects = new HashSet<>();
+    objects.addAll(params.getAllDataSets());
+    objects.addAll(params.getProgramsInAttributesAndDataElements());
+    objects.addAll(params.getCategoryOptions());
 
-            if ( maxOrgUnitLevel != null && queryOrgUnit.getLevel() > maxOrgUnitLevel )
-            {
-                throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
-            }
-        }
+    if (params.hasProgram()) {
+      objects.add(params.getProgram());
     }
 
-    /**
-     * Checks whether the given user has data read access to all programs,
-     * program stages, data sets and category options in the request.
-     *
-     * @param params the {@link {@link DataQueryParams}.
-     * @param user the user to check.
-     * @throws IllegalQueryException if user does not have access.
-     */
-    @Transactional( readOnly = true )
-    public void decideAccessDataReadObjects( DataQueryParams params, User user )
-        throws IllegalQueryException
-    {
-        Set<IdentifiableObject> objects = new HashSet<>();
-        objects.addAll( params.getAllDataSets() );
-        objects.addAll( params.getProgramsInAttributesAndDataElements() );
-        objects.addAll( params.getCategoryOptions() );
-
-        if ( params.hasProgram() )
-        {
-            objects.add( params.getProgram() );
-        }
-
-        if ( params.hasProgramStage() )
-        {
-            objects.add( params.getProgramStage() );
-        }
-
-        for ( IdentifiableObject object : objects )
-        {
-            if ( !aclService.canDataRead( user, object ) )
-            {
-                throwIllegalQueryEx( ErrorCode.E7121, user.getUsername(),
-                    TextUtils.getPrettyClassName( object.getClass() ), object.getUid() );
-            }
-        }
+    if (params.hasProgramStage()) {
+      objects.add(params.getProgramStage());
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public void decideAccessEventQuery( EventQueryParams params )
-    {
-        decideAccess( params );
-        decideAccessEventAnalyticsAuthority( params );
+    for (IdentifiableObject object : objects) {
+      if (!aclService.canDataRead(user, object)) {
+        throwIllegalQueryEx(
+            ErrorCode.E7121,
+            user.getUsername(),
+            TextUtils.getPrettyClassName(object.getClass()),
+            object.getUid());
+      }
     }
+  }
 
-    /**
-     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS}
-     * authority.
-     *
-     * @param params the {@link {@link DataQueryParams}.
-     */
-    private void decideAccessEventAnalyticsAuthority( EventQueryParams params )
-    {
-        User user = currentUserService.getCurrentUser();
+  @Override
+  @Transactional(readOnly = true)
+  public void decideAccessEventQuery(EventQueryParams params) {
+    decideAccess(params);
+    decideAccessEventAnalyticsAuthority(params);
+  }
 
-        boolean notAuthorized = user != null && !user.isAuthorized( AUTH_VIEW_EVENT_ANALYTICS );
+  /**
+   * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS}
+   * authority.
+   *
+   * @param params the {@link {@link DataQueryParams}.
+   */
+  private void decideAccessEventAnalyticsAuthority(EventQueryParams params) {
+    User user = currentUserService.getCurrentUser();
 
-        String username = user != null ? user.getUsername() : "[None]";
+    boolean notAuthorized = user != null && !user.isAuthorized(AUTH_VIEW_EVENT_ANALYTICS);
 
-        if ( notAuthorized )
-        {
-            throwIllegalQueryEx( ErrorCode.E7217, username );
-        }
+    String username = user != null ? user.getUsername() : "[None]";
+
+    if (notAuthorized) {
+      throwIllegalQueryEx(ErrorCode.E7217, username);
     }
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public User getCurrentUser( DataQueryParams params )
-    {
-        return params != null && params.hasCurrentUser() ? params.getCurrentUser()
-            : currentUserService.getCurrentUser();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public User getCurrentUser(DataQueryParams params) {
+    return params != null && params.hasCurrentUser()
+        ? params.getCurrentUser()
+        : currentUserService.getCurrentUser();
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataQueryParams withDataApprovalConstraints( DataQueryParams params )
-    {
-        DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder( params );
+  @Override
+  @Transactional(readOnly = true)
+  public DataQueryParams withDataApprovalConstraints(DataQueryParams params) {
+    DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder(params);
 
-        User user = currentUserService.getCurrentUser();
+    User user = currentUserService.getCurrentUser();
 
-        boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
+    boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
-        boolean canViewUnapprovedData = user == null || user.isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA );
+    boolean canViewUnapprovedData =
+        user == null || user.isAuthorized(DataApproval.AUTH_VIEW_UNAPPROVED_DATA);
 
-        if ( hideUnapprovedData && user != null )
-        {
-            Map<OrganisationUnit, Integer> approvalLevels = null;
+    if (hideUnapprovedData && user != null) {
+      Map<OrganisationUnit, Integer> approvalLevels = null;
 
-            if ( params.hasApprovalLevel() )
-            {
-                // Set approval level from query
+      if (params.hasApprovalLevel()) {
+        // Set approval level from query
 
-                DataApprovalLevel approvalLevel = approvalLevelService
-                    .getDataApprovalLevel( params.getApprovalLevel() );
+        DataApprovalLevel approvalLevel =
+            approvalLevelService.getDataApprovalLevel(params.getApprovalLevel());
 
-                if ( approvalLevel == null )
-                {
-                    throwIllegalQueryEx( ErrorCode.E7122, params.getApprovalLevel() );
-                }
-
-                approvalLevels = approvalLevelService.getUserReadApprovalLevels( approvalLevel );
-            }
-            else if ( !canViewUnapprovedData )
-            {
-                // Set approval level from user level
-
-                approvalLevels = approvalLevelService.getUserReadApprovalLevels();
-            }
-
-            if ( approvalLevels != null && !approvalLevels.isEmpty() )
-            {
-                paramsBuilder.withDataApprovalLevels( approvalLevels );
-
-                log.debug( String.format( "User: '%s' constrained by data approval levels: '%s'", user.getUsername(),
-                    approvalLevels.values() ) );
-            }
+        if (approvalLevel == null) {
+          throwIllegalQueryEx(ErrorCode.E7122, params.getApprovalLevel());
         }
 
-        return paramsBuilder.build();
+        approvalLevels = approvalLevelService.getUserReadApprovalLevels(approvalLevel);
+      } else if (!canViewUnapprovedData) {
+        // Set approval level from user level
+
+        approvalLevels = approvalLevelService.getUserReadApprovalLevels();
+      }
+
+      if (approvalLevels != null && !approvalLevels.isEmpty()) {
+        paramsBuilder.withDataApprovalLevels(approvalLevels);
+
+        log.debug(
+            String.format(
+                "User: '%s' constrained by data approval levels: '%s'",
+                user.getUsername(), approvalLevels.values()));
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataQueryParams withUserConstraints( DataQueryParams params )
+    return paramsBuilder.build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public DataQueryParams withUserConstraints(DataQueryParams params) {
+    DataQueryParams.Builder builder = DataQueryParams.newBuilder(params);
+
+    applyOrganisationUnitConstraint(builder, params);
+    applyDimensionConstraints(builder, params);
+
+    return builder.build();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public EventQueryParams withUserConstraints(EventQueryParams params) {
+    EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
+
+    applyOrganisationUnitConstraint(builder, params);
+    applyDimensionConstraints(builder, params);
+
+    return builder.build();
+  }
+
+  /**
+   * Applies organisation unit security constraint.
+   *
+   * @param builder the {@link QueryParamsBuilder}.
+   * @param params the data query parameters.
+   */
+  private void applyOrganisationUnitConstraint(QueryParamsBuilder builder, DataQueryParams params) {
+    User user = currentUserService.getCurrentUser();
+
+    // ---------------------------------------------------------------------
+    // Check if current user has data view organisation units
+    // ---------------------------------------------------------------------
+
+    if (params == null || user == null || !user.hasDataViewOrganisationUnit()) {
+      return;
+    }
+
+    // ---------------------------------------------------------------------
+    // Check if request already has organisation units specified
+    // ---------------------------------------------------------------------
+
+    if (params.hasDimensionOrFilterWithItems(DimensionalObject.ORGUNIT_DIM_ID)) {
+      return;
+    }
+
+    // -----------------------------------------------------------------
+    // Apply constraint as filter, and remove potential all-dimension
+    // -----------------------------------------------------------------
+
+    builder.removeDimensionOrFilter(DimensionalObject.ORGUNIT_DIM_ID);
+
+    List<OrganisationUnit> orgUnits = new ArrayList<>(user.getDataViewOrganisationUnits());
+
+    DimensionalObject constraint =
+        new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits);
+
+    builder.addFilter(constraint);
+
+    log.debug(
+        String.format(
+            "User: '%s' constrained by data view organisation units", user.getUsername()));
+  }
+
+  /**
+   * Applies dimension constraints.
+   *
+   * @param builder the {@link QueryParamsBuilder}.
+   * @param params the data query parameters.
+   */
+  private void applyDimensionConstraints(QueryParamsBuilder builder, DataQueryParams params) {
+    User user = currentUserService.getCurrentUser();
+
+    // ---------------------------------------------------------------------
+    // Check if current user has dimension constraints
+    // ---------------------------------------------------------------------
+
+    if (params == null || user == null) {
+      return;
+    }
+
+    // Categories the user is constrained to
+    Collection<Category> categories =
+        currentUserService.currentUserIsSuper()
+            ? emptyList()
+            : getCategoriesWithoutRestrictions(params);
+
+    // union of user and category constraints
+    Set<DimensionalObject> dimensionConstraints =
+        Stream.concat(user.getDimensionConstraints().stream(), categories.stream())
+            .collect(Collectors.toSet());
+
+    if (dimensionConstraints.isEmpty()) // if no constraints
     {
-        DataQueryParams.Builder builder = DataQueryParams.newBuilder( params );
-
-        applyOrganisationUnitConstraint( builder, params );
-        applyDimensionConstraints( builder, params );
-
-        return builder.build();
+      return; // nothing to do - no filters added to query
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public EventQueryParams withUserConstraints( EventQueryParams params )
-    {
-        EventQueryParams.Builder builder = new EventQueryParams.Builder( params );
+    for (DimensionalObject dimension : dimensionConstraints) {
+      // -----------------------------------------------------------------
+      // Check if dimension constraint already is specified with items
+      // -----------------------------------------------------------------
 
-        applyOrganisationUnitConstraint( builder, params );
-        applyDimensionConstraints( builder, params );
+      if (params.hasDimensionOrFilterWithItems(dimension.getUid())) {
+        continue;
+      }
 
-        return builder.build();
+      List<DimensionalItemObject> canReadItems =
+          dimensionService.getCanReadDimensionItems(dimension.getDimension());
+
+      // -----------------------------------------------------------------
+      // Check if current user has access to any items from constraint
+      // -----------------------------------------------------------------
+
+      if (canReadItems.isEmpty()) {
+        throwIllegalQueryEx(ErrorCode.E7123, dimension.getDimension());
+      }
+
+      // -----------------------------------------------------------------
+      // Apply constraint as filter, and remove potential all-dimension
+      // -----------------------------------------------------------------
+
+      builder.removeDimensionOrFilter(dimension.getDimension());
+
+      DimensionalObject constraint =
+          new BaseDimensionalObject(
+              dimension.getDimension(),
+              dimension.getDimensionType(),
+              null,
+              dimension.getDimensionDisplayName(),
+              canReadItems);
+
+      builder.addFilter(constraint);
+
+      log.debug(
+          String.format(
+              "User: '%s' constrained by dimension: '%s'",
+              user.getUsername(), constraint.getDimension()));
     }
-
-    /**
-     * Applies organisation unit security constraint.
-     *
-     * @param builder the {@link QueryParamsBuilder}.
-     * @param params the data query parameters.
-     */
-    private void applyOrganisationUnitConstraint( QueryParamsBuilder builder, DataQueryParams params )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        // ---------------------------------------------------------------------
-        // Check if current user has data view organisation units
-        // ---------------------------------------------------------------------
-
-        if ( params == null || user == null || !user.hasDataViewOrganisationUnit() )
-        {
-            return;
-        }
-
-        // ---------------------------------------------------------------------
-        // Check if request already has organisation units specified
-        // ---------------------------------------------------------------------
-
-        if ( params.hasDimensionOrFilterWithItems( DimensionalObject.ORGUNIT_DIM_ID ) )
-        {
-            return;
-        }
-
-        // -----------------------------------------------------------------
-        // Apply constraint as filter, and remove potential all-dimension
-        // -----------------------------------------------------------------
-
-        builder.removeDimensionOrFilter( DimensionalObject.ORGUNIT_DIM_ID );
-
-        List<OrganisationUnit> orgUnits = new ArrayList<>( user.getDataViewOrganisationUnits() );
-
-        DimensionalObject constraint = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, orgUnits );
-
-        builder.addFilter( constraint );
-
-        log.debug( String.format( "User: '%s' constrained by data view organisation units", user.getUsername() ) );
-    }
-
-    /**
-     * Applies dimension constraints.
-     *
-     * @param builder the {@link QueryParamsBuilder}.
-     * @param params the data query parameters.
-     */
-    private void applyDimensionConstraints( QueryParamsBuilder builder, DataQueryParams params )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        // ---------------------------------------------------------------------
-        // Check if current user has dimension constraints
-        // ---------------------------------------------------------------------
-
-        if ( params == null || user == null )
-        {
-            return;
-        }
-
-        // Categories the user is constrained to
-        Collection<Category> categories = currentUserService.currentUserIsSuper() ? emptyList()
-            : getCategoriesWithoutRestrictions( params );
-
-        // union of user and category constraints
-        Set<DimensionalObject> dimensionConstraints = Stream.concat(
-            user.getDimensionConstraints().stream(),
-            categories.stream() )
-            .collect( Collectors.toSet() );
-
-        if ( dimensionConstraints.isEmpty() ) // if no constraints
-        {
-            return; // nothing to do - no filters added to query
-        }
-
-        for ( DimensionalObject dimension : dimensionConstraints )
-        {
-            // -----------------------------------------------------------------
-            // Check if dimension constraint already is specified with items
-            // -----------------------------------------------------------------
-
-            if ( params.hasDimensionOrFilterWithItems( dimension.getUid() ) )
-            {
-                continue;
-            }
-
-            List<DimensionalItemObject> canReadItems = dimensionService
-                .getCanReadDimensionItems( dimension.getDimension() );
-
-            // -----------------------------------------------------------------
-            // Check if current user has access to any items from constraint
-            // -----------------------------------------------------------------
-
-            if ( canReadItems.isEmpty() )
-            {
-                throwIllegalQueryEx( ErrorCode.E7123, dimension.getDimension() );
-            }
-
-            // -----------------------------------------------------------------
-            // Apply constraint as filter, and remove potential all-dimension
-            // -----------------------------------------------------------------
-
-            builder.removeDimensionOrFilter( dimension.getDimension() );
-
-            DimensionalObject constraint = new BaseDimensionalObject( dimension.getDimension(),
-                dimension.getDimensionType(), null, dimension.getDimensionDisplayName(), canReadItems );
-
-            builder.addFilter( constraint );
-
-            log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(),
-                constraint.getDimension() ) );
-        }
-    }
+  }
 }

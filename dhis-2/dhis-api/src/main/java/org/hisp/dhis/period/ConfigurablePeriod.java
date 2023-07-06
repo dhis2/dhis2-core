@@ -32,62 +32,52 @@ import java.util.Date;
 /**
  * @author Lars Helge Overland
  */
-public class ConfigurablePeriod
-    extends Period
-{
-    private String value;
+public class ConfigurablePeriod extends Period {
+  private String value;
 
-    public ConfigurablePeriod( String value )
-    {
-        this.value = value;
-        this.name = value;
-        this.code = value;
-        this.setStartDate( new Date() );
-        this.setEndDate( new Date() );
+  public ConfigurablePeriod(String value) {
+    this.value = value;
+    this.name = value;
+    this.code = value;
+    this.setStartDate(new Date());
+    this.setEndDate(new Date());
+  }
+
+  @Override
+  public String getIsoDate() {
+    return value;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode, equals and toString
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    return value.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    @Override
-    public String getIsoDate()
-    {
-        return value;
+    if (o == null) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return value.hashCode();
+    if (!(o instanceof Period)) {
+      return false;
     }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
+    final Period other = (Period) o;
 
-        if ( o == null )
-        {
-            return false;
-        }
+    return value.equals(other.getIsoDate());
+  }
 
-        if ( !(o instanceof Period) )
-        {
-            return false;
-        }
-
-        final Period other = (Period) o;
-
-        return value.equals( other.getIsoDate() );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + value + "]";
-    }
+  @Override
+  public String toString() {
+    return "[" + value + "]";
+  }
 }

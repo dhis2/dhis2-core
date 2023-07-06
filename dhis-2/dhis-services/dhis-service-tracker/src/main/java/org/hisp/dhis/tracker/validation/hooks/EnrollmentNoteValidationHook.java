@@ -37,12 +37,12 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentNoteValidationHook implements TrackerValidationHook
-{
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        enrollment.setNotes( ValidationUtils.validateNotes( reporter, bundle.getPreheat(), enrollment,
-            enrollment.getNotes() ) );
-    }
+public class EnrollmentNoteValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    enrollment.setNotes(
+        ValidationUtils.validateNotes(
+            reporter, bundle.getPreheat(), enrollment, enrollment.getNotes()));
+  }
 }

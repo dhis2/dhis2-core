@@ -35,22 +35,21 @@ import org.mapstruct.Mapping;
 /**
  * TODO: It should be removed when we will implement new services.
  *
- * Mapper to convert new tracker criteria to old one, to be used until we have
- * new services for new Tracker.
+ * <p>Mapper to convert new tracker criteria to old one, to be used until we have new services for
+ * new Tracker.
  */
 @Mapper
-public interface TrackerTrackedEntityCriteriaMapper
-{
-    @Mapping( source = "orgUnit", target = "ou" )
-    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrollmentEnrolledAfter", target = "programStartDate" )
-    @Mapping( source = "enrollmentEnrolledBefore", target = "programEndDate" )
-    @Mapping( source = "enrollmentOccurredAfter", target = "programIncidentStartDate" )
-    @Mapping( source = "enrollmentOccurredBefore", target = "programIncidentEndDate" )
-    @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "eventOccurredAfter", target = "eventStartDate" )
-    @Mapping( source = "eventOccurredBefore", target = "eventEndDate" )
-    TrackedEntityInstanceCriteria toTrackedEntityInstanceCriteria( TrackerTrackedEntityCriteria from );
+public interface TrackerTrackedEntityCriteriaMapper {
+  @Mapping(source = "orgUnit", target = "ou")
+  @Mapping(source = "updatedAfter", target = "lastUpdatedStartDate")
+  @Mapping(source = "updatedBefore", target = "lastUpdatedEndDate")
+  @Mapping(source = "updatedWithin", target = "lastUpdatedDuration")
+  @Mapping(source = "enrollmentEnrolledAfter", target = "programStartDate")
+  @Mapping(source = "enrollmentEnrolledBefore", target = "programEndDate")
+  @Mapping(source = "enrollmentOccurredAfter", target = "programIncidentStartDate")
+  @Mapping(source = "enrollmentOccurredBefore", target = "programIncidentEndDate")
+  @Mapping(source = "trackedEntity", target = "trackedEntityInstance")
+  @Mapping(source = "eventOccurredAfter", target = "eventStartDate")
+  @Mapping(source = "eventOccurredBefore", target = "eventEndDate")
+  TrackedEntityInstanceCriteria toTrackedEntityInstanceCriteria(TrackerTrackedEntityCriteria from);
 }

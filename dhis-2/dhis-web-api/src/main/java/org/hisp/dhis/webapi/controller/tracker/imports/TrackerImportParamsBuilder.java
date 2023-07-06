@@ -48,9 +48,9 @@ import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParam
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.SKIP_SIDE_EFFECTS;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportParamKey.VALIDATION_MODE_KEY;
 
+import com.google.common.base.Enums;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -64,144 +64,138 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 
-import com.google.common.base.Enums;
-
 /**
  * @author Luciano Fiandesio
  */
-public class TrackerImportParamsBuilder
-{
-    private TrackerImportParamsBuilder()
-    {
+public class TrackerImportParamsBuilder {
+  private TrackerImportParamsBuilder() {}
+
+  public static TrackerImportParams build(Map<String, List<String>> parameters) {
+    return builder(parameters).build();
+  }
+
+  public static TrackerImportParams.TrackerImportParamsBuilder builder(
+      Map<String, List<String>> parameters) {
+    return TrackerImportParams.builder()
+        .validationMode(
+            getEnumWithDefault(ValidationMode.class, parameters, VALIDATION_MODE_KEY, FULL))
+        .importMode(
+            getEnumWithDefault(TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT))
+        .idSchemes(getTrackerIdentifiers(parameters))
+        .importStrategy(
+            getEnumWithDefault(
+                TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY, CREATE_AND_UPDATE))
+        .atomicMode(getEnumWithDefault(AtomicMode.class, parameters, ATOMIC_MODE_KEY, ALL))
+        .flushMode(getEnumWithDefault(FlushMode.class, parameters, FLUSH_MODE_KEY, AUTO))
+        .skipSideEffects(getBooleanValueOrDefault(parameters, SKIP_SIDE_EFFECTS))
+        .skipRuleEngine(getBooleanValueOrDefault(parameters, SKIP_RULE_ENGINE_KEY));
+  }
+
+  private static <T extends Enum<T>> T getEnumWithDefault(
+      Class<T> enumKlass,
+      Map<String, List<String>> parameters,
+      TrackerImportParamKey trackerImportParamKey,
+      T defaultValue) {
+    if (parameters == null
+        || parameters.get(trackerImportParamKey.getKey()) == null
+        || parameters.get(trackerImportParamKey.getKey()).isEmpty()) {
+      return defaultValue;
     }
 
-    public static TrackerImportParams build( Map<String, List<String>> parameters )
-    {
-        return builder( parameters )
-            .build();
+    if (TrackerIdScheme.class.equals(enumKlass)
+        && IdScheme.isAttribute(parameters.get(trackerImportParamKey.getKey()).get(0))) {
+      return Enums.getIfPresent(enumKlass, "ATTRIBUTE").orNull();
     }
 
-    public static TrackerImportParams.TrackerImportParamsBuilder builder( Map<String, List<String>> parameters )
-    {
-        return TrackerImportParams.builder()
-            .validationMode( getEnumWithDefault( ValidationMode.class, parameters, VALIDATION_MODE_KEY, FULL ) )
-            .importMode( getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT ) )
-            .idSchemes( getTrackerIdentifiers( parameters ) )
-            .importStrategy(
-                getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY,
-                    CREATE_AND_UPDATE ) )
-            .atomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, ALL ) )
-            .flushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, AUTO ) )
-            .skipSideEffects( getBooleanValueOrDefault( parameters, SKIP_SIDE_EFFECTS ) )
-            .skipRuleEngine( getBooleanValueOrDefault( parameters, SKIP_RULE_ENGINE_KEY ) );
+    String value = String.valueOf(parameters.get(trackerImportParamKey.getKey()).get(0));
+
+    return Enums.getIfPresent(enumKlass, value).or(defaultValue);
+  }
+
+  public static TrackerIdSchemeParams getTrackerIdentifiers(Map<String, List<String>> parameters) {
+    TrackerIdSchemeParam idScheme = globalIdScheme(parameters);
+
+    return TrackerIdSchemeParams.builder()
+        .idScheme(idScheme)
+        .orgUnitIdScheme(idScheme(parameters, ORG_UNIT_ID_SCHEME_KEY, idScheme))
+        .programIdScheme(idScheme(parameters, PROGRAM_ID_SCHEME_KEY, idScheme))
+        .programStageIdScheme(idScheme(parameters, PROGRAM_STAGE_ID_SCHEME_KEY, idScheme))
+        .dataElementIdScheme(idScheme(parameters, DATA_ELEMENT_ID_SCHEME_KEY, idScheme))
+        .categoryOptionComboIdScheme(
+            idScheme(parameters, CATEGORY_OPTION_COMBO_ID_SCHEME_KEY, idScheme))
+        .categoryOptionIdScheme(idScheme(parameters, CATEGORY_OPTION_ID_SCHEME_KEY, idScheme))
+        .build();
+  }
+
+  private static Boolean getBooleanValueOrDefault(
+      Map<String, List<String>> parameters, TrackerImportParamKey trackerImportParamKey) {
+    if (parameters == null
+        || parameters.get(trackerImportParamKey.getKey()) == null
+        || parameters.get(trackerImportParamKey.getKey()).isEmpty()) {
+      return false;
     }
 
-    private static <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters,
-        TrackerImportParamKey trackerImportParamKey, T defaultValue )
-    {
-        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
-            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
-        {
-            return defaultValue;
-        }
+    return BooleanUtils.toBooleanObject(parameters.get(trackerImportParamKey.getKey()).get(0));
+  }
 
-        if ( TrackerIdScheme.class.equals( enumKlass )
-            && IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
-        {
-            return Enums.getIfPresent( enumKlass, "ATTRIBUTE" ).orNull();
-        }
-
-        String value = String.valueOf( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
-
-        return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
+  private static String getAttributeUidOrNull(
+      Map<String, List<String>> parameters, TrackerImportParamKey trackerImportParamKey) {
+    if (parameters == null
+        || parameters.get(trackerImportParamKey.getKey()) == null
+        || parameters.get(trackerImportParamKey.getKey()).isEmpty()) {
+      return null;
     }
 
-    public static TrackerIdSchemeParams getTrackerIdentifiers( Map<String, List<String>> parameters )
-    {
-        TrackerIdSchemeParam idScheme = globalIdScheme( parameters );
+    if (IdScheme.isAttribute(parameters.get(trackerImportParamKey.getKey()).get(0))) {
+      String uid = "";
 
-        return TrackerIdSchemeParams.builder()
-            .idScheme( idScheme )
-            .orgUnitIdScheme( idScheme( parameters, ORG_UNIT_ID_SCHEME_KEY, idScheme ) )
-            .programIdScheme( idScheme( parameters, PROGRAM_ID_SCHEME_KEY, idScheme ) )
-            .programStageIdScheme( idScheme( parameters, PROGRAM_STAGE_ID_SCHEME_KEY, idScheme ) )
-            .dataElementIdScheme( idScheme( parameters, DATA_ELEMENT_ID_SCHEME_KEY, idScheme ) )
-            .categoryOptionComboIdScheme( idScheme( parameters, CATEGORY_OPTION_COMBO_ID_SCHEME_KEY, idScheme ) )
-            .categoryOptionIdScheme( idScheme( parameters, CATEGORY_OPTION_ID_SCHEME_KEY, idScheme ) )
-            .build();
+      // Get second half of string, separated by ':'
+      String[] splitParam = parameters.get(trackerImportParamKey.getKey()).get(0).split(":");
+
+      if (splitParam.length > 1) {
+        uid = splitParam[1];
+      }
+
+      if (CodeGenerator.isValidUid(uid)) {
+        return uid;
+      }
     }
 
-    private static Boolean getBooleanValueOrDefault( Map<String, List<String>> parameters,
-        TrackerImportParamKey trackerImportParamKey )
-    {
-        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
-            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
-        {
-            return false;
-        }
+    return null;
+  }
 
-        return BooleanUtils.toBooleanObject( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) );
+  /**
+   * Extracts the "global" idScheme from the request parameters. Global meaning the idScheme that
+   * will be defaulted to for each metadata type if no metadata specific idScheme parameter like
+   * "programIdScheme" has been given.
+   *
+   * @param parameters request parameters
+   * @return tracker id scheme parameter
+   */
+  private static TrackerIdSchemeParam globalIdScheme(Map<String, List<String>> parameters) {
+    TrackerIdScheme trackerIdScheme =
+        getEnumWithDefault(TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID);
+
+    return TrackerIdSchemeParam.of(
+        trackerIdScheme, getAttributeUidOrNull(parameters, ID_SCHEME_KEY));
+  }
+
+  private static TrackerIdSchemeParam idScheme(
+      Map<String, List<String>> parameters,
+      TrackerImportParamKey parameterKey,
+      TrackerIdSchemeParam defaultIdSchemeParam) {
+
+    if (parameters == null
+        || parameters.get(parameterKey.getKey()) == null
+        || parameters.get(parameterKey.getKey()).isEmpty()) {
+      return defaultIdSchemeParam;
     }
 
-    private static String getAttributeUidOrNull( Map<String, List<String>> parameters,
-        TrackerImportParamKey trackerImportParamKey )
-    {
-        if ( parameters == null || parameters.get( trackerImportParamKey.getKey() ) == null
-            || parameters.get( trackerImportParamKey.getKey() ).isEmpty() )
-        {
-            return null;
-        }
+    TrackerIdScheme trackerIdScheme =
+        getEnumWithDefault(
+            TrackerIdScheme.class, parameters, parameterKey, defaultIdSchemeParam.getIdScheme());
 
-        if ( IdScheme.isAttribute( parameters.get( trackerImportParamKey.getKey() ).get( 0 ) ) )
-        {
-            String uid = "";
-
-            // Get second half of string, separated by ':'
-            String[] splitParam = parameters.get( trackerImportParamKey.getKey() ).get( 0 ).split( ":" );
-
-            if ( splitParam.length > 1 )
-            {
-                uid = splitParam[1];
-            }
-
-            if ( CodeGenerator.isValidUid( uid ) )
-            {
-                return uid;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Extracts the "global" idScheme from the request parameters. Global
-     * meaning the idScheme that will be defaulted to for each metadata type if
-     * no metadata specific idScheme parameter like "programIdScheme" has been
-     * given.
-     *
-     * @param parameters request parameters
-     * @return tracker id scheme parameter
-     */
-    private static TrackerIdSchemeParam globalIdScheme( Map<String, List<String>> parameters )
-    {
-        TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, ID_SCHEME_KEY, UID );
-
-        return TrackerIdSchemeParam.of( trackerIdScheme, getAttributeUidOrNull( parameters, ID_SCHEME_KEY ) );
-    }
-
-    private static TrackerIdSchemeParam idScheme( Map<String, List<String>> parameters,
-        TrackerImportParamKey parameterKey, TrackerIdSchemeParam defaultIdSchemeParam )
-    {
-
-        if ( parameters == null || parameters.get( parameterKey.getKey() ) == null
-            || parameters.get( parameterKey.getKey() ).isEmpty() )
-        {
-            return defaultIdSchemeParam;
-        }
-
-        TrackerIdScheme trackerIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
-            parameterKey, defaultIdSchemeParam.getIdScheme() );
-
-        return TrackerIdSchemeParam.of( trackerIdScheme, getAttributeUidOrNull( parameters, parameterKey ) );
-    }
+    return TrackerIdSchemeParam.of(
+        trackerIdScheme, getAttributeUidOrNull(parameters, parameterKey));
+  }
 }

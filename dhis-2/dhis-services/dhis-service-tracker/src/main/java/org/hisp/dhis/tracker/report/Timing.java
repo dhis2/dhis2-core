@@ -27,29 +27,22 @@
  */
 package org.hisp.dhis.tracker.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * This class is used for timing (performance) reports of the individual
- * validation hook.
+ * This class is used for timing (performance) reports of the individual validation hook.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class Timing
-{
-    @NonNull
-    @JsonProperty
-    public final String totalTime;
+public class Timing {
+  @NonNull @JsonProperty public final String totalTime;
 
-    @NonNull
-    @JsonProperty
-    public final String name;
+  @NonNull @JsonProperty public final String name;
 }

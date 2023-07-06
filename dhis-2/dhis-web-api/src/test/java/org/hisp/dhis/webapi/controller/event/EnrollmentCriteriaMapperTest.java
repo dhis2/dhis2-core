@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -57,111 +56,154 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class EnrollmentCriteriaMapperTest
-{
+@ExtendWith(MockitoExtension.class)
+class EnrollmentCriteriaMapperTest {
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Mock private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Mock
-    private TrackerAccessManager trackerAccessManager;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
-    @InjectMocks
-    private EnrollmentCriteriaMapper mapper;
+  @InjectMocks private EnrollmentCriteriaMapper mapper;
 
-    private static final String ORG_UNIT1 = "orgUnit1";
+  private static final String ORG_UNIT1 = "orgUnit1";
 
-    private static final String PROGRAM_UID = "programUid";
+  private static final String PROGRAM_UID = "programUid";
 
-    private static final String ENTITY_TYPE = "entityType";
+  private static final String ENTITY_TYPE = "entityType";
 
-    private static final String ENTITY_INSTANCE = "entityInstance";
+  private static final String ENTITY_INSTANCE = "entityInstance";
 
-    private Program program;
+  private Program program;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private User user;
+  private User user;
 
-    private TrackedEntityType trackedEntityType;
+  private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
+  private TrackedEntityInstance trackedEntityInstance;
 
-    @BeforeEach
-    void setUp()
-    {
-        program = new Program();
-        program.setUid( PROGRAM_UID );
+  @BeforeEach
+  void setUp() {
+    program = new Program();
+    program.setUid(PROGRAM_UID);
 
-        organisationUnit = new OrganisationUnit();
-        organisationUnit.setUid( ORG_UNIT1 );
+    organisationUnit = new OrganisationUnit();
+    organisationUnit.setUid(ORG_UNIT1);
 
-        user = new User();
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
+    user = new User();
+    when(currentUserService.getCurrentUser()).thenReturn(user);
 
-        trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setUid( ENTITY_TYPE );
+    trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid(ENTITY_TYPE);
 
-        trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( ENTITY_INSTANCE );
-    }
+    trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(ENTITY_INSTANCE);
+  }
 
-    @Test
-    void shouldMapCorrectlyWhenOrgUnitExistsAndUserInScope()
-        throws IllegalQueryException
-    {
-        Set<String> orgUnits = Set.of( ORG_UNIT1 );
-        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
-        when( organisationUnitService.getOrganisationUnit( ORG_UNIT1 ) ).thenReturn( organisationUnit );
-        when( trackerAccessManager.canAccess( user, program, organisationUnit ) ).thenReturn( true );
-        when( trackedEntityTypeService.getTrackedEntityType( ENTITY_TYPE ) ).thenReturn( trackedEntityType );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( ENTITY_INSTANCE ) )
-            .thenReturn( trackedEntityInstance );
+  @Test
+  void shouldMapCorrectlyWhenOrgUnitExistsAndUserInScope() throws IllegalQueryException {
+    Set<String> orgUnits = Set.of(ORG_UNIT1);
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
+    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(true);
+    when(trackedEntityTypeService.getTrackedEntityType(ENTITY_TYPE)).thenReturn(trackedEntityType);
+    when(trackedEntityInstanceService.getTrackedEntityInstance(ENTITY_INSTANCE))
+        .thenReturn(trackedEntityInstance);
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,
-            ProgramStatus.ACTIVE, null, null, ENTITY_TYPE, ENTITY_INSTANCE, false, 1, 1, false, false, false, null );
+    ProgramInstanceQueryParams params =
+        mapper.getFromUrl(
+            orgUnits,
+            DESCENDANTS,
+            null,
+            "lastUpdated",
+            PROGRAM_UID,
+            ProgramStatus.ACTIVE,
+            null,
+            null,
+            ENTITY_TYPE,
+            ENTITY_INSTANCE,
+            false,
+            1,
+            1,
+            false,
+            false,
+            false,
+            null);
 
-        assertNotEmpty( params.getOrganisationUnits() );
-        assertEquals( ORG_UNIT1, params.getOrganisationUnits().iterator().next().getUid() );
-        assertEquals( PROGRAM_UID, params.getProgram().getUid() );
-    }
+    assertNotEmpty(params.getOrganisationUnits());
+    assertEquals(ORG_UNIT1, params.getOrganisationUnits().iterator().next().getUid());
+    assertEquals(PROGRAM_UID, params.getProgram().getUid());
+  }
 
-    @Test
-    void shouldThrowExceptionWhenOrgUnitDoesNotExist()
-    {
-        Set<String> orgUnits = Set.of( ORG_UNIT1 );
-        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
+  @Test
+  void shouldThrowExceptionWhenOrgUnitDoesNotExist() {
+    Set<String> orgUnits = Set.of(ORG_UNIT1);
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
 
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID, ProgramStatus.ACTIVE,
-                null, null, "trackedEntityType", "trackedEntityInstance", false, 1, 1, false, false, false, null ) );
-        assertEquals( "Organisation unit does not exist: " + ORG_UNIT1, exception.getMessage() );
-    }
+    Exception exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () ->
+                mapper.getFromUrl(
+                    orgUnits,
+                    DESCENDANTS,
+                    null,
+                    "lastUpdated",
+                    PROGRAM_UID,
+                    ProgramStatus.ACTIVE,
+                    null,
+                    null,
+                    "trackedEntityType",
+                    "trackedEntityInstance",
+                    false,
+                    1,
+                    1,
+                    false,
+                    false,
+                    false,
+                    null));
+    assertEquals("Organisation unit does not exist: " + ORG_UNIT1, exception.getMessage());
+  }
 
-    @Test
-    void shouldThrowExceptionWhenOrgUnitNotInScope()
-    {
-        Set<String> orgUnits = Set.of( ORG_UNIT1 );
-        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
-        when( organisationUnitService.getOrganisationUnit( ORG_UNIT1 ) ).thenReturn( organisationUnit );
-        when( trackerAccessManager.canAccess( user, program, organisationUnit ) ).thenReturn( false );
+  @Test
+  void shouldThrowExceptionWhenOrgUnitNotInScope() {
+    Set<String> orgUnits = Set.of(ORG_UNIT1);
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnit(ORG_UNIT1)).thenReturn(organisationUnit);
+    when(trackerAccessManager.canAccess(user, program, organisationUnit)).thenReturn(false);
 
-        Exception exception = assertThrows( IllegalQueryException.class,
-            () -> mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID, ProgramStatus.ACTIVE,
-                null, null, "trackedEntityType", "trackedEntityInstance", false, 1, 1, false, false, false, null ) );
-        assertEquals( "User does not have access to organisation unit: " + ORG_UNIT1, exception.getMessage() );
-    }
+    Exception exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () ->
+                mapper.getFromUrl(
+                    orgUnits,
+                    DESCENDANTS,
+                    null,
+                    "lastUpdated",
+                    PROGRAM_UID,
+                    ProgramStatus.ACTIVE,
+                    null,
+                    null,
+                    "trackedEntityType",
+                    "trackedEntityInstance",
+                    false,
+                    1,
+                    1,
+                    false,
+                    false,
+                    false,
+                    null));
+    assertEquals(
+        "User does not have access to organisation unit: " + ORG_UNIT1, exception.getMessage());
+  }
 }

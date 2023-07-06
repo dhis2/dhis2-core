@@ -48,7 +48,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.DataItem;
@@ -71,103 +70,99 @@ import org.springframework.http.ResponseEntity;
  *
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class DataItemQueryControllerTest
-{
+@ExtendWith(MockitoExtension.class)
+class DataItemQueryControllerTest {
 
-    @Mock
-    private DataItemServiceFacade dataItemServiceFacade;
+  @Mock private DataItemServiceFacade dataItemServiceFacade;
 
-    @Mock
-    private ContextService contextService;
+  @Mock private ContextService contextService;
 
-    @Mock
-    private ResponseHandler responseHandler;
+  @Mock private ResponseHandler responseHandler;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    private DataItemQueryController dataItemQueryController;
+  private DataItemQueryController dataItemQueryController;
 
-    @BeforeEach
-    public void setUp()
-    {
-        dataItemQueryController = new DataItemQueryController( dataItemServiceFacade, contextService, responseHandler,
-            aclService );
-    }
+  @BeforeEach
+  public void setUp() {
+    dataItemQueryController =
+        new DataItemQueryController(
+            dataItemServiceFacade, contextService, responseHandler, aclService);
+  }
 
-    @Test
-    void testGetWithSuccess()
-    {
-        // Given
-        final Map<String, String> anyUrlParameters = new HashMap<>();
-        final OrderParams anyOrderParams = new OrderParams();
-        final User anyUser = new User();
-        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
-            singletonList( Indicator.class ) );
-        final List<DataItem> itemsFound = singletonList( new DataItem() );
+  @Test
+  void testGetWithSuccess() {
+    // Given
+    final Map<String, String> anyUrlParameters = new HashMap<>();
+    final OrderParams anyOrderParams = new OrderParams();
+    final User anyUser = new User();
+    final Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+        new HashSet<>(singletonList(Indicator.class));
+    final List<DataItem> itemsFound = singletonList(new DataItem());
 
-        // When
-        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
-        when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anySet(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
+    // When
+    when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
+    when(aclService.canRead(anyUser, Indicator.class)).thenReturn(true);
+    when(dataItemServiceFacade.retrieveDataItemEntities(
+            anySet(), anySet(), any(WebOptions.class), any(OrderParams.class)))
+        .thenReturn(itemsFound);
 
-        final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
-            anyOrderParams, anyUser );
+    final ResponseEntity<RootNode> actualResponse =
+        dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser);
 
-        // Then
-        assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( OK ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anySet() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anySet(), any(), any(),
-            anySet() );
-    }
+    // Then
+    assertThat(actualResponse, is(not(nullValue())));
+    assertThat(actualResponse.getStatusCode(), is(OK));
+    verify(responseHandler, times(1)).addResultsToNode(any(RootNode.class), anyList(), anySet());
+    verify(responseHandler, times(1))
+        .addPaginationToNode(any(RootNode.class), anySet(), any(), any(), anySet());
+  }
 
-    @Test
-    void testGetWhenItemsAreNotFound()
-    {
-        // Given
-        final Map<String, String> anyUrlParameters = new HashMap<>();
-        final OrderParams anyOrderParams = new OrderParams();
-        final User anyUser = new User();
-        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
-            singletonList( Indicator.class ) );
-        final List<DataItem> itemsFound = emptyList();
+  @Test
+  void testGetWhenItemsAreNotFound() {
+    // Given
+    final Map<String, String> anyUrlParameters = new HashMap<>();
+    final OrderParams anyOrderParams = new OrderParams();
+    final User anyUser = new User();
+    final Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+        new HashSet<>(singletonList(Indicator.class));
+    final List<DataItem> itemsFound = emptyList();
 
-        // When
-        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
-        when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anySet(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
+    // When
+    when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
+    when(aclService.canRead(anyUser, Indicator.class)).thenReturn(true);
+    when(dataItemServiceFacade.retrieveDataItemEntities(
+            anySet(), anySet(), any(WebOptions.class), any(OrderParams.class)))
+        .thenReturn(itemsFound);
 
-        final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
-            anyOrderParams, anyUser );
+    final ResponseEntity<RootNode> actualResponse =
+        dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser);
 
-        // Then
-        assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( OK ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anySet() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anySet(), any(), any(), anySet() );
-    }
+    // Then
+    assertThat(actualResponse, is(not(nullValue())));
+    assertThat(actualResponse.getStatusCode(), is(OK));
+    verify(responseHandler, times(1)).addResultsToNode(any(), anyList(), anySet());
+    verify(responseHandler, times(1)).addPaginationToNode(any(), anySet(), any(), any(), anySet());
+  }
 
-    @Test
-    void testGetWhenAclIsInvalid()
-    {
-        // Given
-        final Map<String, String> anyUrlParameters = new HashMap<>();
-        final OrderParams anyOrderParams = new OrderParams();
-        final User anyUser = new User();
-        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
-            singletonList( Indicator.class ) );
-        final boolean invalidAcl = false;
+  @Test
+  void testGetWhenAclIsInvalid() {
+    // Given
+    final Map<String, String> anyUrlParameters = new HashMap<>();
+    final OrderParams anyOrderParams = new OrderParams();
+    final User anyUser = new User();
+    final Set<Class<? extends BaseIdentifiableObject>> targetEntities =
+        new HashSet<>(singletonList(Indicator.class));
+    final boolean invalidAcl = false;
 
-        // When
-        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
+    // When
+    when(dataItemServiceFacade.extractTargetEntities(anySet())).thenReturn(targetEntities);
+    when(aclService.canRead(anyUser, Indicator.class)).thenReturn(invalidAcl);
 
-        final IllegalQueryException ex = assertThrows( IllegalQueryException.class,
-            () -> dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser ) );
-        assertThat( ex.getMessage(), containsString( "does not have read access for object" ) );
-    }
+    final IllegalQueryException ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> dataItemQueryController.getJson(anyUrlParameters, anyOrderParams, anyUser));
+    assertThat(ex.getMessage(), containsString("does not have read access for object"));
+  }
 }

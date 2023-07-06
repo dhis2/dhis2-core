@@ -34,27 +34,37 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleController} using (mocked) REST
+ * requests.
  *
  * @author Jan Bernitt
  */
-class ProgramRuleControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramRuleControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testValidateCondition()
-    {
-        String pId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-        assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/programRules/condition/description?programId=" + pId, "1 != 1" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testValidateCondition() {
+    String pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Valid",
+        POST("/programRules/condition/description?programId=" + pId, "1 != 1")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testValidateCondition_NoSuchProgram()
-    {
-        assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
-            POST( "/programRules/condition/description?programId=xyz", "1 != 1" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testValidateCondition_NoSuchProgram() {
+    assertWebMessage(
+        "OK",
+        200,
+        "ERROR",
+        "Expression is not valid",
+        POST("/programRules/condition/description?programId=xyz", "1 != 1").content(HttpStatus.OK));
+  }
 }

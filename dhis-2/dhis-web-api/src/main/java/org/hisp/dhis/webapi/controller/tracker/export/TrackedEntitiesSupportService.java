@@ -31,11 +31,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
@@ -56,88 +54,82 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-class TrackedEntitiesSupportService
-{
-    @NonNull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+class TrackedEntitiesSupportService {
+  @NonNull private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @NonNull
-    private final CurrentUserService currentUserService;
+  @NonNull private final CurrentUserService currentUserService;
 
-    @NonNull
-    private final ProgramService programService;
+  @NonNull private final ProgramService programService;
 
-    @NonNull
-    private final TrackerAccessManager trackerAccessManager;
+  @NonNull private final TrackerAccessManager trackerAccessManager;
 
-    @NonNull
-    private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
+  @NonNull private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
 
-    @NonNull
-    private final TrackedEntityTypeService trackedEntityTypeService;
+  @NonNull private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @SneakyThrows
-    public TrackedEntityInstance getTrackedEntityInstance( String id, String pr,
-        TrackedEntityInstanceParams trackedEntityInstanceParams )
-    {
-        User user = currentUserService.getCurrentUser();
+  @SneakyThrows
+  public TrackedEntityInstance getTrackedEntityInstance(
+      String id, String pr, TrackedEntityInstanceParams trackedEntityInstanceParams) {
+    User user = currentUserService.getCurrentUser();
 
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
-            trackedEntityInstanceParams );
+    TrackedEntityInstance trackedEntityInstance =
+        trackedEntityInstanceService.getTrackedEntityInstance(id, trackedEntityInstanceParams);
 
-        if ( trackedEntityInstance == null )
-        {
-            throw new NotFoundException( "TrackedEntityInstance", id );
-        }
-
-        if ( pr != null )
-        {
-            Program program = programService.getProgram( pr );
-
-            if ( program == null )
-            {
-                throw new NotFoundException( "Program", pr );
-            }
-
-            List<String> errors = trackerAccessManager.canRead( user,
-                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program,
-                false );
-
-            if ( !errors.isEmpty() )
-            {
-                if ( program.getAccessLevel() == AccessLevel.CLOSED )
-                {
-                    throw new WebMessageException(
-                        unauthorized( TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED ) );
-                }
-                throw new WebMessageException(
-                    unauthorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
-            }
-
-            if ( trackedEntityInstanceParams.isIncludeProgramOwners() )
-            {
-                List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream()
-                    .filter( tei -> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
-                trackedEntityInstance.setProgramOwners( filteredProgramOwners );
-            }
-        }
-        else
-        {
-            // return only tracked entity type attributes
-
-            TrackedEntityType trackedEntityType = trackedEntityTypeService
-                .getTrackedEntityType( trackedEntityInstance.getTrackedEntityType() );
-
-            if ( trackedEntityType != null )
-            {
-                List<String> tetAttributes = trackedEntityType.getTrackedEntityAttributes().stream()
-                    .map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
-
-                trackedEntityInstance.setAttributes( trackedEntityInstance.getAttributes().stream()
-                    .filter( att -> tetAttributes.contains( att.getAttribute() ) ).collect( Collectors.toList() ) );
-            }
-        }
-
-        return trackedEntityInstance;
+    if (trackedEntityInstance == null) {
+      throw new NotFoundException("TrackedEntityInstance", id);
     }
+
+    if (pr != null) {
+      Program program = programService.getProgram(pr);
+
+      if (program == null) {
+        throw new NotFoundException("Program", pr);
+      }
+
+      List<String> errors =
+          trackerAccessManager.canRead(
+              user,
+              instanceService.getTrackedEntityInstance(
+                  trackedEntityInstance.getTrackedEntityInstance()),
+              program,
+              false);
+
+      if (!errors.isEmpty()) {
+        if (program.getAccessLevel() == AccessLevel.CLOSED) {
+          throw new WebMessageException(
+              unauthorized(TrackerOwnershipManager.PROGRAM_ACCESS_CLOSED));
+        }
+        throw new WebMessageException(
+            unauthorized(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED));
+      }
+
+      if (trackedEntityInstanceParams.isIncludeProgramOwners()) {
+        List<ProgramOwner> filteredProgramOwners =
+            trackedEntityInstance.getProgramOwners().stream()
+                .filter(tei -> tei.getProgram().equals(pr))
+                .collect(Collectors.toList());
+        trackedEntityInstance.setProgramOwners(filteredProgramOwners);
+      }
+    } else {
+      // return only tracked entity type attributes
+
+      TrackedEntityType trackedEntityType =
+          trackedEntityTypeService.getTrackedEntityType(
+              trackedEntityInstance.getTrackedEntityType());
+
+      if (trackedEntityType != null) {
+        List<String> tetAttributes =
+            trackedEntityType.getTrackedEntityAttributes().stream()
+                .map(TrackedEntityAttribute::getUid)
+                .collect(Collectors.toList());
+
+        trackedEntityInstance.setAttributes(
+            trackedEntityInstance.getAttributes().stream()
+                .filter(att -> tetAttributes.contains(att.getAttribute()))
+                .collect(Collectors.toList()));
+      }
+    }
+
+    return trackedEntityInstance;
+  }
 }

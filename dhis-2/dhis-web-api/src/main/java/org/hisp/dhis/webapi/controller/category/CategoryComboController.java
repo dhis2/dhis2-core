@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Objects;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -52,68 +51,56 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = CategoryComboSchemaDescriptor.API_ENDPOINT )
-public class CategoryComboController
-    extends AbstractCrudController<CategoryCombo>
-{
-    @Autowired
-    private CategoryService categoryService;
+@RequestMapping(value = CategoryComboSchemaDescriptor.API_ENDPOINT)
+public class CategoryComboController extends AbstractCrudController<CategoryCombo> {
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private DataValueService dataValueService;
+  @Autowired private DataValueService dataValueService;
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<MetadataExportParams> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException
-    {
-        CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<MetadataExportParams> getDataSetWithDependencies(
+      @PathVariable("uid") String pvUid,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException {
+    CategoryCombo categoryCombo = categoryService.getCategoryCombo(pvUid);
 
-        if ( categoryCombo == null )
-        {
-            throw new WebMessageException( notFound( "CategoryCombo not found for uid: " + pvUid ) );
-        }
-
-        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        exportService.validate( exportParams );
-        exportParams.setObjectExportWithDependencies( categoryCombo );
-
-        return ResponseEntity.ok( exportParams );
+    if (categoryCombo == null) {
+      throw new WebMessageException(notFound("CategoryCombo not found for uid: " + pvUid));
     }
 
-    @Override
-    protected void preUpdateEntity( CategoryCombo entity, CategoryCombo newEntity )
-        throws Exception
-    {
-        checkNoDataValueBecomesInaccessible( entity, newEntity );
-    }
+    MetadataExportParams exportParams =
+        exportService.getParamsFromMap(contextService.getParameterValuesMap());
+    exportService.validate(exportParams);
+    exportParams.setObjectExportWithDependencies(categoryCombo);
 
-    @Override
-    protected void prePatchEntity( CategoryCombo entity, CategoryCombo newEntity )
-        throws Exception
-    {
-        checkNoDataValueBecomesInaccessible( entity, newEntity );
-    }
+    return ResponseEntity.ok(exportParams);
+  }
 
-    private void checkNoDataValueBecomesInaccessible( CategoryCombo entity, CategoryCombo newEntity )
-        throws WebMessageException
-    {
-        if ( !Objects.equals( entity.getCategories(), newEntity.getCategories() )
-            && dataValueService.dataValueExists( entity ) )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E1120 ) );
-        }
-    }
+  @Override
+  protected void preUpdateEntity(CategoryCombo entity, CategoryCombo newEntity) throws Exception {
+    checkNoDataValueBecomesInaccessible(entity, newEntity);
+  }
 
-    @Override
-    public void postCreateEntity( CategoryCombo categoryCombo )
-    {
-        categoryService.updateOptionCombos( categoryCombo );
-    }
+  @Override
+  protected void prePatchEntity(CategoryCombo entity, CategoryCombo newEntity) throws Exception {
+    checkNoDataValueBecomesInaccessible(entity, newEntity);
+  }
 
-    @Override
-    public void postUpdateEntity( CategoryCombo categoryCombo )
-    {
-        categoryService.updateOptionCombos( categoryCombo );
+  private void checkNoDataValueBecomesInaccessible(CategoryCombo entity, CategoryCombo newEntity)
+      throws WebMessageException {
+    if (!Objects.equals(entity.getCategories(), newEntity.getCategories())
+        && dataValueService.dataValueExists(entity)) {
+      throw new WebMessageException(conflict(ErrorCode.E1120));
     }
+  }
+
+  @Override
+  public void postCreateEntity(CategoryCombo categoryCombo) {
+    categoryService.updateOptionCombos(categoryCombo);
+  }
+
+  @Override
+  public void postUpdateEntity(CategoryCombo categoryCombo) {
+    categoryService.updateOptionCombos(categoryCombo);
+  }
 }

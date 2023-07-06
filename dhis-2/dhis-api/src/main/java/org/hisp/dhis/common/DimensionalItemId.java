@@ -31,221 +31,196 @@ import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 
+import com.google.common.base.MoreObjects;
 import java.util.Objects;
 
-import com.google.common.base.MoreObjects;
-
 /**
- * Holds the DimensionItemType of a DimensionalItemObject, and the identifier
- * strings of the objects that that make up the DimensionalItemObject
+ * Holds the DimensionItemType of a DimensionalItemObject, and the identifier strings of the objects
+ * that that make up the DimensionalItemObject
  *
  * @author Jim Grace
  */
-public class DimensionalItemId
-{
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
+public class DimensionalItemId {
+  // -------------------------------------------------------------------------
+  // Properties
+  // -------------------------------------------------------------------------
 
-    /**
-     * The type of DimensionalItemObject whose ids we have
-     */
-    private final DimensionItemType dimensionItemType;
+  /** The type of DimensionalItemObject whose ids we have */
+  private final DimensionItemType dimensionItemType;
 
-    /**
-     * The first id for the DimensionalItemObject
-     */
-    private final String id0;
+  /** The first id for the DimensionalItemObject */
+  private final String id0;
 
-    /**
-     * The second id (if any) for the DimensionalItemObject
-     */
-    private String id1;
+  /** The second id (if any) for the DimensionalItemObject */
+  private String id1;
 
-    /**
-     * The third id (if any) for the DimensionalItemObject
-     */
-    private String id2;
+  /** The third id (if any) for the DimensionalItemObject */
+  private String id2;
 
-    /**
-     * The item as parsed from the expression
-     */
-    private String item;
+  /** The item as parsed from the expression */
+  private String item;
 
-    /**
-     * The query modifiers
-     */
-    private QueryModifiers queryMods;
+  /** The query modifiers */
+  private QueryModifiers queryMods;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0 )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
+  public DimensionalItemId(DimensionItemType dimensionItemType, String id0) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+  }
+
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType, String id0, QueryModifiers queryMods) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.queryMods = queryMods;
+  }
+
+  public DimensionalItemId(DimensionItemType dimensionItemType, String id0, String id1) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+  }
+
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType, String id0, String id1, String id2) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+    this.id2 = id2;
+  }
+
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType, String id0, String id1, String id2, String item) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+    this.id2 = id2;
+    this.item = item;
+  }
+
+  public DimensionalItemId(
+      DimensionItemType dimensionItemType,
+      String id0,
+      String id1,
+      String id2,
+      String item,
+      QueryModifiers queryMods) {
+    this.dimensionItemType = dimensionItemType;
+    this.id0 = id0;
+    this.id1 = id1;
+    this.id2 = id2;
+    this.item = item;
+    this.queryMods = queryMods;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public boolean hasValidIds() {
+    switch (dimensionItemType) {
+      case DATA_ELEMENT:
+      case INDICATOR:
+      case PROGRAM_INDICATOR:
+        return id0 != null && id1 == null && id2 == null;
+
+      case DATA_ELEMENT_OPERAND:
+        return id0 != null && (id1 != null || id2 != null);
+
+      case REPORTING_RATE:
+        return id0 != null
+            && id1 != null
+            && id2 == null
+            && isValidEnum(ReportingRateMetric.class, id1);
+
+      case PROGRAM_DATA_ELEMENT:
+      case PROGRAM_ATTRIBUTE:
+        return id0 != null && id1 != null && id2 == null;
+
+      default:
+        return false;
+    }
+  }
+
+  public boolean isDataElementOrOperand() {
+    return dimensionItemType == DATA_ELEMENT || dimensionItemType == DATA_ELEMENT_OPERAND;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode, equals and toString
+  // -------------------------------------------------------------------------
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, QueryModifiers queryMods )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.queryMods = queryMods;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1 )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-    }
+    DimensionalItemId that = (DimensionalItemId) o;
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2 )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-        this.id2 = id2;
-    }
+    return Objects.equals(this.dimensionItemType, that.dimensionItemType)
+        && Objects.equals(this.id0, that.id0)
+        && Objects.equals(this.id1, that.id1)
+        && Objects.equals(this.id2, that.id2)
+        && Objects.equals(this.queryMods, that.queryMods);
+  }
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2, String item )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-        this.id2 = id2;
-        this.item = item;
-    }
+  @Override
+  public int hashCode() {
+    int result = dimensionItemType.hashCode();
 
-    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2, String item,
-        QueryModifiers queryMods )
-    {
-        this.dimensionItemType = dimensionItemType;
-        this.id0 = id0;
-        this.id1 = id1;
-        this.id2 = id2;
-        this.item = item;
-        this.queryMods = queryMods;
-    }
+    result = 31 * result + (id0 == null ? 0 : id0.hashCode());
+    result = 31 * result + (id1 == null ? 0 : id1.hashCode());
+    result = 31 * result + (id2 == null ? 0 : id2.hashCode());
+    result = 31 * result + (queryMods == null ? 0 : queryMods.hashCode());
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return result;
+  }
 
-    public boolean hasValidIds()
-    {
-        switch ( dimensionItemType )
-        {
-        case DATA_ELEMENT:
-        case INDICATOR:
-        case PROGRAM_INDICATOR:
-            return id0 != null && id1 == null && id2 == null;
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("dimensionItemType", dimensionItemType)
+        .add("id0", id0)
+        .add("id1", id1)
+        .add("id2", id2)
+        .add("queryMods", queryMods)
+        .toString();
+  }
 
-        case DATA_ELEMENT_OPERAND:
-            return id0 != null && (id1 != null || id2 != null);
+  // -------------------------------------------------------------------------
+  // Getters
+  // -------------------------------------------------------------------------
 
-        case REPORTING_RATE:
-            return id0 != null && id1 != null && id2 == null
-                && isValidEnum( ReportingRateMetric.class, id1 );
+  public DimensionItemType getDimensionItemType() {
+    return dimensionItemType;
+  }
 
-        case PROGRAM_DATA_ELEMENT:
-        case PROGRAM_ATTRIBUTE:
-            return id0 != null && id1 != null && id2 == null;
+  public String getId0() {
+    return id0;
+  }
 
-        default:
-            return false;
-        }
-    }
+  public String getId1() {
+    return id1;
+  }
 
-    public boolean isDataElementOrOperand()
-    {
-        return dimensionItemType == DATA_ELEMENT
-            || dimensionItemType == DATA_ELEMENT_OPERAND;
-    }
+  public String getId2() {
+    return id2;
+  }
 
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
+  public QueryModifiers getQueryMods() {
+    return queryMods;
+  }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        DimensionalItemId that = (DimensionalItemId) o;
-
-        return Objects.equals( this.dimensionItemType, that.dimensionItemType )
-            && Objects.equals( this.id0, that.id0 )
-            && Objects.equals( this.id1, that.id1 )
-            && Objects.equals( this.id2, that.id2 )
-            && Objects.equals( this.queryMods, that.queryMods );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int result = dimensionItemType.hashCode();
-
-        result = 31 * result + (id0 == null ? 0 : id0.hashCode());
-        result = 31 * result + (id1 == null ? 0 : id1.hashCode());
-        result = 31 * result + (id2 == null ? 0 : id2.hashCode());
-        result = 31 * result + (queryMods == null ? 0 : queryMods.hashCode());
-
-        return result;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "dimensionItemType", dimensionItemType )
-            .add( "id0", id0 )
-            .add( "id1", id1 )
-            .add( "id2", id2 )
-            .add( "queryMods", queryMods )
-            .toString();
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters
-    // -------------------------------------------------------------------------
-
-    public DimensionItemType getDimensionItemType()
-    {
-        return dimensionItemType;
-    }
-
-    public String getId0()
-    {
-        return id0;
-    }
-
-    public String getId1()
-    {
-        return id1;
-    }
-
-    public String getId2()
-    {
-        return id2;
-    }
-
-    public QueryModifiers getQueryMods()
-    {
-        return queryMods;
-    }
-
-    public String getItem()
-    {
-        return item;
-    }
+  public String getItem() {
+    return item;
+  }
 }

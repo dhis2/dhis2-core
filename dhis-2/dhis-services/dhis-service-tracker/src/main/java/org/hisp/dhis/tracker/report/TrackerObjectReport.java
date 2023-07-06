@@ -27,106 +27,85 @@
  */
 package org.hisp.dhis.tracker.report;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Data;
-
 import org.hisp.dhis.tracker.TrackerType;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-public class TrackerObjectReport
-{
-    /**
-     * Type of object this {@link TrackerObjectReport} represents.
-     */
-    @JsonProperty
-    private final TrackerType trackerType;
+public class TrackerObjectReport {
+  /** Type of object this {@link TrackerObjectReport} represents. */
+  @JsonProperty private final TrackerType trackerType;
 
-    /**
-     * Index into list.
-     */
-    @JsonProperty
-    private Integer index;
+  /** Index into list. */
+  @JsonProperty private Integer index;
 
-    /**
-     * UID of object (if object is id object).
-     */
-    @JsonProperty
-    private String uid;
+  /** UID of object (if object is id object). */
+  @JsonProperty private String uid;
 
-    private Map<TrackerErrorCode, List<TrackerErrorReport>> errorReportsByCode = new HashMap<>();
+  private Map<TrackerErrorCode, List<TrackerErrorReport>> errorReportsByCode = new HashMap<>();
 
-    public TrackerObjectReport( TrackerType trackerType )
-    {
-        this.trackerType = trackerType;
-    }
+  public TrackerObjectReport(TrackerType trackerType) {
+    this.trackerType = trackerType;
+  }
 
-    public TrackerObjectReport( TrackerType trackerType, String uid, Integer index )
-    {
-        this.trackerType = trackerType;
-        this.uid = uid;
-        this.index = index;
-    }
+  public TrackerObjectReport(TrackerType trackerType, String uid, Integer index) {
+    this.trackerType = trackerType;
+    this.uid = uid;
+    this.index = index;
+  }
 
-    @JsonCreator
-    public TrackerObjectReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
-        @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
-        @JsonProperty( "errorReports" ) List<TrackerErrorReport> errorReports )
-    {
-        this.trackerType = trackerType;
-        this.uid = uid;
-        this.index = index;
-        if ( errorReports != null )
-        {
-            List<TrackerErrorReport> errorCodeReportList;
-            for ( TrackerErrorReport errorReport : errorReports )
-            {
-                errorCodeReportList = this.errorReportsByCode.get( errorReport.getErrorCode() );
+  @JsonCreator
+  public TrackerObjectReport(
+      @JsonProperty("trackerType") TrackerType trackerType,
+      @JsonProperty("uid") String uid,
+      @JsonProperty("index") Integer index,
+      @JsonProperty("errorReports") List<TrackerErrorReport> errorReports) {
+    this.trackerType = trackerType;
+    this.uid = uid;
+    this.index = index;
+    if (errorReports != null) {
+      List<TrackerErrorReport> errorCodeReportList;
+      for (TrackerErrorReport errorReport : errorReports) {
+        errorCodeReportList = this.errorReportsByCode.get(errorReport.getErrorCode());
 
-                if ( errorCodeReportList == null )
-                {
-                    errorCodeReportList = new ArrayList<>();
-                }
-                errorCodeReportList.add( errorReport );
-                this.errorReportsByCode.put( errorReport.getErrorCode(), errorCodeReportList );
-            }
+        if (errorCodeReportList == null) {
+          errorCodeReportList = new ArrayList<>();
         }
+        errorCodeReportList.add(errorReport);
+        this.errorReportsByCode.put(errorReport.getErrorCode(), errorCodeReportList);
+      }
     }
+  }
 
-    @JsonProperty
-    public List<TrackerErrorReport> getErrorReports()
-    {
-        List<TrackerErrorReport> errorReports = new ArrayList<>();
-        errorReportsByCode.values().forEach( errorReports::addAll );
+  @JsonProperty
+  public List<TrackerErrorReport> getErrorReports() {
+    List<TrackerErrorReport> errorReports = new ArrayList<>();
+    errorReportsByCode.values().forEach(errorReports::addAll);
 
-        return errorReports;
-    }
+    return errorReports;
+  }
 
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------
+  // Utility Methods
+  // -----------------------------------------------------------------------------------
 
-    public boolean isEmpty()
-    {
-        return errorReportsByCode.isEmpty();
-    }
+  public boolean isEmpty() {
+    return errorReportsByCode.isEmpty();
+  }
 
-    public int size()
-    {
-        return errorReportsByCode.size();
-    }
+  public int size() {
+    return errorReportsByCode.size();
+  }
 
-    public List<TrackerErrorCode> getErrorCodes()
-    {
-        return new ArrayList<>( errorReportsByCode.keySet() );
-    }
+  public List<TrackerErrorCode> getErrorCodes() {
+    return new ArrayList<>(errorReportsByCode.keySet());
+  }
 }

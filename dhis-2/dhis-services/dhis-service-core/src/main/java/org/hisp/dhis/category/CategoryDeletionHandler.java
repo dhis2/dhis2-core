@@ -28,7 +28,6 @@
 package org.hisp.dhis.category;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -38,32 +37,26 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class CategoryDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class CategoryDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(CategoryOption.class, this::deleteCategoryOption);
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+  }
 
-    private void deleteCategoryOption( CategoryOption categoryOption )
-    {
-        for ( Category category : categoryOption.getCategories() )
-        {
-            category.getCategoryOptions().remove( categoryOption );
-            idObjectManager.updateNoAcl( category );
-        }
+  private void deleteCategoryOption(CategoryOption categoryOption) {
+    for (Category category : categoryOption.getCategories()) {
+      category.getCategoryOptions().remove(categoryOption);
+      idObjectManager.updateNoAcl(category);
     }
+  }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        for ( Category category : categoryCombo.getCategories() )
-        {
-            category.getCategoryCombos().remove( categoryCombo );
-            idObjectManager.updateNoAcl( category );
-        }
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    for (Category category : categoryCombo.getCategories()) {
+      category.getCategoryCombos().remove(categoryCombo);
+      idObjectManager.updateNoAcl(category);
     }
+  }
 }

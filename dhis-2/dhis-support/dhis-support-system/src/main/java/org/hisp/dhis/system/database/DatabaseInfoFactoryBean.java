@@ -35,34 +35,28 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "databaseInfo" )
-public class DatabaseInfoFactoryBean
-    implements FactoryBean<DatabaseInfo>
-{
-    private final DatabaseInfoProvider databaseInfoProvider;
+@Component("databaseInfo")
+public class DatabaseInfoFactoryBean implements FactoryBean<DatabaseInfo> {
+  private final DatabaseInfoProvider databaseInfoProvider;
 
-    public DatabaseInfoFactoryBean( DatabaseInfoProvider databaseInfoProvider )
-    {
-        checkNotNull( databaseInfoProvider );
+  public DatabaseInfoFactoryBean(DatabaseInfoProvider databaseInfoProvider) {
+    checkNotNull(databaseInfoProvider);
 
-        this.databaseInfoProvider = databaseInfoProvider;
-    }
+    this.databaseInfoProvider = databaseInfoProvider;
+  }
 
-    @Override
-    public DatabaseInfo getObject()
-    {
-        return databaseInfoProvider.getDatabaseInfo();
-    }
+  @Override
+  public DatabaseInfo getObject() {
+    return databaseInfoProvider.getDatabaseInfo();
+  }
 
-    @Override
-    public Class<?> getObjectType()
-    {
-        return DatabaseInfo.class;
-    }
+  @Override
+  public Class<?> getObjectType() {
+    return DatabaseInfo.class;
+  }
 
-    @Override
-    public boolean isSingleton()
-    {
-        return true;
-    }
+  @Override
+  public boolean isSingleton() {
+    return true;
+  }
 }

@@ -29,86 +29,71 @@ package org.hisp.dhis.helpers;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.tuple.MutablePair;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class QueryParamsBuilder
-{
-    List<MutablePair<String, String>> queryParams;
+public class QueryParamsBuilder {
+  List<MutablePair<String, String>> queryParams;
 
-    public QueryParamsBuilder()
-    {
-        queryParams = new ArrayList<>();
+  public QueryParamsBuilder() {
+    queryParams = new ArrayList<>();
+  }
+
+  public QueryParamsBuilder add(String param, String value) {
+    return this.add(param + "=" + value);
+  }
+
+  /**
+   * Adds or updates the query param. Format: key=value
+   *
+   * @param param
+   * @return
+   */
+  public QueryParamsBuilder add(String param) {
+    String[] split = param.split("=");
+    MutablePair pair = getByKey(split[0]);
+
+    if (pair != null && !pair.getKey().equals("filter")) {
+      pair.setRight(split[1]);
+      return this;
     }
 
-    public QueryParamsBuilder add( String param, String value )
-    {
-        return this.add( param + "=" + value );
+    queryParams.add(MutablePair.of(split[0], split[1]));
+
+    return this;
+  }
+
+  public QueryParamsBuilder addAll(String... params) {
+    for (String param : params) {
+      this.add(param);
     }
 
-    /**
-     * Adds or updates the query param. Format: key=value
-     *
-     * @param param
-     * @return
-     */
-    public QueryParamsBuilder add( String param )
-    {
-        String[] split = param.split( "=" );
-        MutablePair pair = getByKey( split[0] );
+    return this;
+  }
 
-        if ( pair != null && !pair.getKey().equals( "filter" ) )
-        {
-            pair.setRight( split[1] );
-            return this;
-        }
+  private MutablePair getByKey(String key) {
+    return queryParams.stream().filter(p -> p.getLeft().equals(key)).findFirst().orElse(null);
+  }
 
-        queryParams.add( MutablePair.of( split[0], split[1] ) );
-
-        return this;
+  public String build() {
+    if (queryParams.size() == 0) {
+      return "";
     }
 
-    public QueryParamsBuilder addAll( String... params )
-    {
-        for ( String param : params )
-        {
-            this.add( param );
-        }
+    StringBuilder builder = new StringBuilder();
+    builder.append("?");
 
-        return this;
+    for (int i = 0; i < queryParams.size(); i++) {
+      builder.append(
+          String.format("%s=%s", queryParams.get(i).getLeft(), queryParams.get(i).getRight()));
+
+      if (i != queryParams.size() - 1) {
+        builder.append("&");
+      }
     }
 
-    private MutablePair getByKey( String key )
-    {
-        return queryParams.stream()
-            .filter( p -> p.getLeft().equals( key ) )
-            .findFirst()
-            .orElse( null );
-    }
-
-    public String build()
-    {
-        if ( queryParams.size() == 0 )
-        {
-            return "";
-        }
-
-        StringBuilder builder = new StringBuilder();
-        builder.append( "?" );
-
-        for ( int i = 0; i < queryParams.size(); i++ )
-        {
-            builder.append( String.format( "%s=%s", queryParams.get( i ).getLeft(), queryParams.get( i ).getRight() ) );
-
-            if ( i != queryParams.size() - 1 )
-            {
-                builder.append( "&" );
-            }
-        }
-
-        return builder.toString();
-    }
+    return builder.toString();
+  }
 }

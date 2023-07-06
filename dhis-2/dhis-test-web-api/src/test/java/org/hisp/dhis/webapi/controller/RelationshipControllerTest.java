@@ -39,50 +39,63 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.event.RelationshipController} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.RelationshipController} using (mocked)
+ * REST requests.
  *
  * @author Jan Bernitt
  */
-class RelationshipControllerTest extends DhisControllerConvenienceTest
-{
+class RelationshipControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPostRelationshipJson()
-    {
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/relationships/", "{'relationships':[]}" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostRelationshipJson() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        POST("/relationships/", "{'relationships':[]}").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostRelationshipXml()
-    {
-        HttpResponse response = POST( "/relationships/", Body( "<relationships></relationships>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML.toString() ).startsWith( "<webMessage" ) );
-    }
+  @Test
+  void testPostRelationshipXml() {
+    HttpResponse response =
+        POST(
+            "/relationships/",
+            Body("<relationships></relationships>"),
+            ContentType(MediaType.APPLICATION_XML),
+            Accept(MediaType.APPLICATION_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    assertTrue(response.content(MediaType.APPLICATION_XML.toString()).startsWith("<webMessage"));
+  }
 
-    @Test
-    void testUpdateRelationshipJson_NoSuchObject()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "No relationship with id 'xyz' was found.",
-            PUT( "/relationships/xyz", "{}" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testUpdateRelationshipJson_NoSuchObject() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "No relationship with id 'xyz' was found.",
+        PUT("/relationships/xyz", "{}").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testUpdateRelationshipXml_NoSuchObject()
-    {
-        HttpResponse response = PUT( "/relationships/xyz", Body( "<relationship></relationship>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.NOT_FOUND, response.status() );
-    }
+  @Test
+  void testUpdateRelationshipXml_NoSuchObject() {
+    HttpResponse response =
+        PUT(
+            "/relationships/xyz",
+            Body("<relationship></relationship>"),
+            ContentType(MediaType.APPLICATION_XML),
+            Accept(MediaType.APPLICATION_XML));
+    assertEquals(HttpStatus.NOT_FOUND, response.status());
+  }
 
-    @Test
-    void testDeleteRelationship_NoSuchObject()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "No relationship with id 'xyz' was found.",
-            DELETE( "/relationships/xyz" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testDeleteRelationship_NoSuchObject() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "No relationship with id 'xyz' was found.",
+        DELETE("/relationships/xyz").content(HttpStatus.NOT_FOUND));
+  }
 }

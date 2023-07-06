@@ -27,21 +27,18 @@
  */
 package org.hisp.dhis.tracker.report;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.tracker.TrackerType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * The Bundle Report is responsible for aggregating the outcome of the
- * persistence stage of the Tracker Import.
+ * The Bundle Report is responsible for aggregating the outcome of the persistence stage of the
+ * Tracker Import.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -49,36 +46,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackerBundleReport
-{
-    @JsonProperty
-    @Builder.Default
-    private TrackerStatus status = TrackerStatus.OK;
+public class TrackerBundleReport {
+  @JsonProperty @Builder.Default private TrackerStatus status = TrackerStatus.OK;
 
-    @JsonProperty
-    @Builder.Default
-    private Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
+  @JsonProperty @Builder.Default
+  private Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
 
-    @JsonProperty
-    public TrackerStats getStats()
-    {
-        TrackerStats stats = new TrackerStats();
-        typeReportMap.values().forEach( tr -> stats.merge( tr.getStats() ) );
+  @JsonProperty
+  public TrackerStats getStats() {
+    TrackerStats stats = new TrackerStats();
+    typeReportMap.values().forEach(tr -> stats.merge(tr.getStats()));
 
-        return stats;
-    }
+    return stats;
+  }
 
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------
+  // Utility Methods
+  // -----------------------------------------------------------------------------------
 
-    /**
-     * Are there any errors present?
-     *
-     * @return true or false depending on any errors found in type reports
-     */
-    public boolean isEmpty()
-    {
-        return typeReportMap.keySet().stream().allMatch( k -> typeReportMap.get( k ).isEmpty() );
-    }
+  /**
+   * Are there any errors present?
+   *
+   * @return true or false depending on any errors found in type reports
+   */
+  public boolean isEmpty() {
+    return typeReportMap.keySet().stream().allMatch(k -> typeReportMap.get(k).isEmpty());
+  }
 }

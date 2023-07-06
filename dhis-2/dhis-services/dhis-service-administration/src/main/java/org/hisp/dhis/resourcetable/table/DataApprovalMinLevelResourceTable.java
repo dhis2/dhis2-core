@@ -27,88 +27,80 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-public class DataApprovalMinLevelResourceTable
-    extends ResourceTable<OrganisationUnitLevel>
-{
-    private final String tableType;
+public class DataApprovalMinLevelResourceTable extends ResourceTable<OrganisationUnitLevel> {
+  private final String tableType;
 
-    public DataApprovalMinLevelResourceTable( List<OrganisationUnitLevel> objects, String tableType )
-    {
-        super( objects );
-        this.tableType = tableType;
+  public DataApprovalMinLevelResourceTable(List<OrganisationUnitLevel> objects, String tableType) {
+    super(objects);
+    this.tableType = tableType;
+  }
+
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATA_APPROVAL_MIN_LEVEL;
+  }
+
+  @Override
+  public String getCreateTempTableStatement() {
+    return "create "
+        + tableType
+        + " table "
+        + getTempTableName()
+        + "("
+        + "workflowid bigint not null, "
+        + "periodid bigint not null, "
+        + "organisationunitid bigint not null, "
+        + "attributeoptioncomboid bigint not null, "
+        + "minlevel integer not null, "
+        + "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
+  }
+
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    String sql =
+        "insert into "
+            + getTempTableName()
+            + " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) "
+            + "select da.workflowid, da.periodid, da.organisationunitid, da.attributeoptioncomboid, dal.level as minlevel "
+            + "from dataapproval da "
+            + "inner join _dataapprovalremaplevel dal on dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid "
+            + "inner join _orgunitstructure ous on da.organisationunitid=ous.organisationunitid "
+            + "where not exists ( "
+            + "select 1 from dataapproval da2 "
+            + "inner join _dataapprovalremaplevel dal2 on da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid "
+            + "where da.workflowid=da2.workflowid "
+            + "and da.periodid=da2.periodid "
+            + "and da.attributeoptioncomboid=da2.attributeoptioncomboid "
+            + "and dal.level > dal2.level "
+            + "and ( ";
+
+    for (OrganisationUnitLevel level : objects) {
+      sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
     }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATA_APPROVAL_MIN_LEVEL;
-    }
+    sql = TextUtils.removeLastOr(sql) + ") )";
 
-    @Override
-    public String getCreateTempTableStatement()
-    {
-        return "create " + tableType + " table " + getTempTableName() + "(" +
-            "workflowid bigint not null, " +
-            "periodid bigint not null, " +
-            "organisationunitid bigint not null, " +
-            "attributeoptioncomboid bigint not null, " +
-            "minlevel integer not null, " +
-            "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
-    }
+    return Optional.of(sql);
+  }
 
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        String sql = "insert into " + getTempTableName() +
-            " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) " +
-            "select da.workflowid, da.periodid, da.organisationunitid, da.attributeoptioncomboid, dal.level as minlevel "
-            +
-            "from dataapproval da " +
-            "inner join _dataapprovalremaplevel dal on dal.workflowid=da.workflowid and dal.dataapprovallevelid=da.dataapprovallevelid "
-            +
-            "inner join _orgunitstructure ous on da.organisationunitid=ous.organisationunitid " +
-            "where not exists ( " +
-            "select 1 from dataapproval da2 " +
-            "inner join _dataapprovalremaplevel dal2 on da2.workflowid = dal2.workflowid and da2.dataapprovallevelid=dal2.dataapprovallevelid "
-            +
-            "where da.workflowid=da2.workflowid " +
-            "and da.periodid=da2.periodid " +
-            "and da.attributeoptioncomboid=da2.attributeoptioncomboid " +
-            "and dal.level > dal2.level " +
-            "and ( ";
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    return Optional.empty();
+  }
 
-        for ( OrganisationUnitLevel level : objects )
-        {
-            sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
-        }
-
-        sql = TextUtils.removeLastOr( sql ) + ") )";
-
-        return Optional.of( sql );
-    }
-
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        return Optional.empty();
-    }
-
-    @Override
-    public List<String> getCreateIndexStatements()
-    {
-        return Lists.newArrayList();
-    }
+  @Override
+  public List<String> getCreateIndexStatements() {
+    return Lists.newArrayList();
+  }
 }

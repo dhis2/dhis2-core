@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,14 +40,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProgramOwner
-{
-    @JsonProperty
-    private String orgUnit;
+public class ProgramOwner {
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String trackedEntity;
+  @JsonProperty private String trackedEntity;
 
-    @JsonProperty
-    private String program;
+  @JsonProperty private String program;
 }

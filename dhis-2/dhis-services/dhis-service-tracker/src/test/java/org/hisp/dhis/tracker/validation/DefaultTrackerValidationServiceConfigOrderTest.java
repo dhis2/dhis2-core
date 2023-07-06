@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
-
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -44,39 +43,37 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DefaultTrackerValidationServiceConfigOrderTest extends TrackerTest
-{
-    @Autowired
-    TrackerValidationService trackerValidationService;
+class DefaultTrackerValidationServiceConfigOrderTest extends TrackerTest {
+  @Autowired TrackerValidationService trackerValidationService;
 
-    @Test
-    void hooksAreExecutedInTrackerValidationConfigOrder()
-    {
-        // Test that hooks declared in TrackerValidationConfig validationHooks()
-        // are injected
-        // into the TrackerValidationService. This is important since order
-        // matters in the current implementation.
-        // Note that FAIL_FAST shows that although the event is also invalid due
-        // to not having an orgUnit and more it
-        // fails due to the first failed check which is the
-        // PreCheckUidValidationHook
+  @Test
+  void hooksAreExecutedInTrackerValidationConfigOrder() {
+    // Test that hooks declared in TrackerValidationConfig validationHooks()
+    // are injected
+    // into the TrackerValidationService. This is important since order
+    // matters in the current implementation.
+    // Note that FAIL_FAST shows that although the event is also invalid due
+    // to not having an orgUnit and more it
+    // fails due to the first failed check which is the
+    // PreCheckUidValidationHook
 
-        Event event = new Event();
-        event.setEvent( "invalidUid" );
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setIdSchemes( TrackerIdSchemeParams.builder().build() );
-        TrackerBundle bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .importMode( TrackerBundleMode.VALIDATE )
-            .validationMode( ValidationMode.FAIL_FAST )
-            .skipRuleEngine( true )
-            .events( Collections.singletonList( event ) )
+    Event event = new Event();
+    event.setEvent("invalidUid");
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.setIdSchemes(TrackerIdSchemeParams.builder().build());
+    TrackerBundle bundle =
+        TrackerBundle.builder()
+            .preheat(preheat)
+            .importMode(TrackerBundleMode.VALIDATE)
+            .validationMode(ValidationMode.FAIL_FAST)
+            .skipRuleEngine(true)
+            .events(Collections.singletonList(event))
             .build();
 
-        TrackerValidationReport report = trackerValidationService.validate( bundle );
+    TrackerValidationReport report = trackerValidationService.validate(bundle);
 
-        assertTrue( report.hasErrors() );
-        assertEquals( 1, report.getErrors().size() );
-        assertEquals( E1048, report.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertTrue(report.hasErrors());
+    assertEquals(1, report.getErrors().size());
+    assertEquals(E1048, report.getErrors().get(0).getErrorCode());
+  }
 }

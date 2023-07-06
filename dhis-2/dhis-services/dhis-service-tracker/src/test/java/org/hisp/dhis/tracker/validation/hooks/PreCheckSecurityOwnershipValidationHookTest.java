@@ -41,8 +41,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.Collections;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -79,1010 +80,1000 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest {
 
-    private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
+  private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
-    private static final String TEI_ID = "TEI_ID";
+  private static final String TEI_ID = "TEI_ID";
 
-    private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
+  private static final String TEI_TYPE_ID = "TEI_TYPE_ID";
 
-    private static final String PROGRAM_ID = "PROGRAM_ID";
+  private static final String PROGRAM_ID = "PROGRAM_ID";
 
-    private static final String PS_ID = "PS_ID";
+  private static final String PS_ID = "PS_ID";
 
-    private PreCheckSecurityOwnershipValidationHook validatorToTest;
+  private PreCheckSecurityOwnershipValidationHook validatorToTest;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private TrackerOwnershipManager ownershipAccessManager;
+  @Mock private TrackerOwnershipManager ownershipAccessManager;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    private User user;
+  private User user;
 
-    private ValidationErrorReporter reporter;
+  private ValidationErrorReporter reporter;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private TrackedEntityType trackedEntityType;
+  private TrackedEntityType trackedEntityType;
 
-    private Program program;
+  private Program program;
 
-    private ProgramStage programStage;
+  private ProgramStage programStage;
 
-    private TrackerIdSchemeParams idSchemes;
+  private TrackerIdSchemeParams idSchemes;
 
-    @BeforeEach
-    public void setUp()
-    {
-        user = makeUser( "A" );
-        when( bundle.getUser() ).thenReturn( user );
+  @BeforeEach
+  public void setUp() {
+    user = makeUser("A");
+    when(bundle.getUser()).thenReturn(user);
 
-        organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnit.setUid( ORG_UNIT_ID );
+    organisationUnit = createOrganisationUnit('A');
+    organisationUnit.setUid(ORG_UNIT_ID);
 
-        trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityType.setUid( TEI_TYPE_ID );
-        program = createProgram( 'A' );
-        program.setUid( PROGRAM_ID );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        program.setTrackedEntityType( trackedEntityType );
+    trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.setUid(TEI_TYPE_ID);
+    program = createProgram('A');
+    program.setUid(PROGRAM_ID);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setTrackedEntityType(trackedEntityType);
 
-        programStage = createProgramStage( 'A', program );
-        programStage.setUid( PS_ID );
+    programStage = createProgramStage('A', program);
+    programStage.setUid(PS_ID);
 
-        idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
+    idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new ValidationErrorReporter(idSchemes);
 
-        validatorToTest = new PreCheckSecurityOwnershipValidationHook( aclService, ownershipAccessManager,
-            organisationUnitService );
-    }
+    validatorToTest =
+        new PreCheckSecurityOwnershipValidationHook(
+            aclService, ownershipAccessManager, organisationUnitService);
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntity()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntity() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithNoProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyCaptureScopeIsCheckedForTrackedEntityCreation()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyCaptureScopeIsCheckedForTrackedEntityCreation() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifySearchScopeIsCheckedForTrackedEntityUpdate()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifySearchScopeIsCheckedForTrackedEntityUpdate() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyCaptureScopeIsCheckedForTrackedEntityDeletion()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyCaptureScopeIsCheckedForTrackedEntityDeletion() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithNoProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithDeleteProgramInstances() );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithDeleteProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getUser() ).thenReturn( deleteTeiAuthorisedUser() );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+    when(bundle.getUser()).thenReturn(deleteTeiAuthorisedUser());
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithProgramInstances());
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getTrackedEntityInstance(TEI_ID)).thenReturn(getTEIWithProgramInstances());
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        hasTrackerError( reporter, E1100, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
-    }
+    hasTrackerError(reporter, E1100, TrackerType.TRACKED_ENTITY, trackedEntity.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( false );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(false);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        hasTrackerError( reporter, E1000, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
-    }
+    hasTrackerError(reporter, E1000, TrackerType.TRACKED_ENTITY, trackedEntity.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_ID )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(TEI_ID)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( false );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(false);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        hasTrackerError( reporter, E1003, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
-    }
+    hasTrackerError(reporter, E1003, TrackerType.TRACKED_ENTITY, trackedEntity.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
+  @Test
+  void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( preheat.getTrackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) ) ).thenReturn( trackedEntityType );
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( false );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(preheat.getTrackedEntityType(MetadataIdentifier.ofUid(TEI_TYPE_ID)))
+        .thenReturn(trackedEntityType);
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(true);
+    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(false);
 
-        validatorToTest.validateTrackedEntity( reporter, bundle, trackedEntity );
+    validatorToTest.validateTrackedEntity(reporter, bundle, trackedEntity);
 
-        hasTrackerError( reporter, E1001, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
-    }
+    hasTrackerError(reporter, E1001, TrackerType.TRACKED_ENTITY, trackedEntity.getUid());
+  }
 
-    @Test
-    void verifyValidationSuccessForEnrollmentWhenProgramInstanceHasNoOrgUnitAssigned()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForEnrollmentWhenProgramInstanceHasNoOrgUnitAssigned() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
 
-        ProgramInstance programInstance = getEnrollment( enrollment.getEnrollment() );
-        programInstance.setOrganisationUnit( null );
+    ProgramInstance programInstance = getEnrollment(enrollment.getEnrollment());
+    programInstance.setOrganisationUnit(null);
 
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( programInstance );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+    when(bundle.getProgramInstance(enrollment.getEnrollment())).thenReturn(programInstance);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-        verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
+    assertFalse(reporter.hasErrors());
+    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
 
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-        verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
-    }
+    assertFalse(reporter.hasErrors());
+    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
+  }
 
-    @Test
-    void verifyValidationSuccessForEnrollment()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForEnrollment() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyCaptureScopeIsCheckedForEnrollmentCreation()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyCaptureScopeIsCheckedForEnrollmentCreation() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyCaptureScopeIsCheckedForEnrollmentDeletion()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyCaptureScopeIsCheckedForEnrollmentDeletion() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyCaptureScopeIsCheckedForEnrollmentProgramWithoutRegistration()
-    {
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyCaptureScopeIsCheckedForEnrollmentProgramWithoutRegistration() {
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    String enrollmentUid = CodeGenerator.generateUid();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForEnrollmentWithoutEventsUsingDeleteStrategy()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForEnrollmentWithoutEventsUsingDeleteStrategy() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
+        .thenReturn(Collections.emptyList());
+    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForEnrollmentUsingDeleteStrategyAndUserWithCascadeAuthority()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForEnrollmentUsingDeleteStrategyAndUserWithCascadeAuthority() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getUser() ).thenReturn( deleteEnrollmentAuthorisedUser() );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
-            .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getUser()).thenReturn(deleteEnrollmentAuthorisedUser());
+    when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
+        .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
+    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationFailsForEnrollmentWithoutEventsUsingDeleteStrategyAndUserNotInOrgUnitHierarchy()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void
+      verifyValidationFailsForEnrollmentWithoutEventsUsingDeleteStrategyAndUserNotInOrgUnitHierarchy() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( false );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
+        .thenReturn(Collections.emptyList());
+    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(false);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        hasTrackerError( reporter, E1000, TrackerType.ENROLLMENT, enrollment.getUid() );
-    }
+    hasTrackerError(reporter, E1000, TrackerType.ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
-            .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    when(preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent())
+        .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
+    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        hasTrackerError( reporter, E1103, TrackerType.ENROLLMENT, enrollment.getUid() );
-    }
+    hasTrackerError(reporter, E1103, TrackerType.ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForEnrollmentDeletionAndUserWithoutProgramWriteAccess()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationFailsForEnrollmentDeletionAndUserWithoutProgramWriteAccess() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( false );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(aclService.canDataWrite(user, program)).thenReturn(false);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        hasTrackerError( reporter, E1091, TrackerType.ENROLLMENT, enrollment.getUid() );
-    }
+    hasTrackerError(reporter, E1091, TrackerType.ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForEnrollmentDeletionAndUserWithoutTrackedEntityTypeReadAccess()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .trackedEntity( TEI_ID )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationFailsForEnrollmentDeletionAndUserWithoutTrackedEntityTypeReadAccess() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TEI_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( bundle.getProgramInstance( enrollment.getEnrollment() ) )
-            .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( false );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    when(bundle.getProgramInstance(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(false);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
-        validatorToTest.validateEnrollment( reporter, bundle, enrollment );
+    validatorToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        hasTrackerError( reporter, E1104, TrackerType.ENROLLMENT, enrollment.getUid() );
-    }
+    hasTrackerError(reporter, E1104, TrackerType.ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void verifyValidationSuccessForEventUsingDeleteStrategy()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForEventUsingDeleteStrategy() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Event event =
+        Event.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.DELETE );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.DELETE);
+    ProgramInstance programInstance = getEnrollment(enrollmentUid);
+    ProgramStageInstance programStageInstance = getEvent();
+    programStageInstance.setProgramInstance(programInstance);
 
-        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+    when(bundle.getProgramStageInstance(event.getEvent())).thenReturn(programStageInstance);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(programInstance);
 
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForNonTrackerEventUsingCreateStrategy()
-    {
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForNonTrackerEventUsingCreateStrategy() {
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    String enrollmentUid = CodeGenerator.generateUid();
+    Event event =
+        Event.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    ProgramInstance programInstance = getEnrollment(enrollmentUid);
+    ProgramStageInstance programStageInstance = getEvent();
+    programStageInstance.setProgramInstance(programInstance);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataWrite(user, program)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackerEventCreation()
-    {
-        Event event = Event.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackerEventCreation() {
+    Event event =
+        Event.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForTrackerEventUpdate()
-    {
-        Event event = Event.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForTrackerEventUpdate() {
+    Event event =
+        Event.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( true );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForEventUsingUpdateStrategy()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
-            .status( EventStatus.COMPLETED )
+  @Test
+  void verifyValidationSuccessForEventUsingUpdateStrategy() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Event event =
+        Event.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(EventStatus.COMPLETED)
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    ProgramInstance programInstance = getEnrollment(enrollmentUid);
+    ProgramStageInstance programStageInstance = getEvent();
+    programStageInstance.setProgramInstance(programInstance);
+    when(bundle.getProgramStageInstance(event.getEvent())).thenReturn(programStageInstance);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(programInstance);
 
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForEventUsingUpdateStrategyOutsideCaptureScopeWithBrokenGlass()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        String eventUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
-            .event( eventUid )
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
-            .status( EventStatus.COMPLETED )
+  @Test
+  void verifyValidationSuccessForEventUsingUpdateStrategyOutsideCaptureScopeWithBrokenGlass() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    String eventUid = CodeGenerator.generateUid();
+    Event event =
+        Event.builder()
+            .event(eventUid)
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(EventStatus.COMPLETED)
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
-        when( preheat.getProgramOwner() )
-            .thenReturn( Collections.singletonMap( TEI_ID, Collections.singletonMap( PROGRAM_ID,
-                new TrackedEntityProgramOwnerOrgUnit( TEI_ID, PROGRAM_ID, organisationUnit ) ) ) );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    ProgramInstance programInstance = getEnrollment(enrollmentUid);
+    ProgramStageInstance programStageInstance = getEvent();
+    programStageInstance.setProgramInstance(programInstance);
+    when(bundle.getProgramStageInstance(event.getEvent())).thenReturn(programStageInstance);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(programInstance);
+    when(preheat.getProgramOwner())
+        .thenReturn(
+            Collections.singletonMap(
+                TEI_ID,
+                Collections.singletonMap(
+                    PROGRAM_ID,
+                    new TrackedEntityProgramOwnerOrgUnit(TEI_ID, PROGRAM_ID, organisationUnit))));
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        when( ownershipAccessManager.hasAccess( user, TEI_ID, organisationUnit, program ) ).thenReturn( false );
-        validatorToTest.validateEvent( reporter, bundle, event );
+    when(ownershipAccessManager.hasAccess(user, TEI_ID, organisationUnit, program))
+        .thenReturn(false);
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        hasTrackerError( reporter, TrackerErrorCode.E1102, TrackerType.EVENT, event.getUid() );
+    hasTrackerError(reporter, TrackerErrorCode.E1102, TrackerType.EVENT, event.getUid());
 
-        when( ownershipAccessManager.hasAccess( user, TEI_ID, organisationUnit, program ) ).thenReturn( true );
+    when(ownershipAccessManager.hasAccess(user, TEI_ID, organisationUnit, program))
+        .thenReturn(true);
 
-        reporter = new ValidationErrorReporter( idSchemes );
-        validatorToTest.validateEvent( reporter, bundle, event );
+    reporter = new ValidationErrorReporter(idSchemes);
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Event event =
+        Event.builder()
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getUser() ).thenReturn( changeCompletedEventAuthorisedUser() );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    when(bundle.getUser()).thenReturn(changeCompletedEventAuthorisedUser());
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    ProgramInstance programInstance = getEnrollment(enrollmentUid);
+    ProgramStageInstance programStageInstance = getEvent();
+    programStageInstance.setProgramInstance(programInstance);
 
-        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+    when(bundle.getProgramStageInstance(event.getEvent())).thenReturn(programStageInstance);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(programInstance);
 
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
-            .thenReturn( false );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(false);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        hasTrackerError( reporter, E1000, TrackerType.EVENT, event.getUid() );
-    }
+    hasTrackerError(reporter, E1000, TrackerType.EVENT, event.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy()
-    {
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .enrollment( CodeGenerator.generateUid() )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
-            .status( EventStatus.SCHEDULE )
+  @Test
+  void
+      verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy() {
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .enrollment(CodeGenerator.generateUid())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(EventStatus.SCHEDULE)
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
-        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
-            .thenReturn( false );
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(getEnrollment(null));
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(organisationUnitService.isInUserSearchHierarchyCached(user, organisationUnit))
+        .thenReturn(false);
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        hasTrackerError( reporter, E1000, TrackerType.EVENT, event.getUid() );
-    }
+    hasTrackerError(reporter, E1000, TrackerType.EVENT, event.getUid());
+  }
 
-    @Test
-    void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
+  @Test
+  void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    ProgramInstance programInstance = getEnrollment(enrollmentUid);
+    ProgramStageInstance programStageInstance = getEvent();
+    programStageInstance.setProgramInstance(programInstance);
+    when(bundle.getProgramStageInstance(event.getEvent())).thenReturn(programStageInstance);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(programInstance);
 
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        hasTrackerError( reporter, E1083, TrackerType.EVENT, event.getUid() );
-    }
+    hasTrackerError(reporter, E1083, TrackerType.EVENT, event.getUid());
+  }
 
-    @Test
-    void verifySuccessEventValidationWhenProgramStageInstanceHasNoOrgUnitAssigned()
-    {
-        String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .enrollment( enrollmentUid )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
-            .programStage( MetadataIdentifier.ofUid( PS_ID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_ID ) )
-            .status( EventStatus.COMPLETED )
+  @Test
+  void verifySuccessEventValidationWhenProgramStageInstanceHasNoOrgUnitAssigned() {
+    String enrollmentUid = CodeGenerator.generateUid();
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .enrollment(enrollmentUid)
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(EventStatus.COMPLETED)
             .build();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    ProgramInstance programInstance = getEnrollment(enrollmentUid);
 
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setOrganisationUnit( null );
+    ProgramStageInstance programStageInstance = getEvent();
+    programStageInstance.setProgramInstance(programInstance);
+    programStageInstance.setOrganisationUnit(null);
 
-        when( bundle.getProgramStageInstance( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( bundle.getProgramInstance( event.getEnrollment() ) ).thenReturn( programInstance );
+    when(bundle.getProgramStageInstance(event.getEvent())).thenReturn(programStageInstance);
+    when(bundle.getProgramInstance(event.getEnrollment())).thenReturn(programInstance);
 
-        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
 
-        validatorToTest.validateEvent( reporter, bundle, event );
+    validatorToTest.validateEvent(reporter, bundle, event);
 
-        verify( organisationUnitService, times( 0 ) ).isInUserHierarchyCached( user, organisationUnit );
+    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
 
-        assertFalse( reporter.hasErrors() );
+    assertFalse(reporter.hasErrors());
+  }
+
+  private TrackedEntityInstance getTEIWithNoProgramInstances() {
+    TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance(organisationUnit);
+    trackedEntityInstance.setUid(TEI_ID);
+    trackedEntityInstance.setProgramInstances(Sets.newHashSet());
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
+
+    return trackedEntityInstance;
+  }
+
+  private TrackedEntityInstance getTEIWithDeleteProgramInstances() {
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setDeleted(true);
+
+    TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance(organisationUnit);
+    trackedEntityInstance.setUid(TEI_ID);
+    trackedEntityInstance.setProgramInstances(Sets.newHashSet(programInstance));
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
+
+    return trackedEntityInstance;
+  }
+
+  private TrackedEntityInstance getTEIWithProgramInstances() {
+    TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance(organisationUnit);
+    trackedEntityInstance.setUid(TEI_ID);
+    trackedEntityInstance.setProgramInstances(Sets.newHashSet(new ProgramInstance()));
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
+
+    return trackedEntityInstance;
+  }
+
+  private ProgramInstance getEnrollment(String enrollmentUid) {
+    if (StringUtils.isEmpty(enrollmentUid)) {
+      enrollmentUid = CodeGenerator.generateUid();
     }
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid(enrollmentUid);
+    programInstance.setOrganisationUnit(organisationUnit);
+    programInstance.setEntityInstance(getTEIWithNoProgramInstances());
+    programInstance.setProgram(program);
+    programInstance.setStatus(ProgramStatus.ACTIVE);
+    return programInstance;
+  }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
-    {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet() );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+  private ProgramStageInstance getEvent() {
+    ProgramStageInstance programStageInstance = new ProgramStageInstance();
+    programStageInstance.setProgramStage(programStage);
+    programStageInstance.setOrganisationUnit(organisationUnit);
+    programStageInstance.setProgramInstance(new ProgramInstance());
+    programStageInstance.setStatus(EventStatus.COMPLETED);
+    return programStageInstance;
+  }
 
-        return trackedEntityInstance;
-    }
+  private User deleteTeiAuthorisedUser() {
+    return makeUser("A", Lists.newArrayList(Authorities.F_TEI_CASCADE_DELETE.getAuthority()));
+  }
 
-    private TrackedEntityInstance getTEIWithDeleteProgramInstances()
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setDeleted( true );
+  private User deleteEnrollmentAuthorisedUser() {
+    return makeUser(
+        "A", Lists.newArrayList(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority()));
+  }
 
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet( programInstance ) );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
-
-        return trackedEntityInstance;
-    }
-
-    private TrackedEntityInstance getTEIWithProgramInstances()
-    {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet( new ProgramInstance() ) );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
-
-        return trackedEntityInstance;
-    }
-
-    private ProgramInstance getEnrollment( String enrollmentUid )
-    {
-        if ( StringUtils.isEmpty( enrollmentUid ) )
-        {
-            enrollmentUid = CodeGenerator.generateUid();
-        }
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( enrollmentUid );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setEntityInstance( getTEIWithNoProgramInstances() );
-        programInstance.setProgram( program );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        return programInstance;
-    }
-
-    private ProgramStageInstance getEvent()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setProgramInstance( new ProgramInstance() );
-        programStageInstance.setStatus( EventStatus.COMPLETED );
-        return programStageInstance;
-    }
-
-    private User deleteTeiAuthorisedUser()
-    {
-        return makeUser( "A", Lists.newArrayList( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
-    }
-
-    private User deleteEnrollmentAuthorisedUser()
-    {
-        return makeUser( "A", Lists.newArrayList( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
-    }
-
-    private User changeCompletedEventAuthorisedUser()
-    {
-        return makeUser( "A", Lists.newArrayList( "F_UNCOMPLETE_EVENT" ) );
-    }
+  private User changeCompletedEventAuthorisedUser() {
+    return makeUser("A", Lists.newArrayList("F_UNCOMPLETE_EVENT"));
+  }
 }

@@ -27,40 +27,35 @@
  */
 package org.hisp.dhis.analytics.util;
 
-public class DisplayNameUtils
-{
-    /**
-     * TODO Refactor and change this, too much code vs benefit.
-     *
-     * This method will extract/compose the display name, based on the tracker
-     * JSON objects living in the 'originColumn'. This method will return the
-     * display name respecting these rules:
-     *
-     * If (last name, first name and username) are populated => Last name, first
-     * name (username)
-     *
-     * If (only username is populated) => username
-     *
-     * If (only first name is populated) => first name
-     *
-     * If (only last name is populated) => last name
-     *
-     * If (only last name and first name are populated) => last name, first name
-     *
-     * If (only last name and username are populated) => last name (username)
-     *
-     * If (only first name and username are populated) => first name (username)
-     *
-     * @param originColumn the original column from where the JSON values are
-     *        extracted from
-     * @param tablePrefix the prefix of the tracker table
-     * @param columnAlias the alias of this column in the analytics database
-     * @return the trimmed display name
-     */
-    public static String getDisplayName( final String originColumn, final String tablePrefix,
-        final String columnAlias )
-    {
-        return ("case"
+public class DisplayNameUtils {
+  /**
+   * TODO Refactor and change this, too much code vs benefit.
+   *
+   * <p>This method will extract/compose the display name, based on the tracker JSON objects living
+   * in the 'originColumn'. This method will return the display name respecting these rules:
+   *
+   * <p>If (last name, first name and username) are populated => Last name, first name (username)
+   *
+   * <p>If (only username is populated) => username
+   *
+   * <p>If (only first name is populated) => first name
+   *
+   * <p>If (only last name is populated) => last name
+   *
+   * <p>If (only last name and first name are populated) => last name, first name
+   *
+   * <p>If (only last name and username are populated) => last name (username)
+   *
+   * <p>If (only first name and username are populated) => first name (username)
+   *
+   * @param originColumn the original column from where the JSON values are extracted from
+   * @param tablePrefix the prefix of the tracker table
+   * @param columnAlias the alias of this column in the analytics database
+   * @return the trimmed display name
+   */
+  public static String getDisplayName(
+      final String originColumn, final String tablePrefix, final String columnAlias) {
+    return ("case"
             // If all are empty, return null
             + " when coalesce(trim({prefix}.{column} ->> 'surname'), '') = ''"
             + " and coalesce(trim({prefix}.{column} ->> 'firstName'), '') = ''"
@@ -106,9 +101,9 @@ public class DisplayNameUtils
             // If has all columns populated, return surname + firstName +
             // username
             + " else concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')') end"
-            + " as {alias}").replaceAll( "\\{column}", originColumn )
-                .replaceAll( "\\{prefix}", tablePrefix )
-                .replaceAll( "\\{alias}", columnAlias );
-    }
-
+            + " as {alias}")
+        .replaceAll("\\{column}", originColumn)
+        .replaceAll("\\{prefix}", tablePrefix)
+        .replaceAll("\\{alias}", columnAlias);
+  }
 }

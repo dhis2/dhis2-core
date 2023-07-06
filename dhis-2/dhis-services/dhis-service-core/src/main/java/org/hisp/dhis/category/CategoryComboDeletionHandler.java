@@ -30,7 +30,6 @@ package org.hisp.dhis.category;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -42,37 +41,30 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class CategoryComboDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class CategoryComboDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( Category.class, this::allowDeleteCategory );
-        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
+  @Override
+  protected void register() {
+    whenVetoing(Category.class, this::allowDeleteCategory);
+    whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
+  }
+
+  private DeletionVeto allowDeleteCategory(Category category) {
+    for (CategoryCombo categoryCombo : categoryService.getAllCategoryCombos()) {
+      if (categoryCombo.getCategories().contains(category)) {
+        return new DeletionVeto(CategoryCombo.class, categoryCombo.getName());
+      }
     }
+    return ACCEPT;
+  }
 
-    private DeletionVeto allowDeleteCategory( Category category )
-    {
-        for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
-        {
-            if ( categoryCombo.getCategories().contains( category ) )
-            {
-                return new DeletionVeto( CategoryCombo.class, categoryCombo.getName() );
-            }
-        }
-        return ACCEPT;
+  private void deleteCategoryOptionCombo(CategoryOptionCombo categoryOptionCombo) {
+    for (CategoryCombo categoryCombo : categoryService.getAllCategoryCombos()) {
+      categoryCombo.getOptionCombos().remove(categoryOptionCombo);
+      idObjectManager.updateNoAcl(categoryCombo);
     }
-
-    private void deleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
-    {
-        for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
-        {
-            categoryCombo.getOptionCombos().remove( categoryOptionCombo );
-            idObjectManager.updateNoAcl( categoryCombo );
-        }
-    }
+  }
 }

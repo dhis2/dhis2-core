@@ -32,10 +32,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -52,40 +50,41 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class UserSupplier extends AbstractPreheatSupplier
-{
-    @NonNull
-    private final IdentifiableObjectManager manager;
+public class UserSupplier extends AbstractPreheatSupplier {
+  @NonNull private final IdentifiableObjectManager manager;
 
-    @NonNull
-    private final UserService userService;
+  @NonNull private final UserService userService;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        Set<String> userUids = params.getEvents().stream()
-            .filter( Objects::nonNull )
-            .map( Event::getAssignedUser )
-            .filter( Objects::nonNull )
-            .map( User::getUid )
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    Set<String> userUids =
+        params.getEvents().stream()
+            .filter(Objects::nonNull)
+            .map(Event::getAssignedUser)
+            .filter(Objects::nonNull)
+            .map(User::getUid)
+            .filter(CodeGenerator::isValidUid)
+            .collect(Collectors.toSet());
 
-        Set<String> usernames = params.getEvents().stream()
-            .filter( Objects::nonNull )
-            .map( Event::getAssignedUser )
-            .filter( Objects::nonNull )
-            .map( User::getUsername )
-            .filter( StringUtils::isNotBlank )
-            .collect( Collectors.toSet() );
+    Set<String> usernames =
+        params.getEvents().stream()
+            .filter(Objects::nonNull)
+            .map(Event::getAssignedUser)
+            .filter(Objects::nonNull)
+            .map(User::getUsername)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toSet());
 
-        List<org.hisp.dhis.user.User> users = userService.getUsersByUsernames( usernames );
+    List<org.hisp.dhis.user.User> users = userService.getUsersByUsernames(usernames);
 
-        Set<org.hisp.dhis.user.User> validUsers = new HashSet<>( DetachUtils.detach( UserMapper.INSTANCE, users ) );
-        Set<org.hisp.dhis.user.User> validUsersByUid = new HashSet<>(
-            DetachUtils.detach( UserMapper.INSTANCE, manager.getByUid( org.hisp.dhis.user.User.class, userUids ) ) );
+    Set<org.hisp.dhis.user.User> validUsers =
+        new HashSet<>(DetachUtils.detach(UserMapper.INSTANCE, users));
+    Set<org.hisp.dhis.user.User> validUsersByUid =
+        new HashSet<>(
+            DetachUtils.detach(
+                UserMapper.INSTANCE, manager.getByUid(org.hisp.dhis.user.User.class, userUids)));
 
-        preheat.addUsers( validUsers );
-        preheat.addUsers( validUsersByUid );
-    }
+    preheat.addUsers(validUsers);
+    preheat.addUsers(validUsersByUid);
+  }
 }

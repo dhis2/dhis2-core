@@ -30,27 +30,24 @@ package org.hisp.dhis.webapi.dimension;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 
-public abstract class BaseDimensionMapper implements DimensionMapper
-{
+public abstract class BaseDimensionMapper implements DimensionMapper {
 
-    @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
-    {
-        DimensionResponse mapped = DimensionResponse.builder()
-            .id( dimension.getUid() )
-            .uid( dimension.getUid() )
-            .displayName( dimension.getDisplayName() )
-            .created( dimension.getCreated() )
-            .code( dimension.getCode() )
-            .lastUpdated( dimension.getLastUpdated() )
-            .name( dimension.getName() )
+  @Override
+  public DimensionResponse map(BaseIdentifiableObject dimension, String prefix) {
+    DimensionResponse mapped =
+        DimensionResponse.builder()
+            .id(dimension.getUid())
+            .uid(dimension.getUid())
+            .displayName(dimension.getDisplayName())
+            .created(dimension.getCreated())
+            .code(dimension.getCode())
+            .lastUpdated(dimension.getLastUpdated())
+            .name(dimension.getName())
             .build();
 
-        if ( dimension instanceof BaseNameableObject )
-        {
-            return mapped.withDisplayShortName(
-                ((BaseNameableObject) dimension).getDisplayShortName() );
-        }
-        return mapped;
+    if (dimension instanceof BaseNameableObject) {
+      return mapped.withDisplayShortName(((BaseNameableObject) dimension).getDisplayShortName());
     }
+    return mapped;
+  }
 }

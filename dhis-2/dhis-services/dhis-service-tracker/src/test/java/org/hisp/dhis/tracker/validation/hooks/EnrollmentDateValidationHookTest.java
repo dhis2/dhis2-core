@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -56,122 +55,116 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class EnrollmentDateValidationHookTest
-{
+@ExtendWith(MockitoExtension.class)
+class EnrollmentDateValidationHookTest {
 
-    private EnrollmentDateValidationHook hookToTest;
+  private EnrollmentDateValidationHook hookToTest;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+  private ValidationErrorReporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        hookToTest = new EnrollmentDateValidationHook();
+  @BeforeEach
+  public void setUp() {
+    hookToTest = new EnrollmentDateValidationHook();
 
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
+    bundle = TrackerBundle.builder().preheat(preheat).build();
+
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new ValidationErrorReporter(idSchemes);
+  }
+
+  @Test
+  void testMandatoryDatesMustBePresent() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(Instant.now())
             .build();
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new ValidationErrorReporter( idSchemes );
-    }
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-    @Test
-    void testMandatoryDatesMustBePresent()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( Instant.now() )
+    this.hookToTest.validateEnrollment(reporter, bundle, enrollment);
+
+    hasTrackerError(reporter, E1025, ENROLLMENT, enrollment.getUid());
+  }
+
+  @Test
+  void testDatesMustNotBeInTheFuture() {
+    final Instant dateInTheFuture = Instant.now().plus(Duration.ofDays(2));
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(dateInTheFuture)
+            .enrolledAt(dateInTheFuture)
             .build();
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+    this.hookToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
-    }
+    hasTrackerError(reporter, E1020, ENROLLMENT, enrollment.getUid());
+    hasTrackerError(reporter, E1021, ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void testDatesMustNotBeInTheFuture()
-    {
-        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( dateInTheFuture )
-            .enrolledAt( dateInTheFuture )
+  @Test
+  void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed() {
+    final Instant today = Instant.now().plus(Duration.ofMinutes(1));
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(today)
+            .enrolledAt(today)
             .build();
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(new Program());
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+    this.hookToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
-        hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
-    {
-        final Instant today = Instant.now().plus( Duration.ofMinutes( 1 ) );
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( today )
-            .enrolledAt( today )
+  @Test
+  void testDatesCanBeInTheFuture() {
+    final Instant dateInTheFuture = Instant.now().plus(Duration.ofDays(2));
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .occurredAt(dateInTheFuture)
+            .enrolledAt(dateInTheFuture)
             .build();
 
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+    Program program = new Program();
+    program.setSelectEnrollmentDatesInFuture(true);
+    program.setSelectIncidentDatesInFuture(true);
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(program);
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+    this.hookToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void testDatesCanBeInTheFuture()
-    {
-        final Instant dateInTheFuture = Instant.now().plus( Duration.ofDays( 2 ) );
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .occurredAt( dateInTheFuture )
-            .enrolledAt( dateInTheFuture )
+  @Test
+  void testFailOnMissingOccurredAtDate() {
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .program(MetadataIdentifier.ofUid(CodeGenerator.generateUid()))
+            .enrolledAt(Instant.now())
             .build();
 
-        Program program = new Program();
-        program.setSelectEnrollmentDatesInFuture( true );
-        program.setSelectIncidentDatesInFuture( true );
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
+    Program program = new Program();
+    program.setDisplayIncidentDate(true);
+    when(preheat.getProgram(enrollment.getProgram())).thenReturn(program);
 
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
+    this.hookToTest.validateEnrollment(reporter, bundle, enrollment);
 
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void testFailOnMissingOccurredAtDate()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( CodeGenerator.generateUid() )
-            .program( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
-            .enrolledAt( Instant.now() )
-            .build();
-
-        Program program = new Program();
-        program.setDisplayIncidentDate( true );
-        when( preheat.getProgram( enrollment.getProgram() ) ).thenReturn( program );
-
-        this.hookToTest.validateEnrollment( reporter, bundle, enrollment );
-
-        hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
-    }
-
+    hasTrackerError(reporter, E1023, ENROLLMENT, enrollment.getUid());
+  }
 }

@@ -31,41 +31,34 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-class InQueryFilterTest
-{
+class InQueryFilterTest {
 
-    @Test
-    void verifyInWithTextParameters()
-    {
-        executeTest( "aFilter1;aFilter2", true, "aField in ('aFilter1','aFilter2') " );
-    }
+  @Test
+  void verifyInWithTextParameters() {
+    executeTest("aFilter1;aFilter2", true, "aField in ('aFilter1','aFilter2') ");
+  }
 
-    @Test
-    void verifyInWithNumberParameters()
-    {
-        executeTest( "1;2;3", false, "aField in (1,2,3) " );
-    }
+  @Test
+  void verifyInWithNumberParameters() {
+    executeTest("1;2;3", false, "aField in (1,2,3) ");
+  }
 
-    @Test
-    void verifyInWithNullAndTextParameters()
-    {
-        executeTest( "NV;aFilter1", true, "(aField in ('aFilter1') or aField is null ) " );
-    }
+  @Test
+  void verifyInWithNullAndTextParameters() {
+    executeTest("NV;aFilter1", true, "(aField in ('aFilter1') or aField is null ) ");
+  }
 
-    @Test
-    void verifyInWithNullAndNumberParameters()
-    {
-        executeTest( "NV;1", false, "(aField in (1) or aField is null ) " );
-    }
+  @Test
+  void verifyInWithNullAndNumberParameters() {
+    executeTest("NV;1", false, "(aField in (1) or aField is null ) ");
+  }
 
-    @Test
-    void verifyInWithNullOnly()
-    {
-        executeTest( "NV", true, "aField is null " );
-    }
+  @Test
+  void verifyInWithNullOnly() {
+    executeTest("NV", true, "aField is null ");
+  }
 
-    private void executeTest( String filterValue, boolean isText, String expected )
-    {
-        assertEquals( new InQueryFilter( "aField", filterValue, isText ).getSqlFilter(), expected );
-    }
+  private void executeTest(String filterValue, boolean isText, String expected) {
+    assertEquals(new InQueryFilter("aField", filterValue, isText).getSqlFilter(), expected);
+  }
 }

@@ -27,39 +27,29 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+public class UpdateFollowUpForDataValuesRequest {
+  private List<FollowupParams> followups;
 
-public class UpdateFollowUpForDataValuesRequest
-{
-    private List<FollowupParams> followups;
+  public UpdateFollowUpForDataValuesRequest() {}
 
-    public UpdateFollowUpForDataValuesRequest()
-    {
-    }
+  public UpdateFollowUpForDataValuesRequest(List<FollowupParams> followups) {
+    this.followups = followups;
+  }
 
-    public UpdateFollowUpForDataValuesRequest( List<FollowupParams> followups )
-    {
-        this.followups = followups;
-    }
+  @JsonProperty
+  public List<FollowupParams> getFollowups() {
+    return followups;
+  }
 
-    @JsonProperty
-    public List<FollowupParams> getFollowups()
-    {
-        return followups;
-    }
+  public void setFollowups(List<FollowupParams> followups) {
+    this.followups = followups;
+  }
 
-    public void setFollowups( List<FollowupParams> followups )
-    {
-        this.followups = followups;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "UpdateFollowUpForDataValuesRequest{" +
-            "followups=" + followups +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "UpdateFollowUpForDataValuesRequest{" + "followups=" + followups + '}';
+  }
 }

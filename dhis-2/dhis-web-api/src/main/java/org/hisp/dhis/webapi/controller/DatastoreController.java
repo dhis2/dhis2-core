@@ -34,15 +34,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.NamedParams;
@@ -66,226 +64,208 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Stian Sandvold
  */
 @Controller
-@RequestMapping( "/dataStore" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping("/dataStore")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class DatastoreController
-{
-    private final DatastoreService service;
+public class DatastoreController {
+  private final DatastoreService service;
 
-    private final ObjectMapper jsonMapper;
+  private final ObjectMapper jsonMapper;
 
-    /**
-     * Returns a JSON array of strings representing the different namespaces
-     * used. If no namespaces exist, an empty array is returned.
-     */
-    @GetMapping( value = "", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
-    {
-        setNoStore( response );
+  /**
+   * Returns a JSON array of strings representing the different namespaces used. If no namespaces
+   * exist, an empty array is returned.
+   */
+  @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<String> getNamespaces(HttpServletResponse response) {
+    setNoStore(response);
 
-        return service.getNamespaces();
+    return service.getNamespaces();
+  }
+
+  /** Returns a list of strings representing keys in the given namespace. */
+  @GetMapping(value = "/{namespace}", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<String> getKeysInNamespace(
+      @RequestParam(required = false) Date lastUpdated,
+      @PathVariable String namespace,
+      HttpServletResponse response)
+      throws Exception {
+    setNoStore(response);
+
+    List<String> keys = service.getKeysInNamespace(namespace, lastUpdated);
+
+    if (keys.isEmpty() && !service.isUsedNamespace(namespace)) {
+      throw new NotFoundException(String.format("Namespace not found: '%s'", namespace));
     }
 
-    /**
-     * Returns a list of strings representing keys in the given namespace.
-     */
-    @GetMapping( value = "/{namespace}", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated,
-        @PathVariable String namespace,
-        HttpServletResponse response )
-        throws Exception
-    {
-        setNoStore( response );
+    return keys;
+  }
 
-        List<String> keys = service.getKeysInNamespace( namespace, lastUpdated );
+  @GetMapping(value = "/{namespace}", params = "fields", produces = APPLICATION_JSON_VALUE)
+  public void getEntries(
+      @PathVariable String namespace,
+      @RequestParam(required = true) String fields,
+      @RequestParam(required = false, defaultValue = "false") boolean includeAll,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    DatastoreQuery query =
+        service.plan(
+            DatastoreQuery.builder()
+                .namespace(namespace)
+                .fields(parseFields(fields))
+                .includeAll(includeAll)
+                .build()
+                .with(new NamedParams(request::getParameter, request::getParameterValues)));
 
-        if ( keys.isEmpty() && !service.isUsedNamespace( namespace ) )
-        {
-            throw new NotFoundException( String.format( "Namespace not found: '%s'", namespace ) );
+    response.setContentType(APPLICATION_JSON_VALUE);
+    setNoStore(response);
+
+    try (PrintWriter writer = response.getWriter();
+        JsonWriter out = new JsonWriter(writer)) {
+      try {
+        List<String> members = query.getFields().stream().map(Field::getAlias).collect(toList());
+        service.getFields(
+            query,
+            entries -> {
+              if (!query.isHeadless()) {
+                writer.write("{\"pager\":{");
+                writer.write("\"page\":" + query.getPage() + ",");
+                writer.write("\"pageSize\":" + query.getPageSize());
+                writer.write("},\"entries\":");
+              }
+              out.writeEntries(members, entries);
+              return true;
+            });
+        if (!query.isHeadless()) {
+          writer.write("}");
         }
-
-        return keys;
-    }
-
-    @GetMapping( value = "/{namespace}", params = "fields", produces = APPLICATION_JSON_VALUE )
-    public void getEntries( @PathVariable String namespace,
-        @RequestParam( required = true ) String fields,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeAll,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        DatastoreQuery query = service.plan( DatastoreQuery.builder()
-            .namespace( namespace )
-            .fields( parseFields( fields ) )
-            .includeAll( includeAll )
-            .build().with( new NamedParams( request::getParameter, request::getParameterValues ) ) );
-
-        response.setContentType( APPLICATION_JSON_VALUE );
-        setNoStore( response );
-
-        try ( PrintWriter writer = response.getWriter();
-            JsonWriter out = new JsonWriter( writer ) )
-        {
-            try
-            {
-                List<String> members = query.getFields().stream().map( Field::getAlias ).collect( toList() );
-                service.getFields( query, entries -> {
-                    if ( !query.isHeadless() )
-                    {
-                        writer.write( "{\"pager\":{" );
-                        writer.write( "\"page\":" + query.getPage() + "," );
-                        writer.write( "\"pageSize\":" + query.getPageSize() );
-                        writer.write( "},\"entries\":" );
-                    }
-                    out.writeEntries( members, entries );
-                    return true;
-                } );
-                if ( !query.isHeadless() )
-                {
-                    writer.write( "}" );
-                }
-            }
-            catch ( RuntimeException ex )
-            {
-                response.setStatus( HttpServletResponse.SC_BAD_REQUEST );
-                Throwable cause = ex.getCause();
-                String msg = "Unknown error when running the query: "
-                    + (cause != null && ex.getMessage().contains( "could not extract ResultSet" )
-                        ? cause.getMessage()
-                        : ex.getMessage());
-                if ( cause != null && cause.getMessage().contains( "cannot cast type " )
-                    && cause.getMessage().contains( " to double precision" ) )
-                {
-                    String sortProperty = query.getOrder().getPath();
-                    msg = "Cannot use numeric sort order on property `" + sortProperty
-                        + "` as the property contains non-numeric values for matching entries. Use " + query.getOrder()
-                            .getDirection().name().substring( 1 )
-                        + " instead or apply a filter that only matches entries with numeric values for " + sortProperty
-                        + ".";
-                }
-                jsonMapper.writeValue( writer, WebMessageUtils.badRequest( msg ) );
-            }
+      } catch (RuntimeException ex) {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        Throwable cause = ex.getCause();
+        String msg =
+            "Unknown error when running the query: "
+                + (cause != null && ex.getMessage().contains("could not extract ResultSet")
+                    ? cause.getMessage()
+                    : ex.getMessage());
+        if (cause != null
+            && cause.getMessage().contains("cannot cast type ")
+            && cause.getMessage().contains(" to double precision")) {
+          String sortProperty = query.getOrder().getPath();
+          msg =
+              "Cannot use numeric sort order on property `"
+                  + sortProperty
+                  + "` as the property contains non-numeric values for matching entries. Use "
+                  + query.getOrder().getDirection().name().substring(1)
+                  + " instead or apply a filter that only matches entries with numeric values for "
+                  + sortProperty
+                  + ".";
         }
+        jsonMapper.writeValue(writer, WebMessageUtils.badRequest(msg));
+      }
+    }
+  }
+
+  /** Deletes all keys with the given namespace. */
+  @ResponseBody
+  @DeleteMapping("/{namespace}")
+  public WebMessage deleteNamespace(@PathVariable String namespace) throws Exception {
+    if (!service.isUsedNamespace(namespace)) {
+      throw new NotFoundException(String.format("Namespace not found: '%s'", namespace));
     }
 
-    /**
-     * Deletes all keys with the given namespace.
-     */
-    @ResponseBody
-    @DeleteMapping( "/{namespace}" )
-    public WebMessage deleteNamespace( @PathVariable String namespace )
-        throws Exception
-    {
-        if ( !service.isUsedNamespace( namespace ) )
-        {
-            throw new NotFoundException( String.format( "Namespace not found: '%s'", namespace ) );
-        }
+    service.deleteNamespace(namespace);
 
-        service.deleteNamespace( namespace );
+    return ok(String.format("Namespace deleted: '%s'", namespace));
+  }
 
-        return ok( String.format( "Namespace deleted: '%s'", namespace ) );
+  /**
+   * Retrieves the value of the KeyJsonValue represented by the given key from the given namespace.
+   */
+  @GetMapping(value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody String getKeyJsonValue(
+      @PathVariable String namespace, @PathVariable String key) throws NotFoundException {
+    return getExistingEntry(namespace, key).getValue();
+  }
+
+  /** Retrieves the KeyJsonValue represented by the given key from the given namespace. */
+  @GetMapping(value = "/{namespace}/{key}/metaData", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody DatastoreEntry getKeyJsonValueMetaData(
+      @PathVariable String namespace, @PathVariable String key, HttpServletResponse response)
+      throws Exception {
+    DatastoreEntry entry = getExistingEntry(namespace, key);
+
+    DatastoreEntry metaData = new DatastoreEntry();
+    BeanUtils.copyProperties(metaData, entry);
+    metaData.setValue(null);
+    metaData.setJbPlainValue(null);
+    metaData.setEncryptedValue(null);
+    return metaData;
+  }
+
+  /** Creates a new KeyJsonValue Object on the given namespace with the key and value supplied. */
+  @ResponseBody
+  @PostMapping(
+      value = "/{namespace}/{key}",
+      produces = APPLICATION_JSON_VALUE,
+      consumes = APPLICATION_JSON_VALUE)
+  public WebMessage addKeyJsonValue(
+      @PathVariable String namespace,
+      @PathVariable String key,
+      @RequestBody String value,
+      @RequestParam(defaultValue = "false") boolean encrypt,
+      HttpServletRequest request) {
+    DatastoreEntry entry = new DatastoreEntry();
+    entry.setKey(key);
+    entry.setNamespace(namespace);
+    entry.setValue(value);
+    entry.setEncrypted(encrypt);
+
+    service.addEntry(entry);
+
+    return created(String.format("Key created: '%s'", key));
+  }
+
+  /** Update a key in the given namespace. */
+  @ResponseBody
+  @PutMapping(
+      value = "/{namespace}/{key}",
+      produces = APPLICATION_JSON_VALUE,
+      consumes = APPLICATION_JSON_VALUE)
+  public WebMessage updateKeyJsonValue(
+      @PathVariable String namespace, @PathVariable String key, @RequestBody String value)
+      throws Exception {
+    DatastoreEntry entry = getExistingEntry(namespace, key);
+    entry.setValue(value);
+
+    service.updateEntry(entry);
+
+    return ok(String.format("Key updated: '%s'", key));
+  }
+
+  /** Delete a key from the given namespace. */
+  @ResponseBody
+  @DeleteMapping(value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE)
+  public WebMessage deleteKeyJsonValue(@PathVariable String namespace, @PathVariable String key)
+      throws Exception {
+    DatastoreEntry entry = getExistingEntry(namespace, key);
+    service.deleteEntry(entry);
+
+    return ok(String.format("Key '%s' deleted from namespace '%s'", key, namespace));
+  }
+
+  private DatastoreEntry getExistingEntry(String namespace, String key) throws NotFoundException {
+    DatastoreEntry entry = service.getEntry(namespace, key);
+
+    if (entry == null) {
+      throw new NotFoundException(
+          String.format("Key '%s' not found in namespace '%s'", key, namespace));
     }
 
-    /**
-     * Retrieves the value of the KeyJsonValue represented by the given key from
-     * the given namespace.
-     */
-    @GetMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key )
-        throws NotFoundException
-    {
-        return getExistingEntry( namespace, key ).getValue();
-    }
-
-    /**
-     * Retrieves the KeyJsonValue represented by the given key from the given
-     * namespace.
-     */
-    @GetMapping( value = "/{namespace}/{key}/metaData", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody DatastoreEntry getKeyJsonValueMetaData( @PathVariable String namespace,
-        @PathVariable String key,
-        HttpServletResponse response )
-        throws Exception
-    {
-        DatastoreEntry entry = getExistingEntry( namespace, key );
-
-        DatastoreEntry metaData = new DatastoreEntry();
-        BeanUtils.copyProperties( metaData, entry );
-        metaData.setValue( null );
-        metaData.setJbPlainValue( null );
-        metaData.setEncryptedValue( null );
-        return metaData;
-    }
-
-    /**
-     * Creates a new KeyJsonValue Object on the given namespace with the key and
-     * value supplied.
-     */
-    @ResponseBody
-    @PostMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
-    public WebMessage addKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
-        @RequestBody String value,
-        @RequestParam( defaultValue = "false" ) boolean encrypt, HttpServletRequest request )
-    {
-        DatastoreEntry entry = new DatastoreEntry();
-        entry.setKey( key );
-        entry.setNamespace( namespace );
-        entry.setValue( value );
-        entry.setEncrypted( encrypt );
-
-        service.addEntry( entry );
-
-        return created( String.format( "Key created: '%s'", key ) );
-    }
-
-    /**
-     * Update a key in the given namespace.
-     */
-    @ResponseBody
-    @PutMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
-    public WebMessage updateKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
-        @RequestBody String value )
-        throws Exception
-    {
-        DatastoreEntry entry = getExistingEntry( namespace, key );
-        entry.setValue( value );
-
-        service.updateEntry( entry );
-
-        return ok( String.format( "Key updated: '%s'", key ) );
-    }
-
-    /**
-     * Delete a key from the given namespace.
-     */
-    @ResponseBody
-    @DeleteMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
-    public WebMessage deleteKeyJsonValue( @PathVariable String namespace, @PathVariable String key )
-        throws Exception
-    {
-        DatastoreEntry entry = getExistingEntry( namespace, key );
-        service.deleteEntry( entry );
-
-        return ok( String.format( "Key '%s' deleted from namespace '%s'", key, namespace ) );
-    }
-
-    private DatastoreEntry getExistingEntry( String namespace, String key )
-        throws NotFoundException
-    {
-        DatastoreEntry entry = service.getEntry( namespace, key );
-
-        if ( entry == null )
-        {
-            throw new NotFoundException( String.format( "Key '%s' not found in namespace '%s'", key, namespace ) );
-        }
-
-        return entry;
-    }
+    return entry;
+  }
 }

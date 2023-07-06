@@ -32,10 +32,8 @@ import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
 import java.util.Date;
 import java.util.stream.IntStream;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -56,128 +54,134 @@ import org.springframework.web.client.RestTemplate;
  */
 @Component
 @AllArgsConstructor
-public class DataValueSynchronization implements DataSynchronizationWithPaging
-{
-    private final DataValueService dataValueService;
+public class DataValueSynchronization implements DataSynchronizationWithPaging {
+  private final DataValueService dataValueService;
 
-    private final DataValueSetService dataValueSetService;
+  private final DataValueSetService dataValueSetService;
 
-    private final SystemSettingManager settings;
+  private final SystemSettingManager settings;
 
-    private final RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
-    @Getter
-    private static final class DataValueSynchronisationContext extends PagedDataSynchronisationContext
-    {
-        private final Date lastUpdatedAfter;
+  @Getter
+  private static final class DataValueSynchronisationContext
+      extends PagedDataSynchronisationContext {
+    private final Date lastUpdatedAfter;
 
-        public DataValueSynchronisationContext( Date skipChangedBefore, int pageSize )
-        {
-            this( skipChangedBefore, 0, null, pageSize, null );
-        }
-
-        public DataValueSynchronisationContext( Date skipChangedBefore, int objectsToSynchronize,
-            SystemInstance instance, int pageSize, Date lastUpdatedAfter )
-        {
-            super( skipChangedBefore, objectsToSynchronize, instance, pageSize );
-            this.lastUpdatedAfter = lastUpdatedAfter;
-        }
+    public DataValueSynchronisationContext(Date skipChangedBefore, int pageSize) {
+      this(skipChangedBefore, 0, null, pageSize, null);
     }
 
-    @Override
-    public SynchronizationResult synchronizeData( int pageSize, JobProgress progress )
-    {
-        progress.startingProcess( "Starting DataValueSynchronization job" );
-        if ( !SyncUtils.testServerAvailability( settings, restTemplate ).isAvailable() )
-        {
-            String msg = "DataValueSynchronization failed. Remote server is unavailable.";
-            progress.failedProcess( msg );
-            return SynchronizationResult.failure( msg );
-        }
+    public DataValueSynchronisationContext(
+        Date skipChangedBefore,
+        int objectsToSynchronize,
+        SystemInstance instance,
+        int pageSize,
+        Date lastUpdatedAfter) {
+      super(skipChangedBefore, objectsToSynchronize, instance, pageSize);
+      this.lastUpdatedAfter = lastUpdatedAfter;
+    }
+  }
 
-        progress.startingStage( "Counting data values" );
-        DataValueSynchronisationContext context = progress.runStage(
-            new DataValueSynchronisationContext( null, pageSize ),
-            ctx -> "DataValues last changed before " + ctx.getSkipChangedBefore() + " will not be synchronized.",
-            () -> createContext( pageSize ) );
-
-        if ( context.getObjectsToSynchronize() == 0 )
-        {
-            String msg = "Skipping synchronization, no new or updated DataValues";
-            progress.completedProcess( msg );
-            return SynchronizationResult.success( msg );
-        }
-
-        if ( runSyncWithPaging( context, progress ) )
-        {
-            progress.completedProcess( "SUCCESS! DataValueSynchronization job is done." );
-            SyncUtils.setLastSyncSuccess( settings, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC,
-                context.getStartTime() );
-            return SynchronizationResult.success( "DataValueSynchronization done." );
-        }
-
-        String msg = "DataValueSynchronization failed. Not all pages were synchronised successfully.";
-        progress.failedProcess( msg );
-        return SynchronizationResult.failure( msg );
+  @Override
+  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
+    progress.startingProcess("Starting DataValueSynchronization job");
+    if (!SyncUtils.testServerAvailability(settings, restTemplate).isAvailable()) {
+      String msg = "DataValueSynchronization failed. Remote server is unavailable.";
+      progress.failedProcess(msg);
+      return SynchronizationResult.failure(msg);
     }
 
-    private DataValueSynchronisationContext createContext( final int pageSize )
-    {
-        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( settings,
-            SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-        final Date skipChangedBefore = settings
-            .getDateSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+    progress.startingStage("Counting data values");
+    DataValueSynchronisationContext context =
+        progress.runStage(
+            new DataValueSynchronisationContext(null, pageSize),
+            ctx ->
+                "DataValues last changed before "
+                    + ctx.getSkipChangedBefore()
+                    + " will not be synchronized.",
+            () -> createContext(pageSize));
 
-        int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
-
-        if ( objectsToSynchronize != 0 )
-        {
-            SystemInstance instance = SyncUtils.getRemoteInstance( settings, SyncEndpoint.DATA_VALUE_SETS );
-            return new DataValueSynchronisationContext( skipChangedBefore, objectsToSynchronize, instance, pageSize,
-                lastUpdatedAfter );
-        }
-        return new DataValueSynchronisationContext( skipChangedBefore, 0, null, pageSize, lastUpdatedAfter );
+    if (context.getObjectsToSynchronize() == 0) {
+      String msg = "Skipping synchronization, no new or updated DataValues";
+      progress.completedProcess(msg);
+      return SynchronizationResult.success(msg);
     }
 
-    private boolean runSyncWithPaging( DataValueSynchronisationContext context, JobProgress progress )
-    {
-        String msg = context.getObjectsToSynchronize() + " DataValues to synchronize were found.\n";
-        msg += "Remote server URL for DataValues POST sync: " + context.getInstance().getUrl() + "\n";
-        msg += "DataValueSynchronization job has " + context.getPages() + " pages to sync. With page size: "
+    if (runSyncWithPaging(context, progress)) {
+      progress.completedProcess("SUCCESS! DataValueSynchronization job is done.");
+      SyncUtils.setLastSyncSuccess(
+          settings, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC, context.getStartTime());
+      return SynchronizationResult.success("DataValueSynchronization done.");
+    }
+
+    String msg = "DataValueSynchronization failed. Not all pages were synchronised successfully.";
+    progress.failedProcess(msg);
+    return SynchronizationResult.failure(msg);
+  }
+
+  private DataValueSynchronisationContext createContext(final int pageSize) {
+    final Date lastSuccessTime =
+        SyncUtils.getLastSyncSuccess(settings, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC);
+    final Date skipChangedBefore =
+        settings.getDateSetting(SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE);
+    Date lastUpdatedAfter =
+        lastSuccessTime.after(skipChangedBefore) ? lastSuccessTime : skipChangedBefore;
+
+    int objectsToSynchronize =
+        dataValueService.getDataValueCountLastUpdatedAfter(lastUpdatedAfter, true);
+
+    if (objectsToSynchronize != 0) {
+      SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.DATA_VALUE_SETS);
+      return new DataValueSynchronisationContext(
+          skipChangedBefore, objectsToSynchronize, instance, pageSize, lastUpdatedAfter);
+    }
+    return new DataValueSynchronisationContext(
+        skipChangedBefore, 0, null, pageSize, lastUpdatedAfter);
+  }
+
+  private boolean runSyncWithPaging(DataValueSynchronisationContext context, JobProgress progress) {
+    String msg = context.getObjectsToSynchronize() + " DataValues to synchronize were found.\n";
+    msg += "Remote server URL for DataValues POST sync: " + context.getInstance().getUrl() + "\n";
+    msg +=
+        "DataValueSynchronization job has "
+            + context.getPages()
+            + " pages to sync. With page size: "
             + context.getPageSize();
 
-        progress.startingStage( msg, context.getPages(), SKIP_ITEM );
-        progress.runStage( IntStream.range( 1, context.getPages() + 1 ).boxed(),
-            page -> format( "Synchronizing page %d with page size %d", page, context.getPageSize() ),
-            page -> synchronizePage( page, context ) );
-        return !progress.isSkipCurrentStage();
+    progress.startingStage(msg, context.getPages(), SKIP_ITEM);
+    progress.runStage(
+        IntStream.range(1, context.getPages() + 1).boxed(),
+        page -> format("Synchronizing page %d with page size %d", page, context.getPageSize()),
+        page -> synchronizePage(page, context));
+    return !progress.isSkipCurrentStage();
+  }
+
+  protected void synchronizePage(int page, DataValueSynchronisationContext context) {
+    if (!sendSyncRequest(page, context)) {
+      throw new MetadataSyncServiceException(format("Page %d synchronisation failed.", page));
     }
+  }
 
-    protected void synchronizePage( int page, DataValueSynchronisationContext context )
-    {
-        if ( !sendSyncRequest( page, context ) )
-        {
-            throw new MetadataSyncServiceException( format( "Page %d synchronisation failed.", page ) );
-        }
-    }
+  private boolean sendSyncRequest(int page, DataValueSynchronisationContext context) {
+    SystemInstance instance = context.getInstance();
+    Date lastUpdatedAfter = context.getLastUpdatedAfter();
+    int syncPageSize = context.getPageSize();
 
-    private boolean sendSyncRequest( int page, DataValueSynchronisationContext context )
-    {
-        SystemInstance instance = context.getInstance();
-        Date lastUpdatedAfter = context.getLastUpdatedAfter();
-        int syncPageSize = context.getPageSize();
+    RequestCallback requestCallback =
+        request -> {
+          request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+          request
+              .getHeaders()
+              .add(
+                  SyncUtils.HEADER_AUTHORIZATION,
+                  CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
 
-        RequestCallback requestCallback = request -> {
-            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
-                CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
-
-            dataValueSetService.exportDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes(),
-                syncPageSize, page );
+          dataValueSetService.exportDataValueSetJson(
+              lastUpdatedAfter, request.getBody(), new IdSchemes(), syncPageSize, page);
         };
 
-        return SyncUtils.sendSyncRequest( settings, restTemplate, requestCallback, instance,
-            SyncEndpoint.DATA_VALUE_SETS );
-    }
+    return SyncUtils.sendSyncRequest(
+        settings, restTemplate, requestCallback, instance, SyncEndpoint.DATA_VALUE_SETS);
+  }
 }

@@ -32,25 +32,21 @@ import java.io.File;
 /**
  * @Author Zubair Asghar.
  */
-public class FileSavedEvent
-{
-    private String fileResource;
+public class FileSavedEvent {
+  private String fileResource;
 
-    private File file;
+  private File file;
 
-    public FileSavedEvent( String fileResource, File file )
-    {
-        this.fileResource = fileResource;
-        this.file = file;
-    }
+  public FileSavedEvent(String fileResource, File file) {
+    this.fileResource = fileResource;
+    this.file = file;
+  }
 
-    public String getFileResource()
-    {
-        return fileResource;
-    }
+  public String getFileResource() {
+    return fileResource;
+  }
 
-    public File getFile()
-    {
-        return file;
-    }
+  public File getFile() {
+    return file;
+  }
 }

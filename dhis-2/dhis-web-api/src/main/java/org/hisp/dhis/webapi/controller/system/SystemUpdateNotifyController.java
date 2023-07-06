@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.system;
 
+import com.vdurmont.semver4j.Semver;
 import java.util.Map;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -42,40 +42,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.vdurmont.semver4j.Semver;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
 @RequestMapping
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SystemUpdateNotifyController
-{
-    public static final String RESOURCE_PATH = "/systemUpdates";
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class SystemUpdateNotifyController {
+  public static final String RESOURCE_PATH = "/systemUpdates";
 
-    @Autowired
-    private SystemUpdateNotificationService service;
+  @Autowired private SystemUpdateNotificationService service;
 
-    @GetMapping( SystemUpdateNotifyController.RESOURCE_PATH )
-    @ResponseBody
-    public WebMessage checkForSystemUpdates(
-        @RequestParam( value = "forceVersion", required = false ) String forceVersion )
-    {
-        Semver currentVersion = SystemUpdateNotificationService.getCurrentVersion();
+  @GetMapping(SystemUpdateNotifyController.RESOURCE_PATH)
+  @ResponseBody
+  public WebMessage checkForSystemUpdates(
+      @RequestParam(value = "forceVersion", required = false) String forceVersion) {
+    Semver currentVersion = SystemUpdateNotificationService.getCurrentVersion();
 
-        if ( forceVersion != null )
-        {
-            currentVersion = new Semver( forceVersion );
-        }
-
-        Map<Semver, Map<String, String>> newerVersions = SystemUpdateNotificationService
-            .getLatestNewerThanFetchFirst( currentVersion );
-
-        service.sendMessageForEachVersion( newerVersions, NoopJobProgress.INSTANCE );
-
-        WebMessage ok = WebMessageUtils.ok();
-        ok.setResponse( new SoftwareUpdateResponse( newerVersions ) );
-        return ok;
+    if (forceVersion != null) {
+      currentVersion = new Semver(forceVersion);
     }
+
+    Map<Semver, Map<String, String>> newerVersions =
+        SystemUpdateNotificationService.getLatestNewerThanFetchFirst(currentVersion);
+
+    service.sendMessageForEachVersion(newerVersions, NoopJobProgress.INSTANCE);
+
+    WebMessage ok = WebMessageUtils.ok();
+    ok.setResponse(new SoftwareUpdateResponse(newerVersions));
+    return ok;
+  }
 }

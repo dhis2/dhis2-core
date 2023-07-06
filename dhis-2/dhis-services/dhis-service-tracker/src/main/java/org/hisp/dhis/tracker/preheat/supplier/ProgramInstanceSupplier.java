@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
@@ -48,35 +46,31 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class ProgramInstanceSupplier extends AbstractPreheatSupplier
-{
-    @NonNull
-    private final ProgramInstanceStore programInstanceStore;
+public class ProgramInstanceSupplier extends AbstractPreheatSupplier {
+  @NonNull private final ProgramInstanceStore programInstanceStore;
 
-    @NonNull
-    private final ProgramStore programStore;
+  @NonNull private final ProgramStore programStore;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        List<Program> programsWithoutRegistration = preheat.getAll( Program.class )
-            .stream()
-            .filter( program -> program.getProgramType().equals( ProgramType.WITHOUT_REGISTRATION ) )
-            .collect( Collectors.toList() );
-        if ( programsWithoutRegistration.isEmpty() )
-        {
-            programsWithoutRegistration = programStore.getByType( ProgramType.WITHOUT_REGISTRATION );
-        }
-        if ( !programsWithoutRegistration.isEmpty() )
-        {
-            List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
-                programInstanceStore.getByPrograms( programsWithoutRegistration ) );
-
-            programInstances
-                .forEach( pi -> {
-                    preheat.putEnrollment( pi.getUid(), pi );
-                    preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi );
-                } );
-        }
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    List<Program> programsWithoutRegistration =
+        preheat.getAll(Program.class).stream()
+            .filter(program -> program.getProgramType().equals(ProgramType.WITHOUT_REGISTRATION))
+            .collect(Collectors.toList());
+    if (programsWithoutRegistration.isEmpty()) {
+      programsWithoutRegistration = programStore.getByType(ProgramType.WITHOUT_REGISTRATION);
     }
+    if (!programsWithoutRegistration.isEmpty()) {
+      List<ProgramInstance> programInstances =
+          DetachUtils.detach(
+              ProgramInstanceMapper.INSTANCE,
+              programInstanceStore.getByPrograms(programsWithoutRegistration));
+
+      programInstances.forEach(
+          pi -> {
+            preheat.putEnrollment(pi.getUid(), pi);
+            preheat.putProgramInstancesWithoutRegistration(pi.getProgram().getUid(), pi);
+          });
+    }
+  }
 }

@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -55,154 +54,142 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest {
 
-    private final static String TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
+  private static final String TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
 
-    private final static String TEI_TO_EVENT_RELATIONSHIP_TYPE = "TV9oB9LT3sh";
+  private static final String TEI_TO_EVENT_RELATIONSHIP_TYPE = "TV9oB9LT3sh";
 
-    private final static String TEI = "TEI_UID";
+  private static final String TEI = "TEI_UID";
 
-    private final static String ENROLLMENT = "ENROLLMENT_UID";
+  private static final String ENROLLMENT = "ENROLLMENT_UID";
 
-    private final static String EVENT = "EVENT_UID";
+  private static final String EVENT = "EVENT_UID";
 
-    private final static String RELATIONSHIP_A = "RELATIONSHIP_A_UID";
+  private static final String RELATIONSHIP_A = "RELATIONSHIP_A_UID";
 
-    private final static String RELATIONSHIP_B = "RELATIONSHIP_B_UID";
+  private static final String RELATIONSHIP_B = "RELATIONSHIP_B_UID";
 
-    private RelationshipType teiToEnrollment;
+  private RelationshipType teiToEnrollment;
 
-    private RelationshipType teiToEvent;
+  private RelationshipType teiToEvent;
 
-    private TrackedEntityInstance tei;
+  private TrackedEntityInstance tei;
 
-    private ProgramInstance pi;
+  private ProgramInstance pi;
 
-    private ProgramStageInstance psi;
+  private ProgramStageInstance psi;
 
-    private TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverterService;
+  private TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
+      relationshipConverterService;
 
-    @Mock
-    public TrackerPreheat preheat;
+  @Mock public TrackerPreheat preheat;
 
-    @BeforeEach
-    protected void setupTest()
-    {
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
-        Program program = createProgram( 'A' );
-        TrackedEntityType teiType = createTrackedEntityType( 'A' );
+  @BeforeEach
+  protected void setupTest() {
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    Program program = createProgram('A');
+    TrackedEntityType teiType = createTrackedEntityType('A');
 
-        teiToEnrollment = createTeiToEnrollmentRelationshipType( 'A', program, teiType, false );
-        teiToEnrollment.setUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE );
+    teiToEnrollment = createTeiToEnrollmentRelationshipType('A', program, teiType, false);
+    teiToEnrollment.setUid(TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE);
 
-        teiToEvent = createTeiToEventRelationshipType( 'B', program, teiType, false );
-        teiToEvent.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
+    teiToEvent = createTeiToEventRelationshipType('B', program, teiType, false);
+    teiToEvent.setUid(TEI_TO_EVENT_RELATIONSHIP_TYPE);
 
-        tei = createTrackedEntityInstance( organisationUnit );
-        tei.setTrackedEntityType( teiType );
-        tei.setUid( TEI );
-        pi = createProgramInstance( program, tei, organisationUnit );
-        pi.setUid( ENROLLMENT );
-        psi = createProgramStageInstance( createProgramStage( 'A', program ), pi, organisationUnit );
-        psi.setUid( EVENT );
+    tei = createTrackedEntityInstance(organisationUnit);
+    tei.setTrackedEntityType(teiType);
+    tei.setUid(TEI);
+    pi = createProgramInstance(program, tei, organisationUnit);
+    pi.setUid(ENROLLMENT);
+    psi = createProgramStageInstance(createProgramStage('A', program), pi, organisationUnit);
+    psi.setUid(EVENT);
 
-        relationshipConverterService = new RelationshipTrackerConverterService();
-    }
+    relationshipConverterService = new RelationshipTrackerConverterService();
+  }
 
-    @Test
-    void testConverterFromRelationships()
-    {
-        when( preheat.getRelationship( RELATIONSHIP_A ) ).thenReturn( relationshipAFromDB() );
-        when( preheat.getRelationship( RELATIONSHIP_B ) ).thenReturn( relationshipBFromDB() );
-        when( preheat.getRelationshipType( MetadataIdentifier.ofUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE ) ) )
-            .thenReturn( teiToEnrollment );
-        when( preheat.getRelationshipType( MetadataIdentifier.ofUid( TEI_TO_EVENT_RELATIONSHIP_TYPE ) ) )
-            .thenReturn( teiToEvent );
-        when( preheat.getTrackedEntity( TEI ) ).thenReturn( tei );
-        when( preheat.getEnrollment( ENROLLMENT ) ).thenReturn( pi );
-        when( preheat.getEvent( EVENT ) ).thenReturn( psi );
+  @Test
+  void testConverterFromRelationships() {
+    when(preheat.getRelationship(RELATIONSHIP_A)).thenReturn(relationshipAFromDB());
+    when(preheat.getRelationship(RELATIONSHIP_B)).thenReturn(relationshipBFromDB());
+    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE)))
+        .thenReturn(teiToEnrollment);
+    when(preheat.getRelationshipType(MetadataIdentifier.ofUid(TEI_TO_EVENT_RELATIONSHIP_TYPE)))
+        .thenReturn(teiToEvent);
+    when(preheat.getTrackedEntity(TEI)).thenReturn(tei);
+    when(preheat.getEnrollment(ENROLLMENT)).thenReturn(pi);
+    when(preheat.getEvent(EVENT)).thenReturn(psi);
 
-        List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
-            .from( preheat, List.of( relationshipA(), relationshipB() ) );
-        assertNotNull( from );
-        assertEquals( 2, from.size() );
-        from.forEach( relationship -> {
-            if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
-            {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                assertEquals( ENROLLMENT, relationship.getTo().getProgramInstance().getUid() );
-            }
-            else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
-            {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                assertEquals( EVENT, relationship.getTo().getProgramStageInstance().getUid() );
-            }
-            else
-            {
-                fail( "Unexpected relationshipType found." );
-            }
-            assertNotNull( relationship.getFrom() );
-            assertNotNull( relationship.getTo() );
-        } );
-    }
+    List<org.hisp.dhis.relationship.Relationship> from =
+        relationshipConverterService.from(preheat, List.of(relationshipA(), relationshipB()));
+    assertNotNull(from);
+    assertEquals(2, from.size());
+    from.forEach(
+        relationship -> {
+          if (TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
+              relationship.getRelationshipType().getUid())) {
+            assertEquals(TEI, relationship.getFrom().getTrackedEntityInstance().getUid());
+            assertEquals(ENROLLMENT, relationship.getTo().getProgramInstance().getUid());
+          } else if (TEI_TO_EVENT_RELATIONSHIP_TYPE.equals(
+              relationship.getRelationshipType().getUid())) {
+            assertEquals(TEI, relationship.getFrom().getTrackedEntityInstance().getUid());
+            assertEquals(EVENT, relationship.getTo().getProgramStageInstance().getUid());
+          } else {
+            fail("Unexpected relationshipType found.");
+          }
+          assertNotNull(relationship.getFrom());
+          assertNotNull(relationship.getTo());
+        });
+  }
 
-    @Test
-    void testConverterToRelationships()
-    {
-        List<Relationship> to = relationshipConverterService
-            .to( List.of( relationshipAFromDB(), relationshipBFromDB() ) );
-        assertNotNull( to );
-        assertEquals( 2, to.size() );
-        to.forEach( relationship -> {
-            if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getIdentifier() ) )
-            {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntity() );
-                assertEquals( ENROLLMENT, relationship.getTo().getEnrollment() );
-            }
-            else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getIdentifier() ) )
-            {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntity() );
-                assertEquals( EVENT, relationship.getTo().getEvent() );
-            }
-            else
-            {
-                fail( "Unexpected relationshipType found." );
-            }
-            assertNotNull( relationship.getFrom() );
-            assertNotNull( relationship.getTo() );
-        } );
-    }
+  @Test
+  void testConverterToRelationships() {
+    List<Relationship> to =
+        relationshipConverterService.to(List.of(relationshipAFromDB(), relationshipBFromDB()));
+    assertNotNull(to);
+    assertEquals(2, to.size());
+    to.forEach(
+        relationship -> {
+          if (TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals(
+              relationship.getRelationshipType().getIdentifier())) {
+            assertEquals(TEI, relationship.getFrom().getTrackedEntity());
+            assertEquals(ENROLLMENT, relationship.getTo().getEnrollment());
+          } else if (TEI_TO_EVENT_RELATIONSHIP_TYPE.equals(
+              relationship.getRelationshipType().getIdentifier())) {
+            assertEquals(TEI, relationship.getFrom().getTrackedEntity());
+            assertEquals(EVENT, relationship.getTo().getEvent());
+          } else {
+            fail("Unexpected relationshipType found.");
+          }
+          assertNotNull(relationship.getFrom());
+          assertNotNull(relationship.getTo());
+        });
+  }
 
-    private Relationship relationshipA()
-    {
-        return Relationship.builder()
-            .relationship( RELATIONSHIP_A )
-            .relationshipType( MetadataIdentifier.ofUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE ) )
-            .from( RelationshipItem.builder().trackedEntity( TEI ).build() )
-            .to( RelationshipItem.builder().enrollment( ENROLLMENT ).build() )
-            .build();
-    }
+  private Relationship relationshipA() {
+    return Relationship.builder()
+        .relationship(RELATIONSHIP_A)
+        .relationshipType(MetadataIdentifier.ofUid(TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE))
+        .from(RelationshipItem.builder().trackedEntity(TEI).build())
+        .to(RelationshipItem.builder().enrollment(ENROLLMENT).build())
+        .build();
+  }
 
-    private Relationship relationshipB()
-    {
-        return Relationship.builder()
-            .relationship( RELATIONSHIP_B )
-            .relationshipType( MetadataIdentifier.ofUid( TEI_TO_EVENT_RELATIONSHIP_TYPE ) )
-            .from( RelationshipItem.builder().trackedEntity( TEI ).build() )
-            .to( RelationshipItem.builder().event( EVENT ).build() )
-            .build();
-    }
+  private Relationship relationshipB() {
+    return Relationship.builder()
+        .relationship(RELATIONSHIP_B)
+        .relationshipType(MetadataIdentifier.ofUid(TEI_TO_EVENT_RELATIONSHIP_TYPE))
+        .from(RelationshipItem.builder().trackedEntity(TEI).build())
+        .to(RelationshipItem.builder().event(EVENT).build())
+        .build();
+  }
 
-    private org.hisp.dhis.relationship.Relationship relationshipAFromDB()
-    {
-        return createTeiToProgramInstanceRelationship( tei, pi, teiToEnrollment );
-    }
+  private org.hisp.dhis.relationship.Relationship relationshipAFromDB() {
+    return createTeiToProgramInstanceRelationship(tei, pi, teiToEnrollment);
+  }
 
-    private org.hisp.dhis.relationship.Relationship relationshipBFromDB()
-    {
-        return createTeiToProgramStageInstanceRelationship( tei, psi, teiToEvent );
-    }
+  private org.hisp.dhis.relationship.Relationship relationshipBFromDB() {
+    return createTeiToProgramStageInstanceRelationship(tei, psi, teiToEvent);
+  }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.dimension.mappers;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.ValueType;
@@ -37,26 +38,22 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.mappers.DataElementMapper;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
+class DataElementMapperTest {
 
-class DataElementMapperTest
-{
+  private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.DATA_ELEMENT;
 
-    private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.DATA_ELEMENT;
-
-    @Test
-    void testDataElementObjectMapperId()
-    {
-        asserter( new DataElementMapper(),
-            DataElement::new,
-            ImmutableList.of(
-                b -> b.setDimensionItemType( DIMENSION_ITEM_TYPE ),
-                b -> b.setValueType( ValueType.TEXT ),
-                b -> b.setUid( "DE_ID" ) ),
-            ImmutableList.of(
-                Pair.of( DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE ),
-                Pair.of( DimensionResponse::getId, "PROGRAM_STAGE_ID.DE_ID" ) ),
-            "PROGRAM_STAGE_ID" );
-    }
-
+  @Test
+  void testDataElementObjectMapperId() {
+    asserter(
+        new DataElementMapper(),
+        DataElement::new,
+        ImmutableList.of(
+            b -> b.setDimensionItemType(DIMENSION_ITEM_TYPE),
+            b -> b.setValueType(ValueType.TEXT),
+            b -> b.setUid("DE_ID")),
+        ImmutableList.of(
+            Pair.of(DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE),
+            Pair.of(DimensionResponse::getId, "PROGRAM_STAGE_ID.DE_ID")),
+        "PROGRAM_STAGE_ID");
+  }
 }

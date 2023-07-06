@@ -27,61 +27,57 @@
  */
 package org.hisp.dhis.cache;
 
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.persistence.Query;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Cache;
 import org.springframework.stereotype.Service;
-
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 @Slf4j
-public class QueryCacheManager
-{
-    private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
+public class QueryCacheManager {
+  private final Map<String, Set<String>> regionNameMap = new ConcurrentHashMap<>();
 
-    private final HashFunction sessionIdHasher = Hashing.sha256();
+  private final HashFunction sessionIdHasher = Hashing.sha256();
 
-    public String getQueryCacheRegionName( Class<?> klass, Query query )
-    {
-        String queryString = query.unwrap( org.hibernate.query.Query.class ).getQueryString();
-        return generateRegionName( klass, queryString );
-    }
+  public String getQueryCacheRegionName(Class<?> klass, Query query) {
+    String queryString = query.unwrap(org.hibernate.query.Query.class).getQueryString();
+    return generateRegionName(klass, queryString);
+  }
 
-    public String generateRegionName( Class<?> klass, String queryString )
-    {
-        String queryStringHash = sessionIdHasher.newHasher().putString( queryString, StandardCharsets.UTF_8 ).hash()
+  public String generateRegionName(Class<?> klass, String queryString) {
+    String queryStringHash =
+        sessionIdHasher
+            .newHasher()
+            .putString(queryString, StandardCharsets.UTF_8)
+            .hash()
             .toString();
-        String regionName = klass.getName() + "_" + queryStringHash;
+    String regionName = klass.getName() + "_" + queryStringHash;
 
-        Set<String> allQueriesOnKlass = regionNameMap.computeIfAbsent( klass.getName(), s -> new HashSet<>() );
-        allQueriesOnKlass.add( queryStringHash );
+    Set<String> allQueriesOnKlass =
+        regionNameMap.computeIfAbsent(klass.getName(), s -> new HashSet<>());
+    allQueriesOnKlass.add(queryStringHash);
 
-        return regionName;
+    return regionName;
+  }
+
+  public void evictQueryCache(Cache cache, Class<?> klass) {
+    Set<String> hashes = regionNameMap.getOrDefault(klass.getName(), Collections.emptySet());
+
+    for (String regionNameHash : hashes) {
+      String key = klass.getName() + "_" + regionNameHash;
+
+      cache.evictQueryRegion(key);
     }
-
-    public void evictQueryCache( Cache cache, Class<?> klass )
-    {
-        Set<String> hashes = regionNameMap.getOrDefault( klass.getName(), Collections.emptySet() );
-
-        for ( String regionNameHash : hashes )
-        {
-            String key = klass.getName() + "_" + regionNameHash;
-
-            cache.evictQueryRegion( key );
-        }
-    }
+  }
 }

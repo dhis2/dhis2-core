@@ -31,16 +31,12 @@ package org.hisp.dhis.external.location;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class LocationManagerException
-    extends RuntimeException
-{
-    public LocationManagerException( String message )
-    {
-        super( message );
-    }
+public class LocationManagerException extends RuntimeException {
+  public LocationManagerException(String message) {
+    super(message);
+  }
 
-    public LocationManagerException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public LocationManagerException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

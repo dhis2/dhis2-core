@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.hasKey;
 
 import java.util.List;
 import java.util.function.Function;
-
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -41,39 +40,37 @@ import org.hisp.dhis.dto.ApiResponse;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-class AbstractOrgUnitAssociationTestSupport extends ApiTest
-{
+class AbstractOrgUnitAssociationTestSupport extends ApiTest {
 
-    private final LoginActions loginActions = new LoginActions();
+  private final LoginActions loginActions = new LoginActions();
 
-    protected AbstractOrgUnitAssociationTestSupport()
-    {
-    };
+  protected AbstractOrgUnitAssociationTestSupport() {}
+  ;
 
-    private ApiResponse validateResponseHasKey( Function<String, ApiResponse> apiResponseProvider, String key )
-    {
-        ApiResponse apiResponse = apiResponseProvider.apply( key );
-        apiResponse.validate()
-            .body( "$", hasKey( key ) );
-        return apiResponse;
-    }
+  private ApiResponse validateResponseHasKey(
+      Function<String, ApiResponse> apiResponseProvider, String key) {
+    ApiResponse apiResponse = apiResponseProvider.apply(key);
+    apiResponse.validate().body("$", hasKey(key));
+    return apiResponse;
+  }
 
-    public void testOrgUnitsConnections( Function<String, ApiResponse> apiResponseProvider, String uid )
-    {
-        loginActions.loginAsSuperUser();
+  public void testOrgUnitsConnections(
+      Function<String, ApiResponse> apiResponseProvider, String uid) {
+    loginActions.loginAsSuperUser();
 
-        ApiResponse associatedOrgUnitsAsSuperUserApiResponse = validateResponseHasKey( apiResponseProvider, uid );
+    ApiResponse associatedOrgUnitsAsSuperUserApiResponse =
+        validateResponseHasKey(apiResponseProvider, uid);
 
-        loginActions.loginAsDefaultUser();
+    loginActions.loginAsDefaultUser();
 
-        List<String> associatedOrgUnitsAsTrackerUids = validateResponseHasKey( apiResponseProvider, uid )
-            .extractList( uid );
+    List<String> associatedOrgUnitsAsTrackerUids =
+        validateResponseHasKey(apiResponseProvider, uid).extractList(uid);
 
-        associatedOrgUnitsAsSuperUserApiResponse.validate()
-            .assertThat()
-            .body( uid, hasItems( associatedOrgUnitsAsTrackerUids.toArray() ) )
-            .and()
-            .body( uid + ".size()", greaterThanOrEqualTo( associatedOrgUnitsAsTrackerUids.size() ) );
-    }
-
+    associatedOrgUnitsAsSuperUserApiResponse
+        .validate()
+        .assertThat()
+        .body(uid, hasItems(associatedOrgUnitsAsTrackerUids.toArray()))
+        .and()
+        .body(uid + ".size()", greaterThanOrEqualTo(associatedOrgUnitsAsTrackerUids.size()));
+  }
 }

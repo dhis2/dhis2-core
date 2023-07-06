@@ -28,9 +28,7 @@
 package org.hisp.dhis.program;
 
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -41,45 +39,38 @@ import org.springframework.stereotype.Component;
  */
 @AllArgsConstructor
 @Component
-public class ProgramDataEntryFormDeletionHandler extends DeletionHandler
-{
-    private final DataEntryFormService dataEntryFormService;
+public class ProgramDataEntryFormDeletionHandler extends DeletionHandler {
+  private final DataEntryFormService dataEntryFormService;
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+  }
 
-    public void deleteProgramStage( ProgramStage programStage )
-    {
-        DataEntryForm dataEntryForm = programStage.getDataEntryForm();
+  public void deleteProgramStage(ProgramStage programStage) {
+    DataEntryForm dataEntryForm = programStage.getDataEntryForm();
 
-        if ( dataEntryForm != null )
-        {
-            boolean flag = false;
+    if (dataEntryForm != null) {
+      boolean flag = false;
 
-            Set<ProgramStage> programStages = programStage.getProgram().getProgramStages();
+      Set<ProgramStage> programStages = programStage.getProgram().getProgramStages();
 
-            programStages.remove( programStage );
+      programStages.remove(programStage);
 
-            for ( ProgramStage stage : programStages )
-            {
-                if ( stage.getDataEntryForm() != null )
-                {
-                    programStage.setDataEntryForm( null );
-                    programStageService.updateProgramStage( programStage );
-                    flag = true;
-                    break;
-                }
-            }
-
-            if ( !flag )
-            {
-                dataEntryFormService.deleteDataEntryForm( dataEntryForm );
-            }
+      for (ProgramStage stage : programStages) {
+        if (stage.getDataEntryForm() != null) {
+          programStage.setDataEntryForm(null);
+          programStageService.updateProgramStage(programStage);
+          flag = true;
+          break;
         }
+      }
+
+      if (!flag) {
+        dataEntryFormService.deleteDataEntryForm(dataEntryForm);
+      }
     }
+  }
 }

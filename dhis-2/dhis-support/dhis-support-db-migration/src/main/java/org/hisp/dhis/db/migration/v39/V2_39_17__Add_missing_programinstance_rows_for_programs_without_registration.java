@@ -33,63 +33,50 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
- * Populates the missing programinstance row that has to be present exactly once
- * for every program without registration.
+ * Populates the missing programinstance row that has to be present exactly once for every program
+ * without registration.
  *
  * @author Ameen Mohamed
  */
 @Slf4j
-public class V2_39_17__Add_missing_programinstance_rows_for_programs_without_registration extends BaseJavaMigration
-{
+public class V2_39_17__Add_missing_programinstance_rows_for_programs_without_registration
+    extends BaseJavaMigration {
 
-    private static final String FETCH_PROGRAMS_MISSING_DEFAULT_PROGRAMINSTANCE = "select p.programid from program p where p.type='WITHOUT_REGISTRATION' and not exists (select pi.programinstanceid from programinstance pi where pi.programid = p.programid)";
+  private static final String FETCH_PROGRAMS_MISSING_DEFAULT_PROGRAMINSTANCE =
+      "select p.programid from program p where p.type='WITHOUT_REGISTRATION' and not exists (select pi.programinstanceid from programinstance pi where pi.programid = p.programid)";
 
-    public static final String INSERT_DEFAULT_PI_SQL = "insert into programinstance(programinstanceid,enrollmentdate,programid,status,followup,uid,created,lastupdated,incidentdate,createdatclient,lastupdatedatclient,deleted,storedby) values (nextval('programinstance_sequence'),now(),?,'ACTIVE','false',?,now(),now(),now(),now(),now(),'false','flyway');";
+  public static final String INSERT_DEFAULT_PI_SQL =
+      "insert into programinstance(programinstanceid,enrollmentdate,programid,status,followup,uid,created,lastupdated,incidentdate,createdatclient,lastupdatedatclient,deleted,storedby) values (nextval('programinstance_sequence'),now(),?,'ACTIVE','false',?,now(),now(),now(),now(),now(),'false','flyway');";
 
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        List<Long> programsWithMissingDefaultProgramInstance = new ArrayList<>();
-        try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( FETCH_PROGRAMS_MISSING_DEFAULT_PROGRAMINSTANCE ); )
-        {
+  @Override
+  public void migrate(Context context) throws Exception {
+    List<Long> programsWithMissingDefaultProgramInstance = new ArrayList<>();
+    try (Statement stmt = context.getConnection().createStatement();
+        ResultSet rs = stmt.executeQuery(FETCH_PROGRAMS_MISSING_DEFAULT_PROGRAMINSTANCE); ) {
 
-            while ( rs.next() )
-            {
-                programsWithMissingDefaultProgramInstance.add( rs.getLong( "programid" ) );
-            }
-        }
-        catch ( SQLException e )
-        {
-            throw new FlywayException( e );
-        }
-
-        try ( PreparedStatement ps = context.getConnection()
-            .prepareStatement(
-                INSERT_DEFAULT_PI_SQL ) )
-        {
-            for ( Long programId : programsWithMissingDefaultProgramInstance )
-            {
-                ps.setLong( 1, programId );
-                ps.setString( 2, CodeGenerator.generateUid() );
-                ps.addBatch();
-            }
-            ps.executeBatch();
-        }
-        catch ( SQLException e )
-        {
-            throw new FlywayException( e );
-        }
-
+      while (rs.next()) {
+        programsWithMissingDefaultProgramInstance.add(rs.getLong("programid"));
+      }
+    } catch (SQLException e) {
+      throw new FlywayException(e);
     }
+
+    try (PreparedStatement ps = context.getConnection().prepareStatement(INSERT_DEFAULT_PI_SQL)) {
+      for (Long programId : programsWithMissingDefaultProgramInstance) {
+        ps.setLong(1, programId);
+        ps.setString(2, CodeGenerator.generateUid());
+        ps.addBatch();
+      }
+      ps.executeBatch();
+    } catch (SQLException e) {
+      throw new FlywayException(e);
+    }
+  }
 }

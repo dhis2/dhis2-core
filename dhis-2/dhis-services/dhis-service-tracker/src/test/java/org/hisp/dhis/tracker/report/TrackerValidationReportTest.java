@@ -34,263 +34,234 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.junit.jupiter.api.Test;
 
-class TrackerValidationReportTest
-{
+class TrackerValidationReportTest {
 
-    @Test
-    void addErrorIfItDoesNotExist()
-    {
+  @Test
+  void addErrorIfItDoesNotExist() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error = newError();
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerErrorReport error = newError();
 
-        report.addError( error );
+    report.addError(error);
 
-        assertNotNull( report.getErrors() );
-        assertEquals( 1, report.getErrors().size() );
-        assertContainsOnly( List.of( error ), report.getErrors() );
+    assertNotNull(report.getErrors());
+    assertEquals(1, report.getErrors().size());
+    assertContainsOnly(List.of(error), report.getErrors());
 
-        report.addError( error );
+    report.addError(error);
 
-        assertEquals( 1, report.getErrors().size() );
-    }
+    assertEquals(1, report.getErrors().size());
+  }
 
-    @Test
-    void addErrorsIfTheyDoNotExist()
-    {
+  @Test
+  void addErrorsIfTheyDoNotExist() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
-        TrackerErrorReport error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerErrorReport error1 = newError(CodeGenerator.generateUid(), TrackerErrorCode.E1001);
+    TrackerErrorReport error2 = newError(CodeGenerator.generateUid(), TrackerErrorCode.E1002);
 
-        report.addError( error1 );
+    report.addError(error1);
 
-        assertContainsOnly( List.of( error1 ), report.getErrors() );
+    assertContainsOnly(List.of(error1), report.getErrors());
 
-        report.addErrors( List.of( error1, error2 ) );
+    report.addErrors(List.of(error1, error2));
 
-        assertContainsOnly( List.of( error1, error2 ), report.getErrors() );
-    }
+    assertContainsOnly(List.of(error1, error2), report.getErrors());
+  }
 
-    @Test
-    void addWarningIfItDoesNotExist()
-    {
+  @Test
+  void addWarningIfItDoesNotExist() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning = newWarning();
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerWarningReport warning = newWarning();
 
-        report.addWarning( warning );
+    report.addWarning(warning);
 
-        assertNotNull( report.getWarnings() );
-        assertEquals( 1, report.getWarnings().size() );
-        assertContainsOnly( List.of( warning ), report.getWarnings() );
+    assertNotNull(report.getWarnings());
+    assertEquals(1, report.getWarnings().size());
+    assertContainsOnly(List.of(warning), report.getWarnings());
 
-        report.addWarning( warning );
+    report.addWarning(warning);
 
-        assertEquals( 1, report.getWarnings().size() );
-    }
+    assertEquals(1, report.getWarnings().size());
+  }
 
-    @Test
-    void addWarningsIfTheyDoNotExist()
-    {
+  @Test
+  void addWarningsIfTheyDoNotExist() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning1 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
-        TrackerWarningReport warning2 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerWarningReport warning1 = newWarning(CodeGenerator.generateUid(), TrackerErrorCode.E1001);
+    TrackerWarningReport warning2 = newWarning(CodeGenerator.generateUid(), TrackerErrorCode.E1002);
 
-        report.addWarning( warning1 );
+    report.addWarning(warning1);
 
-        assertContainsOnly( List.of( warning1 ), report.getWarnings() );
+    assertContainsOnly(List.of(warning1), report.getWarnings());
 
-        report.addWarnings( List.of( warning1, warning2 ) );
+    report.addWarnings(List.of(warning1, warning2));
 
-        assertContainsOnly( List.of( warning1, warning2 ), report.getWarnings() );
-    }
+    assertContainsOnly(List.of(warning1, warning2), report.getWarnings());
+  }
 
-    @Test
-    void hasErrorsReturnsFalse()
-    {
+  @Test
+  void hasErrorsReturnsFalse() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+    TrackerValidationReport report = new TrackerValidationReport();
 
-        assertFalse( report.hasErrors() );
-    }
+    assertFalse(report.hasErrors());
+  }
 
-    @Test
-    void hasErrorsReturnsTrue()
-    {
+  @Test
+  void hasErrorsReturnsTrue() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+    TrackerValidationReport report = new TrackerValidationReport();
 
-        report.addError( newError() );
+    report.addError(newError());
 
-        assertTrue( report.hasErrors() );
-    }
+    assertTrue(report.hasErrors());
+  }
 
-    @Test
-    void hasWarningsReturnsFalse()
-    {
+  @Test
+  void hasWarningsReturnsFalse() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+    TrackerValidationReport report = new TrackerValidationReport();
 
-        assertFalse( report.hasWarnings() );
-    }
+    assertFalse(report.hasWarnings());
+  }
 
-    @Test
-    void hasWarningsReturnsTrue()
-    {
+  @Test
+  void hasWarningsReturnsTrue() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+    TrackerValidationReport report = new TrackerValidationReport();
 
-        report.addWarning( newWarning() );
+    report.addWarning(newWarning());
 
-        assertTrue( report.hasWarnings() );
-    }
+    assertTrue(report.hasWarnings());
+  }
 
-    @Test
-    void hasPerfsReturnsFalse()
-    {
+  @Test
+  void hasPerfsReturnsFalse() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+    TrackerValidationReport report = new TrackerValidationReport();
 
-        assertFalse( report.hasTimings() );
-    }
+    assertFalse(report.hasTimings());
+  }
 
-    @Test
-    void hasPerfsReturnsTrue()
-    {
+  @Test
+  void hasPerfsReturnsTrue() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
+    TrackerValidationReport report = new TrackerValidationReport();
 
-        report.addTiming( new Timing( "1min", "validation" ) );
+    report.addTiming(new Timing("1min", "validation"));
 
-        assertTrue( report.hasTimings() );
-    }
+    assertTrue(report.hasTimings());
+  }
 
-    @Test
-    void hasErrorReportFound()
-    {
+  @Test
+  void hasErrorReportFound() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error = newError();
-        report.addError( error );
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerErrorReport error = newError();
+    report.addError(error);
 
-        assertTrue( report.hasError( r -> error.getUid().equals( r.getUid() ) ) );
-    }
+    assertTrue(report.hasError(r -> error.getUid().equals(r.getUid())));
+  }
 
-    @Test
-    void hasErrorReportNotFound()
-    {
+  @Test
+  void hasErrorReportNotFound() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error = newError( TrackerErrorCode.E1006 );
-        report.addError( error );
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerErrorReport error = newError(TrackerErrorCode.E1006);
+    report.addError(error);
 
-        assertFalse( report.hasError( r -> TrackerErrorCode.E1048 == r.getErrorCode() ) );
-    }
+    assertFalse(report.hasError(r -> TrackerErrorCode.E1048 == r.getErrorCode()));
+  }
 
-    @Test
-    void hasWarningReportFound()
-    {
+  @Test
+  void hasWarningReportFound() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning = newWarning();
-        report.addWarning( warning );
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerWarningReport warning = newWarning();
+    report.addWarning(warning);
 
-        assertTrue( report.hasWarning( r -> warning.getUid().equals( r.getUid() ) ) );
-    }
+    assertTrue(report.hasWarning(r -> warning.getUid().equals(r.getUid())));
+  }
 
-    @Test
-    void hasWarningReportNotFound()
-    {
+  @Test
+  void hasWarningReportNotFound() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerWarningReport warning = newWarning( TrackerErrorCode.E1006 );
-        report.addWarning( warning );
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerWarningReport warning = newWarning(TrackerErrorCode.E1006);
+    report.addWarning(warning);
 
-        assertFalse( report.hasWarning( r -> TrackerErrorCode.E1048 == r.getWarningCode() ) );
-    }
+    assertFalse(report.hasWarning(r -> TrackerErrorCode.E1048 == r.getWarningCode()));
+  }
 
-    @Test
-    void sizeReturnsErrorCountUniqueByUid()
-    {
+  @Test
+  void sizeReturnsErrorCountUniqueByUid() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1006 );
-        TrackerErrorReport error2 = newError( error1.getUid(), TrackerErrorCode.E1000 );
-        TrackerErrorReport error3 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1000 );
+    TrackerValidationReport report = new TrackerValidationReport();
+    TrackerErrorReport error1 = newError(CodeGenerator.generateUid(), TrackerErrorCode.E1006);
+    TrackerErrorReport error2 = newError(error1.getUid(), TrackerErrorCode.E1000);
+    TrackerErrorReport error3 = newError(CodeGenerator.generateUid(), TrackerErrorCode.E1000);
 
-        report
-            .addError( error1 )
-            .addError( error2 )
-            .addError( error3 );
+    report.addError(error1).addError(error2).addError(error3);
 
-        assertNotNull( report.getErrors() );
-        assertEquals( 3, report.getErrors().size() );
-        assertEquals( 2, report.size() );
-    }
+    assertNotNull(report.getErrors());
+    assertEquals(3, report.getErrors().size());
+    assertEquals(2, report.size());
+  }
 
-    @Test
-    void isInvalidReturnsTrueWhenDtoHasError()
-    {
+  @Test
+  void isInvalidReturnsTrueWhenDtoHasError() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).build();
+    TrackerValidationReport report = new TrackerValidationReport();
+    Event event = Event.builder().event(CodeGenerator.generateUid()).build();
 
-        report.addError( newError( event ) );
+    report.addError(newError(event));
 
-        assertTrue( report.isInvalid( event ) );
-    }
+    assertTrue(report.isInvalid(event));
+  }
 
-    @Test
-    void isInvalidReturnsFalseWhenDtoHasNoError()
-    {
+  @Test
+  void isInvalidReturnsFalseWhenDtoHasNoError() {
 
-        TrackerValidationReport report = new TrackerValidationReport();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).build();
+    TrackerValidationReport report = new TrackerValidationReport();
+    Event event = Event.builder().event(CodeGenerator.generateUid()).build();
 
-        assertFalse( report.isInvalid( event ) );
-    }
+    assertFalse(report.isInvalid(event));
+  }
 
-    private TrackerErrorReport newError()
-    {
-        return newError( TrackerErrorCode.E9999 );
-    }
+  private TrackerErrorReport newError() {
+    return newError(TrackerErrorCode.E9999);
+  }
 
-    private TrackerErrorReport newError( TrackerErrorCode code )
-    {
-        return newError( CodeGenerator.generateUid(), code );
-    }
+  private TrackerErrorReport newError(TrackerErrorCode code) {
+    return newError(CodeGenerator.generateUid(), code);
+  }
 
-    private TrackerErrorReport newError( String uid, TrackerErrorCode code )
-    {
-        return new TrackerErrorReport( "", code, TrackerType.EVENT, uid );
-    }
+  private TrackerErrorReport newError(String uid, TrackerErrorCode code) {
+    return new TrackerErrorReport("", code, TrackerType.EVENT, uid);
+  }
 
-    private TrackerErrorReport newError( TrackerDto dto )
-    {
-        return new TrackerErrorReport( "", TrackerErrorCode.E9999, dto.getTrackerType(), dto.getUid() );
-    }
+  private TrackerErrorReport newError(TrackerDto dto) {
+    return new TrackerErrorReport("", TrackerErrorCode.E9999, dto.getTrackerType(), dto.getUid());
+  }
 
-    private TrackerWarningReport newWarning()
-    {
-        return newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E9999 );
-    }
+  private TrackerWarningReport newWarning() {
+    return newWarning(CodeGenerator.generateUid(), TrackerErrorCode.E9999);
+  }
 
-    private TrackerWarningReport newWarning( TrackerErrorCode code )
-    {
-        return newWarning( CodeGenerator.generateUid(), code );
-    }
+  private TrackerWarningReport newWarning(TrackerErrorCode code) {
+    return newWarning(CodeGenerator.generateUid(), code);
+  }
 
-    private TrackerWarningReport newWarning( String uid, TrackerErrorCode code )
-    {
-        return new TrackerWarningReport( "", code, TrackerType.EVENT, uid );
-    }
+  private TrackerWarningReport newWarning(String uid, TrackerErrorCode code) {
+    return new TrackerWarningReport("", code, TrackerType.EVENT, uid);
+  }
 }

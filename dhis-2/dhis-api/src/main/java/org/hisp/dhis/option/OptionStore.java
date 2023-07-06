@@ -28,16 +28,12 @@
 package org.hisp.dhis.option;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Chau Thu Tran
- *
  * @version $OptionStore.java Jun 15, 2012 9:45:00 AM$
  */
-public interface OptionStore
-    extends IdentifiableObjectStore<Option>
-{
-    List<Option> getOptions( long optionSetId, String key, Integer max );
+public interface OptionStore extends IdentifiableObjectStore<Option> {
+  List<Option> getOptions(long optionSetId, String key, Integer max);
 }

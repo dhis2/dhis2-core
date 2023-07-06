@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import java.util.Optional;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
@@ -37,34 +36,25 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 /**
  * @author Enrico Colasante
  */
-public class RelationshipValidationUtils
-{
+public class RelationshipValidationUtils {
 
-    private RelationshipValidationUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+  private RelationshipValidationUtils() {
+    throw new IllegalStateException("Utility class");
+  }
 
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
+  public static TrackerType relationshipItemValueType(RelationshipItem item) {
+    if (StringUtils.isNotEmpty(item.getTrackedEntity())) {
+      return TrackerType.TRACKED_ENTITY;
+    } else if (StringUtils.isNotEmpty(item.getEnrollment())) {
+      return TrackerType.ENROLLMENT;
+    } else if (StringUtils.isNotEmpty(item.getEvent())) {
+      return TrackerType.EVENT;
     }
+    return null;
+  }
 
-    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return Optional
-            .ofNullable( ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ) );
-    }
+  public static Optional<String> getUidFromRelationshipItem(RelationshipItem item) {
+    return Optional.ofNullable(
+        ObjectUtils.firstNonNull(item.getTrackedEntity(), item.getEnrollment(), item.getEvent()));
+  }
 }

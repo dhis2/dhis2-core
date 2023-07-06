@@ -31,9 +31,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
@@ -51,29 +49,30 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RestController
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequestMapping( value = "/periodTypes" )
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequestMapping(value = "/periodTypes")
 @RequiredArgsConstructor
-public class PeriodTypeController
-{
-    private final FieldFilterService fieldFilterService;
+public class PeriodTypeController {
+  private final FieldFilterService fieldFilterService;
 
-    @GetMapping
-    public ResponseEntity<JsonRoot> getPeriodTypes( @RequestParam( defaultValue = "*" ) List<String> fields )
-    {
-        var periodTypes = org.hisp.dhis.period.PeriodType.getAvailablePeriodTypes().stream()
-            .map( PeriodType::new )
-            .collect( Collectors.toList() );
+  @GetMapping
+  public ResponseEntity<JsonRoot> getPeriodTypes(
+      @RequestParam(defaultValue = "*") List<String> fields) {
+    var periodTypes =
+        org.hisp.dhis.period.PeriodType.getAvailablePeriodTypes().stream()
+            .map(PeriodType::new)
+            .collect(Collectors.toList());
 
-        var params = FieldFilterParams.of( periodTypes, fields );
-        var objectNodes = fieldFilterService.toObjectNodes( params );
+    var params = FieldFilterParams.of(periodTypes, fields);
+    var objectNodes = fieldFilterService.toObjectNodes(params);
 
-        return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
-    }
+    return ResponseEntity.ok(JsonRoot.of("periodTypes", objectNodes));
+  }
 
-    @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public RelativePeriodEnum[] getRelativePeriodTypes()
-    {
-        return RelativePeriodEnum.values();
-    }
+  @GetMapping(
+      value = "/relativePeriodTypes",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public RelativePeriodEnum[] getRelativePeriodTypes() {
+    return RelativePeriodEnum.values();
+  }
 }

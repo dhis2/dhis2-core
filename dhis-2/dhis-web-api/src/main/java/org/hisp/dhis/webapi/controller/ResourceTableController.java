@@ -32,9 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationRepo
 
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
@@ -60,94 +58,107 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = ResourceTableController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = ResourceTableController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class ResourceTableController
-{
-    public static final String RESOURCE_PATH = "/resourceTables";
+public class ResourceTableController {
+  public static final String RESOURCE_PATH = "/resourceTables";
 
-    private final SchedulingManager schedulingManager;
+  private final SchedulingManager schedulingManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @ResponseBody
-    public WebMessage analytics(
-        @RequestParam( required = false ) boolean skipResourceTables,
-        @RequestParam( required = false ) boolean skipAggregate,
-        @RequestParam( required = false ) boolean skipEvents,
-        @RequestParam( required = false ) boolean skipEnrollment,
-        @RequestParam( required = false ) boolean skipOrgUnitOwnership,
-        @RequestParam( required = false ) Integer lastYears )
-    {
-        Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-        Set<String> skipPrograms = new HashSet<>();
+  @RequestMapping(
+      value = "/analytics",
+      method = {RequestMethod.PUT, RequestMethod.POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @ResponseBody
+  public WebMessage analytics(
+      @RequestParam(required = false) boolean skipResourceTables,
+      @RequestParam(required = false) boolean skipAggregate,
+      @RequestParam(required = false) boolean skipEvents,
+      @RequestParam(required = false) boolean skipEnrollment,
+      @RequestParam(required = false) boolean skipOrgUnitOwnership,
+      @RequestParam(required = false) Integer lastYears) {
+    Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+    Set<String> skipPrograms = new HashSet<>();
 
-        if ( skipAggregate )
-        {
-            skipTableTypes.add( AnalyticsTableType.DATA_VALUE );
-            skipTableTypes.add( AnalyticsTableType.COMPLETENESS );
-            skipTableTypes.add( AnalyticsTableType.COMPLETENESS_TARGET );
-        }
-
-        if ( skipEvents )
-        {
-            skipTableTypes.add( AnalyticsTableType.EVENT );
-        }
-
-        if ( skipEnrollment )
-        {
-            skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
-        }
-
-        if ( skipOrgUnitOwnership )
-        {
-            skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
-        }
-
-        AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
-            skipPrograms, skipResourceTables );
-
-        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
-            analyticsJobParameters, true, true );
-        analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
-
-        return execute( analyticsTableJob );
+    if (skipAggregate) {
+      skipTableTypes.add(AnalyticsTableType.DATA_VALUE);
+      skipTableTypes.add(AnalyticsTableType.COMPLETENESS);
+      skipTableTypes.add(AnalyticsTableType.COMPLETENESS_TARGET);
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @ResponseBody
-    public WebMessage resourceTables()
-    {
-        JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
-            JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
-
-        return execute( resourceTableJob );
+    if (skipEvents) {
+      skipTableTypes.add(AnalyticsTableType.EVENT);
     }
 
-    @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @ResponseBody
-    public WebMessage monitoring()
-    {
-        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "",
-            new MonitoringJobParameters(), true, true );
-
-        return execute( monitoringJob );
+    if (skipEnrollment) {
+      skipTableTypes.add(AnalyticsTableType.ENROLLMENT);
     }
 
-    private WebMessage execute( JobConfiguration configuration )
-    {
-        boolean success = schedulingManager.executeNow( configuration );
-        if ( !success )
-        {
-            configuration.setJobStatus( JobStatus.FAILED );
-            return createWebMessage( "Job of type " + configuration.getJobType() + " is already running", Status.ERROR,
-                HttpStatus.CONFLICT ).setResponse( new JobConfigurationWebMessageResponse( configuration ) );
-        }
-        return jobConfigurationReport( configuration );
+    if (skipOrgUnitOwnership) {
+      skipTableTypes.add(AnalyticsTableType.OWNERSHIP);
     }
+
+    AnalyticsJobParameters analyticsJobParameters =
+        new AnalyticsJobParameters(lastYears, skipTableTypes, skipPrograms, skipResourceTables);
+
+    JobConfiguration analyticsTableJob =
+        new JobConfiguration(
+            "inMemoryAnalyticsJob",
+            JobType.ANALYTICS_TABLE,
+            "",
+            analyticsJobParameters,
+            true,
+            true);
+    analyticsTableJob.setUserUid(currentUserService.getCurrentUser().getUid());
+
+    return execute(analyticsTableJob);
+  }
+
+  @RequestMapping(method = {RequestMethod.PUT, RequestMethod.POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @ResponseBody
+  public WebMessage resourceTables() {
+    JobConfiguration resourceTableJob =
+        new JobConfiguration(
+            "inMemoryResourceTableJob",
+            JobType.RESOURCE_TABLE,
+            currentUserService.getCurrentUser().getUid(),
+            true);
+
+    return execute(resourceTableJob);
+  }
+
+  @RequestMapping(
+      value = "/monitoring",
+      method = {RequestMethod.PUT, RequestMethod.POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')")
+  @ResponseBody
+  public WebMessage monitoring() {
+    JobConfiguration monitoringJob =
+        new JobConfiguration(
+            "inMemoryMonitoringJob",
+            JobType.MONITORING,
+            "",
+            new MonitoringJobParameters(),
+            true,
+            true);
+
+    return execute(monitoringJob);
+  }
+
+  private WebMessage execute(JobConfiguration configuration) {
+    boolean success = schedulingManager.executeNow(configuration);
+    if (!success) {
+      configuration.setJobStatus(JobStatus.FAILED);
+      return createWebMessage(
+              "Job of type " + configuration.getJobType() + " is already running",
+              Status.ERROR,
+              HttpStatus.CONFLICT)
+          .setResponse(new JobConfigurationWebMessageResponse(configuration));
+    }
+    return jobConfigurationReport(configuration);
+  }
 }

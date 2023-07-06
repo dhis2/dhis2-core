@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataapproval.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -44,36 +42,44 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Jim Grace
  */
-@Repository( "org.hisp.dhis.dataapproval.DataApprovalLevelStore" )
+@Repository("org.hisp.dhis.dataapproval.DataApprovalLevelStore")
 public class HibernateDataApprovalLevelStore
-    extends HibernateIdentifiableObjectStore<DataApprovalLevel>
-    implements DataApprovalLevelStore
-{
-    public HibernateDataApprovalLevelStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataApprovalLevel.class, currentUserService, aclService, true );
-    }
-    // -------------------------------------------------------------------------
-    // DataApprovalLevelStore implementation
-    // -------------------------------------------------------------------------
+    extends HibernateIdentifiableObjectStore<DataApprovalLevel> implements DataApprovalLevelStore {
+  public HibernateDataApprovalLevelStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        DataApprovalLevel.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<DataApprovalLevel> getAllDataApprovalLevels()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  // -------------------------------------------------------------------------
+  // DataApprovalLevelStore implementation
+  // -------------------------------------------------------------------------
 
-        return getList( builder, newJpaParameters()
-            .addOrder( root -> builder.asc( root.get( "level" ) ) ) );
-    }
+  @Override
+  public List<DataApprovalLevel> getAllDataApprovalLevels() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-    @Override
-    public List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel( int orgUnitLevel )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(builder, newJpaParameters().addOrder(root -> builder.asc(root.get("level"))));
+  }
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "orgUnitLevel" ), orgUnitLevel ) )
-            .addOrder( root -> builder.asc( root.get( "level" ) ) ) );
-    }
+  @Override
+  public List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel(int orgUnitLevel) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("orgUnitLevel"), orgUnitLevel))
+            .addOrder(root -> builder.asc(root.get("level"))));
+  }
 }

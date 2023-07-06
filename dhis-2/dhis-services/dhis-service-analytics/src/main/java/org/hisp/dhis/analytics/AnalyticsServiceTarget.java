@@ -29,19 +29,17 @@ package org.hisp.dhis.analytics;
 
 /**
  * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link AnalyticsService} during testing.
+ *
+ * <p>Added to managed bean implementation classes (not their interface) which are provided with a
+ * {@link AnalyticsService} during testing.
  *
  * @author Jan Bernitt
  */
-public interface AnalyticsServiceTarget
-{
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param analyticsService dynamically update {@link AnalyticsService}
-     *        during testing
-     */
-    void setAnalyticsService( AnalyticsService analyticsService );
+public interface AnalyticsServiceTarget {
+  /**
+   * This is only a workaround until a better solution is found.
+   *
+   * @param analyticsService dynamically update {@link AnalyticsService} during testing
+   */
+  void setAnalyticsService(AnalyticsService analyticsService);
 }

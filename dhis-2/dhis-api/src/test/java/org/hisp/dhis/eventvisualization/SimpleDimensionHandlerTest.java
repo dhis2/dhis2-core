@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.junit.jupiter.api.Test;
@@ -53,89 +52,86 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class SimpleDimensionHandlerTest
-{
+class SimpleDimensionHandlerTest {
 
-    @Test
-    void testGetDimensionalObject()
-    {
-        // Given
-        final EventVisualization aEventVisualization = stubEventVisualization();
-        final String eventDateDimension = EVENT_DATE.getDimension();
-        final SimpleDimensionHandler handler = new SimpleDimensionHandler( aEventVisualization );
+  @Test
+  void testGetDimensionalObject() {
+    // Given
+    final EventVisualization aEventVisualization = stubEventVisualization();
+    final String eventDateDimension = EVENT_DATE.getDimension();
+    final SimpleDimensionHandler handler = new SimpleDimensionHandler(aEventVisualization);
 
-        // When
-        final DimensionalObject dimensionalObject = handler.getDimensionalObject( eventDateDimension, COLUMN );
+    // When
+    final DimensionalObject dimensionalObject =
+        handler.getDimensionalObject(eventDateDimension, COLUMN);
 
-        // Then
-        assertThat( dimensionalObject.getUid(), is( equalTo( eventDateDimension ) ) );
-        assertThat( dimensionalObject.getDimensionType(), is( equalTo( PERIOD ) ) );
-        assertThat( dimensionalObject.getItems(), hasSize( 2 ) );
-    }
+    // Then
+    assertThat(dimensionalObject.getUid(), is(equalTo(eventDateDimension)));
+    assertThat(dimensionalObject.getDimensionType(), is(equalTo(PERIOD)));
+    assertThat(dimensionalObject.getItems(), hasSize(2));
+  }
 
-    @Test
-    void testGetDimensionalObjectWhenDimensionIsNotValid()
-    {
-        // Given
-        final EventVisualization aEventVisualization = stubEventVisualization();
-        final String invalidDimension = "invalidDimension";
-        final SimpleDimensionHandler handler = new SimpleDimensionHandler( aEventVisualization );
+  @Test
+  void testGetDimensionalObjectWhenDimensionIsNotValid() {
+    // Given
+    final EventVisualization aEventVisualization = stubEventVisualization();
+    final String invalidDimension = "invalidDimension";
+    final SimpleDimensionHandler handler = new SimpleDimensionHandler(aEventVisualization);
 
-        // When throws
-        final NoSuchElementException thrown = assertThrows( NoSuchElementException.class,
-            () -> handler.getDimensionalObject( invalidDimension, COLUMN ) );
+    // When throws
+    final NoSuchElementException thrown =
+        assertThrows(
+            NoSuchElementException.class,
+            () -> handler.getDimensionalObject(invalidDimension, COLUMN));
 
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Invalid dimension: " + invalidDimension ) );
-    }
+    // Then
+    assertThat(thrown.getMessage(), containsString("Invalid dimension: " + invalidDimension));
+  }
 
-    @Test
-    void testAssociateDimensions()
-    {
-        // Given
-        final String eventDateDimension = EVENT_DATE.getDimension();
-        final EventVisualization aEventVisualization = stubEventVisualization();
-        aEventVisualization.getSimpleDimensions().clear();
-        aEventVisualization.getColumns().addAll( of( new BaseDimensionalObject( eventDateDimension ) ) );
+  @Test
+  void testAssociateDimensions() {
+    // Given
+    final String eventDateDimension = EVENT_DATE.getDimension();
+    final EventVisualization aEventVisualization = stubEventVisualization();
+    aEventVisualization.getSimpleDimensions().clear();
+    aEventVisualization.getColumns().addAll(of(new BaseDimensionalObject(eventDateDimension)));
 
-        final SimpleDimensionHandler handler = new SimpleDimensionHandler( aEventVisualization );
+    final SimpleDimensionHandler handler = new SimpleDimensionHandler(aEventVisualization);
 
-        // When
-        handler.associateDimensions();
+    // When
+    handler.associateDimensions();
 
-        // Then
-        assertThat( aEventVisualization.getSimpleDimensions(), hasSize( 1 ) );
-        assertThat( aEventVisualization.getSimpleDimensions().get( 0 ).getParent(), is( equalTo( COLUMN ) ) );
-        assertThat( aEventVisualization.getSimpleDimensions().get( 0 ).getDimension(),
-            is( equalTo( eventDateDimension ) ) );
-    }
+    // Then
+    assertThat(aEventVisualization.getSimpleDimensions(), hasSize(1));
+    assertThat(aEventVisualization.getSimpleDimensions().get(0).getParent(), is(equalTo(COLUMN)));
+    assertThat(
+        aEventVisualization.getSimpleDimensions().get(0).getDimension(),
+        is(equalTo(eventDateDimension)));
+  }
 
-    private EventVisualization stubEventVisualization()
-    {
-        final EventVisualization eventVisualization = new EventVisualization();
+  private EventVisualization stubEventVisualization() {
+    final EventVisualization eventVisualization = new EventVisualization();
 
-        eventVisualization.setSimpleDimensions( stubSimpleEventDimensions() );
+    eventVisualization.setSimpleDimensions(stubSimpleEventDimensions());
 
-        return eventVisualization;
-    }
+    return eventVisualization;
+  }
 
-    private List<SimpleDimension> stubSimpleEventDimensions()
-    {
-        final List<SimpleDimension> dimensions = new ArrayList<>();
-        dimensions.add( stubSimpleEventDimension( EVENT_DATE.getDimension() ) );
-        dimensions.add( stubSimpleEventDimension( INCIDENT_DATE.getDimension() ) );
+  private List<SimpleDimension> stubSimpleEventDimensions() {
+    final List<SimpleDimension> dimensions = new ArrayList<>();
+    dimensions.add(stubSimpleEventDimension(EVENT_DATE.getDimension()));
+    dimensions.add(stubSimpleEventDimension(INCIDENT_DATE.getDimension()));
 
-        return dimensions;
-    }
+    return dimensions;
+  }
 
-    private SimpleDimension stubSimpleEventDimension( final String dimension )
-    {
-        final SimpleDimension simpleDimension = new SimpleDimension();
+  private SimpleDimension stubSimpleEventDimension(final String dimension) {
+    final SimpleDimension simpleDimension = new SimpleDimension();
 
-        simpleDimension.setDimension( dimension );
-        simpleDimension.setParent( COLUMN );
-        simpleDimension.setValues( asList( "value1", "value2" ) );
+    simpleDimension.setDimension(dimension);
+    simpleDimension.setParent(COLUMN);
+    simpleDimension.setValues(asList("value1", "value2"));
 
-        return simpleDimension;
-    }
+    return simpleDimension;
+  }
 }

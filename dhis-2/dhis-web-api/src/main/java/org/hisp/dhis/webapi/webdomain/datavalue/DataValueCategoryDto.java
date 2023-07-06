@@ -27,32 +27,27 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * DTO which represents a data value category option combination represented as
- * a category combination and a set of category options.
+ * DTO which represents a data value category option combination represented as a category
+ * combination and a set of category options.
  *
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class DataValueCategoryDto
-{
-    @JsonProperty
-    private String combo;
+public class DataValueCategoryDto {
+  @JsonProperty private String combo;
 
-    @JsonProperty
-    private Set<String> options;
+  @JsonProperty private Set<String> options;
 }

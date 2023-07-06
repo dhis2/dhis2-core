@@ -30,25 +30,21 @@ package org.hisp.dhis.analytics.tei;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.analytics.common.CommonParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
- * This class is a wrapper for all possible parameters related to a tei. All
- * attributes present here should be correctly typed and ready to be used by the
- * service layers.
+ * This class is a wrapper for all possible parameters related to a tei. All attributes present here
+ * should be correctly typed and ready to be used by the service layers.
  *
  * @author maikel arabori
  */
 @Getter
 @Setter
-@Builder( toBuilder = true )
-public class TeiQueryParams
-{
+@Builder(toBuilder = true)
+public class TeiQueryParams {
 
-    private final TrackedEntityType trackedEntityType;
+  private final TrackedEntityType trackedEntityType;
 
-    private final CommonParams commonParams;
-
+  private final CommonParams commonParams;
 }

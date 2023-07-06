@@ -34,30 +34,24 @@ import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
 /**
- * This implementer show warnings on a completed enrollment or event calculated
- * by Rule Engine.
- *
- * @Author Enrico Colasante
+ * This implementer show warnings on a completed enrollment or event calculated by Rule
+ * Engine. @Author Enrico Colasante
  */
 @Component
 public class ShowWarningOnCompleteValidator
-    extends ErrorWarningImplementer<RuleActionWarningOnCompletion>
-{
-    @Override
-    public Class<RuleActionWarningOnCompletion> getActionClass()
-    {
-        return RuleActionWarningOnCompletion.class;
-    }
+    extends ErrorWarningImplementer<RuleActionWarningOnCompletion> {
+  @Override
+  public Class<RuleActionWarningOnCompletion> getActionClass() {
+    return RuleActionWarningOnCompletion.class;
+  }
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return true;
-    }
+  @Override
+  public boolean isOnComplete() {
+    return true;
+  }
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return WARNING;
-    }
+  @Override
+  public IssueType getIssueType() {
+    return WARNING;
+  }
 }

@@ -32,8 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
-
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -45,124 +45,107 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private ApiTokenStore apiTokenStore;
+class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase {
+  @Autowired private ApiTokenStore apiTokenStore;
 
-    @Autowired
-    private ApiTokenService apiTokenService;
+  @Autowired private ApiTokenService apiTokenService;
 
-    @Autowired
-    @Qualifier( value = "xmlMapper" )
-    public ObjectMapper xmlMapper;
+  @Autowired
+  @Qualifier(value = "xmlMapper")
+  public ObjectMapper xmlMapper;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    protected MockMvc mvc;
+  protected MockMvc mvc;
 
-    @BeforeEach
-    final void setup()
-        throws Exception
-    {
-        userService = _userService;
-    }
+  @BeforeEach
+  final void setup() throws Exception {
+    userService = _userService;
+  }
 
-    public ApiToken createAndSaveToken()
-    {
-        final ApiToken token = new ApiToken();
-        token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
-        final ApiToken object = apiTokenService.initToken( token );
-        apiTokenStore.save( object );
-        return token;
-    }
+  public ApiToken createAndSaveToken() {
+    final ApiToken token = new ApiToken();
+    token.setType(ApiTokenType.PERSONAL_ACCESS_TOKEN);
+    final ApiToken object = apiTokenService.initToken(token);
+    apiTokenStore.save(object);
+    return token;
+  }
 
-    @Test
-    void testListTokens()
-    {
-        preCreateInjectAdminUser();
-        createAndSaveToken();
-        createAndSaveToken();
-        final List<ApiToken> all = apiTokenService.getAll();
-        assertEquals( 2, all.size() );
-    }
+  @Test
+  void testListTokens() {
+    preCreateInjectAdminUser();
+    createAndSaveToken();
+    createAndSaveToken();
+    final List<ApiToken> all = apiTokenService.getAll();
+    assertEquals(2, all.size());
+  }
 
-    @Test
-    void testCantListOthersTokens()
-    {
-        preCreateInjectAdminUser();
-        createAndSaveToken();
-        createAndSaveToken();
-        switchToOtherUser();
-        final List<ApiToken> all = apiTokenService.getAll();
-        assertEquals( 0, all.size() );
-    }
+  @Test
+  void testCantListOthersTokens() {
+    preCreateInjectAdminUser();
+    createAndSaveToken();
+    createAndSaveToken();
+    switchToOtherUser();
+    final List<ApiToken> all = apiTokenService.getAll();
+    assertEquals(0, all.size());
+  }
 
-    @Test
-    void testSaveGet()
-    {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-    }
+  @Test
+  void testSaveGet() {
+    preCreateInjectAdminUser();
+    final ApiToken apiToken0 = createAndSaveToken();
+    final ApiToken apiToken1 = apiTokenService.getWithKey(apiToken0.getKey());
+    assertEquals(apiToken1.getKey(), apiToken0.getKey());
+  }
 
-    @Test
-    void testUpdate()
-    {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-        apiToken1.addIpToAllowedList( "1.1.1.1" );
-        apiTokenService.update( apiToken1 );
-        final ApiToken apiToken2 = apiTokenService.getWithKey( apiToken0.getKey() );
-        assertTrue( apiToken2.getIpAllowedList().getAllowedIps().contains( "1.1.1.1" ) );
-    }
+  @Test
+  void testUpdate() {
+    preCreateInjectAdminUser();
+    final ApiToken apiToken0 = createAndSaveToken();
+    final ApiToken apiToken1 = apiTokenService.getWithKey(apiToken0.getKey());
+    assertEquals(apiToken1.getKey(), apiToken0.getKey());
+    apiToken1.addIpToAllowedList("1.1.1.1");
+    apiTokenService.update(apiToken1);
+    final ApiToken apiToken2 = apiTokenService.getWithKey(apiToken0.getKey());
+    assertTrue(apiToken2.getIpAllowedList().getAllowedIps().contains("1.1.1.1"));
+  }
 
-    @Test
-    void testCantUpdateOthersTokens()
-    {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-        apiToken1.addIpToAllowedList( "1.1.1.1" );
-        switchToOtherUser();
-        assertThrows( UpdateAccessDeniedException.class, () -> apiTokenService.update( apiToken1 ) );
-    }
+  @Test
+  void testCantUpdateOthersTokens() {
+    preCreateInjectAdminUser();
+    final ApiToken apiToken0 = createAndSaveToken();
+    final ApiToken apiToken1 = apiTokenService.getWithKey(apiToken0.getKey());
+    assertEquals(apiToken1.getKey(), apiToken0.getKey());
+    apiToken1.addIpToAllowedList("1.1.1.1");
+    switchToOtherUser();
+    assertThrows(UpdateAccessDeniedException.class, () -> apiTokenService.update(apiToken1));
+  }
 
-    @Test
-    void testDelete()
-    {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-        apiTokenService.delete( apiToken1 );
-        assertNull( apiTokenService.getWithUid( apiToken0.getUid() ) );
-    }
+  @Test
+  void testDelete() {
+    preCreateInjectAdminUser();
+    final ApiToken apiToken0 = createAndSaveToken();
+    final ApiToken apiToken1 = apiTokenService.getWithKey(apiToken0.getKey());
+    assertEquals(apiToken1.getKey(), apiToken0.getKey());
+    apiTokenService.delete(apiToken1);
+    assertNull(apiTokenService.getWithUid(apiToken0.getUid()));
+  }
 
-    @Test
-    void testCantDeleteOthersToken()
-    {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-        switchToOtherUser();
-        assertThrows( DeleteAccessDeniedException.class, () -> apiTokenService.delete( apiToken1 ) );
-    }
+  @Test
+  void testCantDeleteOthersToken() {
+    preCreateInjectAdminUser();
+    final ApiToken apiToken0 = createAndSaveToken();
+    final ApiToken apiToken1 = apiTokenService.getWithKey(apiToken0.getKey());
+    assertEquals(apiToken1.getKey(), apiToken0.getKey());
+    switchToOtherUser();
+    assertThrows(DeleteAccessDeniedException.class, () -> apiTokenService.delete(apiToken1));
+  }
 
-    private void switchToOtherUser()
-    {
-        final User otherUser = createUserWithAuth( "otherUser" );
-        injectSecurityContext( otherUser );
-    }
+  private void switchToOtherUser() {
+    final User otherUser = createUserWithAuth("otherUser");
+    injectSecurityContext(otherUser);
+  }
 }

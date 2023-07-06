@@ -33,21 +33,16 @@ import java.util.UUID;
 /**
  * @author Luciano Fiandesio
  */
-public class FileResourceKeyUtil
-{
+public class FileResourceKeyUtil {
 
-    public static String makeKey( FileResourceDomain domain, Optional<String> key )
-    {
-        if ( key.isPresent() )
-        {
-            return domain.getContainerName() + "/" + key.get();
-        }
-        return generateStorageKey( domain );
-
+  public static String makeKey(FileResourceDomain domain, Optional<String> key) {
+    if (key.isPresent()) {
+      return domain.getContainerName() + "/" + key.get();
     }
+    return generateStorageKey(domain);
+  }
 
-    private static String generateStorageKey( FileResourceDomain domain )
-    {
-        return domain.getContainerName() + "/" + UUID.randomUUID().toString();
-    }
+  private static String generateStorageKey(FileResourceDomain domain) {
+    return domain.getContainerName() + "/" + UUID.randomUUID().toString();
+  }
 }

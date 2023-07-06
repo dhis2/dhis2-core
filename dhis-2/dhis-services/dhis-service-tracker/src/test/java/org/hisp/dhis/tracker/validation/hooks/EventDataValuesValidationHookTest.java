@@ -36,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Set;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -67,864 +66,882 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class EventDataValuesValidationHookTest
-{
+@ExtendWith(MockitoExtension.class)
+class EventDataValuesValidationHookTest {
 
-    private EventDataValuesValidationHook hook;
+  private EventDataValuesValidationHook hook;
 
-    @Mock
-    TrackerPreheat preheat;
+  @Mock TrackerPreheat preheat;
 
-    private static final String programStageUid = "programStageUid";
+  private static final String programStageUid = "programStageUid";
 
-    private static final String dataElementUid = "dataElement";
+  private static final String dataElementUid = "dataElement";
 
-    private static final String organisationUnitUid = "organisationUnitUid";
+  private static final String organisationUnitUid = "organisationUnitUid";
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    private ValidationErrorReporter reporter;
+  private ValidationErrorReporter reporter;
 
-    private TrackerIdSchemeParams idSchemes;
+  private TrackerIdSchemeParams idSchemes;
 
-    @BeforeEach
-    public void setUp()
-    {
-        hook = new EventDataValuesValidationHook();
+  @BeforeEach
+  public void setUp() {
+    hook = new EventDataValuesValidationHook();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        idSchemes = TrackerIdSchemeParams.builder().build();
-        when( preheat.getIdSchemes() ).thenReturn( idSchemes );
-        reporter = new ValidationErrorReporter( idSchemes );
-    }
+    idSchemes = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(idSchemes);
+    reporter = new ValidationErrorReporter(idSchemes);
+  }
 
-    @Test
-    void successValidationWhenDataElementIsValid()
-    {
-        DataElement dataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
+  @Test
+  void successValidationWhenDataElementIsValid() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( dataValue() ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void successValidationWhenCreatedAtIsNull()
-    {
-        DataElement dataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        DataValue validDataValue = dataValue();
-        validDataValue.setCreatedAt( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void failValidationWhenUpdatedAtIsNull()
-    {
-        DataElement dataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        DataValue validDataValue = dataValue();
-        validDataValue.setUpdatedAt( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void failValidationWhenDataElementIsInvalid()
-    {
-        DataElement dataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( null );
-
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( dataValue() ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1304, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
-
-    @Test
-    void failValidationWhenAMandatoryDataElementIsMissing()
-    {
-        DataElement dataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setAutoFields();
-        ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
-        DataElement mandatoryElement1 = new DataElement();
-        mandatoryElement1.setUid( "MANDATORY_DE" );
-        mandatoryStageElement1.setDataElement( mandatoryElement1 );
-        mandatoryStageElement1.setCompulsory( true );
-        ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
-        DataElement mandatoryElement2 = new DataElement();
-        mandatoryElement2.setUid( dataElementUid );
-        mandatoryStageElement2.setDataElement( mandatoryElement2 );
-        mandatoryStageElement2.setCompulsory( true );
-        programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( dataValue() ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1303, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
-
-    @Test
-    void succeedsWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
-    {
-        DataElement dataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setAutoFields();
-        ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
-        DataElement mandatoryElement1 = new DataElement();
-        mandatoryElement1.setUid( "MANDATORY_DE" );
-        mandatoryStageElement1.setDataElement( mandatoryElement1 );
-        mandatoryStageElement1.setCompulsory( true );
-        ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
-        DataElement mandatoryElement2 = new DataElement();
-        mandatoryElement2.setUid( dataElementUid );
-        mandatoryStageElement2.setDataElement( mandatoryElement2 );
-        mandatoryStageElement2.setCompulsory( true );
-        programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1, mandatoryStageElement2 ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( dataValue() ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void succeedsWhenMandatoryDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode()
-    {
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .programIdScheme( TrackerIdSchemeParam.UID )
-            .programStageIdScheme( TrackerIdSchemeParam.UID )
-            .dataElementIdScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( params );
-
-        DataElement dataElement = dataElement();
-        dataElement.setCode( "DE_424050" );
-        when( preheat.getDataElement( MetadataIdentifier.ofCode( dataElement.getCode() ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = programStage( dataElement, true );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        DataValue dataValue = dataValue();
-        dataValue.setDataElement( MetadataIdentifier.ofCode( "DE_424050" ) );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( dataValue ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void failValidationWhenDataElementIsNotPresentInProgramStage()
-    {
-        DataElement dataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
-
-        DataElement notPresentDataElement = dataElement();
-        notPresentDataElement.setUid( "de_not_present_in_program_stage" );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( "de_not_present_in_program_stage" ) ) )
-            .thenReturn( notPresentDataElement );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setAutoFields();
-        ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
-        DataElement mandatoryElement1 = new DataElement();
-        mandatoryElement1.setUid( dataElementUid );
-        mandatoryStageElement1.setDataElement( mandatoryElement1 );
-        mandatoryStageElement1.setCompulsory( true );
-        programStage.setProgramStageDataElements( Set.of( mandatoryStageElement1 ) );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) )
-            .thenReturn( programStage );
-
-        DataValue notPresentDataValue = dataValue();
-        notPresentDataValue.setDataElement( MetadataIdentifier.ofUid( "de_not_present_in_program_stage" ) );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( dataValue(), notPresentDataValue ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1305, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
-
-    @Test
-    void succeedsWhenDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode()
-    {
-        TrackerIdSchemeParams params = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.CODE )
-            .programIdScheme( TrackerIdSchemeParam.UID )
-            .programStageIdScheme( TrackerIdSchemeParam.UID )
-            .dataElementIdScheme( TrackerIdSchemeParam.CODE )
-            .build();
-        when( preheat.getIdSchemes() ).thenReturn( params );
-
-        DataElement dataElement = dataElement();
-        dataElement.setCode( "DE_424050" );
-        when( preheat.getDataElement( MetadataIdentifier.ofCode( dataElement.getCode() ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        DataValue dataValue = dataValue();
-        dataValue.setDataElement( MetadataIdentifier.ofCode( "DE_424050" ) );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( dataValue ) ).build();
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void failValidationWhenDataElementValueTypeIsNull()
-    {
-        DataElement dataElement = dataElement();
-        DataElement invalidDataElement = dataElement( null );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( invalidDataElement );
-
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( dataValue() ) )
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(dataValue()))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void failValidationWhenFileResourceIsNull()
-    {
-        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void successValidationWhenCreatedAtIsNull() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
-        DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( null );
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        ProgramStage programStage = programStage( validDataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setCreatedAt(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+    hook.validateEvent(reporter, bundle, event);
 
-        hook.validateEvent( reporter, bundle, event );
+    assertFalse(reporter.hasErrors());
+  }
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1084, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+  @Test
+  void failValidationWhenUpdatedAtIsNull() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
-    @Test
-    void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
-    {
-        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        ProgramStage programStage = programStage( validDataElement, false );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( validDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setUpdatedAt(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
-    {
-        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void failValidationWhenDataElementIsInvalid() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(null);
 
-        ProgramStage programStage = programStage( validDataElement, true );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( validDataValue ) )
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(dataValue()))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1304, reporter.getErrors().get(0).getErrorCode());
+  }
 
-    @Test
-    void failsOnActiveEventWithDataElementValueNullAndValidationStrategyOnUpdate()
-    {
-        DataElement validDataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void failValidationWhenAMandatoryDataElementIsMissing() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
-        ProgramStage programStage = programStage( validDataElement, true );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = new ProgramStage();
+    programStage.setAutoFields();
+    ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
+    DataElement mandatoryElement1 = new DataElement();
+    mandatoryElement1.setUid("MANDATORY_DE");
+    mandatoryStageElement1.setDataElement(mandatoryElement1);
+    mandatoryStageElement1.setCompulsory(true);
+    ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
+    DataElement mandatoryElement2 = new DataElement();
+    mandatoryElement2.setUid(dataElementUid);
+    mandatoryStageElement2.setDataElement(mandatoryElement2);
+    mandatoryStageElement2.setCompulsory(true);
+    programStage.setProgramStageDataElements(
+        Set.of(mandatoryStageElement1, mandatoryStageElement2));
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( validDataValue ) )
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(dataValue()))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1303, reporter.getErrors().get(0).getErrorCode());
+  }
 
-    @Test
-    void failsOnCompletedEventWithDataElementValueNullAndValidationStrategyOnUpdate()
-    {
-        DataElement validDataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void succeedsWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
-        ProgramStage programStage = programStage( validDataElement, true );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = new ProgramStage();
+    programStage.setAutoFields();
+    ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
+    DataElement mandatoryElement1 = new DataElement();
+    mandatoryElement1.setUid("MANDATORY_DE");
+    mandatoryStageElement1.setDataElement(mandatoryElement1);
+    mandatoryStageElement1.setCompulsory(true);
+    ProgramStageDataElement mandatoryStageElement2 = new ProgramStageDataElement();
+    DataElement mandatoryElement2 = new DataElement();
+    mandatoryElement2.setUid(dataElementUid);
+    mandatoryStageElement2.setDataElement(mandatoryElement2);
+    mandatoryStageElement2.setCompulsory(true);
+    programStage.setProgramStageDataElements(
+        Set.of(mandatoryStageElement1, mandatoryStageElement2));
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( validDataValue ) )
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(dataValue()))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void succeedsOnActiveEventWithDataElementValueIsNullAndValidationStrategyOnComplete()
-    {
-        DataElement validDataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void succeedsWhenMandatoryDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode() {
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .programIdScheme(TrackerIdSchemeParam.UID)
+            .programStageIdScheme(TrackerIdSchemeParam.UID)
+            .dataElementIdScheme(TrackerIdSchemeParam.CODE)
+            .build();
+    when(preheat.getIdSchemes()).thenReturn(params);
 
-        ProgramStage programStage = programStage( validDataElement, true );
-        programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    DataElement dataElement = dataElement();
+    dataElement.setCode("DE_424050");
+    when(preheat.getDataElement(MetadataIdentifier.ofCode(dataElement.getCode())))
+        .thenReturn(dataElement);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( validDataValue ) )
+    ProgramStage programStage = programStage(dataElement, true);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    DataValue dataValue = dataValue();
+    dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(dataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void failsOnCompletedEventWithDataElementValueIsNullAndValidationStrategyOnComplete()
-    {
-        DataElement validDataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void failValidationWhenDataElementIsNotPresentInProgramStage() {
+    DataElement dataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
 
-        ProgramStage programStage = programStage( validDataElement, true );
-        programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    DataElement notPresentDataElement = dataElement();
+    notPresentDataElement.setUid("de_not_present_in_program_stage");
+    when(preheat.getDataElement(MetadataIdentifier.ofUid("de_not_present_in_program_stage")))
+        .thenReturn(notPresentDataElement);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( validDataValue ) )
+    ProgramStage programStage = new ProgramStage();
+    programStage.setAutoFields();
+    ProgramStageDataElement mandatoryStageElement1 = new ProgramStageDataElement();
+    DataElement mandatoryElement1 = new DataElement();
+    mandatoryElement1.setUid(dataElementUid);
+    mandatoryStageElement1.setDataElement(mandatoryElement1);
+    mandatoryStageElement1.setCompulsory(true);
+    programStage.setProgramStageDataElements(Set.of(mandatoryStageElement1));
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+
+    DataValue notPresentDataValue = dataValue();
+    notPresentDataValue.setDataElement(MetadataIdentifier.ofUid("de_not_present_in_program_stage"));
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(dataValue(), notPresentDataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1305, reporter.getErrors().get(0).getErrorCode());
+  }
 
-    @Test
-    void succeedsOnScheduledEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled()
-    {
-        DataElement validDataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void succeedsWhenDataElementIsPartOfProgramStageAndIdSchemeIsSetToCode() {
+    TrackerIdSchemeParams params =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.CODE)
+            .programIdScheme(TrackerIdSchemeParam.UID)
+            .programStageIdScheme(TrackerIdSchemeParam.UID)
+            .dataElementIdScheme(TrackerIdSchemeParam.CODE)
+            .build();
+    when(preheat.getIdSchemes()).thenReturn(params);
 
-        ProgramStage programStage = programStage( validDataElement, true );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    DataElement dataElement = dataElement();
+    dataElement.setCode("DE_424050");
+    when(preheat.getDataElement(MetadataIdentifier.ofCode(dataElement.getCode())))
+        .thenReturn(dataElement);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SCHEDULE )
-            .dataValues( Set.of( validDataValue ) )
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    DataValue dataValue = dataValue();
+    dataValue.setDataElement(MetadataIdentifier.ofCode("DE_424050"));
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(dataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void succeedsOnSkippedEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled()
-    {
-        DataElement validDataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void failValidationWhenDataElementValueTypeIsNull() {
+    DataElement dataElement = dataElement();
+    DataElement invalidDataElement = dataElement(null);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(invalidDataElement);
 
-        ProgramStage programStage = programStage( validDataElement, true );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) )
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(dataValue()))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1302, reporter.getErrors().get(0).getErrorCode());
+  }
 
-    @Test
-    void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory()
-    {
-        DataElement validDataElement = dataElement();
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+  @Test
+  void failValidationWhenFileResourceIsNull() {
+    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        ProgramStage programStage = programStage( validDataElement, false );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    DataValue validDataValue = dataValue("QX4LpiTZmUH");
+    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(null);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setValue( null );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.COMPLETED )
-            .dataValues( Set.of( validDataValue ) )
+    ProgramStage programStage = programStage(validDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    hook.validateEvent(reporter, bundle, event);
 
-    @Test
-    void failValidationWhenFileResourceIsAlreadyAssigned()
-    {
-        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1084, reporter.getErrors().get(0).getErrorCode());
+  }
 
-        ProgramStage programStage = programStage( validDataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+  @Test
+  void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory() {
+    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        FileResource fileResource = new FileResource();
-        fileResource.setAssigned( true );
-        DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( fileResource );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) )
+    ProgramStage programStage = programStage(validDataElement, false);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+    hook.validateEvent(reporter, bundle, event);
 
-        hook.validateEvent( reporter, bundle, event );
+    assertFalse(reporter.hasErrors());
+  }
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+  @Test
+  void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory() {
+    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
+    ProgramStage programStage = programStage(validDataElement, true);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        reporter = new ValidationErrorReporter( idSchemes );
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertThat( reporter.getErrors(), hasSize( 0 ) );
-    }
-
-    @Test
-    void validateFileResourceOwner()
-    {
-        DataElement validDataElement = dataElement( ValueType.FILE_RESOURCE );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
-
-        ProgramStage programStage = programStage( validDataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        FileResource fileResource = new FileResource();
-        fileResource.setAssigned( true );
-        DataValue validDataValue = dataValue( "QX4LpiTZmUH" );
-        when( preheat.get( FileResource.class, validDataValue.getValue() ) ).thenReturn( fileResource );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+    hook.validateEvent(reporter, bundle, event);
 
-        hook.validateEvent( reporter, bundle, event );
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1076, reporter.getErrors().get(0).getErrorCode());
+  }
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
+  @Test
+  void failsOnActiveEventWithDataElementValueNullAndValidationStrategyOnUpdate() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        event.setEvent( "XYZ" );
-        fileResource.setFileResourceOwner( "ABC" );
+    ProgramStage programStage = programStage(validDataElement, true);
+    programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        reporter = new ValidationErrorReporter( idSchemes );
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1009, reporter.getErrors().get( 0 ).getErrorCode() );
-
-        event.setEvent( "ABC" );
-        fileResource.setFileResourceOwner( "ABC" );
-
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        reporter = new ValidationErrorReporter( idSchemes );
-
-        hook.validateEvent( reporter, bundle, event );
-
-        assertThat( reporter.getErrors(), hasSize( 0 ) );
-    }
-
-    @Test
-    void failValidationWhenDataElementValueTypeIsInvalid()
-    {
-        runAndAssertValidationForDataValue( ValueType.NUMBER, "not_a_number" );
-        runAndAssertValidationForDataValue( ValueType.UNIT_INTERVAL, "3" );
-        runAndAssertValidationForDataValue( ValueType.PERCENTAGE, "1234" );
-        runAndAssertValidationForDataValue( ValueType.INTEGER, "10.5" );
-        runAndAssertValidationForDataValue( ValueType.INTEGER_POSITIVE, "-10" );
-        runAndAssertValidationForDataValue( ValueType.INTEGER_NEGATIVE, "+10" );
-        runAndAssertValidationForDataValue( ValueType.INTEGER_ZERO_OR_POSITIVE, "-10" );
-        runAndAssertValidationForDataValue( ValueType.BOOLEAN, "not_a_bool" );
-        runAndAssertValidationForDataValue( ValueType.TRUE_ONLY, "false" );
-        runAndAssertValidationForDataValue( ValueType.DATE, "wrong_date" );
-        runAndAssertValidationForDataValue( ValueType.DATETIME, "wrong_date_time" );
-        runAndAssertValidationForDataValue( ValueType.COORDINATE, "10" );
-        runAndAssertValidationForDataValue( ValueType.URL, "not_valid_url" );
-    }
-
-    @Test
-    void successValidationDataElementOptionValueIsValid()
-    {
-
-        DataValue validDataValue = dataValue( "CODE" );
-        DataValue nullDataValue = dataValue( null );
-
-        OptionSet optionSet = new OptionSet();
-        Option option = new Option();
-        option.setCode( "CODE" );
-        Option option1 = new Option();
-        option1.setCode( "CODE1" );
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
-
-        DataElement dataElement = dataElement();
-        dataElement.setOptionSet( optionSet );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue, nullDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1076, reporter.getErrors().get(0).getErrorCode());
+  }
 
-    @Test
-    void failValidationDataElementOptionValueIsInValid()
-    {
+  @Test
+  void failsOnCompletedEventWithDataElementValueNullAndValidationStrategyOnUpdate() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        DataValue validDataValue = dataValue( "value" );
-        validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
+    ProgramStage programStage = programStage(validDataElement, true);
+    programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        OptionSet optionSet = new OptionSet();
-        Option option = new Option();
-        option.setCode( "CODE" );
-        Option option1 = new Option();
-        option1.setCode( "CODE1" );
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
-
-        DataElement dataElement = dataElement();
-        dataElement.setOptionSet( optionSet );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( dataElement );
-
-        ProgramStage programStage = programStage( dataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( 1, reporter.getErrors().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
-    }
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1076, reporter.getErrors().get(0).getErrorCode());
+  }
 
-    @Test
-    void failValidationWhenOrgUnitValueIsInvalid()
-    {
+  @Test
+  void succeedsOnActiveEventWithDataElementValueIsNullAndValidationStrategyOnComplete() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+    ProgramStage programStage = programStage(validDataElement, true);
+    programStage.setValidationStrategy(ValidationStrategy.ON_COMPLETE);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        DataValue invalidDataValue = dataValue( "invlaid_org_unit" );
-        when( preheat.getOrganisationUnit( invalidDataValue.getValue() ) ).thenReturn( null );
-
-        ProgramStage programStage = programStage( validDataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( invalidDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1007, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void succeedsValidationWhenOrgUnitValueIsValid()
-    {
+  @Test
+  void failsOnCompletedEventWithDataElementValueIsNullAndValidationStrategyOnComplete() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
+    ProgramStage programStage = programStage(validDataElement, true);
+    programStage.setValidationStrategy(ValidationStrategy.ON_COMPLETE);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        OrganisationUnit validOrgUnit = organisationUnit();
-
-        DataValue validDataValue = dataValue( validOrgUnit.getUid() );
-        when( preheat.getOrganisationUnit( validDataValue.getValue() ) ).thenReturn( validOrgUnit );
-
-        ProgramStage programStage = programStage( validDataElement );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
-
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.ACTIVE )
-            .dataValues( Set.of( validDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertFalse( reporter.hasErrors() );
-    }
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1076, reporter.getErrors().get(0).getErrorCode());
+  }
 
-    private void runAndAssertValidationForDataValue( ValueType valueType, String value )
-    {
-        DataElement invalidDataElement = dataElement( valueType );
-        when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( invalidDataElement );
+  @Test
+  void succeedsOnScheduledEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        ProgramStage programStage = programStage( dataElement() );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStageUid ) ) )
-            .thenReturn( programStage );
+    ProgramStage programStage = programStage(validDataElement, true);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-        DataValue validDataValue = dataValue();
-        validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
-        validDataValue.setValue( value );
-        Event event = Event.builder()
-            .programStage( idSchemes.toMetadataIdentifier( programStage ) )
-            .status( EventStatus.SKIPPED )
-            .dataValues( Set.of( validDataValue ) )
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SCHEDULE)
+            .dataValues(Set.of(validDataValue))
             .build();
 
-        reporter = new ValidationErrorReporter( idSchemes );
-        hook.validateEvent( reporter, bundle, event );
+    hook.validateEvent(reporter, bundle, event);
 
-        assertThat( reporter.getErrors(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1302, reporter.getErrors().get( 0 ).getErrorCode() );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    private DataElement dataElement( ValueType type )
-    {
-        DataElement dataElement = dataElement();
-        dataElement.setValueType( type );
-        return dataElement;
-    }
+  @Test
+  void succeedsOnSkippedEventWithDataElementValueIsNullAndEventStatusSkippedOrScheduled() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-    private DataElement dataElement()
-    {
-        DataElement dataElement = new DataElement();
-        dataElement.setValueType( ValueType.TEXT );
-        dataElement.setUid( dataElementUid );
-        return dataElement;
-    }
+    ProgramStage programStage = programStage(validDataElement, true);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-    private DataValue dataValue( String value )
-    {
-        DataValue dataValue = dataValue();
-        dataValue.setValue( value );
-        return dataValue;
-    }
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
+            .build();
 
-    private DataValue dataValue()
-    {
-        DataValue dataValue = new DataValue();
-        dataValue.setCreatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
-        dataValue.setUpdatedAt( DateUtils.instantFromDateAsString( "2020-10-10" ) );
-        dataValue.setValue( "text" );
-        dataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
-        return dataValue;
-    }
+    hook.validateEvent(reporter, bundle, event);
 
-    private ProgramStage programStage( DataElement dataElement )
-    {
-        return programStage( dataElement, false );
-    }
+    assertFalse(reporter.hasErrors());
+  }
 
-    private ProgramStage programStage( DataElement dataElement, boolean compulsory )
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( programStageUid );
-        programStage
-            .setProgramStageDataElements( getProgramStageDataElements( dataElement, programStage, compulsory ) );
+  @Test
+  void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory() {
+    DataElement validDataElement = dataElement();
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
 
-        return programStage;
-    }
+    ProgramStage programStage = programStage(validDataElement, false);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
 
-    private Set<ProgramStageDataElement> getProgramStageDataElements( DataElement dataElement,
-        ProgramStage programStage, boolean compulsory )
-    {
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement( programStage, dataElement );
-        programStageDataElement.setCompulsory( compulsory );
-        return Set.of( programStageDataElement );
-    }
+    DataValue validDataValue = dataValue();
+    validDataValue.setValue(null);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.COMPLETED)
+            .dataValues(Set.of(validDataValue))
+            .build();
 
-    private OrganisationUnit organisationUnit()
-    {
-        OrganisationUnit organisationUnit = new OrganisationUnit();
-        organisationUnit.setUid( organisationUnitUid );
-        return organisationUnit;
-    }
+    hook.validateEvent(reporter, bundle, event);
 
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void failValidationWhenFileResourceIsAlreadyAssigned() {
+    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
+
+    ProgramStage programStage = programStage(validDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    FileResource fileResource = new FileResource();
+    fileResource.setAssigned(true);
+    DataValue validDataValue = dataValue("QX4LpiTZmUH");
+    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
+            .build();
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1009, reporter.getErrors().get(0).getErrorCode());
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    reporter = new ValidationErrorReporter(idSchemes);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertThat(reporter.getErrors(), hasSize(0));
+  }
+
+  @Test
+  void validateFileResourceOwner() {
+    DataElement validDataElement = dataElement(ValueType.FILE_RESOURCE);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
+
+    ProgramStage programStage = programStage(validDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    FileResource fileResource = new FileResource();
+    fileResource.setAssigned(true);
+    DataValue validDataValue = dataValue("QX4LpiTZmUH");
+    when(preheat.get(FileResource.class, validDataValue.getValue())).thenReturn(fileResource);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
+            .build();
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1009, reporter.getErrors().get(0).getErrorCode());
+
+    event.setEvent("XYZ");
+    fileResource.setFileResourceOwner("ABC");
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    reporter = new ValidationErrorReporter(idSchemes);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1009, reporter.getErrors().get(0).getErrorCode());
+
+    event.setEvent("ABC");
+    fileResource.setFileResourceOwner("ABC");
+
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    reporter = new ValidationErrorReporter(idSchemes);
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertThat(reporter.getErrors(), hasSize(0));
+  }
+
+  @Test
+  void failValidationWhenDataElementValueTypeIsInvalid() {
+    runAndAssertValidationForDataValue(ValueType.NUMBER, "not_a_number");
+    runAndAssertValidationForDataValue(ValueType.UNIT_INTERVAL, "3");
+    runAndAssertValidationForDataValue(ValueType.PERCENTAGE, "1234");
+    runAndAssertValidationForDataValue(ValueType.INTEGER, "10.5");
+    runAndAssertValidationForDataValue(ValueType.INTEGER_POSITIVE, "-10");
+    runAndAssertValidationForDataValue(ValueType.INTEGER_NEGATIVE, "+10");
+    runAndAssertValidationForDataValue(ValueType.INTEGER_ZERO_OR_POSITIVE, "-10");
+    runAndAssertValidationForDataValue(ValueType.BOOLEAN, "not_a_bool");
+    runAndAssertValidationForDataValue(ValueType.TRUE_ONLY, "false");
+    runAndAssertValidationForDataValue(ValueType.DATE, "wrong_date");
+    runAndAssertValidationForDataValue(ValueType.DATETIME, "wrong_date_time");
+    runAndAssertValidationForDataValue(ValueType.COORDINATE, "10");
+    runAndAssertValidationForDataValue(ValueType.URL, "not_valid_url");
+  }
+
+  @Test
+  void successValidationDataElementOptionValueIsValid() {
+
+    DataValue validDataValue = dataValue("CODE");
+    DataValue nullDataValue = dataValue(null);
+
+    OptionSet optionSet = new OptionSet();
+    Option option = new Option();
+    option.setCode("CODE");
+    Option option1 = new Option();
+    option1.setCode("CODE1");
+    optionSet.setOptions(Arrays.asList(option, option1));
+
+    DataElement dataElement = dataElement();
+    dataElement.setOptionSet(optionSet);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue, nullDataValue))
+            .build();
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void failValidationDataElementOptionValueIsInValid() {
+
+    DataValue validDataValue = dataValue("value");
+    validDataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
+
+    OptionSet optionSet = new OptionSet();
+    Option option = new Option();
+    option.setCode("CODE");
+    Option option1 = new Option();
+    option1.setCode("CODE1");
+    optionSet.setOptions(Arrays.asList(option, option1));
+
+    DataElement dataElement = dataElement();
+    dataElement.setOptionSet(optionSet);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid))).thenReturn(dataElement);
+
+    ProgramStage programStage = programStage(dataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
+            .build();
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertTrue(reporter.hasErrors());
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(
+        1,
+        reporter.getErrors().stream()
+            .filter(e -> e.getErrorCode() == TrackerErrorCode.E1125)
+            .count());
+  }
+
+  @Test
+  void failValidationWhenOrgUnitValueIsInvalid() {
+
+    DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
+
+    DataValue invalidDataValue = dataValue("invlaid_org_unit");
+    when(preheat.getOrganisationUnit(invalidDataValue.getValue())).thenReturn(null);
+
+    ProgramStage programStage = programStage(validDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(invalidDataValue))
+            .build();
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1007, reporter.getErrors().get(0).getErrorCode());
+  }
+
+  @Test
+  void succeedsValidationWhenOrgUnitValueIsValid() {
+
+    DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(validDataElement);
+
+    OrganisationUnit validOrgUnit = organisationUnit();
+
+    DataValue validDataValue = dataValue(validOrgUnit.getUid());
+    when(preheat.getOrganisationUnit(validDataValue.getValue())).thenReturn(validOrgUnit);
+
+    ProgramStage programStage = programStage(validDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
+            .build();
+
+    hook.validateEvent(reporter, bundle, event);
+
+    assertFalse(reporter.hasErrors());
+  }
+
+  private void runAndAssertValidationForDataValue(ValueType valueType, String value) {
+    DataElement invalidDataElement = dataElement(valueType);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
+        .thenReturn(invalidDataElement);
+
+    ProgramStage programStage = programStage(dataElement());
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
+        .thenReturn(programStage);
+
+    DataValue validDataValue = dataValue();
+    validDataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
+    validDataValue.setValue(value);
+    Event event =
+        Event.builder()
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.SKIPPED)
+            .dataValues(Set.of(validDataValue))
+            .build();
+
+    reporter = new ValidationErrorReporter(idSchemes);
+    hook.validateEvent(reporter, bundle, event);
+
+    assertThat(reporter.getErrors(), hasSize(1));
+    assertEquals(TrackerErrorCode.E1302, reporter.getErrors().get(0).getErrorCode());
+  }
+
+  private DataElement dataElement(ValueType type) {
+    DataElement dataElement = dataElement();
+    dataElement.setValueType(type);
+    return dataElement;
+  }
+
+  private DataElement dataElement() {
+    DataElement dataElement = new DataElement();
+    dataElement.setValueType(ValueType.TEXT);
+    dataElement.setUid(dataElementUid);
+    return dataElement;
+  }
+
+  private DataValue dataValue(String value) {
+    DataValue dataValue = dataValue();
+    dataValue.setValue(value);
+    return dataValue;
+  }
+
+  private DataValue dataValue() {
+    DataValue dataValue = new DataValue();
+    dataValue.setCreatedAt(DateUtils.instantFromDateAsString("2020-10-10"));
+    dataValue.setUpdatedAt(DateUtils.instantFromDateAsString("2020-10-10"));
+    dataValue.setValue("text");
+    dataValue.setDataElement(MetadataIdentifier.ofUid(dataElementUid));
+    return dataValue;
+  }
+
+  private ProgramStage programStage(DataElement dataElement) {
+    return programStage(dataElement, false);
+  }
+
+  private ProgramStage programStage(DataElement dataElement, boolean compulsory) {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(programStageUid);
+    programStage.setProgramStageDataElements(
+        getProgramStageDataElements(dataElement, programStage, compulsory));
+
+    return programStage;
+  }
+
+  private Set<ProgramStageDataElement> getProgramStageDataElements(
+      DataElement dataElement, ProgramStage programStage, boolean compulsory) {
+    ProgramStageDataElement programStageDataElement =
+        new ProgramStageDataElement(programStage, dataElement);
+    programStageDataElement.setCompulsory(compulsory);
+    return Set.of(programStageDataElement);
+  }
+
+  private OrganisationUnit organisationUnit() {
+    OrganisationUnit organisationUnit = new OrganisationUnit();
+    organisationUnit.setUid(organisationUnitUid);
+    return organisationUnit;
+  }
 }

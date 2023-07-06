@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -44,64 +43,62 @@ import org.hisp.dhis.tracker.validation.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
 
 /**
- * This validator checks if in the payload there is more than one valid event
- * per enrollment based on a ProgramStage that is not repeatable.
+ * This validator checks if in the payload there is more than one valid event per enrollment based
+ * on a ProgramStage that is not repeatable.
  *
  * @author Enrico Colasante
  */
 @Component
-public class RepeatedEventsValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validate( ValidationErrorReporter reporter, TrackerBundle bundle )
-    {
-        Map<Pair<MetadataIdentifier, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle
-            .getEvents()
-            .stream()
-            .filter( e -> !reporter.isInvalid( e ) )
-            .filter( e -> !bundle.getStrategy( e ).isDelete() )
-            .filter( e -> {
-                ProgramStage programStage = bundle.getPreheat().getProgramStage( e.getProgramStage() );
-                return programStage.getProgram().isRegistration() && !programStage.getRepeatable();
-            } )
-            .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
+public class RepeatedEventsValidationHook implements TrackerValidationHook {
+  @Override
+  public void validate(ValidationErrorReporter reporter, TrackerBundle bundle) {
+    Map<Pair<MetadataIdentifier, String>, List<Event>>
+        eventsByEnrollmentAndNotRepeatableProgramStage =
+            bundle.getEvents().stream()
+                .filter(e -> !reporter.isInvalid(e))
+                .filter(e -> !bundle.getStrategy(e).isDelete())
+                .filter(
+                    e -> {
+                      ProgramStage programStage =
+                          bundle.getPreheat().getProgramStage(e.getProgramStage());
+                      return programStage.getProgram().isRegistration()
+                          && !programStage.getRepeatable();
+                    })
+                .collect(
+                    Collectors.groupingBy(e -> Pair.of(e.getProgramStage(), e.getEnrollment())));
 
-        for ( Map.Entry<Pair<MetadataIdentifier, String>, List<Event>> mapEntry : eventsByEnrollmentAndNotRepeatableProgramStage
-            .entrySet() )
-        {
-            if ( mapEntry.getValue().size() > 1 )
-            {
-                for ( Event event : mapEntry.getValue() )
-                {
-                    reporter.addError( event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
-                }
-            }
+    for (Map.Entry<Pair<MetadataIdentifier, String>, List<Event>> mapEntry :
+        eventsByEnrollmentAndNotRepeatableProgramStage.entrySet()) {
+      if (mapEntry.getValue().size() > 1) {
+        for (Event event : mapEntry.getValue()) {
+          reporter.addError(event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft());
         }
-
-        bundle.getEvents()
-            .forEach( e -> validateNotMultipleEvents( reporter, bundle, e ) );
+      }
     }
 
-    private void validateNotMultipleEvents( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
+    bundle.getEvents().forEach(e -> validateNotMultipleEvents(reporter, bundle, e));
+  }
 
-        TrackerImportStrategy strategy = bundle.getStrategy( event );
+  private void validateNotMultipleEvents(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Event event) {
+    ProgramInstance programInstance = bundle.getProgramInstance(event.getEnrollment());
+    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
 
-        if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
-            && !programStage.getRepeatable()
-            && bundle.getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
-                event.getEnrollment() ) )
-        {
-            reporter.addError( event, TrackerErrorCode.E1039, event.getProgramStage() );
-        }
+    TrackerImportStrategy strategy = bundle.getStrategy(event);
+
+    if (strategy == TrackerImportStrategy.CREATE
+        && programStage != null
+        && programInstance != null
+        && !programStage.getRepeatable()
+        && bundle
+            .getPreheat()
+            .hasProgramStageWithEvents(event.getProgramStage(), event.getEnrollment())) {
+      reporter.addError(event, TrackerErrorCode.E1039, event.getProgramStage());
     }
+  }
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
+  @Override
+  public boolean skipOnError() {
+    return true;
+  }
 }

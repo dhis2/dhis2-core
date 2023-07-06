@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
@@ -38,67 +37,58 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.user.User;
 
-public class GetSectionIndicatorsAction
-    extends ActionPagingSupport<Indicator>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetSectionIndicatorsAction extends ActionPagingSupport<Indicator> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private DataSetService dataSetService;
+  private DataSetService dataSetService;
 
-    public void setDataSetService( DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
+  public void setDataSetService(DataSetService dataSetService) {
+    this.dataSetService = dataSetService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private Integer dataSetId;
+
+  public void setDataSetId(Integer dataSetId) {
+    this.dataSetId = dataSetId;
+  }
+
+  private List<Indicator> indicators = new ArrayList<>();
+
+  public List<Indicator> getIndicators() {
+    return indicators;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(Indicator.class);
+
+    if (dataSetId == null) {
+      return SUCCESS;
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+    DataSet dataSet = dataSetService.getDataSet(dataSetId);
 
-    private Integer dataSetId;
+    indicators = new ArrayList<>(dataSet.getIndicators());
 
-    public void setDataSetId( Integer dataSetId )
-    {
-        this.dataSetId = dataSetId;
+    User currentUser = currentUserService.getCurrentUser();
+    indicators.forEach(instance -> canReadInstance(instance, currentUser));
+
+    for (Section section : dataSet.getSections()) {
+      indicators.removeAll(section.getIndicators());
     }
 
-    private List<Indicator> indicators = new ArrayList<>();
+    Collections.sort(indicators);
 
-    public List<Indicator> getIndicators()
-    {
-        return indicators;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( Indicator.class );
-
-        if ( dataSetId == null )
-        {
-            return SUCCESS;
-        }
-
-        DataSet dataSet = dataSetService.getDataSet( dataSetId );
-
-        indicators = new ArrayList<>( dataSet.getIndicators() );
-
-        User currentUser = currentUserService.getCurrentUser();
-        indicators.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        for ( Section section : dataSet.getSections() )
-        {
-            indicators.removeAll( section.getIndicators() );
-        }
-
-        Collections.sort( indicators );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

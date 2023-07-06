@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
@@ -39,24 +38,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler
-{
-    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler {
+  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(ProgramStageInstance.class, this::deleteProgramStageInstance);
+  }
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
-    }
+  private void deleteDataElement(DataElement dataElement) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
+  }
 
-    private void deleteProgramStageInstance( ProgramStageInstance psi )
-    {
-        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( psi );
-    }
+  private void deleteProgramStageInstance(ProgramStageInstance psi) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(psi);
+  }
 }

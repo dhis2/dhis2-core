@@ -45,82 +45,76 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class InterpretationDataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
-{
+class InterpretationDataOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private VisualizationService visualizationService;
+  @Autowired private VisualizationService visualizationService;
 
-    @Autowired
-    private InterpretationService interpretationService;
+  @Autowired private InterpretationService interpretationService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private DataOrgUnitMergeHandler mergeHandler;
+  @Autowired private DataOrgUnitMergeHandler mergeHandler;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    private Visualization vzA;
+  private Visualization vzA;
 
-    private Interpretation ipA;
+  private Interpretation ipA;
 
-    private Interpretation ipB;
+  private Interpretation ipB;
 
-    private Interpretation ipC;
+  private Interpretation ipC;
 
-    @BeforeEach
-    void beforeTest()
-    {
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        manager.save( ouA );
-        manager.save( ouB );
-        manager.save( ouC );
-        vzA = createVisualization( 'A' );
-        visualizationService.save( vzA );
-        ipA = new Interpretation( vzA, ouA, "Interpration of visualization A" );
-        ipB = new Interpretation( vzA, ouB, "Interpration of visualization B" );
-        ipC = new Interpretation( vzA, ouC, "Interpration of visualization C" );
-    }
+  @BeforeEach
+  void beforeTest() {
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    manager.save(ouA);
+    manager.save(ouB);
+    manager.save(ouC);
+    vzA = createVisualization('A');
+    visualizationService.save(vzA);
+    ipA = new Interpretation(vzA, ouA, "Interpration of visualization A");
+    ipB = new Interpretation(vzA, ouB, "Interpration of visualization B");
+    ipC = new Interpretation(vzA, ouC, "Interpration of visualization C");
+  }
 
-    @Test
-    void testMigrate()
-    {
-        interpretationService.saveInterpretation( ipA );
-        interpretationService.saveInterpretation( ipB );
-        interpretationService.saveInterpretation( ipC );
-        assertEquals( 1, getInterpretationCount( ouA ) );
-        assertEquals( 1, getInterpretationCount( ouB ) );
-        assertEquals( 1, getInterpretationCount( ouC ) );
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
-            .withTarget( ouC ).build();
-        mergeHandler.mergeInterpretations( request );
-        assertEquals( 0, getInterpretationCount( ouA ) );
-        assertEquals( 0, getInterpretationCount( ouB ) );
-        assertEquals( 3, getInterpretationCount( ouC ) );
-    }
+  @Test
+  void testMigrate() {
+    interpretationService.saveInterpretation(ipA);
+    interpretationService.saveInterpretation(ipB);
+    interpretationService.saveInterpretation(ipC);
+    assertEquals(1, getInterpretationCount(ouA));
+    assertEquals(1, getInterpretationCount(ouB));
+    assertEquals(1, getInterpretationCount(ouC));
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    mergeHandler.mergeInterpretations(request);
+    assertEquals(0, getInterpretationCount(ouA));
+    assertEquals(0, getInterpretationCount(ouB));
+    assertEquals(3, getInterpretationCount(ouC));
+  }
 
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getInterpretationCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from Interpretation i where i.organisationUnit = :target" )
-            .setParameter( "target", target ).uniqueResult();
-    }
+  /**
+   * Test migrate HQL update statement with an HQL select statement to ensure the updated rows are
+   * visible by the current transaction.
+   *
+   * @param target the {@link OrganisationUnit}
+   * @return the count of interpretations.
+   */
+  private long getInterpretationCount(OrganisationUnit target) {
+    return (Long)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("select count(*) from Interpretation i where i.organisationUnit = :target")
+            .setParameter("target", target)
+            .uniqueResult();
+  }
 }

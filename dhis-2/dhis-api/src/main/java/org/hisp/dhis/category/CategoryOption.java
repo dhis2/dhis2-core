@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.category;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -45,309 +49,257 @@ import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Asalefew
  */
-@JacksonXmlRootElement( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-public class CategoryOption
-    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
-{
-    public static final String DEFAULT_NAME = "default";
+@JacksonXmlRootElement(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
+public class CategoryOption extends BaseDimensionalItemObject
+    implements SystemDefaultMetadataObject {
+  public static final String DEFAULT_NAME = "default";
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private Set<Category> categories = new HashSet<>();
+  private Set<Category> categories = new HashSet<>();
 
-    private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+  private Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
-    private Set<CategoryOptionGroup> groups = new HashSet<>();
+  private Set<CategoryOptionGroup> groups = new HashSet<>();
 
-    private ObjectStyle style;
+  private ObjectStyle style;
 
-    /**
-     * The name to appear in forms.
-     */
-    private String formName;
+  /** The name to appear in forms. */
+  private String formName;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public CategoryOption()
-    {
+  public CategoryOption() {}
 
+  public CategoryOption(String name) {
+    this.name = name;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  @JsonProperty("isDefault")
+  @Override
+  public boolean isDefault() {
+    return DEFAULT_NAME.equals(name);
+  }
+
+  /**
+   * Returns a set of category option group sets which are associated with the category option
+   * groups of this category option.
+   */
+  public Set<CategoryOptionGroupSet> getGroupSets() {
+    Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
+
+    if (groups != null) {
+      for (CategoryOptionGroup group : groups) {
+        groupSets.addAll(group.getGroupSets());
+      }
     }
 
-    public CategoryOption( String name )
-    {
-        this.name = name;
+    return groupSets;
+  }
+
+  public void addCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo) {
+    categoryOptionCombos.add(dataElementCategoryOptionCombo);
+    dataElementCategoryOptionCombo.getCategoryOptions().add(this);
+  }
+
+  public void removeCategoryOptionCombo(CategoryOptionCombo dataElementCategoryOptionCombo) {
+    categoryOptionCombos.remove(dataElementCategoryOptionCombo);
+    dataElementCategoryOptionCombo.getCategoryOptions().remove(this);
+  }
+
+  public void addOrganisationUnit(OrganisationUnit organisationUnit) {
+    organisationUnits.add(organisationUnit);
+    organisationUnit.getCategoryOptions().add(this);
+  }
+
+  public void addOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    organisationUnits.forEach(this::addOrganisationUnit);
+  }
+
+  public void removeOrganisationUnit(OrganisationUnit organisationUnit) {
+    organisationUnits.remove(organisationUnit);
+    organisationUnit.getCategoryOptions().remove(this);
+  }
+
+  public void removeOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    organisationUnits.forEach(this::removeOrganisationUnit);
+  }
+
+  /**
+   * Gets an adjusted end date, adjusted if this data set has open periods after the end date.
+   *
+   * @param dataSet the data set to adjust for
+   * @return the adjusted end date
+   */
+  public Date getAdjustedEndDate(DataSet dataSet) {
+    if (endDate == null || dataSet.getOpenPeriodsAfterCoEndDate() == 0) {
+      return endDate;
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return dataSet
+        .getPeriodType()
+        .getRewindedDate(endDate, -dataSet.getOpenPeriodsAfterCoEndDate());
+  }
 
-    @JsonProperty( "isDefault" )
-    @Override
-    public boolean isDefault()
-    {
-        return DEFAULT_NAME.equals( name );
+  /**
+   * Gets an adjusted end date, adjusted if a data element belongs to any data sets that have open
+   * periods after the end date. If so, it chooses the latest end date.
+   *
+   * @param dataElement the data element to adjust for
+   * @return the adjusted end date
+   */
+  public Date getAdjustedEndDate(DataElement dataElement) {
+    if (endDate == null) {
+      return null;
     }
 
-    /**
-     * Returns a set of category option group sets which are associated with the
-     * category option groups of this category option.
-     */
-    public Set<CategoryOptionGroupSet> getGroupSets()
-    {
-        Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
+    Date latestAdjustedDate = endDate;
 
-        if ( groups != null )
-        {
-            for ( CategoryOptionGroup group : groups )
-            {
-                groupSets.addAll( group.getGroupSets() );
-            }
-        }
+    for (DataSetElement element : dataElement.getDataSetElements()) {
+      Date adjustedDate = getAdjustedEndDate(element.getDataSet());
 
-        return groupSets;
+      if (adjustedDate.after(latestAdjustedDate)) {
+        latestAdjustedDate = adjustedDate;
+      }
     }
 
-    public void addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
-    {
-        categoryOptionCombos.add( dataElementCategoryOptionCombo );
-        dataElementCategoryOptionCombo.getCategoryOptions().add( this );
+    return latestAdjustedDate;
+  }
+
+  /**
+   * Gets an adjusted end date, adjusted if this program has open days after the end date.
+   *
+   * @param program the program to adjust for
+   * @return the adjusted end date
+   */
+  public Date getAdjustedEndDate(Program program) {
+    if (endDate == null || program.getOpenDaysAfterCoEndDate() == 0) {
+      return endDate;
     }
 
-    public void removeCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
-    {
-        categoryOptionCombos.remove( dataElementCategoryOptionCombo );
-        dataElementCategoryOptionCombo.getCategoryOptions().remove( this );
-    }
+    return (new DailyPeriodType()).getRewindedDate(endDate, -program.getOpenDaysAfterCoEndDate());
+  }
 
-    public void addOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.add( organisationUnit );
-        organisationUnit.getCategoryOptions().add( this );
-    }
+  // -------------------------------------------------------------------------
+  // DimensionalItemObject
+  // -------------------------------------------------------------------------
 
-    public void addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        organisationUnits.forEach( this::addOrganisationUnit );
-    }
+  @Override
+  public DimensionItemType getDimensionItemType() {
+    return DimensionItemType.CATEGORY_OPTION;
+  }
 
-    public void removeOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        organisationUnits.remove( organisationUnit );
-        organisationUnit.getCategoryOptions().remove( this );
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public void removeOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        organisationUnits.forEach( this::removeOrganisationUnit );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getStartDate() {
+    return startDate;
+  }
 
-    /**
-     * Gets an adjusted end date, adjusted if this data set has open periods
-     * after the end date.
-     *
-     * @param dataSet the data set to adjust for
-     * @return the adjusted end date
-     */
-    public Date getAdjustedEndDate( DataSet dataSet )
-    {
-        if ( endDate == null || dataSet.getOpenPeriodsAfterCoEndDate() == 0 )
-        {
-            return endDate;
-        }
+  public void setStartDate(Date startDate) {
+    this.startDate = startDate;
+  }
 
-        return dataSet.getPeriodType().getRewindedDate( endDate, -dataSet.getOpenPeriodsAfterCoEndDate() );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getEndDate() {
+    return endDate;
+  }
 
-    /**
-     * Gets an adjusted end date, adjusted if a data element belongs to any data
-     * sets that have open periods after the end date. If so, it chooses the
-     * latest end date.
-     *
-     * @param dataElement the data element to adjust for
-     * @return the adjusted end date
-     */
-    public Date getAdjustedEndDate( DataElement dataElement )
-    {
-        if ( endDate == null )
-        {
-            return null;
-        }
+  public void setEndDate(Date endDate) {
+    this.endDate = endDate;
+  }
 
-        Date latestAdjustedDate = endDate;
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0)
+  public Set<OrganisationUnit> getOrganisationUnits() {
+    return organisationUnits;
+  }
 
-        for ( DataSetElement element : dataElement.getDataSetElements() )
-        {
-            Date adjustedDate = getAdjustedEndDate( element.getDataSet() );
+  public void setOrganisationUnits(Set<OrganisationUnit> organisationUnits) {
+    this.organisationUnits = organisationUnits;
+  }
 
-            if ( adjustedDate.after( latestAdjustedDate ) )
-            {
-                latestAdjustedDate = adjustedDate;
-            }
-        }
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "categories", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "category", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Category> getCategories() {
+    return categories;
+  }
 
-        return latestAdjustedDate;
-    }
+  public void setCategories(Set<Category> categories) {
+    this.categories = categories;
+  }
 
-    /**
-     * Gets an adjusted end date, adjusted if this program has open days after
-     * the end date.
-     *
-     * @param program the program to adjust for
-     * @return the adjusted end date
-     */
-    public Date getAdjustedEndDate( Program program )
-    {
-        if ( endDate == null || program.getOpenDaysAfterCoEndDate() == 0 )
-        {
-            return endDate;
-        }
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0)
+  public Set<CategoryOptionCombo> getCategoryOptionCombos() {
+    return categoryOptionCombos;
+  }
 
-        return (new DailyPeriodType()).getRewindedDate( endDate, -program.getOpenDaysAfterCoEndDate() );
-    }
+  public void setCategoryOptionCombos(Set<CategoryOptionCombo> categoryOptionCombos) {
+    this.categoryOptionCombos = categoryOptionCombos;
+  }
 
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
+  @JsonProperty("categoryOptionGroups")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0)
+  public Set<CategoryOptionGroup> getGroups() {
+    return groups;
+  }
 
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.CATEGORY_OPTION;
-    }
+  public void setGroups(Set<CategoryOptionGroup> groups) {
+    this.groups = groups;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ObjectStyle getStyle() {
+    return style;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getStartDate()
-    {
-        return startDate;
-    }
+  public void setStyle(ObjectStyle style) {
+    this.style = style;
+  }
 
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getFormName() {
+    return formName;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getEndDate()
-    {
-        return endDate;
-    }
+  @Override
+  public void setFormName(String formName) {
+    this.formName = formName;
+  }
 
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "organisationUnit", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnit> getOrganisationUnits()
-    {
-        return organisationUnits;
-    }
-
-    public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
-    {
-        this.organisationUnits = organisationUnits;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "categories", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<Category> getCategories()
-    {
-        return categories;
-    }
-
-    public void setCategories( Set<Category> categories )
-    {
-        this.categories = categories;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "categoryOptionCombos", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<CategoryOptionCombo> getCategoryOptionCombos()
-    {
-        return categoryOptionCombos;
-    }
-
-    public void setCategoryOptionCombos( Set<CategoryOptionCombo> categoryOptionCombos )
-    {
-        this.categoryOptionCombos = categoryOptionCombos;
-    }
-
-    @JsonProperty( "categoryOptionGroups" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<CategoryOptionGroup> getGroups()
-    {
-        return groups;
-    }
-
-    public void setGroups( Set<CategoryOptionGroup> groups )
-    {
-        this.groups = groups;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectStyle getStyle()
-    {
-        return style;
-    }
-
-    public void setStyle( ObjectStyle style )
-    {
-        this.style = style;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    @Override
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
-    }
-
-    /**
-     * Returns the form name, or the name if it does not exist.
-     */
-    @Override
-    public String getFormNameFallback()
-    {
-        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
-    }
+  /** Returns the form name, or the name if it does not exist. */
+  @Override
+  public String getFormNameFallback() {
+    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+  }
 }
