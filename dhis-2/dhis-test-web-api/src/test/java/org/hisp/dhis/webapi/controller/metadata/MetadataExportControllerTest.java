@@ -46,37 +46,30 @@ import org.springframework.http.ResponseEntity;
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataExportControllerTest
-{
-    @Mock
-    private MetadataExportService metadataExportService;
+@ExtendWith(MockitoExtension.class)
+class MetadataExportControllerTest {
+  @Mock private MetadataExportService metadataExportService;
 
-    @Mock
-    private ContextService contextService;
+  @Mock private ContextService contextService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private UserSettingService userSettingService;
+  @Mock private UserSettingService userSettingService;
 
-    @InjectMocks
-    private MetadataImportExportController controller;
+  @InjectMocks private MetadataImportExportController controller;
 
-    @Test
-    void withoutDownload()
-    {
-        ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, false );
-        Assertions.assertNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-    }
+  @Test
+  void withoutDownload() {
+    ResponseEntity<RootNode> responseEntity = controller.getMetadata(false, null, false);
+    Assertions.assertNull(responseEntity.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION));
+  }
 
-    @Test
-    void withDownload()
-    {
-        ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, true );
-        Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assertions.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-    }
+  @Test
+  void withDownload() {
+    ResponseEntity<RootNode> responseEntity = controller.getMetadata(false, null, true);
+    Assertions.assertNotNull(responseEntity.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION));
+    Assertions.assertEquals(
+        "attachment; filename=metadata",
+        responseEntity.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION).get(0));
+  }
 }

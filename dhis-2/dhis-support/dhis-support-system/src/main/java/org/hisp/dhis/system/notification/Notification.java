@@ -27,150 +27,133 @@
  */
 package org.hisp.dhis.system.notification;
 
-import java.util.Date;
-
-import javax.annotation.Nonnull;
-
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
-import lombok.ToString;
-
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.scheduling.JobType;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import javax.annotation.Nonnull;
+import lombok.EqualsAndHashCode;
+import lombok.Setter;
+import lombok.ToString;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.scheduling.JobType;
 
 /**
  * @author Lars Helge Overland
  */
 @Setter
-@EqualsAndHashCode( onlyExplicitlyIncluded = true )
-@ToString( onlyExplicitlyIncluded = true )
-@JacksonXmlRootElement( localName = "notification", namespace = DxfNamespaces.DXF_2_0 )
-public class Notification implements Comparable<Notification>
-{
-    @EqualsAndHashCode.Include
-    private String uid;
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@ToString(onlyExplicitlyIncluded = true)
+@JacksonXmlRootElement(localName = "notification", namespace = DxfNamespaces.DXF_2_0)
+public class Notification implements Comparable<Notification> {
+  @EqualsAndHashCode.Include private String uid;
 
-    @ToString.Include
-    private NotificationLevel level;
+  @ToString.Include private NotificationLevel level;
 
-    @ToString.Include
-    private JobType category;
+  @ToString.Include private JobType category;
 
-    @ToString.Include
-    private Date time;
+  @ToString.Include private Date time;
 
-    @ToString.Include
-    private String message;
+  @ToString.Include private String message;
 
-    private boolean completed;
+  private boolean completed;
 
-    private NotificationDataType dataType;
+  private NotificationDataType dataType;
 
-    private JsonNode data;
+  private JsonNode data;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public Notification()
-    {
-        this.uid = CodeGenerator.generateUid();
+  public Notification() {
+    this.uid = CodeGenerator.generateUid();
+  }
+
+  public Notification(
+      NotificationLevel level,
+      JobType category,
+      Date time,
+      String message,
+      boolean completed,
+      NotificationDataType dataType,
+      JsonNode data) {
+    this.uid = CodeGenerator.generateUid();
+    this.level = level;
+    this.category = category;
+    this.time = time;
+    this.message = message;
+    this.completed = completed;
+    this.dataType = dataType;
+    this.data = data;
+  }
+
+  // -------------------------------------------------------------------------
+  // Get and set
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public NotificationLevel getLevel() {
+    return level;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getId() {
+    return uid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getUid() {
+    return uid;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public JobType getCategory() {
+    return category;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getTime() {
+    return time;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getMessage() {
+    return message;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isCompleted() {
+    return completed;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public NotificationDataType getDataType() {
+    return dataType;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public JsonNode getData() {
+    return data;
+  }
+
+  @Override
+  public int compareTo(@Nonnull Notification other) {
+    if (category != other.category) {
+      return category.compareTo(other.category);
     }
-
-    public Notification( NotificationLevel level, JobType category, Date time, String message, boolean completed,
-        NotificationDataType dataType, JsonNode data )
-    {
-        this.uid = CodeGenerator.generateUid();
-        this.level = level;
-        this.category = category;
-        this.time = time;
-        this.message = message;
-        this.completed = completed;
-        this.dataType = dataType;
-        this.data = data;
-    }
-
-    // -------------------------------------------------------------------------
-    // Get and set
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationLevel getLevel()
-    {
-        return level;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getId()
-    {
-        return uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public JobType getCategory()
-    {
-        return category;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getTime()
-    {
-        return time;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMessage()
-    {
-        return message;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isCompleted()
-    {
-        return completed;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public NotificationDataType getDataType()
-    {
-        return dataType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public JsonNode getData()
-    {
-        return data;
-    }
-
-    @Override
-    public int compareTo( @Nonnull Notification other )
-    {
-        if ( category != other.category )
-        {
-            return category.compareTo( other.category );
-        }
-        // flip this/other => newest first
-        return other.time.compareTo( time );
-    }
+    // flip this/other => newest first
+    return other.time.compareTo(time);
+  }
 }

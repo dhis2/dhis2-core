@@ -27,16 +27,15 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
@@ -45,55 +44,57 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserRole;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Maps;
-
 @Component
 @RequiredArgsConstructor
-public class SupplementaryDataProvider
-{
-    private static final String USER = "USER";
+public class SupplementaryDataProvider {
+  private static final String USER = "USER";
 
-    private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
-        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+  private static final String REGEX =
+      "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|"
+          + "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
 
-    private static final Pattern PATTERN = Pattern.compile( REGEX );
+  private static final Pattern PATTERN = Pattern.compile(REGEX);
 
-    @NonNull
-    private final OrganisationUnitGroupService organisationUnitGroupService;
+  @NonNull private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    @NonNull
-    private final CurrentUserService currentUserService;
+  @NonNull private final CurrentUserService currentUserService;
 
-    public Map<String, List<String>> getSupplementaryData( List<ProgramRule> programRules )
-    {
-        List<String> orgUnitGroups = new ArrayList<>();
+  public Map<String, List<String>> getSupplementaryData(List<ProgramRule> programRules) {
+    List<String> orgUnitGroups = new ArrayList<>();
 
-        for ( ProgramRule programRule : programRules )
-        {
-            Matcher matcher = PATTERN.matcher( StringUtils.defaultIfBlank( programRule.getCondition(), "" ) );
+    for (ProgramRule programRule : programRules) {
+      Matcher matcher = PATTERN.matcher(StringUtils.defaultIfBlank(programRule.getCondition(), ""));
 
-            while ( matcher.find() )
-            {
-                orgUnitGroups.add( StringUtils.replace( matcher.group( 1 ), "'", "" ) );
-            }
-        }
-
-        Map<String, List<String>> supplementaryData = Maps.newHashMap();
-
-        if ( !orgUnitGroups.isEmpty() )
-        {
-            supplementaryData = orgUnitGroups.stream().collect(
-                Collectors.toMap( g -> g, g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
-                    .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
-        }
-
-        if ( currentUserService.getCurrentUser() != null )
-        {
-            supplementaryData.put( USER, currentUserService.getCurrentUser()
-                .getUserRoles().stream().map( UserRole::getUid ).collect( Collectors.toList() ) );
-        }
-
-        return supplementaryData;
+      while (matcher.find()) {
+        orgUnitGroups.add(StringUtils.replace(matcher.group(1), "'", ""));
+      }
     }
 
+    Map<String, List<String>> supplementaryData = Maps.newHashMap();
+
+    if (!orgUnitGroups.isEmpty()) {
+      supplementaryData =
+          orgUnitGroups.stream()
+              .collect(
+                  Collectors.toMap(
+                      g -> g,
+                      g ->
+                          organisationUnitGroupService
+                              .getOrganisationUnitGroup(g)
+                              .getMembers()
+                              .stream()
+                              .map(OrganisationUnit::getUid)
+                              .collect(Collectors.toList())));
+    }
+
+    if (currentUserService.getCurrentUser() != null) {
+      supplementaryData.put(
+          USER,
+          currentUserService.getCurrentUser().getUserRoles().stream()
+              .map(UserRole::getUid)
+              .collect(Collectors.toList()));
+    }
+
+    return supplementaryData;
+  }
 }

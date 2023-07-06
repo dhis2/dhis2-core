@@ -37,8 +37,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = DataElementSchemaDescriptor.API_ENDPOINT )
-public class DataElementController
-    extends AbstractCrudController<DataElement>
-{
-}
+@RequestMapping(value = DataElementSchemaDescriptor.API_ENDPOINT)
+public class DataElementController extends AbstractCrudController<DataElement> {}

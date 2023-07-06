@@ -45,10 +45,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -59,81 +57,78 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer
-{
+class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
-    private final StatementBuilder statementBuilder;
+  private final StatementBuilder statementBuilder;
 
-    @Getter
-    private final Collection<TimeField> allowedTimeFields = singleton( TimeField.LAST_UPDATED );
+  @Getter private final Collection<TimeField> allowedTimeFields = singleton(TimeField.LAST_UPDATED);
 
-    @Override
-    protected String getSqlConditionForPeriods( EventQueryParams params )
-    {
-        final List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
+  @Override
+  protected String getSqlConditionForPeriods(EventQueryParams params) {
+    final List<DimensionalItemObject> periods = params.getDimensionOrFilterItems(PERIOD_DIM_ID);
 
-        Optional<TimeField> timeField = getTimeField( params );
+    Optional<TimeField> timeField = getTimeField(params);
 
-        StringBuilder sql = new StringBuilder();
-        if ( timeField.isPresent() )
-        {
-            sql.append( periods.stream()
-                .filter( dimensionalItemObject -> dimensionalItemObject instanceof Period )
-                .map( dimensionalItemObject -> (Period) dimensionalItemObject )
-                .map( period -> toSqlCondition( period, timeField.get() ) )
-                .collect( Collectors.joining( " or ", "(", ")" ) ) );
-        }
-        else
-        {
-            String alias = getPeriodAlias( params );
+    StringBuilder sql = new StringBuilder();
+    if (timeField.isPresent()) {
+      sql.append(
+          periods.stream()
+              .filter(dimensionalItemObject -> dimensionalItemObject instanceof Period)
+              .map(dimensionalItemObject -> (Period) dimensionalItemObject)
+              .map(period -> toSqlCondition(period, timeField.get()))
+              .collect(Collectors.joining(" or ", "(", ")")));
+    } else {
+      String alias = getPeriodAlias(params);
 
-            sql.append( quote( alias, params.getPeriodType().toLowerCase() ) )
-                .append( OPEN_IN )
-                .append( getQuotedCommaDelimitedString( getUids( periods ) ) )
-                .append( ") " );
-        }
-        return sql.toString();
+      sql.append(quote(alias, params.getPeriodType().toLowerCase()))
+          .append(OPEN_IN)
+          .append(getQuotedCommaDelimitedString(getUids(periods)))
+          .append(") ");
     }
+    return sql.toString();
+  }
 
-    @Override
-    protected String getColumnName( EventQueryParams params )
-    {
-        return getTimeCol( params.getOutputType(), getTimeField( params ) );
+  @Override
+  protected String getColumnName(EventQueryParams params) {
+    return getTimeCol(params.getOutputType(), getTimeField(params));
+  }
+
+  @Override
+  protected String getSqlConditionForNonDefaultBoundaries(EventQueryParams params) {
+    return params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
+        .map(
+            analyticsPeriodBoundary ->
+                statementBuilder.getBoundaryCondition(
+                    analyticsPeriodBoundary,
+                    params.getProgramIndicator(),
+                    params.getTimeFieldAsField(),
+                    params.getEarliestStartDate(),
+                    params.getLatestEndDate()))
+        .collect(Collectors.joining(" and "));
+  }
+
+  private String getTimeCol(EventOutputType outputType, Optional<TimeField> timeField) {
+    if (ENROLLMENT.equals(outputType)) {
+      return quoteAlias(TimeField.ENROLLMENT_DATE.getField());
     }
+    // EVENTS
+    return quoteAlias(timeField.map(TimeField::getField).orElse(EVENT_DATE.getField()));
+  }
 
-    @Override
-    protected String getSqlConditionForNonDefaultBoundaries( EventQueryParams params )
-    {
-        return params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
-            .map( analyticsPeriodBoundary -> statementBuilder.getBoundaryCondition( analyticsPeriodBoundary,
-                params.getProgramIndicator(),
-                params.getTimeFieldAsField(), params.getEarliestStartDate(), params.getLatestEndDate() ) )
-            .collect( Collectors.joining( " and " ) );
-    }
+  private String toSqlCondition(Period period, TimeField timeField) {
+    String timeCol = quoteAlias(timeField.getField());
+    return "( "
+        + timeCol
+        + " >= '"
+        + getMediumDateString(period.getStartDate())
+        + "' and "
+        + timeCol
+        + " < '"
+        + getMediumDateString(plusOneDay(period.getEndDate()))
+        + "') ";
+  }
 
-    private String getTimeCol( EventOutputType outputType, Optional<TimeField> timeField )
-    {
-        if ( ENROLLMENT.equals( outputType ) )
-        {
-            return quoteAlias( TimeField.ENROLLMENT_DATE.getField() );
-        }
-        // EVENTS
-        return quoteAlias(
-            timeField
-                .map( TimeField::getField )
-                .orElse( EVENT_DATE.getField() ) );
-    }
-
-    private String toSqlCondition( Period period, TimeField timeField )
-    {
-        String timeCol = quoteAlias( timeField.getField() );
-        return "( " + timeCol + " >= '" + getMediumDateString( period.getStartDate() ) + "' and " + timeCol + " < '"
-            + getMediumDateString( plusOneDay( period.getEndDate() ) ) + "') ";
-    }
-
-    private String getPeriodAlias( EventQueryParams params )
-    {
-        return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
-    }
-
+  private String getPeriodAlias(EventQueryParams params) {
+    return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+  }
 }

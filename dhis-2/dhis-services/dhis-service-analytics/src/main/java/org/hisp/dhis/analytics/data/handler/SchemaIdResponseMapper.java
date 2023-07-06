@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSche
 
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -42,116 +41,107 @@ import org.hisp.dhis.option.Option;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for encapsulating the id schema mapping for the
- * response elements based on the given URL id schema params.
+ * This component is responsible for encapsulating the id schema mapping for the response elements
+ * based on the given URL id schema params.
  *
  * @author maikel arabori
  */
 @Component
-public class SchemaIdResponseMapper
-{
-    /**
-     * This method will map the respective element UID's with their respective
-     * id schema set. The 'outputIdScheme' is considered the most general id
-     * schema parameter. If set, it will map the schema id set to all dimension
-     * items.
-     *
-     * The other two id schema parameters supported ('outputDataElementIdScheme'
-     * and 'outputOrgUnitIdScheme') will allow fine-grained id schema
-     * definitions on top of the general 'outputIdScheme'. If they are set, they
-     * will override the 'outputIdScheme' definition.
-     *
-     * @param params the params where the id schema options are defined. The
-     *        current URL params supported are: outputIdScheme,
-     *        outputDataElementIdScheme and outputOrgUnitIdScheme.
-     * @return a Map of <uid, mapping value>
-     */
-    public Map<String, String> getSchemeIdResponseMap( final DataQueryParams params )
-    {
-        final Map<String, String> responseMap = getDimensionItemIdSchemeMap( params.getAllDimensionItems(),
-            params.getOutputIdScheme() );
+public class SchemaIdResponseMapper {
+  /**
+   * This method will map the respective element UID's with their respective id schema set. The
+   * 'outputIdScheme' is considered the most general id schema parameter. If set, it will map the
+   * schema id set to all dimension items.
+   *
+   * <p>The other two id schema parameters supported ('outputDataElementIdScheme' and
+   * 'outputOrgUnitIdScheme') will allow fine-grained id schema definitions on top of the general
+   * 'outputIdScheme'. If they are set, they will override the 'outputIdScheme' definition.
+   *
+   * @param params the params where the id schema options are defined. The current URL params
+   *     supported are: outputIdScheme, outputDataElementIdScheme and outputOrgUnitIdScheme.
+   * @return a Map of <uid, mapping value>
+   */
+  public Map<String, String> getSchemeIdResponseMap(final DataQueryParams params) {
+    final Map<String, String> responseMap =
+        getDimensionItemIdSchemeMap(params.getAllDimensionItems(), params.getOutputIdScheme());
 
-        if ( params.isGeneralOutputIdSchemeSet() )
-        {
-            // Apply a schema to all data element operands using the general
-            // output schema defined.
-            applyGeneralIdSchemaMapping( params, responseMap );
-        }
-
-        // This section overrides the general schema, so it can be fine-grained.
-        if ( params.isOutputFormat( DATA_VALUE_SET ) )
-        {
-            if ( params.isOutputDataElementIdSchemeSet() )
-            {
-                if ( !params.getDataElementOperands().isEmpty() )
-                {
-                    // Replace all data elements operands respecting it's
-                    // schema definition.
-                    applyDataElementOperandsIdSchemaMapping( params, responseMap );
-                }
-                else if ( !params.getDataElements().isEmpty() )
-                {
-                    // Replace all data elements respecting it's schema
-                    // definition.
-                    applyDataElementsIdSchemaMapping( params, responseMap );
-                }
-            }
-        }
-
-        // If "outputOrgUnitIdScheme" is set, we replace all org units
-        // values respecting
-        // it's definition.
-        if ( params.isOutputOrgUnitIdSchemeSet() )
-        {
-            applyOrgUnitIdSchemaMapping( params, responseMap );
-        }
-
-        return responseMap;
+    if (params.isGeneralOutputIdSchemeSet()) {
+      // Apply a schema to all data element operands using the general
+      // output schema defined.
+      applyGeneralIdSchemaMapping(params, responseMap);
     }
 
-    private void applyGeneralIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
-    {
-        map.putAll( getDataElementOperandIdSchemeMap(
-            asTypedList( params.getDataElementOperands() ), params.getOutputIdScheme() ) );
-
-        if ( params.getProgramStage() != null )
-        {
-            map.put( params.getProgramStage().getUid(),
-                params.getProgramStage().getPropertyValue( params.getOutputIdScheme() ) );
+    // This section overrides the general schema, so it can be fine-grained.
+    if (params.isOutputFormat(DATA_VALUE_SET)) {
+      if (params.isOutputDataElementIdSchemeSet()) {
+        if (!params.getDataElementOperands().isEmpty()) {
+          // Replace all data elements operands respecting it's
+          // schema definition.
+          applyDataElementOperandsIdSchemaMapping(params, responseMap);
+        } else if (!params.getDataElements().isEmpty()) {
+          // Replace all data elements respecting it's schema
+          // definition.
+          applyDataElementsIdSchemaMapping(params, responseMap);
         }
-
-        if ( params.getProgram() != null )
-        {
-            map.put( params.getProgram().getUid(), params.getProgram().getPropertyValue( params.getOutputIdScheme() ) );
-        }
-
-        if ( params instanceof EventQueryParams
-            && CollectionUtils.isNotEmpty( ((EventQueryParams) params).getItemOptions() ) )
-        {
-            final Set<Option> options = ((EventQueryParams) params).getItemOptions();
-
-            for ( final Option option : options )
-            {
-                map.put( option.getCode(), option.getPropertyValue( params.getOutputIdScheme() ) );
-            }
-        }
+      }
     }
 
-    private void applyDataElementOperandsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
-    {
-        map.putAll( getDataElementOperandIdSchemeMap( asTypedList( params.getDataElementOperands() ),
-            params.getOutputDataElementIdScheme() ) );
+    // If "outputOrgUnitIdScheme" is set, we replace all org units
+    // values respecting
+    // it's definition.
+    if (params.isOutputOrgUnitIdSchemeSet()) {
+      applyOrgUnitIdSchemaMapping(params, responseMap);
     }
 
-    private void applyDataElementsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
-    {
-        map.putAll( getDimensionItemIdSchemeMap( asTypedList( params.getDataElements() ),
-            params.getOutputDataElementIdScheme() ) );
+    return responseMap;
+  }
+
+  private void applyGeneralIdSchemaMapping(
+      final DataQueryParams params, final Map<String, String> map) {
+    map.putAll(
+        getDataElementOperandIdSchemeMap(
+            asTypedList(params.getDataElementOperands()), params.getOutputIdScheme()));
+
+    if (params.getProgramStage() != null) {
+      map.put(
+          params.getProgramStage().getUid(),
+          params.getProgramStage().getPropertyValue(params.getOutputIdScheme()));
     }
 
-    private void applyOrgUnitIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
-    {
-        map.putAll( getDimensionItemIdSchemeMap( asTypedList( params.getOrganisationUnits() ),
-            params.getOutputOrgUnitIdScheme() ) );
+    if (params.getProgram() != null) {
+      map.put(
+          params.getProgram().getUid(),
+          params.getProgram().getPropertyValue(params.getOutputIdScheme()));
     }
+
+    if (params instanceof EventQueryParams
+        && CollectionUtils.isNotEmpty(((EventQueryParams) params).getItemOptions())) {
+      final Set<Option> options = ((EventQueryParams) params).getItemOptions();
+
+      for (final Option option : options) {
+        map.put(option.getCode(), option.getPropertyValue(params.getOutputIdScheme()));
+      }
+    }
+  }
+
+  private void applyDataElementOperandsIdSchemaMapping(
+      final DataQueryParams params, final Map<String, String> map) {
+    map.putAll(
+        getDataElementOperandIdSchemeMap(
+            asTypedList(params.getDataElementOperands()), params.getOutputDataElementIdScheme()));
+  }
+
+  private void applyDataElementsIdSchemaMapping(
+      final DataQueryParams params, final Map<String, String> map) {
+    map.putAll(
+        getDimensionItemIdSchemeMap(
+            asTypedList(params.getDataElements()), params.getOutputDataElementIdScheme()));
+  }
+
+  private void applyOrgUnitIdSchemaMapping(
+      final DataQueryParams params, final Map<String, String> map) {
+    map.putAll(
+        getDimensionItemIdSchemeMap(
+            asTypedList(params.getOrganisationUnits()), params.getOutputOrgUnitIdScheme()));
+  }
 }

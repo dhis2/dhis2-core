@@ -29,20 +29,18 @@ package org.hisp.dhis.user;
 
 /**
  * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link CurrentUserService} during testing.
+ *
+ * <p>Added to managed bean implementation classes (not their interface) which are provided with a
+ * {@link CurrentUserService} during testing.
  *
  * @author Jan Bernitt
  */
-public interface CurrentUserServiceTarget
-{
+public interface CurrentUserServiceTarget {
 
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param currentUserService dynamically update {@link CurrentUserService}
-     *        during testing
-     */
-    void setCurrentUserService( CurrentUserService currentUserService );
+  /**
+   * This is only a workaround until a better solution is found.
+   *
+   * @param currentUserService dynamically update {@link CurrentUserService} during testing
+   */
+  void setCurrentUserService(CurrentUserService currentUserService);
 }

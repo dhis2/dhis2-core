@@ -37,37 +37,38 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link DataIntegrityController} API with focus API returning
- * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
+ * Tests the {@link DataIntegrityController} API with focus API returning {@link
+ * org.hisp.dhis.dataintegrity.DataIntegritySummary}.
  *
  * @author Jan Bernitt
  */
-class DataIntegritySummaryControllerTest extends AbstractDataIntegrityControllerTest
-{
-    @Test
-    void testLegacyChecksHaveSummary()
-    {
-        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
-        {
-            String check = type.getName();
-            postSummary( check );
-            JsonDataIntegritySummary summary = getSummary( check );
-            assertTrue( summary.getCount() >= 0, "summary threw an exception" );
-        }
+class DataIntegritySummaryControllerTest extends AbstractDataIntegrityControllerTest {
+  @Test
+  void testLegacyChecksHaveSummary() {
+    for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
+      String check = type.getName();
+      postSummary(check);
+      JsonDataIntegritySummary summary = getSummary(check);
+      assertTrue(summary.getCount() >= 0, "summary threw an exception");
     }
+  }
 
-    @Test
-    void testSingleCheckByPath()
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+  @Test
+  void testSingleCheckByPath() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categories",
+            "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}"));
 
-        postSummary( "categories-no-options" );
-        JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
-            .as( JsonDataIntegritySummary.class );
-        assertTrue( summary.exists() );
-        assertTrue( summary.isObject() );
-        assertEquals( 1, summary.getCount() );
-        assertEquals( 50, summary.getPercentage().intValue() );
-    }
+    postSummary("categories-no-options");
+    JsonDataIntegritySummary summary =
+        GET("/dataIntegrity/categories-no-options/summary")
+            .content()
+            .as(JsonDataIntegritySummary.class);
+    assertTrue(summary.exists());
+    assertTrue(summary.isObject());
+    assertEquals(1, summary.getCount());
+    assertEquals(50, summary.getPercentage().intValue());
+  }
 }

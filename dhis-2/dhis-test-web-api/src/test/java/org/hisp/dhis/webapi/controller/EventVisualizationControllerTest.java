@@ -36,7 +36,6 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import java.util.Map;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -49,186 +48,206 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Controller tests for
- * {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
+ * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
  *
  * @author maikel arabori
  */
-class EventVisualizationControllerTest extends DhisControllerConvenienceTest
-{
+class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    private Program mockProgram;
+  private Program mockProgram;
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        mockProgram = createProgram( 'A' );
-        manager.save( mockProgram );
-    }
+  @BeforeEach
+  public void beforeEach() {
+    mockProgram = createProgram('A');
+    manager.save(mockProgram);
+  }
 
-    @Test
-    void testPostForSingleEventDate()
-    {
-        // Given
-        final String eventDateDimension = "eventDate";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String dimensionBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [" + dimensionBody + "]}";
+  @Test
+  void testPostForSingleEventDate() {
+    // Given
+    final String eventDateDimension = "eventDate";
+    final String eventDate = "2021-07-21_2021-08-01";
+    final String dimensionBody =
+        "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    final String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': ["
+            + dimensionBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final JsonResponse response = GET("/eventVisualizations/" + uid).content();
+    final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "COLUMN" ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( nodeMap.get( "columns" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
-    }
+    assertThat(nodeMap.get("simpleDimensions").toString(), containsString("COLUMN"));
+    assertThat(nodeMap.get("simpleDimensions").toString(), containsString(eventDateDimension));
+    assertThat(nodeMap.get("simpleDimensions").toString(), containsString(eventDate));
+    assertThat(nodeMap.get("columns").toString(), containsString(eventDateDimension));
+    assertThat(nodeMap.get("rows").toString(), not(containsString(eventDateDimension)));
+    assertThat(nodeMap.get("filters").toString(), not(containsString(eventDateDimension)));
+  }
 
-    @Test
-    void testPostForMultiEventDates()
-    {
-        // Given
-        final String eventDateDimension = "eventDate";
-        final String incidentDateDimension = "incidentDate";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String incidentDate = "2021-07-21_2021-08-01";
-        final String eventDateBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String incidentDateBody = "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '"
-            + incidentDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'rows': [" + eventDateBody + "," + incidentDateBody + "]}";
+  @Test
+  void testPostForMultiEventDates() {
+    // Given
+    final String eventDateDimension = "eventDate";
+    final String incidentDateDimension = "incidentDate";
+    final String eventDate = "2021-07-21_2021-08-01";
+    final String incidentDate = "2021-07-21_2021-08-01";
+    final String eventDateBody =
+        "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    final String incidentDateBody =
+        "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '" + incidentDate + "'}]}";
+    final String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': ["
+            + eventDateBody
+            + ","
+            + incidentDateBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final JsonResponse response = GET("/eventVisualizations/" + uid).content();
+    final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( incidentDate ) );
-        assertThat( nodeMap.get( "rows" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "rows" ).toString(), containsString( incidentDateDimension ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( incidentDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( incidentDateDimension ) ) );
-    }
+    assertThat(nodeMap.get("simpleDimensions").toString(), containsString("ROW"));
+    assertThat(nodeMap.get("simpleDimensions").toString(), containsString(eventDate));
+    assertThat(nodeMap.get("simpleDimensions").toString(), containsString(incidentDate));
+    assertThat(nodeMap.get("rows").toString(), containsString(eventDateDimension));
+    assertThat(nodeMap.get("rows").toString(), containsString(incidentDateDimension));
+    assertThat(nodeMap.get("columns").toString(), not(containsString(eventDateDimension)));
+    assertThat(nodeMap.get("columns").toString(), not(containsString(incidentDateDimension)));
+    assertThat(nodeMap.get("filters").toString(), not(containsString(eventDateDimension)));
+    assertThat(nodeMap.get("filters").toString(), not(containsString(incidentDateDimension)));
+  }
 
-    @Test
-    void testPostForInvalidEventDimension()
-    {
-        // Given
-        final String invalidDimension = "invalidDimension";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String dimensionBody = "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [" + dimensionBody + "]}";
+  @Test
+  void testPostForInvalidEventDimension() {
+    // Given
+    final String invalidDimension = "invalidDimension";
+    final String eventDate = "2021-07-21_2021-08-01";
+    final String dimensionBody =
+        "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    final String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': ["
+            + dimensionBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        assertEquals( "Not a valid dimension: " + invalidDimension,
-            GET( "/eventVisualizations/" + uid ).error( BAD_REQUEST ).getMessage() );
-    }
+    // Then
+    assertEquals(
+        "Not a valid dimension: " + invalidDimension,
+        GET("/eventVisualizations/" + uid).error(BAD_REQUEST).getMessage());
+  }
 
-    @Test
-    void testPostRepetitionForFilter()
-    {
-        // Given
-        final String dimension = "ou";
-        final String indexes = "[1,2,3,-2,-1,0]";
-        final String repetition = "'repetition': {'indexes': " + indexes + "}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'filters': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+  @Test
+  void testPostRepetitionForFilter() {
+    // Given
+    final String dimension = "ou";
+    final String indexes = "[1,2,3,-2,-1,0]";
+    final String repetition = "'repetition': {'indexes': " + indexes + "}";
+    final String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'filters': [{'dimension': '"
+            + dimension
+            + "', "
+            + repetition
+            + "}]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final String getParams = "?fields=:all,filters[:all,items,repetitions]";
-        final JsonResponse response = GET( "/eventVisualizations/" + uid + getParams ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final String getParams = "?fields=:all,filters[:all,items,repetitions]";
+    final JsonResponse response = GET("/eventVisualizations/" + uid + getParams).content();
+    final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( "FILTER" ) );
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( indexes ) );
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( dimension ) );
-        assertThat( nodeMap.get( "filters" ).toString(), containsString( indexes ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( indexes ) ) );
-        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( indexes ) ) );
-    }
+    assertThat(nodeMap.get("repetitions").toString(), containsString("FILTER"));
+    assertThat(nodeMap.get("repetitions").toString(), containsString(indexes));
+    assertThat(nodeMap.get("repetitions").toString(), containsString(dimension));
+    assertThat(nodeMap.get("filters").toString(), containsString(indexes));
+    assertThat(nodeMap.get("columns").toString(), not(containsString(indexes)));
+    assertThat(nodeMap.get("rows").toString(), not(containsString(indexes)));
+  }
 
-    @Test
-    void testPostRepetitionForRow()
-    {
-        // Given
-        final String dimension = "pe";
-        final String indexes = "[1,2,0]";
-        final String repetition = "'repetition': {'indexes': " + indexes + "}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'rows': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+  @Test
+  void testPostRepetitionForRow() {
+    // Given
+    final String dimension = "pe";
+    final String indexes = "[1,2,0]";
+    final String repetition = "'repetition': {'indexes': " + indexes + "}";
+    final String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': [{'dimension': '"
+            + dimension
+            + "', "
+            + repetition
+            + "}]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final String getParams = "?fields=:all,rows[:all,items,repetitions]";
-        final JsonResponse response = GET( "/eventVisualizations/" + uid + getParams ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final String getParams = "?fields=:all,rows[:all,items,repetitions]";
+    final JsonResponse response = GET("/eventVisualizations/" + uid + getParams).content();
+    final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( "ROW" ) );
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( indexes ) );
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( dimension ) );
-        assertThat( nodeMap.get( "rows" ).toString(), containsString( indexes ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( indexes ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( indexes ) ) );
-    }
+    assertThat(nodeMap.get("repetitions").toString(), containsString("ROW"));
+    assertThat(nodeMap.get("repetitions").toString(), containsString(indexes));
+    assertThat(nodeMap.get("repetitions").toString(), containsString(dimension));
+    assertThat(nodeMap.get("rows").toString(), containsString(indexes));
+    assertThat(nodeMap.get("columns").toString(), not(containsString(indexes)));
+    assertThat(nodeMap.get("filters").toString(), not(containsString(indexes)));
+  }
 
-    @Test
-    void testPostRepetitionForColumn()
-    {
-        // Given
-        final String dimension = "pe";
-        final String indexes = "[1,0,-1]";
-        final String repetition = "'repetition': {'indexes': " + indexes + "}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+  @Test
+  void testPostRepetitionForColumn() {
+    // Given
+    final String dimension = "pe";
+    final String indexes = "[1,0,-1]";
+    final String repetition = "'repetition': {'indexes': " + indexes + "}";
+    final String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "', "
+            + repetition
+            + "}]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final String getParams = "?fields=:all,columns[:all,items,repetitions]";
-        final JsonResponse response = GET( "/eventVisualizations/" + uid + getParams ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+    // Then
+    final String getParams = "?fields=:all,columns[:all,items,repetitions]";
+    final JsonResponse response = GET("/eventVisualizations/" + uid + getParams).content();
+    final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( "COLUMN" ) );
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( indexes ) );
-        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( dimension ) );
-        assertThat( nodeMap.get( "columns" ).toString(), containsString( indexes ) );
-        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( indexes ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( indexes ) ) );
-    }
+    assertThat(nodeMap.get("repetitions").toString(), containsString("COLUMN"));
+    assertThat(nodeMap.get("repetitions").toString(), containsString(indexes));
+    assertThat(nodeMap.get("repetitions").toString(), containsString(dimension));
+    assertThat(nodeMap.get("columns").toString(), containsString(indexes));
+    assertThat(nodeMap.get("rows").toString(), not(containsString(indexes)));
+    assertThat(nodeMap.get("filters").toString(), not(containsString(indexes)));
+  }
 }

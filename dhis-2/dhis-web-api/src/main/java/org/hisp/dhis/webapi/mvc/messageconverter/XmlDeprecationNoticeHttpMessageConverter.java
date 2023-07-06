@@ -27,48 +27,40 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.lang.reflect.Type;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * Custom {@link MappingJackson2XmlHttpMessageConverter} that logs deprecation
- * notice when XML support is given through an ObjectMapper.
+ * Custom {@link MappingJackson2XmlHttpMessageConverter} that logs deprecation notice when XML
+ * support is given through an ObjectMapper.
  *
  * @author Morten Olav Hansen
  */
 @Slf4j
-public class XmlDeprecationNoticeHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
-{
-    public XmlDeprecationNoticeHttpMessageConverter( ObjectMapper objectMapper )
-    {
-        super( objectMapper );
-    }
+public class XmlDeprecationNoticeHttpMessageConverter
+    extends MappingJackson2XmlHttpMessageConverter {
+  public XmlDeprecationNoticeHttpMessageConverter(ObjectMapper objectMapper) {
+    super(objectMapper);
+  }
 
-    @Override
-    protected Object readInternal( Class<?> clazz, HttpInputMessage inputMessage )
-        throws IOException,
-        HttpMessageNotReadableException
-    {
-        log.info( "Deprecation-Notice: XML support will be removed in 2.39" );
-        return super.readInternal( clazz, inputMessage );
-    }
+  @Override
+  protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage)
+      throws IOException, HttpMessageNotReadableException {
+    log.info("Deprecation-Notice: XML support will be removed in 2.39");
+    return super.readInternal(clazz, inputMessage);
+  }
 
-    @Override
-    protected void writeInternal( Object object, Type type, HttpOutputMessage outputMessage )
-        throws IOException,
-        HttpMessageNotWritableException
-    {
-        log.info( "Deprecation-Notice: XML support will be removed in 2.39" );
-        super.writeInternal( object, type, outputMessage );
-    }
+  @Override
+  protected void writeInternal(Object object, Type type, HttpOutputMessage outputMessage)
+      throws IOException, HttpMessageNotWritableException {
+    log.info("Deprecation-Notice: XML support will be removed in 2.39");
+    super.writeInternal(object, type, outputMessage);
+  }
 }

@@ -28,12 +28,12 @@
 package org.hisp.dhis.validation;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-public interface ValidationTask
-    extends Runnable
-{
-    void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService );
+public interface ValidationTask extends Runnable {
+  void init(
+      List<OrganisationUnit> orgUnits,
+      ValidationRunContext context,
+      AnalyticsService analyticsService);
 }

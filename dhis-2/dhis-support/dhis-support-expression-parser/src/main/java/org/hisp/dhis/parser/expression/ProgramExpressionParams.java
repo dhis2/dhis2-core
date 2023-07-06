@@ -29,10 +29,8 @@ package org.hisp.dhis.parser.expression;
 
 import java.util.Date;
 import java.util.Set;
-
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.dhis.program.ProgramIndicator;
 
 /**
@@ -42,27 +40,18 @@ import org.hisp.dhis.program.ProgramIndicator;
  */
 @Getter
 @Builder
-public class ProgramExpressionParams
-{
-    public static final ProgramExpressionParams DEFAULT_PROGRAM_EXPRESSION_PARAMS = builder().build();
+public class ProgramExpressionParams {
+  public static final ProgramExpressionParams DEFAULT_PROGRAM_EXPRESSION_PARAMS = builder().build();
 
-    /**
-     * Program indicator
-     */
-    private final ProgramIndicator programIndicator;
+  /** Program indicator */
+  private final ProgramIndicator programIndicator;
 
-    /**
-     * Program reporting start date
-     */
-    private final Date reportingStartDate;
+  /** Program reporting start date */
+  private final Date reportingStartDate;
 
-    /**
-     * Program reporting end date
-     */
-    private final Date reportingEndDate;
+  /** Program reporting end date */
+  private final Date reportingEndDate;
 
-    /**
-     * UIDs of all the DataElements and Attributes in the expression
-     */
-    private final Set<String> dataElementAndAttributeIdentifiers;
+  /** UIDs of all the DataElements and Attributes in the expression */
+  private final Set<String> dataElementAndAttributeIdentifiers;
 }

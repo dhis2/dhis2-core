@@ -36,6 +36,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import java.beans.PropertyEditorSupport;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -43,9 +44,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.servlet.ServletException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -104,422 +103,381 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import com.fasterxml.jackson.core.JsonParseException;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @ControllerAdvice
-public class CrudControllerAdvice
-{
-    // Add sensitive exceptions into this array
-    private static final Class<?>[] SENSITIVE_EXCEPTIONS = { BadSqlGrammarException.class,
-        org.hibernate.QueryException.class, DataAccessResourceFailureException.class };
+public class CrudControllerAdvice {
+  // Add sensitive exceptions into this array
+  private static final Class<?>[] SENSITIVE_EXCEPTIONS = {
+    BadSqlGrammarException.class,
+    org.hibernate.QueryException.class,
+    DataAccessResourceFailureException.class
+  };
 
-    private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
+  private static final String GENERIC_ERROR_MESSAGE =
+      "An unexpected error has occured. Please contact your system administrator";
 
-    @InitBinder
-    protected void initBinder( WebDataBinder binder )
-    {
-        binder.registerCustomEditor( Date.class, new FromTextPropertyEditor( DateUtils::parseDate ) );
-        binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
+  @InitBinder
+  protected void initBinder(WebDataBinder binder) {
+    binder.registerCustomEditor(Date.class, new FromTextPropertyEditor(DateUtils::parseDate));
+    binder.registerCustomEditor(
+        IdentifiableProperty.class, new FromTextPropertyEditor(String::toUpperCase));
+  }
+
+  @ExceptionHandler(IllegalQueryException.class)
+  @ResponseBody
+  public WebMessage illegalQueryExceptionHandler(IllegalQueryException ex) {
+    return conflict(ex.getMessage(), ex.getErrorCode());
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  @ResponseBody
+  public WebMessage methodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+    Class<?> requiredType = ex.getRequiredType();
+    if (requiredType == null) {
+      return badRequest(ex.getMessage());
     }
 
-    @ExceptionHandler( IllegalQueryException.class )
-    @ResponseBody
-    public WebMessage illegalQueryExceptionHandler( IllegalQueryException ex )
-    {
-        return conflict( ex.getMessage(), ex.getErrorCode() );
+    return (requiredType.isEnum())
+        ? getEnumWebMessage(requiredType, ex.getValue(), ex.getName())
+        : getWebMessage(ex.getValue(), requiredType.getSimpleName());
+  }
+
+  @ExceptionHandler(TypeMismatchException.class)
+  @ResponseBody
+  public WebMessage handleTypeMismatchException(TypeMismatchException ex) {
+    Class<?> requiredType = ex.getRequiredType();
+    if (requiredType == null) {
+      return badRequest(ex.getMessage());
     }
 
-    @ExceptionHandler( MethodArgumentTypeMismatchException.class )
-    @ResponseBody
-    public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
-    {
-        Class<?> requiredType = ex.getRequiredType();
-        if ( requiredType == null )
-        {
-            return badRequest( ex.getMessage() );
-        }
+    return (requiredType.isEnum())
+        ? getEnumWebMessage(requiredType, ex.getValue(), ex.getPropertyName())
+        : getWebMessage(ex.getValue(), requiredType.getSimpleName());
+  }
 
-        return (requiredType.isEnum())
-            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getName() )
-            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+  private WebMessage getEnumWebMessage(Class<?> requiredType, Object value, String field) {
+    String validValues =
+        StringUtils.join(
+            Arrays.stream(requiredType.getEnumConstants())
+                .map(Objects::toString)
+                .collect(Collectors.toList()),
+            ", ");
+    String errorMessage =
+        MessageFormat.format(
+            "Value {0} is not a valid {1}. Valid values are: [{2}]", value, field, validValues);
+    return badRequest(errorMessage);
+  }
+
+  private WebMessage getWebMessage(Object value, String fieldType) {
+    String errorMessage = MessageFormat.format("Value {0} is not a valid {1}.", value, fieldType);
+    return badRequest(errorMessage);
+  }
+
+  @ExceptionHandler(InvalidEnumValueException.class)
+  @ResponseBody
+  public WebMessage invalidEnumValueException(InvalidEnumValueException ex) {
+    return getEnumWebMessage(ex.getEnumKlass(), ex.getInvalidValue(), ex.getFieldName());
+  }
+
+  /**
+   * A BindException wraps possible errors happened trying to bind all the request parameters to a
+   * binding object. Errors could be simple conversion failures (Trying to convert a 'TEXT' to an
+   * Integer ) or validation errors create by hibernate-validator framework. Currently, we are not
+   * using such framework hence only conversion errors can happen.
+   *
+   * <p>Only first error is returned to the client in order to be consistent in the way BAD_REQUEST
+   * responses are displayed.
+   */
+  @ExceptionHandler(BindException.class)
+  @ResponseBody
+  public WebMessage handleBindException(BindException ex) {
+    FieldError fieldError = ex.getFieldError();
+
+    if (fieldError != null && fieldError.contains(TypeMismatchException.class)) {
+      return handleTypeMismatchException(fieldError.unwrap(TypeMismatchException.class));
     }
 
-    @ExceptionHandler( TypeMismatchException.class )
-    @ResponseBody
-    public WebMessage handleTypeMismatchException( TypeMismatchException ex )
-    {
-        Class<?> requiredType = ex.getRequiredType();
-        if ( requiredType == null )
-        {
-            return badRequest( ex.getMessage() );
-        }
+    return badRequest(ex.getMessage());
+  }
 
-        return (requiredType.isEnum())
-            ? getEnumWebMessage( requiredType, ex.getValue(), ex.getPropertyName() )
-            : getWebMessage( ex.getValue(), requiredType.getSimpleName() );
+  @ExceptionHandler(QueryRuntimeException.class)
+  @ResponseBody
+  public WebMessage queryRuntimeExceptionHandler(QueryRuntimeException ex) {
+    return conflict(ex.getMessage(), ex.getErrorCode());
+  }
+
+  @ExceptionHandler(DeleteNotAllowedException.class)
+  @ResponseBody
+  public WebMessage deleteNotAllowedExceptionHandler(DeleteNotAllowedException ex) {
+    return conflict(ex.getMessage(), ex.getErrorCode());
+  }
+
+  @ExceptionHandler(InvalidIdentifierReferenceException.class)
+  @ResponseBody
+  public WebMessage invalidIdentifierReferenceExceptionHandler(
+      InvalidIdentifierReferenceException ex) {
+    return conflict(ex.getMessage());
+  }
+
+  @ExceptionHandler({DataApprovalException.class, AdxException.class, IllegalStateException.class})
+  @ResponseBody
+  public WebMessage dataApprovalExceptionHandler(Exception ex) {
+    return conflict(ex.getMessage());
+  }
+
+  @ExceptionHandler({
+    JsonParseException.class,
+    MetadataImportException.class,
+    MetadataExportException.class
+  })
+  @ResponseBody
+  public WebMessage jsonParseExceptionHandler(Exception ex) {
+    return conflict(ex.getMessage());
+  }
+
+  @ExceptionHandler({QueryParserException.class, QueryException.class})
+  @ResponseBody
+  public WebMessage queryExceptionHandler(Exception ex) {
+    return conflict(ex.getMessage());
+  }
+
+  @ExceptionHandler(FieldFilterException.class)
+  @ResponseBody
+  public WebMessage fieldFilterExceptionHandler(FieldFilterException ex) {
+    return conflict(ex.getMessage());
+  }
+
+  @ExceptionHandler(NotAuthenticatedException.class)
+  @ResponseBody
+  public WebMessage notAuthenticatedExceptionHandler(NotAuthenticatedException ex) {
+    return unauthorized(ex.getMessage());
+  }
+
+  @ExceptionHandler(NotFoundException.class)
+  @ResponseBody
+  public WebMessage notFoundExceptionHandler(NotFoundException ex) {
+    return notFound(ex.getMessage());
+  }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  @ResponseBody
+  public WebMessage constraintViolationExceptionHandler(ConstraintViolationException ex) {
+    return error(getExceptionMessage(ex));
+  }
+
+  @ExceptionHandler(MaintenanceModeException.class)
+  @ResponseBody
+  public WebMessage maintenanceModeExceptionHandler(MaintenanceModeException ex) {
+    return serviceUnavailable(ex.getMessage());
+  }
+
+  @ExceptionHandler(AccessDeniedException.class)
+  @ResponseBody
+  public WebMessage accessDeniedExceptionHandler(AccessDeniedException ex) {
+    return forbidden(ex.getMessage());
+  }
+
+  @ExceptionHandler(WebMessageException.class)
+  @ResponseBody
+  public WebMessage webMessageExceptionHandler(WebMessageException ex) {
+    return ex.getWebMessage();
+  }
+
+  @ExceptionHandler(HttpStatusCodeException.class)
+  @ResponseBody
+  public WebMessage httpStatusCodeExceptionHandler(HttpStatusCodeException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+  }
+
+  @ExceptionHandler(HttpClientErrorException.class)
+  @ResponseBody
+  public WebMessage httpClientErrorExceptionHandler(HttpClientErrorException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+  }
+
+  @ExceptionHandler(HttpServerErrorException.class)
+  @ResponseBody
+  public WebMessage httpServerErrorExceptionHandler(HttpServerErrorException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, ex.getStatusCode());
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  @ResponseBody
+  public WebMessage httpRequestMethodNotSupportedExceptionHandler(
+      HttpRequestMethodNotSupportedException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.METHOD_NOT_ALLOWED);
+  }
+
+  @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+  @ResponseBody
+  public WebMessage httpMediaTypeNotAcceptableExceptionHandler(
+      HttpMediaTypeNotAcceptableException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.NOT_ACCEPTABLE);
+  }
+
+  @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+  @ResponseBody
+  public WebMessage httpMediaTypeNotSupportedExceptionHandler(
+      HttpMediaTypeNotSupportedException ex) {
+    return createWebMessage(ex.getMessage(), Status.ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+  }
+
+  @ExceptionHandler(ServletException.class)
+  public void servletExceptionHandler(ServletException ex) throws ServletException {
+    throw ex;
+  }
+
+  @ExceptionHandler({
+    BadRequestException.class,
+    IllegalArgumentException.class,
+    SchemaPathException.class,
+    JsonPatchException.class
+  })
+  @ResponseBody
+  public WebMessage handleBadRequest(Exception exception) {
+    return badRequest(exception.getMessage());
+  }
+
+  @ExceptionHandler({ConflictException.class})
+  @ResponseBody
+  public WebMessage handleConflictRequest(Exception exception) {
+    return conflict(exception.getMessage());
+  }
+
+  @ExceptionHandler(MetadataVersionException.class)
+  @ResponseBody
+  public WebMessage handleMetaDataVersionException(
+      MetadataVersionException metadataVersionException) {
+    return error(metadataVersionException.getMessage());
+  }
+
+  @ExceptionHandler(MetadataSyncException.class)
+  @ResponseBody
+  public WebMessage handleMetaDataSyncException(MetadataSyncException metadataSyncException) {
+    return error(metadataSyncException.getMessage());
+  }
+
+  @ExceptionHandler(DhisVersionMismatchException.class)
+  @ResponseBody
+  public WebMessage handleDhisVersionMismatchException(
+      DhisVersionMismatchException versionMismatchException) {
+    return forbidden(versionMismatchException.getMessage());
+  }
+
+  @ExceptionHandler(MetadataImportConflictException.class)
+  @ResponseBody
+  public WebMessage handleMetadataImportConflictException(
+      MetadataImportConflictException conflictException) {
+    if (conflictException.getMetadataSyncSummary() == null) {
+      return conflict(conflictException.getMessage());
+    }
+    return conflict(null).setResponse(conflictException.getMetadataSyncSummary());
+  }
+
+  @ExceptionHandler(OperationNotAllowedException.class)
+  @ResponseBody
+  public WebMessage handleOperationNotAllowedException(OperationNotAllowedException ex) {
+    return forbidden(ex.getMessage());
+  }
+
+  @ExceptionHandler(OAuth2AuthenticationException.class)
+  @ResponseBody
+  public WebMessage handleOAuth2AuthenticationException(OAuth2AuthenticationException ex) {
+    OAuth2Error error = ex.getError();
+    if (error instanceof BearerTokenError) {
+      BearerTokenError bearerTokenError = (BearerTokenError) error;
+      HttpStatus status = ((BearerTokenError) error).getHttpStatus();
+
+      return createWebMessage(
+          bearerTokenError.getErrorCode(), bearerTokenError.getDescription(), Status.ERROR, status);
+    }
+    return unauthorized(ex.getMessage());
+  }
+
+  @ExceptionHandler(ApiTokenAuthenticationException.class)
+  @ResponseBody
+  public WebMessage handleApiTokenAuthenticationException(ApiTokenAuthenticationException ex) {
+    ApiTokenError apiTokenError = ex.getError();
+    if (apiTokenError != null) {
+      return createWebMessage(
+          apiTokenError.getDescription(), Status.ERROR, apiTokenError.getHttpStatus());
+    }
+    return unauthorized(ex.getMessage());
+  }
+
+  @ExceptionHandler({PotentialDuplicateConflictException.class})
+  @ResponseBody
+  public WebMessage handlePotentialDuplicateConflictRequest(Exception exception) {
+    return conflict(exception.getMessage());
+  }
+
+  @ExceptionHandler({PotentialDuplicateForbiddenException.class})
+  @ResponseBody
+  public WebMessage handlePotentialDuplicateForbiddenRequest(Exception exception) {
+    return forbidden(exception.getMessage());
+  }
+
+  /**
+   * Catches default exception and send back to user, but re-throws internally so it still ends up
+   * in server logs.
+   */
+  @ResponseBody
+  @ExceptionHandler(Exception.class)
+  public WebMessage defaultExceptionHandler(Exception ex) {
+    ex.printStackTrace();
+    return error(getExceptionMessage(ex));
+  }
+
+  private String getExceptionMessage(Exception ex) {
+    boolean isMessageSensitive = false;
+
+    String message = ex.getMessage();
+
+    if (isSensitiveException(ex)) {
+      isMessageSensitive = true;
     }
 
-    private WebMessage getEnumWebMessage( Class<?> requiredType, Object value, String field )
-    {
-        String validValues = StringUtils
-            .join( Arrays.stream( requiredType.getEnumConstants() ).map( Objects::toString )
-                .collect( Collectors.toList() ), ", " );
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}. Valid values are: [{2}]",
-            value, field, validValues );
-        return badRequest( errorMessage );
+    if (ex.getCause() != null) {
+      message = ex.getCause().getMessage();
+
+      if (isSensitiveException(ex.getCause())) {
+        isMessageSensitive = true;
+      }
     }
 
-    private WebMessage getWebMessage( Object value, String fieldType )
-    {
-        String errorMessage = MessageFormat.format( "Value {0} is not a valid {1}.",
-            value, fieldType );
-        return badRequest( errorMessage );
+    if (isMessageSensitive) {
+      message = GENERIC_ERROR_MESSAGE;
+    }
+    return message;
+  }
+
+  private boolean isSensitiveException(Throwable e) {
+    for (Class<?> exClass : SENSITIVE_EXCEPTIONS) {
+      if (exClass.isAssignableFrom(e.getClass())) {
+        return true;
+      }
     }
 
-    @ExceptionHandler( InvalidEnumValueException.class )
-    @ResponseBody
-    public WebMessage invalidEnumValueException( InvalidEnumValueException ex )
-    {
-        return getEnumWebMessage( ex.getEnumKlass(), ex.getInvalidValue(), ex.getFieldName() );
+    return false;
+  }
+
+  /**
+   * Simple adapter to {@link PropertyEditorSupport} that allows to use lambda {@link Function}s to
+   * convert value from its text representation.
+   */
+  private static final class FromTextPropertyEditor extends PropertyEditorSupport {
+
+    private final Function<String, Object> fromText;
+
+    private FromTextPropertyEditor(Function<String, Object> fromText) {
+      this.fromText = fromText;
     }
 
-    /**
-     * A BindException wraps possible errors happened trying to bind all the
-     * request parameters to a binding object. Errors could be simple conversion
-     * failures (Trying to convert a 'TEXT' to an Integer ) or validation errors
-     * create by hibernate-validator framework. Currently, we are not using such
-     * framework hence only conversion errors can happen.
-     *
-     * Only first error is returned to the client in order to be consistent in
-     * the way BAD_REQUEST responses are displayed.
-     *
-     */
-    @ExceptionHandler( BindException.class )
-    @ResponseBody
-    public WebMessage handleBindException( BindException ex )
-    {
-        FieldError fieldError = ex.getFieldError();
-
-        if ( fieldError != null && fieldError.contains( TypeMismatchException.class ) )
-        {
-            return handleTypeMismatchException( fieldError.unwrap( TypeMismatchException.class ) );
-        }
-
-        return badRequest( ex.getMessage() );
+    @Override
+    public void setAsText(String text) throws IllegalArgumentException {
+      setValue(fromText.apply(text));
     }
-
-    @ExceptionHandler( QueryRuntimeException.class )
-    @ResponseBody
-    public WebMessage queryRuntimeExceptionHandler( QueryRuntimeException ex )
-    {
-        return conflict( ex.getMessage(), ex.getErrorCode() );
-    }
-
-    @ExceptionHandler( DeleteNotAllowedException.class )
-    @ResponseBody
-    public WebMessage deleteNotAllowedExceptionHandler( DeleteNotAllowedException ex )
-    {
-        return conflict( ex.getMessage(), ex.getErrorCode() );
-    }
-
-    @ExceptionHandler( InvalidIdentifierReferenceException.class )
-    @ResponseBody
-    public WebMessage invalidIdentifierReferenceExceptionHandler( InvalidIdentifierReferenceException ex )
-    {
-        return conflict( ex.getMessage() );
-    }
-
-    @ExceptionHandler( { DataApprovalException.class, AdxException.class, IllegalStateException.class } )
-    @ResponseBody
-    public WebMessage dataApprovalExceptionHandler( Exception ex )
-    {
-        return conflict( ex.getMessage() );
-    }
-
-    @ExceptionHandler( { JsonParseException.class, MetadataImportException.class, MetadataExportException.class } )
-    @ResponseBody
-    public WebMessage jsonParseExceptionHandler( Exception ex )
-    {
-        return conflict( ex.getMessage() );
-    }
-
-    @ExceptionHandler( { QueryParserException.class, QueryException.class } )
-    @ResponseBody
-    public WebMessage queryExceptionHandler( Exception ex )
-    {
-        return conflict( ex.getMessage() );
-    }
-
-    @ExceptionHandler( FieldFilterException.class )
-    @ResponseBody
-    public WebMessage fieldFilterExceptionHandler( FieldFilterException ex )
-    {
-        return conflict( ex.getMessage() );
-    }
-
-    @ExceptionHandler( NotAuthenticatedException.class )
-    @ResponseBody
-    public WebMessage notAuthenticatedExceptionHandler( NotAuthenticatedException ex )
-    {
-        return unauthorized( ex.getMessage() );
-    }
-
-    @ExceptionHandler( NotFoundException.class )
-    @ResponseBody
-    public WebMessage notFoundExceptionHandler( NotFoundException ex )
-    {
-        return notFound( ex.getMessage() );
-    }
-
-    @ExceptionHandler( ConstraintViolationException.class )
-    @ResponseBody
-    public WebMessage constraintViolationExceptionHandler( ConstraintViolationException ex )
-    {
-        return error( getExceptionMessage( ex ) );
-    }
-
-    @ExceptionHandler( MaintenanceModeException.class )
-    @ResponseBody
-    public WebMessage maintenanceModeExceptionHandler( MaintenanceModeException ex )
-    {
-        return serviceUnavailable( ex.getMessage() );
-    }
-
-    @ExceptionHandler( AccessDeniedException.class )
-    @ResponseBody
-    public WebMessage accessDeniedExceptionHandler( AccessDeniedException ex )
-    {
-        return forbidden( ex.getMessage() );
-    }
-
-    @ExceptionHandler( WebMessageException.class )
-    @ResponseBody
-    public WebMessage webMessageExceptionHandler( WebMessageException ex )
-    {
-        return ex.getWebMessage();
-    }
-
-    @ExceptionHandler( HttpStatusCodeException.class )
-    @ResponseBody
-    public WebMessage httpStatusCodeExceptionHandler( HttpStatusCodeException ex )
-    {
-        return createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
-    }
-
-    @ExceptionHandler( HttpClientErrorException.class )
-    @ResponseBody
-    public WebMessage httpClientErrorExceptionHandler( HttpClientErrorException ex )
-    {
-        return createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
-    }
-
-    @ExceptionHandler( HttpServerErrorException.class )
-    @ResponseBody
-    public WebMessage httpServerErrorExceptionHandler( HttpServerErrorException ex )
-    {
-        return createWebMessage( ex.getMessage(), Status.ERROR, ex.getStatusCode() );
-    }
-
-    @ExceptionHandler( HttpRequestMethodNotSupportedException.class )
-    @ResponseBody
-    public WebMessage httpRequestMethodNotSupportedExceptionHandler( HttpRequestMethodNotSupportedException ex )
-    {
-        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.METHOD_NOT_ALLOWED );
-    }
-
-    @ExceptionHandler( HttpMediaTypeNotAcceptableException.class )
-    @ResponseBody
-    public WebMessage httpMediaTypeNotAcceptableExceptionHandler( HttpMediaTypeNotAcceptableException ex )
-    {
-        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.NOT_ACCEPTABLE );
-    }
-
-    @ExceptionHandler( HttpMediaTypeNotSupportedException.class )
-    @ResponseBody
-    public WebMessage httpMediaTypeNotSupportedExceptionHandler( HttpMediaTypeNotSupportedException ex )
-    {
-        return createWebMessage( ex.getMessage(), Status.ERROR, HttpStatus.UNSUPPORTED_MEDIA_TYPE );
-    }
-
-    @ExceptionHandler( ServletException.class )
-    public void servletExceptionHandler( ServletException ex )
-        throws ServletException
-    {
-        throw ex;
-    }
-
-    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class, SchemaPathException.class,
-        JsonPatchException.class } )
-    @ResponseBody
-    public WebMessage handleBadRequest( Exception exception )
-    {
-        return badRequest( exception.getMessage() );
-    }
-
-    @ExceptionHandler( { ConflictException.class } )
-    @ResponseBody
-    public WebMessage handleConflictRequest( Exception exception )
-    {
-        return conflict( exception.getMessage() );
-    }
-
-    @ExceptionHandler( MetadataVersionException.class )
-    @ResponseBody
-    public WebMessage handleMetaDataVersionException( MetadataVersionException metadataVersionException )
-    {
-        return error( metadataVersionException.getMessage() );
-    }
-
-    @ExceptionHandler( MetadataSyncException.class )
-    @ResponseBody
-    public WebMessage handleMetaDataSyncException( MetadataSyncException metadataSyncException )
-    {
-        return error( metadataSyncException.getMessage() );
-    }
-
-    @ExceptionHandler( DhisVersionMismatchException.class )
-    @ResponseBody
-    public WebMessage handleDhisVersionMismatchException( DhisVersionMismatchException versionMismatchException )
-    {
-        return forbidden( versionMismatchException.getMessage() );
-    }
-
-    @ExceptionHandler( MetadataImportConflictException.class )
-    @ResponseBody
-    public WebMessage handleMetadataImportConflictException( MetadataImportConflictException conflictException )
-    {
-        if ( conflictException.getMetadataSyncSummary() == null )
-        {
-            return conflict( conflictException.getMessage() );
-        }
-        return conflict( null ).setResponse( conflictException.getMetadataSyncSummary() );
-    }
-
-    @ExceptionHandler( OperationNotAllowedException.class )
-    @ResponseBody
-    public WebMessage handleOperationNotAllowedException( OperationNotAllowedException ex )
-    {
-        return forbidden( ex.getMessage() );
-    }
-
-    @ExceptionHandler( OAuth2AuthenticationException.class )
-    @ResponseBody
-    public WebMessage handleOAuth2AuthenticationException( OAuth2AuthenticationException ex )
-    {
-        OAuth2Error error = ex.getError();
-        if ( error instanceof BearerTokenError )
-        {
-            BearerTokenError bearerTokenError = (BearerTokenError) error;
-            HttpStatus status = ((BearerTokenError) error).getHttpStatus();
-
-            return createWebMessage( bearerTokenError.getErrorCode(),
-                bearerTokenError.getDescription(), Status.ERROR, status );
-        }
-        return unauthorized( ex.getMessage() );
-    }
-
-    @ExceptionHandler( ApiTokenAuthenticationException.class )
-    @ResponseBody
-    public WebMessage handleApiTokenAuthenticationException( ApiTokenAuthenticationException ex )
-    {
-        ApiTokenError apiTokenError = ex.getError();
-        if ( apiTokenError != null )
-        {
-            return createWebMessage( apiTokenError.getDescription(), Status.ERROR,
-                apiTokenError.getHttpStatus() );
-        }
-        return unauthorized( ex.getMessage() );
-    }
-
-    @ExceptionHandler( { PotentialDuplicateConflictException.class } )
-    @ResponseBody
-    public WebMessage handlePotentialDuplicateConflictRequest( Exception exception )
-    {
-        return conflict( exception.getMessage() );
-    }
-
-    @ExceptionHandler( { PotentialDuplicateForbiddenException.class } )
-    @ResponseBody
-    public WebMessage handlePotentialDuplicateForbiddenRequest( Exception exception )
-    {
-        return forbidden( exception.getMessage() );
-    }
-
-    /**
-     * Catches default exception and send back to user, but re-throws internally
-     * so it still ends up in server logs.
-     */
-    @ResponseBody
-    @ExceptionHandler( Exception.class )
-    public WebMessage defaultExceptionHandler( Exception ex )
-    {
-        ex.printStackTrace();
-        return error( getExceptionMessage( ex ) );
-    }
-
-    private String getExceptionMessage( Exception ex )
-    {
-        boolean isMessageSensitive = false;
-
-        String message = ex.getMessage();
-
-        if ( isSensitiveException( ex ) )
-        {
-            isMessageSensitive = true;
-        }
-
-        if ( ex.getCause() != null )
-        {
-            message = ex.getCause().getMessage();
-
-            if ( isSensitiveException( ex.getCause() ) )
-            {
-                isMessageSensitive = true;
-            }
-        }
-
-        if ( isMessageSensitive )
-        {
-            message = GENERIC_ERROR_MESSAGE;
-        }
-        return message;
-    }
-
-    private boolean isSensitiveException( Throwable e )
-    {
-        for ( Class<?> exClass : SENSITIVE_EXCEPTIONS )
-        {
-            if ( exClass.isAssignableFrom( e.getClass() ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Simple adapter to {@link PropertyEditorSupport} that allows to use lambda
-     * {@link Function}s to convert value from its text representation.
-     */
-    private static final class FromTextPropertyEditor extends PropertyEditorSupport
-    {
-
-        private final Function<String, Object> fromText;
-
-        private FromTextPropertyEditor( Function<String, Object> fromText )
-        {
-            this.fromText = fromText;
-        }
-
-        @Override
-        public void setAsText( String text )
-            throws IllegalArgumentException
-        {
-            setValue( fromText.apply( text ) );
-        }
-    }
+  }
 }

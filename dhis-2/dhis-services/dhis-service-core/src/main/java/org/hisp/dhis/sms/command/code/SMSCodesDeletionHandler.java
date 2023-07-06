@@ -38,29 +38,24 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SMSCodesDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCode.class );
+public class SMSCodesDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(SMSCode.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public SMSCodesDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
+  public SMSCodesDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "SELECT COUNT(*) FROM smscodes where dataelementid=" + dataElement.getId();
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    String sql = "SELECT COUNT(*) FROM smscodes where dataelementid=" + dataElement.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

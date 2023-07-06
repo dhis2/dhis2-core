@@ -49,100 +49,123 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-class SystemSettingControllerTest extends DhisControllerConvenienceTest
-{
+class SystemSettingControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    @Test
-    void testSetSystemSettingOrTranslation_NoSuchObject()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Key is not supported: xyz",
-            POST( "/systemSettings/xyz?value=abc" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSetSystemSettingOrTranslation_NoSuchObject() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Key is not supported: xyz",
+        POST("/systemSettings/xyz?value=abc").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSetSystemSettingOrTranslation_NoValue()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Value must be specified as query param or as payload",
-            POST( "/systemSettings/xyz" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSetSystemSettingOrTranslation_NoValue() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Value must be specified as query param or as payload",
+        POST("/systemSettings/xyz").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSetSystemSettingOrTranslation_Setting()
-    {
-        assertWebMessage( "OK", 200, "OK", "System setting 'keyUiLocale' set to value 'en'.",
-            POST( "/systemSettings/keyUiLocale?", Body( "en" ), ContentType( ContextUtils.CONTENT_TYPE_TEXT ) )
-                .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testSetSystemSettingOrTranslation_Setting() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'keyUiLocale' set to value 'en'.",
+        POST(
+                "/systemSettings/keyUiLocale?",
+                Body("en"),
+                ContentType(ContextUtils.CONTENT_TYPE_TEXT))
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testSetSystemSettingOrTranslation_Translation()
-    {
-        assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-        assertWebMessage( "OK", 200, "OK",
-            "Translation for system setting 'keyUiLocale' and locale: 'de' set to: 'Sprache'",
-            POST( "/systemSettings/keyUiLocale?locale=de&value=Sprache" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testSetSystemSettingOrTranslation_Translation() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Translation for system setting 'keyUiLocale' and locale: 'de' set to: 'Sprache'",
+        POST("/systemSettings/keyUiLocale?locale=de&value=Sprache").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testSetSystemSettingOrTranslation_TranslationNoSetting()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "No entry found for key: keyUiLocale",
-            POST( "/systemSettings/keyUiLocale?locale=de&value=Sprache" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSetSystemSettingOrTranslation_TranslationNoSetting() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "No entry found for key: keyUiLocale",
+        POST("/systemSettings/keyUiLocale?locale=de&value=Sprache").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSetSystemSettingV29()
-    {
-        assertWebMessage( "OK", 200, "OK", "System settings imported",
-            POST( "/systemSettings", "{'keyUiLocale':'en'}" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testSetSystemSettingV29() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System settings imported",
+        POST("/systemSettings", "{'keyUiLocale':'en'}").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testSetSystemSettingV29_Empty()
-    {
-        assertWebMessage( "OK", 200, "OK", "System settings imported",
-            POST( "/systemSettings", "{}" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testSetSystemSettingV29_Empty() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System settings imported",
+        POST("/systemSettings", "{}").content(HttpStatus.OK));
+  }
 
-    @Test
-    void testSetSystemSettingV29_NoSuchObject()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Key(s) is not supported: xyz, abc",
-            POST( "/systemSettings", "{'xyz':'en','abc':'foo'}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSetSystemSettingV29_NoSuchObject() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Key(s) is not supported: xyz, abc",
+        POST("/systemSettings", "{'xyz':'en','abc':'foo'}").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testGetSystemSettingOrTranslationAsJson()
-    {
-        assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-        JsonObject setting = GET( "/systemSettings/keyUiLocale" ).content( HttpStatus.OK );
-        assertTrue( setting.isObject() );
-        assertEquals( 1, setting.size() );
-        assertEquals( "de", setting.getString( "keyUiLocale" ).string() );
-    }
+  @Test
+  void testGetSystemSettingOrTranslationAsJson() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
+    JsonObject setting = GET("/systemSettings/keyUiLocale").content(HttpStatus.OK);
+    assertTrue(setting.isObject());
+    assertEquals(1, setting.size());
+    assertEquals("de", setting.getString("keyUiLocale").string());
+  }
 
-    @Test
-    void testGetSystemSettingsJson()
-    {
-        assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-        JsonObject setting = GET( "/systemSettings?key=keyUiLocale" ).content( HttpStatus.OK );
-        assertTrue( setting.isObject() );
-        assertEquals( 1, setting.size() );
-        assertEquals( "de", setting.getString( "keyUiLocale" ).string() );
-    }
+  @Test
+  void testGetSystemSettingsJson() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
+    JsonObject setting = GET("/systemSettings?key=keyUiLocale").content(HttpStatus.OK);
+    assertTrue(setting.isObject());
+    assertEquals(1, setting.size());
+    assertEquals("de", setting.getString("keyUiLocale").string());
+  }
 
-    @Test
-    void testGetSystemSettingsJson_AllKeys()
-    {
-        assertStatus( HttpStatus.OK, POST( "/systemSettings/keyUiLocale?value=de" ) );
-        JsonObject setting = GET( "/systemSettings" ).content( HttpStatus.OK );
-        assertTrue( setting.isObject() );
-        stream( SettingKey.values() ).filter( key -> !key.isConfidential() && key.getDefaultValue() != null )
-            .forEach( key -> assertTrue( setting.get( key.getName() ).exists(), key.getName() ) );
-        stream( SettingKey.values() ).filter( SettingKey::isConfidential )
-            .forEach( key -> assertFalse( setting.get( key.getName() ).exists(), key.getName() ) );
-    }
+  @Test
+  void testGetSystemSettingsJson_AllKeys() {
+    assertStatus(HttpStatus.OK, POST("/systemSettings/keyUiLocale?value=de"));
+    JsonObject setting = GET("/systemSettings").content(HttpStatus.OK);
+    assertTrue(setting.isObject());
+    stream(SettingKey.values())
+        .filter(key -> !key.isConfidential() && key.getDefaultValue() != null)
+        .forEach(key -> assertTrue(setting.get(key.getName()).exists(), key.getName()));
+    stream(SettingKey.values())
+        .filter(SettingKey::isConfidential)
+        .forEach(key -> assertFalse(setting.get(key.getName()).exists(), key.getName()));
+  }
 }

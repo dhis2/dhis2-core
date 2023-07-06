@@ -27,118 +27,105 @@
  */
 package org.hisp.dhis.validation;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.context.ApplicationContext;
 
-import com.google.common.collect.Lists;
-
 /**
  * Evaluates validation rules.
  *
  * @author Jim Grace
  */
-public class Validator
-{
-    /**
-     * Evaluates validation rules for a collection of organisation units. This
-     * method breaks the job down by organisation unit. It assigns the
-     * evaluation for each organisation unit to a task that can be evaluated
-     * independently in a multi-threaded environment.
-     * <p/>
-     * Return early with no results if there are no organisation units or no
-     * validation rules.
-     *
-     * @return a collection of any validations that were found
-     */
-    public static List<ValidationResult> validate( ValidationRunContext context,
-        ApplicationContext applicationContext, AnalyticsService analyticsService )
-    {
-        CategoryService categoryService = applicationContext.getBean( CategoryService.class );
+public class Validator {
+  /**
+   * Evaluates validation rules for a collection of organisation units. This method breaks the job
+   * down by organisation unit. It assigns the evaluation for each organisation unit to a task that
+   * can be evaluated independently in a multi-threaded environment.
+   *
+   * <p>Return early with no results if there are no organisation units or no validation rules.
+   *
+   * @return a collection of any validations that were found
+   */
+  public static List<ValidationResult> validate(
+      ValidationRunContext context,
+      ApplicationContext applicationContext,
+      AnalyticsService analyticsService) {
+    CategoryService categoryService = applicationContext.getBean(CategoryService.class);
 
-        int threadPoolSize = getThreadPoolSize( context );
+    int threadPoolSize = getThreadPoolSize(context);
 
-        if ( threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty() )
-        {
-            return new ArrayList<>( context.getValidationResults() );
-        }
-
-        ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
-
-        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(),
-            ValidationRunContext.ORG_UNITS_PER_TASK );
-
-        for ( List<OrganisationUnit> orgUnits : orgUnitLists )
-        {
-            ValidationTask task = (ValidationTask) applicationContext.getBean( DataValidationTask.NAME );
-            task.init( orgUnits, context, analyticsService );
-
-            executor.execute( task );
-        }
-
-        executor.shutdown();
-
-        try
-        {
-            executor.awaitTermination( 6, TimeUnit.HOURS );
-        }
-        catch ( InterruptedException e )
-        {
-            executor.shutdownNow();
-        }
-
-        reloadAttributeOptionCombos( context.getValidationResults(), categoryService );
-
-        return new ArrayList<>( context.getValidationResults() );
+    if (threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty()) {
+      return new ArrayList<>(context.getValidationResults());
     }
 
-    /**
-     * Determines how many threads we should use for testing validation rules.
-     *
-     * @param context validation run context
-     * @return number of threads we should use for testing validation rules
-     */
-    private static int getThreadPoolSize( ValidationRunContext context )
-    {
-        int threadPoolSize = SystemUtils.getCpuCores();
+    ExecutorService executor = Executors.newFixedThreadPool(threadPoolSize);
 
-        if ( threadPoolSize > 2 )
-        {
-            threadPoolSize--;
-        }
+    List<List<OrganisationUnit>> orgUnitLists =
+        Lists.partition(context.getOrgUnits(), ValidationRunContext.ORG_UNITS_PER_TASK);
 
-        int numberOfTasks = context.getNumberOfTasks();
+    for (List<OrganisationUnit> orgUnits : orgUnitLists) {
+      ValidationTask task = (ValidationTask) applicationContext.getBean(DataValidationTask.NAME);
+      task.init(orgUnits, context, analyticsService);
 
-        if ( threadPoolSize > numberOfTasks )
-        {
-            threadPoolSize = numberOfTasks;
-        }
-
-        return threadPoolSize;
+      executor.execute(task);
     }
 
-    /**
-     * Reload attribute category option combos into this Hibernate context.
-     *
-     * @param results
-     * @param dataElementCategoryService
-     */
-    private static void reloadAttributeOptionCombos( Collection<ValidationResult> results,
-        CategoryService dataElementCategoryService )
-    {
-        for ( ValidationResult result : results )
-        {
-            result.setAttributeOptionCombo( dataElementCategoryService
-                .getCategoryOptionCombo( result.getAttributeOptionCombo().getId() ) );
-        }
+    executor.shutdown();
+
+    try {
+      executor.awaitTermination(6, TimeUnit.HOURS);
+    } catch (InterruptedException e) {
+      executor.shutdownNow();
     }
+
+    reloadAttributeOptionCombos(context.getValidationResults(), categoryService);
+
+    return new ArrayList<>(context.getValidationResults());
+  }
+
+  /**
+   * Determines how many threads we should use for testing validation rules.
+   *
+   * @param context validation run context
+   * @return number of threads we should use for testing validation rules
+   */
+  private static int getThreadPoolSize(ValidationRunContext context) {
+    int threadPoolSize = SystemUtils.getCpuCores();
+
+    if (threadPoolSize > 2) {
+      threadPoolSize--;
+    }
+
+    int numberOfTasks = context.getNumberOfTasks();
+
+    if (threadPoolSize > numberOfTasks) {
+      threadPoolSize = numberOfTasks;
+    }
+
+    return threadPoolSize;
+  }
+
+  /**
+   * Reload attribute category option combos into this Hibernate context.
+   *
+   * @param results
+   * @param dataElementCategoryService
+   */
+  private static void reloadAttributeOptionCombos(
+      Collection<ValidationResult> results, CategoryService dataElementCategoryService) {
+    for (ValidationResult result : results) {
+      result.setAttributeOptionCombo(
+          dataElementCategoryService.getCategoryOptionCombo(
+              result.getAttributeOptionCombo().getId()));
+    }
+  }
 }

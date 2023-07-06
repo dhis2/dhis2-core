@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 import java.util.Set;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.User;
@@ -43,72 +42,61 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.configuration.ConfigurationService" )
-public class DefaultConfigurationService
-    implements ConfigurationService
-{
-    private GenericStore<Configuration> configurationStore;
+@Service("org.hisp.dhis.configuration.ConfigurationService")
+public class DefaultConfigurationService implements ConfigurationService {
+  private GenericStore<Configuration> configurationStore;
 
-    public DefaultConfigurationService(
-        @Qualifier( "org.hisp.dhis.configuration.ConfigurationStore" ) GenericStore<Configuration> configurationStore )
-    {
-        checkNotNull( configurationStore );
+  public DefaultConfigurationService(
+      @Qualifier("org.hisp.dhis.configuration.ConfigurationStore")
+          GenericStore<Configuration> configurationStore) {
+    checkNotNull(configurationStore);
 
-        this.configurationStore = configurationStore;
+    this.configurationStore = configurationStore;
+  }
+
+  // -------------------------------------------------------------------------
+  // ConfigurationService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void setConfiguration(Configuration configuration) {
+    if (configuration != null && configuration.getId() > 0) {
+      configurationStore.update(configuration);
+    } else {
+      configurationStore.save(configuration);
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Configuration getConfiguration() {
+    Iterator<Configuration> iterator = configurationStore.getAll().iterator();
+
+    return iterator.hasNext() ? iterator.next() : new Configuration();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isCorsWhitelisted(String origin) {
+    Set<String> corsWhitelist = getConfiguration().getCorsWhitelist();
+
+    for (String cors : corsWhitelist) {
+      String regex = TextUtils.createRegexFromGlob(cors);
+
+      if (origin.matches(regex)) {
+        return true;
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // ConfigurationService implementation
-    // -------------------------------------------------------------------------
+    return false;
+  }
 
-    @Override
-    @Transactional
-    public void setConfiguration( Configuration configuration )
-    {
-        if ( configuration != null && configuration.getId() > 0 )
-        {
-            configurationStore.update( configuration );
-        }
-        else
-        {
-            configurationStore.save( configuration );
-        }
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public boolean isUserInFeedbackRecipientUserGroup(User user) {
+    UserGroup feedbackRecipients = getConfiguration().getFeedbackRecipients();
 
-    @Override
-    @Transactional( readOnly = true )
-    public Configuration getConfiguration()
-    {
-        Iterator<Configuration> iterator = configurationStore.getAll().iterator();
-
-        return iterator.hasNext() ? iterator.next() : new Configuration();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isCorsWhitelisted( String origin )
-    {
-        Set<String> corsWhitelist = getConfiguration().getCorsWhitelist();
-
-        for ( String cors : corsWhitelist )
-        {
-            String regex = TextUtils.createRegexFromGlob( cors );
-
-            if ( origin.matches( regex ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isUserInFeedbackRecipientUserGroup( User user )
-    {
-        UserGroup feedbackRecipients = getConfiguration().getFeedbackRecipients();
-
-        return feedbackRecipients != null && feedbackRecipients.getMembers().contains( user );
-    }
+    return feedbackRecipients != null && feedbackRecipients.getMembers().contains(user);
+  }
 }

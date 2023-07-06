@@ -33,12 +33,11 @@ import static org.hamcrest.CoreMatchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
-
 import joptsimple.internal.Strings;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
@@ -59,180 +58,185 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventValidationTests
-    extends TrackerNtiApiTest
-{
-    private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
+public class EventValidationTests extends TrackerNtiApiTest {
+  private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
 
-    private static String eventProgramId = Constants.EVENT_PROGRAM_ID;
+  private static String eventProgramId = Constants.EVENT_PROGRAM_ID;
 
-    private static String eventProgramStageId;
+  private static String eventProgramStageId;
 
-    private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
+  private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
-    private static String anotherTrackerProgramId = Constants.ANOTHER_TRACKER_PROGRAM_ID;
+  private static String anotherTrackerProgramId = Constants.ANOTHER_TRACKER_PROGRAM_ID;
 
-    private static String trackerProgramStageId;
+  private static String trackerProgramStageId;
 
-    private static String ouIdWithoutAccess;
+  private static String ouIdWithoutAccess;
 
-    private ProgramActions programActions;
+  private ProgramActions programActions;
 
-    private EventActions eventActions;
+  private EventActions eventActions;
 
-    private String enrollment;
+  private String enrollment;
 
-    private static Stream<Arguments> provideValidationArguments()
-    {
-        return Stream.of(
-            Arguments.of( OU_ID, trackerProgramId, trackerProgramStageId, "E1033" ),
-            Arguments.arguments( null, eventProgramId, eventProgramStageId, "E1123" ),
-            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId, "E1029" ),
-            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ),
-            Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
-    }
+  private static Stream<Arguments> provideValidationArguments() {
+    return Stream.of(
+        Arguments.of(OU_ID, trackerProgramId, trackerProgramStageId, "E1033"),
+        Arguments.arguments(null, eventProgramId, eventProgramStageId, "E1123"),
+        Arguments.arguments(ouIdWithoutAccess, eventProgramId, eventProgramStageId, "E1029"),
+        Arguments.arguments(OU_ID, trackerProgramId, null, "E1123"),
+        Arguments.arguments(OU_ID, trackerProgramId, eventProgramStageId, "E1089"));
+  }
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        programActions = new ProgramActions();
-        eventActions = new EventActions();
+  @BeforeAll
+  public void beforeAll() {
+    programActions = new ProgramActions();
+    eventActions = new EventActions();
 
-        loginActions.loginAsSuperUser();
-        setupData();
-    }
+    loginActions.loginAsSuperUser();
+    setupData();
+  }
 
-    @Test
-    public void shouldNotImportDeletedEvents()
-        throws Exception
-    {
-        JsonObject eventBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/events/event.json" ) );
+  @Test
+  public void shouldNotImportDeletedEvents() throws Exception {
+    JsonObject eventBody =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(
+                new File("src/test/resources/tracker/importer/events/event.json"));
 
-        String eventId = trackerActions.postAndGetJobReport( eventBody )
+    String eventId =
+        trackerActions
+            .postAndGetJobReport(eventBody)
             .validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
+            .extractImportedEvents()
+            .get(0);
 
-        eventActions.softDelete( eventId );
+    eventActions.softDelete(eventId);
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( eventBody );
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(eventBody);
 
-        response.validateErrorReport()
-            .body( "errorCode", hasItem( "E1082" ) );
-    }
+    response.validateErrorReport().body("errorCode", hasItem("E1082"));
+  }
 
-    @CsvSource( { "ACTIVE,,OccurredAt date is missing.", "SCHEDULE,,ScheduledAt date is missing." } )
-    @ParameterizedTest
-    public void shouldValidateEventProperties( String status, String occurredAt, String error )
-    {
-        JsonObject object = new EventDataBuilder()
-            .setStatus( status )
-            .setEventDate( occurredAt )
-            .setEnrollment( enrollment )
-            .array( OU_ID, trackerProgramId, trackerProgramStageId );
+  @CsvSource({"ACTIVE,,OccurredAt date is missing.", "SCHEDULE,,ScheduledAt date is missing."})
+  @ParameterizedTest
+  public void shouldValidateEventProperties(String status, String occurredAt, String error) {
+    JsonObject object =
+        new EventDataBuilder()
+            .setStatus(status)
+            .setEventDate(occurredAt)
+            .setEnrollment(enrollment)
+            .array(OU_ID, trackerProgramId, trackerProgramStageId);
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
-        response.validateErrorReport()
-            .body( "message[0]", containsStringIgnoringCase( error ) );
-    }
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(object);
+    response.validateErrorReport().body("message[0]", containsStringIgnoringCase(error));
+  }
 
-    @Test
-    public void shouldSetDueDate()
-    {
-        JsonObject eventBody = new EventDataBuilder()
-            .setEnrollment( enrollment )
-            .array( OU_ID, trackerProgramId, trackerProgramStageId );
+  @Test
+  public void shouldSetDueDate() {
+    JsonObject eventBody =
+        new EventDataBuilder()
+            .setEnrollment(enrollment)
+            .array(OU_ID, trackerProgramId, trackerProgramStageId);
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( eventBody );
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(eventBody);
 
-        String eventId = response.validateSuccessfulImport().extractImportedEvents().get( 0 );
+    String eventId = response.validateSuccessfulImport().extractImportedEvents().get(0);
 
-        JsonObject event = trackerActions.get( "/events/" + eventId ).getBody();
+    JsonObject event = trackerActions.get("/events/" + eventId).getBody();
 
-        assertEquals( event.get( "eventDate" ), event.get( "dueDate" ) );
-    }
+    assertEquals(event.get("eventDate"), event.get("dueDate"));
+  }
 
-    @ParameterizedTest
-    @MethodSource( "provideValidationArguments" )
-    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId,
-        String errorCode )
-    {
-        JsonObject jsonObject = new EventDataBuilder().array( ouId, programId, programStageId );
+  @ParameterizedTest
+  @MethodSource("provideValidationArguments")
+  public void eventImportShouldValidateReferences(
+      String ouId, String programId, String programStageId, String errorCode) {
+    JsonObject jsonObject = new EventDataBuilder().array(ouId, programId, programStageId);
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(jsonObject);
 
-        response.validateErrorReport()
-            .body( "errorCode", hasItem( equalTo( errorCode ) ) );
-    }
+    response.validateErrorReport().body("errorCode", hasItem(equalTo(errorCode)));
+  }
 
-    @Test
-    public void eventImportShouldValidateProgramFromProgramStage()
-    {
-        JsonObject jsonObject = new EventDataBuilder()
-            .setEnrollment( enrollment )
-            .array( OU_ID, anotherTrackerProgramId, trackerProgramStageId );
+  @Test
+  public void eventImportShouldValidateProgramFromProgramStage() {
+    JsonObject jsonObject =
+        new EventDataBuilder()
+            .setEnrollment(enrollment)
+            .array(OU_ID, anotherTrackerProgramId, trackerProgramStageId);
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(jsonObject);
 
-        response.validateErrorReport()
-            .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
-    }
+    response.validateErrorReport().body("errorCode", hasItem(equalTo("E1079")));
+  }
 
-    @Test
-    public void eventImportShouldPassValidationWhenOnlyEventProgramIsDefined()
-    {
-        JsonObject jsonObject = new EventDataBuilder().array( OU_ID, eventProgramId, null );
+  @Test
+  public void eventImportShouldPassValidationWhenOnlyEventProgramIsDefined() {
+    JsonObject jsonObject = new EventDataBuilder().array(OU_ID, eventProgramId, null);
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+    TrackerApiResponse response = trackerActions.postAndGetJobReport(jsonObject);
 
-        response.validateSuccessfulImport();
-    }
+    response.validateSuccessfulImport();
+  }
 
-    @Test
-    public void shouldValidateCategoryCombo()
-    {
-        ApiResponse program = programActions.get( "", new QueryParamsBuilder().add( "programType=WITHOUT_REGISTRATION" )
-            .add( "filter=categoryCombo.code:!eq:default" )
-            .add( "filter=name:like:TA" )
-            .add( "fields=id,categoryCombo[categories[categoryOptions]]" ) );
+  @Test
+  public void shouldValidateCategoryCombo() {
+    ApiResponse program =
+        programActions.get(
+            "",
+            new QueryParamsBuilder()
+                .add("programType=WITHOUT_REGISTRATION")
+                .add("filter=categoryCombo.code:!eq:default")
+                .add("filter=name:like:TA")
+                .add("fields=id,categoryCombo[categories[categoryOptions]]"));
 
-        String programId = program.extractString( "programs.id[0]" );
-        Assumptions.assumeFalse( Strings.isNullOrEmpty( programId ) );
+    String programId = program.extractString("programs.id[0]");
+    Assumptions.assumeFalse(Strings.isNullOrEmpty(programId));
 
-        JsonObject object = new EventDataBuilder()
-            .setProgram( programId )
-            .setAttributeCategoryOptions( Arrays.asList( "invalid-option" ) )
-            .setOu( OU_ID ).array();
+    JsonObject object =
+        new EventDataBuilder()
+            .setProgram(programId)
+            .setAttributeCategoryOptions(Arrays.asList("invalid-option"))
+            .setOu(OU_ID)
+            .array();
 
-        trackerActions.postAndGetJobReport( object )
-            .validateErrorReport()
-            .body( "errorCode", hasItem( "E1116" ) );
-    }
+    trackerActions
+        .postAndGetJobReport(object)
+        .validateErrorReport()
+        .body("errorCode", hasItem("E1116"));
+  }
 
-    private void setupData()
-    {
-        eventProgramStageId = programActions.programStageActions
-            .get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
-                eventProgramId ) )
-            .extractString( "programStages.id[0]" );
+  private void setupData() {
+    eventProgramStageId =
+        programActions
+            .programStageActions
+            .get("", new QueryParamsBuilder().add("filter=program.id:eq:" + eventProgramId))
+            .extractString("programStages.id[0]");
 
-        assertNotNull( eventProgramStageId, "Failed to find a program stage" );
+    assertNotNull(eventProgramStageId, "Failed to find a program stage");
 
-        trackerProgramStageId = programActions.programStageActions
-            .get( "", new QueryParamsBuilder().addAll( "filter=program.id:eq:" +
-                trackerProgramId, "filter=repeatable:eq:true" ) )
-            .extractString( "programStages.id[0]" );
+    trackerProgramStageId =
+        programActions
+            .programStageActions
+            .get(
+                "",
+                new QueryParamsBuilder()
+                    .addAll(
+                        "filter=program.id:eq:" + trackerProgramId, "filter=repeatable:eq:true"))
+            .extractString("programStages.id[0]");
 
-        ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
-        new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
+    ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
+    new UserActions().grantCurrentUserAccessToOrgUnit(ouIdWithoutAccess);
 
-        enrollment = trackerActions
-            .postAndGetJobReport( new TeiDataBuilder().buildWithEnrollment( OU_ID, trackerProgramId ) )
-            .validateSuccessfulImport().extractImportedEnrollments().get( 0 );
-    }
+    enrollment =
+        trackerActions
+            .postAndGetJobReport(new TeiDataBuilder().buildWithEnrollment(OU_ID, trackerProgramId))
+            .validateSuccessfulImport()
+            .extractImportedEnrollments()
+            .get(0);
+  }
 }

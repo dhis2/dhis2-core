@@ -29,142 +29,119 @@ package org.hisp.dhis.scheduling;
 
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.notification.NotificationDataType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * A {@link JobProgress} implementation that forwards the tracking to a
- * {@link Notifier}. It has no flow control and should be wrapped in a
- * {@link ControlledJobProgress} for that purpose.
+ * A {@link JobProgress} implementation that forwards the tracking to a {@link Notifier}. It has no
+ * flow control and should be wrapped in a {@link ControlledJobProgress} for that purpose.
  *
  * @see ControlledJobProgress
  */
 @RequiredArgsConstructor
-public class NotifierJobProgress implements JobProgress
-{
-    private final Notifier notifier;
+public class NotifierJobProgress implements JobProgress {
+  private final Notifier notifier;
 
-    private final JobConfiguration jobId;
+  private final JobConfiguration jobId;
 
-    private final AtomicBoolean hasCleared = new AtomicBoolean();
+  private final AtomicBoolean hasCleared = new AtomicBoolean();
 
-    private int stageItems;
+  private int stageItems;
 
-    private int stageItem;
+  private int stageItem;
 
-    @Override
-    public boolean isCancellationRequested()
-    {
-        return false;
+  @Override
+  public boolean isCancellationRequested() {
+    return false;
+  }
+
+  @Override
+  public void startingProcess(String description) {
+    String message =
+        isNotEmpty(description) ? description : jobId.getJobType() + " process started";
+    if (hasCleared.compareAndSet(false, true)) {
+      notifier.clear(jobId);
     }
+    notifier.notify(
+        jobId,
+        NotificationLevel.INFO,
+        message,
+        false,
+        NotificationDataType.PARAMETERS,
+        getJobParameterData());
+  }
 
-    @Override
-    public void startingProcess( String description )
-    {
-        String message = isNotEmpty( description )
-            ? description
-            : jobId.getJobType() + " process started";
-        if ( hasCleared.compareAndSet( false, true ) )
-        {
-            notifier.clear( jobId );
-        }
-        notifier.notify( jobId, NotificationLevel.INFO, message, false, NotificationDataType.PARAMETERS,
-            getJobParameterData() );
-    }
+  @Override
+  public void completedProcess(String summary) {
+    notifier.notify(jobId, summary, true);
+  }
 
-    @Override
-    public void completedProcess( String summary )
-    {
-        notifier.notify( jobId, summary, true );
-    }
+  @Override
+  public void failedProcess(String error) {
+    notifier.notify(jobId, NotificationLevel.ERROR, error, true);
+  }
 
-    @Override
-    public void failedProcess( String error )
-    {
-        notifier.notify( jobId, NotificationLevel.ERROR, error, true );
+  @Override
+  public void startingStage(String description, int workItems) {
+    stageItems = workItems;
+    stageItem = 0;
+    if (isNotEmpty(description)) {
+      notifier.notify(jobId, description);
     }
+  }
 
-    @Override
-    public void startingStage( String description, int workItems )
-    {
-        stageItems = workItems;
-        stageItem = 0;
-        if ( isNotEmpty( description ) )
-        {
-            notifier.notify( jobId, description );
-        }
+  @Override
+  public void completedStage(String summary) {
+    if (isNotEmpty(summary)) {
+      notifier.notify(jobId, summary);
     }
+  }
 
-    @Override
-    public void completedStage( String summary )
-    {
-        if ( isNotEmpty( summary ) )
-        {
-            notifier.notify( jobId, summary );
-        }
+  @Override
+  public void failedStage(String error) {
+    if (isNotEmpty(error)) {
+      notifier.notify(jobId, NotificationLevel.ERROR, error, false);
     }
+  }
 
-    @Override
-    public void failedStage( String error )
-    {
-        if ( isNotEmpty( error ) )
-        {
-            notifier.notify( jobId, NotificationLevel.ERROR, error, false );
-        }
+  @Override
+  public void startingWorkItem(String description) {
+    if (isNotEmpty(description)) {
+      String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
+      notifier.notify(jobId, NotificationLevel.LOOP, nOf + description, false);
     }
+    stageItem++;
+  }
 
-    @Override
-    public void startingWorkItem( String description )
-    {
-        if ( isNotEmpty( description ) )
-        {
-            String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
-            notifier.notify( jobId, NotificationLevel.LOOP, nOf + description, false );
-        }
-        stageItem++;
+  @Override
+  public void completedWorkItem(String summary) {
+    if (isNotEmpty(summary)) {
+      String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
+      notifier.notify(jobId, NotificationLevel.LOOP, nOf + summary, false);
     }
+  }
 
-    @Override
-    public void completedWorkItem( String summary )
-    {
-        if ( isNotEmpty( summary ) )
-        {
-            String nOf = "[" + (stageItems > 0 ? stageItem + "/" + stageItems : "" + stageItem) + "] ";
-            notifier.notify( jobId, NotificationLevel.LOOP, nOf + summary, false );
-        }
+  @Override
+  public void failedWorkItem(String error) {
+    if (isNotEmpty(error)) {
+      notifier.notify(jobId, NotificationLevel.ERROR, error, false);
     }
+  }
 
-    @Override
-    public void failedWorkItem( String error )
-    {
-        if ( isNotEmpty( error ) )
-        {
-            notifier.notify( jobId, NotificationLevel.ERROR, error, false );
-        }
+  private JsonNode getJobParameterData() {
+    JobParameters params = jobId.getJobParameters();
+    if (params == null) {
+      return null;
     }
-
-    private JsonNode getJobParameterData()
-    {
-        JobParameters params = jobId.getJobParameters();
-        if ( params == null )
-        {
-            return null;
-        }
-        try
-        {
-            return new ObjectMapper().valueToTree( params );
-        }
-        catch ( Exception ex )
-        {
-            return null;
-        }
+    try {
+      return new ObjectMapper().valueToTree(params);
+    } catch (Exception ex) {
+      return null;
     }
+  }
 }

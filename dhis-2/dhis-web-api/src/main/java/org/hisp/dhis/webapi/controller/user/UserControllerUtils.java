@@ -34,7 +34,6 @@ import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 
 import java.util.Comparator;
 import java.util.Set;
-
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
@@ -56,122 +55,117 @@ import org.springframework.stereotype.Component;
  * @author Jim Grace
  */
 @Component
-public class UserControllerUtils
-{
-    @Autowired
-    private DataApprovalService dataApprovalService;
+public class UserControllerUtils {
+  @Autowired private DataApprovalService dataApprovalService;
 
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
+  @Autowired private DataApprovalLevelService dataApprovalLevelService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    /**
-     * Gets the data approval workflows a user can see, including the workflow
-     * levels accessible to the user and the actions (if any) they can take at
-     * those levels to approve (and accept if configured) data.
-     *
-     * @param user the user
-     * @throws Exception if an error occurs
-     */
-    public RootNode getUserDataApprovalWorkflows( User user )
-        throws Exception
-    {
-        CollectionNode collectionNode = new CollectionNode( "dataApprovalWorkflows", true );
+  /**
+   * Gets the data approval workflows a user can see, including the workflow levels accessible to
+   * the user and the actions (if any) they can take at those levels to approve (and accept if
+   * configured) data.
+   *
+   * @param user the user
+   * @throws Exception if an error occurs
+   */
+  public RootNode getUserDataApprovalWorkflows(User user) throws Exception {
+    CollectionNode collectionNode = new CollectionNode("dataApprovalWorkflows", true);
 
-        for ( DataApprovalWorkflow workflow : dataApprovalService.getAllWorkflows() )
-        {
-            if ( !aclService.canRead( user, workflow ) )
-            {
-                continue;
-            }
+    for (DataApprovalWorkflow workflow : dataApprovalService.getAllWorkflows()) {
+      if (!aclService.canRead(user, workflow)) {
+        continue;
+      }
 
-            ComplexNode workflowNode = new ComplexNode( "dataApprovalWorkflow" );
+      ComplexNode workflowNode = new ComplexNode("dataApprovalWorkflow");
 
-            workflowNode.addChild( new SimpleNode( "name", workflow.getName() ) );
-            workflowNode.addChild( new SimpleNode( "id", workflow.getUid() ) );
-            workflowNode.addChild( getWorkflowLevelNodes( user, workflow ) );
+      workflowNode.addChild(new SimpleNode("name", workflow.getName()));
+      workflowNode.addChild(new SimpleNode("id", workflow.getUid()));
+      workflowNode.addChild(getWorkflowLevelNodes(user, workflow));
 
-            collectionNode.addChild( workflowNode );
-        }
-
-        collectionNode.getUnorderedChildren()
-            .sort( Comparator.comparing( c -> (String) ((SimpleNode) c.getUnorderedChildren().get( 0 )).getValue() ) );
-
-        RootNode rootNode = NodeUtils.createRootNode( "dataApprovalWorkflows" );
-        rootNode.addChild( collectionNode );
-
-        return rootNode;
+      collectionNode.addChild(workflowNode);
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    collectionNode
+        .getUnorderedChildren()
+        .sort(
+            Comparator.comparing(
+                c -> (String) ((SimpleNode) c.getUnorderedChildren().get(0)).getValue()));
 
-    /**
-     * For a user and workflow, returns a list of levels accessible to the user
-     * user and the actions (if any) they can take at those levels to approve
-     * (and accept if configured) data.
-     *
-     * @param user the user
-     * @param workflow the approval workflow for which to fetch the levels
-     * @return a node with the ordered list of data approval levels
-     */
-    private CollectionNode getWorkflowLevelNodes( User user, DataApprovalWorkflow workflow )
-    {
-        Set<String> authorities = user.getAllAuthorities();
+    RootNode rootNode = NodeUtils.createRootNode("dataApprovalWorkflows");
+    rootNode.addChild(collectionNode);
 
-        boolean canApprove = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_APPROVE );
-        boolean canApproveLowerLevels = authorities.contains( AUTHORITY_ALL )
-            || authorities.contains( AUTH_APPROVE_LOWER_LEVELS );
-        boolean canAccept = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_ACCEPT_LOWER_LEVELS );
+    return rootNode;
+  }
 
-        boolean acceptConfigured = systemSettingManager
-            .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-        int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel( user );
+  /**
+   * For a user and workflow, returns a list of levels accessible to the user user and the actions
+   * (if any) they can take at those levels to approve (and accept if configured) data.
+   *
+   * @param user the user
+   * @param workflow the approval workflow for which to fetch the levels
+   * @return a node with the ordered list of data approval levels
+   */
+  private CollectionNode getWorkflowLevelNodes(User user, DataApprovalWorkflow workflow) {
+    Set<String> authorities = user.getAllAuthorities();
 
-        CollectionNode levelNodes = new CollectionNode( "dataApprovalLevels", true );
+    boolean canApprove = authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_APPROVE);
+    boolean canApproveLowerLevels =
+        authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_APPROVE_LOWER_LEVELS);
+    boolean canAccept =
+        authorities.contains(AUTHORITY_ALL) || authorities.contains(AUTH_ACCEPT_LOWER_LEVELS);
 
-        boolean highestLevelInWorkflow = true;
+    boolean acceptConfigured =
+        systemSettingManager.getBoolSetting(SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL);
 
-        for ( DataApprovalLevel level : dataApprovalLevelService.getUserDataApprovalLevels( user, workflow ) )
-        {
-            if ( level.getOrgUnitLevel() < lowestUserOrgUnitLevel )
-            {
-                continue;
-            }
+    int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel(user);
 
-            ComplexNode levelNode = new ComplexNode( "dataApprovalLevel" );
+    CollectionNode levelNodes = new CollectionNode("dataApprovalLevels", true);
 
-            levelNode.addChild( new SimpleNode( "name", level.getName() ) );
-            levelNode.addChild( new SimpleNode( "id", level.getUid() ) );
-            levelNode.addChild( new SimpleNode( "level", level.getLevel() ) );
-            levelNode.addChild(
-                new SimpleNode( "approve", (canApprove && highestLevelInWorkflow) || canApproveLowerLevels ) );
+    boolean highestLevelInWorkflow = true;
 
-            if ( acceptConfigured )
-            {
-                levelNode.addChild( new SimpleNode( "accept", canAccept && !highestLevelInWorkflow ) );
-            }
+    for (DataApprovalLevel level :
+        dataApprovalLevelService.getUserDataApprovalLevels(user, workflow)) {
+      if (level.getOrgUnitLevel() < lowestUserOrgUnitLevel) {
+        continue;
+      }
 
-            levelNodes.addChild( levelNode );
+      ComplexNode levelNode = new ComplexNode("dataApprovalLevel");
 
-            highestLevelInWorkflow = false;
-        }
+      levelNode.addChild(new SimpleNode("name", level.getName()));
+      levelNode.addChild(new SimpleNode("id", level.getUid()));
+      levelNode.addChild(new SimpleNode("level", level.getLevel()));
+      levelNode.addChild(
+          new SimpleNode(
+              "approve", (canApprove && highestLevelInWorkflow) || canApproveLowerLevels));
 
-        return levelNodes;
+      if (acceptConfigured) {
+        levelNode.addChild(new SimpleNode("accept", canAccept && !highestLevelInWorkflow));
+      }
+
+      levelNodes.addChild(levelNode);
+
+      highestLevelInWorkflow = false;
     }
 
-    private int getLowsetUserOrgUnitLevel( User user )
-    {
-        Set<OrganisationUnit> userOrgUnits = user.getOrganisationUnits();
+    return levelNodes;
+  }
 
-        return userOrgUnits.isEmpty() ? 9999
-            : userOrgUnits.stream().map( OrganisationUnit::getHierarchyLevel ).min( Integer::compare ).get();
-    }
+  private int getLowsetUserOrgUnitLevel(User user) {
+    Set<OrganisationUnit> userOrgUnits = user.getOrganisationUnits();
+
+    return userOrgUnits.isEmpty()
+        ? 9999
+        : userOrgUnits.stream()
+            .map(OrganisationUnit::getHierarchyLevel)
+            .min(Integer::compare)
+            .get();
+  }
 }

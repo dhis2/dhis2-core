@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.deduplication.merge;
 import static org.hamcrest.CoreMatchers.*;
 
 import java.util.Arrays;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
@@ -44,77 +43,78 @@ import org.junit.jupiter.params.provider.ValueSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesMergeTests
-    extends PotentialDuplicatesApiTest
-{
-    @BeforeEach
-    public void beforeEach()
-    {
-        loginActions.loginAsSuperUser();
-    }
+public class PotentialDuplicatesMergeTests extends PotentialDuplicatesApiTest {
+  @BeforeEach
+  public void beforeEach() {
+    loginActions.loginAsSuperUser();
+  }
 
-    @Test
-    public void shouldUpdateLastUpdatedInfo()
-    {
-        String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
-        String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTeis().get( 0 );
+  @Test
+  public void shouldUpdateLastUpdatedInfo() {
+    String teiA = createTei(Constants.TRACKED_ENTITY_TYPE);
+    String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTeis().get(0);
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
-            "OPEN" );
+    String potentialDuplicate =
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
 
-        String admin_username = "taadmin";
-        loginActions.loginAsUser( admin_username, USER_PASSWORD );
+    String admin_username = "taadmin";
+    loginActions.loginAsUser(admin_username, USER_PASSWORD);
 
-        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate );
+    potentialDuplicatesActions.autoMergePotentialDuplicate(potentialDuplicate);
 
-        potentialDuplicatesActions.get( potentialDuplicate )
-            .validate()
-            .statusCode( 200 )
-            .body( "status", equalTo( "MERGED" ) )
-            .body( "lastUpdatedByUserName", equalTo( admin_username ) );
+    potentialDuplicatesActions
+        .get(potentialDuplicate)
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("MERGED"))
+        .body("lastUpdatedByUserName", equalTo(admin_username));
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
-            .validate().statusCode( 200 )
-            .body( "createdBy.username", equalTo( "tasuperadmin" ) )
-            .body( "updatedBy.username", equalTo( admin_username ) )
-            .body( "enrollments.updatedBy.username", everyItem( equalTo( admin_username ) ) );
-    }
+    trackerActions
+        .getTrackedEntity(teiA + "?fields=*")
+        .validate()
+        .statusCode(200)
+        .body("createdBy.username", equalTo("tasuperadmin"))
+        .body("updatedBy.username", equalTo(admin_username))
+        .body("enrollments.updatedBy.username", everyItem(equalTo(admin_username)));
+  }
 
-    @ValueSource( strings = { "enrollments", "relationships", "trackedEntityAttributes" } )
-    @ParameterizedTest
-    public void shouldCheckReferences( String property )
-    {
-        String id = "nlXNK4b7LVr"; // id of a program. Valid, but there won't be
-                                   // any enrollments, relationships or TEAs
-                                   // with that id.
-        String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
-        String teiB = createTei( Constants.TRACKED_ENTITY_TYPE );
+  @ValueSource(strings = {"enrollments", "relationships", "trackedEntityAttributes"})
+  @ParameterizedTest
+  public void shouldCheckReferences(String property) {
+    String id = "nlXNK4b7LVr"; // id of a program. Valid, but there won't be
+    // any enrollments, relationships or TEAs
+    // with that id.
+    String teiA = createTei(Constants.TRACKED_ENTITY_TYPE);
+    String teiB = createTei(Constants.TRACKED_ENTITY_TYPE);
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
-            "OPEN" );
+    String potentialDuplicate =
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
 
-        potentialDuplicatesActions
-            .manualMergePotentialDuplicate( potentialDuplicate, new JsonObjectBuilder().addArray( property,
-                Arrays.asList( id ) ).build() )
-            .validate().statusCode( 409 )
-            .body( "message",
-                both( containsString( "Merging conflict: Duplicate has no" ) ).and( containsString( id ) ) );
-    }
+    potentialDuplicatesActions
+        .manualMergePotentialDuplicate(
+            potentialDuplicate,
+            new JsonObjectBuilder().addArray(property, Arrays.asList(id)).build())
+        .validate()
+        .statusCode(409)
+        .body(
+            "message",
+            both(containsString("Merging conflict: Duplicate has no")).and(containsString(id)));
+  }
 
-    @Test
-    public void shouldNotMergeDifferentTypeTeis()
-    {
-        String trackedEntityType = new TrackedEntityTypeActions().create();
+  @Test
+  public void shouldNotMergeDifferentTypeTeis() {
+    String trackedEntityType = new TrackedEntityTypeActions().create();
 
-        String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
-        String teiB = createTei( trackedEntityType );
+    String teiA = createTei(Constants.TRACKED_ENTITY_TYPE);
+    String teiB = createTei(trackedEntityType);
 
-        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB,
-            "OPEN" );
+    String potentialDuplicate =
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(teiA, teiB, "OPEN");
 
-        potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
-            .validate().statusCode( 409 )
-            .body( "message", Matchers.containsString( "Entities have different Tracked Entity Types" ) );
-    }
-
+    potentialDuplicatesActions
+        .autoMergePotentialDuplicate(potentialDuplicate)
+        .validate()
+        .statusCode(409)
+        .body("message", Matchers.containsString("Entities have different Tracked Entity Types"));
+  }
 }

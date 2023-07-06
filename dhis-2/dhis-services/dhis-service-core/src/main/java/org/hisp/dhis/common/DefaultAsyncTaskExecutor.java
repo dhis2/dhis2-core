@@ -28,7 +28,6 @@
 package org.hisp.dhis.common;
 
 import java.util.concurrent.Future;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -39,24 +38,21 @@ import org.springframework.stereotype.Service;
  * @author Jan Bernitt
  */
 @Service
-public class DefaultAsyncTaskExecutor implements AsyncTaskExecutor
-{
-    private final AsyncListenableTaskExecutor jobExecutor;
+public class DefaultAsyncTaskExecutor implements AsyncTaskExecutor {
+  private final AsyncListenableTaskExecutor jobExecutor;
 
-    public DefaultAsyncTaskExecutor( @Qualifier( "taskScheduler" ) AsyncListenableTaskExecutor jobExecutor )
-    {
-        this.jobExecutor = jobExecutor;
-    }
+  public DefaultAsyncTaskExecutor(
+      @Qualifier("taskScheduler") AsyncListenableTaskExecutor jobExecutor) {
+    this.jobExecutor = jobExecutor;
+  }
 
-    @Override
-    public void executeTask( Runnable job )
-    {
-        jobExecutor.execute( job );
-    }
+  @Override
+  public void executeTask(Runnable job) {
+    jobExecutor.execute(job);
+  }
 
-    @Override
-    public Future<?> executeTaskWithCancelation( Runnable task )
-    {
-        return jobExecutor.submitListenable( task );
-    }
+  @Override
+  public Future<?> executeTaskWithCancelation(Runnable task) {
+    return jobExecutor.submitListenable(task);
+  }
 }

@@ -29,13 +29,16 @@ package org.hisp.dhis.patch;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.query.Query;
@@ -53,509 +56,421 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
 @Transactional // TODO not sure if this can be completely readonly
-public class DefaultPatchService implements PatchService
-{
-    private final SchemaService schemaService;
+public class DefaultPatchService implements PatchService {
+  private final SchemaService schemaService;
 
-    private final QueryService queryService;
+  private final QueryService queryService;
 
-    @Autowired
-    public DefaultPatchService(
-        SchemaService schemaService,
-        QueryService queryService,
-        CurrentUserService currentUserService,
-        RenderService renderService,
-        SystemService systemService )
-    {
-        checkNotNull( schemaService );
-        checkNotNull( queryService );
-        checkNotNull( currentUserService );
-        checkNotNull( renderService );
-        checkNotNull( systemService );
+  @Autowired
+  public DefaultPatchService(
+      SchemaService schemaService,
+      QueryService queryService,
+      CurrentUserService currentUserService,
+      RenderService renderService,
+      SystemService systemService) {
+    checkNotNull(schemaService);
+    checkNotNull(queryService);
+    checkNotNull(currentUserService);
+    checkNotNull(renderService);
+    checkNotNull(systemService);
 
-        this.schemaService = schemaService;
-        this.queryService = queryService;
+    this.schemaService = schemaService;
+    this.queryService = queryService;
+  }
+
+  @Override
+  public Patch diff(PatchParams params) {
+    if (!params.haveJsonNode()) {
+      return diff(params.getSource(), params.getTarget(), params.isIgnoreTransient());
     }
 
-    @Override
-    public Patch diff( PatchParams params )
-    {
-        if ( !params.haveJsonNode() )
-        {
-            return diff( params.getSource(), params.getTarget(), params.isIgnoreTransient() );
-        }
+    return diff(params.getJsonNode());
+  }
 
-        return diff( params.getJsonNode() );
+  @Override
+  public void apply(Patch patch, Object target) {
+    if (target == null) {
+      return;
     }
 
-    @Override
-    public void apply( Patch patch, Object target )
-    {
-        if ( target == null )
-        {
-            return;
-        }
+    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(target));
 
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( target ) );
-
-        if ( schema == null )
-        {
-            return;
-        }
-
-        patch.getMutations().forEach( mutation -> applyMutation( mutation, schema, target ) );
+    if (schema == null) {
+      return;
     }
 
-    private Patch diff( Object source, Object target, boolean ignoreTransient )
-    {
-        Patch patch = new Patch();
+    patch.getMutations().forEach(mutation -> applyMutation(mutation, schema, target));
+  }
 
-        if ( source == null || !HibernateProxyUtils.getRealClass( source ).isInstance( target ) )
-        {
-            return patch;
-        }
+  private Patch diff(Object source, Object target, boolean ignoreTransient) {
+    Patch patch = new Patch();
 
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( target ) );
-
-        if ( schema == null )
-        {
-            return patch;
-        }
-
-        patch.setMutations( calculateMutations( schema, source, target, ignoreTransient ) );
-
-        return patch;
+    if (source == null || !HibernateProxyUtils.getRealClass(source).isInstance(target)) {
+      return patch;
     }
 
-    private Patch diff( JsonNode jsonNode )
-    {
-        Patch patch = new Patch();
-        patch.setMutations( calculateMutations( jsonNode ) );
+    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(target));
 
-        return patch;
+    if (schema == null) {
+      return patch;
     }
 
-    private List<Mutation> calculateMutations( Schema schema, Object source, Object target, boolean ignoreTransient )
-    {
-        List<Mutation> mutations = new ArrayList<>();
+    patch.setMutations(calculateMutations(schema, source, target, ignoreTransient));
 
-        for ( Property property : schema.getProperties() )
-        {
-            if ( ignoreTransient && !property.isOwner() )
-            {
-                continue;
-            }
-            mutations.addAll( calculateMutation( property.key(), property, source, target ) );
-        }
+    return patch;
+  }
 
-        return mutations;
+  private Patch diff(JsonNode jsonNode) {
+    Patch patch = new Patch();
+    patch.setMutations(calculateMutations(jsonNode));
+
+    return patch;
+  }
+
+  private List<Mutation> calculateMutations(
+      Schema schema, Object source, Object target, boolean ignoreTransient) {
+    List<Mutation> mutations = new ArrayList<>();
+
+    for (Property property : schema.getProperties()) {
+      if (ignoreTransient && !property.isOwner()) {
+        continue;
+      }
+      mutations.addAll(calculateMutation(property.key(), property, source, target));
     }
 
-    @SuppressWarnings( "unchecked" )
-    private List<Mutation> calculateMutation( String path, Property property, Object source, Object target )
-    {
-        Object sourceValue = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
-        Object targetValue = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-        List<Mutation> mutations = new ArrayList<>();
+    return mutations;
+  }
 
-        if ( sourceValue == null && targetValue == null )
-        {
-            return mutations;
-        }
+  @SuppressWarnings("unchecked")
+  private List<Mutation> calculateMutation(
+      String path, Property property, Object source, Object target) {
+    Object sourceValue = ReflectionUtils.invokeMethod(source, property.getGetterMethod());
+    Object targetValue = ReflectionUtils.invokeMethod(target, property.getGetterMethod());
+    List<Mutation> mutations = new ArrayList<>();
 
-        if ( targetValue == null || sourceValue == null )
-        {
-            return Lists.newArrayList( new Mutation( path, targetValue ) );
-        }
-
-        if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
-        {
-            Collection<Object> addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-
-            Collection<Object> sourceCollection = ((Collection<Object>) sourceValue).stream()
-                .filter( Objects::nonNull )
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
-
-            Collection<Object> targetCollection = ((Collection<Object>) targetValue).stream()
-                .filter( Objects::nonNull )
-                .map( o -> ((IdentifiableObject) o).getUid() ).collect( Collectors.toList() );
-
-            for ( Object o : targetCollection )
-            {
-                if ( !sourceCollection.contains( o ) )
-                {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
-                }
-            }
-
-            if ( !addCollection.isEmpty() )
-            {
-                mutations.add( new Mutation( path, addCollection ) );
-            }
-
-            Collection<Object> delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            if ( !delCollection.isEmpty() )
-            {
-                mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
-            }
-        }
-        else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
-        {
-            List<Object> sourceCollection = new ArrayList<>( (Collection<Object>) sourceValue );
-            Collection<Object> targetCollection = (Collection<Object>) targetValue;
-
-            Collection<Object> addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-
-            for ( Object o : targetCollection )
-            {
-                if ( !sourceCollection.contains( o ) )
-                {
-                    addCollection.add( o );
-                }
-                else
-                {
-                    sourceCollection.remove( o );
-                }
-            }
-
-            if ( !addCollection.isEmpty() )
-            {
-                mutations.add( new Mutation( path, addCollection ) );
-            }
-
-            Collection<Object> delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            delCollection.addAll( sourceCollection );
-
-            if ( !delCollection.isEmpty() )
-            {
-                mutations.add( new Mutation( path, delCollection, Mutation.Operation.DELETION ) );
-            }
-        }
-        else if ( property.isSimple() || property.isEmbeddedObject() )
-        {
-            if ( !targetValue.equals( sourceValue ) )
-            {
-                return Lists.newArrayList( new Mutation( path, targetValue ) );
-            }
-        }
-
-        return mutations;
+    if (sourceValue == null && targetValue == null) {
+      return mutations;
     }
 
-    private List<Mutation> calculateMutations( JsonNode rootNode )
-    {
-        List<Mutation> mutations = new ArrayList<>();
-        List<String> fieldNames = Lists.newArrayList( rootNode.fieldNames() );
-
-        for ( String fieldName : fieldNames )
-        {
-            JsonNode node = rootNode.get( fieldName );
-            mutations.addAll( calculateMutations( fieldName, node ) );
-        }
-
-        return mutations;
+    if (targetValue == null || sourceValue == null) {
+      return Lists.newArrayList(new Mutation(path, targetValue));
     }
 
-    private List<Mutation> calculateMutations( String path, JsonNode node )
-    {
-        List<Mutation> mutations = new ArrayList<>();
+    if (property.isCollection()
+        && property.isIdentifiableObject()
+        && !property.isEmbeddedObject()) {
+      Collection<Object> addCollection = ReflectionUtils.newCollectionInstance(property.getKlass());
 
-        switch ( node.getNodeType() )
-        {
-        case OBJECT:
-            List<String> fieldNames = Lists.newArrayList( node.fieldNames() );
+      Collection<Object> sourceCollection =
+          ((Collection<Object>) sourceValue)
+              .stream()
+                  .filter(Objects::nonNull)
+                  .map(o -> ((IdentifiableObject) o).getUid())
+                  .collect(Collectors.toList());
 
-            for ( String fieldName : fieldNames )
-            {
-                mutations.addAll( calculateMutations( path + "." + fieldName, node.get( fieldName ) ) );
-            }
+      Collection<Object> targetCollection =
+          ((Collection<Object>) targetValue)
+              .stream()
+                  .filter(Objects::nonNull)
+                  .map(o -> ((IdentifiableObject) o).getUid())
+                  .collect(Collectors.toList());
 
-            break;
-        case ARRAY:
-            Collection<Object> identifiers = new ArrayList<>();
-
-            for ( JsonNode jsonNode : node )
-            {
-                identifiers.add( getValue( jsonNode ) );
-            }
-
-            mutations.add( new Mutation( path, identifiers ) );
-            break;
-        default:
-            mutations.add( new Mutation( path, getValue( node ) ) );
-            break;
+      for (Object o : targetCollection) {
+        if (!sourceCollection.contains(o)) {
+          addCollection.add(o);
+        } else {
+          sourceCollection.remove(o);
         }
+      }
 
-        return mutations;
+      if (!addCollection.isEmpty()) {
+        mutations.add(new Mutation(path, addCollection));
+      }
+
+      Collection<Object> delCollection = ReflectionUtils.newCollectionInstance(property.getKlass());
+      delCollection.addAll(sourceCollection);
+
+      if (!delCollection.isEmpty()) {
+        mutations.add(new Mutation(path, delCollection, Mutation.Operation.DELETION));
+      }
+    } else if (property.isCollection()
+        && !property.isEmbeddedObject()
+        && !property.isIdentifiableObject()) {
+      List<Object> sourceCollection = new ArrayList<>((Collection<Object>) sourceValue);
+      Collection<Object> targetCollection = (Collection<Object>) targetValue;
+
+      Collection<Object> addCollection = ReflectionUtils.newCollectionInstance(property.getKlass());
+
+      for (Object o : targetCollection) {
+        if (!sourceCollection.contains(o)) {
+          addCollection.add(o);
+        } else {
+          sourceCollection.remove(o);
+        }
+      }
+
+      if (!addCollection.isEmpty()) {
+        mutations.add(new Mutation(path, addCollection));
+      }
+
+      Collection<Object> delCollection = ReflectionUtils.newCollectionInstance(property.getKlass());
+      delCollection.addAll(sourceCollection);
+
+      if (!delCollection.isEmpty()) {
+        mutations.add(new Mutation(path, delCollection, Mutation.Operation.DELETION));
+      }
+    } else if (property.isSimple() || property.isEmbeddedObject()) {
+      if (!targetValue.equals(sourceValue)) {
+        return Lists.newArrayList(new Mutation(path, targetValue));
+      }
     }
 
-    private Object getValue( JsonNode node )
-    {
-        switch ( node.getNodeType() )
-        {
-        case BOOLEAN:
-            return node.booleanValue();
-        case NUMBER:
-            return node.numberValue();
-        case STRING:
-            return node.textValue();
-        case NULL:
-            return null;
+    return mutations;
+  }
+
+  private List<Mutation> calculateMutations(JsonNode rootNode) {
+    List<Mutation> mutations = new ArrayList<>();
+    List<String> fieldNames = Lists.newArrayList(rootNode.fieldNames());
+
+    for (String fieldName : fieldNames) {
+      JsonNode node = rootNode.get(fieldName);
+      mutations.addAll(calculateMutations(fieldName, node));
+    }
+
+    return mutations;
+  }
+
+  private List<Mutation> calculateMutations(String path, JsonNode node) {
+    List<Mutation> mutations = new ArrayList<>();
+
+    switch (node.getNodeType()) {
+      case OBJECT:
+        List<String> fieldNames = Lists.newArrayList(node.fieldNames());
+
+        for (String fieldName : fieldNames) {
+          mutations.addAll(calculateMutations(path + "." + fieldName, node.get(fieldName)));
         }
 
+        break;
+      case ARRAY:
+        Collection<Object> identifiers = new ArrayList<>();
+
+        for (JsonNode jsonNode : node) {
+          identifiers.add(getValue(jsonNode));
+        }
+
+        mutations.add(new Mutation(path, identifiers));
+        break;
+      default:
+        mutations.add(new Mutation(path, getValue(node)));
+        break;
+    }
+
+    return mutations;
+  }
+
+  private Object getValue(JsonNode node) {
+    switch (node.getNodeType()) {
+      case BOOLEAN:
+        return node.booleanValue();
+      case NUMBER:
+        return node.numberValue();
+      case STRING:
+        return node.textValue();
+      case NULL:
         return null;
     }
 
-    private void applyMutation( Mutation mutation, Schema schema, Object target )
-    {
-        String path = mutation.getPath();
-        String[] paths = path.split( "\\." );
+    return null;
+  }
 
-        Schema currentSchema = schema;
-        Property currentProperty = null;
-        Object currentTarget = target;
+  private void applyMutation(Mutation mutation, Schema schema, Object target) {
+    String path = mutation.getPath();
+    String[] paths = path.split("\\.");
 
-        for ( int i = 0; i < paths.length; i++ )
-        {
-            if ( !currentSchema.haveProperty( paths[i] ) )
-            {
-                return;
-            }
+    Schema currentSchema = schema;
+    Property currentProperty = null;
+    Object currentTarget = target;
 
-            currentProperty = currentSchema.getProperty( paths[i] );
+    for (int i = 0; i < paths.length; i++) {
+      if (!currentSchema.haveProperty(paths[i])) {
+        return;
+      }
 
-            if ( currentProperty == null )
-            {
-                return;
-            }
+      currentProperty = currentSchema.getProperty(paths[i]);
 
-            if ( (currentProperty.isSimple() && !currentProperty.isCollection()) && i != (paths.length - 1) )
-            {
-                return;
-            }
+      if (currentProperty == null) {
+        return;
+      }
 
-            if ( currentProperty.isCollection() )
-            {
-                currentSchema = schemaService.getDynamicSchema( currentProperty.getItemKlass() );
-            }
-            else
-            {
-                currentSchema = schemaService.getDynamicSchema( currentProperty.getKlass() );
-            }
+      if ((currentProperty.isSimple() && !currentProperty.isCollection())
+          && i != (paths.length - 1)) {
+        return;
+      }
 
-            if ( i < (paths.length - 1) )
-            {
-                currentTarget = ReflectionUtils.invokeMethod( currentTarget, currentProperty.getGetterMethod() );
-            }
-        }
+      if (currentProperty.isCollection()) {
+        currentSchema = schemaService.getDynamicSchema(currentProperty.getItemKlass());
+      } else {
+        currentSchema = schemaService.getDynamicSchema(currentProperty.getKlass());
+      }
 
-        if ( currentSchema != null && currentProperty != null )
-        {
-            applyMutation( mutation, currentProperty, currentTarget );
-        }
+      if (i < (paths.length - 1)) {
+        currentTarget =
+            ReflectionUtils.invokeMethod(currentTarget, currentProperty.getGetterMethod());
+      }
     }
 
-    // TODO fix type cast from object to T
-    @SuppressWarnings( "unchecked" )
-    private <T extends Comparable<? super T>> void applyMutation( Mutation mutation, Property property, Object target )
-    {
-        Object value = mutation.getValue();
+    if (currentSchema != null && currentProperty != null) {
+      applyMutation(mutation, currentProperty, currentTarget);
+    }
+  }
 
-        if ( property.isCollection() )
-        {
-            Collection<Object> collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-            Collection<Object> sourceCollection = Collection.class.isInstance( value ) ? (Collection<Object>) value
-                : Lists.newArrayList( value );
+  // TODO fix type cast from object to T
+  @SuppressWarnings("unchecked")
+  private <T extends Comparable<? super T>> void applyMutation(
+      Mutation mutation, Property property, Object target) {
+    Object value = mutation.getValue();
 
-            if ( collection == null )
-            {
-                collection = ReflectionUtils.newCollectionInstance( property.getKlass() );
-            }
+    if (property.isCollection()) {
+      Collection<Object> collection =
+          ReflectionUtils.invokeMethod(target, property.getGetterMethod());
+      Collection<Object> sourceCollection =
+          Collection.class.isInstance(value)
+              ? (Collection<Object>) value
+              : Lists.newArrayList(value);
 
-            for ( Object o : sourceCollection )
-            {
-                Object object = o;
+      if (collection == null) {
+        collection = ReflectionUtils.newCollectionInstance(property.getKlass());
+      }
 
-                if ( property.isIdentifiableObject() && !property.isEmbeddedObject() )
-                {
-                    if ( !(object instanceof String) )
-                    {
-                        return;
-                    }
+      for (Object o : sourceCollection) {
+        Object object = o;
 
-                    Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
+        if (property.isIdentifiableObject() && !property.isEmbeddedObject()) {
+          if (!(object instanceof String)) {
+            return;
+          }
 
-                    Query query = Query.from( schema );
+          Schema schema = schemaService.getDynamicSchema(property.getItemKlass());
 
-                    query.add( Restrictions.eq( "id", (T) object ) ); // optimize
-                                                                      // by
-                                                                      // using
-                                                                      // .in(..)
-                                                                      // query
+          Query query = Query.from(schema);
 
-                    List<? extends IdentifiableObject> objects = queryService.query( query );
+          query.add(Restrictions.eq("id", (T) object)); // optimize
+          // by
+          // using
+          // .in(..)
+          // query
 
-                    if ( objects.size() != 1 )
-                    {
-                        return;
-                    }
+          List<? extends IdentifiableObject> objects = queryService.query(query);
 
-                    object = objects.get( 0 );
-                }
+          if (objects.size() != 1) {
+            return;
+          }
 
-                // validate type
-                if ( !property.getItemKlass().isInstance( object ) )
-                {
-                    return;
-                }
-
-                if ( Mutation.Operation.ADDITION == mutation.getOperation() )
-                {
-                    if ( !collection.contains( object ) )
-                    {
-                        collection.add( object );
-                    }
-                }
-                else if ( Mutation.Operation.DELETION == mutation.getOperation() )
-                {
-                    if ( collection.contains( object ) )
-                    {
-                        collection.remove( object );
-                    }
-                }
-            }
-
-            ReflectionUtils.invokeMethod( target, property.getSetterMethod(), collection );
+          object = objects.get(0);
         }
-        else if ( property.isIdentifiableObject() && !property.isEmbeddedObject() )
-        {
-            if ( !String.class.isInstance( value ) )
-            {
-                return;
-            }
 
-            Schema schema = schemaService.getDynamicSchema( property.getKlass() );
-
-            Query query = Query.from( schema );
-            query.add( Restrictions.eq( "id", (T) value ) );
-
-            List<? extends IdentifiableObject> objects = queryService.query( query );
-
-            if ( objects.size() != 1 )
-            {
-                return;
-            }
-
-            value = objects.get( 0 );
-
-            // validate type
-            if ( !property.getKlass().isInstance( value ) )
-            {
-                return;
-            }
-
-            ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
+        // validate type
+        if (!property.getItemKlass().isInstance(object)) {
+          return;
         }
-        else
-        {
-            value = parseValue( value, property.getKlass() );
 
-            // validate type
-            if ( !property.getKlass().isInstance( value ) )
-            {
-                return;
-            }
-
-            ReflectionUtils.invokeMethod( target, property.getSetterMethod(), value );
+        if (Mutation.Operation.ADDITION == mutation.getOperation()) {
+          if (!collection.contains(object)) {
+            collection.add(object);
+          }
+        } else if (Mutation.Operation.DELETION == mutation.getOperation()) {
+          if (collection.contains(object)) {
+            collection.remove(object);
+          }
         }
+      }
+
+      ReflectionUtils.invokeMethod(target, property.getSetterMethod(), collection);
+    } else if (property.isIdentifiableObject() && !property.isEmbeddedObject()) {
+      if (!String.class.isInstance(value)) {
+        return;
+      }
+
+      Schema schema = schemaService.getDynamicSchema(property.getKlass());
+
+      Query query = Query.from(schema);
+      query.add(Restrictions.eq("id", (T) value));
+
+      List<? extends IdentifiableObject> objects = queryService.query(query);
+
+      if (objects.size() != 1) {
+        return;
+      }
+
+      value = objects.get(0);
+
+      // validate type
+      if (!property.getKlass().isInstance(value)) {
+        return;
+      }
+
+      ReflectionUtils.invokeMethod(target, property.getSetterMethod(), value);
+    } else {
+      value = parseValue(value, property.getKlass());
+
+      // validate type
+      if (!property.getKlass().isInstance(value)) {
+        return;
+      }
+
+      ReflectionUtils.invokeMethod(target, property.getSetterMethod(), value);
+    }
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private Object parseValue(Object value, Class<?> klass) {
+    if (klass.isInstance(value) || !String.class.isInstance(value)) {
+      return value;
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    private Object parseValue( Object value, Class<?> klass )
-    {
-        if ( klass.isInstance( value ) || !String.class.isInstance( value ) )
-        {
-            return value;
-        }
+    String stringValue = (String) value;
 
-        String stringValue = (String) value;
-
-        if ( Integer.class.isAssignableFrom( klass ) )
-        {
-            try
-            {
-                return Integer.valueOf( stringValue );
-            }
-            catch ( Exception ex )
-            {
-            }
-        }
-        else if ( Boolean.class.isAssignableFrom( klass ) )
-        {
-            try
-            {
-                return Boolean.valueOf( stringValue );
-            }
-            catch ( Exception ex )
-            {
-            }
-        }
-        else if ( Float.class.isAssignableFrom( klass ) )
-        {
-            try
-            {
-                return Float.valueOf( stringValue );
-            }
-            catch ( Exception ex )
-            {
-            }
-        }
-        else if ( Double.class.isAssignableFrom( klass ) )
-        {
-            try
-            {
-                return Double.valueOf( stringValue );
-            }
-            catch ( Exception ex )
-            {
-            }
-        }
-        else if ( Date.class.isAssignableFrom( klass ) )
-        {
-            try
-            {
-                return DateUtils.parseDate( stringValue );
-            }
-            catch ( Exception ex )
-            {
-            }
-        }
-        if ( Enum.class.isAssignableFrom( klass ) )
-        {
-            Optional<? extends Enum<?>> enumValue = Enums.getIfPresent( (Class<? extends Enum>) klass, stringValue );
-
-            if ( enumValue.isPresent() )
-            {
-                return enumValue.get();
-            }
-        }
-
-        return null;
+    if (Integer.class.isAssignableFrom(klass)) {
+      try {
+        return Integer.valueOf(stringValue);
+      } catch (Exception ex) {
+      }
+    } else if (Boolean.class.isAssignableFrom(klass)) {
+      try {
+        return Boolean.valueOf(stringValue);
+      } catch (Exception ex) {
+      }
+    } else if (Float.class.isAssignableFrom(klass)) {
+      try {
+        return Float.valueOf(stringValue);
+      } catch (Exception ex) {
+      }
+    } else if (Double.class.isAssignableFrom(klass)) {
+      try {
+        return Double.valueOf(stringValue);
+      } catch (Exception ex) {
+      }
+    } else if (Date.class.isAssignableFrom(klass)) {
+      try {
+        return DateUtils.parseDate(stringValue);
+      } catch (Exception ex) {
+      }
     }
+    if (Enum.class.isAssignableFrom(klass)) {
+      Optional<? extends Enum<?>> enumValue =
+          Enums.getIfPresent((Class<? extends Enum>) klass, stringValue);
+
+      if (enumValue.isPresent()) {
+        return enumValue.get();
+      }
+    }
+
+    return null;
+  }
 }

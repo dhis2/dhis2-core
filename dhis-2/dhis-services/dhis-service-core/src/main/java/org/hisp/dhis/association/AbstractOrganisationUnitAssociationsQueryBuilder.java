@@ -40,9 +40,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
@@ -50,171 +48,169 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 
 @RequiredArgsConstructor
-public abstract class AbstractOrganisationUnitAssociationsQueryBuilder
-{
+public abstract class AbstractOrganisationUnitAssociationsQueryBuilder {
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private static final String SHARING_OUTER_QUERY_BEGIN = "select " +
-        "    inner_query_alias.uid, " +
-        "    inner_query_alias.agg_ou_uid " +
-        "from (";
+  private static final String SHARING_OUTER_QUERY_BEGIN =
+      "select " + "    inner_query_alias.uid, " + "    inner_query_alias.agg_ou_uid " + "from (";
 
-    private static final String SHARING_OUTER_QUERY_END = ") as inner_query_alias";
+  private static final String SHARING_OUTER_QUERY_END = ") as inner_query_alias";
 
-    private static final String REL_TABLE_ALIAS = "relationship_table_alias";
+  private static final String REL_TABLE_ALIAS = "relationship_table_alias";
 
-    private static final String T_ALIAS = "base_table_alias";
+  private static final String T_ALIAS = "base_table_alias";
 
-    private static final String INNER_QUERY_GROUPING_BY = "group by " + T_ALIAS + ".uid, " + T_ALIAS
-        + ".sharing";
+  private static final String INNER_QUERY_GROUPING_BY =
+      "group by " + T_ALIAS + ".uid, " + T_ALIAS + ".sharing";
 
-    private String getInnerQuerySql()
-    {
-        return "select " +
-            T_ALIAS + ".uid, " +
-            T_ALIAS + ".sharing, " +
-            "array_agg(ou.uid) agg_ou_uid " +
-            "from " + getBaseTableName() + " " + T_ALIAS +
-            " left join " + getRelationshipTableName() + " " + REL_TABLE_ALIAS +
-            " on " + T_ALIAS + "." + getJoinColumnName() + " = " + REL_TABLE_ALIAS + "." + getJoinColumnName() +
-            " left join organisationunit ou " +
-            " on " + REL_TABLE_ALIAS + ".organisationunitid = ou.organisationunitid " +
-            "where";
-    }
+  private String getInnerQuerySql() {
+    return "select "
+        + T_ALIAS
+        + ".uid, "
+        + T_ALIAS
+        + ".sharing, "
+        + "array_agg(ou.uid) agg_ou_uid "
+        + "from "
+        + getBaseTableName()
+        + " "
+        + T_ALIAS
+        + " left join "
+        + getRelationshipTableName()
+        + " "
+        + REL_TABLE_ALIAS
+        + " on "
+        + T_ALIAS
+        + "."
+        + getJoinColumnName()
+        + " = "
+        + REL_TABLE_ALIAS
+        + "."
+        + getJoinColumnName()
+        + " left join organisationunit ou "
+        + " on "
+        + REL_TABLE_ALIAS
+        + ".organisationunitid = ou.organisationunitid "
+        + "where";
+  }
 
-    protected abstract String getRelationshipTableName();
+  protected abstract String getRelationshipTableName();
 
-    protected abstract String getJoinColumnName();
+  protected abstract String getJoinColumnName();
 
-    protected abstract String getBaseTableName();
+  protected abstract String getBaseTableName();
 
-    public String buildSqlQuery( Set<String> uids, Set<String> userOrgUnitPaths, User currentUser )
-    {
-        Stream<String> queryParts = Stream.of(
+  public String buildSqlQuery(Set<String> uids, Set<String> userOrgUnitPaths, User currentUser) {
+    Stream<String> queryParts =
+        Stream.of(
             SHARING_OUTER_QUERY_BEGIN,
-            innerQueryProvider( uids, userOrgUnitPaths, currentUser ),
-            SHARING_OUTER_QUERY_END );
+            innerQueryProvider(uids, userOrgUnitPaths, currentUser),
+            SHARING_OUTER_QUERY_END);
 
-        if ( nonSuperUser( currentUser ) )
-        {
-            queryParts = Stream.concat(
-                queryParts,
-                Stream.of(
-                    "where",
-                    getSharingConditions( LIKE_READ_METADATA ) ) );
-        }
-        return queryParts.collect( joining( " " ) );
+    if (nonSuperUser(currentUser)) {
+      queryParts =
+          Stream.concat(queryParts, Stream.of("where", getSharingConditions(LIKE_READ_METADATA)));
     }
+    return queryParts.collect(joining(" "));
+  }
 
-    public String buildSqlQueryForRawAssociation( Set<String> uids )
-    {
-        Stream<String> queryParts = Stream.of(
+  public String buildSqlQueryForRawAssociation(Set<String> uids) {
+    Stream<String> queryParts =
+        Stream.of(
             SHARING_OUTER_QUERY_BEGIN,
-            innerQueryProvider( uids, null, null ),
-            SHARING_OUTER_QUERY_END );
+            innerQueryProvider(uids, null, null),
+            SHARING_OUTER_QUERY_END);
 
-        return queryParts.collect( joining( " " ) );
+    return queryParts.collect(joining(" "));
+  }
+
+  private String innerQueryProvider(
+      Set<String> uids, Set<String> userOrgUnitPaths, User currentUser) {
+    Stream<String> queryParts = Stream.of(getInnerQuerySql(), getUidsFilter(uids));
+
+    if (nonSuperUser(currentUser)) {
+      queryParts =
+          Stream.concat(queryParts, Stream.of("and", getUserOrgUnitPathsFilter(userOrgUnitPaths)));
     }
 
-    private String innerQueryProvider( Set<String> uids, Set<String> userOrgUnitPaths, User currentUser )
-    {
-        Stream<String> queryParts = Stream.of(
-            getInnerQuerySql(),
-            getUidsFilter( uids ) );
+    queryParts = Stream.concat(queryParts, Stream.of(INNER_QUERY_GROUPING_BY));
 
-        if ( nonSuperUser( currentUser ) )
-        {
-            queryParts = Stream.concat( queryParts,
-                Stream.of(
-                    "and",
-                    getUserOrgUnitPathsFilter( userOrgUnitPaths ) ) );
-        }
+    return queryParts.collect(joining(" "));
+  }
 
-        queryParts = Stream.concat( queryParts, Stream.of( INNER_QUERY_GROUPING_BY ) );
+  private String getSharingConditions(String access) {
+    CurrentUserGroupInfo currentUserGroupInfo = currentUserService.getCurrentUserGroupsInfo();
+    return String.join(
+        " or ",
+        getOwnerCondition(currentUserGroupInfo),
+        getPublicSharingCondition(access),
+        getUserGroupAccessCondition(currentUserGroupInfo, access),
+        getUserAccessCondition(currentUserGroupInfo, access));
+  }
 
-        return queryParts.collect( joining( " " ) );
+  private String getOwnerCondition(CurrentUserGroupInfo currentUserGroupInfo) {
+    return String.join(
+        " or ",
+        jsonbFunction(EXTRACT_PATH_TEXT, "owner")
+            + " = "
+            + singleQuote(currentUserGroupInfo.getUserUID()),
+        jsonbFunction(EXTRACT_PATH_TEXT, "owner") + " is null");
+  }
+
+  private String getPublicSharingCondition(String access) {
+    return String.join(
+        " or ",
+        jsonbFunction(EXTRACT_PATH_TEXT, "public") + " like " + singleQuote(access),
+        jsonbFunction(EXTRACT_PATH_TEXT, "public") + " is null");
+  }
+
+  private String getUserAccessCondition(CurrentUserGroupInfo currentUserGroupInfo, String access) {
+    String userUid = currentUserGroupInfo.getUserUID();
+    return Stream.of(
+            jsonbFunction(HAS_USER_ID, userUid), jsonbFunction(CHECK_USER_ACCESS, userUid, access))
+        .collect(joining(" and ", "(", ")"));
+  }
+
+  private String getUserGroupAccessCondition(
+      CurrentUserGroupInfo currentUserGroupInfo, String access) {
+    if (CollectionUtils.isEmpty(currentUserGroupInfo.getUserGroupUIDs())) {
+      return "1=0";
     }
+    String groupUids = "{" + String.join(",", currentUserGroupInfo.getUserGroupUIDs()) + "}";
+    return Stream.of(
+            jsonbFunction(HAS_USER_GROUP_IDS, groupUids),
+            jsonbFunction(CHECK_USER_GROUPS_ACCESS, access, groupUids))
+        .collect(joining(" and ", "(", ")"));
+  }
 
-    private String getSharingConditions( String access )
-    {
-        CurrentUserGroupInfo currentUserGroupInfo = currentUserService.getCurrentUserGroupsInfo();
-        return String.join( " or ",
-            getOwnerCondition( currentUserGroupInfo ),
-            getPublicSharingCondition( access ),
-            getUserGroupAccessCondition( currentUserGroupInfo, access ),
-            getUserAccessCondition( currentUserGroupInfo, access ) );
-    }
+  private String jsonbFunction(String functionName, String... params) {
+    return String.join(
+        "",
+        functionName,
+        "(",
+        String.join(
+            ",",
+            "inner_query_alias.sharing",
+            Arrays.stream(params).map(SqlUtils::singleQuote).collect(joining(","))),
+        ")");
+  }
 
-    private String getOwnerCondition( CurrentUserGroupInfo currentUserGroupInfo )
-    {
-        return String.join( " or ",
-            jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " = " + singleQuote( currentUserGroupInfo.getUserUID() ),
-            jsonbFunction( EXTRACT_PATH_TEXT, "owner" ) + " is null" );
-    }
+  private boolean nonSuperUser(User currentUser) {
+    return Objects.nonNull(currentUser) && !currentUser.isSuper();
+  }
 
-    private String getPublicSharingCondition( String access )
-    {
-        return String.join( " or ",
-            jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " like " + singleQuote( access ),
-            jsonbFunction( EXTRACT_PATH_TEXT, "public" ) + " is null" );
-    }
+  private String getUidsFilter(Set<String> uids) {
+    return T_ALIAS
+        + ".uid in ("
+        + uids.stream().map(SqlUtils::singleQuote).collect(joining(","))
+        + ")";
+  }
 
-    private String getUserAccessCondition( CurrentUserGroupInfo currentUserGroupInfo, String access )
-    {
-        String userUid = currentUserGroupInfo.getUserUID();
-        return Stream.of(
-            jsonbFunction( HAS_USER_ID, userUid ),
-            jsonbFunction( CHECK_USER_ACCESS, userUid, access ) )
-            .collect( joining( " and ", "(", ")" ) );
-    }
-
-    private String getUserGroupAccessCondition( CurrentUserGroupInfo currentUserGroupInfo, String access )
-    {
-        if ( CollectionUtils.isEmpty( currentUserGroupInfo.getUserGroupUIDs() ) )
-        {
-            return "1=0";
-        }
-        String groupUids = "{" + String.join( ",", currentUserGroupInfo.getUserGroupUIDs() ) + "}";
-        return Stream.of(
-            jsonbFunction( HAS_USER_GROUP_IDS, groupUids ),
-            jsonbFunction( CHECK_USER_GROUPS_ACCESS, access, groupUids ) )
-            .collect( joining( " and ", "(", ")" ) );
-    }
-
-    private String jsonbFunction( String functionName, String... params )
-    {
-        return String.join( "",
-            functionName,
-            "(",
-            String.join( ",", "inner_query_alias.sharing",
-                Arrays.stream( params )
-                    .map( SqlUtils::singleQuote )
-                    .collect( joining( "," ) ) ),
-            ")" );
-    }
-
-    private boolean nonSuperUser( User currentUser )
-    {
-        return Objects.nonNull( currentUser ) && !currentUser.isSuper();
-    }
-
-    private String getUidsFilter( Set<String> uids )
-    {
-        return T_ALIAS + ".uid in (" +
-            uids.stream()
-                .map( SqlUtils::singleQuote )
-                .collect( joining( "," ) )
-            + ")";
-    }
-
-    private String getUserOrgUnitPathsFilter( Set<String> userOrgUnitPaths )
-    {
-        return Stream.concat(
-            Stream.of( "ou.organisationUnitId is null" ),
+  private String getUserOrgUnitPathsFilter(Set<String> userOrgUnitPaths) {
+    return Stream.concat(
+            Stream.of("ou.organisationUnitId is null"),
             userOrgUnitPaths.stream()
-                .map( userOrgUnitPath -> "ou.path like '" + userOrgUnitPath + "%'" ) )
-            .collect( joining( " or ", "(", ")" ) );
-    }
-
+                .map(userOrgUnitPath -> "ou.path like '" + userOrgUnitPath + "%'"))
+        .collect(joining(" or ", "(", ")"));
+  }
 }

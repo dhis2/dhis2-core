@@ -63,223 +63,206 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class PreCheckUpdatableFieldsValidationHookTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class PreCheckUpdatableFieldsValidationHookTest {
 
-    private final static String TRACKED_ENTITY_TYPE_ID = "TrackedEntityTypeId";
+  private static final String TRACKED_ENTITY_TYPE_ID = "TrackedEntityTypeId";
 
-    private final static String PROGRAM_ID = "ProgramId";
+  private static final String PROGRAM_ID = "ProgramId";
 
-    private final static String PROGRAM_STAGE_ID = "ProgramStageId";
+  private static final String PROGRAM_STAGE_ID = "ProgramStageId";
 
-    private final static String TRACKED_ENTITY_ID = "TrackedEntityId";
+  private static final String TRACKED_ENTITY_ID = "TrackedEntityId";
 
-    private final static String ENROLLMENT_ID = "EnrollmentId";
+  private static final String ENROLLMENT_ID = "EnrollmentId";
 
-    private final static String EVENT_ID = "EventId";
+  private static final String EVENT_ID = "EventId";
 
-    private PreCheckUpdatableFieldsValidationHook validationHook;
+  private PreCheckUpdatableFieldsValidationHook validationHook;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validationHook = new PreCheckUpdatableFieldsValidationHook();
+  @BeforeEach
+  public void setUp() {
+    validationHook = new PreCheckUpdatableFieldsValidationHook();
 
-        when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+    when(bundle.getImportStrategy()).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
 
-        when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
+    when(bundle.getStrategy(any(TrackedEntity.class))).thenReturn(TrackerImportStrategy.UPDATE);
+    when(bundle.getStrategy(any(Enrollment.class))).thenReturn(TrackerImportStrategy.UPDATE);
+    when(bundle.getStrategy(any(Event.class))).thenReturn(TrackerImportStrategy.UPDATE);
 
-        when( bundle.getTrackedEntityInstance( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
-        when( bundle.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( programInstance() );
-        when( bundle.getProgramStageInstance( EVENT_ID ) ).thenReturn( programStageInstance() );
-    }
+    when(bundle.getTrackedEntityInstance(TRACKED_ENTITY_ID)).thenReturn(trackedEntityInstance());
+    when(bundle.getProgramInstance(ENROLLMENT_ID)).thenReturn(programInstance());
+    when(bundle.getProgramStageInstance(EVENT_ID)).thenReturn(programStageInstance());
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccess()
-    {
-        // given
-        TrackedEntity trackedEntity = validTei();
+  @Test
+  void verifyTrackedEntityValidationSuccess() {
+    // given
+    TrackedEntity trackedEntity = validTei();
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
+    // then
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType()
-    {
-        // given
-        TrackedEntity trackedEntity = validTei();
-        trackedEntity.setTrackedEntityType( "NewTrackedEntityTypeId" );
+  @Test
+  void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType() {
+    // given
+    TrackedEntity trackedEntity = validTei();
+    trackedEntity.setTrackedEntityType("NewTrackedEntityTypeId");
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        // then
-        hasTrackerError( reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid() );
-    }
+    // then
+    hasTrackerError(reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid());
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccess()
-    {
-        // given
-        Enrollment enrollment = validEnrollment();
+  @Test
+  void verifyEnrollmentValidationSuccess() {
+    // given
+    Enrollment enrollment = validEnrollment();
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
 
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
+    // then
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenUpdateProgram()
-    {
-        // given
-        Enrollment enrollment = validEnrollment();
-        enrollment.setProgram( "NewProgramId" );
+  @Test
+  void verifyEnrollmentValidationFailsWhenUpdateProgram() {
+    // given
+    Enrollment enrollment = validEnrollment();
+    enrollment.setProgram("NewProgramId");
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
 
-        // then
-        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "program" ) );
-    }
+    // then
+    hasTrackerError(reporter, E1127, ENROLLMENT, enrollment.getUid());
+    assertThat(reporter.getReportList().get(0).getErrorMessage(), containsString("program"));
+  }
 
-    @Test
-    void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity()
-    {
-        // given
-        Enrollment enrollment = validEnrollment();
-        enrollment.setTrackedEntity( "NewTrackedEntityId" );
+  @Test
+  void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity() {
+    // given
+    Enrollment enrollment = validEnrollment();
+    enrollment.setTrackedEntity("NewTrackedEntityId");
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
 
-        // then
-        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
-    }
+    // then
+    hasTrackerError(reporter, E1127, ENROLLMENT, enrollment.getUid());
+    assertThat(reporter.getReportList().get(0).getErrorMessage(), containsString("trackedEntity"));
+  }
 
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        // given
-        Event event = validEvent();
+  @Test
+  void verifyEventValidationSuccess() {
+    // given
+    Event event = validEvent();
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
+    // then
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenUpdateProgramStage()
-    {
-        // given
-        Event event = validEvent();
-        event.setProgramStage( "NewProgramStageId" );
+  @Test
+  void verifyEventValidationFailsWhenUpdateProgramStage() {
+    // given
+    Event event = validEvent();
+    event.setProgramStage("NewProgramStageId");
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        // then
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
-    }
+    // then
+    hasTrackerError(reporter, E1128, EVENT, event.getUid());
+    assertThat(reporter.getReportList().get(0).getErrorMessage(), containsString("programStage"));
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenUpdateEnrollment()
-    {
-        // given
-        Event event = validEvent();
-        event.setEnrollment( "NewEnrollmentId" );
+  @Test
+  void verifyEventValidationFailsWhenUpdateEnrollment() {
+    // given
+    Event event = validEvent();
+    event.setEnrollment("NewEnrollmentId");
 
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
 
-        // then
-        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
-    }
+    // then
+    hasTrackerError(reporter, E1128, EVENT, event.getUid());
+    assertThat(reporter.getReportList().get(0).getErrorMessage(), containsString("enrollment"));
+  }
 
-    private TrackedEntity validTei()
-    {
-        return TrackedEntity.builder()
-            .trackedEntity( TRACKED_ENTITY_ID )
-            .trackedEntityType( TRACKED_ENTITY_TYPE_ID )
-            .build();
-    }
+  private TrackedEntity validTei() {
+    return TrackedEntity.builder()
+        .trackedEntity(TRACKED_ENTITY_ID)
+        .trackedEntityType(TRACKED_ENTITY_TYPE_ID)
+        .build();
+  }
 
-    private Enrollment validEnrollment()
-    {
-        return Enrollment.builder()
-            .enrollment( ENROLLMENT_ID )
-            .trackedEntity( TRACKED_ENTITY_ID )
-            .program( PROGRAM_ID )
-            .build();
-    }
+  private Enrollment validEnrollment() {
+    return Enrollment.builder()
+        .enrollment(ENROLLMENT_ID)
+        .trackedEntity(TRACKED_ENTITY_ID)
+        .program(PROGRAM_ID)
+        .build();
+  }
 
-    private Event validEvent()
-    {
-        return Event.builder()
-            .event( EVENT_ID )
-            .programStage( PROGRAM_STAGE_ID )
-            .enrollment( ENROLLMENT_ID )
-            .build();
-    }
+  private Event validEvent() {
+    return Event.builder()
+        .event(EVENT_ID)
+        .programStage(PROGRAM_STAGE_ID)
+        .enrollment(ENROLLMENT_ID)
+        .build();
+  }
 
-    private TrackedEntityInstance trackedEntityInstance()
-    {
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setUid( TRACKED_ENTITY_TYPE_ID );
+  private TrackedEntityInstance trackedEntityInstance() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid(TRACKED_ENTITY_TYPE_ID);
 
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( TRACKED_ENTITY_ID );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
-        return trackedEntityInstance;
-    }
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(TRACKED_ENTITY_ID);
+    trackedEntityInstance.setTrackedEntityType(trackedEntityType);
+    return trackedEntityInstance;
+  }
 
-    private ProgramInstance programInstance()
-    {
-        Program program = new Program();
-        program.setUid( PROGRAM_ID );
+  private ProgramInstance programInstance() {
+    Program program = new Program();
+    program.setUid(PROGRAM_ID);
 
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( ENROLLMENT_ID );
-        programInstance.setProgram( program );
-        programInstance.setEntityInstance( trackedEntityInstance() );
-        return programInstance;
-    }
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid(ENROLLMENT_ID);
+    programInstance.setProgram(program);
+    programInstance.setEntityInstance(trackedEntityInstance());
+    return programInstance;
+  }
 
-    private ProgramStageInstance programStageInstance()
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( PROGRAM_STAGE_ID );
+  private ProgramStageInstance programStageInstance() {
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(PROGRAM_STAGE_ID);
 
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( EVENT_ID );
-        programStageInstance.setProgramInstance( programInstance() );
-        programStageInstance.setProgramStage( programStage );
-        return programStageInstance;
-    }
+    ProgramStageInstance programStageInstance = new ProgramStageInstance();
+    programStageInstance.setUid(EVENT_ID);
+    programStageInstance.setProgramInstance(programInstance());
+    programStageInstance.setProgramStage(programStage);
+    return programStageInstance;
+  }
 }

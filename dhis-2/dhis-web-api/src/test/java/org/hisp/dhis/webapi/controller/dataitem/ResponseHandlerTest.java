@@ -52,7 +52,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -79,133 +78,125 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class ResponseHandlerTest
-{
+@ExtendWith(MockitoExtension.class)
+class ResponseHandlerTest {
 
-    @Mock
-    private QueryExecutor queryExecutor;
+  @Mock private QueryExecutor queryExecutor;
 
-    @Mock
-    private LinkService linkService;
+  @Mock private LinkService linkService;
 
-    @Mock
-    private FieldFilterService fieldFilterService;
+  @Mock private FieldFilterService fieldFilterService;
 
-    @Mock
-    private CacheProvider cacheProvider;
+  @Mock private CacheProvider cacheProvider;
 
-    private ResponseHandler responseHandler;
+  private ResponseHandler responseHandler;
 
-    @BeforeEach
-    public void setUp()
-    {
-        when( cacheProvider.createDataItemsPaginationCache() ).thenReturn( new NoOpCache<>() );
-        responseHandler = new ResponseHandler( queryExecutor, linkService, fieldFilterService, cacheProvider );
-    }
+  @BeforeEach
+  public void setUp() {
+    when(cacheProvider.createDataItemsPaginationCache()).thenReturn(new NoOpCache<>());
+    responseHandler =
+        new ResponseHandler(queryExecutor, linkService, fieldFilterService, cacheProvider);
+  }
 
-    @Test
-    void testAddResultsToNodeWithSuccess()
-    {
-        // Given
-        final RootNode anyRootNode = new RootNode( "any" );
-        final DataItem anyDataItem = DataItem.builder().name( "any" ).build();
-        final List<DataItem> anyDimensionalItems = singletonList( anyDataItem );
-        final Set<String> anyFields = newHashSet( "name" );
-        final CollectionNode anyCollectionNode = new CollectionNode( "any" );
+  @Test
+  void testAddResultsToNodeWithSuccess() {
+    // Given
+    final RootNode anyRootNode = new RootNode("any");
+    final DataItem anyDataItem = DataItem.builder().name("any").build();
+    final List<DataItem> anyDimensionalItems = singletonList(anyDataItem);
+    final Set<String> anyFields = newHashSet("name");
+    final CollectionNode anyCollectionNode = new CollectionNode("any");
 
-        // When
-        when( fieldFilterService.toConcreteClassCollectionNode( any(), any(), any(), any() ) )
-            .thenReturn( anyCollectionNode );
-        responseHandler.addResultsToNode( anyRootNode, anyDimensionalItems, anyFields );
+    // When
+    when(fieldFilterService.toConcreteClassCollectionNode(any(), any(), any(), any()))
+        .thenReturn(anyCollectionNode);
+    responseHandler.addResultsToNode(anyRootNode, anyDimensionalItems, anyFields);
 
-        // Then
-        assertThat( anyRootNode, is( notNullValue() ) );
-        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
-        assertThat( anyRootNode.getChildren(), hasSize( 1 ) );
-        assertThat( anyRootNode.getChildren().get( 0 ).isCollection(), is( true ) );
-    }
+    // Then
+    assertThat(anyRootNode, is(notNullValue()));
+    assertThat(anyRootNode.getName(), is(equalTo("any")));
+    assertThat(anyRootNode.getChildren(), hasSize(1));
+    assertThat(anyRootNode.getChildren().get(0).isCollection(), is(true));
+  }
 
-    @Test
-    void testAddPaginationToNodeWithSuccess()
-    {
-        // Given
-        final RootNode anyRootNode = new RootNode( "any" );
-        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asSet( Indicator.class,
-            DataSet.class );
-        final Set<String> anyFilters = newHashSet( "any" );
-        final User anyUser = new User();
-        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
+  @Test
+  void testAddPaginationToNodeWithSuccess() {
+    // Given
+    final RootNode anyRootNode = new RootNode("any");
+    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities =
+        asSet(Indicator.class, DataSet.class);
+    final Set<String> anyFilters = newHashSet("any");
+    final User anyUser = new User();
+    final WebOptions anyWebOptions = mockWebOptions(10, 1);
 
-        // When
-        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, anyWebOptions, anyFilters );
+    // When
+    responseHandler.addPaginationToNode(
+        anyRootNode, anyTargetEntities, anyUser, anyWebOptions, anyFilters);
 
-        // Then
-        assertThat( anyRootNode, is( notNullValue() ) );
-        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
-        assertThat( anyRootNode.getChildren(), hasSize( 1 ) );
-        assertThat( anyRootNode.getChildren().get( 0 ).isMetadata(), is( true ) );
-        assertThat( anyRootNode.getChildren().get( 0 ).isComplex(), is( true ) );
-        verify( linkService, times( 1 ) ).generatePagerLinks( any( Pager.class ), anyString() );
-    }
+    // Then
+    assertThat(anyRootNode, is(notNullValue()));
+    assertThat(anyRootNode.getName(), is(equalTo("any")));
+    assertThat(anyRootNode.getChildren(), hasSize(1));
+    assertThat(anyRootNode.getChildren().get(0).isMetadata(), is(true));
+    assertThat(anyRootNode.getChildren().get(0).isComplex(), is(true));
+    verify(linkService, times(1)).generatePagerLinks(any(Pager.class), anyString());
+  }
 
-    @Test
-    void testAddPaginationToNodeWhenPagingIsFalse()
-    {
-        // Given
-        final RootNode anyRootNode = new RootNode( "any" );
-        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asSet( Indicator.class,
-            DataSet.class );
-        final Set<String> anyFilters = newHashSet( "any" );
-        final User anyUser = new User();
-        final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
+  @Test
+  void testAddPaginationToNodeWhenPagingIsFalse() {
+    // Given
+    final RootNode anyRootNode = new RootNode("any");
+    final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities =
+        asSet(Indicator.class, DataSet.class);
+    final Set<String> anyFilters = newHashSet("any");
+    final User anyUser = new User();
+    final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
 
-        // When
-        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, webOptionsNoPaging, anyFilters );
+    // When
+    responseHandler.addPaginationToNode(
+        anyRootNode, anyTargetEntities, anyUser, webOptionsNoPaging, anyFilters);
 
-        // Then
-        assertThat( anyRootNode, is( notNullValue() ) );
-        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
-        assertThat( anyRootNode.getChildren(), is( empty() ) );
-        verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
-    }
+    // Then
+    assertThat(anyRootNode, is(notNullValue()));
+    assertThat(anyRootNode.getName(), is(equalTo("any")));
+    assertThat(anyRootNode.getChildren(), is(empty()));
+    verify(linkService, never()).generatePagerLinks(any(Pager.class), anyString());
+  }
 
-    @Test
-    void testAddPaginationToNodeWhenTargetEntitiesIsEmpty()
-    {
-        // Given
-        final RootNode anyRootNode = new RootNode( "any" );
-        final Set<Class<? extends BaseIdentifiableObject>> emptyTargetEntities = emptySet();
-        final Set<String> anyFilters = newHashSet( "any" );
-        final User anyUser = new User();
-        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
+  @Test
+  void testAddPaginationToNodeWhenTargetEntitiesIsEmpty() {
+    // Given
+    final RootNode anyRootNode = new RootNode("any");
+    final Set<Class<? extends BaseIdentifiableObject>> emptyTargetEntities = emptySet();
+    final Set<String> anyFilters = newHashSet("any");
+    final User anyUser = new User();
+    final WebOptions anyWebOptions = mockWebOptions(10, 1);
 
-        // When
-        responseHandler.addPaginationToNode( anyRootNode, emptyTargetEntities, anyUser, anyWebOptions, anyFilters );
+    // When
+    responseHandler.addPaginationToNode(
+        anyRootNode, emptyTargetEntities, anyUser, anyWebOptions, anyFilters);
 
-        // Then
-        assertThat( anyRootNode, is( notNullValue() ) );
-        assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
-        assertThat( anyRootNode.getChildren(), is( empty() ) );
-        verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
-        verify( queryExecutor, never() ).count( any( Set.class ), any( MapSqlParameterSource.class ) );
-    }
+    // Then
+    assertThat(anyRootNode, is(notNullValue()));
+    assertThat(anyRootNode.getName(), is(equalTo("any")));
+    assertThat(anyRootNode.getChildren(), is(empty()));
+    verify(linkService, never()).generatePagerLinks(any(Pager.class), anyString());
+    verify(queryExecutor, never()).count(any(Set.class), any(MapSqlParameterSource.class));
+  }
 
-    private WebOptions mockWebOptions( final int pageSize, final int pageNumber )
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
-        options.put( PAGE_SIZE, valueOf( pageSize ) );
-        options.put( PAGE, valueOf( pageNumber ) );
-        options.put( PAGING, "true" );
+  private WebOptions mockWebOptions(final int pageSize, final int pageNumber) {
+    final Map<String, String> options = new HashMap<>(0);
+    options.put(PAGE_SIZE, valueOf(pageSize));
+    options.put(PAGE, valueOf(pageNumber));
+    options.put(PAGING, "true");
 
-        return new WebOptions( options );
-    }
+    return new WebOptions(options);
+  }
 
-    private WebOptions mockWebOptionsNoPaging()
-    {
-        final Map<String, String> options = new HashMap<>( 0 );
-        options.put( PAGING, "false" );
+  private WebOptions mockWebOptionsNoPaging() {
+    final Map<String, String> options = new HashMap<>(0);
+    options.put(PAGING, "false");
 
-        return new WebOptions( options );
-    }
+    return new WebOptions(options);
+  }
 }

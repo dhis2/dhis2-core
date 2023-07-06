@@ -27,104 +27,91 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
-public class RelationshipItem
-{
-    private TrackedEntityInstance trackedEntityInstance;
+@JacksonXmlRootElement(localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0)
+public class RelationshipItem {
+  private TrackedEntityInstance trackedEntityInstance;
 
-    private Enrollment enrollment;
+  private Enrollment enrollment;
 
-    private Event event;
+  private Event event;
 
-    public RelationshipItem()
-    {
+  public RelationshipItem() {}
 
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public TrackedEntityInstance getTrackedEntityInstance() {
+    return trackedEntityInstance;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getTrackedEntityInstance()
-    {
-        return trackedEntityInstance;
-    }
+  public void setTrackedEntityInstance(TrackedEntityInstance trackedEntityInstance) {
+    this.trackedEntityInstance = trackedEntityInstance;
+  }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
-    {
-        this.trackedEntityInstance = trackedEntityInstance;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Enrollment getEnrollment() {
+    return enrollment;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Enrollment getEnrollment()
-    {
-        return enrollment;
-    }
+  public void setEnrollment(Enrollment enrollment) {
+    this.enrollment = enrollment;
+  }
 
-    public void setEnrollment( Enrollment enrollment )
-    {
-        this.enrollment = enrollment;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Event getEvent() {
+    return event;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Event getEvent()
-    {
-        return event;
-    }
+  public void setEvent(Event event) {
+    this.event = event;
+  }
 
-    public void setEvent( Event event )
-    {
-        this.event = event;
-    }
+  @Override
+  public String toString() {
+    return "RelationshipItem{"
+        + "trackedEntityInstance="
+        + StringUtils.defaultIfBlank(trackedEntityInstance.getTrackedEntityInstance(), "")
+        + ", enrollment="
+        + StringUtils.defaultIfBlank(enrollment.getEnrollment(), "")
+        + ", event="
+        + StringUtils.defaultIfBlank(event.getEvent(), "")
+        + '}';
+  }
 
-    @Override
-    public String toString()
-    {
-        return "RelationshipItem{" +
-            "trackedEntityInstance="
-            + StringUtils.defaultIfBlank( trackedEntityInstance.getTrackedEntityInstance(), "" ) +
-            ", enrollment=" + StringUtils.defaultIfBlank( enrollment.getEnrollment(), "" ) +
-            ", event=" + StringUtils.defaultIfBlank( event.getEvent(), "" ) +
-            '}';
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    RelationshipItem that = (RelationshipItem) o;
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        RelationshipItem that = (RelationshipItem) o;
+    return (trackedEntityInstance != null
+            && that.trackedEntityInstance != null
+            && Objects.equals(
+                trackedEntityInstance.getTrackedEntityInstance(),
+                that.trackedEntityInstance.getTrackedEntityInstance()))
+        || (enrollment != null
+            && that.enrollment != null
+            && Objects.equals(enrollment.getEnrollment(), that.enrollment.getEnrollment()))
+        || (event != null
+            && that.event != null
+            && Objects.equals(event.getEvent(), that.event.getEvent()));
+  }
 
-        return (trackedEntityInstance != null && that.trackedEntityInstance != null &&
-            Objects.equals( trackedEntityInstance.getTrackedEntityInstance(),
-                that.trackedEntityInstance.getTrackedEntityInstance() ))
-            ||
-            (enrollment != null && that.enrollment != null &&
-                Objects.equals( enrollment.getEnrollment(), that.enrollment.getEnrollment() ))
-            ||
-            (event != null && that.event != null &&
-                Objects.equals( event.getEvent(), that.event.getEvent() ));
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( trackedEntityInstance, enrollment, event );
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(trackedEntityInstance, enrollment, event);
+  }
 }

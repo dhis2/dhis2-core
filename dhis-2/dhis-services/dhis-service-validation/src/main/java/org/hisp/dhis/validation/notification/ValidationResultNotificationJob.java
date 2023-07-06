@@ -42,65 +42,62 @@ import org.springframework.stereotype.Component;
 /**
  * @author Stian Sandvold
  */
-@Component( "validationResultNotificationJob" )
-public class ValidationResultNotificationJob implements Job
-{
-    private final ValidationNotificationService notificationService;
+@Component("validationResultNotificationJob")
+public class ValidationResultNotificationJob implements Job {
+  private final ValidationNotificationService notificationService;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    public ValidationResultNotificationJob( ValidationNotificationService notificationService,
-        MessageService messageService, Notifier notifier )
-    {
-        checkNotNull( notificationService );
-        checkNotNull( messageService );
-        checkNotNull( notifier );
+  public ValidationResultNotificationJob(
+      ValidationNotificationService notificationService,
+      MessageService messageService,
+      Notifier notifier) {
+    checkNotNull(notificationService);
+    checkNotNull(messageService);
+    checkNotNull(notifier);
 
-        this.notificationService = notificationService;
-        this.messageService = messageService;
-        this.notifier = notifier;
+    this.notificationService = notificationService;
+    this.messageService = messageService;
+    this.notifier = notifier;
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public JobType getJobType() {
+    return JobType.VALIDATION_RESULTS_NOTIFICATION;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    final Clock clock = new Clock().startClock();
+
+    notifier.notify(jobConfiguration, "Sending new validation result notifications");
+
+    try {
+      runInternal();
+
+      notifier.notify(
+          jobConfiguration,
+          NotificationLevel.INFO,
+          "Sent validation result notifications: " + clock.time(),
+          true);
+    } catch (RuntimeException ex) {
+      notifier.notify(
+          jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true);
+
+      messageService.sendSystemErrorNotification(
+          "Sending validation result notifications failed", ex);
+
+      throw ex;
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.VALIDATION_RESULTS_NOTIFICATION;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        final Clock clock = new Clock().startClock();
-
-        notifier.notify( jobConfiguration, "Sending new validation result notifications" );
-
-        try
-        {
-            runInternal();
-
-            notifier.notify( jobConfiguration, NotificationLevel.INFO,
-                "Sent validation result notifications: " + clock.time(), true );
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
-
-            messageService
-                .sendSystemErrorNotification( "Sending validation result notifications failed", ex );
-
-            throw ex;
-        }
-    }
-
-    void runInternal()
-    {
-        notificationService.sendUnsentNotifications();
-    }
-
+  void runInternal() {
+    notificationService.sendUnsentNotifications();
+  }
 }

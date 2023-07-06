@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -45,115 +44,118 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class EventMapperTest
-{
+@ExtendWith(MockitoExtension.class)
+class EventMapperTest {
 
-    @Mock
-    private Geometry geometry;
+  @Mock private Geometry geometry;
 
-    private EventMapper mapper = Mappers.getMapper( EventMapper.class );
+  private EventMapper mapper = Mappers.getMapper(EventMapper.class);
 
-    @Test
-    void testMappingEvent()
-    {
-        Event event = new Event();
-        event.setEvent( "eventUid" );
-        event.setStatus( EventStatus.ACTIVE );
-        event.setProgram( "program" );
-        event.setProgramStage( "programStage" );
-        event.setEnrollment( "enrollment" );
-        event.setTrackedEntityInstance( "trackedEntityInstance" );
-        event.setOrgUnit( "orgUnit" );
-        event.setOrgUnitName( "orgUnitName" );
-        event.setRelationships( Set.of() );
-        event.setEventDate( "2020-01-01T00:00:00Z" );
-        event.setDueDate( "2023-01-01T00:00:00Z" );
-        event.setStoredBy( "storedBy" );
-        event.setFollowup( true );
-        event.setDeleted( false );
-        event.setCreated( "2018-01-01T00:00:00Z" );
-        event.setCreatedAtClient( "2018-01-02T00:00:00Z" );
-        event.setLastUpdated( "2022-01-01T00:00:00Z" );
-        event.setLastUpdatedAtClient( "2022-01-02T00:00:00Z" );
-        event.setAttributeOptionCombo( "attributeOptionCombo" );
-        event.setAttributeCategoryOptions( "attributeCategoryOptions" );
-        event.setCompletedBy( "completedBy" );
-        event.setCompletedDate( "2021-01-01T00:00:00Z" );
-        event.setGeometry( geometry );
-        event.setAssignedUser( "user" );
-        event.setAssignedUserUsername( "username" );
-        event.setAssignedUserFirstName( "firstname" );
-        event.setAssignedUserSurname( "surname" );
-        event.setCreatedByUserInfo( createdUserInfoSnapshot() );
-        event.setLastUpdatedByUserInfo( updatedUserInfoSnapshot() );
-        event.setDataValues( Set.of() );
-        event.setNotes( List.of() );
+  @Test
+  void testMappingEvent() {
+    Event event = new Event();
+    event.setEvent("eventUid");
+    event.setStatus(EventStatus.ACTIVE);
+    event.setProgram("program");
+    event.setProgramStage("programStage");
+    event.setEnrollment("enrollment");
+    event.setTrackedEntityInstance("trackedEntityInstance");
+    event.setOrgUnit("orgUnit");
+    event.setOrgUnitName("orgUnitName");
+    event.setRelationships(Set.of());
+    event.setEventDate("2020-01-01T00:00:00Z");
+    event.setDueDate("2023-01-01T00:00:00Z");
+    event.setStoredBy("storedBy");
+    event.setFollowup(true);
+    event.setDeleted(false);
+    event.setCreated("2018-01-01T00:00:00Z");
+    event.setCreatedAtClient("2018-01-02T00:00:00Z");
+    event.setLastUpdated("2022-01-01T00:00:00Z");
+    event.setLastUpdatedAtClient("2022-01-02T00:00:00Z");
+    event.setAttributeOptionCombo("attributeOptionCombo");
+    event.setAttributeCategoryOptions("attributeCategoryOptions");
+    event.setCompletedBy("completedBy");
+    event.setCompletedDate("2021-01-01T00:00:00Z");
+    event.setGeometry(geometry);
+    event.setAssignedUser("user");
+    event.setAssignedUserUsername("username");
+    event.setAssignedUserFirstName("firstname");
+    event.setAssignedUserSurname("surname");
+    event.setCreatedByUserInfo(createdUserInfoSnapshot());
+    event.setLastUpdatedByUserInfo(updatedUserInfoSnapshot());
+    event.setDataValues(Set.of());
+    event.setNotes(List.of());
 
-        org.hisp.dhis.tracker.domain.Event mappedEvent = mapper.from( event );
+    org.hisp.dhis.tracker.domain.Event mappedEvent = mapper.from(event);
 
-        assertEquals( "eventUid", mappedEvent.getEvent() );
-        assertEquals( EventStatus.ACTIVE, mappedEvent.getStatus() );
-        assertEquals( "program", mappedEvent.getProgram() );
-        assertEquals( "programStage", mappedEvent.getProgramStage() );
-        assertEquals( "enrollment", mappedEvent.getEnrollment() );
-        assertEquals( "trackedEntityInstance", mappedEvent.getTrackedEntity() );
-        assertEquals( "orgUnit", mappedEvent.getOrgUnit() );
-        assertEquals( "orgUnitName", mappedEvent.getOrgUnitName() );
-        assertThat( mappedEvent.getRelationships(), empty() );
-        assertEquals( "2020-01-01T00:00:00Z", mappedEvent.getOccurredAt().toString() );
-        assertEquals( "2023-01-01T00:00:00Z", mappedEvent.getScheduledAt().toString() );
-        assertEquals( "storedBy", mappedEvent.getStoredBy() );
-        assertEquals( true, mappedEvent.isFollowup() );
-        assertEquals( false, mappedEvent.isDeleted() );
-        assertEquals( "2018-01-01T00:00:00Z", mappedEvent.getCreatedAt().toString() );
-        assertEquals( "2018-01-02T00:00:00Z", mappedEvent.getCreatedAtClient().toString() );
-        assertEquals( "2022-01-01T00:00:00Z", mappedEvent.getUpdatedAt().toString() );
-        assertEquals( "2022-01-02T00:00:00Z", mappedEvent.getUpdatedAtClient().toString() );
-        assertEquals( "attributeOptionCombo", mappedEvent.getAttributeOptionCombo() );
-        assertEquals( "attributeCategoryOptions", mappedEvent.getAttributeCategoryOptions() );
-        assertEquals( "completedBy", mappedEvent.getCompletedBy() );
-        assertEquals( "2021-01-01T00:00:00Z", mappedEvent.getCompletedAt().toString() );
-        assertEquals( geometry, mappedEvent.getGeometry() );
-        assertEquals( "user", mappedEvent.getAssignedUser().getUid() );
-        assertEquals( "username", mappedEvent.getAssignedUser().getUsername() );
-        assertEquals( "firstname", mappedEvent.getAssignedUser().getFirstName() );
-        assertEquals( "surname", mappedEvent.getAssignedUser().getSurname() );
-        assertEquals( createdUser(), mappedEvent.getCreatedBy() );
-        assertEquals( updatedUser(), mappedEvent.getUpdatedBy() );
-        assertThat( mappedEvent.getDataValues(), empty() );
-        assertThat( mappedEvent.getNotes(), empty() );
-    }
+    assertEquals("eventUid", mappedEvent.getEvent());
+    assertEquals(EventStatus.ACTIVE, mappedEvent.getStatus());
+    assertEquals("program", mappedEvent.getProgram());
+    assertEquals("programStage", mappedEvent.getProgramStage());
+    assertEquals("enrollment", mappedEvent.getEnrollment());
+    assertEquals("trackedEntityInstance", mappedEvent.getTrackedEntity());
+    assertEquals("orgUnit", mappedEvent.getOrgUnit());
+    assertEquals("orgUnitName", mappedEvent.getOrgUnitName());
+    assertThat(mappedEvent.getRelationships(), empty());
+    assertEquals("2020-01-01T00:00:00Z", mappedEvent.getOccurredAt().toString());
+    assertEquals("2023-01-01T00:00:00Z", mappedEvent.getScheduledAt().toString());
+    assertEquals("storedBy", mappedEvent.getStoredBy());
+    assertEquals(true, mappedEvent.isFollowup());
+    assertEquals(false, mappedEvent.isDeleted());
+    assertEquals("2018-01-01T00:00:00Z", mappedEvent.getCreatedAt().toString());
+    assertEquals("2018-01-02T00:00:00Z", mappedEvent.getCreatedAtClient().toString());
+    assertEquals("2022-01-01T00:00:00Z", mappedEvent.getUpdatedAt().toString());
+    assertEquals("2022-01-02T00:00:00Z", mappedEvent.getUpdatedAtClient().toString());
+    assertEquals("attributeOptionCombo", mappedEvent.getAttributeOptionCombo());
+    assertEquals("attributeCategoryOptions", mappedEvent.getAttributeCategoryOptions());
+    assertEquals("completedBy", mappedEvent.getCompletedBy());
+    assertEquals("2021-01-01T00:00:00Z", mappedEvent.getCompletedAt().toString());
+    assertEquals(geometry, mappedEvent.getGeometry());
+    assertEquals("user", mappedEvent.getAssignedUser().getUid());
+    assertEquals("username", mappedEvent.getAssignedUser().getUsername());
+    assertEquals("firstname", mappedEvent.getAssignedUser().getFirstName());
+    assertEquals("surname", mappedEvent.getAssignedUser().getSurname());
+    assertEquals(createdUser(), mappedEvent.getCreatedBy());
+    assertEquals(updatedUser(), mappedEvent.getUpdatedBy());
+    assertThat(mappedEvent.getDataValues(), empty());
+    assertThat(mappedEvent.getNotes(), empty());
+  }
 
-    private User createdUser()
-    {
-        return User.builder()
-            .uid( "createdUserUid" )
-            .username( "createdUserUsername" )
-            .firstName( "createdUserFirstName" )
-            .surname( "createdUserSurname" )
-            .build();
-    }
+  private User createdUser() {
+    return User.builder()
+        .uid("createdUserUid")
+        .username("createdUserUsername")
+        .firstName("createdUserFirstName")
+        .surname("createdUserSurname")
+        .build();
+  }
 
-    private User updatedUser()
-    {
-        return User.builder()
-            .uid( "updatedUserUid" )
-            .username( "updatedUserUsername" )
-            .firstName( "updatedUserFirstName" )
-            .surname( "updatedUserSurname" )
-            .build();
-    }
+  private User updatedUser() {
+    return User.builder()
+        .uid("updatedUserUid")
+        .username("updatedUserUsername")
+        .firstName("updatedUserFirstName")
+        .surname("updatedUserSurname")
+        .build();
+  }
 
-    private UserInfoSnapshot createdUserInfoSnapshot()
-    {
-        return UserInfoSnapshot.of( 0, "code", "createdUserUid",
-            "createdUserUsername", "createdUserFirstName", "createdUserSurname" );
-    }
+  private UserInfoSnapshot createdUserInfoSnapshot() {
+    return UserInfoSnapshot.of(
+        0,
+        "code",
+        "createdUserUid",
+        "createdUserUsername",
+        "createdUserFirstName",
+        "createdUserSurname");
+  }
 
-    private UserInfoSnapshot updatedUserInfoSnapshot()
-    {
-        return UserInfoSnapshot.of( 0, "code", "updatedUserUid",
-            "updatedUserUsername", "updatedUserFirstName", "updatedUserSurname" );
-    }
+  private UserInfoSnapshot updatedUserInfoSnapshot() {
+    return UserInfoSnapshot.of(
+        0,
+        "code",
+        "updatedUserUid",
+        "updatedUserUsername",
+        "updatedUserFirstName",
+        "updatedUserSurname");
+  }
 }

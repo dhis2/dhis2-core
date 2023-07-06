@@ -30,31 +30,26 @@ package org.hisp.dhis.analytics.data;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.Objects;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public class IsoPeriodHolder
-{
-    private final String isoPeriod;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class IsoPeriodHolder {
+  private final String isoPeriod;
 
-    private final String dateField;
+  private final String dateField;
 
-    static IsoPeriodHolder of( String isoPeriodWithDateField )
-    {
-        if ( isoPeriodWithDateField.contains( DIMENSION_NAME_SEP ) )
-        {
-            String[] splitted = isoPeriodWithDateField.split( DIMENSION_NAME_SEP );
-            return new IsoPeriodHolder( splitted[0], splitted[1] );
-        }
-        return new IsoPeriodHolder( isoPeriodWithDateField, null );
+  static IsoPeriodHolder of(String isoPeriodWithDateField) {
+    if (isoPeriodWithDateField.contains(DIMENSION_NAME_SEP)) {
+      String[] splitted = isoPeriodWithDateField.split(DIMENSION_NAME_SEP);
+      return new IsoPeriodHolder(splitted[0], splitted[1]);
     }
+    return new IsoPeriodHolder(isoPeriodWithDateField, null);
+  }
 
-    public boolean hasDateField()
-    {
-        return Objects.nonNull( dateField );
-    }
+  public boolean hasDateField() {
+    return Objects.nonNull(dateField);
+  }
 }

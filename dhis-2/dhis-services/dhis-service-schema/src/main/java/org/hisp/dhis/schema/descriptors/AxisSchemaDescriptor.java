@@ -34,15 +34,13 @@ import org.hisp.dhis.visualization.Axis;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AxisSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "axis";
+public class AxisSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "axis";
 
-    public static final String PLURAL = "axes";
+  public static final String PLURAL = "axes";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( Axis.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(Axis.class, SINGULAR, PLURAL);
+  }
 }

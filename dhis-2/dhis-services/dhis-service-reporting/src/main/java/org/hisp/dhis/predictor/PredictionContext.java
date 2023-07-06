@@ -28,10 +28,8 @@
 package org.hisp.dhis.predictor;
 
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
@@ -44,13 +42,12 @@ import org.hisp.dhis.period.Period;
  */
 @Data
 @AllArgsConstructor
-public class PredictionContext
-{
-    private CategoryOptionCombo attributeOptionCombo;
+public class PredictionContext {
+  private CategoryOptionCombo attributeOptionCombo;
 
-    private Period outputPeriod;
+  private Period outputPeriod;
 
-    private MapMap<Period, DimensionalItemObject, Object> periodValueMap;
+  private MapMap<Period, DimensionalItemObject, Object> periodValueMap;
 
-    private Map<DimensionalItemObject, Object> valueMap;
+  private Map<DimensionalItemObject, Object> valueMap;
 }

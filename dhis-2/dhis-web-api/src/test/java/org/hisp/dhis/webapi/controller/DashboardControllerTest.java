@@ -31,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.DashboardItemType;
 import org.hisp.dhis.dashboard.DashboardService;
@@ -46,107 +47,88 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class DashboardControllerTest
-{
+@ExtendWith(MockitoExtension.class)
+class DashboardControllerTest {
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Mock
-    private DashboardService dashboardService;
+  @Mock private DashboardService dashboardService;
 
-    @Mock
-    private CascadeSharingService cascadeSharingService;
+  @Mock private CascadeSharingService cascadeSharingService;
 
-    @Mock
-    protected IdentifiableObjectManager manager;
+  @Mock protected IdentifiableObjectManager manager;
 
-    @Mock
-    protected MetadataExportService exportService;
+  @Mock protected MetadataExportService exportService;
 
-    @Mock
-    protected ContextService contextService;
+  @Mock protected ContextService contextService;
 
-    @InjectMocks
-    private DashboardController dashboardController;
+  @InjectMocks private DashboardController dashboardController;
 
-    private final static String ENDPOINT = "/dashboards/q";
+  private static final String ENDPOINT = "/dashboards/q";
 
-    @BeforeEach
-    public void setUp()
-    {
-        mockMvc = MockMvcBuilders.standaloneSetup( dashboardController ).build();
-    }
+  @BeforeEach
+  public void setUp() {
+    mockMvc = MockMvcBuilders.standaloneSetup(dashboardController).build();
+  }
 
-    @Test
-    void verifyEndpointWithNoArgs()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT ) ).andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithNoArgs() throws Exception {
+    mockMvc.perform(get(ENDPOINT)).andExpect(status().isOk());
 
-        verify( dashboardService ).search( null, null, null );
-    }
+    verify(dashboardService).search(null, null, null);
+  }
 
-    @Test
-    void verifyEndpointWithMaxArg()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT ).param( "max", "VISUALIZATION" ) ).andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithMaxArg() throws Exception {
+    mockMvc.perform(get(ENDPOINT).param("max", "VISUALIZATION")).andExpect(status().isOk());
 
-        verify( dashboardService ).search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), null, null );
-    }
+    verify(dashboardService).search(Sets.newHashSet(DashboardItemType.VISUALIZATION), null, null);
+  }
 
-    @Test
-    void verifyEndpointWithAllArg()
-        throws Exception
-    {
-        mockMvc.perform(
-            get( ENDPOINT )
-                .param( "max", "VISUALIZATION" )
-                .param( "count", "10" )
-                .param( "maxCount", "20" ) )
-            .andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithAllArg() throws Exception {
+    mockMvc
+        .perform(
+            get(ENDPOINT)
+                .param("max", "VISUALIZATION")
+                .param("count", "10")
+                .param("maxCount", "20"))
+        .andExpect(status().isOk());
 
-        verify( dashboardService ).search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 10, 20 );
-    }
+    verify(dashboardService).search(Sets.newHashSet(DashboardItemType.VISUALIZATION), 10, 20);
+  }
 
-    @Test
-    void verifyEndpointWithSearchQueryWithNoArgs()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/alfa" ) ).andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithSearchQueryWithNoArgs() throws Exception {
+    mockMvc.perform(get(ENDPOINT + "/alfa")).andExpect(status().isOk());
 
-        verify( dashboardService ).search( "alfa", null, null, null );
-    }
+    verify(dashboardService).search("alfa", null, null, null);
+  }
 
-    @Test
-    void verifyEndpointWithSearchQueryWithMaxArg()
-        throws Exception
-    {
-        mockMvc.perform(
-            get( ENDPOINT + "/alfa" )
-                .param( "max", "VISUALIZATION" ) )
-            .andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithSearchQueryWithMaxArg() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/alfa").param("max", "VISUALIZATION"))
+        .andExpect(status().isOk());
 
-        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.VISUALIZATION ), null, null );
-    }
+    verify(dashboardService)
+        .search("alfa", Sets.newHashSet(DashboardItemType.VISUALIZATION), null, null);
+  }
 
-    @Test
-    void verifyEndpointWithSearchQueryWithAllArg()
-        throws Exception
-    {
-        mockMvc.perform(
-            get( ENDPOINT + "/alfa" )
-                .param( "max", "VISUALIZATION" )
-                .param( "count", "10" )
-                .param( "maxCount", "20" ) )
-            .andExpect( status().isOk() );
+  @Test
+  void verifyEndpointWithSearchQueryWithAllArg() throws Exception {
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/alfa")
+                .param("max", "VISUALIZATION")
+                .param("count", "10")
+                .param("maxCount", "20"))
+        .andExpect(status().isOk());
 
-        verify( dashboardService ).search( "alfa", Sets.newHashSet( DashboardItemType.VISUALIZATION ), 10, 20 );
-    }
+    verify(dashboardService)
+        .search("alfa", Sets.newHashSet(DashboardItemType.VISUALIZATION), 10, 20);
+  }
 }

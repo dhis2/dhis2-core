@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.category;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -50,39 +49,32 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = CategoryComboSchemaDescriptor.API_ENDPOINT )
-public class CategoryComboController
-    extends AbstractCrudController<CategoryCombo>
-{
-    @Autowired
-    private CategoryService categoryService;
+@RequestMapping(value = CategoryComboSchemaDescriptor.API_ENDPOINT)
+public class CategoryComboController extends AbstractCrudController<CategoryCombo> {
+  @Autowired private CategoryService categoryService;
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException,
-        IOException
-    {
-        CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<RootNode> getDataSetWithDependencies(
+      @PathVariable("uid") String pvUid,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException, IOException {
+    CategoryCombo categoryCombo = categoryService.getCategoryCombo(pvUid);
 
-        if ( categoryCombo == null )
-        {
-            throw new WebMessageException( notFound( "CategoryCombo not found for uid: " + pvUid ) );
-        }
-
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo,
-            download );
+    if (categoryCombo == null) {
+      throw new WebMessageException(notFound("CategoryCombo not found for uid: " + pvUid));
     }
 
-    @Override
-    public void postCreateEntity( CategoryCombo categoryCombo )
-    {
-        categoryService.updateOptionCombos( categoryCombo );
-    }
+    return MetadataExportControllerUtils.getWithDependencies(
+        contextService, exportService, categoryCombo, download);
+  }
 
-    @Override
-    public void postUpdateEntity( CategoryCombo categoryCombo )
-    {
-        categoryService.updateOptionCombos( categoryCombo );
-    }
+  @Override
+  public void postCreateEntity(CategoryCombo categoryCombo) {
+    categoryService.updateOptionCombos(categoryCombo);
+  }
+
+  @Override
+  public void postUpdateEntity(CategoryCombo categoryCombo) {
+    categoryService.updateOptionCombos(categoryCombo);
+  }
 }

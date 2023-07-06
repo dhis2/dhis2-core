@@ -28,35 +28,31 @@
 package org.hisp.dhis.system.notification;
 
 import javax.validation.constraints.NotNull;
-
 import org.slf4j.Logger;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class NotificationLoggerUtil
-{
+public class NotificationLoggerUtil {
 
-    @NotNull
-    public static void log( Logger logger, NotificationLevel notificationLevel, String message )
-    {
-        switch ( notificationLevel )
-        {
-        case LOOP:
-        case DEBUG:
-            logger.debug( message );
-            break;
-        case INFO:
-            logger.info( message );
-            break;
-        case WARN:
-            logger.warn( message );
-            break;
-        case ERROR:
-            logger.error( message );
-            break;
-        case OFF:
-            break;
-        }
+  @NotNull
+  public static void log(Logger logger, NotificationLevel notificationLevel, String message) {
+    switch (notificationLevel) {
+      case LOOP:
+      case DEBUG:
+        logger.debug(message);
+        break;
+      case INFO:
+        logger.info(message);
+        break;
+      case WARN:
+        logger.warn(message);
+        break;
+      case ERROR:
+        logger.error(message);
+        break;
+      case OFF:
+        break;
     }
+  }
 }

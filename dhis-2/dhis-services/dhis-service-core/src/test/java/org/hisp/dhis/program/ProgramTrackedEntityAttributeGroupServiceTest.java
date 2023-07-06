@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -43,77 +42,71 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class ProgramTrackedEntityAttributeGroupServiceTest extends DhisSpringTest
-{
+class ProgramTrackedEntityAttributeGroupServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private ProgramTrackedEntityAttributeGroupService service;
+  @Autowired private ProgramTrackedEntityAttributeGroupService service;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private Program prA;
+  private Program prA;
 
-    private TrackedEntityAttribute teaA;
+  private TrackedEntityAttribute teaA;
 
-    private TrackedEntityAttribute teaB;
+  private TrackedEntityAttribute teaB;
 
-    private ProgramTrackedEntityAttribute attrA;
+  private ProgramTrackedEntityAttribute attrA;
 
-    private ProgramTrackedEntityAttribute attrB;
+  private ProgramTrackedEntityAttribute attrB;
 
-    private ProgramTrackedEntityAttributeGroup group;
+  private ProgramTrackedEntityAttributeGroup group;
 
-    @Override
-    public void setUpTest()
-    {
-        prA = createProgram( 'A' );
-        manager.save( prA );
-        teaA = createTrackedEntityAttribute( 'A' );
-        teaB = createTrackedEntityAttribute( 'B' );
-        manager.save( teaA );
-        manager.save( teaB );
-        attrA = createProgramTrackedEntityAttribute( prA, teaA );
-        attrB = createProgramTrackedEntityAttribute( prA, teaB );
-        Set<ProgramTrackedEntityAttribute> attributes = new HashSet<>();
-        attributes.add( attrA );
-        attributes.add( attrB );
-        group = createProgramTrackedEntityAttributeGroup( 'A' );
-    }
+  @Override
+  public void setUpTest() {
+    prA = createProgram('A');
+    manager.save(prA);
+    teaA = createTrackedEntityAttribute('A');
+    teaB = createTrackedEntityAttribute('B');
+    manager.save(teaA);
+    manager.save(teaB);
+    attrA = createProgramTrackedEntityAttribute(prA, teaA);
+    attrB = createProgramTrackedEntityAttribute(prA, teaB);
+    Set<ProgramTrackedEntityAttribute> attributes = new HashSet<>();
+    attributes.add(attrA);
+    attributes.add(attrB);
+    group = createProgramTrackedEntityAttributeGroup('A');
+  }
 
-    @Test
-    void testAddAndUpdate()
-    {
-        manager.save( attrA );
-        manager.save( attrB );
-        group.addAttribute( attrA );
-        group.addAttribute( attrB );
-        service.addProgramTrackedEntityAttributeGroup( group );
-        assertNotNull( service.getProgramTrackedEntityAttributeGroup( group.getUid() ) );
-        assertEquals( 2, group.getAttributes().size() );
-        group.setShortName( "updatedShortName" );
-        service.updateProgramTrackedEntityAttributeGroup( group );
-        assertEquals( "updatedShortName",
-            service.getProgramTrackedEntityAttributeGroup( group.getUid() ).getShortName() );
-    }
+  @Test
+  void testAddAndUpdate() {
+    manager.save(attrA);
+    manager.save(attrB);
+    group.addAttribute(attrA);
+    group.addAttribute(attrB);
+    service.addProgramTrackedEntityAttributeGroup(group);
+    assertNotNull(service.getProgramTrackedEntityAttributeGroup(group.getUid()));
+    assertEquals(2, group.getAttributes().size());
+    group.setShortName("updatedShortName");
+    service.updateProgramTrackedEntityAttributeGroup(group);
+    assertEquals(
+        "updatedShortName",
+        service.getProgramTrackedEntityAttributeGroup(group.getUid()).getShortName());
+  }
 
-    @Test
-    void testDelete()
-    {
-        service.addProgramTrackedEntityAttributeGroup( group );
-        service.deleteProgramTrackedEntityAttributeGroup( group );
-        assertNull( service.getProgramTrackedEntityAttributeGroup( group.getUid() ) );
-    }
+  @Test
+  void testDelete() {
+    service.addProgramTrackedEntityAttributeGroup(group);
+    service.deleteProgramTrackedEntityAttributeGroup(group);
+    assertNull(service.getProgramTrackedEntityAttributeGroup(group.getUid()));
+  }
 
-    @Test
-    void testRemoveMember()
-    {
-        service.addProgramTrackedEntityAttributeGroup( group );
-        group.addAttribute( attrA );
-        manager.update( group );
-        assertEquals( 1, group.getAttributes().size() );
-        group.removeAttribute( attrA );
-        manager.update( group );
-        assertEquals( 0, group.getAttributes().size() );
-    }
+  @Test
+  void testRemoveMember() {
+    service.addProgramTrackedEntityAttributeGroup(group);
+    group.addAttribute(attrA);
+    manager.update(group);
+    assertEquals(1, group.getAttributes().size());
+    group.removeAttribute(attrA);
+    manager.update(group);
+    assertEquals(0, group.getAttributes().size());
+  }
 }

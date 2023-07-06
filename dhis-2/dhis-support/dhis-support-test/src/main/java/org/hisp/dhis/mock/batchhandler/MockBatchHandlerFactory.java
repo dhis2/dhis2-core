@@ -29,29 +29,24 @@ package org.hisp.dhis.mock.batchhandler;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 
 /**
  * @author Lars Helge Overland
  */
-public class MockBatchHandlerFactory
-    implements BatchHandlerFactory
-{
-    private Map<String, BatchHandler<?>> batchHandlers = new HashMap<>();
+public class MockBatchHandlerFactory implements BatchHandlerFactory {
+  private Map<String, BatchHandler<?>> batchHandlers = new HashMap<>();
 
-    public <T> BatchHandlerFactory registerBatchHandler( Class<? extends BatchHandler<T>> clazz,
-        BatchHandler<T> batchHandler )
-    {
-        batchHandlers.put( clazz.getName(), batchHandler );
-        return this;
-    }
+  public <T> BatchHandlerFactory registerBatchHandler(
+      Class<? extends BatchHandler<T>> clazz, BatchHandler<T> batchHandler) {
+    batchHandlers.put(clazz.getName(), batchHandler);
+    return this;
+  }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public <T> BatchHandler<T> createBatchHandler( Class<? extends BatchHandler<T>> clazz )
-    {
-        return (BatchHandler<T>) batchHandlers.get( clazz.getName() );
-    }
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> BatchHandler<T> createBatchHandler(Class<? extends BatchHandler<T>> clazz) {
+    return (BatchHandler<T>) batchHandlers.get(clazz.getName());
+  }
 }

@@ -32,10 +32,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.render.RenderService;
@@ -58,101 +56,103 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = GeoFeatureController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class GeoFeatureController
-{
-    public static final String RESOURCE_PATH = "/geoFeatures";
+@RequestMapping(value = GeoFeatureController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class GeoFeatureController {
+  public static final String RESOURCE_PATH = "/geoFeatures";
 
-    private static final CacheControl GEOFEATURE_CACHE = CacheControl.maxAge( 2, TimeUnit.HOURS ).cachePrivate();
+  private static final CacheControl GEOFEATURE_CACHE =
+      CacheControl.maxAge(2, TimeUnit.HOURS).cachePrivate();
 
-    private final RenderService renderService;
+  private final RenderService renderService;
 
-    private final GeoFeatureService geoFeatureService;
+  private final GeoFeatureService geoFeatureService;
 
-    public GeoFeatureController( RenderService renderService, GeoFeatureService geoFeatureService )
-    {
-        this.renderService = renderService;
-        this.geoFeatureService = geoFeatureService;
+  public GeoFeatureController(RenderService renderService, GeoFeatureService geoFeatureService) {
+    this.renderService = renderService;
+    this.geoFeatureService = geoFeatureService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Resources
+  // -------------------------------------------------------------------------
+
+  @GetMapping
+  @ResponseBody
+  public ResponseEntity<List<GeoFeature>> getGeoFeaturesJson(
+      @RequestParam(required = false) String ou,
+      @RequestParam(required = false) String oug,
+      @RequestParam(required = false) DisplayProperty displayProperty,
+      @RequestParam(required = false) Date relativePeriodDate,
+      @RequestParam(required = false) String userOrgUnit,
+      @RequestParam(required = false) String coordinateField,
+      @RequestParam(defaultValue = "false", value = "includeGroupSets") boolean rpIncludeGroupSets,
+      @RequestParam Map<String, String> parameters,
+      DhisApiVersion apiVersion,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    WebOptions options = new WebOptions(parameters);
+    boolean includeGroupSets = "detailed".equals(options.getViewClass()) || rpIncludeGroupSets;
+
+    List<GeoFeature> features =
+        geoFeatureService.getGeoFeatures(
+            GeoFeatureService.Parameters.builder()
+                .apiVersion(apiVersion)
+                .displayProperty(displayProperty)
+                .includeGroupSets(includeGroupSets)
+                .request(request)
+                .response(response)
+                .organisationUnit(ou)
+                .userOrgUnit(userOrgUnit)
+                .organisationUnitGroupId(oug)
+                .relativePeriodDate(relativePeriodDate)
+                .coordinateField(coordinateField)
+                .build());
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CACHE_CONTROL, GEOFEATURE_CACHE.getHeaderValue())
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(features);
+  }
+
+  @GetMapping(produces = "application/javascript")
+  public void getGeoFeaturesJsonP(
+      @RequestParam(required = false) String ou,
+      @RequestParam(required = false) String oug,
+      @RequestParam(required = false) DisplayProperty displayProperty,
+      @RequestParam(required = false) Date relativePeriodDate,
+      @RequestParam(required = false) String userOrgUnit,
+      @RequestParam(required = false) String coordinateField,
+      @RequestParam(defaultValue = "callback") String callback,
+      @RequestParam(defaultValue = "false", value = "includeGroupSets") boolean rpIncludeGroupSets,
+      @RequestParam Map<String, String> parameters,
+      DhisApiVersion apiVersion,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws IOException {
+    WebOptions options = new WebOptions(parameters);
+    boolean includeGroupSets = "detailed".equals(options.getViewClass()) || rpIncludeGroupSets;
+
+    List<GeoFeature> features =
+        geoFeatureService.getGeoFeatures(
+            GeoFeatureService.Parameters.builder()
+                .apiVersion(apiVersion)
+                .displayProperty(displayProperty)
+                .includeGroupSets(includeGroupSets)
+                .request(request)
+                .response(response)
+                .userOrgUnit(userOrgUnit)
+                .organisationUnitGroupId(oug)
+                .relativePeriodDate(relativePeriodDate)
+                .coordinateField(coordinateField)
+                .build());
+
+    if (features == null) {
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // Resources
-    // -------------------------------------------------------------------------
-
-    @GetMapping
-    @ResponseBody
-    public ResponseEntity<List<GeoFeature>> getGeoFeaturesJson(
-        @RequestParam( required = false ) String ou,
-        @RequestParam( required = false ) String oug,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
-        @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
-        @RequestParam Map<String, String> parameters,
-        DhisApiVersion apiVersion,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        WebOptions options = new WebOptions( parameters );
-        boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
-
-        List<GeoFeature> features = geoFeatureService.getGeoFeatures( GeoFeatureService.Parameters.builder()
-            .apiVersion( apiVersion )
-            .displayProperty( displayProperty )
-            .includeGroupSets( includeGroupSets )
-            .request( request )
-            .response( response )
-            .organisationUnit( ou )
-            .userOrgUnit( userOrgUnit )
-            .organisationUnitGroupId( oug )
-            .relativePeriodDate( relativePeriodDate )
-            .coordinateField( coordinateField )
-            .build() );
-
-        return ResponseEntity.ok()
-            .header( HttpHeaders.CACHE_CONTROL, GEOFEATURE_CACHE.getHeaderValue() )
-            .contentType( MediaType.APPLICATION_JSON )
-            .body( features );
-    }
-
-    @GetMapping( produces = "application/javascript" )
-    public void getGeoFeaturesJsonP(
-        @RequestParam( required = false ) String ou,
-        @RequestParam( required = false ) String oug,
-        @RequestParam( required = false ) DisplayProperty displayProperty,
-        @RequestParam( required = false ) Date relativePeriodDate,
-        @RequestParam( required = false ) String userOrgUnit,
-        @RequestParam( required = false ) String coordinateField,
-        @RequestParam( defaultValue = "callback" ) String callback,
-        @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
-        @RequestParam Map<String, String> parameters,
-        DhisApiVersion apiVersion,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        WebOptions options = new WebOptions( parameters );
-        boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
-
-        List<GeoFeature> features = geoFeatureService.getGeoFeatures( GeoFeatureService.Parameters.builder()
-            .apiVersion( apiVersion )
-            .displayProperty( displayProperty )
-            .includeGroupSets( includeGroupSets )
-            .request( request )
-            .response( response )
-            .userOrgUnit( userOrgUnit )
-            .organisationUnitGroupId( oug )
-            .relativePeriodDate( relativePeriodDate )
-            .coordinateField( coordinateField )
-            .build() );
-
-        if ( features == null )
-        {
-            return;
-        }
-
-        ContextUtils.setCacheControl( response, GEOFEATURE_CACHE );
-        response.setContentType( "application/javascript" );
-        renderService.toJsonP( response.getOutputStream(), features, callback );
-    }
+    ContextUtils.setCacheControl(response, GEOFEATURE_CACHE);
+    response.setContentType("application/javascript");
+    renderService.toJsonP(response.getOutputStream(), features, callback);
+  }
 }

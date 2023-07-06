@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -41,266 +40,279 @@ import org.hisp.dhis.user.User;
 /**
  * @author Lars Helge Overland
  */
-public interface DataSetService extends DataSetDataIntegrityProvider
-{
-    String ID = DataSetService.class.getName();
+public interface DataSetService extends DataSetDataIntegrityProvider {
+  String ID = DataSetService.class.getName();
 
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataSet
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds a DataSet.
-     *
-     * @param dataSet The DataSet to add.
-     * @return The generated unique identifier for this DataSet.
-     */
-    long addDataSet( DataSet dataSet );
+  /**
+   * Adds a DataSet.
+   *
+   * @param dataSet The DataSet to add.
+   * @return The generated unique identifier for this DataSet.
+   */
+  long addDataSet(DataSet dataSet);
 
-    /**
-     * Updates a DataSet.
-     *
-     * @param dataSet The DataSet to update.
-     */
-    void updateDataSet( DataSet dataSet );
+  /**
+   * Updates a DataSet.
+   *
+   * @param dataSet The DataSet to update.
+   */
+  void updateDataSet(DataSet dataSet);
 
-    /**
-     * Deletes a DataSet.
-     *
-     * @param dataSet The DataSet to delete.
-     */
-    void deleteDataSet( DataSet dataSet );
+  /**
+   * Deletes a DataSet.
+   *
+   * @param dataSet The DataSet to delete.
+   */
+  void deleteDataSet(DataSet dataSet);
 
-    /**
-     * Get a DataSet
-     *
-     * @param id The unique identifier for the DataSet to get.
-     * @return The DataSet with the given id or null if it does not exist.
-     */
-    DataSet getDataSet( long id );
+  /**
+   * Get a DataSet
+   *
+   * @param id The unique identifier for the DataSet to get.
+   * @return The DataSet with the given id or null if it does not exist.
+   */
+  DataSet getDataSet(long id);
 
-    /**
-     * Returns the DataSet with the given UID.
-     *
-     * @param uid the UID.
-     * @return the DataSet with the given UID, or null if no match.
-     */
-    DataSet getDataSet( String uid );
+  /**
+   * Returns the DataSet with the given UID.
+   *
+   * @param uid the UID.
+   * @return the DataSet with the given UID, or null if no match.
+   */
+  DataSet getDataSet(String uid);
 
-    /**
-     * Returns the DataSet with the given UID. Bypasses the ACL system.
-     *
-     * @param uid the UID.
-     * @return the DataSet with the given UID, or null if no match.
-     */
-    DataSet getDataSetNoAcl( String uid );
+  /**
+   * Returns the DataSet with the given UID. Bypasses the ACL system.
+   *
+   * @param uid the UID.
+   * @return the DataSet with the given UID, or null if no match.
+   */
+  DataSet getDataSetNoAcl(String uid);
 
-    /**
-     * Returns all DataSets associated with the given DataEntryForm.
-     *
-     * @param dataEntryForm the DataEntryForm.
-     * @return a list of DataSets.
-     */
-    List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm );
+  /**
+   * Returns all DataSets associated with the given DataEntryForm.
+   *
+   * @param dataEntryForm the DataEntryForm.
+   * @return a list of DataSets.
+   */
+  List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm);
 
-    /**
-     * Get all DataSets.
-     *
-     * @return A list containing all DataSets.
-     */
-    List<DataSet> getAllDataSets();
+  /**
+   * Get all DataSets.
+   *
+   * @return A list containing all DataSets.
+   */
+  List<DataSet> getAllDataSets();
 
-    /**
-     * Gets all DataSets associated with the given PeriodType.
-     *
-     * @param periodType the PeriodType.
-     * @return a list of DataSets.
-     */
-    List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
+  /**
+   * Gets all DataSets associated with the given PeriodType.
+   *
+   * @param periodType the PeriodType.
+   * @return a list of DataSets.
+   */
+  List<DataSet> getDataSetsByPeriodType(PeriodType periodType);
 
-    /**
-     * Returns the data sets which current user have READ access. If the current
-     * user has the ALL authority then all data sets are returned.
-     */
-    List<DataSet> getAllDataRead();
+  /**
+   * Returns the data sets which current user have READ access. If the current user has the ALL
+   * authority then all data sets are returned.
+   */
+  List<DataSet> getAllDataRead();
 
-    /**
-     * Returns the data sets which given user have READ access. If the current
-     * user has the ALL authority then all data sets are returned.
-     *
-     * @param user the user to query for data set list.
-     * @return a list of data sets which the given user has data read access to.
-     */
-    List<DataSet> getUserDataRead( User user );
+  /**
+   * Returns the data sets which given user have READ access. If the current user has the ALL
+   * authority then all data sets are returned.
+   *
+   * @param user the user to query for data set list.
+   * @return a list of data sets which the given user has data read access to.
+   */
+  List<DataSet> getUserDataRead(User user);
 
-    /**
-     * Returns the data sets which current user have WRITE access. If the
-     * current user has the ALL authority then all data sets are returned.
-     */
-    List<DataSet> getAllDataWrite();
+  /**
+   * Returns the data sets which current user have WRITE access. If the current user has the ALL
+   * authority then all data sets are returned.
+   */
+  List<DataSet> getAllDataWrite();
 
-    /**
-     * Returns the data sets which current user have WRITE access. If the
-     * current user has the ALL authority then all data sets are returned.
-     *
-     * @param user the user to query for data set list.
-     * @return a list of data sets which given user has data write access to.
-     */
-    List<DataSet> getUserDataWrite( User user );
+  /**
+   * Returns the data sets which current user have WRITE access. If the current user has the ALL
+   * authority then all data sets are returned.
+   *
+   * @param user the user to query for data set list.
+   * @return a list of data sets which given user has data write access to.
+   */
+  List<DataSet> getUserDataWrite(User user);
 
-    // -------------------------------------------------------------------------
-    // DataSet LockExceptions
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataSet LockExceptions
+  // -------------------------------------------------------------------------
 
-    /**
-     * Add new lock exception
-     *
-     * @param lockException LockException instance to add
-     * @return Database ID of LockException
-     */
-    long addLockException( LockException lockException );
+  /**
+   * Add new lock exception
+   *
+   * @param lockException LockException instance to add
+   * @return Database ID of LockException
+   */
+  long addLockException(LockException lockException);
 
-    /**
-     * Update lock exception
-     *
-     * @param lockException LockException instance to update
-     */
-    void updateLockException( LockException lockException );
+  /**
+   * Update lock exception
+   *
+   * @param lockException LockException instance to update
+   */
+  void updateLockException(LockException lockException);
 
-    /**
-     * Delete lock exception
-     *
-     * @param lockException LockException instance to delete
-     */
-    void deleteLockException( LockException lockException );
+  /**
+   * Delete lock exception
+   *
+   * @param lockException LockException instance to delete
+   */
+  void deleteLockException(LockException lockException);
 
-    /**
-     * Get LockException by ID
-     *
-     * @param id ID of LockException to get
-     * @return LockException with given ID, or null if not found
-     */
-    LockException getLockException( long id );
+  /**
+   * Get LockException by ID
+   *
+   * @param id ID of LockException to get
+   * @return LockException with given ID, or null if not found
+   */
+  LockException getLockException(long id);
 
-    /**
-     * Get number of LockExceptions in total
-     *
-     * @return Total count of LockExceptions
-     */
-    int getLockExceptionCount();
+  /**
+   * Get number of LockExceptions in total
+   *
+   * @return Total count of LockExceptions
+   */
+  int getLockExceptionCount();
 
-    /**
-     * Returns all lock exceptions
-     *
-     * @return List of all the lock exceptions
-     */
-    List<LockException> getAllLockExceptions();
+  /**
+   * Returns all lock exceptions
+   *
+   * @return List of all the lock exceptions
+   */
+  List<LockException> getAllLockExceptions();
 
-    /**
-     * Get all LockExceptions within a specific range
-     *
-     * @param first Index to start at
-     * @param max Number of results wanted
-     * @return List of LockExceptions withing the range specified
-     */
-    List<LockException> getLockExceptionsBetween( int first, int max );
+  /**
+   * Get all LockExceptions within a specific range
+   *
+   * @param first Index to start at
+   * @param max Number of results wanted
+   * @return List of LockExceptions withing the range specified
+   */
+  List<LockException> getLockExceptionsBetween(int first, int max);
 
-    /**
-     * Find all unique dataSet + period combinations (mainly used for batch
-     * removal)
-     *
-     * @return A list of all unique combinations (only dataSet and period is
-     *         set)
-     */
-    List<LockException> getLockExceptionCombinations();
+  /**
+   * Find all unique dataSet + period combinations (mainly used for batch removal)
+   *
+   * @return A list of all unique combinations (only dataSet and period is set)
+   */
+  List<LockException> getLockExceptionCombinations();
 
-    /**
-     * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
-     *
-     * @param dataSet the data set
-     * @param period the period.
-     * @param organisationUnit the organisation unit.
-     * @param attributeOptionCombo the attribute option combo.
-     * @param now the base date for deciding locked date, current date if null.
-     * @return LockStatus enum (LOCKED, APPROVED, OPEN)
-     */
-    LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now );
+  /**
+   * Checks whether the system is locked for data entry for the given input, checking expiryDays,
+   * lockExceptions and approvals.
+   *
+   * @param dataSet the data set
+   * @param period the period.
+   * @param organisationUnit the organisation unit.
+   * @param attributeOptionCombo the attribute option combo.
+   * @param now the base date for deciding locked date, current date if null.
+   * @return LockStatus enum (LOCKED, APPROVED, OPEN)
+   */
+  LockStatus getLockStatus(
+      User user,
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      Date now);
 
-    /**
-     * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
-     *
-     * @param dataSet the data set
-     * @param period the period.
-     * @param organisationUnit the organisation unit.
-     * @param attributeOptionCombo the attribute option combo.
-     * @param now the base date for deciding locked date, current date if null.
-     * @param useOrgUnitChildren whether to check children of the given org unit
-     *        or the org unit only.
-     * @return LockStatus enum (LOCKED, APPROVED, OPEN)
-     */
-    LockStatus getLockStatus( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren );
+  /**
+   * Checks whether the system is locked for data entry for the given input, checking expiryDays,
+   * lockExceptions and approvals.
+   *
+   * @param dataSet the data set
+   * @param period the period.
+   * @param organisationUnit the organisation unit.
+   * @param attributeOptionCombo the attribute option combo.
+   * @param now the base date for deciding locked date, current date if null.
+   * @param useOrgUnitChildren whether to check children of the given org unit or the org unit only.
+   * @return LockStatus enum (LOCKED, APPROVED, OPEN)
+   */
+  LockStatus getLockStatus(
+      User user,
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      Date now,
+      boolean useOrgUnitChildren);
 
-    /**
-     * Checks whether the system is locked for data entry for the given input,
-     * checking expiryDays, lockExceptions and approvals.
-     *
-     * @param dataElement the data element.
-     * @param period the period.
-     * @param organisationUnit the organisation unit.
-     * @param attributeOptionCombo the attribute option combo.
-     * @param now the base date for deciding locked date, current date if null.
-     * @return LockStatus enum (LOCKED, APPROVED, OPEN)
-     */
-    LockStatus getLockStatus( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo attributeOptionCombo, Date now );
+  /**
+   * Checks whether the system is locked for data entry for the given input, checking expiryDays,
+   * lockExceptions and approvals.
+   *
+   * @param dataElement the data element.
+   * @param period the period.
+   * @param organisationUnit the organisation unit.
+   * @param attributeOptionCombo the attribute option combo.
+   * @param now the base date for deciding locked date, current date if null.
+   * @return LockStatus enum (LOCKED, APPROVED, OPEN)
+   */
+  LockStatus getLockStatus(
+      User user,
+      DataElement dataElement,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo attributeOptionCombo,
+      Date now);
 
-    /**
-     * Delete a dataSet + period combination, used for batch removal, e.g. when
-     * you have a lock exception set on 100 OUs with the same dataSet + period
-     * combination.
-     *
-     * @param dataSet DataSet part of the combination
-     * @param period Period part of the combination
-     */
-    void deleteLockExceptionCombination( DataSet dataSet, Period period );
+  /**
+   * Delete a dataSet + period combination, used for batch removal, e.g. when you have a lock
+   * exception set on 100 OUs with the same dataSet + period combination.
+   *
+   * @param dataSet DataSet part of the combination
+   * @param period Period part of the combination
+   */
+  void deleteLockExceptionCombination(DataSet dataSet, Period period);
 
-    /**
-     * Delete a dataSet + period + organisationUnit combination
-     *
-     * @param dataSet DataSet part of the combination
-     * @param period Period part of the combination
-     * @param organisationUnit OrganisationUnit part of the combination
-     */
-    void deleteLockExceptionCombination( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
+  /**
+   * Delete a dataSet + period + organisationUnit combination
+   *
+   * @param dataSet DataSet part of the combination
+   * @param period Period part of the combination
+   * @param organisationUnit OrganisationUnit part of the combination
+   */
+  void deleteLockExceptionCombination(
+      DataSet dataSet, Period period, OrganisationUnit organisationUnit);
 
-    /**
-     * Delete lock exceptions for the given organisation unit.
-     *
-     * @param organisationUnit the {@link OrganisationUnit}.
-     */
-    void deleteLockExceptions( OrganisationUnit organisationUnit );
+  /**
+   * Delete lock exceptions for the given organisation unit.
+   *
+   * @param organisationUnit the {@link OrganisationUnit}.
+   */
+  void deleteLockExceptions(OrganisationUnit organisationUnit);
 
-    /**
-     * Checks whether the period is locked for data entry for the given input,
-     * checking the dataset's expiryDays and lockExceptions.
-     *
-     * @param dataSet the data set
-     * @param period the period.
-     * @param organisationUnit the organisation unit.
-     * @param now the base date for deciding locked date, current date if null.
-     * @return true or false indicating whether the system is locked or not.
-     */
-    boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now );
+  /**
+   * Checks whether the period is locked for data entry for the given input, checking the dataset's
+   * expiryDays and lockExceptions.
+   *
+   * @param dataSet the data set
+   * @param period the period.
+   * @param organisationUnit the organisation unit.
+   * @param now the base date for deciding locked date, current date if null.
+   * @return true or false indicating whether the system is locked or not.
+   */
+  boolean isLocked(
+      User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now);
 
-    /**
-     * Return a list of LockException with given filter list
-     *
-     * @param filters
-     * @return a list of LockException with given filter list
-     */
-    List<LockException> filterLockExceptions( List<String> filters );
+  /**
+   * Return a list of LockException with given filter list
+   *
+   * @param filters
+   * @return a list of LockException with given filter list
+   */
+  List<LockException> filterLockExceptions(List<String> filters);
 }

@@ -32,42 +32,33 @@ import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * JSON API equivalent of the
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
+ * JSON API equivalent of the {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
  *
  * @author Jan Bernitt
  */
-public interface JsonDataIntegrityCheck extends JsonObject
-{
-    @Expected
-    default String getName()
-    {
-        return getString( "name" ).string();
-    }
+public interface JsonDataIntegrityCheck extends JsonObject {
+  @Expected
+  default String getName() {
+    return getString("name").string();
+  }
 
-    default String getSection()
-    {
-        return getString( "section" ).string();
-    }
+  default String getSection() {
+    return getString("section").string();
+  }
 
-    default DataIntegritySeverity getSeverity()
-    {
-        return getString( "severity" ).parsed( DataIntegritySeverity::valueOf );
-    }
+  default DataIntegritySeverity getSeverity() {
+    return getString("severity").parsed(DataIntegritySeverity::valueOf);
+  }
 
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
+  default String getDescription() {
+    return getString("description").string();
+  }
 
-    default String getIntroduction()
-    {
-        return getString( "introduction" ).string();
-    }
+  default String getIntroduction() {
+    return getString("introduction").string();
+  }
 
-    default String getRecommendation()
-    {
-        return getString( "recommendation" ).string();
-    }
-
+  default String getRecommendation() {
+    return getString("recommendation").string();
+  }
 }

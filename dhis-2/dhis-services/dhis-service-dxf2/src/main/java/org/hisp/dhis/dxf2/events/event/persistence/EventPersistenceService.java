@@ -28,39 +28,37 @@
 package org.hisp.dhis.dxf2.events.event.persistence;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 
 /**
- * Wrapper service for Event-related operations. This service acts as a
- * transactional wrapper for insert/update/delete operations on Events.
+ * Wrapper service for Event-related operations. This service acts as a transactional wrapper for
+ * insert/update/delete operations on Events.
  *
  * @author Luciano Fiandesio
  */
-public interface EventPersistenceService
-{
-    /**
-     * Add the list of given events.
-     *
-     * @param context a {@see WorkContext}
-     * @param events a List of {@see Event}
-     */
-    void save( WorkContext context, List<Event> events );
+public interface EventPersistenceService {
+  /**
+   * Add the list of given events.
+   *
+   * @param context a {@see WorkContext}
+   * @param events a List of {@see Event}
+   */
+  void save(WorkContext context, List<Event> events);
 
-    /**
-     * Updates the list of given events.
-     *
-     * @param context a {@see WorkContext}
-     * @param events a List of {@see Event}
-     */
-    void update( WorkContext context, List<Event> events );
+  /**
+   * Updates the list of given events.
+   *
+   * @param context a {@see WorkContext}
+   * @param events a List of {@see Event}
+   */
+  void update(WorkContext context, List<Event> events);
 
-    /**
-     * Deletes the provided list of events.
-     *
-     * @param context a {@see WorkContext}
-     * @param events a List of {@see Event}
-     */
-    void delete( WorkContext context, List<Event> events );
+  /**
+   * Deletes the provided list of events.
+   *
+   * @param context a {@see WorkContext}
+   * @param events a List of {@see Event}
+   */
+  void delete(WorkContext context, List<Event> events);
 }

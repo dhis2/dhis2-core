@@ -33,9 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
-
 import lombok.Data;
-
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -43,142 +41,120 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 /**
- * A class that collects {@link TrackerErrorReport} during the validation
- * process.
+ * A class that collects {@link TrackerErrorReport} during the validation process.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 // TODO: should this be "ValidationReporter" since it does not only report
 // errors ?
-public class ValidationErrorReporter
-{
-    private final List<TrackerErrorReport> reportList;
+public class ValidationErrorReporter {
+  private final List<TrackerErrorReport> reportList;
 
-    private final List<TrackerWarningReport> warningsReportList;
+  private final List<TrackerWarningReport> warningsReportList;
 
-    private final boolean isFailFast;
+  private final boolean isFailFast;
 
-    private final TrackerBundle bundle;
+  private final TrackerBundle bundle;
 
-    /*
-     * A map that keep tracks of all the invalid Tracker objects encountered
-     * during the validation process
-     */
-    private Map<TrackerType, List<String>> invalidDTOs;
+  /*
+   * A map that keep tracks of all the invalid Tracker objects encountered
+   * during the validation process
+   */
+  private Map<TrackerType, List<String>> invalidDTOs;
 
-    public static ValidationErrorReporter emptyReporter()
-    {
-        return new ValidationErrorReporter();
+  public static ValidationErrorReporter emptyReporter() {
+    return new ValidationErrorReporter();
+  }
+
+  private ValidationErrorReporter() {
+    this.warningsReportList = new ArrayList<>();
+    this.reportList = new ArrayList<>();
+    this.isFailFast = false;
+    this.bundle = null;
+    this.invalidDTOs = new HashMap<>();
+  }
+
+  public ValidationErrorReporter(TrackerBundle bundle) {
+    this.reportList = new ArrayList<>();
+    this.warningsReportList = new ArrayList<>();
+    this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
+    this.bundle = bundle;
+    this.invalidDTOs = new HashMap<>();
+  }
+
+  public boolean hasErrors() {
+    return !this.reportList.isEmpty();
+  }
+
+  public boolean hasErrorReport(Predicate<TrackerErrorReport> test) {
+    return reportList.stream().anyMatch(test);
+  }
+
+  public boolean hasWarningReport(Predicate<TrackerWarningReport> test) {
+    return warningsReportList.stream().anyMatch(test);
+  }
+
+  public boolean hasWarnings() {
+    return !this.warningsReportList.isEmpty();
+  }
+
+  public void addError(TrackerDto dto, TrackerErrorCode code, Object... args) {
+    TrackerErrorReport error =
+        TrackerErrorReport.builder()
+            .uid(dto.getUid())
+            .trackerType(dto.getTrackerType())
+            .errorCode(code)
+            .addArgs(args)
+            .build(bundle);
+    addError(error);
+  }
+
+  public void addError(TrackerErrorReport error) {
+    getReportList().add(error);
+    this.invalidDTOs
+        .computeIfAbsent(error.getTrackerType(), k -> new ArrayList<>())
+        .add(error.getUid());
+
+    if (isFailFast()) {
+      throw new ValidationFailFastException(getReportList());
     }
+  }
 
-    private ValidationErrorReporter()
-    {
-        this.warningsReportList = new ArrayList<>();
-        this.reportList = new ArrayList<>();
-        this.isFailFast = false;
-        this.bundle = null;
-        this.invalidDTOs = new HashMap<>();
+  public void addWarning(TrackerWarningReport warning) {
+    getWarningsReportList().add(warning);
+  }
+
+  /** Checks if the provided uid and Tracker Type is part of the invalid entities */
+  public boolean isInvalid(TrackerType trackerType, String uid) {
+    return this.invalidDTOs.getOrDefault(trackerType, new ArrayList<>()).contains(uid);
+  }
+
+  public boolean isInvalid(TrackerDto dto) {
+    return this.isInvalid(dto.getTrackerType(), dto.getUid());
+  }
+
+  public void addWarning(TrackerDto dto, TrackerErrorCode code, Object... args) {
+    TrackerWarningReport warn =
+        TrackerWarningReport.builder()
+            .uid(dto.getUid())
+            .trackerType(dto.getTrackerType())
+            .warningCode(code)
+            .addArgs(args)
+            .build(bundle);
+    addWarning(warn);
+  }
+
+  public void addErrorIf(
+      BooleanSupplier expression, TrackerDto dto, TrackerErrorCode code, Object... args) {
+    if (expression.getAsBoolean()) {
+      addError(dto, code, args);
     }
+  }
 
-    public ValidationErrorReporter( TrackerBundle bundle )
-    {
-        this.reportList = new ArrayList<>();
-        this.warningsReportList = new ArrayList<>();
-        this.isFailFast = bundle.getValidationMode() == ValidationMode.FAIL_FAST;
-        this.bundle = bundle;
-        this.invalidDTOs = new HashMap<>();
+  public void addErrorIfNull(Object object, TrackerDto dto, TrackerErrorCode code, Object... args) {
+    if (object == null) {
+      addError(dto, code, args);
     }
-
-    public boolean hasErrors()
-    {
-        return !this.reportList.isEmpty();
-    }
-
-    public boolean hasErrorReport( Predicate<TrackerErrorReport> test )
-    {
-        return reportList.stream().anyMatch( test );
-    }
-
-    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
-    {
-        return warningsReportList.stream().anyMatch( test );
-    }
-
-    public boolean hasWarnings()
-    {
-        return !this.warningsReportList.isEmpty();
-    }
-
-    public void addError( TrackerDto dto, TrackerErrorCode code, Object... args )
-    {
-        TrackerErrorReport error = TrackerErrorReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .errorCode( code )
-            .addArgs( args )
-            .build( bundle );
-        addError( error );
-    }
-
-    public void addError( TrackerErrorReport error )
-    {
-        getReportList().add( error );
-        this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
-
-        if ( isFailFast() )
-        {
-            throw new ValidationFailFastException( getReportList() );
-        }
-    }
-
-    public void addWarning( TrackerWarningReport warning )
-    {
-        getWarningsReportList().add( warning );
-    }
-
-    /**
-     * Checks if the provided uid and Tracker Type is part of the invalid
-     * entities
-     */
-    public boolean isInvalid( TrackerType trackerType, String uid )
-    {
-        return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
-    }
-
-    public boolean isInvalid( TrackerDto dto )
-    {
-        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
-    }
-
-    public void addWarning( TrackerDto dto, TrackerErrorCode code,
-        Object... args )
-    {
-        TrackerWarningReport warn = TrackerWarningReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .warningCode( code )
-            .addArgs( args )
-            .build( bundle );
-        addWarning( warn );
-    }
-
-    public void addErrorIf( BooleanSupplier expression, TrackerDto dto,
-        TrackerErrorCode code, Object... args )
-    {
-        if ( expression.getAsBoolean() )
-        {
-            addError( dto, code, args );
-        }
-    }
-
-    public void addErrorIfNull( Object object, TrackerDto dto,
-        TrackerErrorCode code,
-        Object... args )
-    {
-        if ( object == null )
-        {
-            addError( dto, code, args );
-        }
-    }
+  }
 }

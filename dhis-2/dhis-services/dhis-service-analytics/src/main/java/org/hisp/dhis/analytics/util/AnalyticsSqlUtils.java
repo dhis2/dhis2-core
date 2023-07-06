@@ -29,156 +29,133 @@ package org.hisp.dhis.analytics.util;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 /**
- * Utilities for analytics SQL operations, compatible with PostgreSQL and H2
- * database platforms.
+ * Utilities for analytics SQL operations, compatible with PostgreSQL and H2 database platforms.
  *
  * @author Lars Helge Overland
  */
-public class AnalyticsSqlUtils
-{
-    public static final String QUOTE = "\"";
+public class AnalyticsSqlUtils {
+  public static final String QUOTE = "\"";
 
-    public static final String SINGLE_QUOTE = "'";
+  public static final String SINGLE_QUOTE = "'";
 
-    public static final String ANALYTICS_TBL_ALIAS = "ax";
+  public static final String ANALYTICS_TBL_ALIAS = "ax";
 
-    public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
+  public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
 
-    public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
+  public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
 
-    private static final String SEPARATOR = ".";
+  private static final String SEPARATOR = ".";
 
-    /**
-     * Quotes the given relation (typically a column). Quotes part of the given
-     * relation are encoded (replaced by double quotes that is).
-     *
-     * @param relation the relation (typically a column).
-     * @return the quoted relation.
-     */
-    public static String quote( String relation )
-    {
-        Assert.notNull( relation, "Relation must be specified" );
+  /**
+   * Quotes the given relation (typically a column). Quotes part of the given relation are encoded
+   * (replaced by double quotes that is).
+   *
+   * @param relation the relation (typically a column).
+   * @return the quoted relation.
+   */
+  public static String quote(String relation) {
+    Assert.notNull(relation, "Relation must be specified");
 
-        String rel = relation.replaceAll( QUOTE, (QUOTE + QUOTE) );
+    String rel = relation.replaceAll(QUOTE, (QUOTE + QUOTE));
 
-        return QUOTE + rel + QUOTE;
+    return QUOTE + rel + QUOTE;
+  }
+
+  /**
+   * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
+   * are encoded (replaced by double quotes that is).
+   *
+   * @param relation the relation (typically a column).
+   * @return the quoted relation.
+   */
+  public static String quote(String alias, String relation) {
+    Assert.notNull(alias, "Alias must be specified");
+
+    return alias + SEPARATOR + quote(relation);
+  }
+
+  /**
+   * Quotes and qualifies the given relation (typically a column). Quotes part of the given relation
+   * are encoded (replaced by double quotes that is). The alias used is {@link
+   * AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
+   *
+   * @return the quoted and qualified relation.
+   */
+  public static String quoteAlias(String relation) {
+    return ANALYTICS_TBL_ALIAS + SEPARATOR + quote(relation);
+  }
+
+  /**
+   * Removes all quotes from the given relation.
+   *
+   * @param relation the relation (typically a column).
+   * @return the unquoted relation.
+   */
+  public static String removeQuote(String relation) {
+    Assert.notNull(relation, "Relation must be specified");
+
+    return relation.replaceAll(AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY);
+  }
+
+  /**
+   * Returns a concatenated string of the given collection items separated by comma where each item
+   * is quoted and aliased.
+   *
+   * @param items the collection of items.
+   * @return a string.
+   */
+  public static String quoteAliasCommaSeparate(Collection<String> items) {
+    return items.stream().map(AnalyticsSqlUtils::quoteAlias).collect(Collectors.joining(","));
+  }
+
+  /**
+   * Encodes the given value.
+   *
+   * @param value the value.
+   * @param quote whether to quote the value.
+   * @return the encoded value.
+   */
+  public static String encode(String value, boolean quote) {
+    if (value != null) {
+      value = value.endsWith("\\") ? value.substring(0, value.length() - 1) : value;
+      value = value.replaceAll(SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE);
     }
 
-    /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
-     *
-     * @param relation the relation (typically a column).
-     * @return the quoted relation.
-     */
-    public static String quote( String alias, String relation )
-    {
-        Assert.notNull( alias, "Alias must be specified" );
+    return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+  }
 
-        return alias + SEPARATOR + quote( relation );
+  /**
+   * Returns a string containing closing parenthesis. The number of parenthesis is based on the
+   * number of missing closing parenthesis in the argument string.
+   *
+   * <p>Example:
+   *
+   * <p>{@code} input: "((( ))" -> output: ")" {@code}
+   *
+   * @param str a string.
+   * @return a String containing 0 or more "closing" parenthesis
+   */
+  public static String getClosingParentheses(String str) {
+    if (StringUtils.isEmpty(str)) {
+      return StringUtils.EMPTY;
     }
 
-    /**
-     * Quotes and qualifies the given relation (typically a column). Quotes part
-     * of the given relation are encoded (replaced by double quotes that is).
-     * The alias used is {@link AnalyticsSqlUtils#ANALYTICS_TBL_ALIAS}.
-     *
-     * @return the quoted and qualified relation.
-     */
-    public static String quoteAlias( String relation )
-    {
-        return ANALYTICS_TBL_ALIAS + SEPARATOR + quote( relation );
-    }
+    int open = 0;
 
-    /**
-     * Removes all quotes from the given relation.
-     *
-     * @param relation the relation (typically a column).
-     * @return the unquoted relation.
-     */
-    public static String removeQuote( String relation )
-    {
-        Assert.notNull( relation, "Relation must be specified" );
-
-        return relation.replaceAll( AnalyticsSqlUtils.QUOTE, StringUtils.EMPTY );
-    }
-
-    /**
-     * Returns a concatenated string of the given collection items separated by
-     * comma where each item is quoted and aliased.
-     *
-     * @param items the collection of items.
-     * @return a string.
-     */
-    public static String quoteAliasCommaSeparate( Collection<String> items )
-    {
-        return items.stream()
-            .map( AnalyticsSqlUtils::quoteAlias )
-            .collect( Collectors.joining( "," ) );
-    }
-
-    /**
-     * Encodes the given value.
-     *
-     * @param value the value.
-     * @param quote whether to quote the value.
-     * @return the encoded value.
-     */
-    public static String encode( String value, boolean quote )
-    {
-        if ( value != null )
-        {
-            value = value.endsWith( "\\" ) ? value.substring( 0, value.length() - 1 ) : value;
-            value = value.replaceAll( SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE );
+    for (int i = 0; i < str.length(); i++) {
+      if (str.charAt(i) == '(') {
+        open++;
+      } else if (str.charAt(i) == ')') {
+        if (open >= 1) {
+          open--;
         }
-
-        return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
+      }
     }
 
-    /**
-     * <p>
-     * Returns a string containing closing parenthesis. The number of
-     * parenthesis is based on the number of missing closing parenthesis in the
-     * argument string.
-     *
-     * <p>
-     * Example:
-     *
-     * {@code} input: "((( ))" -> output: ")" {@code}
-     *
-     * @param str a string.
-     *
-     * @return a String containing 0 or more "closing" parenthesis
-     */
-    public static String getClosingParentheses( String str )
-    {
-        if ( StringUtils.isEmpty( str ) )
-        {
-            return StringUtils.EMPTY;
-        }
-
-        int open = 0;
-
-        for ( int i = 0; i < str.length(); i++ )
-        {
-            if ( str.charAt( i ) == '(' )
-            {
-                open++;
-            }
-            else if ( str.charAt( i ) == ')' )
-            {
-                if ( open >= 1 )
-                {
-                    open--;
-                }
-            }
-        }
-
-        return StringUtils.repeat( ")", open );
-    }
+    return StringUtils.repeat(")", open);
+  }
 }

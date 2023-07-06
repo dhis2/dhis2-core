@@ -45,7 +45,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -73,202 +72,196 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class DataValidationTaskTest
-{
-    @Mock
-    private ExpressionService expressionService;
+@ExtendWith(MockitoExtension.class)
+class DataValidationTaskTest {
+  @Mock private ExpressionService expressionService;
 
-    @Mock
-    private DataValueService dataValueService;
+  @Mock private DataValueService dataValueService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private PeriodService periodService;
+  @Mock private PeriodService periodService;
 
-    @Mock
-    private AnalyticsService analyticsService;
+  @Mock private AnalyticsService analyticsService;
 
-    private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
+  private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString("201901");
 
-    private DataValidationTask subject;
+  private DataValidationTask subject;
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private List<OrganisationUnit> organisationUnits;
+  private List<OrganisationUnit> organisationUnits;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private Period p1;
+  private Period p1;
 
-    private Period p2;
+  private Period p2;
 
-    private Period p3;
+  private Period p3;
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new DataValidationTask( expressionService, dataValueService, categoryService, periodService );
+  @BeforeEach
+  public void setUp() {
+    subject =
+        new DataValidationTask(expressionService, dataValueService, categoryService, periodService);
 
-        deA = createDataElement( 'A' );
+    deA = createDataElement('A');
 
-        organisationUnits = new ArrayList<>();
+    organisationUnits = new ArrayList<>();
 
-        ouA = createOu( 'A' );
-        ouB = createOu( 'B' );
-        OrganisationUnit ouC = createOu( 'C' );
-        OrganisationUnit ouD = createOu( 'D' );
+    ouA = createOu('A');
+    ouB = createOu('B');
+    OrganisationUnit ouC = createOu('C');
+    OrganisationUnit ouD = createOu('D');
 
-        organisationUnits.add( ouA );
-        organisationUnits.add( ouB );
-        organisationUnits.add( ouC );
-        organisationUnits.add( ouD );
+    organisationUnits.add(ouA);
+    organisationUnits.add(ouB);
+    organisationUnits.add(ouC);
+    organisationUnits.add(ouD);
 
-        p1 = createPeriod( "201901" );
-        p2 = createPeriod( "201902" );
-        p3 = createPeriod( "201903" );
-    }
+    p1 = createPeriod("201901");
+    p2 = createPeriod("201902");
+    p3 = createPeriod("201903");
+  }
 
-    /**
-     * Verify that a single rule passes against a Data Element
-     */
-    @Test
-    void verifySimpleValidation_oneRule_noErrors()
-    {
-        Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
-        Expression rightExpression = createExpression2( 'B', "-10" );
+  /** Verify that a single rule passes against a Data Element */
+  @Test
+  void verifySimpleValidation_oneRule_noErrors() {
+    Expression leftExpression = createExpression2('A', "#{FUrCpcvMAmC.OrDRjJL9bTS}");
+    Expression rightExpression = createExpression2('B', "-10");
 
-        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression,
-            Operator.not_equal_to );
+    ValidationRuleExtended vre =
+        createValidationRuleExtended(leftExpression, rightExpression, Operator.not_equal_to);
 
-        List<PeriodTypeExtended> periodTypes = new ArrayList<>();
-        PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
-        periodType.addDataElement( deA );
-        periodTypes.add( periodType );
+    List<PeriodTypeExtended> periodTypes = new ArrayList<>();
+    PeriodTypeExtended periodType = createPeriodTypeExtended(vre);
+    periodType.addDataElement(deA);
+    periodTypes.add(periodType);
 
-        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( 'A', 'B' );
+    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo('A', 'B');
 
-        ValidationRunContext ctx = ValidationRunContext.newBuilder()
-            .withOrgUnits( organisationUnits )
-            .withItemMap( new HashMap<>() )
-            .withBaseExParams( ExpressionParams.builder().build() )
-            .withDefaultAttributeCombo( categoryOptionCombo )
-            .withPeriodTypeXs( periodTypes )
-            .withMaxResults( 500 )
+    ValidationRunContext ctx =
+        ValidationRunContext.newBuilder()
+            .withOrgUnits(organisationUnits)
+            .withItemMap(new HashMap<>())
+            .withBaseExParams(ExpressionParams.builder().build())
+            .withDefaultAttributeCombo(categoryOptionCombo)
+            .withPeriodTypeXs(periodTypes)
+            .withMaxResults(500)
             .build();
 
-        List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
+    List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
 
-        DataValue dv = createDataValue( deA, createPeriod( "201901" ), ouA, "12.4",
-            createCategoryOptionCombo( 'B', 'C' ) );
+    DataValue dv =
+        createDataValue(
+            deA, createPeriod("201901"), ouA, "12.4", createCategoryOptionCombo('B', 'C'));
 
-        DeflatedDataValue ddv = new DeflatedDataValue( dv );
-        deflatedDataValues.add( ddv );
+    DeflatedDataValue ddv = new DeflatedDataValue(dv);
+    deflatedDataValues.add(ddv);
 
-        when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
-            .thenReturn( deflatedDataValues );
+    when(dataValueService.getDeflatedDataValues(any(DataExportParams.class)))
+        .thenReturn(deflatedDataValues);
 
-        Map<DimensionalItemObject, Object> vals = new HashMap<>();
-        vals.put( deA, 12.4 );
+    Map<DimensionalItemObject, Object> vals = new HashMap<>();
+    vals.put(deA, 12.4);
 
-        mockExpressionService( leftExpression, vals, 8.4 );
-        mockExpressionService( rightExpression, vals, -10.0 );
+    mockExpressionService(leftExpression, vals, 8.4);
+    mockExpressionService(rightExpression, vals, -10.0);
 
-        when( expressionService.getExpressionValue( ExpressionParams.builder()
-            .expression( "8.4!=-10.0" ).parseType( SIMPLE_TEST ).build() ) )
-                .thenReturn( true );
+    when(expressionService.getExpressionValue(
+            ExpressionParams.builder().expression("8.4!=-10.0").parseType(SIMPLE_TEST).build()))
+        .thenReturn(true);
 
-        subject.init( organisationUnits, ctx, analyticsService );
-        subject.run();
+    subject.init(organisationUnits, ctx, analyticsService);
+    subject.run();
 
-        assertThat( ctx.getValidationResults().size(), is( 0 ) );
-    }
+    assertThat(ctx.getValidationResults().size(), is(0));
+  }
 
-    @Test
-    void verifyValidationSkippedOnNoData()
-    {
-        Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
-        Expression rightExpression = createExpression2( 'B', "-10" );
+  @Test
+  void verifyValidationSkippedOnNoData() {
+    Expression leftExpression = createExpression2('A', "#{FUrCpcvMAmC.OrDRjJL9bTS}");
+    Expression rightExpression = createExpression2('B', "-10");
 
-        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression,
-            Operator.not_equal_to );
+    ValidationRuleExtended vre =
+        createValidationRuleExtended(leftExpression, rightExpression, Operator.not_equal_to);
 
-        List<PeriodTypeExtended> periodTypes = new ArrayList<>();
-        PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
-        periodType.addDataElement( deA );
-        periodTypes.add( periodType );
+    List<PeriodTypeExtended> periodTypes = new ArrayList<>();
+    PeriodTypeExtended periodType = createPeriodTypeExtended(vre);
+    periodType.addDataElement(deA);
+    periodTypes.add(periodType);
 
-        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( 'A', 'B' );
+    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo('A', 'B');
 
-        ValidationRunContext ctx = ValidationRunContext.newBuilder()
-            .withOrgUnits( organisationUnits )
-            .withDefaultAttributeCombo( categoryOptionCombo )
-            .withPeriodTypeXs( periodTypes )
-            .withMaxResults( 500 )
+    ValidationRunContext ctx =
+        ValidationRunContext.newBuilder()
+            .withOrgUnits(organisationUnits)
+            .withDefaultAttributeCombo(categoryOptionCombo)
+            .withPeriodTypeXs(periodTypes)
+            .withMaxResults(500)
             .build();
 
-        List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
+    List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
 
-        // Return no values!
-        when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
-            .thenReturn( deflatedDataValues );
+    // Return no values!
+    when(dataValueService.getDeflatedDataValues(any(DataExportParams.class)))
+        .thenReturn(deflatedDataValues);
 
-        subject.init( organisationUnits, ctx, analyticsService );
-        subject.run();
+    subject.init(organisationUnits, ctx, analyticsService);
+    subject.run();
 
-        assertThat( ctx.getValidationResults().size(), is( 0 ) );
-    }
+    assertThat(ctx.getValidationResults().size(), is(0));
+  }
 
-    private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Object> vals, Double val )
-    {
-        ExpressionParams params = ExpressionParams.builder()
-            .expression( expression.getExpression() )
-            .parseType( VALIDATION_RULE_EXPRESSION )
-            .valueMap( vals )
-            .missingValueStrategy( expression.getMissingValueStrategy() )
-            .orgUnit( ouA )
+  private void mockExpressionService(
+      Expression expression, Map<DimensionalItemObject, Object> vals, Double val) {
+    ExpressionParams params =
+        ExpressionParams.builder()
+            .expression(expression.getExpression())
+            .parseType(VALIDATION_RULE_EXPRESSION)
+            .valueMap(vals)
+            .missingValueStrategy(expression.getMissingValueStrategy())
+            .orgUnit(ouA)
             .build();
 
-        when( expressionService.getExpressionValue( params.toBuilder().days( p1.getDaysInPeriod() ).build() ) )
-            .thenReturn( val );
+    when(expressionService.getExpressionValue(
+            params.toBuilder().days(p1.getDaysInPeriod()).build()))
+        .thenReturn(val);
 
-        when( expressionService.getExpressionValue( params.toBuilder().days( p2.getDaysInPeriod() ).build() ) )
-            .thenReturn( val );
+    when(expressionService.getExpressionValue(
+            params.toBuilder().days(p2.getDaysInPeriod()).build()))
+        .thenReturn(val);
 
-        when( expressionService.getExpressionValue( params.toBuilder().days( p3.getDaysInPeriod() ).build() ) )
-            .thenReturn( val );
+    when(expressionService.getExpressionValue(
+            params.toBuilder().days(p3.getDaysInPeriod()).build()))
+        .thenReturn(val);
+  }
+
+  private ValidationRuleExtended createValidationRuleExtended(
+      Expression left, Expression right, Operator op) {
+    return new ValidationRuleExtended(createValidationRule('A', op, left, right, MONTHLY));
+  }
+
+  private PeriodTypeExtended createPeriodTypeExtended(
+      ValidationRuleExtended... validationRuleExtended) {
+    PeriodTypeExtended pt = new PeriodTypeExtended(MONTHLY);
+    // add three months
+    pt.addPeriod(p1);
+    pt.addPeriod(p2);
+    pt.addPeriod(p3);
+    // add the actual validation rule
+    for (ValidationRuleExtended ruleExtended : validationRuleExtended) {
+      pt.getRuleXs().add(ruleExtended);
     }
+    pt.setSlidingWindows(false);
+    return pt;
+  }
 
-    private ValidationRuleExtended createValidationRuleExtended( Expression left, Expression right, Operator op )
-    {
-        return new ValidationRuleExtended( createValidationRule( 'A', op, left, right, MONTHLY ) );
-    }
-
-    private PeriodTypeExtended createPeriodTypeExtended( ValidationRuleExtended... validationRuleExtended )
-    {
-        PeriodTypeExtended pt = new PeriodTypeExtended( MONTHLY );
-        // add three months
-        pt.addPeriod( p1 );
-        pt.addPeriod( p2 );
-        pt.addPeriod( p3 );
-        // add the actual validation rule
-        for ( ValidationRuleExtended ruleExtended : validationRuleExtended )
-        {
-            pt.getRuleXs().add( ruleExtended );
-
-        }
-        pt.setSlidingWindows( false );
-        return pt;
-    }
-
-    private OrganisationUnit createOu( char uniqueCharacter )
-    {
-        OrganisationUnit organisationUnit = createOrganisationUnit( uniqueCharacter );
-        organisationUnit.setId( RandomUtils.nextLong() );
-        return organisationUnit;
-    }
+  private OrganisationUnit createOu(char uniqueCharacter) {
+    OrganisationUnit organisationUnit = createOrganisationUnit(uniqueCharacter);
+    organisationUnit.setId(RandomUtils.nextLong());
+    return organisationUnit;
+  }
 }

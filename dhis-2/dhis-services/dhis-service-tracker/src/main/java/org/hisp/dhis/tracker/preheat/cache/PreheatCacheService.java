@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.preheat.cache;
 
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
@@ -38,53 +37,47 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  *
  * @author Luciano Fiandesio
  */
-public interface PreheatCacheService
-{
-    /**
-     * Fetches an object from the pre-heat cache.
-     *
-     * @param cacheKey the full class name of the object being cached
-     * @param id the identifier of the object to retrieve
-     *
-     */
-    Optional<IdentifiableObject> get( String cacheKey, String id );
+public interface PreheatCacheService {
+  /**
+   * Fetches an object from the pre-heat cache.
+   *
+   * @param cacheKey the full class name of the object being cached
+   * @param id the identifier of the object to retrieve
+   */
+  Optional<IdentifiableObject> get(String cacheKey, String id);
 
-    /**
-     * Check whether a class type is part of the cache
-     *
-     * @param cacheKey the full class name of a metadata object
-     *
-     */
-    boolean hasKey( String cacheKey );
+  /**
+   * Check whether a class type is part of the cache
+   *
+   * @param cacheKey the full class name of a metadata object
+   */
+  boolean hasKey(String cacheKey);
 
-    /**
-     * Fetch all the cached entries for the given class type key
-     *
-     * @param cacheKey the full class name of a metadata object
-     *
-     */
-    List<IdentifiableObject> getAll( String cacheKey );
+  /**
+   * Fetch all the cached entries for the given class type key
+   *
+   * @param cacheKey the full class name of a metadata object
+   */
+  List<IdentifiableObject> getAll(String cacheKey);
 
-    /**
-     * Adds an object to the pre-heat cache.
-     *
-     * @param cacheKey the full class name of the object being cached
-     * @param id the identifier of the object being cached, used as cache key
-     * @param object The object being cached
-     * @param cacheTTL The amount of **minutes**
-     * @param capacity The maximum number of entries hold by the cache.
-     */
-    void put( String cacheKey, String id, IdentifiableObject object, int cacheTTL, long capacity );
+  /**
+   * Adds an object to the pre-heat cache.
+   *
+   * @param cacheKey the full class name of the object being cached
+   * @param id the identifier of the object being cached, used as cache key
+   * @param object The object being cached
+   * @param cacheTTL The amount of **minutes**
+   * @param capacity The maximum number of entries hold by the cache.
+   */
+  void put(String cacheKey, String id, IdentifiableObject object, int cacheTTL, long capacity);
 
-    /**
-     * Invalidates all caches.
-     */
-    void invalidateCache();
+  /** Invalidates all caches. */
+  void invalidateCache();
 
-    /**
-     * Event handler for {@link ApplicationCacheClearedEvent}.
-     *
-     * @param event the {@link ApplicationCacheClearedEvent}.
-     */
-    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
+  /**
+   * Event handler for {@link ApplicationCacheClearedEvent}.
+   *
+   * @param event the {@link ApplicationCacheClearedEvent}.
+   */
+  void handleApplicationCachesCleared(ApplicationCacheClearedEvent event);
 }

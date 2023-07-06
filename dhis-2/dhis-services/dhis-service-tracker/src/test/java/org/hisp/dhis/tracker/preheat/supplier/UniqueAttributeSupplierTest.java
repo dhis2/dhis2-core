@@ -32,10 +32,11 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -59,195 +60,183 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class UniqueAttributeSupplierTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class UniqueAttributeSupplierTest extends DhisConvenienceTest {
 
-    private static final String UNIQUE_VALUE = "unique value";
+  private static final String UNIQUE_VALUE = "unique value";
 
-    private static final String TEI_UID = "TEI UID";
+  private static final String TEI_UID = "TEI UID";
 
-    private static final String ANOTHER_TEI_UID = "ANOTHER_TEI_UID";
+  private static final String ANOTHER_TEI_UID = "ANOTHER_TEI_UID";
 
-    @InjectMocks
-    private UniqueAttributesSupplier supplier;
+  @InjectMocks private UniqueAttributesSupplier supplier;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Mock private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    private TrackerImportParams params;
+  private TrackerImportParams params;
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private TrackedEntityAttribute uniqueAttribute;
+  private TrackedEntityAttribute uniqueAttribute;
 
-    private TrackedEntityInstance tei;
+  private TrackedEntityInstance tei;
 
-    private ProgramInstance programInstance;
+  private ProgramInstance programInstance;
 
-    private TrackedEntityAttributeValue trackedEntityAttributeValue;
+  private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
-    @BeforeEach
-    public void setUp()
-    {
-        params = TrackerImportParams.builder().build();
-        preheat = new TrackerPreheat();
-        uniqueAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
-        OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
-        Program program = createProgram( 'A' );
-        Attribute attribute = createAttribute( 'A' );
-        AttributeValue attributeValue = createAttributeValue( attribute, UNIQUE_VALUE );
-        tei = createTrackedEntityInstance( 'A', orgUnit );
-        tei.setUid( TEI_UID );
-        tei.setAttributeValues( Collections.singleton( attributeValue ) );
-        programInstance = createProgramInstance( program, tei, orgUnit );
-        programInstance.setAttributeValues( Collections.singleton( attributeValue ) );
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', tei, uniqueAttribute );
-    }
+  @BeforeEach
+  public void setUp() {
+    params = TrackerImportParams.builder().build();
+    preheat = new TrackerPreheat();
+    uniqueAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    Program program = createProgram('A');
+    Attribute attribute = createAttribute('A');
+    AttributeValue attributeValue = createAttributeValue(attribute, UNIQUE_VALUE);
+    tei = createTrackedEntityInstance('A', orgUnit);
+    tei.setUid(TEI_UID);
+    tei.setAttributeValues(Collections.singleton(attributeValue));
+    programInstance = createProgramInstance(program, tei, orgUnit);
+    programInstance.setAttributeValues(Collections.singleton(attributeValue));
+    trackedEntityAttributeValue = createTrackedEntityAttributeValue('A', tei, uniqueAttribute);
+  }
 
-    @Test
-    void verifySupplierWhenNoUniqueAttributeIsPresentInTheSystem()
-    {
-        when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
-            .thenReturn( Collections.emptyList() );
+  @Test
+  void verifySupplierWhenNoUniqueAttributeIsPresentInTheSystem() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.emptyList());
 
-        this.supplier.preheatAdd( params, preheat );
+    this.supplier.preheatAdd(params, preheat);
 
-        assertThat( preheat.getUniqueAttributeValues(), hasSize( 0 ) );
-    }
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(0));
+  }
 
-    @Test
-    void verifySupplierWhenTEIAndEnrollmentHaveTheSameUniqueAttribute()
-    {
-        when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
-            .thenReturn( Collections.singletonList( uniqueAttribute ) );
-        TrackerImportParams importParams = TrackerImportParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity() ) )
-            .enrollments( Collections.singletonList( enrollment( TEI_UID ) ) )
+  @Test
+  void verifySupplierWhenTEIAndEnrollmentHaveTheSameUniqueAttribute() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
+            .trackedEntities(Collections.singletonList(trackedEntity()))
+            .enrollments(Collections.singletonList(enrollment(TEI_UID)))
             .build();
 
-        this.supplier.preheatAdd( importParams, preheat );
+    this.supplier.preheatAdd(importParams, preheat);
 
-        assertThat( preheat.getUniqueAttributeValues(), hasSize( 0 ) );
-    }
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(0));
+  }
 
-    @Test
-    void verifySupplierWhenTwoTEIsHaveAttributeWithSameUniqueValue()
-    {
-        when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
-            .thenReturn( Collections.singletonList( uniqueAttribute ) );
-        TrackerImportParams importParams = TrackerImportParams.builder()
-            .trackedEntities( sameUniqueAttributeTrackedEntities() )
+  @Test
+  void verifySupplierWhenTwoTEIsHaveAttributeWithSameUniqueValue() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerImportParams importParams =
+        TrackerImportParams.builder().trackedEntities(sameUniqueAttributeTrackedEntities()).build();
+
+    this.supplier.preheatAdd(importParams, preheat);
+
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(2));
+  }
+
+  @Test
+  void verifySupplierWhenTEIAndEnrollmentFromAnotherTEIHaveAttributeWithSameUniqueValue() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
+            .trackedEntities(Collections.singletonList(trackedEntity()))
+            .enrollments(Collections.singletonList(enrollment(ANOTHER_TEI_UID)))
             .build();
 
-        this.supplier.preheatAdd( importParams, preheat );
+    this.supplier.preheatAdd(importParams, preheat);
 
-        assertThat( preheat.getUniqueAttributeValues(), hasSize( 2 ) );
-    }
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(2));
+  }
 
-    @Test
-    void verifySupplierWhenTEIAndEnrollmentFromAnotherTEIHaveAttributeWithSameUniqueValue()
-    {
-        when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
-            .thenReturn( Collections.singletonList( uniqueAttribute ) );
-        TrackerImportParams importParams = TrackerImportParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity() ) )
-            .enrollments( Collections.singletonList( enrollment( ANOTHER_TEI_UID ) ) )
+  @Test
+  void verifySupplierWhenTEIinPayloadAndDBHaveTheSameUniqueAttribute() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap =
+        ImmutableMap.of(uniqueAttribute, List.of(UNIQUE_VALUE));
+    List<TrackedEntityAttributeValue> attributeValues = List.of(trackedEntityAttributeValue);
+    when(trackedEntityAttributeValueService.getUniqueAttributeByValues(
+            trackedEntityAttributeListMap))
+        .thenReturn(attributeValues);
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
+            .trackedEntities(Collections.singletonList(trackedEntity()))
             .build();
 
-        this.supplier.preheatAdd( importParams, preheat );
+    this.supplier.preheatAdd(importParams, preheat);
 
-        assertThat( preheat.getUniqueAttributeValues(), hasSize( 2 ) );
-    }
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
+  }
 
-    @Test
-    void verifySupplierWhenTEIinPayloadAndDBHaveTheSameUniqueAttribute()
-    {
-        when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
-            .thenReturn( Collections.singletonList( uniqueAttribute ) );
-        Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = ImmutableMap.of( uniqueAttribute,
-            List.of( UNIQUE_VALUE ) );
-        List<TrackedEntityAttributeValue> attributeValues = List.of( trackedEntityAttributeValue );
-        when( trackedEntityAttributeValueService.getUniqueAttributeByValues( trackedEntityAttributeListMap ) )
-            .thenReturn( attributeValues );
-        TrackerImportParams importParams = TrackerImportParams.builder()
-            .trackedEntities( Collections.singletonList( trackedEntity() ) )
+  @Test
+  void verifySupplierWhenTEIinPayloadAndAnotherTEIInDBHaveTheSameUniqueAttribute() {
+    when(trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes())
+        .thenReturn(Collections.singletonList(uniqueAttribute));
+    Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap =
+        ImmutableMap.of(uniqueAttribute, List.of(UNIQUE_VALUE));
+    List<TrackedEntityAttributeValue> attributeValues = List.of(trackedEntityAttributeValue);
+    when(trackedEntityAttributeValueService.getUniqueAttributeByValues(
+            trackedEntityAttributeListMap))
+        .thenReturn(attributeValues);
+    TrackerImportParams importParams =
+        TrackerImportParams.builder()
+            .trackedEntities(Collections.singletonList(anotherTrackedEntity()))
             .build();
 
-        this.supplier.preheatAdd( importParams, preheat );
+    this.supplier.preheatAdd(importParams, preheat);
 
-        assertThat( preheat.getUniqueAttributeValues(), hasSize( 1 ) );
-    }
+    assertThat(preheat.getUniqueAttributeValues(), hasSize(1));
+    assertThat(preheat.getUniqueAttributeValues().get(0).getTeiUid(), is(TEI_UID));
+  }
 
-    @Test
-    void verifySupplierWhenTEIinPayloadAndAnotherTEIInDBHaveTheSameUniqueAttribute()
-    {
-        when( trackedEntityAttributeService.getAllUniqueTrackedEntityAttributes() )
-            .thenReturn( Collections.singletonList( uniqueAttribute ) );
-        Map<TrackedEntityAttribute, List<String>> trackedEntityAttributeListMap = ImmutableMap.of( uniqueAttribute,
-            List.of( UNIQUE_VALUE ) );
-        List<TrackedEntityAttributeValue> attributeValues = List.of( trackedEntityAttributeValue );
-        when( trackedEntityAttributeValueService.getUniqueAttributeByValues( trackedEntityAttributeListMap ) )
-            .thenReturn( attributeValues );
-        TrackerImportParams importParams = TrackerImportParams.builder()
-            .trackedEntities( Collections.singletonList( anotherTrackedEntity() ) )
-            .build();
+  private List<TrackedEntity> sameUniqueAttributeTrackedEntities() {
+    return Lists.newArrayList(
+        trackedEntity(),
+        TrackedEntity.builder()
+            .trackedEntity(ANOTHER_TEI_UID)
+            .attributes(Collections.singletonList(uniqueAttribute()))
+            .build());
+  }
 
-        this.supplier.preheatAdd( importParams, preheat );
+  private TrackedEntity trackedEntity() {
 
-        assertThat( preheat.getUniqueAttributeValues(), hasSize( 1 ) );
-        assertThat( preheat.getUniqueAttributeValues().get( 0 ).getTeiUid(), is( TEI_UID ) );
-    }
+    return TrackedEntity.builder()
+        .trackedEntity(TEI_UID)
+        .attributes(Collections.singletonList(uniqueAttribute()))
+        .build();
+  }
 
-    private List<TrackedEntity> sameUniqueAttributeTrackedEntities()
-    {
-        return Lists.newArrayList( trackedEntity(),
-            TrackedEntity.builder()
-                .trackedEntity( ANOTHER_TEI_UID )
-                .attributes( Collections.singletonList( uniqueAttribute() ) ).build() );
-    }
+  private TrackedEntity anotherTrackedEntity() {
 
-    private TrackedEntity trackedEntity()
-    {
+    return TrackedEntity.builder()
+        .trackedEntity(ANOTHER_TEI_UID)
+        .attributes(Collections.singletonList(uniqueAttribute()))
+        .build();
+  }
 
-        return TrackedEntity.builder()
-            .trackedEntity( TEI_UID )
-            .attributes( Collections.singletonList( uniqueAttribute() ) )
-            .build();
-    }
+  private Enrollment enrollment(String teiUid) {
+    return Enrollment.builder()
+        .trackedEntity(teiUid)
+        .enrollment("ENROLLMENT")
+        .attributes(Collections.singletonList(uniqueAttribute()))
+        .build();
+  }
 
-    private TrackedEntity anotherTrackedEntity()
-    {
-
-        return TrackedEntity.builder()
-            .trackedEntity( ANOTHER_TEI_UID )
-            .attributes( Collections.singletonList( uniqueAttribute() ) )
-            .build();
-    }
-
-    private Enrollment enrollment( String teiUid )
-    {
-        return Enrollment.builder()
-            .trackedEntity( teiUid )
-            .enrollment( "ENROLLMENT" )
-            .attributes( Collections.singletonList( uniqueAttribute() ) )
-            .build();
-    }
-
-    private org.hisp.dhis.tracker.domain.Attribute uniqueAttribute()
-    {
-        return org.hisp.dhis.tracker.domain.Attribute.builder()
-            .attribute( this.uniqueAttribute.getUid() )
-            .value( UNIQUE_VALUE )
-            .build();
-    }
+  private org.hisp.dhis.tracker.domain.Attribute uniqueAttribute() {
+    return org.hisp.dhis.tracker.domain.Attribute.builder()
+        .attribute(this.uniqueAttribute.getUid())
+        .value(UNIQUE_VALUE)
+        .build();
+  }
 }

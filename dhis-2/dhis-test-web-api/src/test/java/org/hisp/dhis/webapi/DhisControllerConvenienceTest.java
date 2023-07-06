@@ -57,114 +57,99 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Base class for convenient testing of the web API on basis of
- * {@link JsonResponse}.
+ * Base class for convenient testing of the web API on basis of {@link JsonResponse}.
  *
  * @author Jan Bernitt
  */
-@ExtendWith( SpringExtension.class )
+@ExtendWith(SpringExtension.class)
 @WebAppConfiguration
-@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
-    WebTestConfiguration.class } )
-@ActiveProfiles( "test-h2" )
+@ContextConfiguration(
+    classes = {ConfigProviderConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
+@ActiveProfiles("test-h2")
 @Transactional
-public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest
-{
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest {
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+  @Autowired protected IdentifiableObjectManager manager;
 
-    private MockMvc mvc;
+  private MockMvc mvc;
 
-    private MockHttpSession session;
+  private MockHttpSession session;
 
-    private User superUser;
+  private User superUser;
 
-    private User currentUser;
+  private User currentUser;
 
-    @BeforeEach
-    final void setup()
-        throws Exception
-    {
-        userService = _userService;
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
+  @BeforeEach
+  final void setup() throws Exception {
+    userService = _userService;
+    mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
-        superUser = createAdminUser( "ALL" );
-        switchContextToUser( superUser );
-        currentUser = superUser;
+    superUser = createAdminUser("ALL");
+    switchContextToUser(superUser);
+    currentUser = superUser;
 
-        TestUtils.executeStartupRoutines( webApplicationContext );
+    TestUtils.executeStartupRoutines(webApplicationContext);
+  }
+
+  protected final String getSuperuserUid() {
+    return superUser.getUid();
+  }
+
+  protected final User getCurrentUser() {
+    return currentUser;
+  }
+
+  protected final User switchToSuperuser() {
+    switchContextToUser(superUser);
+    return superUser;
+  }
+
+  protected final User switchToNewUser(String username, String... authorities) {
+    if (superUser != null) {
+      // we need to be an admin to be allowed to create user groups
+      switchContextToUser(superUser);
     }
 
-    protected final String getSuperuserUid()
-    {
-        return superUser.getUid();
-    }
+    currentUser = createUser(username, authorities);
+    switchContextToUser(currentUser);
+    return currentUser;
+  }
 
-    protected final User getCurrentUser()
-    {
-        return currentUser;
-    }
+  protected void switchContextToUser(User user) {
+    injectSecurityContext(user);
+    session = new MockHttpSession();
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        SecurityContextHolder.getContext());
+  }
 
-    protected final User switchToSuperuser()
-    {
-        switchContextToUser( superUser );
-        return superUser;
-    }
+  protected final HttpResponse POST_MULTIPART(String url, MockMultipartFile part) {
+    return webRequest(multipart(url).file(part));
+  }
 
-    protected final User switchToNewUser( String username, String... authorities )
-    {
-        if ( superUser != null )
-        {
-            // we need to be an admin to be allowed to create user groups
-            switchContextToUser( superUser );
-        }
+  @Override
+  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
+    return failOnException(
+        () ->
+            new HttpResponse(
+                toResponse(mvc.perform(request.session(session)).andReturn().getResponse())));
+  }
 
-        currentUser = createUser( username, authorities );
-        switchContextToUser( currentUser );
-        return currentUser;
-    }
+  protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
+    return failOnException(() -> mvc.perform(request.session(session)).andReturn());
+  }
 
-    protected void switchContextToUser( User user )
-    {
-        injectSecurityContext( user );
-        session = new MockHttpSession();
-        session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-            SecurityContextHolder.getContext() );
-    }
+  protected final void assertJson(String expected, HttpResponse actual) {
+    assertEquals(singleToDoubleQuotes(expected), actual.content().toString());
+  }
 
-    protected final HttpResponse POST_MULTIPART( String url, MockMultipartFile part )
-    {
-        return webRequest( multipart( url ).file( part ) );
-    }
-
-    @Override
-    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
-    {
-        return failOnException( () -> new HttpResponse(
-            toResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) ) );
-    }
-
-    protected final MvcResult webRequestWithMvcResult( MockHttpServletRequestBuilder request )
-    {
-        return failOnException( () -> mvc.perform( request.session( session ) ).andReturn() );
-    }
-
-    protected final void assertJson( String expected, HttpResponse actual )
-    {
-        assertEquals( singleToDoubleQuotes( expected ), actual.content().toString() );
-    }
-
-    protected void switchToUserWithOrgUnitDataView( String userName, String orgUnitId )
-    {
-        User user = createUser( userName, "ALL" );
-        user.getDataViewOrganisationUnits().add( manager.get( orgUnitId ) );
-        userService.addUser( user );
-        switchContextToUser( user );
-    }
+  protected void switchToUserWithOrgUnitDataView(String userName, String orgUnitId) {
+    User user = createUser(userName, "ALL");
+    user.getDataViewOrganisationUnits().add(manager.get(orgUnitId));
+    userService.addUser(user);
+    switchContextToUser(user);
+  }
 }

@@ -31,9 +31,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Iterator;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -48,83 +46,73 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class PredictorDeletionHandler extends DeletionHandler
-{
-    private final PredictorService predictorService;
+public class PredictorDeletionHandler extends DeletionHandler {
+  private final PredictorService predictorService;
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    @Override
-    protected void register()
-    {
-        whenDeletingEmbedded( Expression.class, this::deleteExpression );
-        whenDeleting( PredictorGroup.class, this::deletePredictorGroup );
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-        whenVetoing( CategoryCombo.class, this::allowDeleteCategoryCombo );
+  @Override
+  protected void register() {
+    whenDeletingEmbedded(Expression.class, this::deleteExpression);
+    whenDeleting(PredictorGroup.class, this::deletePredictorGroup);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+    whenVetoing(CategoryCombo.class, this::allowDeleteCategoryCombo);
+  }
+
+  private void deleteExpression(Expression expression) {
+    Iterator<Predictor> iterator = predictorService.getAllPredictors().iterator();
+
+    while (iterator.hasNext()) {
+      Predictor predictor = iterator.next();
+
+      Expression generator = predictor.getGenerator();
+      Expression skipTest = predictor.getSampleSkipTest();
+
+      if (generator != null && generator.equals(expression)
+          || skipTest != null && skipTest.equals(expression)) {
+        iterator.remove();
+        predictorService.deletePredictor(predictor);
+      }
+    }
+  }
+
+  private void deletePredictorGroup(PredictorGroup predictorGroup) {
+    for (Predictor predictor : predictorGroup.getMembers()) {
+      predictor.getGroups().remove(predictorGroup);
+      predictorService.updatePredictor(predictor);
+    }
+  }
+
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    List<Predictor> predictors = predictorService.getAllPredictors();
+
+    for (Predictor predictor : predictors) {
+      if (dataElement.typedEquals(predictor.getOutput())) {
+        return new DeletionVeto(Predictor.class, predictor.getName());
+      }
     }
 
-    private void deleteExpression( Expression expression )
-    {
-        Iterator<Predictor> iterator = predictorService.getAllPredictors().iterator();
+    return ACCEPT;
+  }
 
-        while ( iterator.hasNext() )
-        {
-            Predictor predictor = iterator.next();
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    return vetoIfExists(
+        "SELECT COUNT(*) FROM predictor where generatoroutputcombo=" + optionCombo.getId());
+  }
 
-            Expression generator = predictor.getGenerator();
-            Expression skipTest = predictor.getSampleSkipTest();
-
-            if ( generator != null && generator.equals( expression ) ||
-                skipTest != null && skipTest.equals( expression ) )
-            {
-                iterator.remove();
-                predictorService.deletePredictor( predictor );
-            }
-        }
-    }
-
-    private void deletePredictorGroup( PredictorGroup predictorGroup )
-    {
-        for ( Predictor predictor : predictorGroup.getMembers() )
-        {
-            predictor.getGroups().remove( predictorGroup );
-            predictorService.updatePredictor( predictor );
-        }
-    }
-
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        List<Predictor> predictors = predictorService.getAllPredictors();
-
-        for ( Predictor predictor : predictors )
-        {
-            if ( dataElement.typedEquals( predictor.getOutput() ) )
-            {
-                return new DeletionVeto( Predictor.class, predictor.getName() );
-            }
-        }
-
-        return ACCEPT;
-    }
-
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        return vetoIfExists( "SELECT COUNT(*) FROM predictor where generatoroutputcombo=" + optionCombo.getId() );
-    }
-
-    private DeletionVeto allowDeleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        return vetoIfExists( "SELECT COUNT(*) FROM predictor p where exists ("
+  private DeletionVeto allowDeleteCategoryCombo(CategoryCombo categoryCombo) {
+    return vetoIfExists(
+        "SELECT COUNT(*) FROM predictor p where exists ("
             + "select 1 from categorycombos_optioncombos co"
-            + " where co.categorycomboid=" + categoryCombo.getId()
+            + " where co.categorycomboid="
+            + categoryCombo.getId()
             + " and co.categoryoptioncomboid=p.generatoroutputcombo"
-            + ")" );
-    }
+            + ")");
+  }
 
-    private DeletionVeto vetoIfExists( String sql )
-    {
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-        return count == null || count == 0 ? ACCEPT : new DeletionVeto( Predictor.class );
-    }
+  private DeletionVeto vetoIfExists(String sql) {
+    Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+    return count == null || count == 0 ? ACCEPT : new DeletionVeto(Predictor.class);
+  }
 }

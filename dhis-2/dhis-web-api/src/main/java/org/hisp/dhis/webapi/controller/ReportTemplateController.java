@@ -31,9 +31,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -48,33 +46,28 @@ import org.springframework.web.bind.annotation.GetMapping;
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ReportTemplateController
-{
-    @Autowired
-    private ContextUtils contextUtils;
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ReportTemplateController {
+  @Autowired private ContextUtils contextUtils;
 
-    @GetMapping( value = "/reportTemplate.xml", produces = APPLICATION_XML_VALUE )
-    public void getReportDesignJrxml( HttpServletResponse response )
-        throws Exception
-    {
-        serveTemplate( response, ContextUtils.CONTENT_TYPE_XML, "jasper-report-template.jrxml" );
-    }
+  @GetMapping(value = "/reportTemplate.xml", produces = APPLICATION_XML_VALUE)
+  public void getReportDesignJrxml(HttpServletResponse response) throws Exception {
+    serveTemplate(response, ContextUtils.CONTENT_TYPE_XML, "jasper-report-template.jrxml");
+  }
 
-    @GetMapping( value = "/reportTemplate.html", produces = APPLICATION_XML_VALUE )
-    public void getReportDesignHtml( HttpServletResponse response )
-        throws Exception
-    {
-        serveTemplate( response, ContextUtils.CONTENT_TYPE_HTML, "html-report-template.html" );
-    }
+  @GetMapping(value = "/reportTemplate.html", produces = APPLICATION_XML_VALUE)
+  public void getReportDesignHtml(HttpServletResponse response) throws Exception {
+    serveTemplate(response, ContextUtils.CONTENT_TYPE_HTML, "html-report-template.html");
+  }
 
-    private void serveTemplate( HttpServletResponse response, String contentType, String template )
-        throws IOException
-    {
-        contextUtils.configureResponse( response, contentType, CacheStrategy.CACHE_1_HOUR, template, true );
+  private void serveTemplate(HttpServletResponse response, String contentType, String template)
+      throws IOException {
+    contextUtils.configureResponse(
+        response, contentType, CacheStrategy.CACHE_1_HOUR, template, true);
 
-        String content = IOUtils.toString( new ClassPathResource( template ).getInputStream(), StandardCharsets.UTF_8 );
+    String content =
+        IOUtils.toString(new ClassPathResource(template).getInputStream(), StandardCharsets.UTF_8);
 
-        IOUtils.write( content, response.getWriter() );
-    }
+    IOUtils.write(content, response.getWriter());
+  }
 }

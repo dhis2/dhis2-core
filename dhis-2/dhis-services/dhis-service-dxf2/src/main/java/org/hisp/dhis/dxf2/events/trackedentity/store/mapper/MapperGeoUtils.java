@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.util.Optional;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,24 +38,18 @@ import org.locationtech.jts.io.ParseException;
 /**
  * @author Luciano Fiandesio
  */
-public class MapperGeoUtils
-{
-    private static final Log log = LogFactory.getLog( MapperGeoUtils.class );
+public class MapperGeoUtils {
+  private static final Log log = LogFactory.getLog(MapperGeoUtils.class);
 
-    public static Optional<Geometry> resolveGeometry( byte[] geometry )
-    {
-        if ( ObjectUtils.isEmpty( geometry ) )
-        {
-            return Optional.empty();
-        }
-        try
-        {
-            return Optional.of( new WKBReader().read( geometry ) );
-        }
-        catch ( ParseException e )
-        {
-            log.error( "An error occurred parsing a geometry field", e );
-        }
-        return Optional.empty();
+  public static Optional<Geometry> resolveGeometry(byte[] geometry) {
+    if (ObjectUtils.isEmpty(geometry)) {
+      return Optional.empty();
     }
+    try {
+      return Optional.of(new WKBReader().read(geometry));
+    } catch (ParseException e) {
+      log.error("An error occurred parsing a geometry field", e);
+    }
+    return Optional.empty();
+  }
 }

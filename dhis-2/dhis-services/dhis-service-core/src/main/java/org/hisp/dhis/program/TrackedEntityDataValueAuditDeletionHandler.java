@@ -37,33 +37,27 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-@Component( "org.hisp.dhis.program.TrackedEntityDataValueAuditDeletionHandler" )
-public class TrackedEntityDataValueAuditDeletionHandler
-    extends DeletionHandler
-{
-    private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+@Component("org.hisp.dhis.program.TrackedEntityDataValueAuditDeletionHandler")
+public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler {
+  private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
-    public TrackedEntityDataValueAuditDeletionHandler(
-        TrackedEntityDataValueAuditService trackedEntityDataValueAuditService )
-    {
-        checkNotNull( trackedEntityDataValueAuditService );
-        this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
-    }
+  public TrackedEntityDataValueAuditDeletionHandler(
+      TrackedEntityDataValueAuditService trackedEntityDataValueAuditService) {
+    checkNotNull(trackedEntityDataValueAuditService);
+    this.trackedEntityDataValueAuditService = trackedEntityDataValueAuditService;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(ProgramStageInstance.class, this::deleteProgramStageInstance);
+  }
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
-    }
+  private void deleteDataElement(DataElement dataElement) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(dataElement);
+  }
 
-    private void deleteProgramStageInstance( ProgramStageInstance psi )
-    {
-        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( psi );
-    }
+  private void deleteProgramStageInstance(ProgramStageInstance psi) {
+    trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit(psi);
+  }
 }

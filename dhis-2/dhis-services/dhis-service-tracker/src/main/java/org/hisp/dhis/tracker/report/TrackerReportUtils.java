@@ -32,7 +32,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
@@ -46,52 +45,37 @@ import org.hisp.dhis.util.ObjectUtils;
 /**
  * @author Luciano Fiandesio
  */
-class TrackerReportUtils
-{
+class TrackerReportUtils {
 
-    private TrackerReportUtils()
-    {
-        // not meant to be inherited from
+  private TrackerReportUtils() {
+    // not meant to be inherited from
+  }
+
+  protected static List<String> buildArgumentList(TrackerBundle bundle, List<Object> arguments) {
+    final TrackerIdSchemeParam idSchemeParam =
+        TrackerIdSchemeParam.builder().idScheme(bundle.getIdentifier()).build();
+    return arguments.stream()
+        .map(arg -> parseArgs(idSchemeParam, arg))
+        .collect(Collectors.toList());
+  }
+
+  private static String parseArgs(TrackerIdSchemeParam idSchemeParam, Object argument) {
+    if (String.class.isAssignableFrom(ObjectUtils.firstNonNull(argument, "NULL").getClass())) {
+      return ObjectUtils.firstNonNull(argument, "NULL").toString();
+    } else if (IdentifiableObject.class.isAssignableFrom(argument.getClass())) {
+      return idSchemeParam.getIdentifier((IdentifiableObject) argument);
+    } else if (Date.class.isAssignableFrom(argument.getClass())) {
+      return (DateFormat.getInstance().format(argument));
+    } else if (Instant.class.isAssignableFrom(argument.getClass())) {
+      return DateUtils.getIso8601NoTz(DateUtils.fromInstant((Instant) argument));
+    } else if (Enrollment.class.isAssignableFrom(argument.getClass())) {
+      return ((Enrollment) argument).getEnrollment();
+    } else if (Event.class.isAssignableFrom(argument.getClass())) {
+      return ((Event) argument).getEvent();
+    } else if (TrackedEntity.class.isAssignableFrom(argument.getClass())) {
+      return ((TrackedEntity) argument).getTrackedEntity();
     }
 
-    protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
-    {
-        final TrackerIdSchemeParam idSchemeParam = TrackerIdSchemeParam.builder().idScheme( bundle.getIdentifier() )
-            .build();
-        return arguments.stream().map( arg -> parseArgs( idSchemeParam, arg ) ).collect( Collectors.toList() );
-    }
-
-    private static String parseArgs( TrackerIdSchemeParam idSchemeParam, Object argument )
-    {
-        if ( String.class.isAssignableFrom( ObjectUtils.firstNonNull( argument, "NULL" ).getClass() ) )
-        {
-            return ObjectUtils.firstNonNull( argument, "NULL" ).toString();
-        }
-        else if ( IdentifiableObject.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return idSchemeParam.getIdentifier( (IdentifiableObject) argument );
-        }
-        else if ( Date.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return (DateFormat.getInstance().format( argument ));
-        }
-        else if ( Instant.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return DateUtils.getIso8601NoTz( DateUtils.fromInstant( (Instant) argument ) );
-        }
-        else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return ((Enrollment) argument).getEnrollment();
-        }
-        else if ( Event.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return ((Event) argument).getEvent();
-        }
-        else if ( TrackedEntity.class.isAssignableFrom( argument.getClass() ) )
-        {
-            return ((TrackedEntity) argument).getTrackedEntity();
-        }
-
-        return StringUtils.EMPTY;
-    }
+    return StringUtils.EMPTY;
+  }
 }

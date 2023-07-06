@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -39,62 +38,55 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
- * Convenience class for creating a tracker bundle and calling validation and
- * commit.
+ * Convenience class for creating a tracker bundle and calling validation and commit.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 @Builder
 @Slf4j
-public class ValidateAndCommitTestUnit
-{
-    private TrackerValidationService trackerValidationService;
+public class ValidateAndCommitTestUnit {
+  private TrackerValidationService trackerValidationService;
 
-    private TrackerBundleService trackerBundleService;
+  private TrackerBundleService trackerBundleService;
 
-    private TrackerBundle trackerBundle;
+  private TrackerBundle trackerBundle;
 
-    private TrackerValidationReport validationReport;
+  private TrackerValidationReport validationReport;
 
-    private TrackerBundleReport commitReport;
+  private TrackerBundleReport commitReport;
 
-    private final TrackerImportParams trackerImportParams;
+  private final TrackerImportParams trackerImportParams;
 
-    private Exception commitException;
+  private Exception commitException;
 
-    private boolean forceCommit;
+  private boolean forceCommit;
 
-    @Builder.Default
-    private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
+  @Builder.Default
+  private final TrackerImportStrategy trackerImportStrategy =
+      TrackerImportStrategy.CREATE_AND_UPDATE;
 
-    /**
-     * Runs the work
-     *
-     * @return an instance of it self to retrieve the commit and validation
-     *         results from later.
-     */
-    public ValidateAndCommitTestUnit invoke()
-    {
-        trackerImportParams.setImportStrategy( trackerImportStrategy );
+  /**
+   * Runs the work
+   *
+   * @return an instance of it self to retrieve the commit and validation results from later.
+   */
+  public ValidateAndCommitTestUnit invoke() {
+    trackerImportParams.setImportStrategy(trackerImportStrategy);
 
-        trackerBundle = trackerBundleService.create( trackerImportParams );
+    trackerBundle = trackerBundleService.create(trackerImportParams);
 
-        validationReport = trackerValidationService.validate( trackerBundle );
+    validationReport = trackerValidationService.validate(trackerBundle);
 
-        if ( validationReport.getErrors().isEmpty() || forceCommit )
-        {
-            try
-            {
-                commitReport = trackerBundleService.commit( trackerBundle );
-            }
-            catch ( Exception e )
-            {
-                log.info( "Failed to commit. Exception:" + e.getMessage() );
-                commitException = e;
-            }
-        }
-
-        return this;
+    if (validationReport.getErrors().isEmpty() || forceCommit) {
+      try {
+        commitReport = trackerBundleService.commit(trackerBundle);
+      } catch (Exception e) {
+        log.info("Failed to commit. Exception:" + e.getMessage());
+        commitException = e;
+      }
     }
+
+    return this;
+  }
 }

@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -41,41 +40,38 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler" )
-public class TrackedEntityAttributeValueDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityAttributeValue.class,
-        "Some values are still assigned to this attribute" );
+@Component("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler")
+public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO =
+      new DeletionVeto(
+          TrackedEntityAttributeValue.class, "Some values are still assigned to this attribute");
 
-    private final TrackedEntityAttributeValueService attributeValueService;
+  private final TrackedEntityAttributeValueService attributeValueService;
 
-    public TrackedEntityAttributeValueDeletionHandler( TrackedEntityAttributeValueService attributeValueService )
-    {
-        checkNotNull( attributeValueService );
-        this.attributeValueService = attributeValueService;
+  public TrackedEntityAttributeValueDeletionHandler(
+      TrackedEntityAttributeValueService attributeValueService) {
+    checkNotNull(attributeValueService);
+    this.attributeValueService = attributeValueService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntityInstance.class, this::deleteTrackedEntityInstance);
+    whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
+  }
+
+  private void deleteTrackedEntityInstance(TrackedEntityInstance instance) {
+    Collection<TrackedEntityAttributeValue> attributeValues =
+        attributeValueService.getTrackedEntityAttributeValues(instance);
+
+    for (TrackedEntityAttributeValue attributeValue : attributeValues) {
+      attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
-        whenVetoing( TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute );
-    }
-
-    private void deleteTrackedEntityInstance( TrackedEntityInstance instance )
-    {
-        Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
-            .getTrackedEntityAttributeValues( instance );
-
-        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
-        {
-            attributeValueService.deleteTrackedEntityAttributeValue( attributeValue );
-        }
-    }
-
-    private DeletionVeto allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? ACCEPT : VETO;
-    }
+  private DeletionVeto allowDeleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues(attribute) == 0
+        ? ACCEPT
+        : VETO;
+  }
 }

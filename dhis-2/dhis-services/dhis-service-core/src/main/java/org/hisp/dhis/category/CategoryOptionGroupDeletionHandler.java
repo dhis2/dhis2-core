@@ -35,31 +35,25 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.category.CategoryOptionGroupDeletionHandler" )
-public class CategoryOptionGroupDeletionHandler
-    extends DeletionHandler
-{
-    private final CategoryService categoryService;
+@Component("org.hisp.dhis.category.CategoryOptionGroupDeletionHandler")
+public class CategoryOptionGroupDeletionHandler extends DeletionHandler {
+  private final CategoryService categoryService;
 
-    public CategoryOptionGroupDeletionHandler( CategoryService categoryService )
-    {
-        checkNotNull( categoryService );
+  public CategoryOptionGroupDeletionHandler(CategoryService categoryService) {
+    checkNotNull(categoryService);
 
-        this.categoryService = categoryService;
+    this.categoryService = categoryService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(CategoryOption.class, this::deleteCategoryOption);
+  }
+
+  private void deleteCategoryOption(CategoryOption categoryOption) {
+    for (CategoryOptionGroup group : categoryOption.getGroups()) {
+      group.getMembers().remove(categoryOption);
+      categoryService.updateCategoryOptionGroup(group);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
-    }
-
-    private void deleteCategoryOption( CategoryOption categoryOption )
-    {
-        for ( CategoryOptionGroup group : categoryOption.getGroups() )
-        {
-            group.getMembers().remove( categoryOption );
-            categoryService.updateCategoryOptionGroup( group );
-        }
-    }
+  }
 }

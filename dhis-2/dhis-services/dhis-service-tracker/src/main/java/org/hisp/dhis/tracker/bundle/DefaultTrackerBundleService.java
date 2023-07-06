@@ -32,9 +32,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.rules.models.RuleEffects;
@@ -60,110 +58,100 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultTrackerBundleService
-    implements TrackerBundleService
-{
-    private final TrackerPreheatService trackerPreheatService;
+public class DefaultTrackerBundleService implements TrackerBundleService {
+  private final TrackerPreheatService trackerPreheatService;
 
-    private final SessionFactory sessionFactory;
+  private final SessionFactory sessionFactory;
 
-    private final CommitService commitService;
+  private final CommitService commitService;
 
-    private final TrackerProgramRuleService trackerProgramRuleService;
+  private final TrackerProgramRuleService trackerProgramRuleService;
 
-    private final TrackerObjectDeletionService deletionService;
+  private final TrackerObjectDeletionService deletionService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+  private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
+  private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
-    @Autowired( required = false )
-    public void setSideEffectHandlers( List<SideEffectHandlerService> sideEffectHandlers )
-    {
-        this.sideEffectHandlers = sideEffectHandlers;
+  @Autowired(required = false)
+  public void setSideEffectHandlers(List<SideEffectHandlerService> sideEffectHandlers) {
+    this.sideEffectHandlers = sideEffectHandlers;
+  }
+
+  @Override
+  public TrackerBundle create(TrackerImportParams params) {
+    TrackerBundle trackerBundle = ParamsConverter.convert(params);
+    TrackerPreheat preheat = trackerPreheatService.preheat(params);
+    trackerBundle.setPreheat(preheat);
+
+    return trackerBundle;
+  }
+
+  @Override
+  public TrackerBundle runRuleEngine(TrackerBundle trackerBundle) {
+    List<RuleEffects> ruleEffects = trackerProgramRuleService.calculateRuleEffects(trackerBundle);
+    trackerBundle.setRuleEffects(ruleEffects);
+
+    return trackerBundle;
+  }
+
+  @Override
+  @Transactional
+  public TrackerBundleReport commit(TrackerBundle bundle) {
+    TrackerBundleReport bundleReport = new TrackerBundleReport();
+
+    if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
+      return bundleReport;
     }
 
-    @Override
-    public TrackerBundle create( TrackerImportParams params )
-    {
-        TrackerBundle trackerBundle = ParamsConverter.convert( params );
-        TrackerPreheat preheat = trackerPreheatService.preheat( params );
-        trackerBundle.setPreheat( preheat );
+    Session session = sessionFactory.getCurrentSession();
+    Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
+    report.put(
+        TrackerType.TRACKED_ENTITY, commitService.getTrackerPersister().persist(session, bundle));
+    report.put(
+        TrackerType.ENROLLMENT, commitService.getEnrollmentPersister().persist(session, bundle));
+    report.put(TrackerType.EVENT, commitService.getEventPersister().persist(session, bundle));
+    report.put(
+        TrackerType.RELATIONSHIP,
+        commitService.getRelationshipPersister().persist(session, bundle));
 
-        return trackerBundle;
+    return bundleReport;
+  }
+
+  @Override
+  public void postCommit(TrackerBundle bundle) {
+    updateTeisLastUpdated(bundle);
+  }
+
+  private void updateTeisLastUpdated(TrackerBundle bundle) {
+    Optional.ofNullable(bundle.getUpdatedTeis())
+        .filter(ut -> !ut.isEmpty())
+        .ifPresent(
+            teis ->
+                trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated(
+                    teis, new Date()));
+  }
+
+  @Override
+  public void handleTrackerSideEffects(List<TrackerSideEffectDataBundle> bundles) {
+    sideEffectHandlers.forEach(handler -> handler.handleSideEffects(bundles));
+  }
+
+  @Override
+  @Transactional
+  public TrackerBundleReport delete(TrackerBundle bundle) {
+    TrackerBundleReport bundleReport = new TrackerBundleReport();
+
+    if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
+      return bundleReport;
     }
 
-    @Override
-    public TrackerBundle runRuleEngine( TrackerBundle trackerBundle )
-    {
-        List<RuleEffects> ruleEffects = trackerProgramRuleService
-            .calculateRuleEffects( trackerBundle );
-        trackerBundle.setRuleEffects( ruleEffects );
+    Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
+    report.put(TrackerType.RELATIONSHIP, deletionService.deleteRelationShips(bundle));
+    report.put(TrackerType.EVENT, deletionService.deleteEvents(bundle));
+    report.put(TrackerType.ENROLLMENT, deletionService.deleteEnrollments(bundle));
+    report.put(TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntityInstances(bundle));
 
-        return trackerBundle;
-    }
-
-    @Override
-    @Transactional
-    public TrackerBundleReport commit( TrackerBundle bundle )
-    {
-        TrackerBundleReport bundleReport = new TrackerBundleReport();
-
-        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
-        {
-            return bundleReport;
-        }
-
-        Session session = sessionFactory.getCurrentSession();
-        Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
-        report.put( TrackerType.TRACKED_ENTITY,
-            commitService.getTrackerPersister().persist( session, bundle ) );
-        report.put( TrackerType.ENROLLMENT,
-            commitService.getEnrollmentPersister().persist( session, bundle ) );
-        report.put( TrackerType.EVENT,
-            commitService.getEventPersister().persist( session, bundle ) );
-        report.put( TrackerType.RELATIONSHIP,
-            commitService.getRelationshipPersister().persist( session, bundle ) );
-
-        return bundleReport;
-    }
-
-    @Override
-    public void postCommit( TrackerBundle bundle )
-    {
-        updateTeisLastUpdated( bundle );
-    }
-
-    private void updateTeisLastUpdated( TrackerBundle bundle )
-    {
-        Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).ifPresent(
-            teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, new Date() ) );
-    }
-
-    @Override
-    public void handleTrackerSideEffects( List<TrackerSideEffectDataBundle> bundles )
-    {
-        sideEffectHandlers.forEach( handler -> handler.handleSideEffects( bundles ) );
-    }
-
-    @Override
-    @Transactional
-    public TrackerBundleReport delete( TrackerBundle bundle )
-    {
-        TrackerBundleReport bundleReport = new TrackerBundleReport();
-
-        if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
-        {
-            return bundleReport;
-        }
-
-        Map<TrackerType, TrackerTypeReport> report = bundleReport.getTypeReportMap();
-        report.put( TrackerType.RELATIONSHIP, deletionService.deleteRelationShips( bundle ) );
-        report.put( TrackerType.EVENT, deletionService.deleteEvents( bundle ) );
-        report.put( TrackerType.ENROLLMENT, deletionService.deleteEnrollments( bundle ) );
-        report.put( TrackerType.TRACKED_ENTITY,
-            deletionService.deleteTrackedEntityInstances( bundle ) );
-
-        return bundleReport;
-    }
+    return bundleReport;
+  }
 }

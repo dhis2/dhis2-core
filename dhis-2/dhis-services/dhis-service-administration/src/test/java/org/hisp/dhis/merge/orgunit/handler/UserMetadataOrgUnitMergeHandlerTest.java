@@ -41,70 +41,64 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class UserMetadataOrgUnitMergeHandlerTest extends DhisSpringTest
-{
+class UserMetadataOrgUnitMergeHandlerTest extends DhisSpringTest {
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private MetadataOrgUnitMergeHandler handler;
+  @Autowired private MetadataOrgUnitMergeHandler handler;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    @BeforeEach
-    void beforeTest()
-    {
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-    }
+  @BeforeEach
+  void beforeTest() {
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+    idObjectManager.save(ouC);
+  }
 
-    @Test
-    void testMergeUsers()
-    {
-        User userA = createUser( 'A' );
-        userA.addOrganisationUnit( ouA );
-        userA.getDataViewOrganisationUnits().add( ouA );
-        userA.getTeiSearchOrganisationUnits().add( ouA );
-        User userB = createUser( 'B' );
-        userB.addOrganisationUnit( ouB );
-        userB.getDataViewOrganisationUnits().add( ouB );
-        userB.getTeiSearchOrganisationUnits().add( ouB );
-        userService.addUser( userA );
-        userService.addUser( userB );
-        assertTrue( ouA.getUsers().contains( userA ) );
-        assertTrue( userA.getOrganisationUnits().contains( ouA ) );
-        assertTrue( ouB.getUsers().contains( userB ) );
-        assertTrue( userB.getOrganisationUnits().contains( ouB ) );
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
-            .withTarget( ouC ).build();
-        handler.mergeUsers( request );
-        assertTrue( ouA.getUsers().isEmpty() );
-        assertFalse( userA.getOrganisationUnits().contains( ouA ) );
-        assertFalse( userA.getDataViewOrganisationUnits().contains( ouA ) );
-        assertFalse( userA.getTeiSearchOrganisationUnits().contains( ouA ) );
-        assertTrue( ouB.getUsers().isEmpty() );
-        assertFalse( userB.getOrganisationUnits().contains( ouB ) );
-        assertFalse( userB.getDataViewOrganisationUnits().contains( ouB ) );
-        assertFalse( userB.getTeiSearchOrganisationUnits().contains( ouB ) );
-        assertTrue( ouC.getUsers().contains( userA ) );
-        assertTrue( ouC.getUsers().contains( userB ) );
-        assertContainsOnly( userA.getOrganisationUnits(), ouC );
-        assertContainsOnly( userA.getDataViewOrganisationUnits(), ouC );
-        assertContainsOnly( userA.getTeiSearchOrganisationUnits(), ouC );
-        assertContainsOnly( userB.getOrganisationUnits(), ouC );
-        assertContainsOnly( userB.getDataViewOrganisationUnits(), ouC );
-        assertContainsOnly( userB.getTeiSearchOrganisationUnits(), ouC );
-    }
+  @Test
+  void testMergeUsers() {
+    User userA = createUser('A');
+    userA.addOrganisationUnit(ouA);
+    userA.getDataViewOrganisationUnits().add(ouA);
+    userA.getTeiSearchOrganisationUnits().add(ouA);
+    User userB = createUser('B');
+    userB.addOrganisationUnit(ouB);
+    userB.getDataViewOrganisationUnits().add(ouB);
+    userB.getTeiSearchOrganisationUnits().add(ouB);
+    userService.addUser(userA);
+    userService.addUser(userB);
+    assertTrue(ouA.getUsers().contains(userA));
+    assertTrue(userA.getOrganisationUnits().contains(ouA));
+    assertTrue(ouB.getUsers().contains(userB));
+    assertTrue(userB.getOrganisationUnits().contains(ouB));
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    handler.mergeUsers(request);
+    assertTrue(ouA.getUsers().isEmpty());
+    assertFalse(userA.getOrganisationUnits().contains(ouA));
+    assertFalse(userA.getDataViewOrganisationUnits().contains(ouA));
+    assertFalse(userA.getTeiSearchOrganisationUnits().contains(ouA));
+    assertTrue(ouB.getUsers().isEmpty());
+    assertFalse(userB.getOrganisationUnits().contains(ouB));
+    assertFalse(userB.getDataViewOrganisationUnits().contains(ouB));
+    assertFalse(userB.getTeiSearchOrganisationUnits().contains(ouB));
+    assertTrue(ouC.getUsers().contains(userA));
+    assertTrue(ouC.getUsers().contains(userB));
+    assertContainsOnly(userA.getOrganisationUnits(), ouC);
+    assertContainsOnly(userA.getDataViewOrganisationUnits(), ouC);
+    assertContainsOnly(userA.getTeiSearchOrganisationUnits(), ouC);
+    assertContainsOnly(userB.getOrganisationUnits(), ouC);
+    assertContainsOnly(userB.getDataViewOrganisationUnits(), ouC);
+    assertContainsOnly(userB.getTeiSearchOrganisationUnits(), ouC);
+  }
 }

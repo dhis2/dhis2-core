@@ -58,8 +58,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.POWER;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VERTICAL_BAR_2;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Date;
-
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.dataitem.ItemConstant;
 import org.hisp.dhis.parser.expression.function.FunctionFirstNonNull;
@@ -87,159 +87,143 @@ import org.hisp.dhis.parser.expression.operator.OperatorMathMultiply;
 import org.hisp.dhis.parser.expression.operator.OperatorMathPlus;
 import org.hisp.dhis.parser.expression.operator.OperatorMathPower;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * Utilities for ANTLR parsing
  *
  * @author Jim Grace
  */
-public class ParserUtils
-{
-    private ParserUtils()
-    {
+public class ParserUtils {
+  private ParserUtils() {}
+
+  public static final double DOUBLE_VALUE_IF_NULL = 0.0;
+
+  /**
+   * These are common expression items that are used in ALL types of DHIS2 expressions. Items that
+   * are only used in some types of expressions are defined elsewhere.
+   */
+  public static final ImmutableMap<Integer, ExpressionItem> COMMON_EXPRESSION_ITEMS =
+      ImmutableMap.<Integer, ExpressionItem>builder()
+
+          // Non-comparison operators
+
+          .put(PAREN, new OperatorGroupingParentheses())
+          .put(PLUS, new OperatorMathPlus())
+          .put(MINUS, new OperatorMathMinus())
+          .put(POWER, new OperatorMathPower())
+          .put(MUL, new OperatorMathMultiply())
+          .put(DIV, new OperatorMathDivide())
+          .put(MOD, new OperatorMathModulus())
+          .put(NOT, new OperatorLogicalNot())
+          .put(EXCLAMATION_POINT, new OperatorLogicalNot())
+          .put(AND, new OperatorLogicalAnd())
+          .put(AMPERSAND_2, new OperatorLogicalAnd())
+          .put(OR, new OperatorLogicalOr())
+          .put(VERTICAL_BAR_2, new OperatorLogicalOr())
+
+          // Comparison operators
+
+          .put(EQ, new OperatorCompareEqual())
+          .put(NE, new OperatorCompareNotEqual())
+          .put(GT, new OperatorCompareGreaterThan())
+          .put(LT, new OperatorCompareLessThan())
+          .put(GEQ, new OperatorCompareGreaterThanOrEqual())
+          .put(LEQ, new OperatorCompareLessThanOrEqual())
+
+          // Functions
+
+          .put(FIRST_NON_NULL, new FunctionFirstNonNull())
+          .put(GREATEST, new FunctionGreatest())
+          .put(IF, new FunctionIf())
+          .put(IS_NOT_NULL, new FunctionIsNotNull())
+          .put(IS_NULL, new FunctionIsNull())
+          .put(LEAST, new FunctionLeast())
+          .put(LOG, new FunctionLog())
+          .put(LOG10, new FunctionLog10())
+
+          // Data items
+
+          .put(C_BRACE, new ItemConstant())
+          .build();
+
+  /** Default value for data type double. */
+  public static final double DEFAULT_DOUBLE_VALUE = 1d;
+
+  /** Default value for data type date. */
+  public static final String DEFAULT_DATE_VALUE = "2017-07-08";
+
+  /** Default value for data type boolean. */
+  public static final boolean DEFAULT_BOOLEAN_VALUE = false;
+
+  /**
+   * Parse a date. The input format is guaranteed by the expression parser to be yyyy-m-d where m
+   * and d may be either 1 or 2 digits each.
+   *
+   * @param dateString the date string
+   * @return the parsed date
+   */
+  public static Date parseExpressionDate(String dateString) {
+    String[] dateParts = dateString.split("-");
+
+    String fixedDateString =
+        dateParts[0]
+            + "-"
+            + (dateParts[1].length() == 1 ? "0" : "")
+            + dateParts[1]
+            + "-"
+            + (dateParts[2].length() == 1 ? "0" : "")
+            + dateParts[2];
+
+    Date date;
+
+    try {
+      date = parseDate(fixedDateString);
+    } catch (Exception e) {
+      throw new ParserExceptionWithoutContext("Invalid date: " + dateString + " " + e.getMessage());
     }
 
-    public static final double DOUBLE_VALUE_IF_NULL = 0.0;
-
-    /**
-     * These are common expression items that are used in ALL types of DHIS2
-     * expressions. Items that are only used in some types of expressions are
-     * defined elsewhere.
-     */
-    public static final ImmutableMap<Integer, ExpressionItem> COMMON_EXPRESSION_ITEMS = ImmutableMap
-        .<Integer, ExpressionItem> builder()
-
-        // Non-comparison operators
-
-        .put( PAREN, new OperatorGroupingParentheses() )
-        .put( PLUS, new OperatorMathPlus() )
-        .put( MINUS, new OperatorMathMinus() )
-        .put( POWER, new OperatorMathPower() )
-        .put( MUL, new OperatorMathMultiply() )
-        .put( DIV, new OperatorMathDivide() )
-        .put( MOD, new OperatorMathModulus() )
-        .put( NOT, new OperatorLogicalNot() )
-        .put( EXCLAMATION_POINT, new OperatorLogicalNot() )
-        .put( AND, new OperatorLogicalAnd() )
-        .put( AMPERSAND_2, new OperatorLogicalAnd() )
-        .put( OR, new OperatorLogicalOr() )
-        .put( VERTICAL_BAR_2, new OperatorLogicalOr() )
-
-        // Comparison operators
-
-        .put( EQ, new OperatorCompareEqual() )
-        .put( NE, new OperatorCompareNotEqual() )
-        .put( GT, new OperatorCompareGreaterThan() )
-        .put( LT, new OperatorCompareLessThan() )
-        .put( GEQ, new OperatorCompareGreaterThanOrEqual() )
-        .put( LEQ, new OperatorCompareLessThanOrEqual() )
-
-        // Functions
-
-        .put( FIRST_NON_NULL, new FunctionFirstNonNull() )
-        .put( GREATEST, new FunctionGreatest() )
-        .put( IF, new FunctionIf() )
-        .put( IS_NOT_NULL, new FunctionIsNotNull() )
-        .put( IS_NULL, new FunctionIsNull() )
-        .put( LEAST, new FunctionLeast() )
-        .put( LOG, new FunctionLog() )
-        .put( LOG10, new FunctionLog10() )
-
-        // Data items
-
-        .put( C_BRACE, new ItemConstant() )
-
-        .build();
-
-    /**
-     * Default value for data type double.
-     */
-    public static final double DEFAULT_DOUBLE_VALUE = 1d;
-
-    /**
-     * Default value for data type date.
-     */
-    public static final String DEFAULT_DATE_VALUE = "2017-07-08";
-
-    /**
-     * Default value for data type boolean.
-     */
-    public static final boolean DEFAULT_BOOLEAN_VALUE = false;
-
-    /**
-     * Parse a date. The input format is guaranteed by the expression parser to
-     * be yyyy-m-d where m and d may be either 1 or 2 digits each.
-     *
-     * @param dateString the date string
-     * @return the parsed date
-     */
-    public static Date parseExpressionDate( String dateString )
-    {
-        String[] dateParts = dateString.split( "-" );
-
-        String fixedDateString = dateParts[0] +
-            "-" + (dateParts[1].length() == 1 ? "0" : "") + dateParts[1] +
-            "-" + (dateParts[2].length() == 1 ? "0" : "") + dateParts[2];
-
-        Date date;
-
-        try
-        {
-            date = parseDate( fixedDateString );
-        }
-        catch ( Exception e )
-        {
-            throw new ParserExceptionWithoutContext( "Invalid date: " + dateString + " " + e.getMessage() );
-        }
-
-        if ( date == null )
-        {
-            throw new ParserExceptionWithoutContext( "Invalid date: " + dateString );
-        }
-
-        return date;
+    if (date == null) {
+      throw new ParserExceptionWithoutContext("Invalid date: " + dateString);
     }
 
-    /**
-     * Assume that an item of the form #{...} has a syntax that could be used in
-     * a program indicator expression for #{programStageUid.dataElementUid}
-     *
-     * @param ctx the item context
-     */
-    public static void assumeStageElementSyntax( ExprContext ctx )
-    {
-        if ( ctx.uid0 == null || ctx.uid1 == null || ctx.uid2 != null || ctx.wild2 != null )
-        {
-            throw new ParserExceptionWithoutContext( "Invalid Program Stage / DataElement syntax: " + ctx.getText() );
-        }
-    }
+    return date;
+  }
 
-    /**
-     * Assume that an item of the form A{...} has a syntax that could be used in
-     * an expression for A{progamUid.attributeUid}
-     *
-     * @param ctx the item context
-     */
-    public static void assumeExpressionProgramAttribute( ExprContext ctx )
-    {
-        if ( ctx.uid0 == null || ctx.uid1 == null )
-        {
-            throw new ParserExceptionWithoutContext( "Program attribute must have two UIDs: " + ctx.getText() );
-        }
+  /**
+   * Assume that an item of the form #{...} has a syntax that could be used in a program indicator
+   * expression for #{programStageUid.dataElementUid}
+   *
+   * @param ctx the item context
+   */
+  public static void assumeStageElementSyntax(ExprContext ctx) {
+    if (ctx.uid0 == null || ctx.uid1 == null || ctx.uid2 != null || ctx.wild2 != null) {
+      throw new ParserExceptionWithoutContext(
+          "Invalid Program Stage / DataElement syntax: " + ctx.getText());
     }
+  }
 
-    /**
-     * Assume that an item of the form A{...} has a syntax that could be used be
-     * used in an program expression for A{attributeUid}
-     *
-     * @param ctx the item context
-     */
-    public static void assumeProgramExpressionProgramAttribute( ExprContext ctx )
-    {
-        if ( ctx.uid0 == null || ctx.uid1 != null )
-        {
-            throw new ParserExceptionWithoutContext( "Program attribute must have one UID: " + ctx.getText() );
-        }
+  /**
+   * Assume that an item of the form A{...} has a syntax that could be used in an expression for
+   * A{progamUid.attributeUid}
+   *
+   * @param ctx the item context
+   */
+  public static void assumeExpressionProgramAttribute(ExprContext ctx) {
+    if (ctx.uid0 == null || ctx.uid1 == null) {
+      throw new ParserExceptionWithoutContext(
+          "Program attribute must have two UIDs: " + ctx.getText());
     }
+  }
+
+  /**
+   * Assume that an item of the form A{...} has a syntax that could be used be used in an program
+   * expression for A{attributeUid}
+   *
+   * @param ctx the item context
+   */
+  public static void assumeProgramExpressionProgramAttribute(ExprContext ctx) {
+    if (ctx.uid0 == null || ctx.uid1 != null) {
+      throw new ParserExceptionWithoutContext(
+          "Program attribute must have one UID: " + ctx.getText());
+    }
+  }
 }

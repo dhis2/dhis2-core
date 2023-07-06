@@ -34,35 +34,28 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
-{
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
+public interface JsonWebMessage extends JsonObject {
+  default String getHttpStatus() {
+    return getString("httpStatus").string();
+  }
 
-    default int getHttpStatusCode()
-    {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
+  default int getHttpStatusCode() {
+    return getNumber("httpStatusCode").intValue();
+  }
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+  default String getStatus() {
+    return getString("status").string();
+  }
 
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
+  default String getMessage() {
+    return getString("message").string();
+  }
 
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
+  default String getDescription() {
+    return getString("description").string();
+  }
 
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
-    }
+  default JsonObject getResponse() {
+    return getObject("response");
+  }
 }

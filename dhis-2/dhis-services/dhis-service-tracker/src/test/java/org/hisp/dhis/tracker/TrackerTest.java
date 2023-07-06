@@ -33,9 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -60,107 +58,84 @@ import org.springframework.core.io.ClassPathResource;
  * @author Luciano Fiandesio
  */
 @Slf4j
-public abstract class TrackerTest extends TransactionalIntegrationTest
-{
+public abstract class TrackerTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+  @Autowired protected IdentifiableObjectManager manager;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    protected UserService _userService;
+  @Autowired protected UserService _userService;
 
-    @Autowired
-    protected CurrentUserService currentUserService;
+  @Autowired protected CurrentUserService currentUserService;
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Override
-    protected void setUpTest()
-        throws IOException
-    {
-        preCreateInjectAdminUserWithoutPersistence();
-        renderService = _renderService;
-        userService = _userService;
-        initTest();
-        // Clear the session to simulate different API call after the setup
-        manager.clear();
+  @Override
+  protected void setUpTest() throws IOException {
+    preCreateInjectAdminUserWithoutPersistence();
+    renderService = _renderService;
+    userService = _userService;
+    initTest();
+    // Clear the session to simulate different API call after the setup
+    manager.clear();
+  }
+
+  protected abstract void initTest() throws IOException;
+
+  protected ObjectBundle setUpMetadata(String path) throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
+    validationReport.forEachErrorReport(errorReport -> log.error(errorReport.toString()));
+    boolean condition = validationReport.hasErrorReports();
+    assertFalse(condition);
+    objectBundleService.commit(bundle);
+    return bundle;
+  }
+
+  protected TrackerImportParams fromJson(String path) throws IOException {
+    TrackerImportParams trackerImportParams = _fromJson(path);
+    trackerImportParams.setUser(currentUserService.getCurrentUser());
+    return trackerImportParams;
+  }
+
+  protected TrackerImportParams fromJson(String path, String userUid) throws IOException {
+    TrackerImportParams trackerImportParams = _fromJson(path);
+    trackerImportParams.setUserId(userUid);
+    return trackerImportParams;
+  }
+
+  protected TrackerImportParams fromJson(String path, User user) throws IOException {
+    TrackerImportParams trackerImportParams = _fromJson(path);
+    trackerImportParams.setUser(user);
+    return trackerImportParams;
+  }
+
+  protected TrackerImportParams _fromJson(String path) throws IOException {
+    return renderService.fromJson(
+        new ClassPathResource(path).getInputStream(), TrackerImportParams.class);
+  }
+
+  protected void assertNoImportErrors(TrackerImportReport report) {
+    List<TrackerErrorReport> errorReports = report.getValidationReport().getErrors();
+    boolean empty = errorReports.isEmpty();
+    if (!empty) {
+      for (TrackerErrorReport errorReport : errorReports) {
+        log.error("Import errors: " + errorReport.getErrorMessage());
+      }
     }
+    assertTrue(empty);
+  }
 
-    protected abstract void initTest()
-        throws IOException;
-
-    protected ObjectBundle setUpMetadata( String path )
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( path ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        validationReport.forEachErrorReport( errorReport -> log.error( errorReport.toString() ) );
-        boolean condition = validationReport.hasErrorReports();
-        assertFalse( condition );
-        objectBundleService.commit( bundle );
-        return bundle;
-    }
-
-    protected TrackerImportParams fromJson( String path )
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = _fromJson( path );
-        trackerImportParams.setUser( currentUserService.getCurrentUser() );
-        return trackerImportParams;
-    }
-
-    protected TrackerImportParams fromJson( String path, String userUid )
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = _fromJson( path );
-        trackerImportParams.setUserId( userUid );
-        return trackerImportParams;
-    }
-
-    protected TrackerImportParams fromJson( String path, User user )
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = _fromJson( path );
-        trackerImportParams.setUser( user );
-        return trackerImportParams;
-    }
-
-    protected TrackerImportParams _fromJson( String path )
-        throws IOException
-    {
-        return renderService.fromJson( new ClassPathResource( path ).getInputStream(), TrackerImportParams.class );
-    }
-
-    protected void assertNoImportErrors( TrackerImportReport report )
-    {
-        List<TrackerErrorReport> errorReports = report.getValidationReport().getErrors();
-        boolean empty = errorReports.isEmpty();
-        if ( !empty )
-        {
-            for ( TrackerErrorReport errorReport : errorReports )
-            {
-                log.error( "Import errors: " + errorReport.getErrorMessage() );
-            }
-        }
-        assertTrue( empty );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  @Override
+  public boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 }

@@ -43,117 +43,96 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.dashboard.DashboardItemDeletionHandler" )
-public class DashboardItemDeletionHandler extends DeletionHandler
-{
-    private final DashboardService dashboardService;
+@Component("org.hisp.dhis.dashboard.DashboardItemDeletionHandler")
+public class DashboardItemDeletionHandler extends DeletionHandler {
+  private final DashboardService dashboardService;
 
-    public DashboardItemDeletionHandler( DashboardService dashboardService )
-    {
-        checkNotNull( dashboardService );
-        this.dashboardService = dashboardService;
+  public DashboardItemDeletionHandler(DashboardService dashboardService) {
+    checkNotNull(dashboardService);
+    this.dashboardService = dashboardService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(Visualization.class, this::deleteVisualization);
+    whenDeleting(EventVisualization.class, this::deleteEventVisualization);
+    whenDeleting(EventChart.class, this::deleteEventChart);
+    whenDeleting(Map.class, this::deleteMap);
+    whenDeleting(EventReport.class, this::deleteEventReport);
+    whenDeleting(User.class, this::deleteUser);
+    whenDeleting(Report.class, this::deleteReport);
+    whenDeleting(Document.class, this::deleteDocument);
+  }
+
+  private void deleteVisualization(Visualization visualization) {
+    for (DashboardItem item : dashboardService.getVisualizationDashboardItems(visualization)) {
+      dashboardService.deleteDashboardItem(item);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( Visualization.class, this::deleteVisualization );
-        whenDeleting( EventVisualization.class, this::deleteEventVisualization );
-        whenDeleting( EventChart.class, this::deleteEventChart );
-        whenDeleting( Map.class, this::deleteMap );
-        whenDeleting( EventReport.class, this::deleteEventReport );
-        whenDeleting( User.class, this::deleteUser );
-        whenDeleting( Report.class, this::deleteReport );
-        whenDeleting( Document.class, this::deleteDocument );
+  private void deleteEventVisualization(EventVisualization eventVisualization) {
+    for (DashboardItem item :
+        dashboardService.getEventVisualizationDashboardItems(eventVisualization)) {
+      dashboardService.deleteDashboardItem(item);
     }
+  }
 
-    private void deleteVisualization( Visualization visualization )
-    {
-        for ( DashboardItem item : dashboardService.getVisualizationDashboardItems( visualization ) )
-        {
-            dashboardService.deleteDashboardItem( item );
-        }
+  private void deleteEventChart(EventChart eventChart) {
+    for (DashboardItem item : dashboardService.getEventChartDashboardItems(eventChart)) {
+      dashboardService.deleteDashboardItem(item);
     }
+  }
 
-    private void deleteEventVisualization( EventVisualization eventVisualization )
-    {
-        for ( DashboardItem item : dashboardService.getEventVisualizationDashboardItems( eventVisualization ) )
-        {
-            dashboardService.deleteDashboardItem( item );
-        }
+  private void deleteMap(Map map) {
+    for (DashboardItem item : dashboardService.getMapDashboardItems(map)) {
+      dashboardService.deleteDashboardItem(item);
     }
+  }
 
-    private void deleteEventChart( EventChart eventChart )
-    {
-        for ( DashboardItem item : dashboardService.getEventChartDashboardItems( eventChart ) )
-        {
-            dashboardService.deleteDashboardItem( item );
-        }
+  private void deleteEventReport(EventReport eventReport) {
+    for (DashboardItem item : dashboardService.getEventReportDashboardItems(eventReport)) {
+      dashboardService.deleteDashboardItem(item);
     }
+  }
 
-    private void deleteMap( Map map )
-    {
-        for ( DashboardItem item : dashboardService.getMapDashboardItems( map ) )
-        {
-            dashboardService.deleteDashboardItem( item );
-        }
+  private void deleteUser(User user) {
+    for (DashboardItem item : dashboardService.getUserDashboardItems(user)) {
+      while (item.getUsers().contains(user)) // In case of duplicates
+      {
+        item.getUsers().remove(user);
+      }
+
+      if (item.getUsers().isEmpty()) {
+        dashboardService.deleteDashboardItem(item);
+      }
     }
+  }
 
-    private void deleteEventReport( EventReport eventReport )
-    {
-        for ( DashboardItem item : dashboardService.getEventReportDashboardItems( eventReport ) )
-        {
-            dashboardService.deleteDashboardItem( item );
-        }
+  private void deleteReport(Report report) {
+    for (DashboardItem item : dashboardService.getReportDashboardItems(report)) {
+      while (item.getReports().contains(report)) // In case of
+      // duplicates
+      {
+        item.getReports().remove(report);
+      }
+
+      if (item.getReports().isEmpty()) {
+        dashboardService.deleteDashboardItem(item);
+      }
     }
+  }
 
-    private void deleteUser( User user )
-    {
-        for ( DashboardItem item : dashboardService.getUserDashboardItems( user ) )
-        {
-            while ( item.getUsers().contains( user ) ) // In case of duplicates
-            {
-                item.getUsers().remove( user );
-            }
+  private void deleteDocument(Document document) {
+    for (DashboardItem item : dashboardService.getDocumentDashboardItems(document)) {
+      while (item.getResources().contains(document)) // In case of
+      // duplicates
+      {
+        item.getResources().remove(document);
+      }
 
-            if ( item.getUsers().isEmpty() )
-            {
-                dashboardService.deleteDashboardItem( item );
-            }
-        }
+      if (item.getResources().isEmpty()) {
+        dashboardService.deleteDashboardItem(item);
+      }
     }
-
-    private void deleteReport( Report report )
-    {
-        for ( DashboardItem item : dashboardService.getReportDashboardItems( report ) )
-        {
-            while ( item.getReports().contains( report ) ) // In case of
-                                                           // duplicates
-            {
-                item.getReports().remove( report );
-            }
-
-            if ( item.getReports().isEmpty() )
-            {
-                dashboardService.deleteDashboardItem( item );
-            }
-        }
-    }
-
-    private void deleteDocument( Document document )
-    {
-        for ( DashboardItem item : dashboardService.getDocumentDashboardItems( document ) )
-        {
-            while ( item.getResources().contains( document ) ) // In case of
-                                                               // duplicates
-            {
-                item.getResources().remove( document );
-            }
-
-            if ( item.getResources().isEmpty() )
-            {
-                dashboardService.deleteDashboardItem( item );
-            }
-        }
-    }
+  }
 }

@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.webapi.controller.exception.InvalidEnumValueException;
@@ -48,85 +47,77 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class TrackerImportParamsValidatorTest
-{
-    @Mock
-    private ContextService contextService;
+@ExtendWith(MockitoExtension.class)
+class TrackerImportParamsValidatorTest {
+  @Mock private ContextService contextService;
 
-    @Test
-    void testRequestIsValidWhenNoIdSchemeIsPresent()
-    {
-        Mockito.when( contextService.getParameterValuesMap() ).thenReturn( Map.of() );
+  @Test
+  void testRequestIsValidWhenNoIdSchemeIsPresent() {
+    Mockito.when(contextService.getParameterValuesMap()).thenReturn(Map.of());
 
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
-            .contextService( contextService )
-            .build();
+    TrackerImportRequest trackerImportRequest =
+        TrackerImportRequest.builder().contextService(contextService).build();
 
-        assertDoesNotThrow( () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
-    }
+    assertDoesNotThrow(() -> TrackerImportParamsValidator.validateRequest(trackerImportRequest));
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "NAME", "CODE", "UID", "ATTRIBUTE:f3JrwRTeSSz" } )
-    void testRequestIsValidWhenIdSchemeIsValid( String idScheme )
-    {
-        Mockito.when( contextService.getParameterValuesMap() )
-            .thenReturn( Map.of( ID_SCHEME_KEY.getKey(), List.of( idScheme ) ) );
+  @ParameterizedTest
+  @ValueSource(strings = {"NAME", "CODE", "UID", "ATTRIBUTE:f3JrwRTeSSz"})
+  void testRequestIsValidWhenIdSchemeIsValid(String idScheme) {
+    Mockito.when(contextService.getParameterValuesMap())
+        .thenReturn(Map.of(ID_SCHEME_KEY.getKey(), List.of(idScheme)));
 
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
-            .contextService( contextService )
-            .build();
+    TrackerImportRequest trackerImportRequest =
+        TrackerImportRequest.builder().contextService(contextService).build();
 
-        assertDoesNotThrow( () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
-    }
+    assertDoesNotThrow(() -> TrackerImportParamsValidator.validateRequest(trackerImportRequest));
+  }
 
-    @Test
-    void throwExceptionWhenIdSchemeIsInvalid()
-    {
-        Mockito.when( contextService.getParameterValuesMap() )
-            .thenReturn( Map.of( ID_SCHEME_KEY.getKey(), List.of( "INVALID" ) ) );
+  @Test
+  void throwExceptionWhenIdSchemeIsInvalid() {
+    Mockito.when(contextService.getParameterValuesMap())
+        .thenReturn(Map.of(ID_SCHEME_KEY.getKey(), List.of("INVALID")));
 
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
-            .contextService( contextService )
-            .build();
+    TrackerImportRequest trackerImportRequest =
+        TrackerImportRequest.builder().contextService(contextService).build();
 
-        InvalidEnumValueException ex = assertThrows( InvalidEnumValueException.class,
-            () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
+    InvalidEnumValueException ex =
+        assertThrows(
+            InvalidEnumValueException.class,
+            () -> TrackerImportParamsValidator.validateRequest(trackerImportRequest));
 
-        assertEquals( "INVALID", ex.getInvalidValue() );
-        assertEquals( ID_SCHEME_KEY.getKey(), ex.getFieldName() );
-        assertEquals( TrackerIdScheme.class, ex.getEnumKlass() );
-    }
+    assertEquals("INVALID", ex.getInvalidValue());
+    assertEquals(ID_SCHEME_KEY.getKey(), ex.getFieldName());
+    assertEquals(TrackerIdScheme.class, ex.getEnumKlass());
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "FULL", "ERRORS", "WARNINGS" } )
-    void testRequestIsValidWhenReportModeIsValid( String reportMode )
-    {
-        Mockito.when( contextService.getParameterValuesMap() )
-            .thenReturn( Map.of( REPORT_MODE.getKey(), List.of( reportMode ) ) );
+  @ParameterizedTest
+  @ValueSource(strings = {"FULL", "ERRORS", "WARNINGS"})
+  void testRequestIsValidWhenReportModeIsValid(String reportMode) {
+    Mockito.when(contextService.getParameterValuesMap())
+        .thenReturn(Map.of(REPORT_MODE.getKey(), List.of(reportMode)));
 
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
-            .contextService( contextService )
-            .build();
+    TrackerImportRequest trackerImportRequest =
+        TrackerImportRequest.builder().contextService(contextService).build();
 
-        assertDoesNotThrow( () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
-    }
+    assertDoesNotThrow(() -> TrackerImportParamsValidator.validateRequest(trackerImportRequest));
+  }
 
-    @Test
-    void throwExceptionWhenReportModeIsInvalid()
-    {
-        Mockito.when( contextService.getParameterValuesMap() )
-            .thenReturn( Map.of( REPORT_MODE.getKey(), List.of( "INVALID" ) ) );
+  @Test
+  void throwExceptionWhenReportModeIsInvalid() {
+    Mockito.when(contextService.getParameterValuesMap())
+        .thenReturn(Map.of(REPORT_MODE.getKey(), List.of("INVALID")));
 
-        TrackerImportRequest trackerImportRequest = TrackerImportRequest.builder()
-            .contextService( contextService )
-            .build();
+    TrackerImportRequest trackerImportRequest =
+        TrackerImportRequest.builder().contextService(contextService).build();
 
-        InvalidEnumValueException ex = assertThrows( InvalidEnumValueException.class,
-            () -> TrackerImportParamsValidator.validateRequest( trackerImportRequest ) );
+    InvalidEnumValueException ex =
+        assertThrows(
+            InvalidEnumValueException.class,
+            () -> TrackerImportParamsValidator.validateRequest(trackerImportRequest));
 
-        assertEquals( "INVALID", ex.getInvalidValue() );
-        assertEquals( REPORT_MODE.getKey(), ex.getFieldName() );
-        assertEquals( TrackerBundleReportMode.class, ex.getEnumKlass() );
-    }
+    assertEquals("INVALID", ex.getInvalidValue());
+    assertEquals(REPORT_MODE.getKey(), ex.getFieldName());
+    assertEquals(TrackerBundleReportMode.class, ex.getEnumKlass());
+  }
 }

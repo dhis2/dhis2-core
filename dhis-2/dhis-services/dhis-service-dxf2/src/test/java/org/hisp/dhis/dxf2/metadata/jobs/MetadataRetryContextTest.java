@@ -48,83 +48,72 @@ import org.springframework.retry.RetryContext;
 /**
  * @author aamerm
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataRetryContextTest extends DhisSpringTest
-{
-    @Mock
-    RetryContext retryContext;
+@ExtendWith(MockitoExtension.class)
+class MetadataRetryContextTest extends DhisSpringTest {
+  @Mock RetryContext retryContext;
 
-    @InjectMocks
-    MetadataRetryContext metadataRetryContext;
+  @InjectMocks MetadataRetryContext metadataRetryContext;
 
-    private MetadataVersion mockVersion;
+  private MetadataVersion mockVersion;
 
-    private String testKey = "testKey";
+  private String testKey = "testKey";
 
-    private String testMessage = "testMessage";
+  private String testMessage = "testMessage";
 
-    @BeforeEach
-    public void setUp()
-    {
-        mockVersion = mock( MetadataVersion.class );
-    }
+  @BeforeEach
+  public void setUp() {
+    mockVersion = mock(MetadataVersion.class);
+  }
 
-    @Test
-    void testShouldGetRetryContextCorrectly()
-    {
-        assertEquals( retryContext, metadataRetryContext.getRetryContext() );
-    }
+  @Test
+  void testShouldGetRetryContextCorrectly() {
+    assertEquals(retryContext, metadataRetryContext.getRetryContext());
+  }
 
-    @Test
-    void testShouldSetRetryContextCorrectly()
-    {
-        RetryContext newMock = mock( RetryContext.class );
+  @Test
+  void testShouldSetRetryContextCorrectly() {
+    RetryContext newMock = mock(RetryContext.class);
 
-        metadataRetryContext.setRetryContext( newMock );
+    metadataRetryContext.setRetryContext(newMock);
 
-        assertEquals( newMock, metadataRetryContext.getRetryContext() );
-    }
+    assertEquals(newMock, metadataRetryContext.getRetryContext());
+  }
 
-    @Test
-    void testIfVersionIsNull()
-    {
-        metadataRetryContext.updateRetryContext( testKey, testMessage, null );
+  @Test
+  void testIfVersionIsNull() {
+    metadataRetryContext.updateRetryContext(testKey, testMessage, null);
 
-        verify( retryContext ).setAttribute( testKey, testMessage );
-        verify( retryContext, never() ).setAttribute( MetadataSyncJob.VERSION_KEY, null );
-    }
+    verify(retryContext).setAttribute(testKey, testMessage);
+    verify(retryContext, never()).setAttribute(MetadataSyncJob.VERSION_KEY, null);
+  }
 
-    @Test
-    void testIfVersionIsNotNull()
-    {
-        metadataRetryContext.updateRetryContext( testKey, testMessage, mockVersion );
+  @Test
+  void testIfVersionIsNotNull() {
+    metadataRetryContext.updateRetryContext(testKey, testMessage, mockVersion);
 
-        verify( retryContext ).setAttribute( testKey, testMessage );
-        verify( retryContext ).setAttribute( MetadataSyncJob.VERSION_KEY, mockVersion );
-    }
+    verify(retryContext).setAttribute(testKey, testMessage);
+    verify(retryContext).setAttribute(MetadataSyncJob.VERSION_KEY, mockVersion);
+  }
 
-    @Test
-    void testIfSummaryIsNull()
-    {
-        MetadataSyncSummary metadataSyncSummary = mock( MetadataSyncSummary.class );
+  @Test
+  void testIfSummaryIsNull() {
+    MetadataSyncSummary metadataSyncSummary = mock(MetadataSyncSummary.class);
 
-        metadataRetryContext.updateRetryContext( testKey, testMessage, mockVersion, null );
+    metadataRetryContext.updateRetryContext(testKey, testMessage, mockVersion, null);
 
-        verify( retryContext ).setAttribute( testKey, testMessage );
-        verify( metadataSyncSummary, never() ).getImportReport();
+    verify(retryContext).setAttribute(testKey, testMessage);
+    verify(metadataSyncSummary, never()).getImportReport();
+  }
 
-    }
+  @Test
+  void testIfSummaryIsNotNull() {
+    MetadataSyncSummary testSummary = new MetadataSyncSummary();
+    ImportReport importReport = new ImportReport();
+    importReport.setStatus(Status.ERROR);
+    testSummary.setImportReport(importReport);
 
-    @Test
-    void testIfSummaryIsNotNull()
-    {
-        MetadataSyncSummary testSummary = new MetadataSyncSummary();
-        ImportReport importReport = new ImportReport();
-        importReport.setStatus( Status.ERROR );
-        testSummary.setImportReport( importReport );
+    metadataRetryContext.updateRetryContext(testKey, testMessage, mockVersion, testSummary);
 
-        metadataRetryContext.updateRetryContext( testKey, testMessage, mockVersion, testSummary );
-
-        verify( retryContext ).setAttribute( testKey, testMessage );
-    }
+    verify(retryContext).setAttribute(testKey, testMessage);
+  }
 }

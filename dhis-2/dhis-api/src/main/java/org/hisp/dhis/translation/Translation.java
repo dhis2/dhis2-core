@@ -27,126 +27,107 @@
  */
 package org.hisp.dhis.translation;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import java.io.Serializable;
+import java.util.Objects;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
-public class Translation
-    implements Serializable
-{
-    private String locale;
+@JacksonXmlRootElement(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+public class Translation implements Serializable {
+  private String locale;
 
-    private String property;
+  private String property;
 
-    private String value;
+  private String value;
 
-    public Translation()
-    {
+  public Translation() {}
+
+  public Translation(String locale, String property, String value) {
+    this.locale = locale;
+    this.property = property;
+    this.value = value;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(locale, property, value);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public Translation( String locale, String property, String value )
-    {
-        this.locale = locale;
-        this.property = property;
-        this.value = value;
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( locale, property, value );
-    }
+    final Translation other = (Translation) obj;
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
+    return Objects.equals(this.locale, other.locale)
+        && Objects.equals(this.property, other.property)
+        && Objects.equals(this.value, other.value);
+  }
 
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
+  /**
+   * Creates a cache key.
+   *
+   * @param locale the locale string, i.e. Locale.toString().
+   * @param property the translation property.
+   * @return a unique cache key valid for a given translated objects, or null if either locale or
+   *     property is null.
+   */
+  public static String getCacheKey(String locale, String property) {
+    return locale != null && property != null ? (locale + property) : null;
+  }
 
-        final Translation other = (Translation) obj;
+  // -------------------------------------------------------------------------------
+  // Accessors
+  // -------------------------------------------------------------------------------
 
-        return Objects.equals( this.locale, other.locale )
-            && Objects.equals( this.property, other.property )
-            && Objects.equals( this.value, other.value );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getLocale() {
+    return locale;
+  }
 
-    /**
-     * Creates a cache key.
-     *
-     * @param locale the locale string, i.e. Locale.toString().
-     * @param property the translation property.
-     * @return a unique cache key valid for a given translated objects, or null
-     *         if either locale or property is null.
-     */
-    public static String getCacheKey( String locale, String property )
-    {
-        return locale != null && property != null ? (locale + property) : null;
-    }
+  public void setLocale(String locale) {
+    this.locale = locale;
+  }
 
-    // -------------------------------------------------------------------------------
-    // Accessors
-    // -------------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getProperty() {
+    return property;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getLocale()
-    {
-        return locale;
-    }
+  public void setProperty(String property) {
+    this.property = property;
+  }
 
-    public void setLocale( String locale )
-    {
-        this.locale = locale;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getValue() {
+    return value;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getProperty()
-    {
-        return property;
-    }
+  public void setValue(String value) {
+    this.value = value;
+  }
 
-    public void setProperty( String property )
-    {
-        this.property = property;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "locale", locale )
-            .add( "property", property )
-            .add( "value", value )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("locale", locale)
+        .add("property", property)
+        .add("value", value)
+        .toString();
+  }
 }

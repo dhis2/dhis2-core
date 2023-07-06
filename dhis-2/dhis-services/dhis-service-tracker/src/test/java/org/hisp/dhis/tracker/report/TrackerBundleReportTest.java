@@ -36,15 +36,13 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackerBundleReportTest
-{
+class TrackerBundleReportTest {
 
-    @Test
-    void testEmptyReport()
-    {
-        TrackerBundleReport report = new TrackerBundleReport();
-        assertEquals( TrackerStatus.OK, report.getStatus() );
-        assertNotNull( report.getTypeReportMap() );
-        assertTrue( report.isEmpty() );
-    }
+  @Test
+  void testEmptyReport() {
+    TrackerBundleReport report = new TrackerBundleReport();
+    assertEquals(TrackerStatus.OK, report.getStatus());
+    assertNotNull(report.getTypeReportMap());
+    assertTrue(report.isEmpty());
+  }
 }

@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -61,186 +60,217 @@ import org.springframework.stereotype.Component;
  * @author Enrico Colasante
  */
 @Component
-public class RelationshipsValidationHook
-    extends AbstractTrackerDtoValidationHook
-{
+public class RelationshipsValidationHook extends AbstractTrackerDtoValidationHook {
 
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
-    {
-        TrackerBundle bundle = reporter.getBundle();
+  @Override
+  public void validateRelationship(ValidationErrorReporter reporter, Relationship relationship) {
+    TrackerBundle bundle = reporter.getBundle();
 
-        boolean isValid = validateMandatoryData( reporter, relationship,
-            bundle.getPreheat().getAll( RelationshipType.class ) );
+    boolean isValid =
+        validateMandatoryData(
+            reporter, relationship, bundle.getPreheat().getAll(RelationshipType.class));
 
-        // No need to check additional data if there are missing information on
-        // the
-        // Relationship
-        if ( isValid )
-        {
-            validateRelationshipLinkToOneEntity( reporter, relationship );
-            validateRelationshipConstraint( reporter, relationship, bundle );
+    // No need to check additional data if there are missing information on
+    // the
+    // Relationship
+    if (isValid) {
+      validateRelationshipLinkToOneEntity(reporter, relationship);
+      validateRelationshipConstraint(reporter, relationship, bundle);
 
-            validateAutoRelationship( reporter, relationship );
+      validateAutoRelationship(reporter, relationship);
 
-            validateReferences( reporter, relationship, relationship.getFrom() );
-            validateReferences( reporter, relationship, relationship.getTo() );
-        }
+      validateReferences(reporter, relationship, relationship.getFrom());
+      validateReferences(reporter, relationship, relationship.getTo());
+    }
+  }
 
+  private void validateRelationshipLinkToOneEntity(
+      ValidationErrorReporter reporter, Relationship relationship) {
+    // make sure that both Relationship Item only contain *one* reference
+    // (tei, enrollment or event)
+    reporter.addErrorIf(
+        () -> hasMoreThanOneReference(relationship.getFrom()),
+        relationship,
+        E4001,
+        "from",
+        relationship.getRelationship());
+    reporter.addErrorIf(
+        () -> hasMoreThanOneReference(relationship.getTo()),
+        relationship,
+        E4001,
+        "to",
+        relationship.getRelationship());
+  }
+
+  private void validateRelationshipConstraint(
+      ValidationErrorReporter reporter, Relationship relationship, TrackerBundle bundle) {
+    getRelationshipType(
+            bundle.getPreheat().getAll(RelationshipType.class), relationship.getRelationshipType())
+        .ifPresent(
+            relationshipType -> {
+              validateRelationshipConstraint(
+                  reporter,
+                  relationship,
+                  "from",
+                  relationship.getFrom(),
+                  relationshipType.getFromConstraint());
+              validateRelationshipConstraint(
+                  reporter,
+                  relationship,
+                  "to",
+                  relationship.getTo(),
+                  relationshipType.getToConstraint());
+            });
+  }
+
+  private boolean validateMandatoryData(
+      ValidationErrorReporter reporter,
+      Relationship relationship,
+      List<RelationshipType> relationshipsTypes) {
+    reporter.addErrorIf(
+        () -> getRelationshipType(relationshipsTypes, relationship.getRelationshipType()).isEmpty(),
+        relationship,
+        E4009,
+        relationship.getRelationshipType());
+
+    final Optional<TrackerErrorReport> any =
+        reporter.getReportList().stream()
+            .filter(r -> relationship.getRelationship().equals(r.getUid()))
+            .findAny();
+
+    return any.isEmpty();
+  }
+
+  private Optional<RelationshipType> getRelationshipType(
+      List<RelationshipType> relationshipsTypes, String relationshipTypeUid) {
+    return relationshipsTypes.stream()
+        .filter(r -> r.getUid().equals(relationshipTypeUid))
+        .findFirst();
+  }
+
+  private void validateAutoRelationship(
+      ValidationErrorReporter reporter, Relationship relationship) {
+    if (Objects.equals(relationship.getFrom(), relationship.getTo())) {
+      reporter.addError(relationship, E4000, relationship.getRelationship());
+    }
+  }
+
+  private void validateRelationshipConstraint(
+      ValidationErrorReporter reporter,
+      Relationship relationship,
+      String relSide,
+      RelationshipItem item,
+      RelationshipConstraint constraint) {
+    if (relationshipItemValueType(item) == null) {
+      reporter.addError(
+          relationship, TrackerErrorCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName());
+      return;
     }
 
-    private void validateRelationshipLinkToOneEntity( ValidationErrorReporter reporter,
-        Relationship relationship )
-    {
-        // make sure that both Relationship Item only contain *one* reference
-        // (tei, enrollment or event)
-        reporter.addErrorIf( () -> hasMoreThanOneReference( relationship.getFrom() ),
-            relationship, E4001, "from", relationship.getRelationship() );
-        reporter.addErrorIf( () -> hasMoreThanOneReference( relationship.getTo() ),
-            relationship, E4001, "to", relationship.getRelationship() );
+    if (constraint.getRelationshipEntity().equals(TRACKED_ENTITY_INSTANCE)) {
+      if (item.getTrackedEntity() == null) {
+        reporter.addError(
+            relationship,
+            TrackerErrorCode.E4010,
+            relSide,
+            TrackerType.TRACKED_ENTITY.getName(),
+            relationshipItemValueType(item).getName());
+      } else {
+
+        //
+        // Check tracked entity type matches the type specified in the
+        // constraint
+        //
+        getRelationshipTypeUidFromTrackedEntity(
+                reporter.getBundle(), item.getTrackedEntity().getTrackedEntity())
+            .ifPresent(
+                type -> {
+                  if (!type.equals(constraint.getTrackedEntityType().getUid())) {
+                    reporter.addError(
+                        relationship,
+                        TrackerErrorCode.E4014,
+                        relSide,
+                        constraint.getTrackedEntityType().getUid(),
+                        type);
+                  }
+                });
+      }
+    } else if (constraint.getRelationshipEntity().equals(PROGRAM_INSTANCE)) {
+      if (item.getEnrollment() == null) {
+        reporter.addError(
+            relationship,
+            TrackerErrorCode.E4010,
+            relSide,
+            TrackerType.ENROLLMENT.getName(),
+            relationshipItemValueType(item).getName());
+      }
+
+    } else if (constraint.getRelationshipEntity().equals(PROGRAM_STAGE_INSTANCE)
+        && item.getEvent() == null) {
+      reporter.addError(
+          relationship,
+          TrackerErrorCode.E4010,
+          relSide,
+          TrackerType.EVENT.getName(),
+          relationshipItemValueType(item).getName());
     }
+  }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
-        TrackerBundle bundle )
-    {
-        getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
-            relationship.getRelationshipType() ).ifPresent( relationshipType -> {
-                validateRelationshipConstraint( reporter, relationship, "from", relationship.getFrom(),
-                    relationshipType.getFromConstraint() );
-                validateRelationshipConstraint( reporter, relationship, "to", relationship.getTo(),
-                    relationshipType.getToConstraint() );
-            } );
+  private boolean hasMoreThanOneReference(RelationshipItem item) {
+    if (item == null) {
+      return false;
     }
+    return Stream.of(item.getTrackedEntity(), item.getEnrollment(), item.getEvent())
+            .filter(Objects::nonNull)
+            .map(TrackerDto::getUid)
+            .filter(StringUtils::isNotBlank)
+            .count()
+        > 1;
+  }
 
-    private boolean validateMandatoryData( ValidationErrorReporter reporter, Relationship relationship,
-        List<RelationshipType> relationshipsTypes )
-    {
-        reporter.addErrorIf(
-            () -> getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isEmpty(),
-            relationship, E4009, relationship.getRelationshipType() );
+  private void validateReferences(
+      ValidationErrorReporter reporter, Relationship relationship, RelationshipItem item) {
 
-        final Optional<TrackerErrorReport> any = reporter.getReportList().stream()
-            .filter( r -> relationship.getRelationship().equals( r.getUid() ) ).findAny();
+    TrackerType trackerType = relationshipItemValueType(item);
+    Optional<String> itemUid = getUidFromRelationshipItem(item);
 
-        return any.isEmpty();
-    }
+    itemUid.ifPresent(
+        s ->
+            reporter.addErrorIf(
+                () -> reporter.isInvalid(trackerType, s),
+                relationship,
+                E4011,
+                relationship.getRelationship(),
+                trackerType.getName(),
+                s));
+  }
 
-    private Optional<RelationshipType> getRelationshipType( List<RelationshipType> relationshipsTypes,
-        String relationshipTypeUid )
-    {
-        return relationshipsTypes.stream().filter( r -> r.getUid().equals( relationshipTypeUid ) ).findFirst();
-    }
+  private Optional<String> getRelationshipTypeUidFromTrackedEntity(
+      TrackerBundle bundle, String uid) {
+    return getTrackedEntityTypeFromTrackedEntity(bundle, uid)
+        .map(Optional::of)
+        .orElseGet(() -> getTrackedEntityTypeFromTrackedEntityRef(bundle, uid));
+  }
 
-    private void validateAutoRelationship( ValidationErrorReporter reporter, Relationship relationship )
-    {
-        if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
-        {
-            reporter.addError( relationship, E4000, relationship.getRelationship() );
-        }
-    }
+  private Optional<String> getTrackedEntityTypeFromTrackedEntity(TrackerBundle bundle, String uid) {
+    final TrackedEntityInstance trackedEntity = bundle.getTrackedEntityInstance(uid);
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
-        String relSide,
-        RelationshipItem item,
-        RelationshipConstraint constraint )
-    {
-        if ( relationshipItemValueType( item ) == null )
-        {
-            reporter.addError( relationship, TrackerErrorCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
-            return;
-        }
+    return trackedEntity != null
+        ? Optional.of(trackedEntity.getTrackedEntityType().getUid())
+        : Optional.empty();
+  }
 
-        if ( constraint.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
-        {
-            if ( item.getTrackedEntity() == null )
-            {
-                reporter.addError( relationship, TrackerErrorCode.E4010, relSide,
-                    TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
-            }
-            else
-            {
+  private Optional<String> getTrackedEntityTypeFromTrackedEntityRef(
+      TrackerBundle bundle, String uid) {
+    final Optional<TrackedEntity> payloadTei =
+        bundle.getTrackedEntities().stream()
+            .filter(t -> t.getTrackedEntity().equals(uid))
+            .findFirst();
+    return payloadTei.map(TrackedEntity::getTrackedEntityType);
+  }
 
-                //
-                // Check tracked entity type matches the type specified in the
-                // constraint
-                //
-                getRelationshipTypeUidFromTrackedEntity( reporter.getBundle(),
-                    item.getTrackedEntity().getTrackedEntity() )
-                        .ifPresent( type -> {
-
-                            if ( !type.equals( constraint.getTrackedEntityType().getUid() ) )
-                            {
-                                reporter.addError( relationship,
-                                    TrackerErrorCode.E4014, relSide, constraint.getTrackedEntityType().getUid(), type );
-                            }
-
-                        } );
-            }
-        }
-        else if ( constraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
-        {
-            if ( item.getEnrollment() == null )
-            {
-                reporter.addError( relationship,
-                    TrackerErrorCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
-                    relationshipItemValueType( item ).getName() );
-            }
-
-        }
-        else if ( constraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) && item.getEvent() == null )
-        {
-            reporter.addError( relationship, TrackerErrorCode.E4010, relSide,
-                TrackerType.EVENT.getName(), relationshipItemValueType( item ).getName() );
-        }
-    }
-
-    private boolean hasMoreThanOneReference( RelationshipItem item )
-    {
-        if ( item == null )
-        {
-            return false;
-        }
-        return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() ).filter( Objects::nonNull )
-            .map( TrackerDto::getUid )
-            .filter( StringUtils::isNotBlank )
-            .count() > 1;
-    }
-
-    private void validateReferences( ValidationErrorReporter reporter, Relationship relationship,
-        RelationshipItem item )
-
-    {
-        TrackerType trackerType = relationshipItemValueType( item );
-        Optional<String> itemUid = getUidFromRelationshipItem( item );
-
-        itemUid.ifPresent( s -> reporter.addErrorIf( () -> reporter.isInvalid( trackerType, s ),
-            relationship, E4011, relationship.getRelationship(),
-            trackerType.getName(), s ) );
-    }
-
-    private Optional<String> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
-    {
-        return getTrackedEntityTypeFromTrackedEntity( bundle, uid ).map( Optional::of )
-            .orElseGet( () -> getTrackedEntityTypeFromTrackedEntityRef( bundle, uid ) );
-    }
-
-    private Optional<String> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
-    {
-        final TrackedEntityInstance trackedEntity = bundle.getTrackedEntityInstance( uid );
-
-        return trackedEntity != null ? Optional.of( trackedEntity.getTrackedEntityType().getUid() ) : Optional.empty();
-    }
-
-    private Optional<String> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
-    {
-        final Optional<TrackedEntity> payloadTei = bundle.getTrackedEntities().stream()
-            .filter( t -> t.getTrackedEntity().equals( uid ) ).findFirst();
-        return payloadTei.map( TrackedEntity::getTrackedEntityType );
-    }
-
-    @Override
-    public boolean removeOnError()
-    {
-        return true;
-    }
+  @Override
+  public boolean removeOnError() {
+    return true;
+  }
 }

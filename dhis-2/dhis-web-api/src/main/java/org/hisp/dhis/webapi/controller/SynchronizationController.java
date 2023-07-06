@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -52,44 +51,37 @@ import org.springframework.web.client.RestTemplate;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = SynchronizationController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SynchronizationController
-{
-    public static final String RESOURCE_PATH = "/synchronization";
+@RequestMapping(value = SynchronizationController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class SynchronizationController {
+  public static final String RESOURCE_PATH = "/synchronization";
 
-    @Autowired
-    private SynchronizationManager synchronizationManager;
+  @Autowired private SynchronizationManager synchronizationManager;
 
-    @Autowired
-    private RestTemplate restTemplate;
+  @Autowired private RestTemplate restTemplate;
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_EXPORT_DATA')" )
-    @PostMapping( value = "/dataPush", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public ImportConflicts execute()
-        throws IOException
-    {
-        return synchronizationManager.executeDataValuePush();
-    }
+  @PreAuthorize("hasRole('ALL') or hasRole('F_EXPORT_DATA')")
+  @PostMapping(value = "/dataPush", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ImportConflicts execute() throws IOException {
+    return synchronizationManager.executeDataValuePush();
+  }
 
-    @PreAuthorize( "hasRole('ALL')" )
-    @PostMapping( value = "/metadataPull", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public ImportReport importMetaData( @RequestBody String url )
-    {
-        return synchronizationManager.executeMetadataPull( url );
-    }
+  @PreAuthorize("hasRole('ALL')")
+  @PostMapping(value = "/metadataPull", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ImportReport importMetaData(@RequestBody String url) {
+    return synchronizationManager.executeMetadataPull(url);
+  }
 
-    @GetMapping( value = "/availability", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody AvailabilityStatus remoteServerAvailable()
-    {
-        return synchronizationManager.isRemoteServerAvailable();
-    }
+  @GetMapping(value = "/availability", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody AvailabilityStatus remoteServerAvailable() {
+    return synchronizationManager.isRemoteServerAvailable();
+  }
 
-    @GetMapping( value = "/metadataRepo", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody String getMetadataRepoIndex()
-    {
-        return restTemplate.getForObject( SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class );
-    }
+  @GetMapping(value = "/metadataRepo", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody String getMetadataRepoIndex() {
+    return restTemplate.getForObject(
+        SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class);
+  }
 }

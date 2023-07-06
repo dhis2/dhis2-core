@@ -38,52 +38,42 @@ import org.springframework.stereotype.Service;
  * @author Lars Helge Overland
  */
 @Service
-public class OrgUnitMergeValidator
-{
-    /**
-     * Validates the given {@link OrgUnitMergeRequest}. Throws
-     * {@link IllegalQueryException} if validation fails.
-     *
-     * @param request the {@link OrgUnitMergeRequest}.
-     * @throws IllegalQueryException if validation failed.
-     */
-    public void validate( OrgUnitMergeRequest request )
-        throws IllegalQueryException
-    {
-        ErrorMessage error = validateForErrorMessage( request );
+public class OrgUnitMergeValidator {
+  /**
+   * Validates the given {@link OrgUnitMergeRequest}. Throws {@link IllegalQueryException} if
+   * validation fails.
+   *
+   * @param request the {@link OrgUnitMergeRequest}.
+   * @throws IllegalQueryException if validation failed.
+   */
+  public void validate(OrgUnitMergeRequest request) throws IllegalQueryException {
+    ErrorMessage error = validateForErrorMessage(request);
 
-        if ( error != null )
-        {
-            throw new IllegalQueryException( error );
-        }
+    if (error != null) {
+      throw new IllegalQueryException(error);
+    }
+  }
+
+  /**
+   * Validates the given {@link OrgUnitMergeRequest}.
+   *
+   * @param request the {@link OrgUnitMergeRequest}.
+   * @return an {@link ErrorMessage} if the validation failed, or null if validation was successful.
+   */
+  public ErrorMessage validateForErrorMessage(OrgUnitMergeRequest request) {
+    if (request.getSources().size() < 2) {
+      return new ErrorMessage(ErrorCode.E1500);
+    }
+    if (request.getTarget() == null) {
+      return new ErrorMessage(ErrorCode.E1501);
+    }
+    if (request.getSources().contains(request.getTarget())) {
+      return new ErrorMessage(ErrorCode.E1502);
+    }
+    if (request.getTarget().isDescendant(request.getSources())) {
+      return new ErrorMessage(ErrorCode.E1504);
     }
 
-    /**
-     * Validates the given {@link OrgUnitMergeRequest}.
-     *
-     * @param request the {@link OrgUnitMergeRequest}.
-     * @return an {@link ErrorMessage} if the validation failed, or null if
-     *         validation was successful.
-     */
-    public ErrorMessage validateForErrorMessage( OrgUnitMergeRequest request )
-    {
-        if ( request.getSources().size() < 2 )
-        {
-            return new ErrorMessage( ErrorCode.E1500 );
-        }
-        if ( request.getTarget() == null )
-        {
-            return new ErrorMessage( ErrorCode.E1501 );
-        }
-        if ( request.getSources().contains( request.getTarget() ) )
-        {
-            return new ErrorMessage( ErrorCode.E1502 );
-        }
-        if ( request.getTarget().isDescendant( request.getSources() ) )
-        {
-            return new ErrorMessage( ErrorCode.E1504 );
-        }
-
-        return null;
-    }
+    return null;
+  }
 }

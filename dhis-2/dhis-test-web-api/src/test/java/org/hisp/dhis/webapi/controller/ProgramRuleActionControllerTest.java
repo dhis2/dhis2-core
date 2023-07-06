@@ -34,39 +34,55 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramRuleActionController} using
+ * (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetDataExpressionDescription()
-    {
-        String pId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-        assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/programRuleActions/data/expression/description?programId=" + pId, "70" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testGetDataExpressionDescription() {
+    String pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Valid",
+        POST("/programRuleActions/data/expression/description?programId=" + pId, "70")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testGetDataExpressionDescription_NoSuchProgram()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
-            POST( "/programRuleActions/data/expression/description?programId=xyz", "70" )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testGetDataExpressionDescription_NoSuchProgram() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Expression is not valid",
+        POST("/programRuleActions/data/expression/description?programId=xyz", "70")
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testGetDataExpressionDescription_WithInvalidExpression()
-    {
-        String pId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
-            POST( "/programRuleActions/data/expression/description?programId=" + pId, "1 + " )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testGetDataExpressionDescription_WithInvalidExpression() {
+    String pId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Expression is not valid",
+        POST("/programRuleActions/data/expression/description?programId=" + pId, "1 + ")
+            .content(HttpStatus.CONFLICT));
+  }
 }

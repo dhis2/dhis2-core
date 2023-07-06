@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.Test;
 
 /**
@@ -43,78 +42,74 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class CappedLocalCacheTest
-{
+class CappedLocalCacheTest {
 
-    private final Sizeof sizeof = new GenericSizeof( 20L, obj -> obj );
+  private final Sizeof sizeof = new GenericSizeof(20L, obj -> obj);
 
-    private final CappedLocalCache cache = new CappedLocalCache( sizeof, 0 );
+  private final CappedLocalCache cache = new CappedLocalCache(sizeof, 0);
 
-    private final Cache<String> testRegion = cache.createRegion(
-        new SimpleCacheBuilder<String>().forRegion( "test" ).expireAfterWrite( 1, TimeUnit.MINUTES ).forceInMemory() );
+  private final Cache<String> testRegion =
+      cache.createRegion(
+          new SimpleCacheBuilder<String>()
+              .forRegion("test")
+              .expireAfterWrite(1, TimeUnit.MINUTES)
+              .forceInMemory());
 
-    @Test
-    void testSizeofCacheEntry()
-    {
-        // 20 object header of CacheEntry
-        // + 4 ref region
-        // + 4 ref key
-        // + 4 ref value
-        // + 8 created
-        // + 8 expires
-        // + 8 size
-        // + 4 reads
-        assertEquals( 60L, sizeof.sizeof( CappedLocalCache.EMPTY ) );
-    }
+  @Test
+  void testSizeofCacheEntry() {
+    // 20 object header of CacheEntry
+    // + 4 ref region
+    // + 4 ref key
+    // + 4 ref value
+    // + 8 created
+    // + 8 expires
+    // + 8 size
+    // + 4 reads
+    assertEquals(60L, sizeof.sizeof(CappedLocalCache.EMPTY));
+  }
 
-    @Test
-    void testPut()
-    {
-        String value = "bar";
-        testRegion.put( "foo", value );
-        assertSame( value, testRegion.get( "foo" ).get() );
-    }
+  @Test
+  void testPut() {
+    String value = "bar";
+    testRegion.put("foo", value);
+    assertSame(value, testRegion.get("foo").get());
+  }
 
-    @Test
-    void testPutWithTTL()
-    {
-        String value = "bar";
-        testRegion.put( "foo", value, 2000L );
-        assertSame( value, testRegion.get( "foo" ).get() );
-    }
+  @Test
+  void testPutWithTTL() {
+    String value = "bar";
+    testRegion.put("foo", value, 2000L);
+    assertSame(value, testRegion.get("foo").get());
+  }
 
-    @Test
-    void testGetExpired()
-    {
-        testRegion.put( "foo", "bar", 0L );
-        assertFalse( testRegion.get( "foo" ).isPresent() );
-    }
+  @Test
+  void testGetExpired() {
+    testRegion.put("foo", "bar", 0L);
+    assertFalse(testRegion.get("foo").isPresent());
+  }
 
-    @Test
-    void testInvalidateKey()
-    {
-        testRegion.put( "x", "y" );
-        testRegion.put( "a", "b" );
-        testRegion.invalidate( "x" );
-        assertFalse( testRegion.get( "x" ).isPresent() );
-        assertTrue( testRegion.get( "a" ).isPresent() );
-    }
+  @Test
+  void testInvalidateKey() {
+    testRegion.put("x", "y");
+    testRegion.put("a", "b");
+    testRegion.invalidate("x");
+    assertFalse(testRegion.get("x").isPresent());
+    assertTrue(testRegion.get("a").isPresent());
+  }
 
-    @Test
-    void testInvalidateAll()
-    {
-        testRegion.put( "x", "y" );
-        testRegion.put( "a", "b" );
-        testRegion.invalidateAll();
-        assertFalse( testRegion.get( "x" ).isPresent() );
-        assertFalse( testRegion.get( "a" ).isPresent() );
-    }
+  @Test
+  void testInvalidateAll() {
+    testRegion.put("x", "y");
+    testRegion.put("a", "b");
+    testRegion.invalidateAll();
+    assertFalse(testRegion.get("x").isPresent());
+    assertFalse(testRegion.get("a").isPresent());
+  }
 
-    @Test
-    void testGetAll()
-    {
-        testRegion.put( "x", "y" );
-        testRegion.put( "a", "b" );
-        assertContainsOnly( testRegion.getAll().collect( toList() ), "y", "b" );
-    }
+  @Test
+  void testGetAll() {
+    testRegion.put("x", "y");
+    testRegion.put("a", "b");
+    assertContainsOnly(testRegion.getAll().collect(toList()), "y", "b");
+  }
 }

@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.DataSetMetadataExportService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -37,22 +37,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
  * @author Lars Helge Overland
  */
 @Controller
 @AllArgsConstructor
-@RequestMapping( "/dataSetMetadata" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetMetadataExportController
-{
-    private final DataSetMetadataExportService exportService;
+@RequestMapping("/dataSetMetadata")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataSetMetadataExportController {
+  private final DataSetMetadataExportService exportService;
 
-    @GetMapping
-    public ResponseEntity<JsonNode> getMetadata()
-    {
-        return ResponseEntity.ok( exportService.getDataSetMetadata() );
-    }
+  @GetMapping
+  public ResponseEntity<JsonNode> getMetadata() {
+    return ResponseEntity.ok(exportService.getDataSetMetadata());
+  }
 }

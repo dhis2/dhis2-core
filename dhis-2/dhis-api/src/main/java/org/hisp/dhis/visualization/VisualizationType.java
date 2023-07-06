@@ -27,22 +27,21 @@
  */
 package org.hisp.dhis.visualization;
 
-public enum VisualizationType
-{
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    STACKED_AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE,
-    PIVOT_TABLE,
-    SCATTER,
-    BUBBLE
+public enum VisualizationType {
+  COLUMN,
+  STACKED_COLUMN,
+  BAR,
+  STACKED_BAR,
+  LINE,
+  AREA,
+  STACKED_AREA,
+  PIE,
+  RADAR,
+  GAUGE,
+  YEAR_OVER_YEAR_LINE,
+  YEAR_OVER_YEAR_COLUMN,
+  SINGLE_VALUE,
+  PIVOT_TABLE,
+  SCATTER,
+  BUBBLE
 }

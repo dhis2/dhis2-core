@@ -44,34 +44,34 @@ import org.springframework.http.HttpStatus;
  *
  * @author Morten Olav Hansen
  */
-class PeriodTypeControllerTest extends DhisControllerConvenienceTest
-{
+class PeriodTypeControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPeriodTypeDefaults()
-    {
-        JsonObject object = GET( "/periodTypes" ).content( HttpStatus.OK ).as( JsonObject.class );
-        JsonList<JsonPeriodType> periodTypes = object.getList( "periodTypes", JsonPeriodType.class );
-        assertTrue( periodTypes.exists() );
-        assertEquals( 19, periodTypes.size() );
-        JsonPeriodType periodType = periodTypes.get( 0 );
-        assertNotNull( periodType.getName() );
-        assertNotNull( periodType.getIsoDuration() );
-        assertNotNull( periodType.getIsoFormat() );
-        assertNotNull( periodType.getFrequencyOrder() );
-    }
+  @Test
+  void testPeriodTypeDefaults() {
+    JsonObject object = GET("/periodTypes").content(HttpStatus.OK).as(JsonObject.class);
+    JsonList<JsonPeriodType> periodTypes = object.getList("periodTypes", JsonPeriodType.class);
+    assertTrue(periodTypes.exists());
+    assertEquals(19, periodTypes.size());
+    JsonPeriodType periodType = periodTypes.get(0);
+    assertNotNull(periodType.getName());
+    assertNotNull(periodType.getIsoDuration());
+    assertNotNull(periodType.getIsoFormat());
+    assertNotNull(periodType.getFrequencyOrder());
+  }
 
-    @Test
-    void testPeriodTypeNameIsoFormat()
-    {
-        JsonList<JsonPeriodType> periodTypes = GET( "/periodTypes?fields=name,isoFormat" ).content( HttpStatus.OK )
-            .as( JsonObject.class ).getList( "periodTypes", JsonPeriodType.class );
-        assertTrue( periodTypes.exists() );
-        assertEquals( 19, periodTypes.size() );
-        JsonPeriodType periodType = periodTypes.get( 0 );
-        assertNotNull( periodType.getName() );
-        assertNotNull( periodType.getIsoFormat() );
-        assertNull( periodType.getIsoDuration() );
-        assertNull( periodType.getFrequencyOrder() );
-    }
+  @Test
+  void testPeriodTypeNameIsoFormat() {
+    JsonList<JsonPeriodType> periodTypes =
+        GET("/periodTypes?fields=name,isoFormat")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class)
+            .getList("periodTypes", JsonPeriodType.class);
+    assertTrue(periodTypes.exists());
+    assertEquals(19, periodTypes.size());
+    JsonPeriodType periodType = periodTypes.get(0);
+    assertNotNull(periodType.getName());
+    assertNotNull(periodType.getIsoFormat());
+    assertNull(periodType.getIsoDuration());
+    assertNull(periodType.getFrequencyOrder());
+  }
 }

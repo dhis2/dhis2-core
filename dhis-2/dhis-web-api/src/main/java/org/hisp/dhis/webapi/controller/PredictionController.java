@@ -32,9 +32,7 @@ import static org.hisp.dhis.scheduling.JobType.PREDICTOR;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -57,50 +55,44 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Jim Grace
  */
-
 @Controller
-@RequestMapping( value = PredictionController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class PredictionController
-{
-    public static final String RESOURCE_PATH = "/predictions";
+@RequestMapping(value = PredictionController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class PredictionController {
+  public static final String RESOURCE_PATH = "/predictions";
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private AsyncTaskExecutor taskExecutor;
+  @Autowired private AsyncTaskExecutor taskExecutor;
 
-    @Autowired
-    private PredictionService predictionService;
+  @Autowired private PredictionService predictionService;
 
-    @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    @ResponseBody
-    public WebMessage runPredictors(
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
-        @RequestParam( value = "predictor", required = false ) List<String> predictors,
-        @RequestParam( value = "predictorGroup", required = false ) List<String> predictorGroups,
-        @RequestParam( defaultValue = "false", required = false ) boolean async,
-        HttpServletRequest request )
-    {
-        if ( async )
-        {
-            JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
-                currentUserService.getCurrentUser().getUid(), true );
+  @RequestMapping(method = {RequestMethod.POST, RequestMethod.PUT})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @ResponseBody
+  public WebMessage runPredictors(
+      @RequestParam Date startDate,
+      @RequestParam Date endDate,
+      @RequestParam(value = "predictor", required = false) List<String> predictors,
+      @RequestParam(value = "predictorGroup", required = false) List<String> predictorGroups,
+      @RequestParam(defaultValue = "false", required = false) boolean async,
+      HttpServletRequest request) {
+    if (async) {
+      JobConfiguration jobId =
+          new JobConfiguration(
+              "inMemoryPrediction", PREDICTOR, currentUserService.getCurrentUser().getUid(), true);
 
-            taskExecutor.executeTask(
-                new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, jobId ) );
+      taskExecutor.executeTask(
+          new PredictionTask(
+              startDate, endDate, predictors, predictorGroups, predictionService, jobId));
 
-            return jobConfigurationReport( jobId )
-                .setLocation( "/system/tasks/" + PREDICTOR );
-        }
-        PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
-            predictorGroups, null );
-
-        return new WebMessage( Status.OK, HttpStatus.OK )
-            .setResponse( predictionSummary )
-            .withPlainResponseBefore( DhisApiVersion.V38 );
+      return jobConfigurationReport(jobId).setLocation("/system/tasks/" + PREDICTOR);
     }
+    PredictionSummary predictionSummary =
+        predictionService.predictTask(startDate, endDate, predictors, predictorGroups, null);
+
+    return new WebMessage(Status.OK, HttpStatus.OK)
+        .setResponse(predictionSummary)
+        .withPlainResponseBefore(DhisApiVersion.V38);
+  }
 }

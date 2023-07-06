@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.system;
 
+import com.vdurmont.semver4j.Semver;
 import java.util.Map;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -41,38 +41,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.vdurmont.semver4j.Semver;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
 @RequestMapping
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SystemSoftwareUpdateNotifyController
-{
-    public static final String RESOURCE_PATH = "/systemUpdates";
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class SystemSoftwareUpdateNotifyController {
+  public static final String RESOURCE_PATH = "/systemUpdates";
 
-    @Autowired
-    private SystemUpdateService systemUpdateService;
+  @Autowired private SystemUpdateService systemUpdateService;
 
-    @GetMapping( SystemSoftwareUpdateNotifyController.RESOURCE_PATH )
-    @ResponseBody
-    public WebMessage checkSystemUpdate( @RequestParam( value = "forceVersion", required = false ) String forceVersion )
-        throws Exception
-    {
-        Semver currentVersion = SystemUpdateService.getCurrentVersion();
-        if ( forceVersion != null )
-        {
-            currentVersion = new Semver( forceVersion );
-        }
-
-        Map<Semver, Map<String, String>> newerVersions = SystemUpdateService.getLatestNewerThan( currentVersion );
-
-        systemUpdateService.sendMessageForEachVersion( newerVersions );
-
-        WebMessage ok = WebMessageUtils.ok();
-        ok.setResponse( new SoftwareUpdateResponse( newerVersions ) );
-        return ok;
+  @GetMapping(SystemSoftwareUpdateNotifyController.RESOURCE_PATH)
+  @ResponseBody
+  public WebMessage checkSystemUpdate(
+      @RequestParam(value = "forceVersion", required = false) String forceVersion)
+      throws Exception {
+    Semver currentVersion = SystemUpdateService.getCurrentVersion();
+    if (forceVersion != null) {
+      currentVersion = new Semver(forceVersion);
     }
+
+    Map<Semver, Map<String, String>> newerVersions =
+        SystemUpdateService.getLatestNewerThan(currentVersion);
+
+    systemUpdateService.sendMessageForEachVersion(newerVersions);
+
+    WebMessage ok = WebMessageUtils.ok();
+    ok.setResponse(new SoftwareUpdateResponse(newerVersions));
+    return ok;
+  }
 }

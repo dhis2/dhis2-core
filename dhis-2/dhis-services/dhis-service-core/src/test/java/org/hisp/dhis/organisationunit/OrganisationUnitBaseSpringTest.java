@@ -32,55 +32,48 @@ import static java.util.Arrays.asList;
 import org.hisp.dhis.DhisSpringTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-abstract class OrganisationUnitBaseSpringTest extends DhisSpringTest
-{
-    @Autowired
-    protected OrganisationUnitStore unitStore;
+abstract class OrganisationUnitBaseSpringTest extends DhisSpringTest {
+  @Autowired protected OrganisationUnitStore unitStore;
 
-    @Autowired
-    protected OrganisationUnitGroupStore groupStore;
+  @Autowired protected OrganisationUnitGroupStore groupStore;
 
-    @Autowired
-    protected OrganisationUnitGroupSetStore groupSetStore;
+  @Autowired protected OrganisationUnitGroupSetStore groupSetStore;
 
-    @Autowired
-    protected OrganisationUnitLevelStore levelStore;
+  @Autowired protected OrganisationUnitLevelStore levelStore;
 
-    protected final OrganisationUnit addOrganisationUnit( char uniqueCharacter )
-    {
-        return addOrganisationUnit( uniqueCharacter, null );
-    }
+  protected final OrganisationUnit addOrganisationUnit(char uniqueCharacter) {
+    return addOrganisationUnit(uniqueCharacter, null);
+  }
 
-    protected final OrganisationUnit addOrganisationUnit( char uniqueCharacter, OrganisationUnit parent )
-    {
-        OrganisationUnit unit = parent == null
-            ? createOrganisationUnit( uniqueCharacter )
-            : createOrganisationUnit( uniqueCharacter, parent );
-        unitStore.save( unit );
-        return unit;
-    }
+  protected final OrganisationUnit addOrganisationUnit(
+      char uniqueCharacter, OrganisationUnit parent) {
+    OrganisationUnit unit =
+        parent == null
+            ? createOrganisationUnit(uniqueCharacter)
+            : createOrganisationUnit(uniqueCharacter, parent);
+    unitStore.save(unit);
+    return unit;
+  }
 
-    protected final OrganisationUnitGroup addOrganisationUnitGroup( char uniqueCharacter, OrganisationUnit... units )
-    {
-        OrganisationUnitGroup group = createOrganisationUnitGroup( uniqueCharacter );
-        asList( units ).forEach( group::addOrganisationUnit );
-        groupStore.save( group );
-        return group;
-    }
+  protected final OrganisationUnitGroup addOrganisationUnitGroup(
+      char uniqueCharacter, OrganisationUnit... units) {
+    OrganisationUnitGroup group = createOrganisationUnitGroup(uniqueCharacter);
+    asList(units).forEach(group::addOrganisationUnit);
+    groupStore.save(group);
+    return group;
+  }
 
-    protected final OrganisationUnitGroupSet addOrganisationUnitGroupSet( char uniqueCharacter,
-        OrganisationUnitGroup... groups )
-    {
-        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( uniqueCharacter );
-        asList( groups ).forEach( groupSet::addOrganisationUnitGroup );
-        groupSetStore.save( groupSet );
-        return groupSet;
-    }
+  protected final OrganisationUnitGroupSet addOrganisationUnitGroupSet(
+      char uniqueCharacter, OrganisationUnitGroup... groups) {
+    OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet(uniqueCharacter);
+    asList(groups).forEach(groupSet::addOrganisationUnitGroup);
+    groupSetStore.save(groupSet);
+    return groupSet;
+  }
 
-    protected final OrganisationUnitLevel addOrganisationUnitLevel( int level, String name )
-    {
-        OrganisationUnitLevel unitLevel = new OrganisationUnitLevel( level, name );
-        levelStore.save( unitLevel );
-        return unitLevel;
-    }
+  protected final OrganisationUnitLevel addOrganisationUnitLevel(int level, String name) {
+    OrganisationUnitLevel unitLevel = new OrganisationUnitLevel(level, name);
+    levelStore.save(unitLevel);
+    return unitLevel;
+  }
 }

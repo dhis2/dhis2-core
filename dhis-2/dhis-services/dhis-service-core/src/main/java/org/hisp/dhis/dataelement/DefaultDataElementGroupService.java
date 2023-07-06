@@ -34,17 +34,13 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Stian Sandvold
  */
-@Transactional( readOnly = true )
-@Service( "org.hisp.dhis.dataelement.DataElementGroupService" )
-public class DefaultDataElementGroupService
-    implements DataElementGroupService
-{
-    @Autowired
-    private DataElementGroupStore dataElementGroupStore;
+@Transactional(readOnly = true)
+@Service("org.hisp.dhis.dataelement.DataElementGroupService")
+public class DefaultDataElementGroupService implements DataElementGroupService {
+  @Autowired private DataElementGroupStore dataElementGroupStore;
 
-    @Override
-    public DataElementGroup getDataElementGroupByUid( String uid )
-    {
-        return dataElementGroupStore.getByUid( uid );
-    }
+  @Override
+  public DataElementGroup getDataElementGroupByUid(String uid) {
+    return dataElementGroupStore.getByUid(uid);
+  }
 }

@@ -29,9 +29,10 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
@@ -42,124 +43,115 @@ import org.hisp.dhis.program.Program;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class QueryItemTest
-{
+class QueryItemTest {
 
-    private Option opA;
+  private Option opA;
 
-    private Option opB;
+  private Option opB;
 
-    private Option opC;
+  private Option opC;
 
-    private OptionSet osA;
+  private OptionSet osA;
 
-    private Legend leA;
+  private Legend leA;
 
-    private Legend leB;
+  private Legend leB;
 
-    private Legend leC;
+  private Legend leC;
 
-    private LegendSet lsA;
+  private LegendSet lsA;
 
-    private Program prA;
+  private Program prA;
 
-    private Program prB;
+  private Program prB;
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private DataElement deB;
+  private DataElement deB;
 
-    private RepeatableStageParams rspA;
+  private RepeatableStageParams rspA;
 
-    private RepeatableStageParams rspB;
+  private RepeatableStageParams rspB;
 
-    @BeforeEach
-    void before()
-    {
-        opA = new Option( "OptionA", "CODEA" );
-        opA.setUid( "UIDA" );
-        opB = new Option( "OptionB", "CODEB" );
-        opB.setUid( "UIDB" );
-        opC = new Option( "OptionC", "CODEC" );
-        opC.setUid( "UIDC" );
-        osA = new OptionSet( "OptionSetA", ValueType.TEXT, Lists.newArrayList( opA, opB, opC ) );
-        leA = new Legend( "LegendA", 0d, 1d, "", "" );
-        leA.setUid( "UIDA" );
-        leB = new Legend( "LegendB", 1d, 2d, "", "" );
-        leB.setUid( "UIDB" );
-        leC = new Legend( "LegendC", 3d, 4d, "", "" );
-        leC.setUid( "UIDC" );
-        lsA = new LegendSet( "LegendSetA", "", Sets.newHashSet( leA, leB, leC ) );
-        prA = new Program( "ProgramA" );
-        prA.setUid( "PRUIDA" );
-        prB = new Program( "ProgramB" );
-        prB.setUid( "PRUIDB" );
-        deA = new DataElement( "DataElementA" );
-        deA.setOptionSet( osA );
-        deB = new DataElement( "DataElementB" );
-        deB.setLegendSets( Lists.newArrayList( lsA ) );
+  @BeforeEach
+  void before() {
+    opA = new Option("OptionA", "CODEA");
+    opA.setUid("UIDA");
+    opB = new Option("OptionB", "CODEB");
+    opB.setUid("UIDB");
+    opC = new Option("OptionC", "CODEC");
+    opC.setUid("UIDC");
+    osA = new OptionSet("OptionSetA", ValueType.TEXT, Lists.newArrayList(opA, opB, opC));
+    leA = new Legend("LegendA", 0d, 1d, "", "");
+    leA.setUid("UIDA");
+    leB = new Legend("LegendB", 1d, 2d, "", "");
+    leB.setUid("UIDB");
+    leC = new Legend("LegendC", 3d, 4d, "", "");
+    leC.setUid("UIDC");
+    lsA = new LegendSet("LegendSetA", "", Sets.newHashSet(leA, leB, leC));
+    prA = new Program("ProgramA");
+    prA.setUid("PRUIDA");
+    prB = new Program("ProgramB");
+    prB.setUid("PRUIDB");
+    deA = new DataElement("DataElementA");
+    deA.setOptionSet(osA);
+    deB = new DataElement("DataElementB");
+    deB.setLegendSets(Lists.newArrayList(lsA));
 
-        rspA = new RepeatableStageParams();
-        rspA.setStartIndex( 1 );
-        rspA.setCount( 2 );
+    rspA = new RepeatableStageParams();
+    rspA.setStartIndex(1);
+    rspA.setCount(2);
 
-        rspB = new RepeatableStageParams();
-        rspB.setStartIndex( 10 );
-        rspB.setCount( 20 );
+    rspB = new RepeatableStageParams();
+    rspB.setStartIndex(10);
+    rspB.setCount(20);
+  }
 
-    }
+  @Test
+  void testGetOptionSetQueryFilterItems() {
+    QueryItem qiA = new QueryItem(deA, null, ValueType.TEXT, AggregationType.SUM, osA);
+    qiA.addFilter(new QueryFilter(QueryOperator.IN, "CODEA;CODEB"));
+    List<String> expected = Lists.newArrayList("UIDA", "UIDB");
+    assertEquals(expected, qiA.getOptionSetFilterItemsOrAll());
+    QueryItem qiB = new QueryItem(deA, null, ValueType.TEXT, AggregationType.SUM, osA);
+    expected = Lists.newArrayList("UIDA", "UIDB", "UIDC");
+    assertEquals(expected, qiB.getOptionSetFilterItemsOrAll());
+  }
 
-    @Test
-    void testGetOptionSetQueryFilterItems()
-    {
-        QueryItem qiA = new QueryItem( deA, null, ValueType.TEXT, AggregationType.SUM, osA );
-        qiA.addFilter( new QueryFilter( QueryOperator.IN, "CODEA;CODEB" ) );
-        List<String> expected = Lists.newArrayList( "UIDA", "UIDB" );
-        assertEquals( expected, qiA.getOptionSetFilterItemsOrAll() );
-        QueryItem qiB = new QueryItem( deA, null, ValueType.TEXT, AggregationType.SUM, osA );
-        expected = Lists.newArrayList( "UIDA", "UIDB", "UIDC" );
-        assertEquals( expected, qiB.getOptionSetFilterItemsOrAll() );
-    }
+  @Test
+  void testGet() {
+    QueryItem qiA = new QueryItem(deB, lsA, ValueType.TEXT, AggregationType.SUM, null);
+    qiA.addFilter(new QueryFilter(QueryOperator.IN, "UIDA;UIDB"));
+    qiA.setRepeatableStageParams(rspA);
+    List<String> expected = Lists.newArrayList("UIDA", "UIDB");
+    assertEquals(expected, qiA.getLegendSetFilterItemsOrAll());
+    QueryItem qiB = new QueryItem(deB, lsA, ValueType.TEXT, AggregationType.SUM, null);
+    expected = Lists.newArrayList("UIDA", "UIDB", "UIDC");
+    assertEquals(expected, qiB.getLegendSetFilterItemsOrAll());
+    assertEquals(rspA, qiA.getRepeatableStageParams());
+    assertEquals(rspA.toString(), qiA.getRepeatableStageParams().toString());
+  }
 
-    @Test
-    void testGet()
-    {
-        QueryItem qiA = new QueryItem( deB, lsA, ValueType.TEXT, AggregationType.SUM, null );
-        qiA.addFilter( new QueryFilter( QueryOperator.IN, "UIDA;UIDB" ) );
-        qiA.setRepeatableStageParams( rspA );
-        List<String> expected = Lists.newArrayList( "UIDA", "UIDB" );
-        assertEquals( expected, qiA.getLegendSetFilterItemsOrAll() );
-        QueryItem qiB = new QueryItem( deB, lsA, ValueType.TEXT, AggregationType.SUM, null );
-        expected = Lists.newArrayList( "UIDA", "UIDB", "UIDC" );
-        assertEquals( expected, qiB.getLegendSetFilterItemsOrAll() );
-        assertEquals( rspA, qiA.getRepeatableStageParams() );
-        assertEquals( rspA.toString(), qiA.getRepeatableStageParams().toString() );
-    }
-
-    @Test
-    void testEquality()
-    {
-        // Unique
-        QueryItem qiA = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null );
-        // Duplicate
-        QueryItem qiB = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null );
-        // of
-        // 'qiA'
-        // Unique
-        QueryItem qiC = new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null );
-        // Unique
-        QueryItem qiD = new QueryItem( deA );
-        // Duplicate of 'qiD'
-        QueryItem qiE = new QueryItem( deA );
-        // Unique
-        QueryItem qiF = new QueryItem( deB );
-        Set<QueryItem> items = Sets.newHashSet( qiA, qiB, qiC, qiD, qiE, qiF );
-        assertEquals( 4, items.size() );
-    }
+  @Test
+  void testEquality() {
+    // Unique
+    QueryItem qiA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    // Duplicate
+    QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    // of
+    // 'qiA'
+    // Unique
+    QueryItem qiC = new QueryItem(deA, prB, null, ValueType.TEXT, AggregationType.NONE, null);
+    // Unique
+    QueryItem qiD = new QueryItem(deA);
+    // Duplicate of 'qiD'
+    QueryItem qiE = new QueryItem(deA);
+    // Unique
+    QueryItem qiF = new QueryItem(deB);
+    Set<QueryItem> items = Sets.newHashSet(qiA, qiB, qiC, qiD, qiE, qiF);
+    assertEquals(4, items.size());
+  }
 }

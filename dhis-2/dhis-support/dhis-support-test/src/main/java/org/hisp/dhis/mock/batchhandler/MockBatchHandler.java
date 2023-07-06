@@ -30,120 +30,99 @@ package org.hisp.dhis.mock.batchhandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
-
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.JdbcConfiguration;
 
 /**
  * @author Lars Helge Overland
  */
-public class MockBatchHandler<T>
-    implements BatchHandler<T>
-{
-    private List<T> inserts = new ArrayList<>();
+public class MockBatchHandler<T> implements BatchHandler<T> {
+  private List<T> inserts = new ArrayList<>();
 
-    private List<T> updates = new ArrayList<>();
+  private List<T> updates = new ArrayList<>();
 
-    private List<T> deletes = new ArrayList<>();
+  private List<T> deletes = new ArrayList<>();
 
-    private UnaryOperator<T> findObject = obj -> null;
+  private UnaryOperator<T> findObject = obj -> null;
 
-    private int addObjectCount = 0;
+  private int addObjectCount = 0;
 
-    public MockBatchHandler()
-    {
-    }
+  public MockBatchHandler() {}
 
-    public MockBatchHandler<T> withFindSelf( boolean findSelf )
-    {
-        return withFindObject( obj -> findSelf ? obj : null );
-    }
+  public MockBatchHandler<T> withFindSelf(boolean findSelf) {
+    return withFindObject(obj -> findSelf ? obj : null);
+  }
 
-    public MockBatchHandler<T> withFindObject( UnaryOperator<T> findObject )
-    {
-        this.findObject = findObject;
-        return this;
-    }
+  public MockBatchHandler<T> withFindObject(UnaryOperator<T> findObject) {
+    this.findObject = findObject;
+    return this;
+  }
 
-    @Override
-    public BatchHandler<T> init()
-    {
-        this.addObjectCount = 0;
-        return this;
-    }
+  @Override
+  public BatchHandler<T> init() {
+    this.addObjectCount = 0;
+    return this;
+  }
 
-    @Override
-    public JdbcConfiguration getConfiguration()
-    {
-        return null;
-    }
+  @Override
+  public JdbcConfiguration getConfiguration() {
+    return null;
+  }
 
-    @Override
-    public boolean addObject( T object )
-    {
-        addObjectCount++;
-        return inserts.add( object );
-    }
+  @Override
+  public boolean addObject(T object) {
+    addObjectCount++;
+    return inserts.add(object);
+  }
 
-    @Override
-    public boolean insertObject( T object )
-    {
-        return true;
-    }
+  @Override
+  public boolean insertObject(T object) {
+    return true;
+  }
 
-    @Override
-    public T findObject( T arg )
-    {
-        return findObject.apply( arg );
-    }
+  @Override
+  public T findObject(T arg) {
+    return findObject.apply(arg);
+  }
 
-    @Override
-    public void updateObject( T object )
-    {
-        updates.add( object );
-    }
+  @Override
+  public void updateObject(T object) {
+    updates.add(object);
+  }
 
-    @Override
-    public void deleteObject( T object )
-    {
-        deletes.add( object );
-    }
+  @Override
+  public void deleteObject(T object) {
+    deletes.add(object);
+  }
 
-    @Override
-    public boolean objectExists( T object )
-    {
-        return false;
-    }
+  @Override
+  public boolean objectExists(T object) {
+    return false;
+  }
 
-    public int getObjectIdentifier( Object object )
-    {
-        return 0;
-    }
+  public int getObjectIdentifier(Object object) {
+    return 0;
+  }
 
-    @Override
-    public void flush()
-    {
-        addObjectCount = 0;
-    }
+  @Override
+  public void flush() {
+    addObjectCount = 0;
+  }
 
-    public List<T> getInserts()
-    {
-        return inserts;
-    }
+  public List<T> getInserts() {
+    return inserts;
+  }
 
-    public List<T> getUpdates()
-    {
-        return updates;
-    }
+  public List<T> getUpdates() {
+    return updates;
+  }
 
-    public List<T> getDeletes()
-    {
-        return deletes;
-    }
+  public List<T> getDeletes() {
+    return deletes;
+  }
 
-    @Override
-    public int getAddObjectCount()
-    {
-        return addObjectCount;
-    }
+  @Override
+  public int getAddObjectCount() {
+    return addObjectCount;
+  }
 }

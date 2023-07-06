@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -39,75 +38,60 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonIdentifiableObject extends JsonObject
-{
-    default String getId()
-    {
-        return getString( "id" ).string();
-    }
+public interface JsonIdentifiableObject extends JsonObject {
+  default String getId() {
+    return getString("id").string();
+  }
 
-    default String getName()
-    {
-        return getString( "name" ).string();
-    }
+  default String getName() {
+    return getString("name").string();
+  }
 
-    default String getDisplayName()
-    {
-        return getString( "displayName" ).string();
-    }
+  default String getDisplayName() {
+    return getString("displayName").string();
+  }
 
-    default String getHref()
-    {
-        return getString( "href" ).string();
-    }
+  default String getHref() {
+    return getString("href").string();
+  }
 
-    default String getCode()
-    {
-        return getString( "code" ).string();
-    }
+  default String getCode() {
+    return getString("code").string();
+  }
 
-    default JsonUser getLastUpdatedBy()
-    {
-        return get( "lastUpdatedBy", JsonUser.class );
-    }
+  default JsonUser getLastUpdatedBy() {
+    return get("lastUpdatedBy", JsonUser.class);
+  }
 
-    default LocalDateTime getLastUpdated()
-    {
-        return get( "lastUpdated", JsonDate.class ).date();
-    }
+  default LocalDateTime getLastUpdated() {
+    return get("lastUpdated", JsonDate.class).date();
+  }
 
-    default JsonUser getCreatedBy()
-    {
-        return get( "createdBy", JsonUser.class );
-    }
+  default JsonUser getCreatedBy() {
+    return get("createdBy", JsonUser.class);
+  }
 
-    default LocalDateTime getCreated()
-    {
-        return get( "created", JsonDate.class ).date();
-    }
+  default LocalDateTime getCreated() {
+    return get("created", JsonDate.class).date();
+  }
 
-    default boolean getExternalAccess()
-    {
-        return getBoolean( "externalAccess" ).booleanValue();
-    }
+  default boolean getExternalAccess() {
+    return getBoolean("externalAccess").booleanValue();
+  }
 
-    default List<String> getFavorites()
-    {
-        return getArray( "favorites" ).stringValues();
-    }
+  default List<String> getFavorites() {
+    return getArray("favorites").stringValues();
+  }
 
-    default boolean isFavorite()
-    {
-        return getBoolean( "favorite" ).booleanValue();
-    }
+  default boolean isFavorite() {
+    return getBoolean("favorite").booleanValue();
+  }
 
-    default JsonSharing getSharing()
-    {
-        return get( "sharing", JsonSharing.class );
-    }
+  default JsonSharing getSharing() {
+    return get("sharing", JsonSharing.class);
+  }
 
-    default JsonList<JsonAttributeValue> getAttributeValues()
-    {
-        return getList( "attributeValues", JsonAttributeValue.class );
-    }
+  default JsonList<JsonAttributeValue> getAttributeValues() {
+    return getList("attributeValues", JsonAttributeValue.class);
+  }
 }

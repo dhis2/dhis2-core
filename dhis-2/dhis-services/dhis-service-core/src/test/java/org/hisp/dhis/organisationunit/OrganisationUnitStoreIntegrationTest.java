@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -45,61 +44,68 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Luciano Fiandesio
  */
-class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest
-{
+class OrganisationUnitStoreIntegrationTest extends TransactionalIntegrationTest {
 
-    private final static long _150KM = 150_000;
+  private static final long _150KM = 150_000;
 
-    private final static long _190KM = 190_000;
+  private static final long _190KM = 190_000;
 
-    private final static long _250KM = 250_000;
+  private static final long _250KM = 250_000;
 
-    @Autowired
-    private OrganisationUnitStore organisationUnitStore;
+  @Autowired private OrganisationUnitStore organisationUnitStore;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Test
-    void verifyGetOrgUnitsWithinAGeoBox()
-        throws IOException
-    {
-        // https://gist.github.com/luciano-fiandesio/ea682cd4b9a37c5b4bef93e3918b8cda
-        OrganisationUnit ouA = createOrganisationUnit( 'A',
-            GeoUtils.getGeometryFromCoordinatesAndType( POINT, "[27.421875, 22.49225722008518]" ) );
-        OrganisationUnit ouB = createOrganisationUnit( 'B',
-            GeoUtils.getGeometryFromCoordinatesAndType( POINT, "[29.860839843749996, 20.035289711352377]" ) );
-        OrganisationUnit ouC = createOrganisationUnit( 'C',
-            GeoUtils.getGeometryFromCoordinatesAndType( POINT, "[26.103515625, 20.879342971957897]" ) );
-        OrganisationUnit ouD = createOrganisationUnit( 'D',
-            GeoUtils.getGeometryFromCoordinatesAndType( POINT, "[26.982421875, 19.476950206488414]" ) );
-        Geometry point = GeoUtils.getGeometryFromCoordinatesAndType( POINT, "[27.83935546875, 21.207458730482642]" );
-        manager.save( ouA );
-        manager.save( ouB );
-        manager.save( ouC );
-        manager.save( ouD );
-        List<OrganisationUnit> ous = getOUsFromPointToDistance( point, _150KM );
-        assertContainsOnly( ous, ouA );
-        ous = getOUsFromPointToDistance( point, _190KM );
-        assertContainsOnly( ous, ouA, ouC );
-        ous = getOUsFromPointToDistance( point, _250KM );
-        assertContainsOnly( ous, ouA, ouB, ouC, ouD );
+  @Test
+  void verifyGetOrgUnitsWithinAGeoBox() throws IOException {
+    // https://gist.github.com/luciano-fiandesio/ea682cd4b9a37c5b4bef93e3918b8cda
+    OrganisationUnit ouA =
+        createOrganisationUnit(
+            'A',
+            GeoUtils.getGeometryFromCoordinatesAndType(POINT, "[27.421875, 22.49225722008518]"));
+    OrganisationUnit ouB =
+        createOrganisationUnit(
+            'B',
+            GeoUtils.getGeometryFromCoordinatesAndType(
+                POINT, "[29.860839843749996, 20.035289711352377]"));
+    OrganisationUnit ouC =
+        createOrganisationUnit(
+            'C',
+            GeoUtils.getGeometryFromCoordinatesAndType(
+                POINT, "[26.103515625, 20.879342971957897]"));
+    OrganisationUnit ouD =
+        createOrganisationUnit(
+            'D',
+            GeoUtils.getGeometryFromCoordinatesAndType(
+                POINT, "[26.982421875, 19.476950206488414]"));
+    Geometry point =
+        GeoUtils.getGeometryFromCoordinatesAndType(POINT, "[27.83935546875, 21.207458730482642]");
+    manager.save(ouA);
+    manager.save(ouB);
+    manager.save(ouC);
+    manager.save(ouD);
+    List<OrganisationUnit> ous = getOUsFromPointToDistance(point, _150KM);
+    assertContainsOnly(ous, ouA);
+    ous = getOUsFromPointToDistance(point, _190KM);
+    assertContainsOnly(ous, ouA, ouC);
+    ous = getOUsFromPointToDistance(point, _250KM);
+    assertContainsOnly(ous, ouA, ouB, ouC, ouD);
+  }
+
+  private List<OrganisationUnit> getOUsFromPointToDistance(Geometry point, long distance) {
+    double[] box = GeoUtils.getBoxShape(point.getCoordinate().x, point.getCoordinate().y, distance);
+    return organisationUnitStore.getWithinCoordinateArea(box);
+  }
+
+  private void assertContainsOnly(List<OrganisationUnit> ous, OrganisationUnit... ou) {
+    List<String> ouNames =
+        ous.stream().map(BaseIdentifiableObject::getName).collect(Collectors.toList());
+    for (OrganisationUnit organisationUnit : ou) {
+      if (!ouNames.contains(organisationUnit.getName()))
+        fail(
+            "Org Unit with name "
+                + organisationUnit.getName()
+                + " is not part of list of Org Units returned from query");
     }
-
-    private List<OrganisationUnit> getOUsFromPointToDistance( Geometry point, long distance )
-    {
-        double[] box = GeoUtils.getBoxShape( point.getCoordinate().x, point.getCoordinate().y, distance );
-        return organisationUnitStore.getWithinCoordinateArea( box );
-    }
-
-    private void assertContainsOnly( List<OrganisationUnit> ous, OrganisationUnit... ou )
-    {
-        List<String> ouNames = ous.stream().map( BaseIdentifiableObject::getName ).collect( Collectors.toList() );
-        for ( OrganisationUnit organisationUnit : ou )
-        {
-            if ( !ouNames.contains( organisationUnit.getName() ) )
-                fail( "Org Unit with name " + organisationUnit.getName()
-                    + " is not part of list of Org Units returned from query" );
-        }
-    }
+  }
 }

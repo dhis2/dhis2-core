@@ -28,12 +28,11 @@
 package org.hisp.dhis.schema;
 
 /**
- * Simple interface for classes that exposes a class containment. I.e. a
- * Property have a property class.
+ * Simple interface for classes that exposes a class containment. I.e. a Property have a property
+ * class.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Klass
-{
-    Class<?> getKlass();
+public interface Klass {
+  Class<?> getKlass();
 }

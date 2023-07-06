@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.security.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpSession;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
@@ -44,131 +43,112 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author mortenoh
  */
-public class LoginAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class LoginAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private DeviceResolver deviceResolver;
+  private DeviceResolver deviceResolver;
 
-    public void setDeviceResolver( DeviceResolver deviceResolver )
-    {
-        this.deviceResolver = deviceResolver;
+  public void setDeviceResolver(DeviceResolver deviceResolver) {
+    this.deviceResolver = deviceResolver;
+  }
+
+  @Autowired private ResourceBundleManager resourceBundleManager;
+
+  @Autowired private DhisOidcProviderRepository repository;
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+  private String cspNonce = "";
+
+  public void setCspNonce(String cspNonce) {
+    this.cspNonce = cspNonce;
+  }
+
+  public String getCspNonce() {
+    return cspNonce;
+  }
+
+  private Boolean failed = false;
+
+  private Boolean oidcFailure = false;
+
+  public void setFailed(Boolean failed) {
+    this.failed = failed;
+  }
+
+  public Boolean getFailed() {
+    return failed;
+  }
+
+  public Boolean getOidcFailure() {
+    return oidcFailure;
+  }
+
+  public void setOidcFailure(Boolean oidcFailure) {
+    this.oidcFailure = oidcFailure;
+  }
+
+  private List<Locale> availableLocales;
+
+  public List<Locale> getAvailableLocales() {
+    return availableLocales;
+  }
+
+  private final Map<String, Object> oidcConfig = new HashMap<>();
+
+  public Map<String, Object> getOidcConfig() {
+    return oidcConfig;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    addRegisteredProviders();
+
+    Device device = deviceResolver.resolveDevice(ServletActionContext.getRequest());
+    HttpSession session = ServletActionContext.getRequest().getSession();
+    String nonce = (String) session.getAttribute("nonce");
+    setCspNonce(nonce);
+
+    ServletActionContext.getResponse().addHeader("Login-Page", "true");
+
+    if (device.isMobile() || device.isTablet()) {
+      return "mobile";
     }
 
-    @Autowired
-    private ResourceBundleManager resourceBundleManager;
+    availableLocales = new ArrayList<>(resourceBundleManager.getAvailableLocales());
 
-    @Autowired
-    private DhisOidcProviderRepository repository;
+    return "standard";
+  }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
-    private String cspNonce = "";
+  private void addRegisteredProviders() {
+    List<Map<String, String>> providers = new ArrayList<>();
 
-    public void setCspNonce( String cspNonce )
-    {
-        this.cspNonce = cspNonce;
+    Set<String> allRegistrationIds = repository.getAllRegistrationId();
+
+    for (String registrationId : allRegistrationIds) {
+      DhisOidcClientRegistration clientRegistration =
+          repository.getDhisOidcClientRegistration(registrationId);
+
+      providers.add(
+          Map.of(
+              "id", registrationId,
+              "icon", clientRegistration.getLoginIcon(),
+              "iconPadding", clientRegistration.getLoginIconPadding(),
+              "loginText", clientRegistration.getLoginText()));
     }
 
-    public String getCspNonce()
-    {
-        return cspNonce;
+    if (!providers.isEmpty()) {
+      oidcConfig.put("providers", providers);
     }
-
-    private Boolean failed = false;
-
-    private Boolean oidcFailure = false;
-
-    public void setFailed( Boolean failed )
-    {
-        this.failed = failed;
-    }
-
-    public Boolean getFailed()
-    {
-        return failed;
-    }
-
-    public Boolean getOidcFailure()
-    {
-        return oidcFailure;
-    }
-
-    public void setOidcFailure( Boolean oidcFailure )
-    {
-        this.oidcFailure = oidcFailure;
-    }
-
-    private List<Locale> availableLocales;
-
-    public List<Locale> getAvailableLocales()
-    {
-        return availableLocales;
-    }
-
-    private final Map<String, Object> oidcConfig = new HashMap<>();
-
-    public Map<String, Object> getOidcConfig()
-    {
-        return oidcConfig;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        addRegisteredProviders();
-
-        Device device = deviceResolver.resolveDevice( ServletActionContext.getRequest() );
-        HttpSession session = ServletActionContext.getRequest().getSession();
-        String nonce = (String) session.getAttribute( "nonce" );
-        setCspNonce( nonce );
-
-        ServletActionContext.getResponse().addHeader( "Login-Page", "true" );
-
-        if ( device.isMobile() || device.isTablet() )
-        {
-            return "mobile";
-        }
-
-        availableLocales = new ArrayList<>( resourceBundleManager.getAvailableLocales() );
-
-        return "standard";
-    }
-
-    private void addRegisteredProviders()
-    {
-        List<Map<String, String>> providers = new ArrayList<>();
-
-        Set<String> allRegistrationIds = repository.getAllRegistrationId();
-
-        for ( String registrationId : allRegistrationIds )
-        {
-            DhisOidcClientRegistration clientRegistration = repository.getDhisOidcClientRegistration( registrationId );
-
-            providers.add( Map.of(
-                "id", registrationId,
-                "icon", clientRegistration.getLoginIcon(),
-                "iconPadding", clientRegistration.getLoginIconPadding(),
-                "loginText", clientRegistration.getLoginText() ) );
-        }
-
-        if ( !providers.isEmpty() )
-        {
-            oidcConfig.put( "providers", providers );
-        }
-    }
+  }
 }

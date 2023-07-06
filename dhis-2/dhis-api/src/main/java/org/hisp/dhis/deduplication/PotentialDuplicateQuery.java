@@ -27,61 +27,51 @@
  */
 package org.hisp.dhis.deduplication;
 
+import com.google.common.base.MoreObjects;
 import java.util.List;
-
 import lombok.Data;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 
-import com.google.common.base.MoreObjects;
-
 @Data
-public class PotentialDuplicateQuery
-{
-    public static final PotentialDuplicateQuery EMPTY = new PotentialDuplicateQuery();
+public class PotentialDuplicateQuery {
+  public static final PotentialDuplicateQuery EMPTY = new PotentialDuplicateQuery();
 
-    private Boolean skipPaging;
+  private Boolean skipPaging;
 
-    private Boolean paging;
+  private Boolean paging;
 
-    private int page = 1;
+  private int page = 1;
 
-    private int pageSize = Pager.DEFAULT_PAGE_SIZE;
+  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    private int total;
+  private int total;
 
-    private List<String> teis;
+  private List<String> teis;
 
-    private DeduplicationStatus status = DeduplicationStatus.OPEN;
+  private DeduplicationStatus status = DeduplicationStatus.OPEN;
 
-    public PotentialDuplicateQuery()
-    {
-    }
+  public PotentialDuplicateQuery() {}
 
-    public boolean isSkipPaging()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging );
-    }
+  public boolean isSkipPaging() {
+    return PagerUtils.isSkipPaging(skipPaging, paging);
+  }
 
-    public boolean isPaging()
-    {
-        return BooleanUtils.toBoolean( paging );
-    }
+  public boolean isPaging() {
+    return BooleanUtils.toBoolean(paging);
+  }
 
-    public Pager getPager()
-    {
-        return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
-    }
+  public Pager getPager() {
+    return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
+  }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "page", page )
-            .add( "pageSize", pageSize )
-            .add( "total", total )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("page", page)
+        .add("pageSize", pageSize)
+        .add("total", total)
+        .toString();
+  }
 }

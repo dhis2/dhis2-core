@@ -31,10 +31,9 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
-{
-    @Mapping( target = "storedAt", source = "storedDate" )
-    @Mapping( target = "createdBy", source = "lastUpdatedBy" )
-    Note from( org.hisp.dhis.dxf2.events.event.Note note );
+@Mapper(uses = {InstantMapper.class, UserMapper.class})
+public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note> {
+  @Mapping(target = "storedAt", source = "storedDate")
+  @Mapping(target = "createdBy", source = "lastUpdatedBy")
+  Note from(org.hisp.dhis.dxf2.events.event.Note note);
 }

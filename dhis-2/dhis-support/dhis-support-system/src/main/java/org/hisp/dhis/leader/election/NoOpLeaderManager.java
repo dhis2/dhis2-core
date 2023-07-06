@@ -28,74 +28,62 @@
 package org.hisp.dhis.leader.election;
 
 import java.util.UUID;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * No operation leader election implementation which will be used when redis is
- * not configured.
+ * No operation leader election implementation which will be used when redis is not configured.
  *
  * @author Ameen Mohamed
  */
 @Slf4j
-public class NoOpLeaderManager implements LeaderManager
-{
+public class NoOpLeaderManager implements LeaderManager {
 
-    private String nodeUuid;
+  private String nodeUuid;
 
-    private String nodeId;
+  private String nodeId;
 
-    public NoOpLeaderManager( DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        this.nodeId = dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID );
-        this.nodeUuid = UUID.randomUUID().toString();
-        log.info( "Initialized NoOp leader manager with node UUID: '{}' and node ID: '{}'", nodeUuid, nodeId );
-    }
+  public NoOpLeaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
+    this.nodeId = dhisConfigurationProvider.getProperty(ConfigurationKey.NODE_ID);
+    this.nodeUuid = UUID.randomUUID().toString();
+    log.info(
+        "Initialized NoOp leader manager with node UUID: '{}' and node ID: '{}'", nodeUuid, nodeId);
+  }
 
-    @Override
-    public void renewLeader()
-    {
-        // No operation
-    }
+  @Override
+  public void renewLeader() {
+    // No operation
+  }
 
-    @Override
-    public void electLeader()
-    {
-        // No operation
-    }
+  @Override
+  public void electLeader() {
+    // No operation
+  }
 
-    @Override
-    public boolean isLeader()
-    {
-        return true;
-    }
+  @Override
+  public boolean isLeader() {
+    return true;
+  }
 
-    @Override
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        // No operation
-    }
+  @Override
+  public void setSchedulingManager(SchedulingManager schedulingManager) {
+    // No operation
+  }
 
-    @Override
-    public String getCurrentNodeUuid()
-    {
-        return this.nodeUuid;
-    }
+  @Override
+  public String getCurrentNodeUuid() {
+    return this.nodeUuid;
+  }
 
-    @Override
-    public String getLeaderNodeUuid()
-    {
-        return this.nodeUuid;
-    }
+  @Override
+  public String getLeaderNodeUuid() {
+    return this.nodeUuid;
+  }
 
-    @Override
-    public String getLeaderNodeId()
-    {
-        return this.nodeId;
-    }
-
+  @Override
+  public String getLeaderNodeId() {
+    return this.nodeId;
+  }
 }

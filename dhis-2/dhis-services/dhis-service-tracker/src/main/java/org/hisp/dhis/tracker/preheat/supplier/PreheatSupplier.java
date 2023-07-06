@@ -35,14 +35,12 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
  *
  * @author Luciano Fiandesio
  */
-public interface PreheatSupplier
-{
-    /**
-     * Adds data to the {@link TrackerPreheat} using the supplied
-     * {@link TrackerImportParams}
-     *
-     * @param params {@link TrackerImportParams}
-     * @param preheat {@link TrackerPreheat}
-     */
-    void add( TrackerImportParams params, TrackerPreheat preheat );
+public interface PreheatSupplier {
+  /**
+   * Adds data to the {@link TrackerPreheat} using the supplied {@link TrackerImportParams}
+   *
+   * @param params {@link TrackerImportParams}
+   * @param preheat {@link TrackerPreheat}
+   */
+  void add(TrackerImportParams params, TrackerPreheat preheat);
 }

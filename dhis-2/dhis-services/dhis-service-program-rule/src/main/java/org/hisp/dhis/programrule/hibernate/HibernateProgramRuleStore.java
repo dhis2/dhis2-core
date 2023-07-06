@@ -31,9 +31,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -49,154 +47,165 @@ import org.springframework.stereotype.Repository;
 /**
  * @author markusbekken
  */
-@Repository( "org.hisp.dhis.programrule.ProgramRuleStore" )
-public class HibernateProgramRuleStore
-    extends HibernateIdentifiableObjectStore<ProgramRule>
-    implements ProgramRuleStore
-{
-    public HibernateProgramRuleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, aclService, false );
-    }
+@Repository("org.hisp.dhis.programrule.ProgramRuleStore")
+public class HibernateProgramRuleStore extends HibernateIdentifiableObjectStore<ProgramRule>
+    implements ProgramRuleStore {
+  public HibernateProgramRuleStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramRule.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public List<ProgramRule> get( Program program )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ProgramRule> get(Program program) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("program"), program)));
+  }
 
-    @Override
-    public ProgramRule getByName( String name, Program program )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public ProgramRule getByName(String name, Program program) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("name"), name))
+            .addPredicate(root -> builder.equal(root.get("program"), program)));
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesLinkedToTeaOrDe()
-    {
+  @Override
+  public List<ProgramRule> getProgramRulesLinkedToTeaOrDe() {
 
-        String jql = "SELECT distinct pr FROM ProgramRule pr, Program p " +
-            "JOIN FETCH pr.programRuleActions pra " +
-            "WHERE p.uid = pr.program.uid AND " +
-            "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
-        Session session = getSession();
-        return session.createQuery( jql, ProgramRule.class )
-            .getResultList();
-    }
+    String jql =
+        "SELECT distinct pr FROM ProgramRule pr, Program p "
+            + "JOIN FETCH pr.programRuleActions pra "
+            + "WHERE p.uid = pr.program.uid AND "
+            + "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
+    Session session = getSession();
+    return session.createQuery(jql, ProgramRule.class).getResultList();
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
-    {
-        final String hql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
+  @Override
+  public List<ProgramRule> getProgramRulesByActionTypes(
+      Program program, Set<ProgramRuleActionType> actionTypes) {
+    final String hql =
+        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+            + "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
 
-        return getQuery( hql )
-            .setParameter( "program", program )
-            .setParameter( "actionTypes", actionTypes )
-            .getResultList();
-    }
+    return getQuery(hql)
+        .setParameter("program", program)
+        .setParameter("actionTypes", actionTypes)
+        .getResultList();
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types,
-        String programStageUid )
-    {
-        final String hql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-            "LEFT JOIN FETCH pr.programStage ps " +
-            "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) " +
-            "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
+  @Override
+  public List<ProgramRule> getProgramRulesByActionTypes(
+      Program program, Set<ProgramRuleActionType> types, String programStageUid) {
+    final String hql =
+        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+            + "LEFT JOIN FETCH pr.programStage ps "
+            + "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) "
+            + "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
 
-        return getQuery( hql )
-            .setParameter( "programId", program )
-            .setParameter( "implementableTypes", types )
-            .setParameter( "programStageUid", programStageUid )
-            .getResultList();
-    }
+    return getQuery(hql)
+        .setParameter("programId", program)
+        .setParameter("implementableTypes", types)
+        .setParameter("programStageUid", programStageUid)
+        .getResultList();
+  }
 
-    @Override
-    public List<ProgramRule> get( Program program, String key )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ProgramRule> get(Program program, String key) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key,
-                JpaQueryUtils.StringSearchMode.ANYWHERE ) )
-            .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("program"), program))
+            .addPredicate(
+                root ->
+                    JpaQueryUtils.stringPredicateIgnoreCase(
+                        builder, root.get("name"), key, JpaQueryUtils.StringSearchMode.ANYWHERE))
+            .addOrder(root -> builder.asc(root.get("name"))));
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesWithNoCondition()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<ProgramRule> getProgramRulesWithNoCondition() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.isNull( root.get( "condition" ) ) ) );
-    }
+    return getList(
+        builder, newJpaParameters().addPredicate(root -> builder.isNull(root.get("condition"))));
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesWithNoPriority()
-    {
-        final String jql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-            "WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType";
+  @Override
+  public List<ProgramRule> getProgramRulesWithNoPriority() {
+    final String jql =
+        "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+            + "WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType";
 
-        return getQuery( jql )
-            .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
-            .getResultList();
-    }
+    return getQuery(jql).setParameter("actionType", ProgramRuleActionType.ASSIGN).getResultList();
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime )
-    {
-        Session session = getSession();
-        session.clear(); // TODO Why?
+  @Override
+  public List<ProgramRule> getProgramRulesByEvaluationTime(
+      ProgramRuleActionEvaluationTime evaluationTime) {
+    Session session = getSession();
+    session.clear(); // TODO Why?
 
-        final String jql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-            "WHERE pra.programRuleActionEvaluationTime = :defaultEvaluationTime OR pra.programRuleActionEvaluationTime = :evaluationTime";
+    final String jql =
+        "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra "
+            + "WHERE pra.programRuleActionEvaluationTime = :defaultEvaluationTime OR pra.programRuleActionEvaluationTime = :evaluationTime";
 
-        return getQuery( jql )
-            .setParameter( "defaultEvaluationTime", ProgramRuleActionEvaluationTime.getDefault() )
-            .setParameter( "evaluationTime", evaluationTime )
-            .getResultList();
-    }
+    return getQuery(jql)
+        .setParameter("defaultEvaluationTime", ProgramRuleActionEvaluationTime.getDefault())
+        .setParameter("evaluationTime", evaluationTime)
+        .getResultList();
+  }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
-        ProgramRuleActionEvaluationEnvironment environment )
-    {
-        List<BigInteger> bigIntegerList = getSession().createNativeQuery(
-            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid "
-                +
-                "where environments@> '[\"" + environment + "\"]';" )
+  @Override
+  @SuppressWarnings("unchecked")
+  public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
+      ProgramRuleActionEvaluationEnvironment environment) {
+    List<BigInteger> bigIntegerList =
+        getSession()
+            .createNativeQuery(
+                "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid "
+                    + "where environments@> '[\""
+                    + environment
+                    + "\"]';")
             .list();
-        List<Long> idList = bigIntegerList
-            .stream()
-            .map( item -> Long.valueOf( item.longValue() ) )
-            .collect( Collectors.toList() );
+    List<Long> idList =
+        bigIntegerList.stream()
+            .map(item -> Long.valueOf(item.longValue()))
+            .collect(Collectors.toList());
 
-        Session session = getSession();
-        session.clear();
-        return session.createQuery(
+    Session session = getSession();
+    session.clear();
+    return session
+        .createQuery(
             "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)",
-            ProgramRule.class )
-            .setParameterList( "ids", idList )
-            .getResultList();
-    }
+            ProgramRule.class)
+        .setParameterList("ids", idList)
+        .getResultList();
+  }
 
-    @Override
-    public List<ProgramRule> getProgramRulesWithNoAction()
-    {
-        final String jql = "FROM ProgramRule pr WHERE pr.programRuleActions IS EMPTY";
+  @Override
+  public List<ProgramRule> getProgramRulesWithNoAction() {
+    final String jql = "FROM ProgramRule pr WHERE pr.programRuleActions IS EMPTY";
 
-        return getQuery( jql )
-            .getResultList();
-    }
+    return getQuery(jql).getResultList();
+  }
 }

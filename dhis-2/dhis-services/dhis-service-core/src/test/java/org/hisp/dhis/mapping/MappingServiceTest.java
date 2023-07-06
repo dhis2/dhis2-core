@@ -30,6 +30,7 @@ package org.hisp.dhis.mapping;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
@@ -45,76 +46,67 @@ import org.hisp.dhis.render.RenderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-class MappingServiceTest extends DhisSpringTest
-{
+class MappingServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private MappingService mappingService;
+  @Autowired private MappingService mappingService;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    private CategoryOption coA = createCategoryOption( 'A' );
+  private CategoryOption coA = createCategoryOption('A');
 
-    private Category caA = createCategory( 'A', coA );
+  private Category caA = createCategory('A', coA);
 
-    private DataElement deA = createDataElement( 'A' );
+  private DataElement deA = createDataElement('A');
 
-    private OrganisationUnit ouA = createOrganisationUnit( 'A' );
+  private OrganisationUnit ouA = createOrganisationUnit('A');
 
-    private OrganisationUnitGroup ougA = createOrganisationUnitGroup( 'A' );
+  private OrganisationUnitGroup ougA = createOrganisationUnitGroup('A');
 
-    private OrganisationUnitGroupSet ougsA = createOrganisationUnitGroupSet( 'A' );
+  private OrganisationUnitGroupSet ougsA = createOrganisationUnitGroupSet('A');
 
-    @Override
-    public void setUpTest()
-    {
-        renderService = _renderService;
-        deA.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
-        ougsA.addOrganisationUnitGroup( ougA );
-        idObjectManager.save( Lists.newArrayList( coA, caA, deA, ouA, ougA, ougsA ) );
-    }
+  @Override
+  public void setUpTest() {
+    renderService = _renderService;
+    deA.setCategoryCombo(categoryService.getDefaultCategoryCombo());
+    ougsA.addOrganisationUnitGroup(ougA);
+    idObjectManager.save(Lists.newArrayList(coA, caA, deA, ouA, ougA, ougsA));
+  }
 
-    @Test
-    void testAddGet()
-    {
-        MapView mvA = new MapView( "thematic" );
-        CategoryDimension cadA = new CategoryDimension();
-        cadA.setDimension( caA );
-        cadA.setItems( Lists.newArrayList( coA ) );
-        OrganisationUnitGroupSetDimension ougsdA = new OrganisationUnitGroupSetDimension();
-        ougsdA.setDimension( ougsA );
-        ougsdA.setItems( Lists.newArrayList( ougA ) );
-        mvA.addCategoryDimension( cadA );
-        mvA.addDataDimensionItem( deA );
-        mvA.getOrganisationUnits().add( ouA );
-        mvA.addOrganisationUnitGroupSetDimension( ougsdA );
-        Map mpA = new Map( "MapA", null, 0d, 0d, 0 );
-        mpA.getMapViews().add( mvA );
-        long id = mappingService.addMap( mpA );
-        Map map = mappingService.getMap( id );
-        assertNotNull( map );
-        assertEquals( 1, map.getMapViews().size() );
-        MapView mapView = map.getMapViews().get( 0 );
-        assertNotNull( mapView );
-        assertEquals( 1, mapView.getCategoryDimensions().size() );
-        assertEquals( 1, mapView.getDataElements().size() );
-        assertEquals( 1, mapView.getOrganisationUnits().size() );
-        assertEquals( 1, mapView.getOrganisationUnitGroupSetDimensions().size() );
-        assertEquals( cadA, mapView.getCategoryDimensions().get( 0 ) );
-        assertEquals( deA, mapView.getDataElements().get( 0 ) );
-        assertEquals( ouA, mapView.getOrganisationUnits().get( 0 ) );
-        assertEquals( ougsdA, mapView.getOrganisationUnitGroupSetDimensions().get( 0 ) );
-    }
+  @Test
+  void testAddGet() {
+    MapView mvA = new MapView("thematic");
+    CategoryDimension cadA = new CategoryDimension();
+    cadA.setDimension(caA);
+    cadA.setItems(Lists.newArrayList(coA));
+    OrganisationUnitGroupSetDimension ougsdA = new OrganisationUnitGroupSetDimension();
+    ougsdA.setDimension(ougsA);
+    ougsdA.setItems(Lists.newArrayList(ougA));
+    mvA.addCategoryDimension(cadA);
+    mvA.addDataDimensionItem(deA);
+    mvA.getOrganisationUnits().add(ouA);
+    mvA.addOrganisationUnitGroupSetDimension(ougsdA);
+    Map mpA = new Map("MapA", null, 0d, 0d, 0);
+    mpA.getMapViews().add(mvA);
+    long id = mappingService.addMap(mpA);
+    Map map = mappingService.getMap(id);
+    assertNotNull(map);
+    assertEquals(1, map.getMapViews().size());
+    MapView mapView = map.getMapViews().get(0);
+    assertNotNull(mapView);
+    assertEquals(1, mapView.getCategoryDimensions().size());
+    assertEquals(1, mapView.getDataElements().size());
+    assertEquals(1, mapView.getOrganisationUnits().size());
+    assertEquals(1, mapView.getOrganisationUnitGroupSetDimensions().size());
+    assertEquals(cadA, mapView.getCategoryDimensions().get(0));
+    assertEquals(deA, mapView.getDataElements().get(0));
+    assertEquals(ouA, mapView.getOrganisationUnits().get(0));
+    assertEquals(ougsdA, mapView.getOrganisationUnitGroupSetDimensions().get(0));
+  }
 }

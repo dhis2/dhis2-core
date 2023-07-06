@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.gist;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.net.URI;
 import java.util.Map;
 import java.util.function.Function;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.web.util.UriBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Pager POJO for paging gist lists.
@@ -48,51 +45,42 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @AllArgsConstructor
-public final class GistPager
-{
-    @JsonProperty
-    private final int page;
+public final class GistPager {
+  @JsonProperty private final int page;
 
-    @JsonProperty
-    private final int pageSize;
+  @JsonProperty private final int pageSize;
 
-    @JsonProperty
-    private final Integer total;
+  @JsonProperty private final Integer total;
 
-    @JsonProperty
-    private final String prevPage;
+  @JsonProperty private final String prevPage;
 
-    @JsonProperty
-    private final String nextPage;
+  @JsonProperty private final String nextPage;
 
-    @JsonProperty
-    public Integer getPageCount()
-    {
-        return total == null ? null : (int) Math.ceil( total / (double) pageSize );
+  @JsonProperty
+  public Integer getPageCount() {
+    return total == null ? null : (int) Math.ceil(total / (double) pageSize);
+  }
+
+  public String toString() {
+    return "[Page: " + page + " size: " + pageSize + "]";
+  }
+
+  public static URI computeBaseURL(
+      GistQuery query, Map<String, String[]> params, Function<Class<?>, Schema> schemaByType) {
+    UriBuilder url = UriComponentsBuilder.fromUriString(query.getEndpointRoot());
+    Owner owner = query.getOwner();
+    if (owner != null) {
+      Schema o = schemaByType.apply(owner.getType());
+      url.pathSegment(
+          o.getRelativeApiEndpoint().substring(1),
+          owner.getId(),
+          o.getProperty(owner.getCollectionProperty()).key(),
+          "gist");
+    } else {
+      Schema s = schemaByType.apply(query.getElementType());
+      url.pathSegment(s.getRelativeApiEndpoint().substring(1), "gist");
     }
-
-    public String toString()
-    {
-        return "[Page: " + page + " size: " + pageSize + "]";
-    }
-
-    public static URI computeBaseURL( GistQuery query, Map<String, String[]> params,
-        Function<Class<?>, Schema> schemaByType )
-    {
-        UriBuilder url = UriComponentsBuilder.fromUriString( query.getEndpointRoot() );
-        Owner owner = query.getOwner();
-        if ( owner != null )
-        {
-            Schema o = schemaByType.apply( owner.getType() );
-            url.pathSegment( o.getRelativeApiEndpoint().substring( 1 ), owner.getId(),
-                o.getProperty( owner.getCollectionProperty() ).key(), "gist" );
-        }
-        else
-        {
-            Schema s = schemaByType.apply( query.getElementType() );
-            url.pathSegment( s.getRelativeApiEndpoint().substring( 1 ), "gist" );
-        }
-        params.forEach( url::queryParam );
-        return url.build();
-    }
+    params.forEach(url::queryParam);
+    return url.build();
+  }
 }

@@ -28,36 +28,30 @@
 package org.hisp.dhis.hibernate;
 
 import java.util.Objects;
-
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class HibernateProxyUtils
-{
-    private HibernateProxyUtils()
-    {
-        throw new IllegalStateException( "Utility class" );
+public class HibernateProxyUtils {
+  private HibernateProxyUtils() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  @SuppressWarnings("rawtypes")
+  public static Class getRealClass(Object object) {
+    Objects.requireNonNull(object);
+
+    if (object instanceof Class) {
+      throw new IllegalArgumentException("Input can't be a Class instance!");
     }
 
-    @SuppressWarnings( "rawtypes" )
-    public static Class getRealClass( Object object )
-    {
-        Objects.requireNonNull( object );
+    return HibernateProxyHelper.getClassWithoutInitializingProxy(object);
+  }
 
-        if ( object instanceof Class )
-        {
-            throw new IllegalArgumentException( "Input can't be a Class instance!" );
-        }
-
-        return HibernateProxyHelper.getClassWithoutInitializingProxy( object );
-    }
-
-    @SuppressWarnings( { "unchecked" } )
-    public static <T> T unproxy( T proxy )
-    {
-        return (T) Hibernate.unproxy( proxy );
-    }
+  @SuppressWarnings({"unchecked"})
+  public static <T> T unproxy(T proxy) {
+    return (T) Hibernate.unproxy(proxy);
+  }
 }

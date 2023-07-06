@@ -38,28 +38,23 @@ import org.springframework.stereotype.Component;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component( "org.hisp.dhis.sms.command.SMSCommandDeletionHandler" )
-public class SMSCommandDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCommand.class );
+@Component("org.hisp.dhis.sms.command.SMSCommandDeletionHandler")
+public class SMSCommandDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(SMSCommand.class);
 
-    private final SMSCommandService smsCommandService;
+  private final SMSCommandService smsCommandService;
 
-    public SMSCommandDeletionHandler( SMSCommandService smsCommandService )
-    {
-        checkNotNull( smsCommandService );
-        this.smsCommandService = smsCommandService;
-    }
+  public SMSCommandDeletionHandler(SMSCommandService smsCommandService) {
+    checkNotNull(smsCommandService);
+    this.smsCommandService = smsCommandService;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataSet.class, this::allowDeleteDataSet );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataSet.class, this::allowDeleteDataSet);
+  }
 
-    private DeletionVeto allowDeleteDataSet( DataSet dataSet )
-    {
-        return smsCommandService.countDataSetSmsCommands( dataSet ) == 0 ? ACCEPT : VETO;
-    }
+  private DeletionVeto allowDeleteDataSet(DataSet dataSet) {
+    return smsCommandService.countDataSetSmsCommands(dataSet) == 0 ? ACCEPT : VETO;
+  }
 }

@@ -37,17 +37,23 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.dataelement.DataElementGroupSetStore" )
+@Repository("org.hisp.dhis.dataelement.DataElementGroupSetStore")
 public class HibernateDataElementGroupSetStore
-    extends
-    HibernateIdentifiableObjectStore<DataElementGroupSet>
-    implements
-    DataElementGroupSetStore
-{
-    public HibernateDataElementGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataElementGroupSet.class, currentUserService, aclService,
-            false );
-    }
+    extends HibernateIdentifiableObjectStore<DataElementGroupSet>
+    implements DataElementGroupSetStore {
+  public HibernateDataElementGroupSetStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        DataElementGroupSet.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 }

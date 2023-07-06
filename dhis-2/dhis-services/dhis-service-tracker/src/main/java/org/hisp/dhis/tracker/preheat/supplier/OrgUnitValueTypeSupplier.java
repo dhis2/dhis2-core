@@ -31,10 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,63 +49,64 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @RequiredArgsConstructor
 @Component
-public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier
-{
-    @NonNull
-    private final IdentifiableObjectManager manager;
+public class OrgUnitValueTypeSupplier extends AbstractPreheatSupplier {
+  @NonNull private final IdentifiableObjectManager manager;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        List<DataElement> dataElements = preheat.getAll( DataElement.class );
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    List<DataElement> dataElements = preheat.getAll(DataElement.class);
 
-        List<String> orgUnitDataElements = dataElements.stream()
-            .filter( de -> de.getValueType() == ValueType.ORGANISATION_UNIT )
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+    List<String> orgUnitDataElements =
+        dataElements.stream()
+            .filter(de -> de.getValueType() == ValueType.ORGANISATION_UNIT)
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
 
-        List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
+    List<TrackedEntityAttribute> attributes = preheat.getAll(TrackedEntityAttribute.class);
 
-        List<String> orgUnitAttributes = attributes.stream()
-            .filter( at -> at.getValueType() == ValueType.ORGANISATION_UNIT )
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+    List<String> orgUnitAttributes =
+        attributes.stream()
+            .filter(at -> at.getValueType() == ValueType.ORGANISATION_UNIT)
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
 
-        List<String> orgUnitIds = new ArrayList<>();
+    List<String> orgUnitIds = new ArrayList<>();
 
-        params.getTrackedEntities()
-            .forEach( te -> collectResourceIds( orgUnitAttributes, orgUnitIds, te.getAttributes() ) );
-        params.getEnrollments()
-            .forEach( en -> collectResourceIds( orgUnitAttributes, orgUnitIds, en.getAttributes() ) );
-        params.getEvents()
-            .forEach( ev -> collectResourceIds( orgUnitDataElements, orgUnitIds, ev.getDataValues() ) );
+    params
+        .getTrackedEntities()
+        .forEach(te -> collectResourceIds(orgUnitAttributes, orgUnitIds, te.getAttributes()));
+    params
+        .getEnrollments()
+        .forEach(en -> collectResourceIds(orgUnitAttributes, orgUnitIds, en.getAttributes()));
+    params
+        .getEvents()
+        .forEach(ev -> collectResourceIds(orgUnitDataElements, orgUnitIds, ev.getDataValues()));
 
-        preheat.put( TrackerIdSchemeParam.UID, manager.getByUid( OrganisationUnit.class, orgUnitIds ) );
-    }
+    preheat.put(TrackerIdSchemeParam.UID, manager.getByUid(OrganisationUnit.class, orgUnitIds));
+  }
 
-    private void collectResourceIds( List<String> orgUnitAttributes, List<String> orgUnitIds,
-        List<Attribute> attributes )
-    {
-        attributes.forEach( at -> {
-            if ( orgUnitAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
-            {
-                orgUnitIds.add( at.getValue() );
-            }
-        } );
-    }
+  private void collectResourceIds(
+      List<String> orgUnitAttributes, List<String> orgUnitIds, List<Attribute> attributes) {
+    attributes.forEach(
+        at -> {
+          if (orgUnitAttributes.contains(at.getAttribute())
+              && !StringUtils.isEmpty(at.getValue())) {
+            orgUnitIds.add(at.getValue());
+          }
+        });
+  }
 
-    private void collectResourceIds( List<String> orgUnitDataElements, List<String> orgUnitIds,
-        Set<DataValue> dataValues )
-    {
-        dataValues.forEach( dv -> {
-            if ( orgUnitDataElements.contains( dv.getDataElement() ) && !StringUtils.isEmpty( dv.getValue() ) )
-            {
-                orgUnitIds.add( dv.getValue() );
-            }
-        } );
-    }
+  private void collectResourceIds(
+      List<String> orgUnitDataElements, List<String> orgUnitIds, Set<DataValue> dataValues) {
+    dataValues.forEach(
+        dv -> {
+          if (orgUnitDataElements.contains(dv.getDataElement())
+              && !StringUtils.isEmpty(dv.getValue())) {
+            orgUnitIds.add(dv.getValue());
+          }
+        });
+  }
 }

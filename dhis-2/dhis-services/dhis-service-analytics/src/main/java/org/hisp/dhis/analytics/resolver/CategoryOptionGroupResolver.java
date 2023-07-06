@@ -29,13 +29,12 @@ package org.hisp.dhis.analytics.resolver;
 
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
+import com.google.common.base.Joiner;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
@@ -44,99 +43,93 @@ import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Joiner;
-
 /**
  * @author Dusan Bernat
  */
-
-@Service( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" )
+@Service("org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver")
 @AllArgsConstructor
-public class CategoryOptionGroupResolver implements ExpressionResolver
-{
-    private final ExpressionService expressionService;
+public class CategoryOptionGroupResolver implements ExpressionResolver {
+  private final ExpressionService expressionService;
 
-    private final CategoryOptionGroupStore categoryOptionGroupStore;
+  private final CategoryOptionGroupStore categoryOptionGroupStore;
 
-    private final CategoryOptionComboStore categoryOptionComboStore;
+  private final CategoryOptionComboStore categoryOptionComboStore;
 
-    private static final String LEFT_BRACKET = "(";
+  private static final String LEFT_BRACKET = "(";
 
-    private static final String RIGHT_BRACKET = ")";
+  private static final String RIGHT_BRACKET = ")";
 
-    private static final String LOGICAL_AND = "&";
+  private static final String LOGICAL_AND = "&";
 
-    private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
+  private static final String CATEGORY_OPTION_GROUP_PREFIX = "coGroup:";
 
-    private static final String EMPTY_STRING = "";
+  private static final String EMPTY_STRING = "";
 
-    @Override
-    public String resolve( String expression )
-    {
-        Set<DimensionalItemId> dimItemIds = expressionService.getExpressionDimensionalItemIds( expression,
-            INDICATOR_EXPRESSION );
+  @Override
+  public String resolve(String expression) {
+    Set<DimensionalItemId> dimItemIds =
+        expressionService.getExpressionDimensionalItemIds(expression, INDICATOR_EXPRESSION);
 
-        for ( DimensionalItemId id : dimItemIds )
-        {
-            if ( id.getItem() != null && id.getId1() != null && id.getId1().startsWith( CATEGORY_OPTION_GROUP_PREFIX ) )
-            {
-                List<String> cogUidList = Arrays.stream( id.getId1()
-                    .replace( CATEGORY_OPTION_GROUP_PREFIX, EMPTY_STRING )
-                    .split( LOGICAL_AND ) ).collect( Collectors.toList() );
+    for (DimensionalItemId id : dimItemIds) {
+      if (id.getItem() != null
+          && id.getId1() != null
+          && id.getId1().startsWith(CATEGORY_OPTION_GROUP_PREFIX)) {
+        List<String> cogUidList =
+            Arrays.stream(
+                    id.getId1()
+                        .replace(CATEGORY_OPTION_GROUP_PREFIX, EMPTY_STRING)
+                        .split(LOGICAL_AND))
+                .collect(Collectors.toList());
 
-                expression = getExpression( expression, id, cogUidList, id.getId0() );
-            }
-        }
-
-        return expression;
+        expression = getExpression(expression, id, cogUidList, id.getId0());
+      }
     }
 
-    private String getExpression( String expression, DimensionalItemId id, List<String> cogUidList,
-        String dataElementId )
-    {
-        List<String> cocUidIntersection = getCategoryOptionCombosIntersection( cogUidList, dataElementId );
+    return expression;
+  }
 
-        if ( cocUidIntersection == null || cocUidIntersection.isEmpty() )
-        {
-            return expression;
-        }
+  private String getExpression(
+      String expression, DimensionalItemId id, List<String> cogUidList, String dataElementId) {
+    List<String> cocUidIntersection =
+        getCategoryOptionCombosIntersection(cogUidList, dataElementId);
 
-        List<String> resolved = cocUidIntersection
-            .stream()
-            .map( cocUid -> id.getItem().replace( id.getId1(), cocUid ) )
-            .collect( Collectors.toList() );
-
-        expression = expression.replace( id.getItem(),
-            LEFT_BRACKET + Joiner.on( "+" ).join( resolved ) + RIGHT_BRACKET );
-
-        return expression;
+    if (cocUidIntersection == null || cocUidIntersection.isEmpty()) {
+      return expression;
     }
 
-    private List<String> getCategoryOptionCombosIntersection( List<String> cogUidList, String dataElementId )
-    {
-        List<String> cocUidIntersection = null;
+    List<String> resolved =
+        cocUidIntersection.stream()
+            .map(cocUid -> id.getItem().replace(id.getId1(), cocUid))
+            .collect(Collectors.toList());
 
-        for ( String cogUid : cogUidList )
-        {
-            CategoryOptionGroup cog = categoryOptionGroupStore
-                .getByUid( cogUid );
+    expression =
+        expression.replace(
+            id.getItem(), LEFT_BRACKET + Joiner.on("+").join(resolved) + RIGHT_BRACKET);
 
-            List<String> cocUids = categoryOptionComboStore
-                .getCategoryOptionCombosByGroupUid( cog.getUid(), dataElementId )
-                .stream()
-                .map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toList() );
+    return expression;
+  }
 
-            if ( cocUidIntersection == null )
-            {
-                cocUidIntersection = cocUids;
-            }
-            else
-            {
-                cocUidIntersection.retainAll( cocUids );
-            }
-        }
+  private List<String> getCategoryOptionCombosIntersection(
+      List<String> cogUidList, String dataElementId) {
+    List<String> cocUidIntersection = null;
 
-        return cocUidIntersection;
+    for (String cogUid : cogUidList) {
+      CategoryOptionGroup cog = categoryOptionGroupStore.getByUid(cogUid);
+
+      List<String> cocUids =
+          categoryOptionComboStore
+              .getCategoryOptionCombosByGroupUid(cog.getUid(), dataElementId)
+              .stream()
+              .map(BaseIdentifiableObject::getUid)
+              .collect(Collectors.toList());
+
+      if (cocUidIntersection == null) {
+        cocUidIntersection = cocUids;
+      } else {
+        cocUidIntersection.retainAll(cocUids);
+      }
     }
+
+    return cocUidIntersection;
+  }
 }

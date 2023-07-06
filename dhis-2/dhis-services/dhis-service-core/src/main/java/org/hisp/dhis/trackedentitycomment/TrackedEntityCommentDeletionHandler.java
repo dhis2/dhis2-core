@@ -28,41 +28,32 @@
 package org.hisp.dhis.trackedentitycomment;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
 @AllArgsConstructor
-public class TrackedEntityCommentDeletionHandler
-    extends DeletionHandler
-{
-    private final TrackedEntityCommentService commentService;
+public class TrackedEntityCommentDeletionHandler extends DeletionHandler {
+  private final TrackedEntityCommentService commentService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(ProgramInstance.class, this::deleteProgramInstance);
+    whenDeleting(ProgramStageInstance.class, this::deleteProgramStageInstance);
+  }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
-    {
-        for ( TrackedEntityComment comment : programInstance.getComments() )
-        {
-            commentService.deleteTrackedEntityComment( comment );
-        }
+  private void deleteProgramInstance(ProgramInstance programInstance) {
+    for (TrackedEntityComment comment : programInstance.getComments()) {
+      commentService.deleteTrackedEntityComment(comment);
     }
+  }
 
-    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        for ( TrackedEntityComment comment : programStageInstance.getComments() )
-        {
-            commentService.deleteTrackedEntityComment( comment );
-        }
+  private void deleteProgramStageInstance(ProgramStageInstance programStageInstance) {
+    for (TrackedEntityComment comment : programStageInstance.getComments()) {
+      commentService.deleteTrackedEntityComment(comment);
     }
+  }
 }

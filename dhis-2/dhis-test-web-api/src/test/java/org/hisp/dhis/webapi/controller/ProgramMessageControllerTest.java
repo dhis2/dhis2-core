@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -45,63 +46,55 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-import com.google.common.collect.Sets;
-
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.event.ProgramMessageController} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.ProgramMessageController} using (mocked)
+ * REST requests.
  *
  * @author Jan Bernitt
  */
-class ProgramMessageControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramMessageControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private TrackedEntityInstanceService teiService;
+  @Autowired private TrackedEntityInstanceService teiService;
 
-    @Autowired
-    private ProgramInstanceService piService;
+  @Autowired private ProgramInstanceService piService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    private ProgramInstance piA;
+  private ProgramInstance piA;
 
-    @BeforeEach
-    void setUp()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        idObjectManager.save( ouA );
-        Program prA = createProgram( 'A', Sets.newHashSet(), ouA );
-        idObjectManager.save( prA );
-        TrackedEntityInstance teiA = createTrackedEntityInstance( 'A', ouA );
-        teiService.addTrackedEntityInstance( teiA );
-        piA = createProgramInstance( prA, teiA, ouA );
-        piService.addProgramInstance( piA );
-    }
+  @BeforeEach
+  void setUp() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    idObjectManager.save(ouA);
+    Program prA = createProgram('A', Sets.newHashSet(), ouA);
+    idObjectManager.save(prA);
+    TrackedEntityInstance teiA = createTrackedEntityInstance('A', ouA);
+    teiService.addTrackedEntityInstance(teiA);
+    piA = createProgramInstance(prA, teiA, ouA);
+    piService.addProgramInstance(piA);
+  }
 
-    @Test
-    void testGetProgramMessages()
-    {
-        assertTrue( GET( "/messages?programInstance={id}", piA.getUid() ).content( HttpStatus.OK ).isArray() );
-    }
+  @Test
+  void testGetProgramMessages() {
+    assertTrue(
+        GET("/messages?programInstance={id}", piA.getUid()).content(HttpStatus.OK).isArray());
+  }
 
-    @Test
-    void testGetScheduledSentMessage()
-    {
-        assertTrue(
-            GET( "/messages/scheduled/sent?programInstance={id}", piA.getUid() ).content( HttpStatus.OK ).isArray() );
-    }
+  @Test
+  void testGetScheduledSentMessage() {
+    assertTrue(
+        GET("/messages/scheduled/sent?programInstance={id}", piA.getUid())
+            .content(HttpStatus.OK)
+            .isArray());
+  }
 
-    @Test
-    void testSaveMessages()
-    {
-        JsonObject status = POST( "/messages", "{'programMessages': []}" ).content( HttpStatus.OK );
-        assertTrue( status.isObject() );
-        assertEquals( 1, status.size() );
-        JsonArray summaries = status.getArray( "summaries" );
-        assertTrue( summaries.isArray() );
-        assertTrue( summaries.isEmpty() );
-    }
+  @Test
+  void testSaveMessages() {
+    JsonObject status = POST("/messages", "{'programMessages': []}").content(HttpStatus.OK);
+    assertTrue(status.isObject());
+    assertEquals(1, status.size());
+    JsonArray summaries = status.getArray("summaries");
+    assertTrue(summaries.isArray());
+    assertTrue(summaries.isEmpty());
+  }
 }

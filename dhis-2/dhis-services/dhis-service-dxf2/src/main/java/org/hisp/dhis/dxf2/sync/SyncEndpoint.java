@@ -34,31 +34,27 @@ import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public enum SyncEndpoint
-{
-    TRACKED_ENTITY_INSTANCES( "/api/trackedEntityInstances", ImportSummaries.class ),
-    ENROLLMENTS( "/api/enrollments", ImportSummaries.class ),
-    EVENTS( "/api/events", ImportSummaries.class ),
-    COMPLETE_DATA_SET_REGISTRATIONS( "/api/completeDataSetRegistrations", ImportSummary.class ),
-    DATA_VALUE_SETS( "/api/dataValueSets", ImportSummary.class );
+public enum SyncEndpoint {
+  TRACKED_ENTITY_INSTANCES("/api/trackedEntityInstances", ImportSummaries.class),
+  ENROLLMENTS("/api/enrollments", ImportSummaries.class),
+  EVENTS("/api/events", ImportSummaries.class),
+  COMPLETE_DATA_SET_REGISTRATIONS("/api/completeDataSetRegistrations", ImportSummary.class),
+  DATA_VALUE_SETS("/api/dataValueSets", ImportSummary.class);
 
-    private String path;
+  private String path;
 
-    private Class<? extends AbstractWebMessageResponse> klass;
+  private Class<? extends AbstractWebMessageResponse> klass;
 
-    SyncEndpoint( String path, Class<? extends AbstractWebMessageResponse> klass )
-    {
-        this.path = path;
-        this.klass = klass;
-    }
+  SyncEndpoint(String path, Class<? extends AbstractWebMessageResponse> klass) {
+    this.path = path;
+    this.klass = klass;
+  }
 
-    public String getPath()
-    {
-        return path;
-    }
+  public String getPath() {
+    return path;
+  }
 
-    public Class<? extends AbstractWebMessageResponse> getKlass()
-    {
-        return klass;
-    }
+  public Class<? extends AbstractWebMessageResponse> getKlass() {
+    return klass;
+  }
 }

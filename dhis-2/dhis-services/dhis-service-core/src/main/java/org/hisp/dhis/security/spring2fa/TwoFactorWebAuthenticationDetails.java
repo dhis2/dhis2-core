@@ -28,34 +28,28 @@
 package org.hisp.dhis.security.spring2fa;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
  * @author Henning Håkonsen
  * @author Lars Helge Øverland
  */
-public class TwoFactorWebAuthenticationDetails
-    extends ForwardedIpAwareWebAuthenticationDetails
-{
+public class TwoFactorWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
 
-    private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
+  private static final String TWO_FACTOR_AUTHENTICATION_GETTER = "2fa_code";
 
-    private String code;
+  private String code;
 
-    public TwoFactorWebAuthenticationDetails( HttpServletRequest request )
-    {
-        super( request );
-        code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );
-    }
+  public TwoFactorWebAuthenticationDetails(HttpServletRequest request) {
+    super(request);
+    code = request.getParameter(TWO_FACTOR_AUTHENTICATION_GETTER);
+  }
 
-    public String getCode()
-    {
-        return code;
-    }
+  public String getCode() {
+    return code;
+  }
 
-    public void setCode( String code )
-    {
-        this.code = code;
-    }
+  public void setCode(String code) {
+    this.code = code;
+  }
 }

@@ -31,9 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -47,79 +47,69 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
- * To run this test, make sure that the SMSC is running on:
- * host:     localhost
- * port:     2775
- * user:     smppclient1
- * password: password
+ * To run this test, make sure that the SMSC is running on: host: localhost port: 2775 user:
+ * smppclient1 password: password
  */
 /**
  * @Author Zubair Asghar.
  */
-@Disabled( "Test to run manually" )
-class SMPPGatewayTest extends DhisSpringTest
-{
+@Disabled("Test to run manually")
+class SMPPGatewayTest extends DhisSpringTest {
 
-    private static final String SYSTEM_ID = "smppclient1";
+  private static final String SYSTEM_ID = "smppclient1";
 
-    private static final String SYSTEM_TYPE = "cp";
+  private static final String SYSTEM_TYPE = "cp";
 
-    private static final String HOST = "localhost";
+  private static final String HOST = "localhost";
 
-    private static final String PASSWORD = "password";
+  private static final String PASSWORD = "password";
 
-    private static final String RECIPIENT = "47XXXXXX";
+  private static final String RECIPIENT = "47XXXXXX";
 
-    private static final String TEXT = "text through smpp";
+  private static final String TEXT = "text through smpp";
 
-    private static final String SUBJECT = "subject";
+  private static final String SUBJECT = "subject";
 
-    private static final int PORT = 2775;
+  private static final int PORT = 2775;
 
-    private SMPPGatewayConfig config;
+  private SMPPGatewayConfig config;
 
-    @Autowired
-    private SMPPGateway gateway;
+  @Autowired private SMPPGateway gateway;
 
-    @BeforeEach
-    void init()
-    {
-        config = new SMPPGatewayConfig();
-        config.setUrlTemplate( HOST );
-        config.setPassword( PASSWORD );
-        config.setPort( PORT );
-        config.setSystemType( SYSTEM_TYPE );
-        config.setUsername( SYSTEM_ID );
-    }
+  @BeforeEach
+  void init() {
+    config = new SMPPGatewayConfig();
+    config.setUrlTemplate(HOST);
+    config.setPassword(PASSWORD);
+    config.setPort(PORT);
+    config.setSystemType(SYSTEM_TYPE);
+    config.setUsername(SYSTEM_ID);
+  }
 
-    @Test
-    void testSuccessfulMessage()
-    {
-        OutboundMessageResponse response;
-        response = gateway.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), config );
-        assertTrue( response.isOk() );
-        assertEquals( GatewayResponse.RESULT_CODE_0, response.getResponseObject() );
-    }
+  @Test
+  void testSuccessfulMessage() {
+    OutboundMessageResponse response;
+    response = gateway.send(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT), config);
+    assertTrue(response.isOk());
+    assertEquals(GatewayResponse.RESULT_CODE_0, response.getResponseObject());
+  }
 
-    @Test
-    void testBulkMessage()
-    {
-        List<OutboundMessage> messages = new ArrayList<>();
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-        OutboundMessageBatch batch = new OutboundMessageBatch( messages, DeliveryChannel.SMS );
-        List<OutboundMessageResponse> responses = gateway.sendBatch( batch, config );
-        assertNotNull( responses );
-        assertEquals( 8, responses.size() );
-        responses.forEach( r -> assertTrue( r.isOk() ) );
-    }
+  @Test
+  void testBulkMessage() {
+    List<OutboundMessage> messages = new ArrayList<>();
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    messages.add(new OutboundMessage(SUBJECT, TEXT, Sets.newHashSet(RECIPIENT)));
+    OutboundMessageBatch batch = new OutboundMessageBatch(messages, DeliveryChannel.SMS);
+    List<OutboundMessageResponse> responses = gateway.sendBatch(batch, config);
+    assertNotNull(responses);
+    assertEquals(8, responses.size());
+    responses.forEach(r -> assertTrue(r.isOk()));
+  }
 }

@@ -31,9 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.util.ArrayList;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -68,85 +66,85 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = "/validation" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ValidationController
-{
-    @Autowired
-    private ValidationService validationService;
+@RequestMapping(value = "/validation")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ValidationController {
+  @Autowired private ValidationService validationService;
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private SchedulingManager schedulingManager;
+  @Autowired private SchedulingManager schedulingManager;
 
-    @GetMapping( "/dataSet/{ds}" )
-    public @ResponseBody ValidationSummary validate( @PathVariable String ds, @RequestParam String pe,
-        @RequestParam String ou, @RequestParam( required = false ) String aoc,
-        HttpServletResponse response, Model model )
-        throws WebMessageException
-    {
-        DataSet dataSet = dataSetService.getDataSet( ds );
+  @GetMapping("/dataSet/{ds}")
+  public @ResponseBody ValidationSummary validate(
+      @PathVariable String ds,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String aoc,
+      HttpServletResponse response,
+      Model model)
+      throws WebMessageException {
+    DataSet dataSet = dataSetService.getDataSet(ds);
 
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( conflict( "Data set does not exist: " + ds ) );
-        }
+    if (dataSet == null) {
+      throw new WebMessageException(conflict("Data set does not exist: " + ds));
+    }
 
-        Period period = PeriodType.getPeriodFromIsoString( pe );
+    Period period = PeriodType.getPeriodFromIsoString(pe);
 
-        if ( period == null )
-        {
-            throw new WebMessageException( conflict( "Period does not exist: " + pe ) );
-        }
+    if (period == null) {
+      throw new WebMessageException(conflict("Period does not exist: " + pe));
+    }
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ou);
 
-        if ( orgUnit == null )
-        {
-            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
-        }
+    if (orgUnit == null) {
+      throw new WebMessageException(conflict("Organisation unit does not exist: " + ou));
+    }
 
-        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( aoc );
+    CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo(aoc);
 
-        if ( attributeOptionCombo == null )
-        {
-            attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        }
+    if (attributeOptionCombo == null) {
+      attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    }
 
-        ValidationSummary summary = new ValidationSummary();
+    ValidationSummary summary = new ValidationSummary();
 
-        ValidationAnalysisParams params = validationService.newParamsBuilder( dataSet, orgUnit, period )
-            .withAttributeOptionCombo( attributeOptionCombo )
+    ValidationAnalysisParams params =
+        validationService
+            .newParamsBuilder(dataSet, orgUnit, period)
+            .withAttributeOptionCombo(attributeOptionCombo)
             .build();
 
-        summary.setValidationRuleViolations( new ArrayList<>( validationService.validationAnalysis( params ) ) );
-        summary.setCommentRequiredViolations(
-            validationService.validateRequiredComments( dataSet, period, orgUnit, attributeOptionCombo ) );
+    summary.setValidationRuleViolations(
+        new ArrayList<>(validationService.validationAnalysis(params)));
+    summary.setCommentRequiredViolations(
+        validationService.validateRequiredComments(dataSet, period, orgUnit, attributeOptionCombo));
 
-        return summary;
-    }
+    return summary;
+  }
 
-    @RequestMapping( value = "/sendNotifications", method = { RequestMethod.PUT, RequestMethod.POST } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
-    @ResponseBody
-    public WebMessage runValidationNotificationsTask()
-    {
-        JobConfiguration validationResultNotification = new JobConfiguration(
-            "validation result notification from validation controller", JobType.VALIDATION_RESULTS_NOTIFICATION, "",
-            null );
-        validationResultNotification.setInMemoryJob( true );
-        validationResultNotification.setUid( CodeGenerator.generateUid() );
+  @RequestMapping(
+      value = "/sendNotifications",
+      method = {RequestMethod.PUT, RequestMethod.POST})
+  @PreAuthorize("hasRole('ALL') or hasRole('M_dhis-web-app-management')")
+  @ResponseBody
+  public WebMessage runValidationNotificationsTask() {
+    JobConfiguration validationResultNotification =
+        new JobConfiguration(
+            "validation result notification from validation controller",
+            JobType.VALIDATION_RESULTS_NOTIFICATION,
+            "",
+            null);
+    validationResultNotification.setInMemoryJob(true);
+    validationResultNotification.setUid(CodeGenerator.generateUid());
 
-        schedulingManager.executeNow( validationResultNotification );
+    schedulingManager.executeNow(validationResultNotification);
 
-        return ok( "Initiated validation result notification" );
-    }
+    return ok("Initiated validation result notification");
+  }
 }

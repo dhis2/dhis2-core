@@ -35,17 +35,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 
-class FileResourceControllerTest extends DhisControllerConvenienceTest
-{
+class FileResourceControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testSaveOrgUnitImage()
-    {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-    }
+  @Test
+  void testSaveOrgUnitImage() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT", image);
+    JsonObject savedObject =
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    assertEquals("OU_profile_image.png", savedObject.getString("name").string());
+  }
 }

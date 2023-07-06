@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
@@ -39,33 +39,30 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Enrico Colasante
  */
 @Component
-public class EventRuleValidationHook
-    extends AbstractTrackerDtoValidationHook
-{
-    private List<RuleActionImplementer> validators;
+public class EventRuleValidationHook extends AbstractTrackerDtoValidationHook {
+  private List<RuleActionImplementer> validators;
 
-    @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
-    {
-        this.validators = validators;
-    }
+  @Autowired(required = false)
+  public void setValidators(List<RuleActionImplementer> validators) {
+    this.validators = validators;
+  }
 
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
-    {
-        List<ProgramRuleIssue> programRuleIssues = validators
-            .stream()
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, Event event) {
+    List<ProgramRuleIssue> programRuleIssues =
+        validators.stream()
             .flatMap(
-                v -> v.validateEvents( reporter.getBundle() )
-                    .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
-            .collect( Collectors.toList() );
+                v ->
+                    v
+                        .validateEvents(reporter.getBundle())
+                        .getOrDefault(event.getEvent(), Lists.newArrayList())
+                        .stream())
+            .collect(Collectors.toList());
 
-        addIssuesToReporter( reporter, event, programRuleIssues );
-    }
+    addIssuesToReporter(reporter, event, programRuleIssues);
+  }
 }

@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -74,222 +73,213 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class EventSecurityImportValidationTest extends AbstractImportValidationTest
-{
+class EventSecurityImportValidationTest extends AbstractImportValidationTest {
 
-    @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private ProgramStageInstanceService programStageServiceInstance;
+  @Autowired private ProgramStageInstanceService programStageServiceInstance;
 
-    @Autowired
-    private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+  @Autowired private ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+  @Autowired private ProgramInstanceService programInstanceService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private OrganisationUnit organisationUnitB;
+  private OrganisationUnit organisationUnitB;
 
-    private Program programA;
+  private Program programA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private DataElement dataElementB;
+  private DataElement dataElementB;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    private ProgramStage programStageB;
+  private ProgramStage programStageB;
 
-    private TrackedEntityType trackedEntityType;
+  private TrackedEntityType trackedEntityType;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        userService = _userService;
-        setUpMetadata( "tracker/tracker_basic_metadata.json" );
-        User adminUser = userService.getUser( ADMIN_USER_UID );
-        injectSecurityContext( adminUser );
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/enrollments_te_te-data.json" );
-        User user = userService.getUser( "M5zQapPyTZI" );
-        trackerBundleParams.setUser( user );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        trackerBundleParams = renderService.fromJson(
-            new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-            TrackerImportParams.class );
-        trackerBundleParams.setUser( user );
-        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        manager.flush();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    userService = _userService;
+    setUpMetadata("tracker/tracker_basic_metadata.json");
+    User adminUser = userService.getUser(ADMIN_USER_UID);
+    injectSecurityContext(adminUser);
+    TrackerImportParams trackerBundleParams =
+        createBundleFromJson("tracker/validations/enrollments_te_te-data.json");
+    User user = userService.getUser("M5zQapPyTZI");
+    trackerBundleParams.setUser(user);
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerBundleParams);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    trackerBundleParams =
+        renderService.fromJson(
+            new ClassPathResource("tracker/validations/enrollments_te_enrollments-data.json")
+                .getInputStream(),
+            TrackerImportParams.class);
+    trackerBundleParams.setUser(user);
+    trackerImportReport = trackerImportService.importTracker(trackerBundleParams);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    manager.flush();
+  }
 
-    private void setupMetadata()
-    {
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitB = createOrganisationUnit( 'B' );
-        manager.save( organisationUnitA );
-        manager.save( organisationUnitB );
-        organisationUnitA.setPublicAccess( AccessStringHelper.FULL );
-        manager.update( organisationUnitA );
-        dataElementA = createDataElement( 'A' );
-        dataElementB = createDataElement( 'B' );
-        dataElementA.setValueType( ValueType.INTEGER );
-        dataElementB.setValueType( ValueType.INTEGER );
-        manager.save( dataElementA );
-        manager.save( dataElementB );
-        programStageA = createProgramStage( 'A', 0 );
-        programStageB = createProgramStage( 'B', 0 );
-        programStageB.setRepeatable( true );
-        manager.save( programStageA );
-        manager.save( programStageB );
-        programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
-        programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        TrackedEntityType trackedEntityTypeFromProgram = createTrackedEntityType( 'C' );
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeFromProgram );
-        manager.save( programA );
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA );
-        programStageDataElement.setProgramStage( programStageA );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-        programStageA.getProgramStageDataElements().add( programStageDataElement );
-        programStageA.setProgram( programA );
-        programStageDataElement = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementB );
-        programStageDataElement.setProgramStage( programStageB );
-        programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-        programStageB.getProgramStageDataElements().add( programStageDataElement );
-        programStageB.setProgram( programA );
-        programStageB.setMinDaysFromStart( 2 );
-        programA.getProgramStages().add( programStageA );
-        programA.getProgramStages().add( programStageB );
-        programA.setTrackedEntityType( trackedEntityType );
-        trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-        manager.update( programStageA );
-        manager.update( programStageB );
-        manager.update( programA );
-        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
-        maleB = createTrackedEntityInstance( organisationUnitB );
-        femaleA = createTrackedEntityInstance( organisationUnitA );
-        femaleB = createTrackedEntityInstance( organisationUnitB );
-        maleA.setTrackedEntityType( trackedEntityType );
-        maleB.setTrackedEntityType( trackedEntityType );
-        femaleA.setTrackedEntityType( trackedEntityType );
-        femaleB.setTrackedEntityType( trackedEntityType );
-        manager.save( maleA );
-        manager.save( maleB );
-        manager.save( femaleA );
-        manager.save( femaleB );
-        int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
-        Date dateMar20 = getDate( testYear, 3, 20 );
-        Date dateApr10 = getDate( testYear, 4, 10 );
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( maleA, programA,
-            dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX" );
-        programInstanceService.addProgramInstance( programInstance );
-        trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( maleA.getUid(), programA.getUid(),
-            organisationUnitA.getUid() );
-        manager.update( programA );
-        User user = userService.getUser( USER_5 );
-        OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit( "QfUVllTs6cS" );
-        user.addOrganisationUnit( qfUVllTs6cS );
-        user.addOrganisationUnit( organisationUnitA );
-        User adminUser = userService.getUser( ADMIN_USER_UID );
-        adminUser.addOrganisationUnit( organisationUnitA );
-        Program p = programService.getProgram( "prabcdefghA" );
-        p.addOrganisationUnit( qfUVllTs6cS );
-        programService.updateProgram( p );
-        manager.update( user );
-        manager.update( adminUser );
-    }
+  private void setupMetadata() {
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitB = createOrganisationUnit('B');
+    manager.save(organisationUnitA);
+    manager.save(organisationUnitB);
+    organisationUnitA.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(organisationUnitA);
+    dataElementA = createDataElement('A');
+    dataElementB = createDataElement('B');
+    dataElementA.setValueType(ValueType.INTEGER);
+    dataElementB.setValueType(ValueType.INTEGER);
+    manager.save(dataElementA);
+    manager.save(dataElementB);
+    programStageA = createProgramStage('A', 0);
+    programStageB = createProgramStage('B', 0);
+    programStageB.setRepeatable(true);
+    manager.save(programStageA);
+    manager.save(programStageB);
+    programA = createProgram('A', new HashSet<>(), organisationUnitA);
+    programA.setProgramType(ProgramType.WITH_REGISTRATION);
+    trackedEntityType = createTrackedEntityType('A');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityType);
+    TrackedEntityType trackedEntityTypeFromProgram = createTrackedEntityType('C');
+    trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeFromProgram);
+    manager.save(programA);
+    ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElementA);
+    programStageDataElement.setProgramStage(programStageA);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElement);
+    programStageA.getProgramStageDataElements().add(programStageDataElement);
+    programStageA.setProgram(programA);
+    programStageDataElement = new ProgramStageDataElement();
+    programStageDataElement.setDataElement(dataElementB);
+    programStageDataElement.setProgramStage(programStageB);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElement);
+    programStageB.getProgramStageDataElements().add(programStageDataElement);
+    programStageB.setProgram(programA);
+    programStageB.setMinDaysFromStart(2);
+    programA.getProgramStages().add(programStageA);
+    programA.getProgramStages().add(programStageB);
+    programA.setTrackedEntityType(trackedEntityType);
+    trackedEntityType.setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
+    manager.update(programStageA);
+    manager.update(programStageB);
+    manager.update(programA);
+    maleA = createTrackedEntityInstance('A', organisationUnitA);
+    maleB = createTrackedEntityInstance(organisationUnitB);
+    femaleA = createTrackedEntityInstance(organisationUnitA);
+    femaleB = createTrackedEntityInstance(organisationUnitB);
+    maleA.setTrackedEntityType(trackedEntityType);
+    maleB.setTrackedEntityType(trackedEntityType);
+    femaleA.setTrackedEntityType(trackedEntityType);
+    femaleB.setTrackedEntityType(trackedEntityType);
+    manager.save(maleA);
+    manager.save(maleB);
+    manager.save(femaleA);
+    manager.save(femaleB);
+    int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
+    Date dateMar20 = getDate(testYear, 3, 20);
+    Date dateApr10 = getDate(testYear, 4, 10);
+    ProgramInstance programInstance =
+        programInstanceService.enrollTrackedEntityInstance(
+            maleA, programA, dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX");
+    programInstanceService.addProgramInstance(programInstance);
+    trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
+        maleA.getUid(), programA.getUid(), organisationUnitA.getUid());
+    manager.update(programA);
+    User user = userService.getUser(USER_5);
+    OrganisationUnit qfUVllTs6cS = organisationUnitService.getOrganisationUnit("QfUVllTs6cS");
+    user.addOrganisationUnit(qfUVllTs6cS);
+    user.addOrganisationUnit(organisationUnitA);
+    User adminUser = userService.getUser(ADMIN_USER_UID);
+    adminUser.addOrganisationUnit(organisationUnitA);
+    Program p = programService.getProgram("prabcdefghA");
+    p.addOrganisationUnit(qfUVllTs6cS);
+    programService.updateProgram(p);
+    manager.update(user);
+    manager.update(adminUser);
+  }
 
-    @Test
-    void testNoWriteAccessToProgramStage()
-        throws IOException
-    {
-        setupMetadata();
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-no-programStage-access.json" );
-        User user = userService.getUser( USER_3 );
-        trackerBundleParams.setUser( user );
-        user.addOrganisationUnit( organisationUnitA );
-        manager.update( user );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
-    }
+  @Test
+  void testNoWriteAccessToProgramStage() throws IOException {
+    setupMetadata();
+    TrackerImportParams trackerBundleParams =
+        createBundleFromJson("tracker/validations/events_error-no-programStage-access.json");
+    User user = userService.getUser(USER_3);
+    trackerBundleParams.setUser(user);
+    user.addOrganisationUnit(organisationUnitA);
+    manager.update(user);
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerBundleParams);
+    assertEquals(2, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        hasItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1095))));
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        hasItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1096))));
+  }
 
-    @Test
-    void testNoUncompleteEventAuth()
-        throws IOException
-    {
-        setupMetadata();
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/events_error-no-uncomplete.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        // Change just inserted Event to status COMPLETED...
-        ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
-        zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
-        manager.update( zwwuwNp6gVd );
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-no-uncomplete.json" );
-        programA.setPublicAccess( AccessStringHelper.FULL );
-        manager.update( programA );
-        programStageA.setPublicAccess( AccessStringHelper.FULL );
-        manager.update( programStageA );
-        maleA.setPublicAccess( AccessStringHelper.FULL );
-        manager.update( maleA );
-        User user = userService.getUser( USER_4 );
-        user.addOrganisationUnit( organisationUnitA );
-        manager.update( user );
-        manager.flush();
-        manager.clear();
-        trackerBundleParams.setUserId( user.getUid() );
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
-        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1083 ) ) ) );
-    }
+  @Test
+  void testNoUncompleteEventAuth() throws IOException {
+    setupMetadata();
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/events_error-no-uncomplete.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    // Change just inserted Event to status COMPLETED...
+    ProgramStageInstance zwwuwNp6gVd =
+        programStageServiceInstance.getProgramStageInstance("ZwwuwNp6gVd");
+    zwwuwNp6gVd.setStatus(EventStatus.COMPLETED);
+    manager.update(zwwuwNp6gVd);
+    TrackerImportParams trackerBundleParams =
+        createBundleFromJson("tracker/validations/events_error-no-uncomplete.json");
+    programA.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(programA);
+    programStageA.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(programStageA);
+    maleA.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(maleA);
+    User user = userService.getUser(USER_4);
+    user.addOrganisationUnit(organisationUnitA);
+    manager.update(user);
+    manager.flush();
+    manager.clear();
+    trackerBundleParams.setUserId(user.getUid());
+    trackerBundleParams.setImportStrategy(TrackerImportStrategy.UPDATE);
+    trackerImportReport = trackerImportService.importTracker(trackerBundleParams);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        hasItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1083))));
+  }
 }

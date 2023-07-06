@@ -29,11 +29,11 @@ package org.hisp.dhis.dataanalysis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -47,126 +47,120 @@ import org.hisp.dhis.period.Period;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-class DataAnalysisStoreTest extends DhisSpringTest
-{
+class DataAnalysisStoreTest extends DhisSpringTest {
 
-    @Autowired
-    private DataAnalysisStore dataAnalysisStore;
+  @Autowired private DataAnalysisStore dataAnalysisStore;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private DataValueService dataValueService;
+  @Autowired private DataValueService dataValueService;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private DataElement dataElementB;
+  private DataElement dataElementB;
 
-    private CategoryCombo categoryCombo;
+  private CategoryCombo categoryCombo;
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    private Period periodA;
+  private Period periodA;
 
-    private Period periodB;
+  private Period periodB;
 
-    private Period periodC;
+  private Period periodC;
 
-    private Period periodD;
+  private Period periodD;
 
-    private Period periodE;
+  private Period periodE;
 
-    private Period periodF;
+  private Period periodF;
 
-    private Period periodG;
+  private Period periodG;
 
-    private Period periodH;
+  private Period periodH;
 
-    private Period periodI;
+  private Period periodI;
 
-    private Period periodJ;
+  private Period periodJ;
 
-    private Date from = getDate( 1998, 1, 1 );
+  private Date from = getDate(1998, 1, 1);
 
-    private OrganisationUnit organisationUnitA;
+  private OrganisationUnit organisationUnitA;
 
-    private OrganisationUnit organisationUnitB;
+  private OrganisationUnit organisationUnitB;
 
-    private Set<OrganisationUnit> organisationUnits;
+  private Set<OrganisationUnit> organisationUnits;
 
-    // ----------------------------------------------------------------------
-    // Fixture
-    // ----------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-    {
-        categoryCombo = categoryService.getDefaultCategoryCombo();
-        categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        dataElementA = createDataElement( 'A', categoryCombo );
-        dataElementB = createDataElement( 'B', categoryCombo );
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        periodA = createPeriod( new MonthlyPeriodType(), getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
-        periodB = createPeriod( new MonthlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) );
-        periodC = createPeriod( new MonthlyPeriodType(), getDate( 2000, 5, 1 ), getDate( 2000, 5, 30 ) );
-        periodD = createPeriod( new MonthlyPeriodType(), getDate( 2000, 6, 1 ), getDate( 2000, 6, 30 ) );
-        periodE = createPeriod( new MonthlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 7, 30 ) );
-        periodF = createPeriod( new MonthlyPeriodType(), getDate( 2000, 8, 1 ), getDate( 2000, 8, 30 ) );
-        periodG = createPeriod( new MonthlyPeriodType(), getDate( 2000, 9, 1 ), getDate( 2000, 9, 30 ) );
-        periodH = createPeriod( new MonthlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 10, 30 ) );
-        periodI = createPeriod( new MonthlyPeriodType(), getDate( 2000, 11, 1 ), getDate( 2000, 11, 30 ) );
-        periodJ = createPeriod( new MonthlyPeriodType(), getDate( 2000, 12, 1 ), getDate( 2000, 12, 30 ) );
-        organisationUnitA = createOrganisationUnit( 'A' );
-        organisationUnitB = createOrganisationUnit( 'B' );
-        organisationUnitService.addOrganisationUnit( organisationUnitA );
-        organisationUnitService.addOrganisationUnit( organisationUnitB );
-        organisationUnits = new HashSet<>();
-        organisationUnits.add( organisationUnitA );
-        organisationUnits.add( organisationUnitB );
-    }
+  // ----------------------------------------------------------------------
+  // Fixture
+  // ----------------------------------------------------------------------
+  @Override
+  public void setUpTest() {
+    categoryCombo = categoryService.getDefaultCategoryCombo();
+    categoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    dataElementA = createDataElement('A', categoryCombo);
+    dataElementB = createDataElement('B', categoryCombo);
+    dataElementService.addDataElement(dataElementA);
+    dataElementService.addDataElement(dataElementB);
+    periodA = createPeriod(new MonthlyPeriodType(), getDate(2000, 3, 1), getDate(2000, 3, 31));
+    periodB = createPeriod(new MonthlyPeriodType(), getDate(2000, 4, 1), getDate(2000, 4, 30));
+    periodC = createPeriod(new MonthlyPeriodType(), getDate(2000, 5, 1), getDate(2000, 5, 30));
+    periodD = createPeriod(new MonthlyPeriodType(), getDate(2000, 6, 1), getDate(2000, 6, 30));
+    periodE = createPeriod(new MonthlyPeriodType(), getDate(2000, 7, 1), getDate(2000, 7, 30));
+    periodF = createPeriod(new MonthlyPeriodType(), getDate(2000, 8, 1), getDate(2000, 8, 30));
+    periodG = createPeriod(new MonthlyPeriodType(), getDate(2000, 9, 1), getDate(2000, 9, 30));
+    periodH = createPeriod(new MonthlyPeriodType(), getDate(2000, 10, 1), getDate(2000, 10, 30));
+    periodI = createPeriod(new MonthlyPeriodType(), getDate(2000, 11, 1), getDate(2000, 11, 30));
+    periodJ = createPeriod(new MonthlyPeriodType(), getDate(2000, 12, 1), getDate(2000, 12, 30));
+    organisationUnitA = createOrganisationUnit('A');
+    organisationUnitB = createOrganisationUnit('B');
+    organisationUnitService.addOrganisationUnit(organisationUnitA);
+    organisationUnitService.addOrganisationUnit(organisationUnitB);
+    organisationUnits = new HashSet<>();
+    organisationUnits.add(organisationUnitA);
+    organisationUnits.add(organisationUnitB);
+  }
 
-    // ----------------------------------------------------------------------
-    // Business logic tests
-    // ----------------------------------------------------------------------
-    @Test
-    void testGetDataAnalysisMeasures()
-    {
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodB, organisationUnitA, "2", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodC, organisationUnitA, "1", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodD, organisationUnitA, "12", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodE, organisationUnitA, "10", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodF, organisationUnitA, "7", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodG, organisationUnitA, "52", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodH, organisationUnitA, "23", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo ) );
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo ) );
-        List<DataAnalysisMeasures> measures = dataAnalysisStore.getDataAnalysisMeasures( dataElementA,
-            Lists.newArrayList( categoryOptionCombo ), Lists.newArrayList( organisationUnitA.getPath() ), from );
-        assertEquals( 1, measures.size() );
-        assertEquals( measures.get( 0 ).getAverage(), DELTA, 12.78 );
-        assertEquals( measures.get( 0 ).getStandardDeviation(), DELTA, 15.26 );
-    }
+  // ----------------------------------------------------------------------
+  // Business logic tests
+  // ----------------------------------------------------------------------
+  @Test
+  void testGetDataAnalysisMeasures() {
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodA, organisationUnitA, "5", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodB, organisationUnitA, "2", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodC, organisationUnitA, "1", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodD, organisationUnitA, "12", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodE, organisationUnitA, "10", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodF, organisationUnitA, "7", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodG, organisationUnitA, "52", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodH, organisationUnitA, "23", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodI, organisationUnitA, "3", categoryOptionCombo));
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodJ, organisationUnitA, "15", categoryOptionCombo));
+    List<DataAnalysisMeasures> measures =
+        dataAnalysisStore.getDataAnalysisMeasures(
+            dataElementA,
+            Lists.newArrayList(categoryOptionCombo),
+            Lists.newArrayList(organisationUnitA.getPath()),
+            from);
+    assertEquals(1, measures.size());
+    assertEquals(measures.get(0).getAverage(), DELTA, 12.78);
+    assertEquals(measures.get(0).getStandardDeviation(), DELTA, 15.26);
+  }
 }

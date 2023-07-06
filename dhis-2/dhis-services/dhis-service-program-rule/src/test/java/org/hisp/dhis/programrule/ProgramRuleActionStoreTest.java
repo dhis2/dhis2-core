@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -40,101 +39,237 @@ import org.hisp.dhis.program.ProgramService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramRuleActionStoreTest extends DhisSpringTest
-{
+class ProgramRuleActionStoreTest extends DhisSpringTest {
 
-    private ProgramRule programRuleA;
+  private ProgramRule programRuleA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private Program programA;
+  private Program programA;
 
-    @Autowired
-    private ProgramRuleStore programRuleStore;
+  @Autowired private ProgramRuleStore programRuleStore;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private ProgramRuleActionStore actionStore;
+  @Autowired private ProgramRuleActionStore actionStore;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Override
-    public void setUpTest()
-    {
-        programA = createProgram( 'A', null, null );
-        programRuleA = createProgramRule( 'A', programA );
-        dataElementA = createDataElement( 'A' );
-        programService.addProgram( programA );
-        programRuleStore.save( programRuleA );
-        dataElementService.addDataElement( dataElementA );
-    }
+  @Override
+  public void setUpTest() {
+    programA = createProgram('A', null, null);
+    programRuleA = createProgramRule('A', programA);
+    dataElementA = createDataElement('A');
+    programService.addProgram(programA);
+    programRuleStore.save(programRuleA);
+    dataElementService.addDataElement(dataElementA);
+  }
 
-    @Test
-    void testGetByProgram()
-    {
-        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.ASSIGN, null,
-            null, null, null, null, null, "$myvar", "true", null, null );
-        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.DISPLAYTEXT,
-            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
-        ProgramRuleAction actionC = new ProgramRuleAction( "ActionC", programRuleA, ProgramRuleActionType.HIDEFIELD,
-            dataElementA, null, null, null, null, null, null, null, null, null );
-        actionStore.save( actionA );
-        actionStore.save( actionB );
-        actionStore.save( actionC );
-        List<ProgramRuleAction> vars = actionStore.get( programRuleA );
-        assertEquals( 3, vars.size() );
-        assertTrue( vars.contains( actionA ) );
-        assertTrue( vars.contains( actionB ) );
-        assertTrue( vars.contains( actionC ) );
-    }
+  @Test
+  void testGetByProgram() {
+    ProgramRuleAction actionA =
+        new ProgramRuleAction(
+            "ActionA",
+            programRuleA,
+            ProgramRuleActionType.ASSIGN,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "$myvar",
+            "true",
+            null,
+            null);
+    ProgramRuleAction actionB =
+        new ProgramRuleAction(
+            "ActionB",
+            programRuleA,
+            ProgramRuleActionType.DISPLAYTEXT,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "con",
+            "Hello",
+            "$placeofliving",
+            null,
+            null);
+    ProgramRuleAction actionC =
+        new ProgramRuleAction(
+            "ActionC",
+            programRuleA,
+            ProgramRuleActionType.HIDEFIELD,
+            dataElementA,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null);
+    actionStore.save(actionA);
+    actionStore.save(actionB);
+    actionStore.save(actionC);
+    List<ProgramRuleAction> vars = actionStore.get(programRuleA);
+    assertEquals(3, vars.size());
+    assertTrue(vars.contains(actionA));
+    assertTrue(vars.contains(actionB));
+    assertTrue(vars.contains(actionC));
+  }
 
-    @Test
-    void testWhenFilerIsEmptySpace()
-    {
-        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.HIDEFIELD,
-            dataElementA, null, null, null, null, null, "$myvar", "true", null, null );
-        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.SHOWERROR,
-            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
-        ProgramRuleAction actionC = new ProgramRuleAction( "ActionC", programRuleA, ProgramRuleActionType.HIDESECTION,
-            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
-        actionStore.save( actionA );
-        actionStore.save( actionB );
-        actionStore.save( actionC );
-        assertTrue( actionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.SHOWERROR ).isEmpty() );
-        assertTrue(
-            actionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDESECTION ).contains( actionC ) );
-    }
+  @Test
+  void testWhenFilerIsEmptySpace() {
+    ProgramRuleAction actionA =
+        new ProgramRuleAction(
+            "ActionA",
+            programRuleA,
+            ProgramRuleActionType.HIDEFIELD,
+            dataElementA,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "$myvar",
+            "true",
+            null,
+            null);
+    ProgramRuleAction actionB =
+        new ProgramRuleAction(
+            "ActionB",
+            programRuleA,
+            ProgramRuleActionType.SHOWERROR,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "con",
+            "Hello",
+            "$placeofliving",
+            null,
+            null);
+    ProgramRuleAction actionC =
+        new ProgramRuleAction(
+            "ActionC",
+            programRuleA,
+            ProgramRuleActionType.HIDESECTION,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "con",
+            "Hello",
+            "$placeofliving",
+            null,
+            null);
+    actionStore.save(actionA);
+    actionStore.save(actionB);
+    actionStore.save(actionC);
+    assertTrue(
+        actionStore.getMalFormedRuleActionsByType(ProgramRuleActionType.SHOWERROR).isEmpty());
+    assertTrue(
+        actionStore
+            .getMalFormedRuleActionsByType(ProgramRuleActionType.HIDESECTION)
+            .contains(actionC));
+  }
 
-    @Test
-    void testGetProgramActionsWithNoNotification()
-    {
-        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.SENDMESSAGE,
-            null, null, null, null, null, null, "$myvar", "true", null, null );
-        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.SENDMESSAGE,
-            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
-        ProgramRuleAction actionC = new ProgramRuleAction( "ActionC", programRuleA, ProgramRuleActionType.HIDESECTION,
-            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
-        actionA.setTemplateUid( "templateuid" );
-        actionStore.save( actionA );
-        actionStore.save( actionB );
-        actionStore.save( actionC );
-        assertEquals( 1, actionStore.getProgramActionsWithNoNotification().size() );
-        assertTrue( actionStore.getProgramActionsWithNoNotification().contains( actionB ) );
-    }
+  @Test
+  void testGetProgramActionsWithNoNotification() {
+    ProgramRuleAction actionA =
+        new ProgramRuleAction(
+            "ActionA",
+            programRuleA,
+            ProgramRuleActionType.SENDMESSAGE,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "$myvar",
+            "true",
+            null,
+            null);
+    ProgramRuleAction actionB =
+        new ProgramRuleAction(
+            "ActionB",
+            programRuleA,
+            ProgramRuleActionType.SENDMESSAGE,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "con",
+            "Hello",
+            "$placeofliving",
+            null,
+            null);
+    ProgramRuleAction actionC =
+        new ProgramRuleAction(
+            "ActionC",
+            programRuleA,
+            ProgramRuleActionType.HIDESECTION,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "con",
+            "Hello",
+            "$placeofliving",
+            null,
+            null);
+    actionA.setTemplateUid("templateuid");
+    actionStore.save(actionA);
+    actionStore.save(actionB);
+    actionStore.save(actionC);
+    assertEquals(1, actionStore.getProgramActionsWithNoNotification().size());
+    assertTrue(actionStore.getProgramActionsWithNoNotification().contains(actionB));
+  }
 
-    @Test
-    void testGetProgramActionsWithNoDataObject()
-    {
-        ProgramRuleAction actionA = new ProgramRuleAction( "ActionA", programRuleA, ProgramRuleActionType.HIDEFIELD,
-            dataElementA, null, null, null, null, null, "$myvar", "true", null, null );
-        ProgramRuleAction actionB = new ProgramRuleAction( "ActionB", programRuleA, ProgramRuleActionType.HIDEFIELD,
-            null, null, null, null, null, "con", "Hello", "$placeofliving", null, null );
-        actionStore.save( actionA );
-        actionStore.save( actionB );
-        assertEquals( 1, actionStore.getProgramActionsWithNoDataObject().size() );
-        assertTrue( actionStore.getProgramActionsWithNoDataObject().contains( actionB ) );
-    }
+  @Test
+  void testGetProgramActionsWithNoDataObject() {
+    ProgramRuleAction actionA =
+        new ProgramRuleAction(
+            "ActionA",
+            programRuleA,
+            ProgramRuleActionType.HIDEFIELD,
+            dataElementA,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "$myvar",
+            "true",
+            null,
+            null);
+    ProgramRuleAction actionB =
+        new ProgramRuleAction(
+            "ActionB",
+            programRuleA,
+            ProgramRuleActionType.HIDEFIELD,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "con",
+            "Hello",
+            "$placeofliving",
+            null,
+            null);
+    actionStore.save(actionA);
+    actionStore.save(actionB);
+    assertEquals(1, actionStore.getProgramActionsWithNoDataObject().size());
+    assertTrue(actionStore.getProgramActionsWithNoDataObject().contains(actionB));
+  }
 }

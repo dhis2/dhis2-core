@@ -29,56 +29,48 @@ package org.hisp.dhis.system.deletion;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import javax.annotation.PostConstruct;
-
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * A DeletionHandler should override methods for objects that, when deleted,
- * will affect the current object in any way. Eg. a DeletionHandler for
- * DataElementGroup should override the deleteDataElement(..) method which
- * should remove the DataElement from all DataElementGroups. Also, it should
- * override the allowDeleteDataElement() method and return a non-null String
- * value if there exists objects that are dependent on the DataElement and are
- * considered not be deleted. The return value could be a hint for which object
- * is denying the delete, like the name.
+ * A DeletionHandler should override methods for objects that, when deleted, will affect the current
+ * object in any way. Eg. a DeletionHandler for DataElementGroup should override the
+ * deleteDataElement(..) method which should remove the DataElement from all DataElementGroups.
+ * Also, it should override the allowDeleteDataElement() method and return a non-null String value
+ * if there exists objects that are dependent on the DataElement and are considered not be deleted.
+ * The return value could be a hint for which object is denying the delete, like the name.
  *
  * @author Lars Helge Overland
  */
-public abstract class DeletionHandler
-{
-    private DeletionManager manager;
+public abstract class DeletionHandler {
+  private DeletionManager manager;
 
-    @Autowired
-    public void setManager( DeletionManager manager )
-    {
-        this.manager = manager;
-    }
+  @Autowired
+  public void setManager(DeletionManager manager) {
+    this.manager = manager;
+  }
 
-    protected final <T extends IdentifiableObject> void whenVetoing( Class<T> type,
-        Function<T, DeletionVeto> vetoFunction )
-    {
-        manager.whenVetoing( type, vetoFunction );
-    }
+  protected final <T extends IdentifiableObject> void whenVetoing(
+      Class<T> type, Function<T, DeletionVeto> vetoFunction) {
+    manager.whenVetoing(type, vetoFunction);
+  }
 
-    protected final <T extends IdentifiableObject> void whenDeleting( Class<T> type, Consumer<T> action )
-    {
-        manager.whenDeleting( type, action );
-    }
+  protected final <T extends IdentifiableObject> void whenDeleting(
+      Class<T> type, Consumer<T> action) {
+    manager.whenDeleting(type, action);
+  }
 
-    protected final <T extends EmbeddedObject> void whenDeletingEmbedded( Class<T> type, Consumer<T> action )
-    {
-        manager.whenDeletingEmbedded( type, action );
-    }
+  protected final <T extends EmbeddedObject> void whenDeletingEmbedded(
+      Class<T> type, Consumer<T> action) {
+    manager.whenDeletingEmbedded(type, action);
+  }
 
-    @PostConstruct
-    public final void init()
-    {
-        register();
-    }
+  @PostConstruct
+  public final void init() {
+    register();
+  }
 
-    protected abstract void register();
+  protected abstract void register();
 }

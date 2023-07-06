@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
-
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -39,56 +38,47 @@ import org.springframework.stereotype.Component;
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler" )
-public class ProgramDataEntryFormDeletionHandler
-    extends DeletionHandler
-{
-    private final DataEntryFormService dataEntryFormService;
+@Component("org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler")
+public class ProgramDataEntryFormDeletionHandler extends DeletionHandler {
+  private final DataEntryFormService dataEntryFormService;
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    public ProgramDataEntryFormDeletionHandler( DataEntryFormService dataEntryFormService,
-        ProgramStageService programStageService )
-    {
-        checkNotNull( dataEntryFormService );
-        checkNotNull( programStageService );
-        this.dataEntryFormService = dataEntryFormService;
-        this.programStageService = programStageService;
-    }
+  public ProgramDataEntryFormDeletionHandler(
+      DataEntryFormService dataEntryFormService, ProgramStageService programStageService) {
+    checkNotNull(dataEntryFormService);
+    checkNotNull(programStageService);
+    this.dataEntryFormService = dataEntryFormService;
+    this.programStageService = programStageService;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+  }
 
-    public void deleteProgramStage( ProgramStage programStage )
-    {
-        DataEntryForm dataEntryForm = programStage.getDataEntryForm();
+  public void deleteProgramStage(ProgramStage programStage) {
+    DataEntryForm dataEntryForm = programStage.getDataEntryForm();
 
-        if ( dataEntryForm != null )
-        {
-            boolean flag = false;
+    if (dataEntryForm != null) {
+      boolean flag = false;
 
-            Set<ProgramStage> programStages = programStage.getProgram().getProgramStages();
+      Set<ProgramStage> programStages = programStage.getProgram().getProgramStages();
 
-            programStages.remove( programStage );
+      programStages.remove(programStage);
 
-            for ( ProgramStage stage : programStages )
-            {
-                if ( stage.getDataEntryForm() != null )
-                {
-                    programStage.setDataEntryForm( null );
-                    programStageService.updateProgramStage( programStage );
-                    flag = true;
-                    break;
-                }
-            }
-
-            if ( !flag )
-            {
-                dataEntryFormService.deleteDataEntryForm( dataEntryForm );
-            }
+      for (ProgramStage stage : programStages) {
+        if (stage.getDataEntryForm() != null) {
+          programStage.setDataEntryForm(null);
+          programStageService.updateProgramStage(programStage);
+          flag = true;
+          break;
         }
+      }
+
+      if (!flag) {
+        dataEntryFormService.deleteDataEntryForm(dataEntryForm);
+      }
     }
+  }
 }

@@ -38,39 +38,32 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" )
-public class MinMaxDataElementDeletionHandler
-    extends DeletionHandler
-{
-    private final MinMaxDataElementService minMaxDataElementService;
+@Component("org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler")
+public class MinMaxDataElementDeletionHandler extends DeletionHandler {
+  private final MinMaxDataElementService minMaxDataElementService;
 
-    public MinMaxDataElementDeletionHandler( MinMaxDataElementService minMaxDataElementService )
-    {
-        checkNotNull( minMaxDataElementService );
+  public MinMaxDataElementDeletionHandler(MinMaxDataElementService minMaxDataElementService) {
+    checkNotNull(minMaxDataElementService);
 
-        this.minMaxDataElementService = minMaxDataElementService;
-    }
+    this.minMaxDataElementService = minMaxDataElementService;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(CategoryOptionCombo.class, this::deleteCategoryOptionCombo);
+  }
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        minMaxDataElementService.removeMinMaxDataElements( dataElement );
-    }
+  private void deleteDataElement(DataElement dataElement) {
+    minMaxDataElementService.removeMinMaxDataElements(dataElement);
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit source )
-    {
-        minMaxDataElementService.removeMinMaxDataElements( source );
-    }
+  private void deleteOrganisationUnit(OrganisationUnit source) {
+    minMaxDataElementService.removeMinMaxDataElements(source);
+  }
 
-    private void deleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        minMaxDataElementService.removeMinMaxDataElements( optionCombo );
-    }
+  private void deleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    minMaxDataElementService.removeMinMaxDataElements(optionCombo);
+  }
 }

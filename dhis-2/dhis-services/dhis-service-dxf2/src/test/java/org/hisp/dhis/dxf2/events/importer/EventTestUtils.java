@@ -32,25 +32,20 @@ import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 
-public class EventTestUtils
-{
-    public static DataValue createDataValue( String dataElement, String value )
-    {
-        return new DataValue( dataElement, value );
-    }
+public class EventTestUtils {
+  public static DataValue createDataValue(String dataElement, String value) {
+    return new DataValue(dataElement, value);
+  }
 
-    public static EventDataValue createEventDataValue( String dataElement, String value )
-    {
-        return new EventDataValue( dataElement, value );
-    }
+  public static EventDataValue createEventDataValue(String dataElement, String value) {
+    return new EventDataValue(dataElement, value);
+  }
 
-    public static Event createBaseEvent()
-    {
-        Event event = new Event();
-        final String uid = CodeGenerator.generateUid();
-        event.setUid( uid );
-        event.setEvent( uid );
-        return event;
-    }
-
+  public static Event createBaseEvent() {
+    Event event = new Event();
+    final String uid = CodeGenerator.generateUid();
+    event.setUid(uid);
+    event.setEvent(uid);
+    return event;
+  }
 }

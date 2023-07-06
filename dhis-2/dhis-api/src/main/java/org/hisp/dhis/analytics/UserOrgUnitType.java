@@ -27,17 +27,15 @@
  */
 package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Luciano Fiandesio
  */
-@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
-public enum UserOrgUnitType
-{
-    DATA_CAPTURE,
-    DATA_OUTPUT,
-    TEI_SEARCH
+@JacksonXmlRootElement(localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0)
+public enum UserOrgUnitType {
+  DATA_CAPTURE,
+  DATA_OUTPUT,
+  TEI_SEARCH
 }

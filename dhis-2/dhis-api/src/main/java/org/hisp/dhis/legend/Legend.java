@@ -27,106 +27,90 @@
  */
 package org.hisp.dhis.legend;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Jan Henrik Overland
  */
-@JacksonXmlRootElement( localName = "legend", namespace = DxfNamespaces.DXF_2_0 )
-public class Legend
-    extends BaseIdentifiableObject implements EmbeddedObject
-{
-    private Double startValue;
+@JacksonXmlRootElement(localName = "legend", namespace = DxfNamespaces.DXF_2_0)
+public class Legend extends BaseIdentifiableObject implements EmbeddedObject {
+  private Double startValue;
 
-    private Double endValue;
+  private Double endValue;
 
-    private String color;
+  private String color;
 
-    private String image;
+  private String image;
 
-    private LegendSet legendSet;
+  private LegendSet legendSet;
 
-    public Legend()
-    {
-    }
+  public Legend() {}
 
-    public Legend( String name, Double startValue, Double endValue, String color, String image )
-    {
-        this.name = name;
-        this.startValue = startValue;
-        this.endValue = endValue;
-        this.color = color;
-        this.image = image;
-    }
+  public Legend(String name, Double startValue, Double endValue, String color, String image) {
+    this.name = name;
+    this.startValue = startValue;
+    this.endValue = endValue;
+    this.color = color;
+    this.image = image;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = Integer.MIN_VALUE )
-    public Double getStartValue()
-    {
-        return startValue;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = Integer.MIN_VALUE)
+  public Double getStartValue() {
+    return startValue;
+  }
 
-    public void setStartValue( Double startValue )
-    {
-        this.startValue = startValue;
-    }
+  public void setStartValue(Double startValue) {
+    this.startValue = startValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = Integer.MIN_VALUE )
-    public Double getEndValue()
-    {
-        return endValue;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = Integer.MIN_VALUE)
+  public Double getEndValue() {
+    return endValue;
+  }
 
-    public void setEndValue( Double endValue )
-    {
-        this.endValue = endValue;
-    }
+  public void setEndValue(Double endValue) {
+    this.endValue = endValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getColor()
-    {
-        return color;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getColor() {
+    return color;
+  }
 
-    public void setColor( String color )
-    {
-        this.color = color;
-    }
+  public void setColor(String color) {
+    this.color = color;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getImage()
-    {
-        return image;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getImage() {
+    return image;
+  }
 
-    public void setImage( String image )
-    {
-        this.image = image;
-    }
+  public void setImage(String image) {
+    this.image = image;
+  }
 
-    public LegendSet getLegendSet()
-    {
-        return legendSet;
-    }
+  public LegendSet getLegendSet() {
+    return legendSet;
+  }
 
-    public void setLegendSet( LegendSet legendSet )
-    {
-        this.legendSet = legendSet;
-    }
+  public void setLegendSet(LegendSet legendSet) {
+    this.legendSet = legendSet;
+  }
 }

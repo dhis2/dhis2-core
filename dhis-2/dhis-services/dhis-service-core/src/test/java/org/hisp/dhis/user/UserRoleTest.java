@@ -37,48 +37,45 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-class UserRoleTest extends DhisSpringTest
-{
+class UserRoleTest extends DhisSpringTest {
 
-    @Autowired
-    @Qualifier( "org.hisp.dhis.user.UserRoleStore" )
-    private IdentifiableObjectStore<UserRole> userRoleStore;
+  @Autowired
+  @Qualifier("org.hisp.dhis.user.UserRoleStore")
+  private IdentifiableObjectStore<UserRole> userRoleStore;
 
-    @Test
-    void testAddGetUserRole()
-    {
-        UserRole roleA = createUserRole( 'A' );
-        UserRole roleB = createUserRole( 'B' );
-        UserRole roleC = createUserRole( 'C' );
-        userRoleStore.save( roleA );
-        long idA = roleA.getId();
-        userRoleStore.save( roleB );
-        long idB = roleB.getId();
-        userRoleStore.save( roleC );
-        long idC = roleC.getId();
-        assertEquals( roleA, userRoleStore.get( idA ) );
-        assertEquals( roleB, userRoleStore.get( idB ) );
-        assertEquals( roleC, userRoleStore.get( idC ) );
-    }
+  @Test
+  void testAddGetUserRole() {
+    UserRole roleA = createUserRole('A');
+    UserRole roleB = createUserRole('B');
+    UserRole roleC = createUserRole('C');
+    userRoleStore.save(roleA);
+    long idA = roleA.getId();
+    userRoleStore.save(roleB);
+    long idB = roleB.getId();
+    userRoleStore.save(roleC);
+    long idC = roleC.getId();
+    assertEquals(roleA, userRoleStore.get(idA));
+    assertEquals(roleB, userRoleStore.get(idB));
+    assertEquals(roleC, userRoleStore.get(idC));
+  }
 
-    @Test
-    void testDeleteUserRole()
-    {
-        UserRole roleA = createUserRole( 'A' );
-        UserRole roleB = createUserRole( 'B' );
-        UserRole roleC = createUserRole( 'C' );
-        userRoleStore.save( roleA );
-        long idA = roleA.getId();
-        userRoleStore.save( roleB );
-        long idB = roleB.getId();
-        userRoleStore.save( roleC );
-        long idC = roleC.getId();
-        assertEquals( roleA, userRoleStore.get( idA ) );
-        assertEquals( roleB, userRoleStore.get( idB ) );
-        assertEquals( roleC, userRoleStore.get( idC ) );
-        userRoleStore.delete( roleB );
-        assertNotNull( userRoleStore.get( idA ) );
-        assertNull( userRoleStore.get( idB ) );
-        assertNotNull( userRoleStore.get( idA ) );
-    }
+  @Test
+  void testDeleteUserRole() {
+    UserRole roleA = createUserRole('A');
+    UserRole roleB = createUserRole('B');
+    UserRole roleC = createUserRole('C');
+    userRoleStore.save(roleA);
+    long idA = roleA.getId();
+    userRoleStore.save(roleB);
+    long idB = roleB.getId();
+    userRoleStore.save(roleC);
+    long idC = roleC.getId();
+    assertEquals(roleA, userRoleStore.get(idA));
+    assertEquals(roleB, userRoleStore.get(idB));
+    assertEquals(roleC, userRoleStore.get(idC));
+    userRoleStore.delete(roleB);
+    assertNotNull(userRoleStore.get(idA));
+    assertNull(userRoleStore.get(idB));
+    assertNotNull(userRoleStore.get(idA));
+  }
 }

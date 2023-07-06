@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -43,152 +42,145 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ImportStrategyAccumulatorTest
-{
+class ImportStrategyAccumulatorTest {
 
-    private ImportStrategyAccumulator accumulator;
+  private ImportStrategyAccumulator accumulator;
 
-    @BeforeEach
-    void setUp()
-    {
-        accumulator = new ImportStrategyAccumulator();
+  @BeforeEach
+  void setUp() {
+    accumulator = new ImportStrategyAccumulator();
+  }
+
+  @Test
+  void verifyCreationOnly() {
+    accumulator.partitionEvents(createEvents(5), ImportStrategy.CREATE, new HashMap<>());
+    assertAccumulator(5, 0, 0);
+    reset();
+    accumulator.partitionEvents(
+        createEvents(5), ImportStrategy.CREATE, createProgramStageInstances("a", "b"));
+    assertAccumulator(5, 0, 0);
+    reset();
+    accumulator.partitionEvents(createEvents(5), ImportStrategy.NEW, new HashMap<>());
+    assertAccumulator(5, 0, 0);
+  }
+
+  @Test
+  void verifyCreateAndUpdate() {
+    accumulator.partitionEvents(createEvents(5), ImportStrategy.CREATE_AND_UPDATE, new HashMap<>());
+    assertAccumulator(5, 0, 0);
+    reset();
+    final List<Event> events = createEvents(5);
+    accumulator.partitionEvents(
+        events,
+        ImportStrategy.CREATE_AND_UPDATE,
+        createProgramStageInstances(
+            events.get(0).getEvent(), events.get(1).getEvent(), events.get(2).getEvent()));
+    assertAccumulator(2, 3, 0);
+  }
+
+  @Test
+  void verifyUpdateOnly() {
+    accumulator.partitionEvents(createEvents(5), ImportStrategy.UPDATE, new HashMap<>());
+    assertAccumulator(0, 5, 0);
+    reset();
+    accumulator.partitionEvents(createEvents(5), ImportStrategy.UPDATES, new HashMap<>());
+    assertAccumulator(0, 5, 0);
+  }
+
+  @Test
+  void verifyDeleteOnly() {
+    List<Event> events = createEvents(5);
+    accumulator.partitionEvents(events, ImportStrategy.DELETE, existingEventsFromEvents(events));
+    assertAccumulator(0, 0, 5);
+    reset();
+    events = createEvents(5);
+    accumulator.partitionEvents(events, ImportStrategy.DELETES, existingEventsFromEvents(events));
+    assertAccumulator(0, 0, 5);
+  }
+
+  @Test
+  void verifyDeleteSome() {
+    List<Event> events = createEvents(5);
+    reset();
+    events = createEvents(5);
+    accumulator.partitionEvents(
+        events, ImportStrategy.DELETES, existingEventsFromEvents(events, 3));
+    assertAccumulator(0, 0, 3);
+  }
+
+  private Map<String, ProgramStageInstance> existingEventsFromEvents(List<Event> events) {
+    return existingEventsFromEvents(events, events.size());
+  }
+
+  private Map<String, ProgramStageInstance> existingEventsFromEvents(
+      List<Event> events, Integer limit) {
+    return events.stream()
+        .limit(limit)
+        .collect(
+            Collectors.toMap(
+                Event::getEvent, event -> createProgramStageInstance(event.getEvent())));
+  }
+
+  @Test
+  void verifySync() {
+    accumulator.partitionEvents(createEvents(5), ImportStrategy.SYNC, new HashMap<>());
+    assertAccumulator(5, 0, 0);
+    reset();
+    final List<Event> events1 = createEvents(3);
+    events1.get(0).setDeleted(true);
+    events1.get(1).setDeleted(true);
+    accumulator.partitionEvents(events1, ImportStrategy.SYNC, new HashMap<>());
+    assertAccumulator(1, 0, 2);
+    reset();
+    final List<Event> events2 = createEvents(10);
+    events2.get(0).setDeleted(true);
+    events2.get(1).setDeleted(true);
+    accumulator.partitionEvents(
+        events2,
+        ImportStrategy.SYNC,
+        createProgramStageInstances(
+            events2.get(5).getEvent(), events2.get(6).getEvent(), events2.get(7).getEvent()));
+    assertAccumulator(5, 3, 2);
+  }
+
+  private void reset() {
+    this.accumulator = new ImportStrategyAccumulator();
+  }
+
+  private void assertAccumulator(int createSize, int updateSize, int deleteSize) {
+    assertThat("Wrong number of events for creation", accumulator.getCreate(), hasSize(createSize));
+    assertThat("Wrong number of events for update", accumulator.getUpdate(), hasSize(updateSize));
+    assertThat("Wrong number of events for deletion", accumulator.getDelete(), hasSize(deleteSize));
+  }
+
+  private Event createEvent() {
+    Event e = new Event();
+    String eventUid = CodeGenerator.generateUid();
+    e.setEvent(eventUid);
+    e.setUid(eventUid);
+    return e;
+  }
+
+  private ProgramStageInstance createProgramStageInstance(String uid) {
+    ProgramStageInstance psi = new ProgramStageInstance();
+    psi.setUid(uid);
+    return psi;
+  }
+
+  private List<Event> createEvents(int amount) {
+    List<Event> events = new ArrayList<>();
+    for (int i = 0; i < amount; i++) {
+      events.add(createEvent());
     }
+    return events;
+  }
 
-    @Test
-    void verifyCreationOnly()
-    {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE, new HashMap<>() );
-        assertAccumulator( 5, 0, 0 );
-        reset();
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE,
-            createProgramStageInstances( "a", "b" ) );
-        assertAccumulator( 5, 0, 0 );
-        reset();
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.NEW, new HashMap<>() );
-        assertAccumulator( 5, 0, 0 );
+  private Map<String, ProgramStageInstance> createProgramStageInstances(String... uids) {
+    Map<String, ProgramStageInstance> psi = new HashMap<>();
+    for (final String uid : uids) {
+      ProgramStageInstance p = createProgramStageInstance(uid);
+      psi.put(p.getUid(), p);
     }
-
-    @Test
-    void verifyCreateAndUpdate()
-    {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE_AND_UPDATE, new HashMap<>() );
-        assertAccumulator( 5, 0, 0 );
-        reset();
-        final List<Event> events = createEvents( 5 );
-        accumulator.partitionEvents( events, ImportStrategy.CREATE_AND_UPDATE, createProgramStageInstances(
-            events.get( 0 ).getEvent(), events.get( 1 ).getEvent(), events.get( 2 ).getEvent() ) );
-        assertAccumulator( 2, 3, 0 );
-    }
-
-    @Test
-    void verifyUpdateOnly()
-    {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.UPDATE, new HashMap<>() );
-        assertAccumulator( 0, 5, 0 );
-        reset();
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.UPDATES, new HashMap<>() );
-        assertAccumulator( 0, 5, 0 );
-    }
-
-    @Test
-    void verifyDeleteOnly()
-    {
-        List<Event> events = createEvents( 5 );
-        accumulator.partitionEvents( events, ImportStrategy.DELETE, existingEventsFromEvents( events ) );
-        assertAccumulator( 0, 0, 5 );
-        reset();
-        events = createEvents( 5 );
-        accumulator.partitionEvents( events, ImportStrategy.DELETES, existingEventsFromEvents( events ) );
-        assertAccumulator( 0, 0, 5 );
-    }
-
-    @Test
-    void verifyDeleteSome()
-    {
-        List<Event> events = createEvents( 5 );
-        reset();
-        events = createEvents( 5 );
-        accumulator.partitionEvents( events, ImportStrategy.DELETES, existingEventsFromEvents( events, 3 ) );
-        assertAccumulator( 0, 0, 3 );
-    }
-
-    private Map<String, ProgramStageInstance> existingEventsFromEvents( List<Event> events )
-    {
-        return existingEventsFromEvents( events, events.size() );
-    }
-
-    private Map<String, ProgramStageInstance> existingEventsFromEvents( List<Event> events, Integer limit )
-    {
-        return events.stream().limit( limit )
-            .collect( Collectors.toMap( Event::getEvent, event -> createProgramStageInstance( event.getEvent() ) ) );
-    }
-
-    @Test
-    void verifySync()
-    {
-        accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.SYNC, new HashMap<>() );
-        assertAccumulator( 5, 0, 0 );
-        reset();
-        final List<Event> events1 = createEvents( 3 );
-        events1.get( 0 ).setDeleted( true );
-        events1.get( 1 ).setDeleted( true );
-        accumulator.partitionEvents( events1, ImportStrategy.SYNC, new HashMap<>() );
-        assertAccumulator( 1, 0, 2 );
-        reset();
-        final List<Event> events2 = createEvents( 10 );
-        events2.get( 0 ).setDeleted( true );
-        events2.get( 1 ).setDeleted( true );
-        accumulator.partitionEvents( events2, ImportStrategy.SYNC, createProgramStageInstances(
-            events2.get( 5 ).getEvent(), events2.get( 6 ).getEvent(), events2.get( 7 ).getEvent() ) );
-        assertAccumulator( 5, 3, 2 );
-    }
-
-    private void reset()
-    {
-        this.accumulator = new ImportStrategyAccumulator();
-    }
-
-    private void assertAccumulator( int createSize, int updateSize, int deleteSize )
-    {
-        assertThat( "Wrong number of events for creation", accumulator.getCreate(), hasSize( createSize ) );
-        assertThat( "Wrong number of events for update", accumulator.getUpdate(), hasSize( updateSize ) );
-        assertThat( "Wrong number of events for deletion", accumulator.getDelete(), hasSize( deleteSize ) );
-    }
-
-    private Event createEvent()
-    {
-        Event e = new Event();
-        String eventUid = CodeGenerator.generateUid();
-        e.setEvent( eventUid );
-        e.setUid( eventUid );
-        return e;
-    }
-
-    private ProgramStageInstance createProgramStageInstance( String uid )
-    {
-        ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setUid( uid );
-        return psi;
-    }
-
-    private List<Event> createEvents( int amount )
-    {
-        List<Event> events = new ArrayList<>();
-        for ( int i = 0; i < amount; i++ )
-        {
-            events.add( createEvent() );
-        }
-        return events;
-    }
-
-    private Map<String, ProgramStageInstance> createProgramStageInstances( String... uids )
-    {
-        Map<String, ProgramStageInstance> psi = new HashMap<>();
-        for ( final String uid : uids )
-        {
-            ProgramStageInstance p = createProgramStageInstance( uid );
-            psi.put( p.getUid(), p );
-        }
-        return psi;
-    }
+    return psi;
+  }
 }

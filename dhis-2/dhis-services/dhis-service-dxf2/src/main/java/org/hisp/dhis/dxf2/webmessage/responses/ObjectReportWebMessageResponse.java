@@ -27,51 +27,43 @@
  */
 package org.hisp.dhis.dxf2.webmessage.responses;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.List;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectReportWebMessageResponse
-    extends AbstractWebMessageResponse
-{
-    private final ObjectReport objectReport;
+public class ObjectReportWebMessageResponse extends AbstractWebMessageResponse {
+  private final ObjectReport objectReport;
 
-    public ObjectReportWebMessageResponse( ObjectReport objectReport )
-    {
-        Assert.notNull( objectReport, "ObjectReport is required to be non-null." );
-        this.objectReport = objectReport;
-    }
+  public ObjectReportWebMessageResponse(ObjectReport objectReport) {
+    Assert.notNull(objectReport, "ObjectReport is required to be non-null.");
+    this.objectReport = objectReport;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Class<?> getKlass()
-    {
-        return objectReport.getKlass();
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Class<?> getKlass() {
+    return objectReport.getKlass();
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getUid()
-    {
-        return objectReport.getUid();
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getUid() {
+    return objectReport.getUid();
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ErrorReport> getErrorReports()
-    {
-        return objectReport.getErrorReports();
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "errorReports", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "errorReport", namespace = DxfNamespaces.DXF_2_0)
+  public List<ErrorReport> getErrorReports() {
+    return objectReport.getErrorReports();
+  }
 }

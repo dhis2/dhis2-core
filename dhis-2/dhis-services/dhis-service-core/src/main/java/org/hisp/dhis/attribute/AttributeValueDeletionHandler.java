@@ -36,35 +36,29 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.attribute.AttributeValueDeletionHandler" )
-public class AttributeValueDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager identifiableObjectManager;
+@Component("org.hisp.dhis.attribute.AttributeValueDeletionHandler")
+public class AttributeValueDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager identifiableObjectManager;
 
-    public AttributeValueDeletionHandler( IdentifiableObjectManager identifiableObjectManager )
-    {
-        checkNotNull( identifiableObjectManager );
+  public AttributeValueDeletionHandler(IdentifiableObjectManager identifiableObjectManager) {
+    checkNotNull(identifiableObjectManager);
 
-        this.identifiableObjectManager = identifiableObjectManager;
+    this.identifiableObjectManager = identifiableObjectManager;
+  }
+
+  @Override
+  protected void register() {
+    whenVetoing(Attribute.class, this::allowDeleteAttribute);
+  }
+
+  private DeletionVeto allowDeleteAttribute(Attribute attribute) {
+    for (Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses()) {
+      if (identifiableObjectManager.countAllValuesByAttributes(
+              supportedClass, singletonList(attribute))
+          > 0) {
+        return new DeletionVeto(supportedClass, Attribute.class);
+      }
     }
-
-    @Override
-    protected void register()
-    {
-        whenVetoing( Attribute.class, this::allowDeleteAttribute );
-    }
-
-    private DeletionVeto allowDeleteAttribute( Attribute attribute )
-    {
-        for ( Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
-        {
-            if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass,
-                singletonList( attribute ) ) > 0 )
-            {
-                return new DeletionVeto( supportedClass, Attribute.class );
-            }
-        }
-        return DeletionVeto.ACCEPT;
-    }
+    return DeletionVeto.ACCEPT;
+  }
 }

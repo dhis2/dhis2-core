@@ -38,34 +38,27 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.report.ReportDeletionHandler" )
-public class ReportDeletionHandler
-    extends DeletionHandler
-{
-    private final ReportService reportService;
+@Component("org.hisp.dhis.report.ReportDeletionHandler")
+public class ReportDeletionHandler extends DeletionHandler {
+  private final ReportService reportService;
 
-    public ReportDeletionHandler( ReportService reportService )
-    {
-        checkNotNull( reportService );
-        this.reportService = reportService;
+  public ReportDeletionHandler(ReportService reportService) {
+    checkNotNull(reportService);
+    this.reportService = reportService;
+  }
+
+  @Override
+  protected void register() {
+    whenVetoing(Visualization.class, this::allowDeleteVisualization);
+  }
+
+  private DeletionVeto allowDeleteVisualization(Visualization visualization) {
+    for (Report report : reportService.getAllReports()) {
+      if (report.getVisualization() != null && report.getVisualization().equals(visualization)) {
+        return new DeletionVeto(Visualization.class, report.getName());
+      }
     }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( Visualization.class, this::allowDeleteVisualization );
-    }
-
-    private DeletionVeto allowDeleteVisualization( Visualization visualization )
-    {
-        for ( Report report : reportService.getAllReports() )
-        {
-            if ( report.getVisualization() != null && report.getVisualization().equals( visualization ) )
-            {
-                return new DeletionVeto( Visualization.class, report.getName() );
-            }
-        }
-
-        return ACCEPT;
-    }
+    return ACCEPT;
+  }
 }

@@ -32,68 +32,54 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
 
 /**
- * This class is used as a container for order parameters and is deserialized
- * from web requests
+ * This class is used as a container for order parameters and is deserialized from web requests
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @Data
-@AllArgsConstructor( staticName = "of" )
+@AllArgsConstructor(staticName = "of")
 @NoArgsConstructor
 @With
-public class OrderCriteria
-{
-    private String field;
+public class OrderCriteria {
+  private String field;
 
-    private SortDirection direction;
+  private SortDirection direction;
 
-    public OrderParam toOrderParam()
-    {
-        return OrderParam.builder()
-            .field( field )
-            .direction( direction )
-            .build();
+  public OrderParam toOrderParam() {
+    return OrderParam.builder().field(field).direction(direction).build();
+  }
+
+  public static List<OrderCriteria> fromOrderString(String source) {
+    return Optional.of(source)
+        .filter(StringUtils::isNotBlank)
+        .map(String::trim)
+        .map(OrderCriteria::toOrderCriterias)
+        .orElse(Collections.emptyList());
+  }
+
+  private static List<OrderCriteria> toOrderCriterias(String s) {
+    return Arrays.stream(s.split(","))
+        .map(OrderCriteria::toOrderCriteria)
+        .collect(Collectors.toList());
+  }
+
+  private static OrderCriteria toOrderCriteria(String s1) {
+    String[] props = s1.split(":");
+    if (props.length == 2) {
+      return OrderCriteria.of(props[0], SortDirection.of(props[1]));
     }
-
-    public static List<OrderCriteria> fromOrderString( String source )
-    {
-        return Optional.of( source )
-            .filter( StringUtils::isNotBlank )
-            .map( String::trim )
-            .map( OrderCriteria::toOrderCriterias )
-            .orElse( Collections.emptyList() );
+    if (props.length == 1) {
+      return OrderCriteria.of(props[0], SortDirection.ASC);
     }
-
-    private static List<OrderCriteria> toOrderCriterias( String s )
-    {
-        return Arrays.stream( s.split( "," ) )
-            .map( OrderCriteria::toOrderCriteria )
-            .collect( Collectors.toList() );
-    }
-
-    private static OrderCriteria toOrderCriteria( String s1 )
-    {
-        String[] props = s1.split( ":" );
-        if ( props.length == 2 )
-        {
-            return OrderCriteria.of( props[0], SortDirection.of( props[1] ) );
-        }
-        if ( props.length == 1 )
-        {
-            return OrderCriteria.of( props[0], SortDirection.ASC );
-        }
-        return null;
-    }
-
+    return null;
+  }
 }

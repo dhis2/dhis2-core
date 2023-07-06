@@ -34,15 +34,13 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectStyleSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "objectStyle";
+public class ObjectStyleSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "objectStyle";
 
-    public static final String PLURAL = "objectStyles";
+  public static final String PLURAL = "objectStyles";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( ObjectStyle.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(ObjectStyle.class, SINGULAR, PLURAL);
+  }
 }

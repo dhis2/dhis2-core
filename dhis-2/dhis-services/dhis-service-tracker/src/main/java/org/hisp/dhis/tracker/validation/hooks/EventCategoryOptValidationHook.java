@@ -33,9 +33,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
 
 import java.time.Instant;
 import java.util.Date;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -53,67 +51,65 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class EventCategoryOptValidationHook
-    extends AbstractTrackerDtoValidationHook
-{
-    private final I18nManager i18nManager;
+public class EventCategoryOptValidationHook extends AbstractTrackerDtoValidationHook {
+  private final I18nManager i18nManager;
 
-    public EventCategoryOptValidationHook( I18nManager i18nManager )
-    {
-        checkNotNull( i18nManager );
-        this.i18nManager = i18nManager;
+  public EventCategoryOptValidationHook(I18nManager i18nManager) {
+    checkNotNull(i18nManager);
+    this.i18nManager = i18nManager;
+  }
+
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, Event event) {
+    Program program = reporter.getBundle().getPreheat().getProgram(event.getProgram());
+    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
+    checkNotNull(reporter.getBundle().getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL);
+    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
+    checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
+
+    TrackerPreheat preheat = reporter.getBundle().getPreheat();
+    CategoryOptionCombo categoryOptionCombo;
+    if (program.getCategoryCombo().isDefault()) {
+      categoryOptionCombo = preheat.getDefault(CategoryOptionCombo.class);
+    } else {
+      categoryOptionCombo = preheat.getCategoryOptionCombo(event.getAttributeOptionCombo());
+    }
+    checkNotNull(
+        categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL);
+
+    Date eventDate;
+    try {
+      eventDate =
+          DateUtils.fromInstant(
+              ObjectUtils.firstNonNull(
+                  event.getOccurredAt(), event.getScheduledAt(), Instant.now()));
+    } catch (IllegalArgumentException e) {
+      log.debug("Failed to parse dates, an error should already be reported.");
+      return;
     }
 
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
-    {
-        Program program = reporter.getBundle().getPreheat().getProgram( event.getProgram() );
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-        checkNotNull( reporter.getBundle().getUser(), TrackerImporterAssertErrors.USER_CANT_BE_NULL );
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
-        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
+    I18nFormat i18nFormat = i18nManager.getI18nFormat();
 
-        TrackerPreheat preheat = reporter.getBundle().getPreheat();
-        CategoryOptionCombo categoryOptionCombo;
-        if ( program.getCategoryCombo().isDefault() )
-        {
-            categoryOptionCombo = preheat.getDefault( CategoryOptionCombo.class );
-        }
-        else
-        {
-            categoryOptionCombo = preheat
-                .getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        }
-        checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
+    for (CategoryOption option : categoryOptionCombo.getCategoryOptions()) {
+      if (option.getStartDate() != null && eventDate.compareTo(option.getStartDate()) < 0) {
+        reporter.addError(
+            event,
+            E1056,
+            i18nFormat.formatDate(eventDate),
+            i18nFormat.formatDate(option.getStartDate()),
+            option.getName());
+      }
 
-        Date eventDate;
-        try
-        {
-            eventDate = DateUtils.fromInstant( ObjectUtils
-                .firstNonNull( event.getOccurredAt(), event.getScheduledAt(), Instant.now() ) );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            log.debug( "Failed to parse dates, an error should already be reported." );
-            return;
-        }
-
-        I18nFormat i18nFormat = i18nManager.getI18nFormat();
-
-        for ( CategoryOption option : categoryOptionCombo.getCategoryOptions() )
-        {
-            if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
-            {
-                reporter.addError( event, E1056, i18nFormat.formatDate( eventDate ),
-                    i18nFormat.formatDate( option.getStartDate() ), option.getName() );
-            }
-
-            if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
-            {
-                reporter.addError( event, E1057, i18nFormat.formatDate( eventDate ),
-                    i18nFormat.formatDate( option.getAdjustedEndDate( program ) ), option.getName(),
-                    program.getName() );
-            }
-        }
+      if (option.getEndDate() != null
+          && eventDate.compareTo(option.getAdjustedEndDate(program)) > 0) {
+        reporter.addError(
+            event,
+            E1057,
+            i18nFormat.formatDate(eventDate),
+            i18nFormat.formatDate(option.getAdjustedEndDate(program)),
+            option.getName(),
+            program.getName());
+      }
     }
+  }
 }

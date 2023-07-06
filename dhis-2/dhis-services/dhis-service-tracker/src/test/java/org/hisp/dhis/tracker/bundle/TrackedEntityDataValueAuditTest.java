@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,99 +53,117 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-public class TrackedEntityDataValueAuditTest extends TrackerTest
-{
-    private static final String ORIGINAL_VALUE = "value1";
+public class TrackedEntityDataValueAuditTest extends TrackerTest {
+  private static final String ORIGINAL_VALUE = "value1";
 
-    private static final String UPDATED_VALUE = "value1-updated";
+  private static final String UPDATED_VALUE = "value1-updated";
 
-    private static final String PSI = "D9PbzJY8bJO";
+  private static final String PSI = "D9PbzJY8bJO";
 
-    private static final String DE = "DATAEL00001";
+  private static final String DE = "DATAEL00001";
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private TrackedEntityDataValueAuditService dataValueAuditService;
+  @Autowired private TrackedEntityDataValueAuditService dataValueAuditService;
 
-    private DataElement dataElement;
+  private DataElement dataElement;
 
-    private ProgramStageInstance psi;
+  private ProgramStageInstance psi;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/simple_metadata.json" );
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
+  }
 
-    @Test
-    void testTrackedEntityDataValueAuditCreate()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/event_and_enrollment_with_data_values.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
+  @Test
+  void testTrackedEntityDataValueAuditCreate() throws IOException {
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/event_and_enrollment_with_data_values.json");
+    trackerImportParams.setUser(userService.getUser(ADMIN_USER_UID));
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
 
-        trackerImportParams = fromJson( "tracker/event_with_data_values_for_update_audit.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
+    trackerImportParams = fromJson("tracker/event_with_data_values_for_update_audit.json");
+    trackerImportParams.setUser(userService.getUser(ADMIN_USER_UID));
 
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+    trackerImportReport = trackerImportService.importTracker(trackerImportParams);
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
 
-        trackerImportParams = fromJson( "tracker/event_with_data_values_for_delete_audit.json" );
-        trackerImportParams.setUser( userService.getUser( ADMIN_USER_UID ) );
+    trackerImportParams = fromJson("tracker/event_with_data_values_for_delete_audit.json");
+    trackerImportParams.setUser(userService.getUser(ADMIN_USER_UID));
 
-        trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+    trackerImportReport = trackerImportService.importTracker(trackerImportParams);
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
 
-        dataElement = manager.search( DataElement.class, DE );
-        psi = manager.search( ProgramStageInstance.class, PSI );
-        assertNotNull( dataElement );
-        assertNotNull( psi );
-        assertEquals( dataElement.getUid(), DE );
-        assertEquals( psi.getUid(), PSI );
+    dataElement = manager.search(DataElement.class, DE);
+    psi = manager.search(ProgramStageInstance.class, PSI);
+    assertNotNull(dataElement);
+    assertNotNull(psi);
+    assertEquals(dataElement.getUid(), DE);
+    assertEquals(psi.getUid(), PSI);
 
-        List<TrackedEntityDataValueAudit> createdAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
+    List<TrackedEntityDataValueAudit> createdAudit =
+        dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( List.of( dataElement ) )
-                .setProgramStageInstances( List.of( psi ) )
-                .setAuditTypes( List.of( AuditType.CREATE ) ) );
-        List<TrackedEntityDataValueAudit> updatedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
+                .setDataElements(List.of(dataElement))
+                .setProgramStageInstances(List.of(psi))
+                .setAuditTypes(List.of(AuditType.CREATE)));
+    List<TrackedEntityDataValueAudit> updatedAudit =
+        dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( List.of( dataElement ) )
-                .setProgramStageInstances( List.of( psi ) )
-                .setAuditTypes( List.of( AuditType.UPDATE ) ) );
-        List<TrackedEntityDataValueAudit> deletedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
+                .setDataElements(List.of(dataElement))
+                .setProgramStageInstances(List.of(psi))
+                .setAuditTypes(List.of(AuditType.UPDATE)));
+    List<TrackedEntityDataValueAudit> deletedAudit =
+        dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
-                .setDataElements( List.of( dataElement ) )
-                .setProgramStageInstances( List.of( psi ) )
-                .setAuditTypes( List.of( AuditType.DELETE ) ) );
+                .setDataElements(List.of(dataElement))
+                .setProgramStageInstances(List.of(psi))
+                .setAuditTypes(List.of(AuditType.DELETE)));
 
-        assertAll( () -> assertNotNull( createdAudit ), () -> assertNotNull( updatedAudit ),
-            () -> assertNotNull( deletedAudit ) );
-        assertAuditCollection( createdAudit, AuditType.CREATE, ORIGINAL_VALUE );
-        assertAuditCollection( updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE );
-        assertAuditCollection( deletedAudit, AuditType.DELETE, UPDATED_VALUE );
+    assertAll(
+        () -> assertNotNull(createdAudit),
+        () -> assertNotNull(updatedAudit),
+        () -> assertNotNull(deletedAudit));
+    assertAuditCollection(createdAudit, AuditType.CREATE, ORIGINAL_VALUE);
+    assertAuditCollection(updatedAudit, AuditType.UPDATE, ORIGINAL_VALUE);
+    assertAuditCollection(deletedAudit, AuditType.DELETE, UPDATED_VALUE);
+  }
 
-    }
-
-    private void assertAuditCollection( List<TrackedEntityDataValueAudit> audits, AuditType auditType,
-        String expectedValue )
-    {
-        assertAll( () -> assertFalse( audits.isEmpty() ),
-            () -> assertEquals( auditType, audits.get( 0 ).getAuditType(),
-                () -> "Expected audit type is " + auditType + " but found " + audits.get( 0 ).getAuditType() ),
-            () -> assertEquals( audits.get( 0 ).getDataElement().getUid(), dataElement.getUid(),
-                () -> "Expected dataElement is " + dataElement.getUid() + " but found "
-                    + audits.get( 0 ).getDataElement().getUid() ),
-            () -> assertEquals( expectedValue, audits.get( 0 ).getValue(),
-                () -> "Expected value is " + expectedValue + " but found " + audits.get( 0 ).getValue() ) );
-    }
+  private void assertAuditCollection(
+      List<TrackedEntityDataValueAudit> audits, AuditType auditType, String expectedValue) {
+    assertAll(
+        () -> assertFalse(audits.isEmpty()),
+        () ->
+            assertEquals(
+                auditType,
+                audits.get(0).getAuditType(),
+                () ->
+                    "Expected audit type is "
+                        + auditType
+                        + " but found "
+                        + audits.get(0).getAuditType()),
+        () ->
+            assertEquals(
+                audits.get(0).getDataElement().getUid(),
+                dataElement.getUid(),
+                () ->
+                    "Expected dataElement is "
+                        + dataElement.getUid()
+                        + " but found "
+                        + audits.get(0).getDataElement().getUid()),
+        () ->
+            assertEquals(
+                expectedValue,
+                audits.get(0).getValue(),
+                () ->
+                    "Expected value is "
+                        + expectedValue
+                        + " but found "
+                        + audits.get(0).getValue()));
+  }
 }

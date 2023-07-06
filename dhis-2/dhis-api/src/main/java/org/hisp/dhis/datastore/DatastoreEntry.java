@@ -27,94 +27,70 @@
  */
 package org.hisp.dhis.datastore;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Stian Sandvold
  */
 @Getter
 @Setter
-@ToString( onlyExplicitlyIncluded = true )
-@EqualsAndHashCode( onlyExplicitlyIncluded = true, callSuper = true )
+@ToString(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @NoArgsConstructor
-public class DatastoreEntry extends BaseIdentifiableObject
-{
-    /**
-     * A namespace represents a collection of keys
-     */
-    @JsonProperty
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    private String namespace;
+public class DatastoreEntry extends BaseIdentifiableObject {
+  /** A namespace represents a collection of keys */
+  @JsonProperty @ToString.Include @EqualsAndHashCode.Include private String namespace;
 
-    /**
-     * A key belongs to a namespace, and represent a value
-     */
-    @JsonProperty
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    private String key;
+  /** A key belongs to a namespace, and represent a value */
+  @JsonProperty @ToString.Include @EqualsAndHashCode.Include private String key;
 
-    /**
-     * A value referenced by a key and namespace, JSON-formatted data stored as
-     * a string but in a jsonb column.
-     */
-    private String jbPlainValue;
+  /**
+   * A value referenced by a key and namespace, JSON-formatted data stored as a string but in a
+   * jsonb column.
+   */
+  private String jbPlainValue;
 
-    /**
-     * Whether this KeyJsonValue is encrypted or not. Default is false.
-     */
-    private Boolean encrypted = false;
+  /** Whether this KeyJsonValue is encrypted or not. Default is false. */
+  private Boolean encrypted = false;
 
-    /**
-     * Encrypted value if encrypted is set to true
-     */
-    private String encryptedValue;
+  /** Encrypted value if encrypted is set to true */
+  private String encryptedValue;
 
-    /**
-     * Temporary variable to hold any new values set during session. Will be
-     * made into the correct type when being persisted by the persistence layer
-     * (encrypted or plain).
-     */
-    private String value;
+  /**
+   * Temporary variable to hold any new values set during session. Will be made into the correct
+   * type when being persisted by the persistence layer (encrypted or plain).
+   */
+  private String value;
 
-    public DatastoreEntry( String namespace, String key )
-    {
-        this( namespace, key, null, false );
-    }
+  public DatastoreEntry(String namespace, String key) {
+    this(namespace, key, null, false);
+  }
 
-    public DatastoreEntry( String namespace, String key, String value, boolean encrypted )
-    {
-        this.namespace = namespace;
-        this.key = key;
-        this.value = value;
-        this.encrypted = encrypted;
-    }
+  public DatastoreEntry(String namespace, String key, String value, boolean encrypted) {
+    this.namespace = namespace;
+    this.key = key;
+    this.value = value;
+    this.encrypted = encrypted;
+  }
 
-    @JsonProperty
-    @ToString.Include
-    @EqualsAndHashCode.Include
-    public String getValue()
-    {
-        return encrypted ? getEncryptedValue() : getJbPlainValue();
-    }
+  @JsonProperty
+  @ToString.Include
+  @EqualsAndHashCode.Include
+  public String getValue() {
+    return encrypted ? getEncryptedValue() : getJbPlainValue();
+  }
 
-    public String getJbPlainValue()
-    {
-        return !encrypted && value != null ? value : jbPlainValue;
-    }
+  public String getJbPlainValue() {
+    return !encrypted && value != null ? value : jbPlainValue;
+  }
 
-    public String getEncryptedValue()
-    {
-        return encrypted && value != null ? value : encryptedValue;
-    }
-
+  public String getEncryptedValue() {
+    return encrypted && value != null ? value : encryptedValue;
+  }
 }

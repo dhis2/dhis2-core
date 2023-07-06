@@ -33,19 +33,15 @@ import org.hisp.dhis.feedback.ErrorMessage;
 /**
  * @author Lars Helge Overland
  */
-public class DeleteNotAllowedException
-    extends RuntimeException
-{
-    private ErrorCode errorCode;
+public class DeleteNotAllowedException extends RuntimeException {
+  private ErrorCode errorCode;
 
-    public DeleteNotAllowedException( ErrorMessage errorMessage )
-    {
-        super( errorMessage.getMessage() );
-        this.errorCode = errorMessage.getErrorCode();
-    }
+  public DeleteNotAllowedException(ErrorMessage errorMessage) {
+    super(errorMessage.getMessage());
+    this.errorCode = errorMessage.getErrorCode();
+  }
 
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
+  public ErrorCode getErrorCode() {
+    return errorCode;
+  }
 }

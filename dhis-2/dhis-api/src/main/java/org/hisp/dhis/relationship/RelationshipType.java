@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.relationship;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -34,131 +37,107 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.translation.Translatable;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "relationshipType", namespace = DxfNamespaces.DXF_2_0 )
-public class RelationshipType
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    private RelationshipConstraint fromConstraint;
+@JacksonXmlRootElement(localName = "relationshipType", namespace = DxfNamespaces.DXF_2_0)
+public class RelationshipType extends BaseIdentifiableObject implements MetadataObject {
+  private RelationshipConstraint fromConstraint;
 
-    private RelationshipConstraint toConstraint;
+  private RelationshipConstraint toConstraint;
 
-    private String description;
+  private String description;
 
-    private boolean bidirectional = false;
+  private boolean bidirectional = false;
 
-    private String fromToName;
+  private String fromToName;
 
-    private String toFromName;
+  private String toFromName;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public RelationshipType()
-    {
+  public RelationshipType() {}
 
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.COMPLEX, required = Property.Value.TRUE)
+  public RelationshipConstraint getFromConstraint() {
+    return fromConstraint;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.COMPLEX, required = Property.Value.TRUE )
-    public RelationshipConstraint getFromConstraint()
-    {
-        return fromConstraint;
-    }
+  public void setFromConstraint(RelationshipConstraint fromConstraint) {
+    this.fromConstraint = fromConstraint;
+  }
 
-    public void setFromConstraint( RelationshipConstraint fromConstraint )
-    {
-        this.fromConstraint = fromConstraint;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.COMPLEX, required = Property.Value.TRUE)
+  public RelationshipConstraint getToConstraint() {
+    return toConstraint;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.COMPLEX, required = Property.Value.TRUE )
-    public RelationshipConstraint getToConstraint()
-    {
-        return toConstraint;
-    }
+  public void setToConstraint(RelationshipConstraint toConstraint) {
+    this.toConstraint = toConstraint;
+  }
 
-    public void setToConstraint( RelationshipConstraint toConstraint )
-    {
-        this.toConstraint = toConstraint;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isBidirectional() {
+    return bidirectional;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isBidirectional()
-    {
-        return bidirectional;
-    }
+  public void setBidirectional(boolean bidirectional) {
+    this.bidirectional = bidirectional;
+  }
 
-    public void setBidirectional( boolean bidirectional )
-    {
-        this.bidirectional = bidirectional;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFromToName() {
+    return fromToName;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFromToName()
-    {
-        return fromToName;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "fromToName", key = "RELATIONSHIP_FROM_TO_NAME")
+  public String getDisplayFromToName() {
+    return getTranslation("RELATIONSHIP_FROM_TO_NAME", getFromToName());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "fromToName", key = "RELATIONSHIP_FROM_TO_NAME" )
-    public String getDisplayFromToName()
-    {
-        return getTranslation( "RELATIONSHIP_FROM_TO_NAME", getFromToName() );
-    }
+  public void setFromToName(String fromToName) {
+    this.fromToName = fromToName;
+  }
 
-    public void setFromToName( String fromToName )
-    {
-        this.fromToName = fromToName;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getToFromName() {
+    return toFromName;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getToFromName()
-    {
-        return toFromName;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "toFromName", key = "RELATIONSHIP_TO_FROM_NAME")
+  public String getDisplayToFromName() {
+    return getTranslation("RELATIONSHIP_TO_FROM_NAME", getToFromName());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "toFromName", key = "RELATIONSHIP_TO_FROM_NAME" )
-    public String getDisplayToFromName()
-    {
-        return getTranslation( "RELATIONSHIP_TO_FROM_NAME", getToFromName() );
-    }
-
-    public void setToFromName( String toFromName )
-    {
-        this.toFromName = toFromName;
-    }
+  public void setToFromName(String toFromName) {
+    this.toFromName = toFromName;
+  }
 }

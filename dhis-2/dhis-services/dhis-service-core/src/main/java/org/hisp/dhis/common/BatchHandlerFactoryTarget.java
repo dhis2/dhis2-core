@@ -31,19 +31,17 @@ import org.hisp.quick.BatchHandlerFactory;
 
 /**
  * OBS! This should not become a part of the dhis-api module!
- * <p>
- * Added to managed bean implementation classes (not their interface) which are
- * provided with a {@link BatchHandlerFactory} during testing.
+ *
+ * <p>Added to managed bean implementation classes (not their interface) which are provided with a
+ * {@link BatchHandlerFactory} during testing.
  *
  * @author Jan Bernitt
  */
-public interface BatchHandlerFactoryTarget
-{
-    /**
-     * This is only a workaround until a better solution is found.
-     *
-     * @param batchHandlerFactory dynamically update {@link BatchHandlerFactory}
-     *        during testing
-     */
-    void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory );
+public interface BatchHandlerFactoryTarget {
+  /**
+   * This is only a workaround until a better solution is found.
+   *
+   * @param batchHandlerFactory dynamically update {@link BatchHandlerFactory} during testing
+   */
+  void setBatchHandlerFactory(BatchHandlerFactory batchHandlerFactory);
 }

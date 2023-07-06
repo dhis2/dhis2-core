@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -60,80 +59,69 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-class AtomicModeIntegrationTest extends TransactionalIntegrationTest
-{
+class AtomicModeIntegrationTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private User userA;
+  private User userA;
 
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        objectBundleService.commit( bundle );
-        userA = userService.getUser( "M5zQapPyTZI" );
-        injectSecurityContext( userA );
-    }
+  @Override
+  public void setUpTest() throws Exception {
+    renderService = _renderService;
+    userService = _userService;
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("tracker/simple_metadata.json").getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
+    assertFalse(validationReport.hasErrorReports());
+    objectBundleService.commit(bundle);
+    userA = userService.getUser("M5zQapPyTZI");
+    injectSecurityContext(userA);
+  }
 
-    @Test
-    void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
-        throws IOException
-    {
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
-        params.setAtomicMode( AtomicMode.OBJECT );
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
-    }
+  @Test
+  void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
+    InputStream inputStream =
+        new ClassPathResource("tracker/one_valid_tei_and_one_invalid.json").getInputStream();
+    TrackerImportParams params = renderService.fromJson(inputStream, TrackerImportParams.class);
+    params.setUserId(userA.getUid());
+    params.setAtomicMode(AtomicMode.OBJECT);
+    TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker(params);
+    assertNotNull(trackerImportTeiReport);
+    assertEquals(TrackerStatus.OK, trackerImportTeiReport.getStatus());
+    assertEquals(1, trackerImportTeiReport.getValidationReport().getErrors().size());
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance("VALIDTEIAAA"));
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance("INVALIDTEIA"));
+  }
 
-    @Test
-    void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
-        throws IOException
-    {
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
-        params.setUserId( userA.getUid() );
-        params.setAtomicMode( AtomicMode.ALL );
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
-    }
+  @Test
+  void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
+    InputStream inputStream =
+        new ClassPathResource("tracker/one_valid_tei_and_one_invalid.json").getInputStream();
+    TrackerImportParams params = renderService.fromJson(inputStream, TrackerImportParams.class);
+    params.setUserId(userA.getUid());
+    params.setAtomicMode(AtomicMode.ALL);
+    TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker(params);
+    assertNotNull(trackerImportTeiReport);
+    assertEquals(TrackerStatus.ERROR, trackerImportTeiReport.getStatus());
+    assertEquals(1, trackerImportTeiReport.getValidationReport().getErrors().size());
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance("VALIDTEIAAA"));
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance("INVALIDTEIA"));
+  }
 }

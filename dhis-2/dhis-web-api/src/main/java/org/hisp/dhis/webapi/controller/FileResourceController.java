@@ -31,13 +31,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import com.google.common.base.MoreObjects;
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -65,120 +63,115 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Halvdan Hoem Grelland
  */
 @RestController
-@RequestMapping( value = FileResourceSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = FileResourceSchemaDescriptor.API_ENDPOINT)
 @Slf4j
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class FileResourceController
-{
-    private final FileResourceService fileResourceService;
+public class FileResourceController {
+  private final FileResourceService fileResourceService;
 
-    private final FileResourceUtils fileResourceUtils;
+  private final FileResourceUtils fileResourceUtils;
 
-    private final DhisConfigurationProvider dhisConfig;
+  private final DhisConfigurationProvider dhisConfig;
 
-    @GetMapping( value = "/{uid}" )
-    public FileResource getFileResource( @PathVariable String uid,
-        @RequestParam( required = false ) ImageFileDimension dimension )
-        throws WebMessageException
-    {
-        FileResource fileResource = fileResourceService.getFileResource( uid );
+  @GetMapping(value = "/{uid}")
+  public FileResource getFileResource(
+      @PathVariable String uid, @RequestParam(required = false) ImageFileDimension dimension)
+      throws WebMessageException {
+    FileResource fileResource = fileResourceService.getFileResource(uid);
 
-        if ( fileResource == null )
-        {
-            throw new WebMessageException( notFound( FileResource.class, uid ) );
-        }
-
-        FileResourceUtils.setImageFileDimensions( fileResource,
-            MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
-
-        return fileResource;
+    if (fileResource == null) {
+      throw new WebMessageException(notFound(FileResource.class, uid));
     }
 
-    @GetMapping( value = "/{uid}/data" )
-    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response,
-        @RequestParam( required = false ) ImageFileDimension dimension, @CurrentUser User currentUser )
-        throws WebMessageException
-    {
-        FileResource fileResource = fileResourceService.getFileResource( uid );
+    FileResourceUtils.setImageFileDimensions(
+        fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
 
-        if ( fileResource == null )
-        {
-            throw new WebMessageException( notFound( FileResource.class, uid ) );
-        }
+    return fileResource;
+  }
 
-        FileResourceUtils.setImageFileDimensions( fileResource,
-            MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
+  @GetMapping(value = "/{uid}/data")
+  public void getFileResourceData(
+      @PathVariable String uid,
+      HttpServletResponse response,
+      @RequestParam(required = false) ImageFileDimension dimension,
+      @CurrentUser User currentUser)
+      throws WebMessageException {
+    FileResource fileResource = fileResourceService.getFileResource(uid);
 
-        if ( !checkSharing( fileResource, currentUser ) )
-        {
-            throw new WebMessageException(
-                unauthorized( "You don't have access to fileResource '" + uid
-                    + "' or this fileResource is not available from this endpoint" ) );
-        }
-
-        response.setContentType( fileResource.getContentType() );
-        response.setHeader( HttpHeaders.CONTENT_LENGTH,
-            String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
-        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
-        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-
-        try
-        {
-            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
-        }
-        catch ( IOException e )
-        {
-            log.error( "Could not retrieve file.", e );
-            throw new WebMessageException( error( "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. " +
-                    "Depending on the provider the root cause could be network or file system related." ) );
-        }
+    if (fileResource == null) {
+      throw new WebMessageException(notFound(FileResource.class, uid));
     }
 
-    @PostMapping
-    public WebMessage saveFileResource( @RequestParam MultipartFile file,
-        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain )
-        throws WebMessageException,
-        IOException
-    {
-        FileResource fileResource = fileResourceUtils.saveFileResource( file, domain );
+    FileResourceUtils.setImageFileDimensions(
+        fileResource, MoreObjects.firstNonNull(dimension, ImageFileDimension.ORIGINAL));
 
-        WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
-        webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
-
-        return webMessage;
+    if (!checkSharing(fileResource, currentUser)) {
+      throw new WebMessageException(
+          unauthorized(
+              "You don't have access to fileResource '"
+                  + uid
+                  + "' or this fileResource is not available from this endpoint"));
     }
 
-    /**
-     * Checks is the current user has access to view the fileResource.
-     *
-     * @return true if user has access, false if not.
+    response.setContentType(fileResource.getContentType());
+    response.setHeader(
+        HttpHeaders.CONTENT_LENGTH,
+        String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+    HeaderUtils.setSecurityHeaders(
+        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
+
+    try {
+      fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+    } catch (IOException e) {
+      log.error("Could not retrieve file.", e);
+      throw new WebMessageException(
+          error(
+              "Failed fetching the file from storage",
+              "There was an exception when trying to fetch the file from the storage backend. "
+                  + "Depending on the provider the root cause could be network or file system related."));
+    }
+  }
+
+  @PostMapping
+  public WebMessage saveFileResource(
+      @RequestParam MultipartFile file,
+      @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain)
+      throws WebMessageException, IOException {
+    FileResource fileResource = fileResourceUtils.saveFileResource(file, domain);
+
+    WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.ACCEPTED);
+    webMessage.setResponse(new FileResourceWebMessageResponse(fileResource));
+
+    return webMessage;
+  }
+
+  /**
+   * Checks is the current user has access to view the fileResource.
+   *
+   * @return true if user has access, false if not.
+   */
+  private boolean checkSharing(FileResource fileResource, User currentUser) {
+    /*
+     * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
+     * doesn't make sense So we will return false if the fileResource have
+     * either of these domains.
      */
-    private boolean checkSharing( FileResource fileResource, User currentUser )
-    {
-        /*
-         * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
-         * doesn't make sense So we will return false if the fileResource have
-         * either of these domains.
-         */
-        FileResourceDomain domain = fileResource.getDomain();
-        if ( domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS )
-        {
-            return false;
-        }
-
-        if ( domain == FileResourceDomain.USER_AVATAR )
-        {
-            return currentUser.isAuthorized( "F_USER_VIEW" ) || fileResource.equals( currentUser.getAvatar() );
-        }
-
-        return true;
+    FileResourceDomain domain = fileResource.getDomain();
+    if (domain == FileResourceDomain.DATA_VALUE || domain == FileResourceDomain.PUSH_ANALYSIS) {
+      return false;
     }
+
+    if (domain == FileResourceDomain.USER_AVATAR) {
+      return currentUser.isAuthorized("F_USER_VIEW")
+          || fileResource.equals(currentUser.getAvatar());
+    }
+
+    return true;
+  }
 }

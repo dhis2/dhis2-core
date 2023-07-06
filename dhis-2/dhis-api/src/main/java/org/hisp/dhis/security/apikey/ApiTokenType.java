@@ -30,19 +30,16 @@ package org.hisp.dhis.security.apikey;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public enum ApiTokenType
-{
-    PERSONAL_ACCESS_TOKEN( "d2pat" );
+public enum ApiTokenType {
+  PERSONAL_ACCESS_TOKEN("d2pat");
 
-    private final String prefix;
+  private final String prefix;
 
-    ApiTokenType( String prefix )
-    {
-        this.prefix = prefix;
-    }
+  ApiTokenType(String prefix) {
+    this.prefix = prefix;
+  }
 
-    public String getPrefix()
-    {
-        return prefix;
-    }
+  public String getPrefix() {
+    return prefix;
+  }
 }

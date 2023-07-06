@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -61,66 +60,63 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Zubair Asghar
  */
-class TrackerSideEffectHandlerServiceTest extends TransactionalIntegrationTest
-{
+class TrackerSideEffectHandlerServiceTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Override
-    protected void setUpTest()
-        throws IOException
-    {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_metadata_with_program_rules.json" ).getInputStream(),
-            RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        objectBundleService.commit( bundle );
-    }
+  @Override
+  protected void setUpTest() throws IOException {
+    renderService = _renderService;
+    userService = _userService;
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("tracker/tracker_metadata_with_program_rules.json")
+                .getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
+    assertFalse(validationReport.hasErrorReports());
+    objectBundleService.commit(bundle);
+  }
 
-    @Test
-    @Disabled( "Needs to be added once rule engine PR is merged" )
-    void testRuleEngineSideEffectHandlerService()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = renderService.fromJson(
-            new ClassPathResource( "tracker/enrollment_data_with_program_rule_side_effects.json" ).getInputStream(),
-            TrackerImportParams.class );
-        assertEquals( 0, trackerImportParams.getEvents().size() );
-        assertEquals( 1, trackerImportParams.getTrackedEntities().size() );
-        TrackerImportParams params = TrackerImportParams.builder().events( trackerImportParams.getEvents() )
-            .enrollments( trackerImportParams.getEnrollments() )
-            .trackedEntities( trackerImportParams.getTrackedEntities() ).build();
-        params.setUserId( ADMIN_USER_UID );
-        trackerImportService.importTracker( params );
-        await().atMost( 2, TimeUnit.SECONDS )
-            .until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
-        List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
-        assertFalse( instances.isEmpty() );
-        ProgramNotificationInstance instance = instances.get( 0 );
-        assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
-    }
+  @Test
+  @Disabled("Needs to be added once rule engine PR is merged")
+  void testRuleEngineSideEffectHandlerService() throws IOException {
+    TrackerImportParams trackerImportParams =
+        renderService.fromJson(
+            new ClassPathResource("tracker/enrollment_data_with_program_rule_side_effects.json")
+                .getInputStream(),
+            TrackerImportParams.class);
+    assertEquals(0, trackerImportParams.getEvents().size());
+    assertEquals(1, trackerImportParams.getTrackedEntities().size());
+    TrackerImportParams params =
+        TrackerImportParams.builder()
+            .events(trackerImportParams.getEvents())
+            .enrollments(trackerImportParams.getEnrollments())
+            .trackedEntities(trackerImportParams.getTrackedEntities())
+            .build();
+    params.setUserId(ADMIN_USER_UID);
+    trackerImportService.importTracker(params);
+    await()
+        .atMost(2, TimeUnit.SECONDS)
+        .until(() -> manager.getAll(ProgramNotificationInstance.class).size() > 0);
+    List<ProgramNotificationInstance> instances = manager.getAll(ProgramNotificationInstance.class);
+    assertFalse(instances.isEmpty());
+    ProgramNotificationInstance instance = instances.get(0);
+    assertEquals("FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid());
+  }
 }

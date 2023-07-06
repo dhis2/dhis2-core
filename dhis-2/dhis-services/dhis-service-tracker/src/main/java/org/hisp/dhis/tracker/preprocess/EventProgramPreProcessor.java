@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.Program;
@@ -43,89 +42,82 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for setting the Program UID on an Event from
- * the ProgramStage if the Program is not present in the payload
+ * This preprocessor is responsible for setting the Program UID on an Event from the ProgramStage if
+ * the Program is not present in the payload
  *
  * @author Enrico Colasante
  */
 @Component
-public class EventProgramPreProcessor
-    implements BundlePreProcessor
-{
-    @Override
-    public void process( TrackerBundle bundle )
-    {
-        List<Event> eventsToPreprocess = bundle.getEvents()
-            .stream()
-            .filter( e -> Strings.isEmpty( e.getProgram() ) || Strings.isEmpty( e.getProgramStage() ) )
-            .collect( Collectors.toList() );
+public class EventProgramPreProcessor implements BundlePreProcessor {
+  @Override
+  public void process(TrackerBundle bundle) {
+    List<Event> eventsToPreprocess =
+        bundle.getEvents().stream()
+            .filter(e -> Strings.isEmpty(e.getProgram()) || Strings.isEmpty(e.getProgramStage()))
+            .collect(Collectors.toList());
 
-        for ( Event event : eventsToPreprocess )
-        {
-            // Extract program from program stage
-            if ( Strings.isNotEmpty( event.getProgramStage() ) )
-            {
-                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-                if ( Objects.nonNull( programStage ) )
-                {
-                    // TODO remove if once metadata import is fixed
-                    if ( programStage.getProgram() == null )
-                    {
-                        // Program stages should always have a program! Due to
-                        // how metadata
-                        // import is currently implemented
-                        // it's possible that users run into the edge case that
-                        // a program
-                        // stage does not have an associated
-                        // program. Tell the user it's an issue with the
-                        // metadata and not
-                        // the event itself. This should be
-                        // fixed in the metadata import. For more see
-                        // https://jira.dhis2.org/browse/DHIS2-12123
-                        //
-                        // PreCheckMandatoryFieldsValidationHook.validateEvent
-                        // will create
-                        // a validation error for this edge case
-                        return;
-                    }
-                    event.setProgram( programStage.getProgram().getUid() );
-                    bundle.getPreheat().put( TrackerIdSchemeParam.UID, programStage.getProgram() );
-                }
-            }
-            // If it is a program event, extract program stage from program
-            else if ( Strings.isNotEmpty( event.getProgram() ) )
-            {
-                Program program = bundle.getPreheat().get( Program.class, event.getProgram() );
-                if ( Objects.nonNull( program ) && program.isWithoutRegistration() )
-                {
-                    Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
-                    if ( programStage.isPresent() )
-                    {
-                        event.setProgramStage( programStage.get().getUid() );
-                        bundle.getPreheat().put( TrackerIdSchemeParam.UID, programStage.get() );
-                    }
-                }
-            }
+    for (Event event : eventsToPreprocess) {
+      // Extract program from program stage
+      if (Strings.isNotEmpty(event.getProgramStage())) {
+        ProgramStage programStage =
+            bundle.getPreheat().get(ProgramStage.class, event.getProgramStage());
+        if (Objects.nonNull(programStage)) {
+          // TODO remove if once metadata import is fixed
+          if (programStage.getProgram() == null) {
+            // Program stages should always have a program! Due to
+            // how metadata
+            // import is currently implemented
+            // it's possible that users run into the edge case that
+            // a program
+            // stage does not have an associated
+            // program. Tell the user it's an issue with the
+            // metadata and not
+            // the event itself. This should be
+            // fixed in the metadata import. For more see
+            // https://jira.dhis2.org/browse/DHIS2-12123
+            //
+            // PreCheckMandatoryFieldsValidationHook.validateEvent
+            // will create
+            // a validation error for this edge case
+            return;
+          }
+          event.setProgram(programStage.getProgram().getUid());
+          bundle.getPreheat().put(TrackerIdSchemeParam.UID, programStage.getProgram());
         }
-        setAttributeOptionCombo( bundle );
-    }
-
-    private void setAttributeOptionCombo( TrackerBundle bundle )
-    {
-
-        TrackerPreheat preheat = bundle.getPreheat();
-        List<Event> events = bundle.getEvents().stream()
-            .filter( e -> StringUtils.isBlank( e.getAttributeOptionCombo() )
-                && !StringUtils.isBlank( e.getAttributeCategoryOptions() ) )
-            .filter( e -> preheat.get( Program.class, e.getProgram() ) != null )
-            .collect( Collectors.toList() );
-
-        for ( Event e : events )
-        {
-            Program program = preheat.get( Program.class, e.getProgram() );
-            String aoc = preheat.getCategoryOptionComboIdentifier( program.getCategoryCombo(),
-                e.getAttributeCategoryOptions() );
-            e.setAttributeOptionCombo( aoc );
+      }
+      // If it is a program event, extract program stage from program
+      else if (Strings.isNotEmpty(event.getProgram())) {
+        Program program = bundle.getPreheat().get(Program.class, event.getProgram());
+        if (Objects.nonNull(program) && program.isWithoutRegistration()) {
+          Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
+          if (programStage.isPresent()) {
+            event.setProgramStage(programStage.get().getUid());
+            bundle.getPreheat().put(TrackerIdSchemeParam.UID, programStage.get());
+          }
         }
+      }
     }
+    setAttributeOptionCombo(bundle);
+  }
+
+  private void setAttributeOptionCombo(TrackerBundle bundle) {
+
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<Event> events =
+        bundle.getEvents().stream()
+            .filter(
+                e ->
+                    StringUtils.isBlank(e.getAttributeOptionCombo())
+                        && !StringUtils.isBlank(e.getAttributeCategoryOptions()))
+            .filter(e -> preheat.get(Program.class, e.getProgram()) != null)
+            .collect(Collectors.toList());
+
+    for (Event e : events) {
+      Program program = preheat.get(Program.class, e.getProgram());
+      String aoc =
+          preheat.getCategoryOptionComboIdentifier(
+              program.getCategoryCombo(), e.getAttributeCategoryOptions());
+      e.setAttributeOptionCombo(aoc);
+    }
+  }
 }

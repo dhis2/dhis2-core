@@ -28,10 +28,8 @@
 package org.hisp.dhis.dxf2.events.aggregates;
 
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Value;
-
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
@@ -39,56 +37,35 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
  * @author Luciano Fiandesio
  */
 @Value
-@Builder( toBuilder = true )
-public class AggregateContext
-{
-    /**
-     * returns true if user is Super User
-     */
-    boolean superUser;
+@Builder(toBuilder = true)
+public class AggregateContext {
+  /** returns true if user is Super User */
+  boolean superUser;
 
-    /**
-     * The current user uid
-     */
-    String userUid;
+  /** The current user uid */
+  String userUid;
 
-    /**
-     * The current user id
-     */
-    Long userId;
+  /** The current user id */
+  Long userId;
 
-    /**
-     * A list of group UIDs which the user belongs
-     */
-    List<String> userGroups;
+  /** A list of group UIDs which the user belongs */
+  List<String> userGroups;
 
-    /**
-     * A List of Tracked Entity Types ID to which the user has READ ONLY access
-     */
-    List<Long> trackedEntityTypes;
+  /** A List of Tracked Entity Types ID to which the user has READ ONLY access */
+  List<Long> trackedEntityTypes;
 
-    /**
-     * A List of Programs ID to which the user has READ ONLY access
-     */
-    List<Long> programs;
+  /** A List of Programs ID to which the user has READ ONLY access */
+  List<Long> programs;
 
-    /**
-     * A List of Program Stages ID to which the user has READ ONLY access
-     */
-    List<Long> programStages;
+  /** A List of Program Stages ID to which the user has READ ONLY access */
+  List<Long> programStages;
 
-    /**
-     * A List of Relationship ID to which the user has READ ONLY access
-     */
-    List<Long> relationshipTypes;
+  /** A List of Relationship ID to which the user has READ ONLY access */
+  List<Long> relationshipTypes;
 
-    /**
-     * The tei params to specify depth of tei graph
-     */
-    TrackedEntityInstanceParams params;
+  /** The tei params to specify depth of tei graph */
+  TrackedEntityInstanceParams params;
 
-    /**
-     * The query parameters to filter teis
-     */
-    TrackedEntityInstanceQueryParams queryParams;
+  /** The query parameters to filter teis */
+  TrackedEntityInstanceQueryParams queryParams;
 }

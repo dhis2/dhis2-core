@@ -36,31 +36,25 @@ import org.springframework.stereotype.Component;
 /**
  * @author Dang Duy Hieu
  */
-@Component( "org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler" )
-public class DataElementGroupSetDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.dataelement.DataElementGroupSetDeletionHandler")
+public class DataElementGroupSetDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public DataElementGroupSetDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
+  public DataElementGroupSetDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
 
-        this.idObjectManager = idObjectManager;
+    this.idObjectManager = idObjectManager;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(DataElementGroup.class, this::deleteDataElementGroup);
+  }
+
+  private void deleteDataElementGroup(DataElementGroup dataElementGroup) {
+    for (DataElementGroupSet groupSet : dataElementGroup.getGroupSets()) {
+      groupSet.getMembers().remove(dataElementGroup);
+      idObjectManager.updateNoAcl(groupSet);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElementGroup.class, this::deleteDataElementGroup );
-    }
-
-    private void deleteDataElementGroup( DataElementGroup dataElementGroup )
-    {
-        for ( DataElementGroupSet groupSet : dataElementGroup.getGroupSets() )
-        {
-            groupSet.getMembers().remove( dataElementGroup );
-            idObjectManager.updateNoAcl( groupSet );
-        }
-    }
+  }
 }

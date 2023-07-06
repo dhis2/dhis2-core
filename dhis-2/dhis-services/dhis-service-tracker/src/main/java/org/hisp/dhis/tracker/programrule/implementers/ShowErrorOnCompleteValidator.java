@@ -34,30 +34,24 @@ import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
 
 /**
- * This implementer show errors on a completed enrollment or event calculated by
- * Rule Engine.
- *
- * @Author Enrico Colasante
+ * This implementer show errors on a completed enrollment or event calculated by Rule
+ * Engine. @Author Enrico Colasante
  */
 @Component
 public class ShowErrorOnCompleteValidator
-    extends ErrorWarningImplementer<RuleActionErrorOnCompletion>
-{
-    @Override
-    public Class<RuleActionErrorOnCompletion> getActionClass()
-    {
-        return RuleActionErrorOnCompletion.class;
-    }
+    extends ErrorWarningImplementer<RuleActionErrorOnCompletion> {
+  @Override
+  public Class<RuleActionErrorOnCompletion> getActionClass() {
+    return RuleActionErrorOnCompletion.class;
+  }
 
-    @Override
-    public boolean isOnComplete()
-    {
-        return true;
-    }
+  @Override
+  public boolean isOnComplete() {
+    return true;
+  }
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
-    }
+  @Override
+  public IssueType getIssueType() {
+    return ERROR;
+  }
 }

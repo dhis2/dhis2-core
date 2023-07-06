@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -58,64 +57,55 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Zubair Asghar
  */
-public class SMSCommandObjectBundleServiceTest extends TransactionalIntegrationTest
-{
-    @Autowired
-    private ObjectBundleService objectBundleService;
+public class SMSCommandObjectBundleServiceTest extends TransactionalIntegrationTest {
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  @Override
+  public boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        renderService = _renderService;
-        userService = _userService;
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    renderService = _renderService;
+    userService = _userService;
+  }
 
-    @Test
-    public void textCreateSMSCommandWithCorrectCOCId()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/import/metadata_with_sms_commands.json" ).getInputStream(),
-            RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
-        validate.forEachErrorReport( System.out::println );
-        assertFalse( validate.hasErrorReports() );
-        objectBundleService.commit( bundle );
+  @Test
+  public void textCreateSMSCommandWithCorrectCOCId() throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("dxf2/import/metadata_with_sms_commands.json").getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validate = objectBundleValidationService.validate(bundle);
+    validate.forEachErrorReport(System.out::println);
+    assertFalse(validate.hasErrorReports());
+    objectBundleService.commit(bundle);
 
-        SMSCommand smsCommand = manager.get( SMSCommand.class, "em8Bg4LCr1a" );
-        Set<SMSCode> smsCodes = smsCommand.getCodes();
+    SMSCommand smsCommand = manager.get(SMSCommand.class, "em8Bg4LCr1a");
+    Set<SMSCode> smsCodes = smsCommand.getCodes();
 
-        SMSCode smsCode1 = smsCodes.stream().filter( c -> c.getCode().equals( "a" ) ).findFirst().get();
-        SMSCode smsCode2 = smsCodes.stream().filter( c -> c.getCode().equals( "b" ) ).findFirst().get();
+    SMSCode smsCode1 = smsCodes.stream().filter(c -> c.getCode().equals("a")).findFirst().get();
+    SMSCode smsCode2 = smsCodes.stream().filter(c -> c.getCode().equals("b")).findFirst().get();
 
-        assertSame( smsCode1.getOptionId(), categoryService.getDefaultCategoryOptionCombo() );
-        assertSame( smsCode2.getOptionId(), categoryService.getCategoryOptionCombo( smsCode2.getOptionId().getId() ) );
-    }
+    assertSame(smsCode1.getOptionId(), categoryService.getDefaultCategoryOptionCombo());
+    assertSame(
+        smsCode2.getOptionId(),
+        categoryService.getCategoryOptionCombo(smsCode2.getOptionId().getId()));
+  }
 }

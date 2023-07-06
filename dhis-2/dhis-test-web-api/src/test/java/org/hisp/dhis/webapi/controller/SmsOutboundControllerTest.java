@@ -35,70 +35,95 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsOutboundController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.sms.SmsOutboundController} using (mocked) REST
+ * requests.
  *
  * @author Jan Bernitt
  */
-class SmsOutboundControllerTest extends DhisControllerConvenienceTest
-{
+class SmsOutboundControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private OutboundSmsService outboundSmsService;
+  @Autowired private OutboundSmsService outboundSmsService;
 
-    @Test
-    void testSendSMSMessage()
-    {
-        assertWebMessage( "Internal Server Error", 500, "ERROR", "No default gateway configured",
-            POST( "/sms/outbound?recipient=" + getSuperuserUid() + "&message=text" )
-                .content( HttpStatus.INTERNAL_SERVER_ERROR ) );
-    }
+  @Test
+  void testSendSMSMessage() {
+    assertWebMessage(
+        "Internal Server Error",
+        500,
+        "ERROR",
+        "No default gateway configured",
+        POST("/sms/outbound?recipient=" + getSuperuserUid() + "&message=text")
+            .content(HttpStatus.INTERNAL_SERVER_ERROR));
+  }
 
-    @Test
-    void testSendSMSMessage_NoRecipient()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Recipient must be specified",
-            POST( "/sms/outbound?recipient=&message=text" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSendSMSMessage_NoRecipient() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Recipient must be specified",
+        POST("/sms/outbound?recipient=&message=text").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSendSMSMessage_NoMessage()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Message must be specified",
-            POST( "/sms/outbound?recipient=xyz&message=" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testSendSMSMessage_NoMessage() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Message must be specified",
+        POST("/sms/outbound?recipient=xyz&message=").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testSendSMSMessageWithBody()
-    {
-        assertWebMessage( "Internal Server Error", 500, "ERROR", "No default gateway configured",
-            POST( "/sms/outbound",
-                "{" + "'recipients':[{'id':'" + getSuperuserUid() + "'}]," + "'message':'text'" + "}" )
-                    .content( HttpStatus.INTERNAL_SERVER_ERROR ) );
-    }
+  @Test
+  void testSendSMSMessageWithBody() {
+    assertWebMessage(
+        "Internal Server Error",
+        500,
+        "ERROR",
+        "No default gateway configured",
+        POST(
+                "/sms/outbound",
+                "{"
+                    + "'recipients':[{'id':'"
+                    + getSuperuserUid()
+                    + "'}],"
+                    + "'message':'text'"
+                    + "}")
+            .content(HttpStatus.INTERNAL_SERVER_ERROR));
+  }
 
-    @Test
-    void testDeleteOutboundMessage()
-    {
-        OutboundSms sms = new OutboundSms();
-        outboundSmsService.save( sms );
-        assertWebMessage( "OK", 200, "OK", "OutboundSms with " + sms.getUid() + " deleted",
-            DELETE( "/sms/outbound/" + sms.getUid() ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteOutboundMessage() {
+    OutboundSms sms = new OutboundSms();
+    outboundSmsService.save(sms);
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "OutboundSms with " + sms.getUid() + " deleted",
+        DELETE("/sms/outbound/" + sms.getUid()).content(HttpStatus.OK));
+  }
 
-    @Test
-    void testDeleteOutboundMessage_NoSuchObject()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "No OutboundSms with id 'xyz' was found.",
-            DELETE( "/sms/outbound/xyz" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testDeleteOutboundMessage_NoSuchObject() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "No OutboundSms with id 'xyz' was found.",
+        DELETE("/sms/outbound/xyz").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testDeleteOutboundMessages()
-    {
-        OutboundSms sms = new OutboundSms();
-        outboundSmsService.save( sms );
-        assertWebMessage( "OK", 200, "OK", "Objects deleted",
-            DELETE( "/sms/outbound/?ids=" + sms.getUid() ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteOutboundMessages() {
+    OutboundSms sms = new OutboundSms();
+    outboundSmsService.save(sms);
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Objects deleted",
+        DELETE("/sms/outbound/?ids=" + sms.getUid()).content(HttpStatus.OK));
+  }
 }

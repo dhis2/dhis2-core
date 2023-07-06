@@ -28,49 +28,45 @@
 package org.hisp.dhis.userdatastore;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 
 /**
  * @author Stian Sandvold
  */
-public interface UserDatastoreStore
-    extends IdentifiableObjectStore<UserDatastoreEntry>
-{
-    /**
-     * Retrieves a KeyJsonValue based on the associated key and user
-     *
-     * @param user the user where the key is stored
-     * @param namespace the namespace referencing the value
-     * @param key the key referencing the value
-     * @return the KeyJsonValue retrieved
-     */
-    UserDatastoreEntry getUserKeyJsonValue( User user, String namespace, String key );
+public interface UserDatastoreStore extends IdentifiableObjectStore<UserDatastoreEntry> {
+  /**
+   * Retrieves a KeyJsonValue based on the associated key and user
+   *
+   * @param user the user where the key is stored
+   * @param namespace the namespace referencing the value
+   * @param key the key referencing the value
+   * @return the KeyJsonValue retrieved
+   */
+  UserDatastoreEntry getUserKeyJsonValue(User user, String namespace, String key);
 
-    /**
-     * Retrieves a list of namespaces associated with a user
-     *
-     * @param user to search namespaces for
-     * @return a list of strings representing namespaces
-     */
-    List<String> getNamespacesByUser( User user );
+  /**
+   * Retrieves a list of namespaces associated with a user
+   *
+   * @param user to search namespaces for
+   * @return a list of strings representing namespaces
+   */
+  List<String> getNamespacesByUser(User user);
 
-    /**
-     * Retrieves a list of keys associated with a given user and namespace.
-     *
-     * @param user the user to retrieve keys from
-     * @param namespace the namespace to search
-     * @return a list of strings representing the different keys stored on the
-     *         user
-     */
-    List<String> getKeysByUserAndNamespace( User user, String namespace );
+  /**
+   * Retrieves a list of keys associated with a given user and namespace.
+   *
+   * @param user the user to retrieve keys from
+   * @param namespace the namespace to search
+   * @return a list of strings representing the different keys stored on the user
+   */
+  List<String> getKeysByUserAndNamespace(User user, String namespace);
 
-    /**
-     * Retrieves all UserKeyJsonvalues from a given user and namespace
-     *
-     * @param user to search
-     * @param namespace to search
-     */
-    List<UserDatastoreEntry> getUserKeyJsonValueByUserAndNamespace( User user, String namespace );
+  /**
+   * Retrieves all UserKeyJsonvalues from a given user and namespace
+   *
+   * @param user to search
+   * @param namespace to search
+   */
+  List<UserDatastoreEntry> getUserKeyJsonValueByUserAndNamespace(User user, String namespace);
 }

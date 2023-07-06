@@ -38,9 +38,7 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 
 import java.util.List;
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,122 +49,120 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for executing the respective data item query
- * for a given entity.
+ * This component is responsible for executing the respective data item query for a given entity.
  *
  * @author maikel arabori
  */
 @Slf4j
 @Component
-public class QueryExecutor
-{
-    private static final String SPACED_UNION = " UNION ";
+public class QueryExecutor {
+  private static final String SPACED_UNION = " UNION ";
 
-    private final List<DataItemQuery> dataItemQueries;
+  private final List<DataItemQuery> dataItemQueries;
 
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+  private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public QueryExecutor( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate, final List<DataItemQuery> dataItemQueries )
-    {
-        checkNotNull( jdbcTemplate );
+  public QueryExecutor(
+      @Qualifier("readOnlyJdbcTemplate") final JdbcTemplate jdbcTemplate,
+      final List<DataItemQuery> dataItemQueries) {
+    checkNotNull(jdbcTemplate);
 
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
-        this.dataItemQueries = dataItemQueries;
+    this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+    this.dataItemQueries = dataItemQueries;
+  }
+
+  /**
+   * Responsible for building the respective query statement and executing it in order to find the
+   * list of items based on the given parameter map.
+   *
+   * @param targetEntities
+   * @param paramsMap
+   * @return the data items found
+   */
+  public List<DataItem> find(
+      final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      final MapSqlParameterSource paramsMap) {
+    final String unionQuery = unionQuery(targetEntities, paramsMap);
+
+    if (unionQuery.length() > 0) {
+      final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(unionQuery, paramsMap);
+
+      return process(rowSet);
     }
 
-    /**
-     * Responsible for building the respective query statement and executing it
-     * in order to find the list of items based on the given parameter map.
-     *
-     * @param targetEntities
-     * @param paramsMap
-     * @return the data items found
-     */
-    public List<DataItem> find( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        final MapSqlParameterSource paramsMap )
-    {
-        final String unionQuery = unionQuery( targetEntities, paramsMap );
+    return emptyList();
+  }
 
-        if ( unionQuery.length() > 0 )
-        {
-            final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( unionQuery, paramsMap );
+  /**
+   * Responsible for building the respective count SQL statement and executing it in order to find
+   * the total of data items for the given parameter map.
+   *
+   * @param targetEntities
+   * @param paramsMap
+   * @return the items found
+   */
+  public int count(
+      final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      final MapSqlParameterSource paramsMap) {
+    final String unionQuery = unionQuery(targetEntities, paramsMap);
+    final StringBuilder countQuery = new StringBuilder();
 
-            return process( rowSet );
-        }
+    if (unionQuery.length() > 0) {
+      countQuery
+          .append(SPACED_SELECT + "count(*) from (")
+          .append(unionQuery.replaceAll(maxLimit(paramsMap), EMPTY))
+          .append(") t");
 
-        return emptyList();
+      return namedParameterJdbcTemplate.queryForObject(
+          countQuery.toString(), paramsMap, Integer.class);
     }
 
-    /**
-     * Responsible for building the respective count SQL statement and executing
-     * it in order to find the total of data items for the given parameter map.
-     *
-     * @param targetEntities
-     * @param paramsMap
-     * @return the items found
-     */
-    public int count( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        final MapSqlParameterSource paramsMap )
-    {
-        final String unionQuery = unionQuery( targetEntities, paramsMap );
-        final StringBuilder countQuery = new StringBuilder();
+    return 0;
+  }
 
-        if ( unionQuery.length() > 0 )
-        {
-            countQuery.append( SPACED_SELECT + "count(*) from (" )
-                .append( unionQuery.replaceAll( maxLimit( paramsMap ), EMPTY ) )
-                .append( ") t" );
+  private String unionQuery(
+      final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      final MapSqlParameterSource paramsMap) {
+    final StringBuilder unionQuery = new StringBuilder();
 
-            return namedParameterJdbcTemplate.queryForObject( countQuery.toString(), paramsMap, Integer.class );
-        }
-
-        return 0;
+    // Iterates through all implementations of DataItemQuery and get the
+    // respective SQL query of each "entity".
+    for (final DataItemQuery dataItemQuery : dataItemQueries) {
+      if (targetEntities.contains(dataItemQuery.getRootEntity())
+          && dataItemQuery.matchQueryRules(paramsMap)) {
+        // Linking queries together through UNION.
+        unionQuery.append(dataItemQuery.getStatement(paramsMap));
+        unionQuery.append(SPACED_UNION);
+      }
     }
 
-    private String unionQuery( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder unionQuery = new StringBuilder();
+    if (unionQuery.length() > 0) {
+      final boolean hasMultipleEntities = targetEntities.size() > 1;
 
-        // Iterates through all implementations of DataItemQuery and get the
-        // respective SQL query of each "entity".
-        for ( final DataItemQuery dataItemQuery : dataItemQueries )
-        {
-            if ( targetEntities.contains( dataItemQuery.getRootEntity() )
-                && dataItemQuery.matchQueryRules( paramsMap ) )
-            {
-                // Linking queries together through UNION.
-                unionQuery.append( dataItemQuery.getStatement( paramsMap ) );
-                unionQuery.append( SPACED_UNION );
-            }
-        }
+      if (hasMultipleEntities) {
+        // Applying general sorting and limit over the final results.
+        unionQuery.append(
+            ifSet(
+                ordering(
+                    "i18n_first_name, i18n_second_name, item_uid",
+                    "item_name, item_uid",
+                    "i18n_first_shortname, i18n_second_shortname, item_uid",
+                    "item_shortname, item_uid",
+                    paramsMap)));
+        unionQuery.append(ifSet(maxLimit(paramsMap)));
+      }
 
-        if ( unionQuery.length() > 0 )
-        {
-            final boolean hasMultipleEntities = targetEntities.size() > 1;
+      // Removes last "UNION" keyword.
+      final int fromIndex = unionQuery.lastIndexOf(SPACED_UNION);
+      final int untilIndex = fromIndex + SPACED_UNION.length();
 
-            if ( hasMultipleEntities )
-            {
-                // Applying general sorting and limit over the final results.
-                unionQuery.append(
-                    ifSet( ordering( "i18n_first_name, i18n_second_name, item_uid",
-                        "item_name, item_uid", "i18n_first_shortname, i18n_second_shortname, item_uid",
-                        "item_shortname, item_uid", paramsMap ) ) );
-                unionQuery.append( ifSet( maxLimit( paramsMap ) ) );
-            }
-
-            // Removes last "UNION" keyword.
-            final int fromIndex = unionQuery.lastIndexOf( SPACED_UNION );
-            final int untilIndex = fromIndex + SPACED_UNION.length();
-
-            unionQuery.delete( fromIndex, untilIndex ).toString();
-        }
-
-        final String fullStatement = unionQuery.toString();
-
-        log.trace( "Full UNION SQL: " + fullStatement );
-
-        return fullStatement;
+      unionQuery.delete(fromIndex, untilIndex).toString();
     }
+
+    final String fullStatement = unionQuery.toString();
+
+    log.trace("Full UNION SQL: " + fullStatement);
+
+    return fullStatement;
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -38,51 +37,46 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.user.UserGroupDeletionHandler" )
-public class UserGroupDeletionHandler
-    extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.user.UserGroupDeletionHandler")
+public class UserGroupDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    public UserGroupDeletionHandler( IdentifiableObjectManager idObjectManager, CurrentUserService currentUserService )
-    {
-        checkNotNull( idObjectManager );
-        checkNotNull( currentUserService );
+  public UserGroupDeletionHandler(
+      IdentifiableObjectManager idObjectManager, CurrentUserService currentUserService) {
+    checkNotNull(idObjectManager);
+    checkNotNull(currentUserService);
 
-        this.idObjectManager = idObjectManager;
-        this.currentUserService = currentUserService;
+    this.idObjectManager = idObjectManager;
+    this.currentUserService = currentUserService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+    whenDeleting(UserGroup.class, this::deleteUserGroup);
+  }
+
+  private void deleteUser(User user) {
+    Set<UserGroup> userGroups = user.getGroups();
+
+    for (UserGroup group : userGroups) {
+      group.getMembers().remove(user);
+      idObjectManager.updateNoAcl(group);
+    }
+  }
+
+  private void deleteUserGroup(UserGroup userGroup) {
+    Set<UserGroup> userGroups = userGroup.getManagedByGroups();
+
+    for (UserGroup group : userGroups) {
+      group.getManagedGroups().remove(userGroup);
+      idObjectManager.updateNoAcl(group);
     }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-        whenDeleting( UserGroup.class, this::deleteUserGroup );
-    }
-
-    private void deleteUser( User user )
-    {
-        Set<UserGroup> userGroups = user.getGroups();
-
-        for ( UserGroup group : userGroups )
-        {
-            group.getMembers().remove( user );
-            idObjectManager.updateNoAcl( group );
-        }
-    }
-
-    private void deleteUserGroup( UserGroup userGroup )
-    {
-        Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-
-        for ( UserGroup group : userGroups )
-        {
-            group.getManagedGroups().remove( userGroup );
-            idObjectManager.updateNoAcl( group );
-        }
-
-        userGroup.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUsername() ) );
-    }
+    userGroup
+        .getMembers()
+        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUsername()));
+  }
 }

@@ -30,122 +30,103 @@ package org.hisp.dhis.schema;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import lombok.Data;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRootName;
-
 /**
  * @author Morten Olav Hansen
  */
-class SchemaFieldIntrospectorTest extends DhisSpringTest
-{
+class SchemaFieldIntrospectorTest extends DhisSpringTest {
 
-    @Autowired
-    private SchemaService schemaService;
+  @Autowired private SchemaService schemaService;
 
-    @Test
-    void testMethodScan()
-    {
-        Schema schema = schemaService.getDynamicSchema( SimpleWithMethods.class );
-        assertNotNull( schema.getProperty( "x" ) );
-        assertNotNull( schema.getProperty( "y" ) );
-    }
+  @Test
+  void testMethodScan() {
+    Schema schema = schemaService.getDynamicSchema(SimpleWithMethods.class);
+    assertNotNull(schema.getProperty("x"));
+    assertNotNull(schema.getProperty("y"));
+  }
 
-    @Test
-    void testFieldScan()
-    {
-        Schema schema = schemaService.getDynamicSchema( SimpleWithFields.class );
-        assertNotNull( schema.getProperty( "x" ) );
-        assertNotNull( schema.getProperty( "y" ) );
-    }
+  @Test
+  void testFieldScan() {
+    Schema schema = schemaService.getDynamicSchema(SimpleWithFields.class);
+    assertNotNull(schema.getProperty("x"));
+    assertNotNull(schema.getProperty("y"));
+  }
 
-    @Test
-    void testFieldMethodScan()
-    {
-        Schema schema = schemaService.getDynamicSchema( SimpleWithFieldAndMethod.class );
-        assertNotNull( schema.getProperty( "x" ) );
-        assertNotNull( schema.getProperty( "y" ) );
-    }
+  @Test
+  void testFieldMethodScan() {
+    Schema schema = schemaService.getDynamicSchema(SimpleWithFieldAndMethod.class);
+    assertNotNull(schema.getProperty("x"));
+    assertNotNull(schema.getProperty("y"));
+  }
 
-    @Test
-    void testNamespaces()
-    {
-        Schema schema = schemaService.getDynamicSchema( SimpleWithFieldAndMethodWithNamespace.class );
-        assertEquals( "simple", schema.getName() );
-        assertEquals( "https://simple.com", schema.getNamespace() );
-        assertNotNull( schema.getProperty( "x" ) );
-        assertNotNull( schema.getProperty( "y" ) );
-        assertEquals( "https://x.simple.com", schema.getProperty( "x" ).getNamespace() );
-        assertEquals( "https://y.simple.com", schema.getProperty( "y" ).getNamespace() );
-    }
+  @Test
+  void testNamespaces() {
+    Schema schema = schemaService.getDynamicSchema(SimpleWithFieldAndMethodWithNamespace.class);
+    assertEquals("simple", schema.getName());
+    assertEquals("https://simple.com", schema.getNamespace());
+    assertNotNull(schema.getProperty("x"));
+    assertNotNull(schema.getProperty("y"));
+    assertEquals("https://x.simple.com", schema.getProperty("x").getNamespace());
+    assertEquals("https://y.simple.com", schema.getProperty("y").getNamespace());
+  }
 }
 
 @Data
-class SimpleWithMethods
-{
+class SimpleWithMethods {
 
-    private String x;
+  private String x;
 
-    private String y;
+  private String y;
 
-    @JsonProperty
-    public String getX()
-    {
-        return x;
-    }
+  @JsonProperty
+  public String getX() {
+    return x;
+  }
 
-    @JsonProperty
-    public String getY()
-    {
-        return y;
-    }
+  @JsonProperty
+  public String getY() {
+    return y;
+  }
 }
 
 @Data
-class SimpleWithFields
-{
+class SimpleWithFields {
 
-    @JsonProperty
-    private String x;
+  @JsonProperty private String x;
 
-    @JsonProperty
-    private String y;
+  @JsonProperty private String y;
 }
 
 @Data
-class SimpleWithFieldAndMethod
-{
+class SimpleWithFieldAndMethod {
 
-    @JsonProperty
-    private String x;
+  @JsonProperty private String x;
 
-    private String y;
+  private String y;
 
-    @JsonProperty
-    public String getY()
-    {
-        return y;
-    }
+  @JsonProperty
+  public String getY() {
+    return y;
+  }
 }
 
 @Data
-@JsonRootName( value = "simple", namespace = "https://simple.com" )
-class SimpleWithFieldAndMethodWithNamespace
-{
+@JsonRootName(value = "simple", namespace = "https://simple.com")
+class SimpleWithFieldAndMethodWithNamespace {
 
-    @JsonProperty( namespace = "https://x.simple.com" )
-    private String x;
+  @JsonProperty(namespace = "https://x.simple.com")
+  private String x;
 
-    private String y;
+  private String y;
 
-    @JsonProperty( namespace = "https://y.simple.com" )
-    public String getY()
-    {
-        return y;
-    }
+  @JsonProperty(namespace = "https://y.simple.com")
+  public String getY() {
+    return y;
+  }
 }

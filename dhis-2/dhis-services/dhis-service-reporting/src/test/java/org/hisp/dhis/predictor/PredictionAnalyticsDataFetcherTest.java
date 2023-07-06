@@ -35,10 +35,11 @@ import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -61,226 +62,234 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Jim Grace
  */
-@ExtendWith( MockitoExtension.class )
-class PredictionAnalyticsDataFetcherTest
-    extends DhisConvenienceTest
-{
-    @Mock
-    private AnalyticsService analyticsService;
+@ExtendWith(MockitoExtension.class)
+class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest {
+  @Mock private AnalyticsService analyticsService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private CategoryService categoryService;
 
-    private OrganisationUnit orgUnitA;
+  private OrganisationUnit orgUnitA;
 
-    private OrganisationUnit orgUnitB;
+  private OrganisationUnit orgUnitB;
 
-    private List<OrganisationUnit> orgUnits;
+  private List<OrganisationUnit> orgUnits;
 
-    private Period periodA;
+  private Period periodA;
 
-    private Period periodB;
+  private Period periodB;
 
-    private Set<Period> periods;
+  private Set<Period> periods;
 
-    private Program programA;
+  private Program programA;
 
-    private Program programB;
+  private Program programB;
 
-    private TrackedEntityAttribute trackedEntityAttributeA;
+  private TrackedEntityAttribute trackedEntityAttributeA;
 
-    private PredictionAnalyticsDataFetcher fetcher;
+  private PredictionAnalyticsDataFetcher fetcher;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
 
-    @BeforeEach
-    void initTest()
-    {
-        periodA = createPeriod( "202101" );
-        periodB = createPeriod( "202102" );
+  @BeforeEach
+  void initTest() {
+    periodA = createPeriod("202101");
+    periodB = createPeriod("202102");
 
-        periodA.setId( 3 );
-        periodB.setId( 4 );
+    periodA.setId(3);
+    periodB.setId(4);
 
-        periods = Sets.newHashSet( periodA, periodB );
+    periods = Sets.newHashSet(periodA, periodB);
 
-        orgUnitA = createOrganisationUnit( "A" );
-        orgUnitB = createOrganisationUnit( "B" );
+    orgUnitA = createOrganisationUnit("A");
+    orgUnitB = createOrganisationUnit("B");
 
-        orgUnitA.setUid( "orgUnitAuid" );
-        orgUnitB.setUid( "orgUnitBuid" );
+    orgUnitA.setUid("orgUnitAuid");
+    orgUnitB.setUid("orgUnitBuid");
 
-        orgUnits = Lists.newArrayList( orgUnitA, orgUnitB );
+    orgUnits = Lists.newArrayList(orgUnitA, orgUnitB);
 
-        programA = createProgram( 'A' );
-        programB = createProgram( 'B' );
+    programA = createProgram('A');
+    programB = createProgram('B');
 
-        fetcher = new PredictionAnalyticsDataFetcher( analyticsService, categoryService );
-    }
+    fetcher = new PredictionAnalyticsDataFetcher(analyticsService, categoryService);
+  }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
 
-    @Test
-    void testGetValues()
-    {
-        // ---------------------------------------------------------------------
-        // Items with Attribute Option Combos
-        // ---------------------------------------------------------------------
+  @Test
+  void testGetValues() {
+    // ---------------------------------------------------------------------
+    // Items with Attribute Option Combos
+    // ---------------------------------------------------------------------
 
-        CategoryOptionCombo aocC = createCategoryOptionCombo( 'C' );
-        CategoryOptionCombo aocD = createCategoryOptionCombo( 'D' );
+    CategoryOptionCombo aocC = createCategoryOptionCombo('C');
+    CategoryOptionCombo aocD = createCategoryOptionCombo('D');
 
-        when( categoryService.getCategoryOptionCombo( aocC.getUid() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getUid() ) ).thenReturn( aocD );
+    when(categoryService.getCategoryOptionCombo(aocC.getUid())).thenReturn(aocC);
+    when(categoryService.getCategoryOptionCombo(aocD.getUid())).thenReturn(aocD);
 
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "expressionA", "filterA" );
-        ProgramIndicator programIndicatorB = createProgramIndicator( 'B', programB, "expressionB", "filterB" );
+    ProgramIndicator programIndicatorA =
+        createProgramIndicator('A', programA, "expressionA", "filterA");
+    ProgramIndicator programIndicatorB =
+        createProgramIndicator('B', programB, "expressionB", "filterB");
 
-        trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
+    trackedEntityAttributeA = createTrackedEntityAttribute('A');
 
-        Set<DimensionalItemObject> aocItems = Sets.newHashSet( programIndicatorA, programIndicatorB,
-            trackedEntityAttributeA );
+    Set<DimensionalItemObject> aocItems =
+        Sets.newHashSet(programIndicatorA, programIndicatorB, trackedEntityAttributeA);
 
-        DataQueryParams aocParams = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( periods ) )
-            .withDataDimensionItems( Lists.newArrayList( aocItems ) )
-            .withOrganisationUnits( orgUnits )
-            .withAttributeOptionCombos( Collections.emptyList() )
+    DataQueryParams aocParams =
+        DataQueryParams.newBuilder()
+            .withPeriods(Lists.newArrayList(periods))
+            .withDataDimensionItems(Lists.newArrayList(aocItems))
+            .withOrganisationUnits(orgUnits)
+            .withAttributeOptionCombos(Collections.emptyList())
             .build();
 
-        Grid aocGrid = new ListGrid();
+    Grid aocGrid = new ListGrid();
 
-        aocGrid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
-        aocGrid.addHeader( new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
-        aocGrid.addHeader( new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
-        aocGrid.addHeader( new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true ) );
-        aocGrid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
+    aocGrid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    aocGrid.addHeader(new GridHeader(DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true));
+    aocGrid.addHeader(
+        new GridHeader(ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true));
+    aocGrid.addHeader(
+        new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    aocGrid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
 
-        aocGrid.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programIndicatorA.getUid() )
-            .addValue( orgUnitA.getUid() )
-            .addValue( aocC.getUid() )
-            .addValue( 10.0 );
+    aocGrid
+        .addRow()
+        .addValue(periodA.getIsoDate())
+        .addValue(programIndicatorA.getUid())
+        .addValue(orgUnitA.getUid())
+        .addValue(aocC.getUid())
+        .addValue(10.0);
 
-        aocGrid.addRow()
-            .addValue( periodB.getIsoDate() )
-            .addValue( programIndicatorB.getUid() )
-            .addValue( orgUnitA.getUid() )
-            .addValue( aocC.getUid() )
-            .addValue( 20L ); // Note: boxed as Long, not Double
+    aocGrid
+        .addRow()
+        .addValue(periodB.getIsoDate())
+        .addValue(programIndicatorB.getUid())
+        .addValue(orgUnitA.getUid())
+        .addValue(aocC.getUid())
+        .addValue(20L); // Note: boxed as Long, not Double
 
-        aocGrid.addRow()
-            .addValue( periodB.getIsoDate() )
-            .addValue( trackedEntityAttributeA.getUid() )
-            .addValue( orgUnitA.getUid() )
-            .addValue( aocD.getUid() )
-            .addValue( 30.0 );
+    aocGrid
+        .addRow()
+        .addValue(periodB.getIsoDate())
+        .addValue(trackedEntityAttributeA.getUid())
+        .addValue(orgUnitA.getUid())
+        .addValue(aocD.getUid())
+        .addValue(30.0);
 
-        aocGrid.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programIndicatorA.getUid() )
-            .addValue( orgUnitB.getUid() )
-            .addValue( aocC.getUid() )
-            .addValue( 40.0 );
+    aocGrid
+        .addRow()
+        .addValue(periodA.getIsoDate())
+        .addValue(programIndicatorA.getUid())
+        .addValue(orgUnitB.getUid())
+        .addValue(aocC.getUid())
+        .addValue(40.0);
 
-        when( analyticsService.getAggregatedDataValues( aocParams ) ).thenReturn( aocGrid );
+    when(analyticsService.getAggregatedDataValues(aocParams)).thenReturn(aocGrid);
 
-        FoundDimensionItemValue expected1;
-        FoundDimensionItemValue expected2;
-        FoundDimensionItemValue expected3;
-        FoundDimensionItemValue expected4;
+    FoundDimensionItemValue expected1;
+    FoundDimensionItemValue expected2;
+    FoundDimensionItemValue expected3;
+    FoundDimensionItemValue expected4;
 
-        expected1 = new FoundDimensionItemValue( orgUnitA, periodA, aocC, programIndicatorA, 10.0 );
-        expected2 = new FoundDimensionItemValue( orgUnitA, periodB, aocC, programIndicatorB, 20.0 );
-        expected3 = new FoundDimensionItemValue( orgUnitA, periodB, aocD, trackedEntityAttributeA, 30.0 );
-        expected4 = new FoundDimensionItemValue( orgUnitB, periodA, aocC, programIndicatorA, 40.0 );
+    expected1 = new FoundDimensionItemValue(orgUnitA, periodA, aocC, programIndicatorA, 10.0);
+    expected2 = new FoundDimensionItemValue(orgUnitA, periodB, aocC, programIndicatorB, 20.0);
+    expected3 = new FoundDimensionItemValue(orgUnitA, periodB, aocD, trackedEntityAttributeA, 30.0);
+    expected4 = new FoundDimensionItemValue(orgUnitB, periodA, aocC, programIndicatorA, 40.0);
 
-        // ---------------------------------------------------------------------
-        // Items without Attribute Option Combos
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Items without Attribute Option Combos
+    // ---------------------------------------------------------------------
 
-        ProgramIndicator programIndicatorC = createProgramIndicator( 'C', programA, "expressionC", "filterC" );
-        ProgramIndicator programIndicatorD = createProgramIndicator( 'D', programB, "expressionD", "filterD" );
+    ProgramIndicator programIndicatorC =
+        createProgramIndicator('C', programA, "expressionC", "filterC");
+    ProgramIndicator programIndicatorD =
+        createProgramIndicator('D', programB, "expressionD", "filterD");
 
-        programIndicatorC.setAnalyticsType( ENROLLMENT );
-        programIndicatorD.setAnalyticsType( ENROLLMENT );
+    programIndicatorC.setAnalyticsType(ENROLLMENT);
+    programIndicatorD.setAnalyticsType(ENROLLMENT);
 
-        Set<DimensionalItemObject> nonAocItems = Sets.newHashSet( programIndicatorC, programIndicatorD );
+    Set<DimensionalItemObject> nonAocItems = Sets.newHashSet(programIndicatorC, programIndicatorD);
 
-        DataQueryParams nonAocParams = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( periods ) )
-            .withDataDimensionItems( Lists.newArrayList( nonAocItems ) )
-            .withOrganisationUnits( orgUnits )
+    DataQueryParams nonAocParams =
+        DataQueryParams.newBuilder()
+            .withPeriods(Lists.newArrayList(periods))
+            .withDataDimensionItems(Lists.newArrayList(nonAocItems))
+            .withOrganisationUnits(orgUnits)
             .build();
 
-        Grid nonAocGrid = new ListGrid();
+    Grid nonAocGrid = new ListGrid();
 
-        nonAocGrid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
-        nonAocGrid.addHeader( new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
-        nonAocGrid.addHeader( new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
-        nonAocGrid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
+    nonAocGrid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    nonAocGrid.addHeader(
+        new GridHeader(DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true));
+    nonAocGrid.addHeader(
+        new GridHeader(ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true));
+    nonAocGrid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
 
-        nonAocGrid.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programIndicatorC.getUid() )
-            .addValue( orgUnitA.getUid() )
-            .addValue( 100.0 );
+    nonAocGrid
+        .addRow()
+        .addValue(periodA.getIsoDate())
+        .addValue(programIndicatorC.getUid())
+        .addValue(orgUnitA.getUid())
+        .addValue(100.0);
 
-        nonAocGrid.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programIndicatorD.getUid() )
-            .addValue( orgUnitB.getUid() )
-            .addValue( 200.0 );
+    nonAocGrid
+        .addRow()
+        .addValue(periodA.getIsoDate())
+        .addValue(programIndicatorD.getUid())
+        .addValue(orgUnitB.getUid())
+        .addValue(200.0);
 
-        nonAocGrid.addRow()
-            .addValue( periodB.getIsoDate() )
-            .addValue( programIndicatorC.getUid() )
-            .addValue( orgUnitA.getUid() )
-            .addValue( 300.0 );
+    nonAocGrid
+        .addRow()
+        .addValue(periodB.getIsoDate())
+        .addValue(programIndicatorC.getUid())
+        .addValue(orgUnitA.getUid())
+        .addValue(300.0);
 
-        when( analyticsService.getAggregatedDataValues( nonAocParams ) ).thenReturn( nonAocGrid );
+    when(analyticsService.getAggregatedDataValues(nonAocParams)).thenReturn(nonAocGrid);
 
-        FoundDimensionItemValue expected5;
-        FoundDimensionItemValue expected6;
-        FoundDimensionItemValue expected7;
+    FoundDimensionItemValue expected5;
+    FoundDimensionItemValue expected6;
+    FoundDimensionItemValue expected7;
 
-        CategoryOptionCombo noAoc = null;
+    CategoryOptionCombo noAoc = null;
 
-        expected5 = new FoundDimensionItemValue( orgUnitA, periodA, noAoc, programIndicatorC, 100.0 );
-        expected6 = new FoundDimensionItemValue( orgUnitB, periodA, noAoc, programIndicatorD, 200.0 );
-        expected7 = new FoundDimensionItemValue( orgUnitA, periodB, noAoc, programIndicatorC, 300.0 );
+    expected5 = new FoundDimensionItemValue(orgUnitA, periodA, noAoc, programIndicatorC, 100.0);
+    expected6 = new FoundDimensionItemValue(orgUnitB, periodA, noAoc, programIndicatorD, 200.0);
+    expected7 = new FoundDimensionItemValue(orgUnitA, periodB, noAoc, programIndicatorC, 300.0);
 
-        // ---------------------------------------------------------------------
-        // Do the test
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Do the test
+    // ---------------------------------------------------------------------
 
-        Set<DimensionalItemObject> items = Sets.union( aocItems, nonAocItems );
+    Set<DimensionalItemObject> items = Sets.union(aocItems, nonAocItems);
 
-        fetcher.init( periods, items );
+    fetcher.init(periods, items);
 
-        List<FoundDimensionItemValue> actual = fetcher.getValues( orgUnits );
+    List<FoundDimensionItemValue> actual = fetcher.getValues(orgUnits);
 
-        assertContainsOnly( actual, expected1, expected2, expected3, expected4, expected5, expected6, expected7 );
-    }
+    assertContainsOnly(
+        actual, expected1, expected2, expected3, expected4, expected5, expected6, expected7);
+  }
 
-    @Test
-    void testGetValuesEmpty()
-    {
-        fetcher.init( periods, Collections.emptySet() );
+  @Test
+  void testGetValuesEmpty() {
+    fetcher.init(periods, Collections.emptySet());
 
-        List<FoundDimensionItemValue> actual = fetcher.getValues( orgUnits );
+    List<FoundDimensionItemValue> actual = fetcher.getValues(orgUnits);
 
-        assertContainsOnly( actual );
-    }
+    assertContainsOnly(actual);
+  }
 }

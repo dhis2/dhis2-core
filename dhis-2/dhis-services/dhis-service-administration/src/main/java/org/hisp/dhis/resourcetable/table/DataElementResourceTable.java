@@ -29,107 +29,115 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-public class DataElementResourceTable
-    extends ResourceTable<DataElement>
-{
-    private final String tableType;
+public class DataElementResourceTable extends ResourceTable<DataElement> {
+  private final String tableType;
 
-    public DataElementResourceTable( List<DataElement> objects, String tableType )
-    {
-        super( objects );
-        this.tableType = tableType;
+  public DataElementResourceTable(List<DataElement> objects, String tableType) {
+    super(objects);
+    this.tableType = tableType;
+  }
+
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.DATA_ELEMENT_STRUCTURE;
+  }
+
+  @Override
+  public String getCreateTempTableStatement() {
+    return "create "
+        + tableType
+        + " table "
+        + getTempTableName()
+        + " ("
+        + "dataelementid bigint not null primary key, "
+        + "dataelementuid character(11), "
+        + "dataelementname varchar(230), "
+        + "datasetid bigint, "
+        + "datasetuid character(11), "
+        + "datasetname varchar(230), "
+        + "datasetapprovallevel integer, "
+        + "workflowid bigint, "
+        + "periodtypeid integer, "
+        + "periodtypename varchar(230))";
+  }
+
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    List<Object[]> batchArgs = new ArrayList<>();
+
+    for (DataElement dataElement : objects) {
+      List<Object> values = new ArrayList<>();
+
+      final DataSet dataSet = dataElement.getApprovalDataSet();
+      final PeriodType periodType = dataElement.getPeriodType();
+
+      // -----------------------------------------------------------------
+      // Use highest approval level if data set does not require approval,
+      // or null if approval is required.
+      // -----------------------------------------------------------------
+
+      values.add(dataElement.getId());
+      values.add(dataElement.getUid());
+      values.add(dataElement.getName());
+      values.add(dataSet != null ? dataSet.getId() : null);
+      values.add(dataSet != null ? dataSet.getUid() : null);
+      values.add(dataSet != null ? dataSet.getName() : null);
+      values.add(dataSet != null && dataSet.isApproveData() ? null : APPROVAL_LEVEL_HIGHEST);
+      values.add(dataSet != null && dataSet.isApproveData() ? dataSet.getWorkflow().getId() : null);
+      values.add(periodType != null ? periodType.getId() : null);
+      values.add(periodType != null ? periodType.getName() : null);
+
+      batchArgs.add(values.toArray());
     }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.DATA_ELEMENT_STRUCTURE;
-    }
+    return Optional.of(batchArgs);
+  }
 
-    @Override
-    public String getCreateTempTableStatement()
-    {
-        return "create " + tableType + " table " + getTempTableName() + " (" +
-            "dataelementid bigint not null primary key, " +
-            "dataelementuid character(11), " +
-            "dataelementname varchar(230), " +
-            "datasetid bigint, " +
-            "datasetuid character(11), " +
-            "datasetname varchar(230), " +
-            "datasetapprovallevel integer, " +
-            "workflowid bigint, " +
-            "periodtypeid integer, " +
-            "periodtypename varchar(230))";
-    }
-
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        List<Object[]> batchArgs = new ArrayList<>();
-
-        for ( DataElement dataElement : objects )
-        {
-            List<Object> values = new ArrayList<>();
-
-            final DataSet dataSet = dataElement.getApprovalDataSet();
-            final PeriodType periodType = dataElement.getPeriodType();
-
-            // -----------------------------------------------------------------
-            // Use highest approval level if data set does not require approval,
-            // or null if approval is required.
-            // -----------------------------------------------------------------
-
-            values.add( dataElement.getId() );
-            values.add( dataElement.getUid() );
-            values.add( dataElement.getName() );
-            values.add( dataSet != null ? dataSet.getId() : null );
-            values.add( dataSet != null ? dataSet.getUid() : null );
-            values.add( dataSet != null ? dataSet.getName() : null );
-            values.add( dataSet != null && dataSet.isApproveData() ? null : APPROVAL_LEVEL_HIGHEST );
-            values.add( dataSet != null && dataSet.isApproveData() ? dataSet.getWorkflow().getId() : null );
-            values.add( periodType != null ? periodType.getId() : null );
-            values.add( periodType != null ? periodType.getName() : null );
-
-            batchArgs.add( values.toArray() );
-        }
-
-        return Optional.of( batchArgs );
-    }
-
-    @Override
-    public List<String> getCreateIndexStatements()
-    {
-        return Lists.newArrayList(
-            "create unique index in_dataelementstructure_dataelementuid_" + getRandomSuffix() + " on "
-                + getTempTableName() + "(dataelementuid);",
-            "create index in_dataelementstructure_datasetid_" + getRandomSuffix() + " on " + getTempTableName()
-                + "(datasetid);",
-            "create index in_dataelementstructure_datasetuid_" + getRandomSuffix() + " on " + getTempTableName()
-                + "(datasetuid);",
-            "create index in_dataelementstructure_periodtypeid_" + getRandomSuffix() + " on " + getTempTableName()
-                + "(periodtypeid);",
-            "create index in_dataelementstructure_workflowid_" + getRandomSuffix() + " on " + getTempTableName()
-                + "(workflowid);" );
-    }
+  @Override
+  public List<String> getCreateIndexStatements() {
+    return Lists.newArrayList(
+        "create unique index in_dataelementstructure_dataelementuid_"
+            + getRandomSuffix()
+            + " on "
+            + getTempTableName()
+            + "(dataelementuid);",
+        "create index in_dataelementstructure_datasetid_"
+            + getRandomSuffix()
+            + " on "
+            + getTempTableName()
+            + "(datasetid);",
+        "create index in_dataelementstructure_datasetuid_"
+            + getRandomSuffix()
+            + " on "
+            + getTempTableName()
+            + "(datasetuid);",
+        "create index in_dataelementstructure_periodtypeid_"
+            + getRandomSuffix()
+            + " on "
+            + getTempTableName()
+            + "(periodtypeid);",
+        "create index in_dataelementstructure_workflowid_"
+            + getRandomSuffix()
+            + " on "
+            + getTempTableName()
+            + "(workflowid);");
+  }
 }

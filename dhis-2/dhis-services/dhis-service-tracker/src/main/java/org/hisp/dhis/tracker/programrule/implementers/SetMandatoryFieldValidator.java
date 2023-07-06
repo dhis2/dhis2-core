@@ -29,13 +29,13 @@ package org.hisp.dhis.tracker.programrule.implementers;
 
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.*;
@@ -47,87 +47,89 @@ import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
- * This implementer check if a field is not empty in the {@link TrackerBundle}
- *
- * @Author Enrico Colasante
+ * This implementer check if a field is not empty in the {@link TrackerBundle} @Author Enrico
+ * Colasante
  */
 @Component
 public class SetMandatoryFieldValidator
     extends AbstractRuleActionImplementer<RuleActionSetMandatoryField>
-    implements RuleActionImplementer
-{
-    @Override
-    public Class<RuleActionSetMandatoryField> getActionClass()
-    {
-        return RuleActionSetMandatoryField.class;
-    }
+    implements RuleActionImplementer {
+  @Override
+  public Class<RuleActionSetMandatoryField> getActionClass() {
+    return RuleActionSetMandatoryField.class;
+  }
 
-    @Override
-    public String getField( RuleActionSetMandatoryField ruleAction )
-    {
-        return ruleAction.field();
-    }
+  @Override
+  public String getField(RuleActionSetMandatoryField ruleAction) {
+    return ruleAction.field();
+  }
 
-    @Override
-    List<ProgramRuleIssue> applyToEvents( Map.Entry<String, List<EventActionRule>> eventClasses, TrackerBundle bundle )
-    {
-        return checkMandatoryDataElement( getEvent( bundle, eventClasses.getKey() ).get(), eventClasses.getValue(),
-            bundle );
-    }
+  @Override
+  List<ProgramRuleIssue> applyToEvents(
+      Map.Entry<String, List<EventActionRule>> eventClasses, TrackerBundle bundle) {
+    return checkMandatoryDataElement(
+        getEvent(bundle, eventClasses.getKey()).get(), eventClasses.getValue(), bundle);
+  }
 
-    @Override
-    List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules,
-        TrackerBundle bundle )
-    {
-        return enrollmentActionRules.getValue().stream()
-            .flatMap( actionRule -> checkMandatoryEnrollmentAttribute(
-                bundle.getEnrollment( actionRule.getEnrollment() ).get(),
-                enrollmentActionRules.getValue() ).stream() )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  List<ProgramRuleIssue> applyToEnrollments(
+      Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules, TrackerBundle bundle) {
+    return enrollmentActionRules.getValue().stream()
+        .flatMap(
+            actionRule ->
+                checkMandatoryEnrollmentAttribute(
+                    bundle.getEnrollment(actionRule.getEnrollment()).get(),
+                    enrollmentActionRules.getValue())
+                    .stream())
+        .collect(Collectors.toList());
+  }
 
-    private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute( Enrollment enrollment,
-        List<EnrollmentActionRule> effects )
-    {
-        return effects.stream()
-            .map( action -> {
-                String attributeUid = action.getField();
-                Optional<Attribute> any = enrollment.getAttributes().stream()
-                    .filter( attribute -> attribute.getAttribute().equals( attributeUid ) )
-                    .findAny();
-                if ( !any.isPresent() || StringUtils.isEmpty( any.get().getValue() ) )
-                {
-                    return new ProgramRuleIssue( action.getRuleUid(),
-                        TrackerErrorCode.E1306,
-                        Lists.newArrayList( attributeUid ), IssueType.ERROR );
-                }
-                else
-                {
-                    return null;
-                }
-            } )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
+  private List<ProgramRuleIssue> checkMandatoryEnrollmentAttribute(
+      Enrollment enrollment, List<EnrollmentActionRule> effects) {
+    return effects.stream()
+        .map(
+            action -> {
+              String attributeUid = action.getField();
+              Optional<Attribute> any =
+                  enrollment.getAttributes().stream()
+                      .filter(attribute -> attribute.getAttribute().equals(attributeUid))
+                      .findAny();
+              if (!any.isPresent() || StringUtils.isEmpty(any.get().getValue())) {
+                return new ProgramRuleIssue(
+                    action.getRuleUid(),
+                    TrackerErrorCode.E1306,
+                    Lists.newArrayList(attributeUid),
+                    IssueType.ERROR);
+              } else {
+                return null;
+              }
+            })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
 
-    private List<ProgramRuleIssue> checkMandatoryDataElement( Event event, List<EventActionRule> actionRules,
-        TrackerBundle bundle )
-    {
-        ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+  private List<ProgramRuleIssue> checkMandatoryDataElement(
+      Event event, List<EventActionRule> actionRules, TrackerBundle bundle) {
+    ProgramStage programStage =
+        bundle.getPreheat().get(ProgramStage.class, event.getProgramStage());
 
-        Map<String, EventActionRule> mandatoryDataElementsByActionRule = actionRules.stream()
-            .filter( eventActionRule -> eventActionRule.getAttributeType() == AttributeType.DATA_ELEMENT )
-            .collect( Collectors.toMap( EventActionRule::getField, Function.identity() ) );
+    Map<String, EventActionRule> mandatoryDataElementsByActionRule =
+        actionRules.stream()
+            .filter(
+                eventActionRule -> eventActionRule.getAttributeType() == AttributeType.DATA_ELEMENT)
+            .collect(Collectors.toMap(EventActionRule::getField, Function.identity()));
 
-        return validateMandatoryDataValue( programStage, event,
-            Lists.newArrayList( mandatoryDataElementsByActionRule.keySet() ) )
-                .stream()
-                .map( e -> new ProgramRuleIssue( mandatoryDataElementsByActionRule.get( e ).getRuleUid(),
+    return validateMandatoryDataValue(
+            programStage, event, Lists.newArrayList(mandatoryDataElementsByActionRule.keySet()))
+        .stream()
+        .map(
+            e ->
+                new ProgramRuleIssue(
+                    mandatoryDataElementsByActionRule.get(e).getRuleUid(),
                     TrackerErrorCode.E1301,
-                    Lists.newArrayList( e ), IssueType.ERROR ) )
-                .collect( Collectors.toList() );
-    }
+                    Lists.newArrayList(e),
+                    IssueType.ERROR))
+        .collect(Collectors.toList());
+  }
 }

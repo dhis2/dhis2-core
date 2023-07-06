@@ -43,71 +43,66 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RelationshipUtilsTest extends DhisConvenienceTest
-{
+class RelationshipUtilsTest extends DhisConvenienceTest {
 
-    private TrackedEntityInstance teiA, teiB;
+  private TrackedEntityInstance teiA, teiB;
 
-    private ProgramInstance piA;
+  private ProgramInstance piA;
 
-    private ProgramStageInstance psiA;
+  private ProgramStageInstance psiA;
 
-    private RelationshipType relationshipType;
+  private RelationshipType relationshipType;
 
-    @BeforeEach
-    void setup()
-    {
-        OrganisationUnit ou = createOrganisationUnit( 'A' );
-        teiA = createTrackedEntityInstance( 'A', ou );
-        teiB = createTrackedEntityInstance( 'B', ou );
-        Program p = createProgram( 'A' );
-        piA = createProgramInstance( p, teiA, ou );
-        ProgramStage ps = createProgramStage( 'A', p );
-        psiA = createProgramStageInstance( ps, piA, ou );
-        relationshipType = createRelationshipType( 'A' );
-    }
+  @BeforeEach
+  void setup() {
+    OrganisationUnit ou = createOrganisationUnit('A');
+    teiA = createTrackedEntityInstance('A', ou);
+    teiB = createTrackedEntityInstance('B', ou);
+    Program p = createProgram('A');
+    piA = createProgramInstance(p, teiA, ou);
+    ProgramStage ps = createProgramStage('A', p);
+    psiA = createProgramStageInstance(ps, piA, ou);
+    relationshipType = createRelationshipType('A');
+  }
 
-    @Test
-    void testExtractRelationshipItemUid()
-    {
-        RelationshipItem itemA = new RelationshipItem();
-        RelationshipItem itemB = new RelationshipItem();
-        RelationshipItem itemC = new RelationshipItem();
-        itemA.setTrackedEntityInstance( teiA );
-        itemB.setProgramInstance( piA );
-        itemC.setProgramStageInstance( psiA );
-        assertEquals( teiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemA ) );
-        assertEquals( piA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemB ) );
-        assertEquals( psiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemC ) );
-    }
+  @Test
+  void testExtractRelationshipItemUid() {
+    RelationshipItem itemA = new RelationshipItem();
+    RelationshipItem itemB = new RelationshipItem();
+    RelationshipItem itemC = new RelationshipItem();
+    itemA.setTrackedEntityInstance(teiA);
+    itemB.setProgramInstance(piA);
+    itemC.setProgramStageInstance(psiA);
+    assertEquals(teiA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemA));
+    assertEquals(piA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemB));
+    assertEquals(psiA.getUid(), RelationshipUtils.extractRelationshipItemUid(itemC));
+  }
 
-    @Test
-    void testGenerateRelationshipKey()
-    {
-        RelationshipItem from = new RelationshipItem();
-        RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntityInstance( teiA );
-        to.setTrackedEntityInstance( teiB );
-        Relationship relationship = new Relationship();
-        relationship.setRelationshipType( relationshipType );
-        relationship.setFrom( from );
-        relationship.setTo( to );
-        String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + teiB.getUid();
-        assertEquals( key, RelationshipUtils.generateRelationshipKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipKey() {
+    RelationshipItem from = new RelationshipItem();
+    RelationshipItem to = new RelationshipItem();
+    from.setTrackedEntityInstance(teiA);
+    to.setTrackedEntityInstance(teiB);
+    Relationship relationship = new Relationship();
+    relationship.setRelationshipType(relationshipType);
+    relationship.setFrom(from);
+    relationship.setTo(to);
+    String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + teiB.getUid();
+    assertEquals(key, RelationshipUtils.generateRelationshipKey(relationship));
+  }
 
-    @Test
-    void testGenerateRelationshipInvertedKey()
-    {
-        RelationshipItem from = new RelationshipItem();
-        RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntityInstance( teiA );
-        to.setTrackedEntityInstance( teiB );
-        Relationship relationship = new Relationship();
-        relationship.setRelationshipType( relationshipType );
-        relationship.setFrom( from );
-        relationship.setTo( to );
-        String invertedKey = relationshipType.getUid() + "_" + teiB.getUid() + "_" + teiA.getUid();
-        assertEquals( invertedKey, RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
-    }
+  @Test
+  void testGenerateRelationshipInvertedKey() {
+    RelationshipItem from = new RelationshipItem();
+    RelationshipItem to = new RelationshipItem();
+    from.setTrackedEntityInstance(teiA);
+    to.setTrackedEntityInstance(teiB);
+    Relationship relationship = new Relationship();
+    relationship.setRelationshipType(relationshipType);
+    relationship.setFrom(from);
+    relationship.setTo(to);
+    String invertedKey = relationshipType.getUid() + "_" + teiB.getUid() + "_" + teiA.getUid();
+    assertEquals(invertedKey, RelationshipUtils.generateRelationshipInvertedKey(relationship));
+  }
 }

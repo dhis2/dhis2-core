@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker;
 
 import java.util.List;
-
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 
@@ -37,15 +36,13 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
  *
  * @author Enrico Colasante
  */
-public interface TrackerProgramRuleService
-{
-    /**
-     * It feeds in all enrollments and event from the {@link TrackerBundle} into
-     * rule engine and return a list of rule effects by tracker object.
-     *
-     * @param bundle The bundle to build the context for rule engine
-     * @return List containing tracker object uids and their associated rule
-     *         effects.
-     */
-    List<RuleEffects> calculateRuleEffects( TrackerBundle bundle );
+public interface TrackerProgramRuleService {
+  /**
+   * It feeds in all enrollments and event from the {@link TrackerBundle} into rule engine and
+   * return a list of rule effects by tracker object.
+   *
+   * @param bundle The bundle to build the context for rule engine
+   * @return List containing tracker object uids and their associated rule effects.
+   */
+  List<RuleEffects> calculateRuleEffects(TrackerBundle bundle);
 }

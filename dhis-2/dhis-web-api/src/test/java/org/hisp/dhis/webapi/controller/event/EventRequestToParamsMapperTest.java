@@ -36,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashSet;
-
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -63,83 +62,101 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- *
  * @author Ameen
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class EventRequestToParamsMapperTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class EventRequestToParamsMapperTest {
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private ProgramStageService programStageService;
+  @Mock private ProgramStageService programStageService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private TrackedEntityInstanceService entityInstanceService;
+  @Mock private TrackedEntityInstanceService entityInstanceService;
 
-    @Mock
-    private DataElementService dataElementService;
+  @Mock private DataElementService dataElementService;
 
-    @Mock
-    private InputUtils inputUtils;
+  @Mock private InputUtils inputUtils;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    private RequestToSearchParamsMapper requestToSearchParamsMapper;
+  private RequestToSearchParamsMapper requestToSearchParamsMapper;
 
-    @BeforeEach
-    public void setUp()
-    {
-        requestToSearchParamsMapper = new RequestToSearchParamsMapper( currentUserService, programService,
-            organisationUnitService, programStageService, aclService, entityInstanceService, dataElementService,
-            inputUtils, schemaService );
+  @BeforeEach
+  public void setUp() {
+    requestToSearchParamsMapper =
+        new RequestToSearchParamsMapper(
+            currentUserService,
+            programService,
+            organisationUnitService,
+            programStageService,
+            aclService,
+            entityInstanceService,
+            dataElementService,
+            inputUtils,
+            schemaService);
 
-        Program program = new Program();
-        User user = new User();
-        OrganisationUnit ou = new OrganisationUnit();
-        TrackedEntityInstance tei = new TrackedEntityInstance();
-        DataElement de = new DataElement();
+    Program program = new Program();
+    User user = new User();
+    OrganisationUnit ou = new OrganisationUnit();
+    TrackedEntityInstance tei = new TrackedEntityInstance();
+    DataElement de = new DataElement();
 
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        when( programService.getProgram( any() ) ).thenReturn( program );
-        when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( ou );
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(programService.getProgram(any())).thenReturn(program);
+    when(organisationUnitService.getOrganisationUnit(any())).thenReturn(ou);
 
-        when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
-        when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( entityInstanceService.getTrackedEntityInstance( any() ) ).thenReturn( tei );
-        when( dataElementService.getDataElement( any() ) ).thenReturn( de );
-    }
+    when(organisationUnitService.isInUserHierarchy(ou)).thenReturn(true);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(entityInstanceService.getTrackedEntityInstance(any())).thenReturn(tei);
+    when(dataElementService.getDataElement(any())).thenReturn(de);
+  }
 
-    @Test
-    void testEventRequestToSearchParamsMapperSuccess()
-    {
+  @Test
+  void testEventRequestToSearchParamsMapperSuccess() {
 
-        EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( "programuid",
-            null, null, null, "orgunituid", OrganisationUnitSelectionMode.ACCESSIBLE, "teiUid",
-            null, null, null, null, null,
-            null, null, null,
-            null, null, null, null,
-            false, false, null, null,
-            false,
-            new HashSet<>(), new HashSet<>(), null,
+    EventSearchParams eventSearchParams =
+        requestToSearchParamsMapper.map(
+            "programuid",
             null,
-            new HashSet<>(), Collections.singleton( "UXz7xuGCEhU:GT:100" ), new HashSet<>(), false,
-            false );// Then
+            null,
+            null,
+            "orgunituid",
+            OrganisationUnitSelectionMode.ACCESSIBLE,
+            "teiUid",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            false,
+            false,
+            null,
+            null,
+            false,
+            new HashSet<>(),
+            new HashSet<>(),
+            null,
+            null,
+            new HashSet<>(),
+            Collections.singleton("UXz7xuGCEhU:GT:100"),
+            new HashSet<>(),
+            false,
+            false); // Then
 
-        assertThat( eventSearchParams, is( not( nullValue() ) ) );
-    }
-
+    assertThat(eventSearchParams, is(not(nullValue())));
+  }
 }

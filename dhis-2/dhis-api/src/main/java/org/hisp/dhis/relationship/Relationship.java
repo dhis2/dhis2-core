@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.relationship;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
-
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -37,179 +41,154 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
-@Auditable( scope = AuditScope.TRACKER )
-public class Relationship
-    extends BaseNameableObject
-    implements Serializable
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 3818815755138507997L;
+@JacksonXmlRootElement(localName = "relationship", namespace = DxfNamespaces.DXF_2_0)
+@Auditable(scope = AuditScope.TRACKER)
+public class Relationship extends BaseNameableObject implements Serializable {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 3818815755138507997L;
 
-    @AuditAttribute
-    private RelationshipType relationshipType;
+  @AuditAttribute private RelationshipType relationshipType;
 
-    @AuditAttribute
-    private RelationshipItem from;
+  @AuditAttribute private RelationshipItem from;
 
-    @AuditAttribute
-    private RelationshipItem to;
+  @AuditAttribute private RelationshipItem to;
 
-    private ObjectStyle style;
+  private ObjectStyle style;
 
-    private String formName;
+  private String formName;
 
-    private String description;
+  private String description;
 
-    /**
-     * The key is an aggregated representation of the relationship and its sides
-     * based on uids. The format is type_from_to
-     */
-    private String key;
+  /**
+   * The key is an aggregated representation of the relationship and its sides based on uids. The
+   * format is type_from_to
+   */
+  private String key;
 
-    /**
-     * The inverted key is a key, but with the sides switched. This will make it
-     * possible to match a key when it is bidirectional. the format is
-     * type_to_from
-     */
-    private String invertedKey;
+  /**
+   * The inverted key is a key, but with the sides switched. This will make it possible to match a
+   * key when it is bidirectional. the format is type_to_from
+   */
+  private String invertedKey;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public Relationship()
-    {
-    }
+  public Relationship() {}
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    /**
-     * @return the relationshipType
-     */
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipType getRelationshipType()
-    {
-        return relationshipType;
-    }
+  /**
+   * @return the relationshipType
+   */
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public RelationshipType getRelationshipType() {
+    return relationshipType;
+  }
 
-    /**
-     * @param relationshipType the relationshipType to set
-     */
-    public void setRelationshipType( RelationshipType relationshipType )
-    {
-        this.relationshipType = relationshipType;
-    }
+  /**
+   * @param relationshipType the relationshipType to set
+   */
+  public void setRelationshipType(RelationshipType relationshipType) {
+    this.relationshipType = relationshipType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectStyle getStyle()
-    {
-        return style;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ObjectStyle getStyle() {
+    return style;
+  }
 
-    public void setStyle( ObjectStyle style )
-    {
-        this.style = style;
-    }
+  public void setStyle(ObjectStyle style) {
+    this.style = style;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFormName()
-    {
-        return formName;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFormName() {
+    return formName;
+  }
 
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
-    }
+  public void setFormName(String formName) {
+    this.formName = formName;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
 
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipItem getFrom()
-    {
-        return from;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public RelationshipItem getFrom() {
+    return from;
+  }
 
-    public void setFrom( RelationshipItem from )
-    {
-        this.from = from;
-    }
+  public void setFrom(RelationshipItem from) {
+    this.from = from;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipItem getTo()
-    {
-        return to;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public RelationshipItem getTo() {
+    return to;
+  }
 
-    public void setTo( RelationshipItem to )
-    {
-        this.to = to;
-    }
+  public void setTo(RelationshipItem to) {
+    this.to = to;
+  }
 
-    @JsonIgnore
-    public String getKey()
-    {
-        return key;
-    }
+  @JsonIgnore
+  public String getKey() {
+    return key;
+  }
 
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
+  public void setKey(String key) {
+    this.key = key;
+  }
 
-    @JsonIgnore
-    public String getInvertedKey()
-    {
-        return invertedKey;
-    }
+  @JsonIgnore
+  public String getInvertedKey() {
+    return invertedKey;
+  }
 
-    public void setInvertedKey( String invertedKey )
-    {
-        this.invertedKey = invertedKey;
-    }
+  public void setInvertedKey(String invertedKey) {
+    this.invertedKey = invertedKey;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "Relationship{" +
-            "id=" + id +
-            ", relationshipType=" + relationshipType +
-            ", from=" + from +
-            ", to=" + to +
-            ", style=" + style +
-            ", formName='" + formName + '\'' +
-            ", description='" + description + '\'' +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "Relationship{"
+        + "id="
+        + id
+        + ", relationshipType="
+        + relationshipType
+        + ", from="
+        + from
+        + ", to="
+        + to
+        + ", style="
+        + style
+        + ", formName='"
+        + formName
+        + '\''
+        + ", description='"
+        + description
+        + '\''
+        + '}';
+  }
 }

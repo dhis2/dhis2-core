@@ -36,11 +36,9 @@ import org.springframework.context.annotation.Configuration;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-public class ConfigProviderConfiguration
-{
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider();
-    }
+public class ConfigProviderConfiguration {
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider();
+  }
 }

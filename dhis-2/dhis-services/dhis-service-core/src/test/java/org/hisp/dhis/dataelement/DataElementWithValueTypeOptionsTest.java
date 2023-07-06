@@ -31,8 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.FileTypeValueOptions;
@@ -42,80 +43,71 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @Slf4j
-class DataElementWithValueTypeOptionsTest extends DhisSpringTest
-{
+class DataElementWithValueTypeOptionsTest extends DhisSpringTest {
 
-    @Autowired
-    private DataElementStore dataElementStore;
+  @Autowired private DataElementStore dataElementStore;
 
-    @Autowired
-    @Qualifier( value = "xmlMapper" )
-    public ObjectMapper xmlMapper;
+  @Autowired
+  @Qualifier(value = "xmlMapper")
+  public ObjectMapper xmlMapper;
 
-    @Test
-    void testSaveGetAndDeleteDataElementWithFileValueTypeOption()
-    {
-        // Save
-        final long maxFileSize = 100L;
-        DataElement dataElementA = createDataElementWithFileValueTypeOptions( 'A', maxFileSize );
-        dataElementStore.save( dataElementA );
-        // Get the auto-generated id we should have got after calling save
-        long idA = dataElementA.getId();
-        assertNotNull( dataElementStore.get( idA ) );
-        // Fetch with the auto-generated id
-        DataElement fetchedObject = dataElementStore.get( idA );
-        // Validate the re-fetched object have the same values as the original
-        // version
-        ValueTypeOptions valueTypeOptions = fetchedObject.getValueTypeOptions();
-        assertNotNull( valueTypeOptions );
-        assertEquals( FileTypeValueOptions.class, valueTypeOptions.getClass() );
-        assertEquals( maxFileSize, ((FileTypeValueOptions) valueTypeOptions).getMaxFileSize() );
-        // Delete the object
-        dataElementStore.delete( fetchedObject );
-        // Validate the deleted object is actually deleted by trying to re-fetch
-        // it
-        assertNull( dataElementStore.get( idA ) );
+  @Test
+  void testSaveGetAndDeleteDataElementWithFileValueTypeOption() {
+    // Save
+    final long maxFileSize = 100L;
+    DataElement dataElementA = createDataElementWithFileValueTypeOptions('A', maxFileSize);
+    dataElementStore.save(dataElementA);
+    // Get the auto-generated id we should have got after calling save
+    long idA = dataElementA.getId();
+    assertNotNull(dataElementStore.get(idA));
+    // Fetch with the auto-generated id
+    DataElement fetchedObject = dataElementStore.get(idA);
+    // Validate the re-fetched object have the same values as the original
+    // version
+    ValueTypeOptions valueTypeOptions = fetchedObject.getValueTypeOptions();
+    assertNotNull(valueTypeOptions);
+    assertEquals(FileTypeValueOptions.class, valueTypeOptions.getClass());
+    assertEquals(maxFileSize, ((FileTypeValueOptions) valueTypeOptions).getMaxFileSize());
+    // Delete the object
+    dataElementStore.delete(fetchedObject);
+    // Validate the deleted object is actually deleted by trying to re-fetch
+    // it
+    assertNull(dataElementStore.get(idA));
+  }
+
+  private DataElement createDataElementWithFileValueTypeOptions(
+      char uniqueCharacter, long maxFileSize) {
+    FileTypeValueOptions fileTypeValueOptions = new FileTypeValueOptions();
+    fileTypeValueOptions.setMaxFileSize(maxFileSize);
+    DataElement dataElement = new DataElement();
+    dataElement.setAutoFields();
+    dataElement.setUid(BASE_DE_UID + uniqueCharacter);
+    dataElement.setName("DataElement" + uniqueCharacter);
+    dataElement.setShortName("DataElementShort" + uniqueCharacter);
+    dataElement.setCode("DataElementCode" + uniqueCharacter);
+    dataElement.setDescription("DataElementDescription" + uniqueCharacter);
+    dataElement.setValueType(ValueType.FILE_RESOURCE);
+    dataElement.setDomainType(DataElementDomain.AGGREGATE);
+    dataElement.setAggregationType(AggregationType.SUM);
+    dataElement.setZeroIsSignificant(false);
+    dataElement.setValueTypeOptions(fileTypeValueOptions);
+    if (categoryService != null) {
+      dataElement.setCategoryCombo(categoryService.getDefaultCategoryCombo());
     }
+    return dataElement;
+  }
 
-    private DataElement createDataElementWithFileValueTypeOptions( char uniqueCharacter, long maxFileSize )
-    {
-        FileTypeValueOptions fileTypeValueOptions = new FileTypeValueOptions();
-        fileTypeValueOptions.setMaxFileSize( maxFileSize );
-        DataElement dataElement = new DataElement();
-        dataElement.setAutoFields();
-        dataElement.setUid( BASE_DE_UID + uniqueCharacter );
-        dataElement.setName( "DataElement" + uniqueCharacter );
-        dataElement.setShortName( "DataElementShort" + uniqueCharacter );
-        dataElement.setCode( "DataElementCode" + uniqueCharacter );
-        dataElement.setDescription( "DataElementDescription" + uniqueCharacter );
-        dataElement.setValueType( ValueType.FILE_RESOURCE );
-        dataElement.setDomainType( DataElementDomain.AGGREGATE );
-        dataElement.setAggregationType( AggregationType.SUM );
-        dataElement.setZeroIsSignificant( false );
-        dataElement.setValueTypeOptions( fileTypeValueOptions );
-        if ( categoryService != null )
-        {
-            dataElement.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
-        }
-        return dataElement;
-    }
-
-    @Test
-    void testDeserialize()
-        throws JsonProcessingException
-    {
-        DataElement dataElementA = createDataElementWithFileValueTypeOptions( 'A', 100L );
-        String xml = xmlMapper.writeValueAsString( dataElementA );
-        assertNotNull( xml );
-        dataElementStore.save( dataElementA );
-        long idA = dataElementA.getId();
-        DataElement fetchedObject = dataElementStore.get( idA );
-        String xmlB = xmlMapper.writeValueAsString( fetchedObject );
-        assertNotNull( xmlB );
-        log.info( xmlB );
-    }
+  @Test
+  void testDeserialize() throws JsonProcessingException {
+    DataElement dataElementA = createDataElementWithFileValueTypeOptions('A', 100L);
+    String xml = xmlMapper.writeValueAsString(dataElementA);
+    assertNotNull(xml);
+    dataElementStore.save(dataElementA);
+    long idA = dataElementA.getId();
+    DataElement fetchedObject = dataElementStore.get(idA);
+    String xmlB = xmlMapper.writeValueAsString(fetchedObject);
+    assertNotNull(xmlB);
+    log.info(xmlB);
+  }
 }

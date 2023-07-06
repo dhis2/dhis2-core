@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -60,69 +59,67 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Zubair Asghar
  */
-public class ProgramRuleVariableIntegrationTest extends TransactionalIntegrationTest
-{
-    @Autowired
-    private RenderService _renderService;
+public class ProgramRuleVariableIntegrationTest extends TransactionalIntegrationTest {
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+  @Autowired private ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        renderService = _renderService;
-        userService = _userService;
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_metadata_with_program_rules_variables.json" ).getInputStream(),
-            RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertFalse( validationReport.hasErrorReports() );
-        objectBundleService.commit( bundle );
-    }
+  @Override
+  public void setUpTest() throws Exception {
+    renderService = _renderService;
+    userService = _userService;
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(
+            new ClassPathResource("tracker/tracker_metadata_with_program_rules_variables.json")
+                .getInputStream(),
+            RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    ObjectBundleValidationReport validationReport = objectBundleValidationService.validate(bundle);
+    assertFalse(validationReport.hasErrorReports());
+    objectBundleService.commit(bundle);
+  }
 
-    @Test
-    public void shouldAssignValueTypeFromTrackedEntityAttributeToProgramRuleVariable()
-    {
-        Program program = programService.getProgram( "BFcipDERJne" );
-        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService
-            .getTrackedEntityAttribute( "sYn3tkL3XKa" );
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getProgramRuleVariable( program );
+  @Test
+  public void shouldAssignValueTypeFromTrackedEntityAttributeToProgramRuleVariable() {
+    Program program = programService.getProgram("BFcipDERJne");
+    TrackedEntityAttribute trackedEntityAttribute =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sYn3tkL3XKa");
+    List<ProgramRuleVariable> ruleVariables =
+        programRuleVariableService.getProgramRuleVariable(program);
 
-        ProgramRuleVariable prv = ruleVariables.stream()
-            .filter( r -> ProgramRuleVariableSourceType.TEI_ATTRIBUTE == r.getSourceType() ).findFirst().get();
-        assertEquals( trackedEntityAttribute.getValueType(), prv.getValueType() );
-    }
+    ProgramRuleVariable prv =
+        ruleVariables.stream()
+            .filter(r -> ProgramRuleVariableSourceType.TEI_ATTRIBUTE == r.getSourceType())
+            .findFirst()
+            .get();
+    assertEquals(trackedEntityAttribute.getValueType(), prv.getValueType());
+  }
 
-    @Test
-    public void shouldAssignDefaultValueTypeToProgramRuleVariable()
-    {
-        Program program = programService.getProgram( "BFcipDERJne" );
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getProgramRuleVariable( program );
+  @Test
+  public void shouldAssignDefaultValueTypeToProgramRuleVariable() {
+    Program program = programService.getProgram("BFcipDERJne");
+    List<ProgramRuleVariable> ruleVariables =
+        programRuleVariableService.getProgramRuleVariable(program);
 
-        ProgramRuleVariable prv = ruleVariables.stream()
-            .filter( r -> ProgramRuleVariableSourceType.CALCULATED_VALUE == r.getSourceType() ).findFirst().get();
-        assertEquals( ValueType.TEXT, prv.getValueType() );
-    }
+    ProgramRuleVariable prv =
+        ruleVariables.stream()
+            .filter(r -> ProgramRuleVariableSourceType.CALCULATED_VALUE == r.getSourceType())
+            .findFirst()
+            .get();
+    assertEquals(ValueType.TEXT, prv.getValueType());
+  }
 }

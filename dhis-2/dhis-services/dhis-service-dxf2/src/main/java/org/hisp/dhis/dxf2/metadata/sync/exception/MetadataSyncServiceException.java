@@ -30,21 +30,16 @@ package org.hisp.dhis.dxf2.metadata.sync.exception;
 /**
  * @author anilkumk
  */
-public class MetadataSyncServiceException
-    extends RuntimeException
-{
-    public MetadataSyncServiceException( String message )
-    {
-        super( message );
-    }
+public class MetadataSyncServiceException extends RuntimeException {
+  public MetadataSyncServiceException(String message) {
+    super(message);
+  }
 
-    public MetadataSyncServiceException( Throwable cause )
-    {
-        super( cause );
-    }
+  public MetadataSyncServiceException(Throwable cause) {
+    super(cause);
+  }
 
-    public MetadataSyncServiceException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public MetadataSyncServiceException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

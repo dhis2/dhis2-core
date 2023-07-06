@@ -37,11 +37,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
 import javax.sql.DataSource;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -54,124 +51,117 @@ import org.springframework.beans.factory.InitializingBean;
  */
 @Slf4j
 public class DefaultReadOnlyDataSourceManager
-    implements ReadOnlyDataSourceManager, InitializingBean
-{
-    private static final String FORMAT_READ_PREFIX = "read%d.";
+    implements ReadOnlyDataSourceManager, InitializingBean {
+  private static final String FORMAT_READ_PREFIX = "read%d.";
 
-    private static final String FORMAT_CONNECTION_URL = FORMAT_READ_PREFIX + CONNECTION_URL.getKey();
+  private static final String FORMAT_CONNECTION_URL = FORMAT_READ_PREFIX + CONNECTION_URL.getKey();
 
-    private static final String FORMAT_CONNECTION_USERNAME = FORMAT_READ_PREFIX + CONNECTION_USERNAME.getKey();
+  private static final String FORMAT_CONNECTION_USERNAME =
+      FORMAT_READ_PREFIX + CONNECTION_USERNAME.getKey();
 
-    private static final String FORMAT_CONNECTION_PASSWORD = FORMAT_READ_PREFIX + CONNECTION_PASSWORD.getKey();
+  private static final String FORMAT_CONNECTION_PASSWORD =
+      FORMAT_READ_PREFIX + CONNECTION_PASSWORD.getKey();
 
-    private static final int VAL_ACQUIRE_INCREMENT = 6;
+  private static final int VAL_ACQUIRE_INCREMENT = 6;
 
-    private static final int VAL_MAX_IDLE_TIME = 21600;
+  private static final int VAL_MAX_IDLE_TIME = 21600;
 
-    private static final int MAX_READ_REPLICAS = 5;
+  private static final int MAX_READ_REPLICAS = 5;
 
-    private final DhisConfigurationProvider config;
+  private final DhisConfigurationProvider config;
 
-    public DefaultReadOnlyDataSourceManager( DhisConfigurationProvider config )
-    {
-        checkNotNull( config );
-        this.config = config;
-    }
+  public DefaultReadOnlyDataSourceManager(DhisConfigurationProvider config) {
+    checkNotNull(config);
+    this.config = config;
+  }
 
-    /**
-     * State holder for the resolved read only data source.
-     */
-    private DataSource internalReadOnlyDataSource;
+  /** State holder for the resolved read only data source. */
+  private DataSource internalReadOnlyDataSource;
 
-    /**
-     * State holder for explicitly defined read only data sources.
-     */
-    private List<DataSource> internalReadOnlyInstanceList;
+  /** State holder for explicitly defined read only data sources. */
+  private List<DataSource> internalReadOnlyInstanceList;
 
-    @Override
-    public void afterPropertiesSet()
-    {
-        List<DataSource> ds = getReadOnlyDataSources();
+  @Override
+  public void afterPropertiesSet() {
+    List<DataSource> ds = getReadOnlyDataSources();
 
-        this.internalReadOnlyInstanceList = ds;
-        this.internalReadOnlyDataSource = !ds.isEmpty() ? new CircularRoutingDataSource( ds ) : null;
-    }
+    this.internalReadOnlyInstanceList = ds;
+    this.internalReadOnlyDataSource = !ds.isEmpty() ? new CircularRoutingDataSource(ds) : null;
+  }
 
-    // -------------------------------------------------------------------------
-    // DataSourceManager implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataSourceManager implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public DataSource getReadOnlyDataSource()
-    {
-        return internalReadOnlyDataSource;
-    }
+  @Override
+  public DataSource getReadOnlyDataSource() {
+    return internalReadOnlyDataSource;
+  }
 
-    @Override
-    public int getReadReplicaCount()
-    {
-        return internalReadOnlyInstanceList != null ? internalReadOnlyInstanceList.size() : 0;
-    }
+  @Override
+  public int getReadReplicaCount() {
+    return internalReadOnlyInstanceList != null ? internalReadOnlyInstanceList.size() : 0;
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    private List<DataSource> getReadOnlyDataSources()
-    {
-        String mainUser = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
-        String mainPassword = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
-        String driverClass = config.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS );
-        String maxPoolSize = config.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE );
-        String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
+  private List<DataSource> getReadOnlyDataSources() {
+    String mainUser = config.getProperty(ConfigurationKey.CONNECTION_USERNAME);
+    String mainPassword = config.getProperty(ConfigurationKey.CONNECTION_PASSWORD);
+    String driverClass = config.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);
+    String maxPoolSize = config.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_SIZE);
+    String dbPoolType = config.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
-        Properties props = config.getProperties();
+    Properties props = config.getProperties();
 
-        List<DataSource> dataSources = new ArrayList<>();
+    List<DataSource> dataSources = new ArrayList<>();
 
-        for ( int i = 1; i <= MAX_READ_REPLICAS; i++ )
-        {
-            String jdbcUrl = props.getProperty( String.format( FORMAT_CONNECTION_URL, i ) );
-            String username = props.getProperty( String.format( FORMAT_CONNECTION_USERNAME, i ) );
-            String password = props.getProperty( String.format( FORMAT_CONNECTION_PASSWORD, i ) );
+    for (int i = 1; i <= MAX_READ_REPLICAS; i++) {
+      String jdbcUrl = props.getProperty(String.format(FORMAT_CONNECTION_URL, i));
+      String username = props.getProperty(String.format(FORMAT_CONNECTION_USERNAME, i));
+      String password = props.getProperty(String.format(FORMAT_CONNECTION_PASSWORD, i));
 
-            username = StringUtils.defaultIfEmpty( username, mainUser );
-            password = StringUtils.defaultIfEmpty( password, mainPassword );
+      username = StringUtils.defaultIfEmpty(username, mainUser);
+      password = StringUtils.defaultIfEmpty(password, mainPassword);
 
-            DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
-            builder.dhisConfig( config );
-            builder.password( password );
-            builder.username( username );
-            builder.jdbcUrl( jdbcUrl );
-            builder.dbPoolType( dbPoolType );
-            builder.maxPoolSize( maxPoolSize );
-            builder.acquireIncrement( String.valueOf( VAL_ACQUIRE_INCREMENT ) );
-            builder.maxIdleTime( String.valueOf( VAL_MAX_IDLE_TIME ) );
+      DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder =
+          DatabasePoolUtils.PoolConfig.builder();
+      builder.dhisConfig(config);
+      builder.password(password);
+      builder.username(username);
+      builder.jdbcUrl(jdbcUrl);
+      builder.dbPoolType(dbPoolType);
+      builder.maxPoolSize(maxPoolSize);
+      builder.acquireIncrement(String.valueOf(VAL_ACQUIRE_INCREMENT));
+      builder.maxIdleTime(String.valueOf(VAL_MAX_IDLE_TIME));
 
-            if ( ObjectUtils.allNonNull( jdbcUrl, username, password ) )
-            {
-                try
-                {
-                    dataSources.add( DatabasePoolUtils.createDbPool( builder.build() ) );
-                }
-                catch ( SQLException | PropertyVetoException e )
-                {
-                    String message = String.format( "Connection test failed for read replica database pool, " +
-                        "driver class: '%s', URL: '%s', user: '%s'", driverClass, jdbcUrl, username );
+      if (ObjectUtils.allNonNull(jdbcUrl, username, password)) {
+        try {
+          dataSources.add(DatabasePoolUtils.createDbPool(builder.build()));
+        } catch (SQLException | PropertyVetoException e) {
+          String message =
+              String.format(
+                  "Connection test failed for read replica database pool, "
+                      + "driver class: '%s', URL: '%s', user: '%s'",
+                  driverClass, jdbcUrl, username);
 
-                    log.error( message );
-                    log.error( DebugUtils.getStackTrace( e ) );
+          log.error(message);
+          log.error(DebugUtils.getStackTrace(e));
 
-                    throw new IllegalStateException( message, e );
-                }
-            }
+          throw new IllegalStateException(message, e);
         }
-
-        log.info( "Read only configuration initialized, read replicas found: " + dataSources.size() );
-
-        config.getProperties().setProperty( ConfigurationKey.ACTIVE_READ_REPLICAS.getKey(),
-            String.valueOf( dataSources.size() ) );
-
-        return dataSources;
+      }
     }
+
+    log.info("Read only configuration initialized, read replicas found: " + dataSources.size());
+
+    config
+        .getProperties()
+        .setProperty(
+            ConfigurationKey.ACTIVE_READ_REPLICAS.getKey(), String.valueOf(dataSources.size()));
+
+    return dataSources;
+  }
 }

@@ -27,55 +27,44 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.function.Function;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * In-memory representation of a data integrity check.
  *
- * Alongside its informative fields it has a {@link Function} that given the
- * check produces the {@link DataIntegritySummary} and one that produces the
- * {@link DataIntegrityDetails} of the check.
+ * <p>Alongside its informative fields it has a {@link Function} that given the check produces the
+ * {@link DataIntegritySummary} and one that produces the {@link DataIntegrityDetails} of the check.
  *
- * If a check does not support one or the other of the two check types the
- * {@link Function} returns {@code null}.
+ * <p>If a check does not support one or the other of the two check types the {@link Function}
+ * returns {@code null}.
  *
  * @author Jan Bernitt
  */
 @Getter
 @Builder
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class DataIntegrityCheck implements Serializable
-{
-    @JsonProperty
-    private final String name;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class DataIntegrityCheck implements Serializable {
+  @JsonProperty private final String name;
 
-    @JsonProperty
-    private final String displayName;
+  @JsonProperty private final String displayName;
 
-    @JsonProperty
-    private final String section;
+  @JsonProperty private final String section;
 
-    @JsonProperty
-    private final DataIntegritySeverity severity;
+  @JsonProperty private final DataIntegritySeverity severity;
 
-    @JsonProperty
-    private final String description;
+  @JsonProperty private final String description;
 
-    @JsonProperty
-    private final String introduction;
+  @JsonProperty private final String introduction;
 
-    @JsonProperty
-    private final String recommendation;
+  @JsonProperty private final String recommendation;
 
-    private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
+  private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
-    private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
+  private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
 }

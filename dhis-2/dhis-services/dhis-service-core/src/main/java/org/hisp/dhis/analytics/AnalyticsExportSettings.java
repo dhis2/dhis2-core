@@ -31,38 +31,33 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_TABLE_UNLOGGED;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
 
 /**
- * Component responsible for exposing analytics table export settings. Can hold
- * settings living in configuration files (ie. dhis.conf) or in system settings.
+ * Component responsible for exposing analytics table export settings. Can hold settings living in
+ * configuration files (ie. dhis.conf) or in system settings.
  *
  * @author maikel arabori
  */
 @Component
 @RequiredArgsConstructor
-public class AnalyticsExportSettings
-{
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+public class AnalyticsExportSettings {
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    private static final String UNLOGGED = "unlogged";
+  private static final String UNLOGGED = "unlogged";
 
-    /**
-     * Returns the respective string that represents the table type to be
-     * exported. Two types are supported: UNLOGGED and EMPTY. See
-     * {@link AnalyticsTableType}
-     *
-     * @return the string representation of the type
-     */
-    public String getTableType()
-    {
-        if ( dhisConfigurationProvider.isEnabled( ANALYTICS_TABLE_UNLOGGED ) )
-        {
-            return UNLOGGED;
-        }
-
-        return EMPTY;
+  /**
+   * Returns the respective string that represents the table type to be exported. Two types are
+   * supported: UNLOGGED and EMPTY. See {@link AnalyticsTableType}
+   *
+   * @return the string representation of the type
+   */
+  public String getTableType() {
+    if (dhisConfigurationProvider.isEnabled(ANALYTICS_TABLE_UNLOGGED)) {
+      return UNLOGGED;
     }
+
+    return EMPTY;
+  }
 }

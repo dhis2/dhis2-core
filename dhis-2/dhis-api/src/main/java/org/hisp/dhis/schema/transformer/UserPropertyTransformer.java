@@ -27,21 +27,6 @@
  */
 package org.hisp.dhis.schema.transformer;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import lombok.Builder;
-import lombok.Data;
-
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.schema.AbstractPropertyTransformer;
-import org.hisp.dhis.user.User;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -51,190 +36,169 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.schema.AbstractPropertyTransformer;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class UserPropertyTransformer
-    extends AbstractPropertyTransformer<User>
-{
-    public UserPropertyTransformer()
-    {
-        super( UserDto.class );
+public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
+  public UserPropertyTransformer() {
+    super(UserDto.class);
+  }
+
+  @Override
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public Object transform(Object o) {
+    if (!(o instanceof User)) {
+      if (o instanceof Collection) {
+        Collection collection = (Collection) o;
+
+        if (collection.isEmpty()) {
+          return o;
+        }
+
+        Object next = collection.iterator().next();
+
+        if (!(next instanceof User)) {
+          return o;
+        }
+
+        Collection<UserDto> userDtoCollection =
+            newCollectionInstance(HibernateProxyUtils.getRealClass(collection));
+        collection.forEach(user -> userDtoCollection.add(buildUserDto((User) user)));
+
+        return userDtoCollection;
+      }
+
+      return o;
+    }
+
+    return buildUserDto((User) o);
+  }
+
+  private UserDto buildUserDto(User user) {
+    UserDto.UserDtoBuilder builder =
+        UserDto.builder()
+            .id(user.getUid())
+            .code(user.getCode())
+            .displayName(user.getDisplayName())
+            .name(user.getName())
+            .username(user.getUsername());
+
+    return builder.build();
+  }
+
+  @Data
+  @Builder
+  public static class UserDto {
+    private String id;
+
+    private String code;
+
+    private String name;
+
+    private String displayName;
+
+    private String username;
+
+    @JsonProperty
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty
+    public String getCode() {
+      return code;
+    }
+
+    @JsonProperty
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty
+    public String getDisplayName() {
+      return displayName;
+    }
+
+    @JsonProperty
+    public String getUsername() {
+      return username;
+    }
+  }
+
+  public static final class JacksonSerialize extends StdSerializer<User> {
+    public JacksonSerialize() {
+      super(User.class);
     }
 
     @Override
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public Object transform( Object o )
-    {
-        if ( !(o instanceof User) )
-        {
-            if ( o instanceof Collection )
-            {
-                Collection collection = (Collection) o;
+    public void serialize(User user, JsonGenerator gen, SerializerProvider provider)
+        throws IOException {
+      gen.writeStartObject();
+      gen.writeStringField("id", user.getUid());
+      gen.writeStringField("code", user.getCode());
+      gen.writeStringField("name", user.getName());
+      gen.writeStringField("displayName", user.getDisplayName());
+      gen.writeStringField("username", user.getUsername());
 
-                if ( collection.isEmpty() )
-                {
-                    return o;
-                }
+      gen.writeEndObject();
+    }
+  }
 
-                Object next = collection.iterator().next();
-
-                if ( !(next instanceof User) )
-                {
-                    return o;
-                }
-
-                Collection<UserDto> userDtoCollection = newCollectionInstance(
-                    HibernateProxyUtils.getRealClass( collection ) );
-                collection.forEach( user -> userDtoCollection.add( buildUserDto( (User) user ) ) );
-
-                return userDtoCollection;
-            }
-
-            return o;
-        }
-
-        return buildUserDto( (User) o );
+  public static final class JacksonDeserialize extends StdDeserializer<User> {
+    public JacksonDeserialize() {
+      super(User.class);
     }
 
-    private UserDto buildUserDto( User user )
-    {
-        UserDto.UserDtoBuilder builder = UserDto.builder()
-            .id( user.getUid() )
-            .code( user.getCode() )
-            .displayName( user.getDisplayName() )
-            .name( user.getName() )
-            .username( user.getUsername() );
+    @Override
+    public User deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+      User user = new User();
 
-        return builder.build();
+      JsonNode node = jp.getCodec().readTree(jp);
+
+      if (node.has("id")) {
+        String identifier = node.get("id").asText();
+
+        if (CodeGenerator.isValidUid(identifier)) {
+          user.setUid(identifier);
+        } else {
+          throw new JsonParseException(jp, "Invalid user identifier: " + identifier);
+        }
+      }
+
+      if (node.has("code")) {
+        String code = node.get("code").asText();
+
+        user.setCode(code);
+      }
+
+      if (node.has("username")) {
+        user.setUsername(node.get("username").asText());
+      }
+
+      return user;
     }
+  }
 
-    @Data
-    @Builder
-    public static class UserDto
-    {
-        private String id;
-
-        private String code;
-
-        private String name;
-
-        private String displayName;
-
-        private String username;
-
-        @JsonProperty
-        public String getId()
-        {
-            return id;
-        }
-
-        @JsonProperty
-        public String getCode()
-        {
-            return code;
-        }
-
-        @JsonProperty
-        public String getName()
-        {
-            return name;
-        }
-
-        @JsonProperty
-        public String getDisplayName()
-        {
-            return displayName;
-        }
-
-        @JsonProperty
-        public String getUsername()
-        {
-            return username;
-        }
+  private static <E> Collection<E> newCollectionInstance(Class<?> clazz) {
+    if (List.class.isAssignableFrom(clazz)) {
+      return new ArrayList<>();
+    } else if (Set.class.isAssignableFrom(clazz)) {
+      return new HashSet<>();
+    } else {
+      throw new RuntimeException("Unknown Collection type.");
     }
-
-    public static final class JacksonSerialize extends StdSerializer<User>
-    {
-        public JacksonSerialize()
-        {
-            super( User.class );
-        }
-
-        @Override
-        public void serialize( User user, JsonGenerator gen, SerializerProvider provider )
-            throws IOException
-        {
-            gen.writeStartObject();
-            gen.writeStringField( "id", user.getUid() );
-            gen.writeStringField( "code", user.getCode() );
-            gen.writeStringField( "name", user.getName() );
-            gen.writeStringField( "displayName", user.getDisplayName() );
-            gen.writeStringField( "username", user.getUsername() );
-
-            gen.writeEndObject();
-        }
-    }
-
-    public static final class JacksonDeserialize extends StdDeserializer<User>
-    {
-        public JacksonDeserialize()
-        {
-            super( User.class );
-        }
-
-        @Override
-        public User deserialize( JsonParser jp, DeserializationContext ctxt )
-            throws IOException
-        {
-            User user = new User();
-
-            JsonNode node = jp.getCodec().readTree( jp );
-
-            if ( node.has( "id" ) )
-            {
-                String identifier = node.get( "id" ).asText();
-
-                if ( CodeGenerator.isValidUid( identifier ) )
-                {
-                    user.setUid( identifier );
-                }
-                else
-                {
-                    throw new JsonParseException( jp, "Invalid user identifier: " + identifier );
-                }
-            }
-
-            if ( node.has( "code" ) )
-            {
-                String code = node.get( "code" ).asText();
-
-                user.setCode( code );
-            }
-
-            if ( node.has( "username" ) )
-            {
-                user.setUsername( node.get( "username" ).asText() );
-            }
-
-            return user;
-        }
-    }
-
-    private static <E> Collection<E> newCollectionInstance( Class<?> clazz )
-    {
-        if ( List.class.isAssignableFrom( clazz ) )
-        {
-            return new ArrayList<>();
-        }
-        else if ( Set.class.isAssignableFrom( clazz ) )
-        {
-            return new HashSet<>();
-        }
-        else
-        {
-            throw new RuntimeException( "Unknown Collection type." );
-        }
-    }
+  }
 }

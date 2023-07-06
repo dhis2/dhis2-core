@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -57,87 +56,84 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class EnrollmentNoteValidationHookTest
-{
+@ExtendWith(MockitoExtension.class)
+class EnrollmentNoteValidationHookTest {
 
-    // Class under test
-    private EnrollmentNoteValidationHook hook;
+  // Class under test
+  private EnrollmentNoteValidationHook hook;
 
-    private Enrollment enrollment;
+  private Enrollment enrollment;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    public void setUp()
-    {
-        this.hook = new EnrollmentNoteValidationHook();
-        enrollment = rnd.nextObject( Enrollment.class );
+  @BeforeEach
+  public void setUp() {
+    this.hook = new EnrollmentNoteValidationHook();
+    enrollment = rnd.nextObject(Enrollment.class);
 
-        preheat = mock( TrackerPreheat.class );
-        bundle = mock( TrackerBundle.class );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( bundle.getPreheat() ).thenReturn( preheat );
-    }
+    preheat = mock(TrackerPreheat.class);
+    bundle = mock(TrackerBundle.class);
+    when(bundle.getValidationMode()).thenReturn(ValidationMode.FULL);
+    when(bundle.getPreheat()).thenReturn(preheat);
+  }
 
-    @Test
-    void testNoteWithExistingUidWarnings()
-    {
-        // Given
-        final Note note = rnd.nextObject( Note.class );
+  @Test
+  void testNoteWithExistingUidWarnings() {
+    // Given
+    final Note note = rnd.nextObject(Note.class);
 
-        when( preheat.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        enrollment.setNotes( Collections.singletonList( note ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+    when(preheat.getNote(note.getNote())).thenReturn(Optional.of(new TrackedEntityComment()));
+    enrollment.setNotes(Collections.singletonList(note));
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        // When
-        this.hook.validateEnrollment( reporter, enrollment );
+    // When
+    this.hook.validateEnrollment(reporter, enrollment);
 
-        // Then
-        assertTrue( reporter.hasWarnings() );
-        assertTrue( reporter.hasWarningReport( warn -> E1119.equals( warn.getWarningCode() ) &&
-            ENROLLMENT.equals( warn.getTrackerType() ) &&
-            enrollment.getUid().equals( warn.getUid() ) ) );
-        assertThat( enrollment.getNotes(), hasSize( 0 ) );
-    }
+    // Then
+    assertTrue(reporter.hasWarnings());
+    assertTrue(
+        reporter.hasWarningReport(
+            warn ->
+                E1119.equals(warn.getWarningCode())
+                    && ENROLLMENT.equals(warn.getTrackerType())
+                    && enrollment.getUid().equals(warn.getUid())));
+    assertThat(enrollment.getNotes(), hasSize(0));
+  }
 
-    @Test
-    void testNoteWithExistingUidAndNoTextIsIgnored()
-    {
-        // Given
-        final Note note = rnd.nextObject( Note.class );
-        note.setValue( null );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+  @Test
+  void testNoteWithExistingUidAndNoTextIsIgnored() {
+    // Given
+    final Note note = rnd.nextObject(Note.class);
+    note.setValue(null);
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        enrollment.setNotes( Collections.singletonList( note ) );
+    enrollment.setNotes(Collections.singletonList(note));
 
-        // When
-        this.hook.validateEnrollment( reporter, enrollment );
+    // When
+    this.hook.validateEnrollment(reporter, enrollment);
 
-        // Then
-        assertFalse( reporter.hasErrors() );
-        assertThat( enrollment.getNotes(), hasSize( 0 ) );
-    }
+    // Then
+    assertFalse(reporter.hasErrors());
+    assertThat(enrollment.getNotes(), hasSize(0));
+  }
 
-    @Test
-    void testNotesAreValidWhenUidDoesNotExist()
-    {
-        // Given
-        final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
+  @Test
+  void testNotesAreValidWhenUidDoesNotExist() {
+    // Given
+    final List<Note> notes = rnd.objects(Note.class, 5).collect(Collectors.toList());
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        enrollment.setNotes( notes );
+    enrollment.setNotes(notes);
 
-        // When
-        this.hook.validateEnrollment( reporter, enrollment );
+    // When
+    this.hook.validateEnrollment(reporter, enrollment);
 
-        // Then
-        assertFalse( reporter.hasErrors() );
-        assertThat( enrollment.getNotes(), hasSize( 5 ) );
-    }
-
+    // Then
+    assertFalse(reporter.hasErrors());
+    assertThat(enrollment.getNotes(), hasSize(5));
+  }
 }

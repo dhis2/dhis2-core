@@ -37,22 +37,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Halvdan Hoem Grelland
  */
-class PasswordManagerTest extends DhisSpringTest
-{
+class PasswordManagerTest extends DhisSpringTest {
 
-    @Autowired
-    private PasswordManager passwordManager;
+  @Autowired private PasswordManager passwordManager;
 
-    @Test
-    void testEncodeValidatePassword()
-    {
-        String password = "district";
-        String encodedPassword1 = passwordManager.encode( password );
-        String encodedPassword2 = passwordManager.encode( password );
-        assertFalse( encodedPassword1.equals( encodedPassword2 ) );
-        assertFalse( password.equals( encodedPassword1 ) );
-        assertTrue( passwordManager.matches( password, encodedPassword1 ) );
-        assertTrue( passwordManager.matches( password, encodedPassword2 ) );
-        assertFalse( passwordManager.matches( password, "anotherPassword" ) );
-    }
+  @Test
+  void testEncodeValidatePassword() {
+    String password = "district";
+    String encodedPassword1 = passwordManager.encode(password);
+    String encodedPassword2 = passwordManager.encode(password);
+    assertFalse(encodedPassword1.equals(encodedPassword2));
+    assertFalse(password.equals(encodedPassword1));
+    assertTrue(passwordManager.matches(password, encodedPassword1));
+    assertTrue(passwordManager.matches(password, encodedPassword2));
+    assertFalse(passwordManager.matches(password, "anotherPassword"));
+  }
 }

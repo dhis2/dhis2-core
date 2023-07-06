@@ -42,11 +42,9 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import java.util.Map;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
@@ -84,606 +82,603 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class PreCheckSecurityOwnershipValidationHook
-    extends AbstractTrackerDtoValidationHook
-{
-    @NonNull
-    private final AclService aclService;
+public class PreCheckSecurityOwnershipValidationHook extends AbstractTrackerDtoValidationHook {
+  @NonNull private final AclService aclService;
 
-    @NonNull
-    private final TrackerOwnershipManager ownershipAccessManager;
+  @NonNull private final TrackerOwnershipManager ownershipAccessManager;
 
-    @NonNull
-    private final OrganisationUnitService organisationUnitService;
+  @NonNull private final OrganisationUnitService organisationUnitService;
 
-    private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
+  private static final String ORG_UNIT_NO_USER_ASSIGNED =
+      " has no organisation unit assigned, so we skip user validation";
 
-    @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
-    {
-        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( trackedEntity );
-        TrackerBundle bundle = reporter.getBundle();
-        User user = bundle.getUser();
+  @Override
+  public void validateTrackedEntity(ValidationErrorReporter reporter, TrackedEntity trackedEntity) {
+    TrackerImportStrategy strategy = reporter.getBundle().getStrategy(trackedEntity);
+    TrackerBundle bundle = reporter.getBundle();
+    User user = bundle.getUser();
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
 
-        TrackedEntityType trackedEntityType = strategy.isUpdateOrDelete()
-            ? reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getTrackedEntityType()
-            : reporter.getBundle().getPreheat()
-                .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+    TrackedEntityType trackedEntityType =
+        strategy.isUpdateOrDelete()
+            ? reporter
+                .getBundle()
+                .getTrackedEntityInstance(trackedEntity.getTrackedEntity())
+                .getTrackedEntityType()
+            : reporter
+                .getBundle()
+                .getPreheat()
+                .getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
-        OrganisationUnit organisationUnit = strategy.isUpdateOrDelete()
-            ? reporter.getBundle().getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getOrganisationUnit()
-            : reporter.getBundle().getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() );
+    OrganisationUnit organisationUnit =
+        strategy.isUpdateOrDelete()
+            ? reporter
+                .getBundle()
+                .getTrackedEntityInstance(trackedEntity.getTrackedEntity())
+                .getOrganisationUnit()
+            : reporter.getBundle().getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
-        // If trackedEntity is newly created, or going to be deleted, capture
-        // scope has to be checked
-        if ( strategy.isCreate() || strategy.isDelete() )
-        {
-            checkOrgUnitInCaptureScope( reporter, trackedEntity,
-                organisationUnit );
-        }
-        // if its to update trackedEntity, search scope has to be checked
-        else
-        {
-            checkOrgUnitInSearchScope( reporter, trackedEntity,
-                organisationUnit );
-        }
-
-        if ( strategy.isDelete() )
-        {
-            TrackedEntityInstance tei = reporter.getBundle()
-                .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-
-            if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
-                && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
-            {
-                TrackerErrorReport error = TrackerErrorReport.builder()
-                    .uid( trackedEntity.getUid() )
-                    .trackerType( TrackerType.TRACKED_ENTITY )
-                    .errorCode( E1100 )
-                    .addArg( user )
-                    .addArg( tei )
-                    .build( bundle );
-                reporter.addError( error );
-            }
-        }
-
-        checkTeiTypeWriteAccess( reporter, trackedEntity.getUid(), trackedEntityType );
+    // If trackedEntity is newly created, or going to be deleted, capture
+    // scope has to be checked
+    if (strategy.isCreate() || strategy.isDelete()) {
+      checkOrgUnitInCaptureScope(reporter, trackedEntity, organisationUnit);
+    }
+    // if its to update trackedEntity, search scope has to be checked
+    else {
+      checkOrgUnitInSearchScope(reporter, trackedEntity, organisationUnit);
     }
 
-    private void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, String teUid,
-        TrackedEntityType trackedEntityType )
-    {
-        TrackerBundle bundle = reporter.getBundle();
-        User user = bundle.getUser();
+    if (strategy.isDelete()) {
+      TrackedEntityInstance tei =
+          reporter.getBundle().getTrackedEntityInstance(trackedEntity.getTrackedEntity());
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-
-        if ( !aclService.canDataWrite( user, trackedEntityType ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( teUid )
-                .trackerType( TrackerType.TRACKED_ENTITY )
-                .errorCode( TrackerErrorCode.E1001 )
-                .addArg( user )
-                .addArg( trackedEntityType )
-                .build( bundle );
-            reporter.addError( error );
-        }
+      if (tei.getProgramInstances().stream().anyMatch(pi -> !pi.isDeleted())
+          && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.getAuthority())) {
+        TrackerErrorReport error =
+            TrackerErrorReport.builder()
+                .uid(trackedEntity.getUid())
+                .trackerType(TrackerType.TRACKED_ENTITY)
+                .errorCode(E1100)
+                .addArg(user)
+                .addArg(tei)
+                .build(bundle);
+        reporter.addError(error);
+      }
     }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
-    {
-        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( enrollment );
-        TrackerBundle bundle = reporter.getBundle();
-        TrackerPreheat preheat = bundle.getPreheat();
-        User user = bundle.getUser();
-        Program program = strategy.isUpdateOrDelete()
-            ? reporter.getBundle().getProgramInstance( enrollment.getEnrollment() )
-                .getProgram()
-            : reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
-        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, enrollment.getTrackedEntity(),
-            enrollment.getProgram() );
+    checkTeiTypeWriteAccess(reporter, trackedEntity.getUid(), trackedEntityType);
+  }
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
+  private void checkTeiTypeWriteAccess(
+      ValidationErrorReporter reporter, String teUid, TrackedEntityType trackedEntityType) {
+    TrackerBundle bundle = reporter.getBundle();
+    User user = bundle.getUser();
 
-        checkEnrollmentOrgUnit( reporter, strategy, enrollment, program );
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL);
 
-        if ( strategy.isDelete() )
-        {
-            boolean hasNonDeletedEvents = programInstanceHasEvents( preheat, enrollment.getEnrollment() );
-            boolean hasNotCascadeDeleteAuthority = !user
-                .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(teUid)
+              .trackerType(TrackerType.TRACKED_ENTITY)
+              .errorCode(TrackerErrorCode.E1001)
+              .addArg(user)
+              .addArg(trackedEntityType)
+              .build(bundle);
+      reporter.addError(error);
+    }
+  }
 
-            if ( hasNonDeletedEvents && hasNotCascadeDeleteAuthority )
-            {
-                TrackerErrorReport error = TrackerErrorReport.builder()
-                    .uid( enrollment.getUid() )
-                    .trackerType( TrackerType.ENROLLMENT )
-                    .errorCode( E1103 )
-                    .addArg( user )
-                    .addArg( enrollment.getEnrollment() )
-                    .build( bundle );
-                reporter.addError( error );
-            }
-        }
+  @Override
+  public void validateEnrollment(ValidationErrorReporter reporter, Enrollment enrollment) {
+    TrackerImportStrategy strategy = reporter.getBundle().getStrategy(enrollment);
+    TrackerBundle bundle = reporter.getBundle();
+    TrackerPreheat preheat = bundle.getPreheat();
+    User user = bundle.getUser();
+    Program program =
+        strategy.isUpdateOrDelete()
+            ? reporter.getBundle().getProgramInstance(enrollment.getEnrollment()).getProgram()
+            : reporter.getBundle().getPreheat().getProgram(enrollment.getProgram());
+    OrganisationUnit ownerOrgUnit =
+        getOwnerOrganisationUnit(preheat, enrollment.getTrackedEntity(), enrollment.getProgram());
 
-        checkWriteEnrollmentAccess( reporter, enrollment, program, ownerOrgUnit );
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
+
+    checkEnrollmentOrgUnit(reporter, strategy, enrollment, program);
+
+    if (strategy.isDelete()) {
+      boolean hasNonDeletedEvents = programInstanceHasEvents(preheat, enrollment.getEnrollment());
+      boolean hasNotCascadeDeleteAuthority =
+          !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority());
+
+      if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
+        TrackerErrorReport error =
+            TrackerErrorReport.builder()
+                .uid(enrollment.getUid())
+                .trackerType(TrackerType.ENROLLMENT)
+                .errorCode(E1103)
+                .addArg(user)
+                .addArg(enrollment.getEnrollment())
+                .build(bundle);
+        reporter.addError(error);
+      }
     }
 
-    private OrganisationUnit getOwnerOrganisationUnit( TrackerPreheat preheat, String teiUid, String programUid )
-    {
-        Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner = preheat.getProgramOwner()
-            .get( teiUid );
-        if ( programOwner == null || programOwner.get( programUid ) == null )
-        {
-            return null;
-        }
-        else
-        {
-            return programOwner.get( programUid ).getOrganisationUnit();
-        }
+    checkWriteEnrollmentAccess(reporter, enrollment, program, ownerOrgUnit);
+  }
+
+  private OrganisationUnit getOwnerOrganisationUnit(
+      TrackerPreheat preheat, String teiUid, String programUid) {
+    Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
+        preheat.getProgramOwner().get(teiUid);
+    if (programOwner == null || programOwner.get(programUid) == null) {
+      return null;
+    } else {
+      return programOwner.get(programUid).getOrganisationUnit();
+    }
+  }
+
+  private boolean programInstanceHasEvents(TrackerPreheat preheat, String programInstanceUid) {
+    return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains(programInstanceUid);
+  }
+
+  private void checkEnrollmentOrgUnit(
+      ValidationErrorReporter reporter,
+      TrackerImportStrategy strategy,
+      Enrollment enrollment,
+      Program program) {
+    OrganisationUnit enrollmentOrgUnit;
+
+    if (strategy.isUpdateOrDelete()) {
+      enrollmentOrgUnit =
+          reporter.getBundle().getProgramInstance(enrollment.getEnrollment()).getOrganisationUnit();
+
+      if (enrollmentOrgUnit == null) {
+        log.warn("ProgramInstance " + enrollment.getEnrollment() + ORG_UNIT_NO_USER_ASSIGNED);
+        return;
+      }
+    } else {
+      checkNotNull(enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL);
+      enrollmentOrgUnit =
+          reporter.getBundle().getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
     }
 
-    private boolean programInstanceHasEvents( TrackerPreheat preheat, String programInstanceUid )
-    {
-        return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+    // If enrollment is newly created, or going to be deleted, capture scope
+    // has to be checked
+    if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
+      checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit);
+    }
+  }
+
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, Event event) {
+    TrackerImportStrategy strategy = reporter.getBundle().getStrategy(event);
+    TrackerBundle bundle = reporter.getBundle();
+    TrackerPreheat preheat = bundle.getPreheat();
+    User user = bundle.getUser();
+
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(event, EVENT_CANT_BE_NULL);
+
+    ProgramStageInstance programStageInstance =
+        reporter.getBundle().getProgramStageInstance(event.getEvent());
+
+    ProgramStage programStage =
+        reporter.getBundle().getPreheat().getProgramStage(event.getProgramStage());
+    Program program =
+        strategy.isUpdateOrDelete()
+            ? programStageInstance.getProgramStage().getProgram()
+            : reporter.getBundle().getPreheat().getProgram(event.getProgram());
+
+    OrganisationUnit organisationUnit;
+
+    if (strategy.isUpdateOrDelete()) {
+      organisationUnit = programStageInstance.getOrganisationUnit();
+    } else {
+      checkNotNull(event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL);
+      organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit(event.getOrgUnit());
     }
 
-    private void checkEnrollmentOrgUnit( ValidationErrorReporter reporter,
-        TrackerImportStrategy strategy, Enrollment enrollment, Program program )
-    {
-        OrganisationUnit enrollmentOrgUnit;
-
-        if ( strategy.isUpdateOrDelete() )
-        {
-            enrollmentOrgUnit = reporter.getBundle().getProgramInstance( enrollment.getEnrollment() )
-                .getOrganisationUnit();
-
-            if ( enrollmentOrgUnit == null )
-            {
-                log.warn( "ProgramInstance " + enrollment.getEnrollment()
-                    + ORG_UNIT_NO_USER_ASSIGNED );
-                return;
-            }
-        }
-        else
-        {
-            checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
-            enrollmentOrgUnit = reporter.getBundle().getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
-        }
-
-        // If enrollment is newly created, or going to be deleted, capture scope
-        // has to be checked
-        if ( program.isWithoutRegistration() || strategy.isCreate()
-            || strategy.isDelete() )
-        {
-            checkOrgUnitInCaptureScope( reporter, enrollment, enrollmentOrgUnit );
-        }
+    // If event is newly created, or going to be deleted, capture scope
+    // has to be checked
+    if (program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete()) {
+      if (organisationUnit == null) {
+        log.warn("ProgramStageInstance " + event.getEvent() + ORG_UNIT_NO_USER_ASSIGNED);
+      } else {
+        checkOrgUnitInCaptureScope(reporter, event, organisationUnit);
+      }
     }
 
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
-    {
-        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( event );
-        TrackerBundle bundle = reporter.getBundle();
-        TrackerPreheat preheat = bundle.getPreheat();
-        User user = bundle.getUser();
+    String teiUid = getTeiUidFromEvent(reporter.getBundle(), event, program);
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( event, EVENT_CANT_BE_NULL );
+    CategoryOptionCombo categoryOptionCombo =
+        bundle.getPreheat().getCategoryOptionCombo(event.getAttributeOptionCombo());
+    OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, teiUid, program.getUid());
+    // Check acting user is allowed to change existing/write event
+    if (strategy.isUpdateOrDelete()) {
+      TrackedEntityInstance entityInstance =
+          programStageInstance.getProgramInstance().getEntityInstance();
+      validateUpdateAndDeleteEvent(
+          reporter,
+          event,
+          programStageInstance,
+          entityInstance == null ? null : entityInstance.getUid(),
+          ownerOrgUnit);
+    } else {
+      validateCreateEvent(
+          reporter,
+          event,
+          user,
+          categoryOptionCombo,
+          programStage,
+          teiUid,
+          organisationUnit,
+          ownerOrgUnit,
+          program,
+          event.isCreatableInSearchScope());
+    }
+  }
 
-        ProgramStageInstance programStageInstance = reporter.getBundle().getProgramStageInstance( event.getEvent() );
+  @Override
+  public void validateRelationship(ValidationErrorReporter reporter, Relationship relationship) {
+    // NOTHING TO DO HERE
+  }
 
-        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
-        Program program = strategy.isUpdateOrDelete() ? programStageInstance.getProgramStage()
-            .getProgram() : reporter.getBundle().getPreheat().getProgram( event.getProgram() );
+  private void validateCreateEvent(
+      ValidationErrorReporter reporter,
+      Event event,
+      User actingUser,
+      CategoryOptionCombo categoryOptionCombo,
+      ProgramStage programStage,
+      String teiUid,
+      OrganisationUnit organisationUnit,
+      OrganisationUnit ownerOrgUnit,
+      Program program,
+      boolean isCreatableInSearchScope) {
+    checkNotNull(organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL);
+    checkNotNull(actingUser, USER_CANT_BE_NULL);
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-        OrganisationUnit organisationUnit;
+    boolean noProgramStageAndProgramIsWithoutReg =
+        programStage == null && program.isWithoutRegistration();
 
-        if ( strategy.isUpdateOrDelete() )
-        {
-            organisationUnit = programStageInstance
-                .getOrganisationUnit();
-        }
-        else
-        {
-            checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
-            organisationUnit = reporter.getBundle().getPreheat().getOrganisationUnit( event.getOrgUnit() );
-        }
+    programStage =
+        noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage(1) : programStage;
 
-        // If event is newly created, or going to be deleted, capture scope
-        // has to be checked
-        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
-        {
-            if ( organisationUnit == null )
-            {
-                log.warn( "ProgramStageInstance " + event.getEvent()
-                    + ORG_UNIT_NO_USER_ASSIGNED );
-            }
-            else
-            {
-                checkOrgUnitInCaptureScope( reporter, event, organisationUnit );
-            }
-        }
+    checkEventWriteAccess(
+        reporter,
+        event,
+        programStage,
+        organisationUnit,
+        ownerOrgUnit,
+        categoryOptionCombo,
+        teiUid,
+        isCreatableInSearchScope); // TODO:
+    // calculate
+    // correct
+    // isCreatableInSearchScope
+    // value
+  }
 
-        String teiUid = getTeiUidFromEvent( reporter.getBundle(), event, program );
+  private void validateUpdateAndDeleteEvent(
+      ValidationErrorReporter reporter,
+      Event event,
+      ProgramStageInstance programStageInstance,
+      String teiUid,
+      OrganisationUnit ownerOrgUnit) {
+    TrackerImportStrategy strategy = reporter.getBundle().getStrategy(event);
+    User user = reporter.getBundle().getUser();
 
-        CategoryOptionCombo categoryOptionCombo = bundle.getPreheat()
-            .getCategoryOptionCombo( event.getAttributeOptionCombo() );
-        OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit( preheat, teiUid, program.getUid() );
-        // Check acting user is allowed to change existing/write event
-        if ( strategy.isUpdateOrDelete() )
-        {
-            TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
-            validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
-                entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
-        }
-        else
-        {
-            validateCreateEvent( reporter, event, user,
-                categoryOptionCombo,
-                programStage,
-                teiUid,
-                organisationUnit,
-                ownerOrgUnit,
-                program, event.isCreatableInSearchScope() );
-        }
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL);
+    checkNotNull(event, EVENT_CANT_BE_NULL);
+
+    checkEventWriteAccess(
+        reporter,
+        event,
+        programStageInstance.getProgramStage(),
+        programStageInstance.getOrganisationUnit(),
+        ownerOrgUnit,
+        programStageInstance.getAttributeOptionCombo(),
+        teiUid,
+        programStageInstance.isCreatableInSearchScope());
+
+    if (strategy.isUpdate()
+        && EventStatus.COMPLETED == programStageInstance.getStatus()
+        && event.getStatus() != programStageInstance.getStatus()
+        && (!user.isSuper() && !user.isAuthorized("F_UNCOMPLETE_EVENT"))) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(event.getUid())
+              .trackerType(TrackerType.EVENT)
+              .errorCode(E1083)
+              .addArg(user)
+              .build(reporter.getBundle());
+      reporter.addError(error);
+    }
+  }
+
+  private String getTeiUidFromEvent(TrackerBundle bundle, Event event, Program program) {
+    if (program.isWithoutRegistration()) {
+      return null;
     }
 
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
-    {
-        // NOTHING TO DO HERE
+    ProgramInstance programInstance = bundle.getProgramInstance(event.getEnrollment());
+
+    if (programInstance == null) {
+      return bundle
+          .getEnrollment(event.getEnrollment())
+          .map(Enrollment::getTrackedEntity)
+          .orElse(null);
+    } else {
+      return programInstance.getEntityInstance().getUid();
+    }
+  }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
+
+  @Override
+  public boolean removeOnError() {
+    return true;
+  }
+
+  private void checkOrgUnitInCaptureScope(
+      ValidationErrorReporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
+    TrackerBundle bundle = reporter.getBundle();
+    User user = bundle.getUser();
+
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
+
+    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(dto.getUid())
+              .trackerType(dto.getTrackerType())
+              .errorCode(TrackerErrorCode.E1000)
+              .addArg(user)
+              .addArg(orgUnit)
+              .build(bundle);
+      reporter.addError(error);
+    }
+  }
+
+  private void checkOrgUnitInSearchScope(
+      ValidationErrorReporter reporter, TrackerDto dto, OrganisationUnit orgUnit) {
+    TrackerBundle bundle = reporter.getBundle();
+    User user = bundle.getUser();
+
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
+
+    if (!organisationUnitService.isInUserSearchHierarchyCached(user, orgUnit)) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(dto.getUid())
+              .trackerType(dto.getTrackerType())
+              .errorCode(TrackerErrorCode.E1003)
+              .addArg(orgUnit)
+              .addArg(user)
+              .build(reporter.getBundle());
+      reporter.addError(error);
+    }
+  }
+
+  private void checkTeiTypeAndTeiProgramAccess(
+      ValidationErrorReporter reporter,
+      TrackerDto dto,
+      User user,
+      String trackedEntityInstance,
+      OrganisationUnit ownerOrganisationUnit,
+      Program program) {
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
+    checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
+    checkNotNull(trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL);
+
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(dto.getUid())
+              .trackerType(dto.getTrackerType())
+              .errorCode(TrackerErrorCode.E1104)
+              .addArg(user)
+              .addArg(program)
+              .addArg(program.getTrackedEntityType())
+              .build(reporter.getBundle());
+      reporter.addError(error);
     }
 
-    private void validateCreateEvent( ValidationErrorReporter reporter, Event event, User actingUser,
-        CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
-        OrganisationUnit organisationUnit, OrganisationUnit ownerOrgUnit, Program program,
-        boolean isCreatableInSearchScope )
-    {
-        checkNotNull( organisationUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-        checkNotNull( actingUser, USER_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
+    if (ownerOrganisationUnit != null
+        && !ownershipAccessManager.hasAccess(
+            user, trackedEntityInstance, ownerOrganisationUnit, program)) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(dto.getUid())
+              .trackerType(dto.getTrackerType())
+              .errorCode(TrackerErrorCode.E1102)
+              .addArg(user)
+              .addArg(trackedEntityInstance)
+              .addArg(program)
+              .build(reporter.getBundle());
+      reporter.addError(error);
+    }
+  }
 
-        boolean noProgramStageAndProgramIsWithoutReg = programStage == null && program.isWithoutRegistration();
+  private void checkWriteEnrollmentAccess(
+      ValidationErrorReporter reporter,
+      Enrollment enrollment,
+      Program program,
+      OrganisationUnit ownerOrgUnit) {
+    TrackerBundle bundle = reporter.getBundle();
+    User user = bundle.getUser();
 
-        programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-        checkEventWriteAccess( reporter, event, programStage, organisationUnit, ownerOrgUnit,
-            categoryOptionCombo,
-            teiUid, isCreatableInSearchScope ); // TODO:
-                                                // calculate
-                                                // correct
-        // isCreatableInSearchScope
-        // value
+    checkProgramWriteAccess(reporter, enrollment, user, program);
+
+    if (program.isRegistration()) {
+      String trackedEntity =
+          reporter.getBundle().getStrategy(enrollment).isDelete()
+              ? reporter
+                  .getBundle()
+                  .getProgramInstance(enrollment.getEnrollment())
+                  .getEntityInstance()
+                  .getUid()
+              : enrollment.getTrackedEntity();
+
+      checkNotNull(program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL);
+      checkTeiTypeAndTeiProgramAccess(
+          reporter, enrollment, user, trackedEntity, ownerOrgUnit, program);
+    }
+  }
+
+  private void checkEventWriteAccess(
+      ValidationErrorReporter reporter,
+      Event event,
+      ProgramStage programStage,
+      OrganisationUnit eventOrgUnit,
+      OrganisationUnit ownerOrgUnit,
+      CategoryOptionCombo categoryOptionCombo,
+      String trackedEntity,
+      boolean isCreatableInSearchScope) {
+    TrackerBundle bundle = reporter.getBundle();
+    User user = bundle.getUser();
+
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(programStage, PROGRAM_STAGE_CANT_BE_NULL);
+    checkNotNull(programStage.getProgram(), PROGRAM_CANT_BE_NULL);
+
+    if (reporter.getBundle().getStrategy(event) != TrackerImportStrategy.UPDATE) {
+      checkEventOrgUnitWriteAccess(
+          reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user);
+    }
+    if (programStage.getProgram().isWithoutRegistration()) {
+      checkProgramWriteAccess(reporter, event, user, programStage.getProgram());
+    } else {
+      checkProgramStageWriteAccess(reporter, event, user, programStage);
+      final Program program = programStage.getProgram();
+
+      checkProgramReadAccess(reporter, event, user, program);
+
+      checkTeiTypeAndTeiProgramAccess(
+          reporter, event, user, trackedEntity, ownerOrgUnit, programStage.getProgram());
     }
 
-    private void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
-        ProgramStageInstance programStageInstance,
-        String teiUid, OrganisationUnit ownerOrgUnit )
-    {
-        TrackerImportStrategy strategy = reporter.getBundle().getStrategy( event );
-        User user = reporter.getBundle().getUser();
-
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        checkNotNull( event, EVENT_CANT_BE_NULL );
-
-        checkEventWriteAccess( reporter, event, programStageInstance.getProgramStage(),
-            programStageInstance.getOrganisationUnit(), ownerOrgUnit,
-            programStageInstance.getAttributeOptionCombo(),
-            teiUid, programStageInstance.isCreatableInSearchScope() );
-
-        if ( strategy.isUpdate()
-            && EventStatus.COMPLETED == programStageInstance.getStatus()
-            && event.getStatus() != programStageInstance.getStatus()
-            && (!user.isSuper() && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( event.getUid() )
-                .trackerType( TrackerType.EVENT )
-                .errorCode( E1083 )
-                .addArg( user )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
-        }
+    if (categoryOptionCombo != null) {
+      checkWriteCategoryOptionComboAccess(reporter, event, categoryOptionCombo);
     }
+  }
 
-    private String getTeiUidFromEvent( TrackerBundle bundle, Event event, Program program )
-    {
-        if ( program.isWithoutRegistration() )
-        {
-            return null;
-        }
+  private void checkEventOrgUnitWriteAccess(
+      ValidationErrorReporter reporter,
+      TrackerBundle bundle,
+      Event event,
+      OrganisationUnit eventOrgUnit,
+      boolean isCreatableInSearchScope,
+      User user) {
+    if (eventOrgUnit == null) {
+      log.warn("ProgramStageInstance " + event.getUid() + ORG_UNIT_NO_USER_ASSIGNED);
+    } else if (isCreatableInSearchScope
+        ? !organisationUnitService.isInUserSearchHierarchyCached(user, eventOrgUnit)
+        : !organisationUnitService.isInUserHierarchyCached(user, eventOrgUnit)) {
 
-        ProgramInstance programInstance = bundle.getProgramInstance( event.getEnrollment() );
-
-        if ( programInstance == null )
-        {
-            return bundle
-                .getEnrollment( event.getEnrollment() )
-                .map( Enrollment::getTrackedEntity )
-                .orElse( null );
-        }
-        else
-        {
-            return programInstance.getEntityInstance().getUid();
-        }
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(event.getUid())
+              .trackerType(TrackerType.EVENT)
+              .errorCode(TrackerErrorCode.E1000)
+              .addArg(user)
+              .addArg(eventOrgUnit)
+              .build(bundle);
+      reporter.addError(error);
     }
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true;
+  private void checkProgramReadAccess(
+      ValidationErrorReporter reporter, TrackerDto dto, User user, Program program) {
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
+
+    if (!aclService.canDataRead(user, program)) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(dto.getUid())
+              .trackerType(dto.getTrackerType())
+              .errorCode(TrackerErrorCode.E1096)
+              .addArg(user)
+              .addArg(program)
+              .build(reporter.getBundle());
+      reporter.addError(error);
     }
+  }
 
-    @Override
-    public boolean removeOnError()
-    {
-        return true;
+  private void checkProgramStageWriteAccess(
+      ValidationErrorReporter reporter, TrackerDto dto, User user, ProgramStage programStage) {
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(programStage, PROGRAM_STAGE_CANT_BE_NULL);
+
+    if (!aclService.canDataWrite(user, programStage)) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(dto.getUid())
+              .trackerType(dto.getTrackerType())
+              .errorCode(TrackerErrorCode.E1095)
+              .addArg(user)
+              .addArg(programStage)
+              .build(reporter.getBundle());
+      reporter.addError(error);
     }
+  }
 
-    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerDto dto,
-        OrganisationUnit orgUnit )
-    {
-        TrackerBundle bundle = reporter.getBundle();
-        User user = bundle.getUser();
+  private void checkProgramWriteAccess(
+      ValidationErrorReporter reporter, TrackerDto dto, User user, Program program) {
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
-
-        if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1000 )
-                .addArg( user )
-                .addArg( orgUnit )
-                .build( bundle );
-            reporter.addError( error );
-        }
+    if (!aclService.canDataWrite(user, program)) {
+      TrackerErrorReport error =
+          TrackerErrorReport.builder()
+              .uid(dto.getUid())
+              .trackerType(dto.getTrackerType())
+              .errorCode(TrackerErrorCode.E1091)
+              .addArg(user)
+              .addArg(program)
+              .build(reporter.getBundle());
+      reporter.addError(error);
     }
+  }
 
-    private void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerDto dto,
-        OrganisationUnit orgUnit )
-    {
-        TrackerBundle bundle = reporter.getBundle();
-        User user = bundle.getUser();
+  public void checkWriteCategoryOptionComboAccess(
+      ValidationErrorReporter reporter, TrackerDto dto, CategoryOptionCombo categoryOptionCombo) {
+    TrackerBundle bundle = reporter.getBundle();
+    User user = bundle.getUser();
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(
+        categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL);
 
-        if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1003 )
-                .addArg( orgUnit )
-                .addArg( user )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
-        }
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataWrite(user, categoryOption)) {
+        TrackerErrorReport error =
+            TrackerErrorReport.builder()
+                .uid(dto.getUid())
+                .trackerType(dto.getTrackerType())
+                .errorCode(TrackerErrorCode.E1099)
+                .addArg(user)
+                .addArg(categoryOption)
+                .build(reporter.getBundle());
+        reporter.addError(error);
+      }
     }
-
-    private void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, TrackerDto dto,
-        User user,
-        String trackedEntityInstance,
-        OrganisationUnit ownerOrganisationUnit,
-        Program program )
-    {
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-        checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL );
-
-        if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1104 )
-                .addArg( user )
-                .addArg( program )
-                .addArg( program.getTrackedEntityType() )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
-        }
-
-        if ( ownerOrganisationUnit != null
-            && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
-                program ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1102 )
-                .addArg( user )
-                .addArg( trackedEntityInstance )
-                .addArg( program )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
-        }
-    }
-
-    private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Enrollment enrollment, Program program,
-        OrganisationUnit ownerOrgUnit )
-    {
-        TrackerBundle bundle = reporter.getBundle();
-        User user = bundle.getUser();
-
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-
-        checkProgramWriteAccess( reporter, enrollment, user, program );
-
-        if ( program.isRegistration() )
-        {
-            String trackedEntity = reporter.getBundle().getStrategy( enrollment ).isDelete()
-                ? reporter.getBundle().getProgramInstance( enrollment.getEnrollment() ).getEntityInstance().getUid()
-                : enrollment.getTrackedEntity();
-
-            checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-            checkTeiTypeAndTeiProgramAccess( reporter, enrollment, user, trackedEntity,
-                ownerOrgUnit, program );
-        }
-    }
-
-    private void checkEventWriteAccess( ValidationErrorReporter reporter, Event event, ProgramStage programStage,
-        OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
-        CategoryOptionCombo categoryOptionCombo,
-        String trackedEntity, boolean isCreatableInSearchScope )
-    {
-        TrackerBundle bundle = reporter.getBundle();
-        User user = bundle.getUser();
-
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
-        checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
-
-        if ( reporter.getBundle().getStrategy( event ) != TrackerImportStrategy.UPDATE )
-        {
-            checkEventOrgUnitWriteAccess( reporter, bundle, event, eventOrgUnit, isCreatableInSearchScope, user );
-        }
-        if ( programStage.getProgram().isWithoutRegistration() )
-        {
-            checkProgramWriteAccess( reporter, event, user, programStage.getProgram() );
-        }
-        else
-        {
-            checkProgramStageWriteAccess( reporter, event, user, programStage );
-            final Program program = programStage.getProgram();
-
-            checkProgramReadAccess( reporter, event, user, program );
-
-            checkTeiTypeAndTeiProgramAccess( reporter, event, user,
-                trackedEntity,
-                ownerOrgUnit,
-                programStage.getProgram() );
-        }
-
-        if ( categoryOptionCombo != null )
-        {
-            checkWriteCategoryOptionComboAccess( reporter, event, categoryOptionCombo );
-        }
-    }
-
-    private void checkEventOrgUnitWriteAccess( ValidationErrorReporter reporter, TrackerBundle bundle, Event event,
-        OrganisationUnit eventOrgUnit,
-        boolean isCreatableInSearchScope, User user )
-    {
-        if ( eventOrgUnit == null )
-        {
-            log.warn( "ProgramStageInstance " + event.getUid()
-                + ORG_UNIT_NO_USER_ASSIGNED );
-        }
-        else if ( isCreatableInSearchScope
-            ? !organisationUnitService.isInUserSearchHierarchyCached( user, eventOrgUnit )
-            : !organisationUnitService.isInUserHierarchyCached( user, eventOrgUnit ) )
-        {
-
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( event.getUid() )
-                .trackerType( TrackerType.EVENT )
-                .errorCode( TrackerErrorCode.E1000 )
-                .addArg( user )
-                .addArg( eventOrgUnit )
-                .build( bundle );
-            reporter.addError( error );
-        }
-    }
-
-    private void checkProgramReadAccess( ValidationErrorReporter reporter, TrackerDto dto,
-        User user,
-        Program program )
-    {
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-
-        if ( !aclService.canDataRead( user, program ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1096 )
-                .addArg( user )
-                .addArg( program )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
-        }
-    }
-
-    private void checkProgramStageWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
-        User user,
-        ProgramStage programStage )
-    {
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
-
-        if ( !aclService.canDataWrite( user, programStage ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1095 )
-                .addArg( user )
-                .addArg( programStage )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
-        }
-    }
-
-    private void checkProgramWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
-        User user,
-        Program program )
-    {
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            TrackerErrorReport error = TrackerErrorReport.builder()
-                .uid( dto.getUid() )
-                .trackerType( dto.getTrackerType() )
-                .errorCode( TrackerErrorCode.E1091 )
-                .addArg( user )
-                .addArg( program )
-                .build( reporter.getBundle() );
-            reporter.addError( error );
-        }
-    }
-
-    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, TrackerDto dto,
-        CategoryOptionCombo categoryOptionCombo )
-    {
-        TrackerBundle bundle = reporter.getBundle();
-        User user = bundle.getUser();
-
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( categoryOptionCombo, TrackerImporterAssertErrors.CATEGORY_OPTION_COMBO_CANT_BE_NULL );
-
-        for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
-        {
-            if ( !aclService.canDataWrite( user, categoryOption ) )
-            {
-                TrackerErrorReport error = TrackerErrorReport.builder()
-                    .uid( dto.getUid() )
-                    .trackerType( dto.getTrackerType() )
-                    .errorCode( TrackerErrorCode.E1099 )
-                    .addArg( user )
-                    .addArg( categoryOption )
-                    .build( reporter.getBundle() );
-                reporter.addError( error );
-            }
-        }
-    }
-
+  }
 }

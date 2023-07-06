@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,150 +46,189 @@ import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-class IdentifiableObjectUtilsTest
-{
+class IdentifiableObjectUtilsTest {
 
-    @Test
-    void testJoin()
-    {
-        DataElement deA = new DataElement( "DEA" );
-        DataElement deB = new DataElement( "DEB" );
-        DataElement deC = new DataElement( "DEC" );
-        String expected = deA.getDisplayName() + SEPARATOR_JOIN + deB.getDisplayName() + SEPARATOR_JOIN
+  @Test
+  void testJoin() {
+    DataElement deA = new DataElement("DEA");
+    DataElement deB = new DataElement("DEB");
+    DataElement deC = new DataElement("DEC");
+    String expected =
+        deA.getDisplayName()
+            + SEPARATOR_JOIN
+            + deB.getDisplayName()
+            + SEPARATOR_JOIN
             + deC.getDisplayName();
-        assertEquals( expected, IdentifiableObjectUtils.join( Lists.newArrayList( deA, deB, deC ) ) );
-        assertNull( IdentifiableObjectUtils.join( null ) );
-        assertNull( IdentifiableObjectUtils.join( Lists.newArrayList() ) );
-    }
+    assertEquals(expected, IdentifiableObjectUtils.join(Lists.newArrayList(deA, deB, deC)));
+    assertNull(IdentifiableObjectUtils.join(null));
+    assertNull(IdentifiableObjectUtils.join(Lists.newArrayList()));
+  }
 
-    @Test
-    void testGetIdMap()
-    {
-        DataElement deA = new DataElement( "NameA" );
-        DataElement deB = new DataElement( "NameB" );
-        DataElement deC = new DataElement( "NameC" );
-        deA.setCode( "CodeA" );
-        deB.setCode( "CodeB" );
-        deC.setCode( "CodeC" );
-        deA.setUid( "A123456789A" );
-        deB.setUid( "A123456789B" );
-        deC.setUid( "A123456789C" );
-        List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
-        Map<String, DataElement> map = IdentifiableObjectUtils.getIdMap( elements,
-            IdScheme.from( IdentifiableProperty.NAME ) );
-        assertEquals( deA, map.get( "NameA" ) );
-        assertEquals( deB, map.get( "NameB" ) );
-        assertEquals( deC, map.get( "NameC" ) );
-        assertNull( map.get( "NameD" ) );
-        map = IdentifiableObjectUtils.getIdMap( elements, IdScheme.from( IdentifiableProperty.UID ) );
-        assertEquals( deA, map.get( "A123456789A" ) );
-        assertEquals( deB, map.get( "A123456789B" ) );
-        assertEquals( deC, map.get( "A123456789C" ) );
-        assertNull( map.get( "A123456789D" ) );
-        map = IdentifiableObjectUtils.getIdMap( elements, IdScheme.from( IdentifiableProperty.CODE ) );
-        assertEquals( deA, map.get( "CodeA" ) );
-        assertEquals( deB, map.get( "CodeB" ) );
-        assertEquals( deC, map.get( "CodeC" ) );
-        assertNull( map.get( "CodeD" ) );
-    }
+  @Test
+  void testGetIdMap() {
+    DataElement deA = new DataElement("NameA");
+    DataElement deB = new DataElement("NameB");
+    DataElement deC = new DataElement("NameC");
+    deA.setCode("CodeA");
+    deB.setCode("CodeB");
+    deC.setCode("CodeC");
+    deA.setUid("A123456789A");
+    deB.setUid("A123456789B");
+    deC.setUid("A123456789C");
+    List<DataElement> elements = Lists.newArrayList(deA, deB, deC);
+    Map<String, DataElement> map =
+        IdentifiableObjectUtils.getIdMap(elements, IdScheme.from(IdentifiableProperty.NAME));
+    assertEquals(deA, map.get("NameA"));
+    assertEquals(deB, map.get("NameB"));
+    assertEquals(deC, map.get("NameC"));
+    assertNull(map.get("NameD"));
+    map = IdentifiableObjectUtils.getIdMap(elements, IdScheme.from(IdentifiableProperty.UID));
+    assertEquals(deA, map.get("A123456789A"));
+    assertEquals(deB, map.get("A123456789B"));
+    assertEquals(deC, map.get("A123456789C"));
+    assertNull(map.get("A123456789D"));
+    map = IdentifiableObjectUtils.getIdMap(elements, IdScheme.from(IdentifiableProperty.CODE));
+    assertEquals(deA, map.get("CodeA"));
+    assertEquals(deB, map.get("CodeB"));
+    assertEquals(deC, map.get("CodeC"));
+    assertNull(map.get("CodeD"));
+  }
 
-    @Test
-    void testGetUidMapIdentifiableProperty()
-    {
-        DataElement deA = new DataElement( "NameA" );
-        DataElement deB = new DataElement( "NameB" );
-        DataElement deC = new DataElement( "NameC" );
-        deA.setUid( "A123456789A" );
-        deB.setUid( "A123456789B" );
-        deC.setUid( "A123456789C" );
-        deA.setCode( "CodeA" );
-        deB.setCode( "CodeB" );
-        deC.setCode( null );
-        List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
-        Map<String, String> map = IdentifiableObjectUtils.getUidPropertyMap( elements, IdentifiableProperty.CODE );
-        assertEquals( 3, map.size() );
-        assertEquals( "CodeA", map.get( "A123456789A" ) );
-        assertEquals( "CodeB", map.get( "A123456789B" ) );
-        assertEquals( null, map.get( "A123456789C" ) );
-    }
+  @Test
+  void testGetUidMapIdentifiableProperty() {
+    DataElement deA = new DataElement("NameA");
+    DataElement deB = new DataElement("NameB");
+    DataElement deC = new DataElement("NameC");
+    deA.setUid("A123456789A");
+    deB.setUid("A123456789B");
+    deC.setUid("A123456789C");
+    deA.setCode("CodeA");
+    deB.setCode("CodeB");
+    deC.setCode(null);
+    List<DataElement> elements = Lists.newArrayList(deA, deB, deC);
+    Map<String, String> map =
+        IdentifiableObjectUtils.getUidPropertyMap(elements, IdentifiableProperty.CODE);
+    assertEquals(3, map.size());
+    assertEquals("CodeA", map.get("A123456789A"));
+    assertEquals("CodeB", map.get("A123456789B"));
+    assertEquals(null, map.get("A123456789C"));
+  }
 
-    @Test
-    void testGetPeriodByPeriodType()
-    {
-        Calendar calendar = Iso8601Calendar.getInstance();
-        WeeklyPeriodType weekly = new WeeklyPeriodType();
-        MonthlyPeriodType monthly = new MonthlyPeriodType();
-        QuarterlyPeriodType quarterly = new QuarterlyPeriodType();
-        YearlyPeriodType yearly = new YearlyPeriodType();
-        assertEquals( PeriodType.getPeriodFromIsoString( "2017W10" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "20170308" ), weekly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "2017W9" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "20170301" ), weekly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W8" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W9" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201705" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W21" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201706" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W22" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201708" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017W35" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017WedW8" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017WedW9" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017ThuW8" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017ThuW10" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SatW7" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SatW10" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW7" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW9" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201702" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW7" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "201703" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017SunW9" ), monthly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "2017Q1" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "201703" ), quarterly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "2017Q2" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "201704" ), quarterly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "2016" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2016Q4" ), yearly, calendar ) );
-        assertEquals( PeriodType.getPeriodFromIsoString( "2017" ), IdentifiableObjectUtils
-            .getPeriodByPeriodType( PeriodType.getPeriodFromIsoString( "2017Q1" ), yearly, calendar ) );
-        assertNull( PeriodType.getPeriodFromIsoString( "u3847847" ) );
-    }
+  @Test
+  void testGetPeriodByPeriodType() {
+    Calendar calendar = Iso8601Calendar.getInstance();
+    WeeklyPeriodType weekly = new WeeklyPeriodType();
+    MonthlyPeriodType monthly = new MonthlyPeriodType();
+    QuarterlyPeriodType quarterly = new QuarterlyPeriodType();
+    YearlyPeriodType yearly = new YearlyPeriodType();
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("2017W10"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("20170308"), weekly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("2017W9"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("20170301"), weekly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017W8"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017W9"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201705"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017W21"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201706"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017W22"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201708"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017W35"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017WedW8"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017WedW9"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017ThuW8"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017ThuW10"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017SatW7"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017SatW10"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017SunW7"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017SunW9"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201702"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017SunW7"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("201703"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017SunW9"), monthly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("2017Q1"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("201703"), quarterly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("2017Q2"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("201704"), quarterly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("2016"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2016Q4"), yearly, calendar));
+    assertEquals(
+        PeriodType.getPeriodFromIsoString("2017"),
+        IdentifiableObjectUtils.getPeriodByPeriodType(
+            PeriodType.getPeriodFromIsoString("2017Q1"), yearly, calendar));
+    assertNull(PeriodType.getPeriodFromIsoString("u3847847"));
+  }
 
-    @Test
-    void testEqualByUid()
-    {
-        DataElement deA = new DataElement();
-        deA.setUid( "UIDA" );
-        DataElement deA1 = new DataElement();
-        deA1.setUid( "UIDA" );
-        DataElement deB = new DataElement();
-        deB.setUid( "UIDB" );
-        DataElement deC = new DataElement();
-        deC.setUid( null );
-        DataElement deD = null;
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deB ) );
-        assertTrue( IdentifiableObjectUtils.equalByUID( deA, deA1 ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deC ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deA ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deC, deD ) );
-        assertTrue( IdentifiableObjectUtils.equalByUID( deD, deD ) );
-        assertTrue( IdentifiableObjectUtils.equalByUID( deC, deC ) );
-        assertFalse( IdentifiableObjectUtils.equalByUID( deA, deD ) );
-    }
+  @Test
+  void testEqualByUid() {
+    DataElement deA = new DataElement();
+    deA.setUid("UIDA");
+    DataElement deA1 = new DataElement();
+    deA1.setUid("UIDA");
+    DataElement deB = new DataElement();
+    deB.setUid("UIDB");
+    DataElement deC = new DataElement();
+    deC.setUid(null);
+    DataElement deD = null;
+    assertFalse(IdentifiableObjectUtils.equalByUID(deA, deB));
+    assertTrue(IdentifiableObjectUtils.equalByUID(deA, deA1));
+    assertFalse(IdentifiableObjectUtils.equalByUID(deA, deC));
+    assertFalse(IdentifiableObjectUtils.equalByUID(deC, deA));
+    assertFalse(IdentifiableObjectUtils.equalByUID(deC, deD));
+    assertTrue(IdentifiableObjectUtils.equalByUID(deD, deD));
+    assertTrue(IdentifiableObjectUtils.equalByUID(deC, deC));
+    assertFalse(IdentifiableObjectUtils.equalByUID(deA, deD));
+  }
 }

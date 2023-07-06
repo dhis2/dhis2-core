@@ -29,9 +29,7 @@ package org.hisp.dhis.attribute.hibernate;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeStore;
@@ -46,60 +44,67 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.attribute.AttributeStore" )
-public class HibernateAttributeStore
-    extends HibernateIdentifiableObjectStore<Attribute>
-    implements AttributeStore
-{
-    @Autowired
-    public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, aclService, true );
+@Repository("org.hisp.dhis.attribute.AttributeStore")
+public class HibernateAttributeStore extends HibernateIdentifiableObjectStore<Attribute>
+    implements AttributeStore {
+  @Autowired
+  public HibernateAttributeStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Attribute.class,
+        currentUserService,
+        aclService,
+        true);
+  }
+
+  @Override
+  public List<Attribute> getAttributes(Class<?> klass) {
+    if (!CLASS_ATTRIBUTE_MAP.containsKey(klass)) {
+      return new ArrayList<>();
     }
 
-    @Override
-    public List<Attribute> getAttributes( Class<?> klass )
-    {
-        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
-        {
-            return new ArrayList<>();
-        }
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get(CLASS_ATTRIBUTE_MAP.get(klass)), true)));
+  }
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) ) );
+  @Override
+  public List<Attribute> getMandatoryAttributes(Class<?> klass) {
+    if (!CLASS_ATTRIBUTE_MAP.containsKey(klass)) {
+      return new ArrayList<>();
     }
 
-    @Override
-    public List<Attribute> getMandatoryAttributes( Class<?> klass )
-    {
-        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
-        {
-            return new ArrayList<>();
-        }
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get(CLASS_ATTRIBUTE_MAP.get(klass)), true))
+            .addPredicate(root -> builder.equal(root.get("mandatory"), true)));
+  }
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
-            .addPredicate( root -> builder.equal( root.get( "mandatory" ), true ) ) );
+  @Override
+  public List<Attribute> getUniqueAttributes(Class<?> klass) {
+    if (!CLASS_ATTRIBUTE_MAP.containsKey(klass)) {
+      return new ArrayList<>();
     }
 
-    @Override
-    public List<Attribute> getUniqueAttributes( Class<?> klass )
-    {
-        if ( !CLASS_ATTRIBUTE_MAP.containsKey( klass ) )
-        {
-            return new ArrayList<>();
-        }
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( CLASS_ATTRIBUTE_MAP.get( klass ) ), true ) )
-            .addPredicate( root -> builder.equal( root.get( "unique" ), true ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get(CLASS_ATTRIBUTE_MAP.get(klass)), true))
+            .addPredicate(root -> builder.equal(root.get("unique"), true)));
+  }
 }

@@ -39,34 +39,31 @@ import org.springframework.stereotype.Component;
 /**
  * @author Jim Grace
  */
-@Component( "org.hisp.dhis.dataelement.DataElementOperandDeletionHandler" )
-public class DataElementOperandDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataElementOperand.class );
+@Component("org.hisp.dhis.dataelement.DataElementOperandDeletionHandler")
+public class DataElementOperandDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataElementOperand.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public DataElementOperandDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
+  public DataElementOperandDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
 
-        this.jdbcTemplate = jdbcTemplate;
-    }
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    // TODO masking real problem, we should control operands better and check
-    // associated objects regarding deletion
+  // TODO masking real problem, we should control operands better and check
+  // associated objects regarding deletion
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "select count(*) from dataelementoperand where categoryoptioncomboid=" + optionCombo.getId();
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql =
+        "select count(*) from dataelementoperand where categoryoptioncomboid="
+            + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

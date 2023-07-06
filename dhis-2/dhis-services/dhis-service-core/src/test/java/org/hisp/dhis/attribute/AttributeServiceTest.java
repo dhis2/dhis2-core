@@ -40,63 +40,56 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AttributeServiceTest extends DhisSpringTest
-{
-    @Autowired
-    private AttributeService attributeService;
+class AttributeServiceTest extends DhisSpringTest {
+  @Autowired private AttributeService attributeService;
 
-    @Test
-    void testAddAttribute()
-    {
-        Attribute attribute = createAttribute( "attribute1", ValueType.TEXT );
-        attributeService.addAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
-        assertNotNull( attribute );
-        assertEquals( ValueType.TEXT, attribute.getValueType() );
-        assertEquals( "attribute1", attribute.getName() );
-    }
+  @Test
+  void testAddAttribute() {
+    Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
+    attributeService.addAttribute(attribute);
+    attribute = attributeService.getAttribute(attribute.getId());
+    assertNotNull(attribute);
+    assertEquals(ValueType.TEXT, attribute.getValueType());
+    assertEquals("attribute1", attribute.getName());
+  }
 
-    @Test
-    void testDeleteAttribute()
-    {
-        Attribute attribute = createAttribute( "attribute1", ValueType.TEXT );
-        attributeService.addAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
-        assertNotNull( attribute );
-        long attributeId = attribute.getId();
-        attributeService.deleteAttribute( attribute );
-        attribute = attributeService.getAttribute( attributeId );
-        assertNull( attribute );
-    }
+  @Test
+  void testDeleteAttribute() {
+    Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
+    attributeService.addAttribute(attribute);
+    attribute = attributeService.getAttribute(attribute.getId());
+    assertNotNull(attribute);
+    long attributeId = attribute.getId();
+    attributeService.deleteAttribute(attribute);
+    attribute = attributeService.getAttribute(attributeId);
+    assertNull(attribute);
+  }
 
-    @Test
-    void testGetAttribute()
-    {
-        Attribute attribute = createAttribute( "attribute1", ValueType.TEXT );
-        attributeService.addAttribute( attribute );
-        attribute = attributeService.getAttribute( attribute.getId() );
-        assertNotNull( attribute );
-    }
+  @Test
+  void testGetAttribute() {
+    Attribute attribute = createAttribute("attribute1", ValueType.TEXT);
+    attributeService.addAttribute(attribute);
+    attribute = attributeService.getAttribute(attribute.getId());
+    assertNotNull(attribute);
+  }
 
-    @Test
-    void testGetAllAttributes()
-    {
-        Attribute attribute1 = createAttribute( "attribute1", ValueType.TEXT );
-        Attribute attribute2 = createAttribute( "attribute2", ValueType.TEXT );
-        attributeService.addAttribute( attribute1 );
-        attributeService.addAttribute( attribute2 );
-        assertEquals( 2, attributeService.getAllAttributes().size() );
-    }
+  @Test
+  void testGetAllAttributes() {
+    Attribute attribute1 = createAttribute("attribute1", ValueType.TEXT);
+    Attribute attribute2 = createAttribute("attribute2", ValueType.TEXT);
+    attributeService.addAttribute(attribute1);
+    attributeService.addAttribute(attribute2);
+    assertEquals(2, attributeService.getAllAttributes().size());
+  }
 
-    @Test
-    void testGeoJSONAttribute()
-    {
-        Attribute attribute = createAttribute( "attributeGeoJson", ValueType.GEOJSON );
-        attributeService.addAttribute( attribute );
+  @Test
+  void testGeoJSONAttribute() {
+    Attribute attribute = createAttribute("attributeGeoJson", ValueType.GEOJSON);
+    attributeService.addAttribute(attribute);
 
-        attribute = attributeService.getAttributeByName( attribute.getName() );
-        assertNotNull( attribute );
-        assertTrue( attribute.getValueType().isGeo() );
-        assertEquals( attribute.getValueType(), ValueType.GEOJSON );
-    }
+    attribute = attributeService.getAttributeByName(attribute.getName());
+    assertNotNull(attribute);
+    assertTrue(attribute.getValueType().isGeo());
+    assertEquals(attribute.getValueType(), ValueType.GEOJSON);
+  }
 }

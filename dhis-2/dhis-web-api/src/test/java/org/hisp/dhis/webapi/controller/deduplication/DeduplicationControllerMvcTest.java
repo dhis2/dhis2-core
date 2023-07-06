@@ -41,8 +41,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import java.util.Collections;
-
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
@@ -71,250 +72,274 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
+@ExtendWith(MockitoExtension.class)
+class DeduplicationControllerMvcTest {
 
-@ExtendWith( MockitoExtension.class )
-class DeduplicationControllerMvcTest
-{
+  private static final String ENDPOINT = "/" + "potentialDuplicates";
 
-    private final static String ENDPOINT = "/" + "potentialDuplicates";
+  private MockMvc mockMvc;
 
-    private MockMvc mockMvc;
+  @Mock private DeduplicationService deduplicationService;
 
-    @Mock
-    private DeduplicationService deduplicationService;
+  @Mock private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
-    @Mock
-    private TrackerAccessManager trackerAccessManager;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private FieldFilterService fieldFilterService;
 
-    @Mock
-    private FieldFilterService fieldFilterService;
+  @Mock private ContextService contextService;
 
-    @Mock
-    private ContextService contextService;
+  @Mock private TrackedEntityInstance trackedEntityInstanceA;
 
-    @Mock
-    private TrackedEntityInstance trackedEntityInstanceA;
+  @Mock private TrackedEntityInstance trackedEntityInstanceB;
 
-    @Mock
-    private TrackedEntityInstance trackedEntityInstanceB;
+  @InjectMocks private DeduplicationController deduplicationController;
 
-    @InjectMocks
-    private DeduplicationController deduplicationController;
+  private DeduplicationMergeParams deduplicationMergeParams;
 
-    private DeduplicationMergeParams deduplicationMergeParams;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+  private static final String teiA = "trackedentA";
 
-    private static final String teiA = "trackedentA";
+  private static final String teiB = "trackedentB";
 
-    private static final String teiB = "trackedentB";
+  @BeforeEach
+  void setUp() {
+    deduplicationMergeParams =
+        DeduplicationMergeParams.builder()
+            .potentialDuplicate(new PotentialDuplicate(teiA, teiB))
+            .original(trackedEntityInstanceA)
+            .duplicate(trackedEntityInstanceB)
+            .mergeObject(MergeObject.builder().build())
+            .build();
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(deduplicationController)
+            .setControllerAdvice(new CrudControllerAdvice())
+            .build();
+    lenient()
+        .when(trackedEntityInstanceService.getTrackedEntityInstance(teiA))
+        .thenReturn(trackedEntityInstanceA);
+    lenient()
+        .when(trackedEntityInstanceService.getTrackedEntityInstance(teiB))
+        .thenReturn(trackedEntityInstanceB);
+    lenient()
+        .when(trackerAccessManager.canRead(any(), any(TrackedEntityInstance.class)))
+        .thenReturn(Lists.newArrayList());
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        deduplicationMergeParams = DeduplicationMergeParams.builder()
-            .potentialDuplicate( new PotentialDuplicate( teiA, teiB ) ).original( trackedEntityInstanceA )
-            .duplicate( trackedEntityInstanceB ).mergeObject( MergeObject.builder().build() ).build();
-        mockMvc = MockMvcBuilders.standaloneSetup( deduplicationController )
-            .setControllerAdvice( new CrudControllerAdvice() ).build();
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
-            .thenReturn( trackedEntityInstanceA );
-        lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiB ) )
-            .thenReturn( trackedEntityInstanceB );
-        lenient().when( trackerAccessManager.canRead( any(), any( TrackedEntityInstance.class ) ) )
-            .thenReturn( Lists.newArrayList() );
-    }
+  @Test
+  void shouldPostPotentialDuplicate() throws Exception {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    mockMvc
+        .perform(
+            post(ENDPOINT)
+                .content(objectMapper.writeValueAsString(potentialDuplicate))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"));
+  }
 
-    @Test
-    void shouldPostPotentialDuplicate()
-        throws Exception
-    {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        mockMvc
-            .perform( post( ENDPOINT ).content( objectMapper.writeValueAsString( potentialDuplicate ) )
-                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() ).andExpect( content().contentType( "application/json" ) );
-    }
+  @Test
+  void shouldThrowPostPotentialDuplicateMissingTei() throws Exception {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, null);
+    mockMvc
+        .perform(
+            post(ENDPOINT)
+                .content(objectMapper.writeValueAsString(potentialDuplicate))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+  }
 
-    @Test
-    void shouldThrowPostPotentialDuplicateMissingTei()
-        throws Exception
-    {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, null );
-        mockMvc
-            .perform( post( ENDPOINT ).content( objectMapper.writeValueAsString( potentialDuplicate ) )
-                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
-    }
+  @Test
+  void shouldThrowUpdatePotentialDuplicateAlreadyMerged() throws Exception {
+    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    potentialDuplicate.setStatus(DeduplicationStatus.MERGED);
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    mockMvc
+        .perform(
+            put(ENDPOINT + "/" + uid)
+                .param("status", DeduplicationStatus.INVALID.name())
+                .content(objectMapper.writeValueAsString(potentialDuplicate))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+    verify(deduplicationService).getPotentialDuplicateByUid(uid);
+  }
 
-    @Test
-    void shouldThrowUpdatePotentialDuplicateAlreadyMerged()
-        throws Exception
-    {
-        String uid = "uid";
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        mockMvc
-            .perform( put( ENDPOINT + "/" + uid ).param( "status", DeduplicationStatus.INVALID.name() )
-                .content( objectMapper.writeValueAsString( potentialDuplicate ) )
-                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
-        verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-    }
+  @Test
+  void shouldThrowUpdatePotentialDuplicateToMergedStatus() throws Exception {
+    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    mockMvc
+        .perform(
+            put(ENDPOINT + "/" + uid)
+                .param("status", DeduplicationStatus.MERGED.name())
+                .content(objectMapper.writeValueAsString(potentialDuplicate))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof BadRequestException));
+    verify(deduplicationService).getPotentialDuplicateByUid(uid);
+  }
 
-    @Test
-    void shouldThrowUpdatePotentialDuplicateToMergedStatus()
-        throws Exception
-    {
-        String uid = "uid";
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        mockMvc
-            .perform( put( ENDPOINT + "/" + uid ).param( "status", DeduplicationStatus.MERGED.name() )
-                .content( objectMapper.writeValueAsString( potentialDuplicate ) )
-                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
-        verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-    }
+  @Test
+  void shouldUpdatePotentialDuplicate() throws Exception {
+    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    mockMvc
+        .perform(
+            put(ENDPOINT + "/" + uid)
+                .param("status", DeduplicationStatus.INVALID.name())
+                .content(objectMapper.writeValueAsString(potentialDuplicate))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+    ArgumentCaptor<PotentialDuplicate> potentialDuplicateArgumentCaptor =
+        ArgumentCaptor.forClass(PotentialDuplicate.class);
+    verify(deduplicationService).getPotentialDuplicateByUid(uid);
+    verify(deduplicationService)
+        .updatePotentialDuplicate(potentialDuplicateArgumentCaptor.capture());
+    assertEquals(
+        DeduplicationStatus.INVALID, potentialDuplicateArgumentCaptor.getValue().getStatus());
+  }
 
-    @Test
-    void shouldUpdatePotentialDuplicate()
-        throws Exception
-    {
-        String uid = "uid";
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        mockMvc
-            .perform( put( ENDPOINT + "/" + uid ).param( "status", DeduplicationStatus.INVALID.name() )
-                .content( objectMapper.writeValueAsString( potentialDuplicate ) )
-                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() );
-        ArgumentCaptor<PotentialDuplicate> potentialDuplicateArgumentCaptor = ArgumentCaptor
-            .forClass( PotentialDuplicate.class );
-        verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-        verify( deduplicationService ).updatePotentialDuplicate( potentialDuplicateArgumentCaptor.capture() );
-        assertEquals( DeduplicationStatus.INVALID, potentialDuplicateArgumentCaptor.getValue().getStatus() );
-    }
+  @Test
+  void shouldGetAllPotentialDuplicateNoPaging() throws Exception {
+    when(deduplicationService.getAllPotentialDuplicatesBy(any()))
+        .thenReturn(Collections.singletonList(new PotentialDuplicate(teiA, teiB)));
+    mockMvc
+        .perform(
+            get(ENDPOINT)
+                .param("teis", teiA)
+                .param("skipPaging", "true")
+                .content("{}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"));
+    verify(deduplicationService).getAllPotentialDuplicatesBy(any());
+  }
 
-    @Test
-    void shouldGetAllPotentialDuplicateNoPaging()
-        throws Exception
-    {
-        when( deduplicationService.getAllPotentialDuplicatesBy( any() ) )
-            .thenReturn( Collections.singletonList( new PotentialDuplicate( teiA, teiB ) ) );
-        mockMvc
-            .perform( get( ENDPOINT ).param( "teis", teiA ).param( "skipPaging", "true" ).content( "{}" )
-                .contentType( MediaType.APPLICATION_JSON ).accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() ).andExpect( content().contentType( "application/json" ) );
-        verify( deduplicationService ).getAllPotentialDuplicatesBy( any() );
-    }
+  @Test
+  void shouldGetPotentialDuplicateById() throws Exception {
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    String uid = "uid";
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/" + uid)
+                .content("{}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"));
+    verify(deduplicationService).getPotentialDuplicateByUid(uid);
+  }
 
-    @Test
-    void shouldGetPotentialDuplicateById()
-        throws Exception
-    {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        String uid = "uid";
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        mockMvc
-            .perform( get( ENDPOINT + "/" + uid ).content( "{}" ).contentType( MediaType.APPLICATION_JSON )
-                .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() ).andExpect( content().contentType( "application/json" ) );
-        verify( deduplicationService ).getPotentialDuplicateByUid( uid );
-    }
+  @Test
+  void shouldThrowMissingPotentialDuplicate() throws Exception {
+    String uid = "uid";
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(null);
+    mockMvc
+        .perform(
+            get(ENDPOINT + "/" + uid)
+                .content("{}")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(
+            result -> assertTrue(result.getResolvedException() instanceof NotFoundException));
+  }
 
-    @Test
-    void shouldThrowMissingPotentialDuplicate()
-        throws Exception
-    {
-        String uid = "uid";
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( null );
-        mockMvc
-            .perform( get( ENDPOINT + "/" + uid ).content( "{}" ).contentType( MediaType.APPLICATION_JSON )
-                .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
-    }
+  @Test
+  void shouldMergePotentialDuplicate() throws Exception {
+    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    MergeObject mergeObject = MergeObject.builder().build();
+    mockMvc
+        .perform(
+            post(ENDPOINT + "/" + uid + "/merge")
+                .content(objectMapper.writeValueAsString(mergeObject))
+                .param("mergeStrategy", MergeStrategy.AUTO.name())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+    verify(deduplicationService).autoMerge(deduplicationMergeParams);
+    verify(deduplicationService, times(0)).manualMerge(deduplicationMergeParams);
+  }
 
-    @Test
-    void shouldMergePotentialDuplicate()
-        throws Exception
-    {
-        String uid = "uid";
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        MergeObject mergeObject = MergeObject.builder().build();
-        mockMvc
-            .perform( post( ENDPOINT + "/" + uid + "/merge" ).content( objectMapper.writeValueAsString( mergeObject ) )
-                .param( "mergeStrategy", MergeStrategy.AUTO.name() ).contentType( MediaType.APPLICATION_JSON )
-                .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() );
-        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
-        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
-    }
+  @Test
+  void shouldManualMergePotentialDuplicate() throws Exception {
+    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    MergeObject mergeObject = MergeObject.builder().build();
+    mockMvc
+        .perform(
+            post(ENDPOINT + "/" + uid + "/merge")
+                .content(objectMapper.writeValueAsString(mergeObject))
+                .param("mergeStrategy", MergeStrategy.MANUAL.name())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk());
+    verify(deduplicationService, times(0)).autoMerge(deduplicationMergeParams);
+    verify(deduplicationService).manualMerge(deduplicationMergeParams);
+  }
 
-    @Test
-    void shouldManualMergePotentialDuplicate()
-        throws Exception
-    {
-        String uid = "uid";
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        MergeObject mergeObject = MergeObject.builder().build();
-        mockMvc
-            .perform( post( ENDPOINT + "/" + uid + "/merge" ).content( objectMapper.writeValueAsString( mergeObject ) )
-                .param( "mergeStrategy", MergeStrategy.MANUAL.name() ).contentType( MediaType.APPLICATION_JSON )
-                .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isOk() );
-        verify( deduplicationService, times( 0 ) ).autoMerge( deduplicationMergeParams );
-        verify( deduplicationService ).manualMerge( deduplicationMergeParams );
-    }
+  @Test
+  void shouldThrowAutoMergeForbiddenException() throws Exception {
+    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    doThrow(new PotentialDuplicateForbiddenException("Forbidden"))
+        .when(deduplicationService)
+        .autoMerge(deduplicationMergeParams);
+    MergeObject mergeObject = MergeObject.builder().build();
+    mockMvc
+        .perform(
+            post(ENDPOINT + "/" + uid + "/merge")
+                .content(objectMapper.writeValueAsString(mergeObject))
+                .param("mergeStrategy", MergeStrategy.AUTO.name())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(
+            result ->
+                assertTrue(
+                    result.getResolvedException() instanceof PotentialDuplicateForbiddenException));
+    verify(deduplicationService).autoMerge(deduplicationMergeParams);
+    verify(deduplicationService, times(0)).manualMerge(deduplicationMergeParams);
+  }
 
-    @Test
-    void shouldThrowAutoMergeForbiddenException()
-        throws Exception
-    {
-        String uid = "uid";
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        doThrow( new PotentialDuplicateForbiddenException( "Forbidden" ) ).when( deduplicationService )
-            .autoMerge( deduplicationMergeParams );
-        MergeObject mergeObject = MergeObject.builder().build();
-        mockMvc
-            .perform( post( ENDPOINT + "/" + uid + "/merge" ).content( objectMapper.writeValueAsString( mergeObject ) )
-                .param( "mergeStrategy", MergeStrategy.AUTO.name() ).contentType( MediaType.APPLICATION_JSON )
-                .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect(
-                result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateForbiddenException ) );
-        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
-        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
-    }
-
-    @Test
-    void shouldThrowAutoMergeConflictException()
-        throws Exception
-    {
-        String uid = "uid";
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-        doThrow( new PotentialDuplicateConflictException( "Conflict" ) ).when( deduplicationService )
-            .autoMerge( deduplicationMergeParams );
-        MergeObject mergeObject = MergeObject.builder().build();
-        mockMvc
-            .perform( post( ENDPOINT + "/" + uid + "/merge" ).content( objectMapper.writeValueAsString( mergeObject ) )
-                .param( "mergeStrategy", MergeStrategy.AUTO.name() ).contentType( MediaType.APPLICATION_JSON )
-                .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect(
-                result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateConflictException ) );
-        verify( deduplicationService ).autoMerge( deduplicationMergeParams );
-        verify( deduplicationService, times( 0 ) ).manualMerge( deduplicationMergeParams );
-    }
+  @Test
+  void shouldThrowAutoMergeConflictException() throws Exception {
+    String uid = "uid";
+    PotentialDuplicate potentialDuplicate = new PotentialDuplicate(teiA, teiB);
+    when(deduplicationService.getPotentialDuplicateByUid(uid)).thenReturn(potentialDuplicate);
+    doThrow(new PotentialDuplicateConflictException("Conflict"))
+        .when(deduplicationService)
+        .autoMerge(deduplicationMergeParams);
+    MergeObject mergeObject = MergeObject.builder().build();
+    mockMvc
+        .perform(
+            post(ENDPOINT + "/" + uid + "/merge")
+                .content(objectMapper.writeValueAsString(mergeObject))
+                .param("mergeStrategy", MergeStrategy.AUTO.name())
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+        .andExpect(
+            result ->
+                assertTrue(
+                    result.getResolvedException() instanceof PotentialDuplicateConflictException));
+    verify(deduplicationService).autoMerge(deduplicationMergeParams);
+    verify(deduplicationService, times(0)).manualMerge(deduplicationMergeParams);
+  }
 }

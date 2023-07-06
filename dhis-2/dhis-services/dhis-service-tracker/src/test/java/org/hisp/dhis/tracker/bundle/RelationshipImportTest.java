@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
@@ -46,59 +45,52 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class RelationshipImportTest extends TrackerTest
-{
+class RelationshipImportTest extends TrackerTest {
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private User userA;
+  private User userA;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  @Override
+  public boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/simple_metadata.json" );
-        userA = userService.getUser( "M5zQapPyTZI" );
-        TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
-        assertNoImportErrors( trackerImportService.importTracker( teiParams ) );
-        TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
-        assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
-        TrackerImportParams eventParams = fromJson( "tracker/single_event.json", userA.getUid() );
-        assertNoImportErrors( trackerImportService.importTracker( eventParams ) );
-        manager.flush();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
+    userA = userService.getUser("M5zQapPyTZI");
+    TrackerImportParams teiParams = fromJson("tracker/single_tei.json", userA.getUid());
+    assertNoImportErrors(trackerImportService.importTracker(teiParams));
+    TrackerImportParams enrollmentParams =
+        fromJson("tracker/single_enrollment.json", userA.getUid());
+    assertNoImportErrors(trackerImportService.importTracker(enrollmentParams));
+    TrackerImportParams eventParams = fromJson("tracker/single_event.json", userA.getUid());
+    assertNoImportErrors(trackerImportService.importTracker(eventParams));
+    manager.flush();
+  }
 
-    @Test
-    void successImportingRelationships()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
-        assertThat( trackerImportReport.getStats().getCreated(), is( 2 ) );
-    }
+  @Test
+  void successImportingRelationships() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
+    assertThat(trackerImportReport.getStatus(), is(TrackerStatus.OK));
+    assertThat(trackerImportReport.getStats().getCreated(), is(2));
+  }
 
-    @Test
-    void successUpdateRelationships()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/relationships.json" );
-        trackerImportService.importTracker( trackerImportParams );
-        trackerImportParams = fromJson( "tracker/relationshipToUpdate.json" );
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertThat( trackerImportReport.getStatus(), is( TrackerStatus.OK ) );
-        assertThat( trackerImportReport.getStats().getCreated(), is( 0 ) );
-        assertThat( trackerImportReport.getStats().getIgnored(), is( 1 ) );
-    }
+  @Test
+  void successUpdateRelationships() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/relationships.json");
+    trackerImportService.importTracker(trackerImportParams);
+    trackerImportParams = fromJson("tracker/relationshipToUpdate.json");
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
+    assertThat(trackerImportReport.getStatus(), is(TrackerStatus.OK));
+    assertThat(trackerImportReport.getStats().getCreated(), is(0));
+    assertThat(trackerImportReport.getStats().getIgnored(), is(1));
+  }
 }

@@ -32,9 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -75,459 +73,407 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( "/configuration" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ConfigurationController
-{
-    @Autowired
-    private ConfigurationService configurationService;
+@RequestMapping("/configuration")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ConfigurationController {
+  @Autowired private ConfigurationService configurationService;
 
-    @Autowired
-    private DhisConfigurationProvider config;
+  @Autowired private DhisConfigurationProvider config;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private RenderService renderService;
+  @Autowired private RenderService renderService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private AppManager appManager;
+  @Autowired private AppManager appManager;
 
-    // -------------------------------------------------------------------------
-    // Resources
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Resources
+  // -------------------------------------------------------------------------
 
-    @GetMapping
-    public @ResponseBody Configuration getConfiguration( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration();
+  @GetMapping
+  public @ResponseBody Configuration getConfiguration(Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration();
+  }
+
+  @ResponseStatus(value = HttpStatus.OK)
+  @GetMapping("/systemId")
+  public @ResponseBody String getSystemId(Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getSystemId();
+  }
+
+  @PreAuthorize("hasRole('ALL')")
+  @PostMapping("/systemId")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void setSystemId(@RequestBody(required = false) String systemId) {
+    systemId = ObjectUtils.firstNonNull(systemId, UUID.randomUUID().toString());
+
+    Configuration configuration = configurationService.getConfiguration();
+    configuration.setSystemId(systemId);
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/feedbackRecipients")
+  public @ResponseBody UserGroup getFeedbackRecipients(Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getFeedbackRecipients();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/feedbackRecipients")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setFeedbackRecipients(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
+
+    UserGroup group = identifiableObjectManager.get(UserGroup.class, uid);
+
+    if (group == null) {
+      throw new NotFoundException("User group", uid);
     }
 
-    @ResponseStatus( value = HttpStatus.OK )
-    @GetMapping( "/systemId" )
-    public @ResponseBody String getSystemId( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getSystemId();
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setFeedbackRecipients(group);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @DeleteMapping("/feedbackRecipients")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeFeedbackRecipients() {
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setFeedbackRecipients(null);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/systemUpdateNotificationRecipients")
+  public @ResponseBody UserGroup getSystemUpdateNotificationRecipients(
+      Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/systemUpdateNotificationRecipients")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setSystemUpdateNotificationRecipients(@RequestBody String uid)
+      throws NotFoundException {
+    uid = trim(uid);
+
+    UserGroup group = identifiableObjectManager.get(UserGroup.class, uid);
+
+    if (group == null) {
+      throw new NotFoundException("User group", uid);
     }
 
-    @PreAuthorize( "hasRole('ALL')" )
-    @PostMapping( "/systemId" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void setSystemId( @RequestBody( required = false ) String systemId )
-    {
-        systemId = ObjectUtils.firstNonNull( systemId, UUID.randomUUID().toString() );
+    Configuration configuration = configurationService.getConfiguration();
 
-        Configuration configuration = configurationService.getConfiguration();
-        configuration.setSystemId( systemId );
-        configurationService.setConfiguration( configuration );
+    configuration.setSystemUpdateNotificationRecipients(group);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @DeleteMapping("/systemUpdateNotificationRecipients")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeSystemUpdateNotificationRecipients() {
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setSystemUpdateNotificationRecipients(null);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/offlineOrganisationUnitLevel")
+  public @ResponseBody OrganisationUnitLevel getOfflineOrganisationUnitLevel(
+      Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getOfflineOrganisationUnitLevel();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/offlineOrganisationUnitLevel")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setOfflineOrganisationUnitLevel(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
+
+    OrganisationUnitLevel organisationUnitLevel =
+        identifiableObjectManager.get(OrganisationUnitLevel.class, uid);
+
+    if (organisationUnitLevel == null) {
+      throw new NotFoundException("Organisation unit level", uid);
     }
 
-    @GetMapping( "/feedbackRecipients" )
-    public @ResponseBody UserGroup getFeedbackRecipients( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getFeedbackRecipients();
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setOfflineOrganisationUnitLevel(organisationUnitLevel);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @DeleteMapping("/offlineOrganisationUnitLevel")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeOfflineOrganisationUnitLevel() {
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setOfflineOrganisationUnitLevel(null);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/infrastructuralIndicators")
+  public @ResponseBody IndicatorGroup getInfrastructuralIndicators(
+      Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getInfrastructuralIndicators();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/infrastructuralIndicators")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setInfrastructuralIndicators(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
+
+    IndicatorGroup group = identifiableObjectManager.get(IndicatorGroup.class, uid);
+
+    if (group == null) {
+      throw new NotFoundException("Indicator group", uid);
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/feedbackRecipients" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setFeedbackRecipients( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
+    Configuration configuration = configurationService.getConfiguration();
 
-        UserGroup group = identifiableObjectManager.get( UserGroup.class, uid );
+    configuration.setInfrastructuralIndicators(group);
 
-        if ( group == null )
-        {
-            throw new NotFoundException( "User group", uid );
-        }
+    configurationService.setConfiguration(configuration);
+  }
 
-        Configuration configuration = configurationService.getConfiguration();
+  @GetMapping("/infrastructuralDataElements")
+  public @ResponseBody DataElementGroup getInfrastructuralDataElements(
+      Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getInfrastructuralDataElements();
+  }
 
-        configuration.setFeedbackRecipients( group );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/infrastructuralDataElements")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setInfrastructuralDataElements(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
 
-        configurationService.setConfiguration( configuration );
+    DataElementGroup group = identifiableObjectManager.get(DataElementGroup.class, uid);
+
+    if (group == null) {
+      throw new NotFoundException("Data element group", uid);
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @DeleteMapping( "/feedbackRecipients" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeFeedbackRecipients()
-    {
-        Configuration configuration = configurationService.getConfiguration();
+    Configuration configuration = configurationService.getConfiguration();
 
-        configuration.setFeedbackRecipients( null );
+    configuration.setInfrastructuralDataElements(group);
 
-        configurationService.setConfiguration( configuration );
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/infrastructuralPeriodType")
+  public @ResponseBody BaseIdentifiableObject getInfrastructuralPeriodType(
+      Model model, HttpServletRequest request) {
+    String name =
+        configurationService
+            .getConfiguration()
+            .getInfrastructuralPeriodTypeDefaultIfNull()
+            .getName();
+
+    return new BaseIdentifiableObject(name, name, name);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/infrastructuralPeriodType")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setInfrastructuralPeriodType(@RequestBody String name) throws NotFoundException {
+    name = trim(name);
+
+    PeriodType periodType = PeriodType.getPeriodTypeByName(name);
+
+    if (periodType == null) {
+      throw new NotFoundException("Period type", name);
     }
 
-    @GetMapping( "/systemUpdateNotificationRecipients" )
-    public @ResponseBody UserGroup getSystemUpdateNotificationRecipients( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
+    Configuration configuration = configurationService.getConfiguration();
+
+    periodType = periodService.reloadPeriodType(periodType);
+
+    configuration.setInfrastructuralPeriodType(periodType);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/selfRegistrationRole")
+  public @ResponseBody UserRole getSelfRegistrationRole(Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getSelfRegistrationRole();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/selfRegistrationRole")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setSelfRegistrationRole(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
+
+    UserRole userGroup = identifiableObjectManager.get(UserRole.class, uid);
+
+    if (userGroup == null) {
+      throw new NotFoundException("User authority group", uid);
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/systemUpdateNotificationRecipients" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setSystemUpdateNotificationRecipients( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
+    Configuration configuration = configurationService.getConfiguration();
 
-        UserGroup group = identifiableObjectManager.get( UserGroup.class, uid );
+    configuration.setSelfRegistrationRole(userGroup);
 
-        if ( group == null )
-        {
-            throw new NotFoundException( "User group", uid );
-        }
+    configurationService.setConfiguration(configuration);
+  }
 
-        Configuration configuration = configurationService.getConfiguration();
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @DeleteMapping("/selfRegistrationRole")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeSelfRegistrationRole() {
+    Configuration configuration = configurationService.getConfiguration();
 
-        configuration.setSystemUpdateNotificationRecipients( group );
+    configuration.setSelfRegistrationRole(null);
 
-        configurationService.setConfiguration( configuration );
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/selfRegistrationOrgUnit")
+  public @ResponseBody OrganisationUnit getSelfRegistrationOrgUnit(
+      Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getSelfRegistrationOrgUnit();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/selfRegistrationOrgUnit")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setSelfRegistrationOrgUnit(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
+
+    OrganisationUnit orgunit = identifiableObjectManager.get(OrganisationUnit.class, uid);
+
+    if (orgunit == null) {
+      throw new NotFoundException("Organisation unit", uid);
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @DeleteMapping( "/systemUpdateNotificationRecipients" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeSystemUpdateNotificationRecipients()
-    {
-        Configuration configuration = configurationService.getConfiguration();
+    Configuration configuration = configurationService.getConfiguration();
 
-        configuration.setSystemUpdateNotificationRecipients( null );
+    configuration.setSelfRegistrationOrgUnit(orgunit);
 
-        configurationService.setConfiguration( configuration );
+    configurationService.setConfiguration(configuration);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @DeleteMapping("/selfRegistrationOrgUnit")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeSelfRegistrationOrgUnit() {
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setSelfRegistrationOrgUnit(null);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/remoteServerUrl")
+  public @ResponseBody String getRemoteServerUrl(Model model, HttpServletRequest request) {
+    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_URL);
+  }
+
+  @GetMapping("/remoteServerUsername")
+  public @ResponseBody String getRemoteServerUsername(Model model, HttpServletRequest request) {
+    return systemSettingManager.getStringSetting(SettingKey.REMOTE_INSTANCE_USERNAME);
+  }
+
+  @GetMapping("/facilityOrgUnitGroupSet")
+  public @ResponseBody OrganisationUnitGroupSet getFacilityOrgUnitGroupSet() {
+    return configurationService.getConfiguration().getFacilityOrgUnitGroupSet();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/facilityOrgUnitGroupSet")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setFacilityOrgUnitGroupSet(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
+
+    OrganisationUnitGroupSet groupSet =
+        identifiableObjectManager.get(OrganisationUnitGroupSet.class, uid);
+
+    if (groupSet == null) {
+      throw new NotFoundException("Organisation unit group sets", uid);
     }
 
-    @GetMapping( "/offlineOrganisationUnitLevel" )
-    public @ResponseBody OrganisationUnitLevel getOfflineOrganisationUnitLevel( Model model,
-        HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getOfflineOrganisationUnitLevel();
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setFacilityOrgUnitGroupSet(groupSet);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/facilityOrgUnitLevel")
+  public @ResponseBody OrganisationUnitLevel getFacilityOrgUnitLevel() {
+    return configurationService.getConfiguration().getFacilityOrgUnitLevel();
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping("/facilityOrgUnitLevel")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setFacilityOrgUnitLevel(@RequestBody String uid) throws NotFoundException {
+    uid = trim(uid);
+
+    OrganisationUnitLevel level = identifiableObjectManager.get(OrganisationUnitLevel.class, uid);
+
+    if (level == null) {
+      throw new NotFoundException("Organisation unit level", uid);
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/offlineOrganisationUnitLevel" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setOfflineOrganisationUnitLevel( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
-
-        OrganisationUnitLevel organisationUnitLevel = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
-
-        if ( organisationUnitLevel == null )
-        {
-            throw new NotFoundException( "Organisation unit level", uid );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setOfflineOrganisationUnitLevel( organisationUnitLevel );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @DeleteMapping( "/offlineOrganisationUnitLevel" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeOfflineOrganisationUnitLevel()
-    {
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setOfflineOrganisationUnitLevel( null );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/infrastructuralIndicators" )
-    public @ResponseBody IndicatorGroup getInfrastructuralIndicators( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getInfrastructuralIndicators();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/infrastructuralIndicators" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setInfrastructuralIndicators( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
-
-        IndicatorGroup group = identifiableObjectManager.get( IndicatorGroup.class, uid );
-
-        if ( group == null )
-        {
-            throw new NotFoundException( "Indicator group", uid );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setInfrastructuralIndicators( group );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/infrastructuralDataElements" )
-    public @ResponseBody DataElementGroup getInfrastructuralDataElements( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getInfrastructuralDataElements();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/infrastructuralDataElements" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setInfrastructuralDataElements( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
-
-        DataElementGroup group = identifiableObjectManager.get( DataElementGroup.class, uid );
-
-        if ( group == null )
-        {
-            throw new NotFoundException( "Data element group", uid );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setInfrastructuralDataElements( group );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/infrastructuralPeriodType" )
-    public @ResponseBody BaseIdentifiableObject getInfrastructuralPeriodType( Model model, HttpServletRequest request )
-    {
-        String name = configurationService.getConfiguration().getInfrastructuralPeriodTypeDefaultIfNull().getName();
-
-        return new BaseIdentifiableObject( name, name, name );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/infrastructuralPeriodType" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setInfrastructuralPeriodType( @RequestBody String name )
-        throws NotFoundException
-    {
-        name = trim( name );
-
-        PeriodType periodType = PeriodType.getPeriodTypeByName( name );
-
-        if ( periodType == null )
-        {
-            throw new NotFoundException( "Period type", name );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        periodType = periodService.reloadPeriodType( periodType );
-
-        configuration.setInfrastructuralPeriodType( periodType );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/selfRegistrationRole" )
-    public @ResponseBody UserRole getSelfRegistrationRole( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getSelfRegistrationRole();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/selfRegistrationRole" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setSelfRegistrationRole( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
-
-        UserRole userGroup = identifiableObjectManager.get( UserRole.class, uid );
-
-        if ( userGroup == null )
-        {
-            throw new NotFoundException( "User authority group", uid );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setSelfRegistrationRole( userGroup );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @DeleteMapping( "/selfRegistrationRole" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeSelfRegistrationRole()
-    {
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setSelfRegistrationRole( null );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/selfRegistrationOrgUnit" )
-    public @ResponseBody OrganisationUnit getSelfRegistrationOrgUnit( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getSelfRegistrationOrgUnit();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/selfRegistrationOrgUnit" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setSelfRegistrationOrgUnit( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
-
-        OrganisationUnit orgunit = identifiableObjectManager.get( OrganisationUnit.class, uid );
-
-        if ( orgunit == null )
-        {
-            throw new NotFoundException( "Organisation unit", uid );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setSelfRegistrationOrgUnit( orgunit );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @DeleteMapping( "/selfRegistrationOrgUnit" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeSelfRegistrationOrgUnit()
-    {
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setSelfRegistrationOrgUnit( null );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/remoteServerUrl" )
-    public @ResponseBody String getRemoteServerUrl( Model model, HttpServletRequest request )
-    {
-        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL );
-    }
-
-    @GetMapping( "/remoteServerUsername" )
-    public @ResponseBody String getRemoteServerUsername( Model model, HttpServletRequest request )
-    {
-        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-    }
-
-    @GetMapping( "/facilityOrgUnitGroupSet" )
-    public @ResponseBody OrganisationUnitGroupSet getFacilityOrgUnitGroupSet()
-    {
-        return configurationService.getConfiguration().getFacilityOrgUnitGroupSet();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/facilityOrgUnitGroupSet" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setFacilityOrgUnitGroupSet( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
-
-        OrganisationUnitGroupSet groupSet = identifiableObjectManager.get( OrganisationUnitGroupSet.class, uid );
-
-        if ( groupSet == null )
-        {
-            throw new NotFoundException( "Organisation unit group sets", uid );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setFacilityOrgUnitGroupSet( groupSet );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/facilityOrgUnitLevel" )
-    public @ResponseBody OrganisationUnitLevel getFacilityOrgUnitLevel()
-    {
-        return configurationService.getConfiguration().getFacilityOrgUnitLevel();
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/facilityOrgUnitLevel" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setFacilityOrgUnitLevel( @RequestBody String uid )
-        throws NotFoundException
-    {
-        uid = trim( uid );
-
-        OrganisationUnitLevel level = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
-
-        if ( level == null )
-        {
-            throw new NotFoundException( "Organisation unit level", uid );
-        }
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setFacilityOrgUnitLevel( level );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( value = "/corsWhitelist", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Set<String> getCorsWhitelist( Model model, HttpServletRequest request )
-    {
-        return configurationService.getConfiguration().getCorsWhitelist();
-    }
-
-    @SuppressWarnings( "unchecked" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( value = "/corsWhitelist", consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setCorsWhitelist( @RequestBody String input )
-        throws IOException
-    {
-        Set<String> corsWhitelist = renderService.fromJson( input, Set.class );
-
-        Configuration configuration = configurationService.getConfiguration();
-
-        configuration.setCorsWhitelist( corsWhitelist );
-
-        configurationService.setConfiguration( configuration );
-    }
-
-    @GetMapping( "/systemReadOnlyMode" )
-    public @ResponseBody boolean getSystemReadOnlyMode( Model model, HttpServletRequest request )
-    {
-        return config.isReadOnlyMode();
-    }
-
-    @GetMapping( "/appHubUrl" )
-    public @ResponseBody String getAppHubUrl( Model model, HttpServletRequest request )
-    {
-        return appManager.getAppHubUrl();
-    }
-
-    /**
-     * Trims the given string payload by removing double qoutes.
-     *
-     * @param string the string.
-     * @return a trimmed string.
-     */
-    private String trim( String string )
-    {
-        return StringUtils.remove( string, "\"" );
-    }
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setFacilityOrgUnitLevel(level);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping(value = "/corsWhitelist", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Set<String> getCorsWhitelist(Model model, HttpServletRequest request) {
+    return configurationService.getConfiguration().getCorsWhitelist();
+  }
+
+  @SuppressWarnings("unchecked")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_SYSTEM_SETTING')")
+  @PostMapping(value = "/corsWhitelist", consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void setCorsWhitelist(@RequestBody String input) throws IOException {
+    Set<String> corsWhitelist = renderService.fromJson(input, Set.class);
+
+    Configuration configuration = configurationService.getConfiguration();
+
+    configuration.setCorsWhitelist(corsWhitelist);
+
+    configurationService.setConfiguration(configuration);
+  }
+
+  @GetMapping("/systemReadOnlyMode")
+  public @ResponseBody boolean getSystemReadOnlyMode(Model model, HttpServletRequest request) {
+    return config.isReadOnlyMode();
+  }
+
+  @GetMapping("/appHubUrl")
+  public @ResponseBody String getAppHubUrl(Model model, HttpServletRequest request) {
+    return appManager.getAppHubUrl();
+  }
+
+  /**
+   * Trims the given string payload by removing double qoutes.
+   *
+   * @param string the string.
+   * @return a trimmed string.
+   */
+  private String trim(String string) {
+    return StringUtils.remove(string, "\"");
+  }
 }

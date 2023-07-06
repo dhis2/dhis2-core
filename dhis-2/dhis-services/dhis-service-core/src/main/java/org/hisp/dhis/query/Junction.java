@@ -32,30 +32,25 @@ import org.hisp.dhis.schema.Schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public abstract class Junction extends Criteria implements Criterion
-{
-    public enum Type
-    {
-        AND,
-        OR
-    }
+public abstract class Junction extends Criteria implements Criterion {
+  public enum Type {
+    AND,
+    OR
+  }
 
-    protected Type type;
+  protected Type type;
 
-    public Junction( Schema schema, Type type )
-    {
-        super( schema );
-        this.type = type;
-    }
+  public Junction(Schema schema, Type type) {
+    super(schema);
+    this.type = type;
+  }
 
-    public Type getType()
-    {
-        return type;
-    }
+  public Type getType() {
+    return type;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[ " + type + ", " + criterions + "]";
-    }
+  @Override
+  public String toString() {
+    return "[ " + type + ", " + criterions + "]";
+  }
 }

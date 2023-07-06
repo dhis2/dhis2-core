@@ -29,7 +29,6 @@ package org.hisp.dhis.security.apikey;
 
 import java.util.Collections;
 import java.util.Objects;
-
 import org.hisp.dhis.user.User;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,77 +36,63 @@ import org.springframework.security.core.userdetails.UserDetails;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken
-{
-    private String tokenKey;
+public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken {
+  private String tokenKey;
 
-    private ApiToken tokenRef;
+  private ApiToken tokenRef;
 
-    private User user;
+  private User user;
 
-    public ApiTokenAuthenticationToken( String tokenKey )
-    {
-        super( Collections.emptyList() );
-        this.tokenKey = tokenKey;
-    }
+  public ApiTokenAuthenticationToken(String tokenKey) {
+    super(Collections.emptyList());
+    this.tokenKey = tokenKey;
+  }
 
-    public ApiTokenAuthenticationToken( ApiToken token, User user )
-    {
-        super( user.getAuthorities() );
-        this.tokenRef = token;
-        this.user = user;
-    }
+  public ApiTokenAuthenticationToken(ApiToken token, User user) {
+    super(user.getAuthorities());
+    this.tokenRef = token;
+    this.user = user;
+  }
 
-    @Override
-    public User getCredentials()
-    {
-        return this.user;
-    }
+  @Override
+  public User getCredentials() {
+    return this.user;
+  }
 
-    @Override
-    public UserDetails getPrincipal()
-    {
-        return this.user;
-    }
+  @Override
+  public UserDetails getPrincipal() {
+    return this.user;
+  }
 
-    public String getTokenKey()
-    {
-        return tokenKey;
-    }
+  public String getTokenKey() {
+    return tokenKey;
+  }
 
-    public void setTokenKey( String tokenKey )
-    {
-        this.tokenKey = tokenKey;
-    }
+  public void setTokenKey(String tokenKey) {
+    this.tokenKey = tokenKey;
+  }
 
-    public ApiToken getToken()
-    {
-        return this.tokenRef;
-    }
+  public ApiToken getToken() {
+    return this.tokenRef;
+  }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-        if ( !super.equals( o ) )
-            return false;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
 
-        ApiTokenAuthenticationToken that = (ApiTokenAuthenticationToken) o;
+    ApiTokenAuthenticationToken that = (ApiTokenAuthenticationToken) o;
 
-        if ( !Objects.equals( tokenKey, that.tokenKey ) )
-            return false;
-        return Objects.equals( tokenRef, that.tokenRef );
-    }
+    if (!Objects.equals(tokenKey, that.tokenKey)) return false;
+    return Objects.equals(tokenRef, that.tokenRef);
+  }
 
-    @Override
-    public int hashCode()
-    {
-        int result = super.hashCode();
-        result = 31 * result + (tokenKey != null ? tokenKey.hashCode() : 0);
-        result = 31 * result + (tokenRef != null ? tokenRef.hashCode() : 0);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + (tokenKey != null ? tokenKey.hashCode() : 0);
+    result = 31 * result + (tokenRef != null ? tokenRef.hashCode() : 0);
+    return result;
+  }
 }

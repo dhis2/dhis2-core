@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.category;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DataDimensionType;
@@ -37,107 +41,86 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
-public class CategoryOptionGroup
-    extends BaseDimensionalItemObject implements MetadataObject
-{
-    private Set<CategoryOption> members = new HashSet<>();
+@JacksonXmlRootElement(localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0)
+public class CategoryOptionGroup extends BaseDimensionalItemObject implements MetadataObject {
+  private Set<CategoryOption> members = new HashSet<>();
 
-    private Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
+  private Set<CategoryOptionGroupSet> groupSets = new HashSet<>();
 
-    private DataDimensionType dataDimensionType;
+  private DataDimensionType dataDimensionType;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public CategoryOptionGroup()
-    {
+  public CategoryOptionGroup() {}
 
-    }
+  public CategoryOptionGroup(String name) {
+    this();
+    this.name = name;
+  }
 
-    public CategoryOptionGroup( String name )
-    {
-        this();
-        this.name = name;
-    }
+  // -------------------------------------------------------------------------
+  // DimensionalItemObject
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // DimensionalItemObject
-    // -------------------------------------------------------------------------
+  @Override
+  public DimensionItemType getDimensionItemType() {
+    return DimensionItemType.CATEGORY_OPTION_GROUP;
+  }
 
-    @Override
-    public DimensionItemType getDimensionItemType()
-    {
-        return DimensionItemType.CATEGORY_OPTION_GROUP;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonProperty("categoryOptions")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
+  public Set<CategoryOption> getMembers() {
+    return members;
+  }
 
-    @JsonProperty( "categoryOptions" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<CategoryOption> getMembers()
-    {
-        return members;
-    }
+  public void setMembers(Set<CategoryOption> members) {
+    this.members = members;
+  }
 
-    public void setMembers( Set<CategoryOption> members )
-    {
-        this.members = members;
-    }
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "groupSets", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "groupSet", namespace = DxfNamespaces.DXF_2_0)
+  public Set<CategoryOptionGroupSet> getGroupSets() {
+    return groupSets;
+  }
 
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "groupSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "groupSet", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<CategoryOptionGroupSet> getGroupSets()
-    {
-        return groupSets;
-    }
+  public void setGroupSets(Set<CategoryOptionGroupSet> groupSets) {
+    this.groupSets = groupSets;
+  }
 
-    public void setGroupSets( Set<CategoryOptionGroupSet> groupSets )
-    {
-        this.groupSets = groupSets;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public DataDimensionType getDataDimensionType() {
+    return dataDimensionType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataDimensionType getDataDimensionType()
-    {
-        return dataDimensionType;
-    }
+  public void setDataDimensionType(DataDimensionType dataDimensionType) {
+    this.dataDimensionType = dataDimensionType;
+  }
 
-    public void setDataDimensionType( DataDimensionType dataDimensionType )
-    {
-        this.dataDimensionType = dataDimensionType;
-    }
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  public void addCategoryOption(CategoryOption categoryOption) {
+    members.add(categoryOption);
+    categoryOption.getGroups().add(this);
+  }
 
-    public void addCategoryOption( CategoryOption categoryOption )
-    {
-        members.add( categoryOption );
-        categoryOption.getGroups().add( this );
-    }
-
-    public void removeCategoryOption( CategoryOption categoryOption )
-    {
-        members.remove( categoryOption );
-        categoryOption.getGroups().remove( this );
-    }
+  public void removeCategoryOption(CategoryOption categoryOption) {
+    members.remove(categoryOption);
+    categoryOption.getGroups().remove(this);
+  }
 }

@@ -41,30 +41,33 @@ import org.springframework.http.HttpStatus;
 /**
  * @author viet@dhis2.org
  */
-class ProgramStageControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramStageControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testCreateProgramStageWithoutProgram()
-    {
-        JsonWebMessage message = POST( "/programStages/", "{'name':'test programStage'}" )
-            .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
-        JsonTypeReport response = message.get( "response", JsonTypeReport.class );
-        assertEquals( 1, response.getErrorReports().size() );
-        assertEquals( ErrorCode.E4053, response.getErrorReports().get( 0 ).getErrorCode() );
-    }
+  @Test
+  void testCreateProgramStageWithoutProgram() {
+    JsonWebMessage message =
+        POST("/programStages/", "{'name':'test programStage'}")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
+    JsonTypeReport response = message.get("response", JsonTypeReport.class);
+    assertEquals(1, response.getErrorReports().size());
+    assertEquals(ErrorCode.E4053, response.getErrorReports().get(0).getErrorCode());
+  }
 
-    @Test
-    void testCreateProgramStageOk()
-    {
-        POST( "/programs/",
-            "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION' }" )
-                .content( HttpStatus.CREATED );
-        String programStageId = assertStatus( HttpStatus.CREATED,
-            POST( "/programStages/", "{'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}}" ) );
-        JsonResponse programStage = GET( "/programStages/{id}", programStageId ).content();
-        assertEquals( "VoZMWi7rBgj", programStage.getString( "program.id" ).string() );
-        JsonResponse program = GET( "/programs/{id}", "VoZMWi7rBgj" ).content();
-        assertEquals( programStageId, program.getJsonDocument().get( "$.programStages[0].id" ).value() );
-    }
+  @Test
+  void testCreateProgramStageOk() {
+    POST(
+            "/programs/",
+            "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION' }")
+        .content(HttpStatus.CREATED);
+    String programStageId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStages/", "{'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}}"));
+    JsonResponse programStage = GET("/programStages/{id}", programStageId).content();
+    assertEquals("VoZMWi7rBgj", programStage.getString("program.id").string());
+    JsonResponse program = GET("/programs/{id}", "VoZMWi7rBgj").content();
+    assertEquals(programStageId, program.getJsonDocument().get("$.programStages[0].id").value());
+  }
 }

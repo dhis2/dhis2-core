@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.converter;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -59,266 +59,246 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Objects;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
 public class EventTrackerConverterService
-    implements RuleEngineConverterService<Event, ProgramStageInstance>
-{
+    implements RuleEngineConverterService<Event, ProgramStageInstance> {
 
-    private final NotesConverterService notesConverterService;
+  private final NotesConverterService notesConverterService;
 
-    public EventTrackerConverterService( NotesConverterService notesConverterService )
-    {
-        checkNotNull( notesConverterService );
+  public EventTrackerConverterService(NotesConverterService notesConverterService) {
+    checkNotNull(notesConverterService);
 
-        this.notesConverterService = notesConverterService;
+    this.notesConverterService = notesConverterService;
+  }
+
+  @Override
+  public Event to(ProgramStageInstance programStageInstance) {
+    List<Event> events = to(Collections.singletonList(programStageInstance));
+
+    if (events.isEmpty()) {
+      return null;
     }
 
-    @Override
-    public Event to( ProgramStageInstance programStageInstance )
-    {
-        List<Event> events = to( Collections.singletonList( programStageInstance ) );
+    return events.get(0);
+  }
 
-        if ( events.isEmpty() )
-        {
-            return null;
-        }
+  @Override
+  public List<Event> to(List<ProgramStageInstance> programStageInstances) {
+    List<Event> events = new ArrayList<>();
 
-        return events.get( 0 );
+    programStageInstances.forEach(
+        psi -> {
+          Event event = new Event();
+          event.setEvent(psi.getUid());
+
+          event.setFollowup(BooleanUtils.toBoolean(psi.getProgramInstance().getFollowup()));
+          event.setStatus(psi.getStatus());
+          event.setOccurredAt(DateUtils.instantFromDate(psi.getExecutionDate()));
+          event.setScheduledAt(DateUtils.instantFromDate(psi.getDueDate()));
+          event.setStoredBy(psi.getStoredBy());
+          event.setCompletedBy(psi.getCompletedBy());
+          event.setCompletedAt(DateUtils.instantFromDate(psi.getCompletedDate()));
+          event.setCreatedAt(DateUtils.instantFromDate(psi.getCreated()));
+          event.setCreatedAtClient(DateUtils.instantFromDate(psi.getCreatedAtClient()));
+          event.setUpdatedAt(DateUtils.instantFromDate(psi.getLastUpdated()));
+          event.setUpdatedAtClient(DateUtils.instantFromDate(psi.getLastUpdatedAtClient()));
+          event.setGeometry(psi.getGeometry());
+          event.setDeleted(psi.isDeleted());
+
+          OrganisationUnit ou = psi.getOrganisationUnit();
+
+          if (ou != null) {
+            event.setOrgUnit(ou.getUid());
+            event.setOrgUnitName(ou.getName());
+          }
+
+          event.setEnrollment(psi.getProgramInstance().getUid());
+          event.setProgramStage(psi.getProgramStage().getUid());
+          event.setAttributeOptionCombo(psi.getAttributeOptionCombo().getUid());
+          event.setAttributeCategoryOptions(
+              psi.getAttributeOptionCombo().getCategoryOptions().stream()
+                  .map(CategoryOption::getUid)
+                  .collect(Collectors.joining(";")));
+
+          Set<EventDataValue> dataValues = psi.getEventDataValues();
+
+          for (EventDataValue dataValue : dataValues) {
+            DataValue value = new DataValue();
+            value.setCreatedAt(DateUtils.instantFromDate(dataValue.getCreated()));
+            value.setUpdatedAt(DateUtils.instantFromDate(dataValue.getLastUpdated()));
+            value.setDataElement(dataValue.getDataElement());
+            value.setValue(dataValue.getValue());
+            value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
+            value.setStoredBy(dataValue.getStoredBy());
+            value.setUpdatedBy(
+                Optional.ofNullable(dataValue.getLastUpdatedByUserInfo())
+                    .map(this::convertUserInfo)
+                    .orElse(null));
+            value.setCreatedBy(
+                Optional.ofNullable(dataValue.getCreatedByUserInfo())
+                    .map(this::convertUserInfo)
+                    .orElse(null));
+
+            event.getDataValues().add(value);
+          }
+
+          events.add(event);
+        });
+
+    return events;
+  }
+
+  @Override
+  public ProgramStageInstance from(TrackerPreheat preheat, Event event) {
+    ProgramStageInstance programStageInstance = preheat.getEvent(event.getEvent());
+    return from(preheat, event, programStageInstance);
+  }
+
+  @Override
+  public List<ProgramStageInstance> from(TrackerPreheat preheat, List<Event> events) {
+    return events.stream().map(e -> from(preheat, e)).collect(Collectors.toList());
+  }
+
+  @Override
+  public ProgramStageInstance fromForRuleEngine(TrackerPreheat preheat, Event event) {
+    ProgramStageInstance psi = from(preheat, event, null);
+    // merge data values from DB
+    psi.getEventDataValues().addAll(getProgramStageInstanceDataValues(preheat, event));
+    return psi;
+  }
+
+  private List<EventDataValue> getProgramStageInstanceDataValues(
+      TrackerPreheat preheat, Event event) {
+    List<EventDataValue> eventDataValues = new ArrayList<>();
+    ProgramStageInstance programStageInstance = preheat.getEvent(event.getEvent());
+    if (programStageInstance == null) {
+      return eventDataValues;
     }
 
-    @Override
-    public List<Event> to( List<ProgramStageInstance> programStageInstances )
-    {
-        List<Event> events = new ArrayList<>();
+    Set<String> dataElements =
+        event.getDataValues().stream().map(DataValue::getDataElement).collect(Collectors.toSet());
+    for (EventDataValue eventDataValue : programStageInstance.getEventDataValues()) {
+      if (!dataElements.contains(eventDataValue.getDataElement())) {
+        eventDataValues.add(eventDataValue);
+      }
+    }
+    return eventDataValues;
+  }
 
-        programStageInstances.forEach( psi -> {
-            Event event = new Event();
-            event.setEvent( psi.getUid() );
+  private ProgramStageInstance from(
+      TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance) {
+    ProgramStage programStage = preheat.get(ProgramStage.class, event.getProgramStage());
+    Program program = preheat.get(Program.class, event.getProgram());
+    OrganisationUnit organisationUnit = preheat.get(OrganisationUnit.class, event.getOrgUnit());
 
-            event.setFollowup( BooleanUtils.toBoolean( psi.getProgramInstance().getFollowup() ) );
-            event.setStatus( psi.getStatus() );
-            event.setOccurredAt( DateUtils.instantFromDate( psi.getExecutionDate() ) );
-            event.setScheduledAt( DateUtils.instantFromDate( psi.getDueDate() ) );
-            event.setStoredBy( psi.getStoredBy() );
-            event.setCompletedBy( psi.getCompletedBy() );
-            event.setCompletedAt( DateUtils.instantFromDate( psi.getCompletedDate() ) );
-            event.setCreatedAt( DateUtils.instantFromDate( psi.getCreated() ) );
-            event.setCreatedAtClient( DateUtils.instantFromDate( psi.getCreatedAtClient() ) );
-            event.setUpdatedAt( DateUtils.instantFromDate( psi.getLastUpdated() ) );
-            event.setUpdatedAtClient( DateUtils.instantFromDate( psi.getLastUpdatedAtClient() ) );
-            event.setGeometry( psi.getGeometry() );
-            event.setDeleted( psi.isDeleted() );
+    Date now = new Date();
 
-            OrganisationUnit ou = psi.getOrganisationUnit();
+    if (isNewEntity(programStageInstance)) {
+      programStageInstance = new ProgramStageInstance();
+      programStageInstance.setUid(
+          !StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
+      programStageInstance.setCreated(now);
+      programStageInstance.setStoredBy(event.getStoredBy());
+      programStageInstance.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+    }
+    programStageInstance.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+    programStageInstance.setLastUpdated(now);
+    programStageInstance.setDeleted(false);
+    programStageInstance.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));
+    programStageInstance.setLastUpdatedAtClient(DateUtils.fromInstant(event.getUpdatedAtClient()));
+    programStageInstance.setProgramInstance(
+        getProgramInstance(preheat, event.getEnrollment(), program));
 
-            if ( ou != null )
-            {
-                event.setOrgUnit( ou.getUid() );
-                event.setOrgUnitName( ou.getName() );
-            }
+    programStageInstance.setProgramStage(programStage);
+    programStageInstance.setOrganisationUnit(organisationUnit);
+    programStageInstance.setExecutionDate(DateUtils.fromInstant(event.getOccurredAt()));
+    programStageInstance.setDueDate(DateUtils.fromInstant(event.getScheduledAt()));
 
-            event.setEnrollment( psi.getProgramInstance().getUid() );
-            event.setProgramStage( psi.getProgramStage().getUid() );
-            event.setAttributeOptionCombo( psi.getAttributeOptionCombo().getUid() );
-            event.setAttributeCategoryOptions( psi.getAttributeOptionCombo()
-                .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) ) );
+    String attributeOptionCombo = event.getAttributeOptionCombo();
 
-            Set<EventDataValue> dataValues = psi.getEventDataValues();
-
-            for ( EventDataValue dataValue : dataValues )
-            {
-                DataValue value = new DataValue();
-                value.setCreatedAt( DateUtils.instantFromDate( dataValue.getCreated() ) );
-                value.setUpdatedAt( DateUtils.instantFromDate( dataValue.getLastUpdated() ) );
-                value.setDataElement( dataValue.getDataElement() );
-                value.setValue( dataValue.getValue() );
-                value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-                value.setStoredBy( dataValue.getStoredBy() );
-                value.setUpdatedBy( Optional.ofNullable( dataValue.getLastUpdatedByUserInfo() )
-                    .map( this::convertUserInfo ).orElse( null ) );
-                value.setCreatedBy( Optional.ofNullable( dataValue.getCreatedByUserInfo() )
-                    .map( this::convertUserInfo ).orElse( null ) );
-
-                event.getDataValues().add( value );
-            }
-
-            events.add( event );
-        } );
-
-        return events;
+    if (attributeOptionCombo != null) {
+      programStageInstance.setAttributeOptionCombo(
+          preheat.get(CategoryOptionCombo.class, event.getAttributeOptionCombo()));
+    } else {
+      programStageInstance.setAttributeOptionCombo(
+          (CategoryOptionCombo) preheat.getDefaults().get(CategoryOptionCombo.class));
     }
 
-    @Override
-    public ProgramStageInstance from( TrackerPreheat preheat, Event event )
-    {
-        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
-        return from( preheat, event, programStageInstance );
+    programStageInstance.setGeometry(event.getGeometry());
+
+    EventStatus previousStatus = programStageInstance.getStatus();
+
+    programStageInstance.setStatus(event.getStatus());
+
+    if (!Objects.equal(previousStatus, programStageInstance.getStatus())
+        && programStageInstance.isCompleted()) {
+      programStageInstance.setCompletedDate(new Date());
+      programStageInstance.setCompletedBy(preheat.getUsername());
     }
 
-    @Override
-    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
-    {
-        return events
-            .stream()
-            .map( e -> from( preheat, e ) )
-            .collect( Collectors.toList() );
+    if (Boolean.TRUE.equals(programStage.isEnableUserAssignment())
+        && event.getAssignedUser() != null
+        && !event.getAssignedUser().isEmpty()) {
+      Optional<org.hisp.dhis.user.User> assignedUser =
+          preheat.getUserByUsername(event.getAssignedUser().getUsername());
+      assignedUser.ifPresent(programStageInstance::setAssignedUser);
     }
 
-    @Override
-    public ProgramStageInstance fromForRuleEngine( TrackerPreheat preheat, Event event )
-    {
-        ProgramStageInstance psi = from( preheat, event, null );
-        // merge data values from DB
-        psi.getEventDataValues().addAll( getProgramStageInstanceDataValues( preheat, event ) );
-        return psi;
+    if (program.isRegistration()
+        && programStageInstance.getDueDate() == null
+        && programStageInstance.getExecutionDate() != null) {
+      programStageInstance.setDueDate(programStageInstance.getExecutionDate());
     }
 
-    private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
-    {
-        List<EventDataValue> eventDataValues = new ArrayList<>();
-        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
-        if ( programStageInstance == null )
-        {
-            return eventDataValues;
-        }
+    for (DataValue dataValue : event.getDataValues()) {
+      EventDataValue eventDataValue = new EventDataValue();
+      eventDataValue.setValue(dataValue.getValue());
+      eventDataValue.setCreated(DateUtils.fromInstant(dataValue.getCreatedAt()));
+      eventDataValue.setLastUpdated(new Date());
+      eventDataValue.setProvidedElsewhere(dataValue.isProvidedElsewhere());
+      // ensure dataElement is referred to by UID as multiple
+      // dataElementIdSchemes are supported
+      DataElement dataElement = preheat.get(DataElement.class, dataValue.getDataElement());
+      eventDataValue.setDataElement(dataElement.getUid());
+      eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+      eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
 
-        Set<String> dataElements = event.getDataValues()
-            .stream()
-            .map( DataValue::getDataElement )
-            .collect( Collectors.toSet() );
-        for ( EventDataValue eventDataValue : programStageInstance.getEventDataValues() )
-        {
-            if ( !dataElements.contains( eventDataValue.getDataElement() ) )
-            {
-                eventDataValues.add( eventDataValue );
-            }
-        }
-        return eventDataValues;
+      programStageInstance.getEventDataValues().add(eventDataValue);
     }
 
-    private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
-    {
-        ProgramStage programStage = preheat.get( ProgramStage.class, event.getProgramStage() );
-        Program program = preheat.get( Program.class, event.getProgram() );
-        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class, event.getOrgUnit() );
-
-        Date now = new Date();
-
-        if ( isNewEntity( programStageInstance ) )
-        {
-            programStageInstance = new ProgramStageInstance();
-            programStageInstance.setUid( !StringUtils.isEmpty( event.getEvent() ) ? event.getEvent() : event.getUid() );
-            programStageInstance.setCreated( now );
-            programStageInstance.setStoredBy( event.getStoredBy() );
-            programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-        }
-        programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-        programStageInstance.setLastUpdated( now );
-        programStageInstance.setDeleted( false );
-        programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
-        programStageInstance.setLastUpdatedAtClient( DateUtils.fromInstant( event.getUpdatedAtClient() ) );
-        programStageInstance.setProgramInstance(
-            getProgramInstance( preheat, event.getEnrollment(), program ) );
-
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
-        programStageInstance.setDueDate( DateUtils.fromInstant( event.getScheduledAt() ) );
-
-        String attributeOptionCombo = event.getAttributeOptionCombo();
-
-        if ( attributeOptionCombo != null )
-        {
-            programStageInstance.setAttributeOptionCombo(
-                preheat.get( CategoryOptionCombo.class, event.getAttributeOptionCombo() ) );
-        }
-        else
-        {
-            programStageInstance.setAttributeOptionCombo(
-                (CategoryOptionCombo) preheat.getDefaults().get( CategoryOptionCombo.class ) );
-        }
-
-        programStageInstance.setGeometry( event.getGeometry() );
-
-        EventStatus previousStatus = programStageInstance.getStatus();
-
-        programStageInstance.setStatus( event.getStatus() );
-
-        if ( !Objects.equal( previousStatus, programStageInstance.getStatus() ) && programStageInstance.isCompleted() )
-        {
-            programStageInstance.setCompletedDate( new Date() );
-            programStageInstance.setCompletedBy( preheat.getUsername() );
-        }
-
-        if ( Boolean.TRUE.equals( programStage.isEnableUserAssignment() ) &&
-            event.getAssignedUser() != null
-            && !event.getAssignedUser().isEmpty() )
-        {
-            Optional<org.hisp.dhis.user.User> assignedUser = preheat
-                .getUserByUsername( event.getAssignedUser().getUsername() );
-            assignedUser.ifPresent( programStageInstance::setAssignedUser );
-        }
-
-        if ( program.isRegistration() && programStageInstance.getDueDate() == null &&
-            programStageInstance.getExecutionDate() != null )
-        {
-            programStageInstance.setDueDate( programStageInstance.getExecutionDate() );
-        }
-
-        for ( DataValue dataValue : event.getDataValues() )
-        {
-            EventDataValue eventDataValue = new EventDataValue();
-            eventDataValue.setValue( dataValue.getValue() );
-            eventDataValue.setCreated( DateUtils.fromInstant( dataValue.getCreatedAt() ) );
-            eventDataValue.setLastUpdated( new Date() );
-            eventDataValue.setProvidedElsewhere( dataValue.isProvidedElsewhere() );
-            // ensure dataElement is referred to by UID as multiple
-            // dataElementIdSchemes are supported
-            DataElement dataElement = preheat.get( DataElement.class, dataValue.getDataElement() );
-            eventDataValue.setDataElement( dataElement.getUid() );
-            eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-            eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-
-            programStageInstance.getEventDataValues().add( eventDataValue );
-        }
-
-        if ( isNotEmpty( event.getNotes() ) )
-        {
-            programStageInstance.getComments().addAll( notesConverterService.from( preheat, event.getNotes() ) );
-        }
-
-        return programStageInstance;
+    if (isNotEmpty(event.getNotes())) {
+      programStageInstance
+          .getComments()
+          .addAll(notesConverterService.from(preheat, event.getNotes()));
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, String enrollment, Program program )
-    {
-        if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
-        {
-            return preheat.getEnrollment( enrollment );
-        }
+    return programStageInstance;
+  }
 
-        if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
-        {
-            return preheat.getProgramInstancesWithoutRegistration( program.getUid() );
-        }
-
-        // no valid enrollment given and program not single event, just return
-        // null
-        return null;
+  private ProgramInstance getProgramInstance(
+      TrackerPreheat preheat, String enrollment, Program program) {
+    if (ProgramType.WITH_REGISTRATION == program.getProgramType()) {
+      return preheat.getEnrollment(enrollment);
     }
 
-    private User convertUserInfo( UserInfoSnapshot userInfoSnapshot )
-    {
-        return User.builder()
-            .uid( userInfoSnapshot.getUid() )
-            .username( userInfoSnapshot.getUsername() )
-            .firstName( userInfoSnapshot.getFirstName() )
-            .surname( userInfoSnapshot.getSurname() )
-            .build();
+    if (ProgramType.WITHOUT_REGISTRATION == program.getProgramType()) {
+      return preheat.getProgramInstancesWithoutRegistration(program.getUid());
     }
+
+    // no valid enrollment given and program not single event, just return
+    // null
+    return null;
+  }
+
+  private User convertUserInfo(UserInfoSnapshot userInfoSnapshot) {
+    return User.builder()
+        .uid(userInfoSnapshot.getUid())
+        .username(userInfoSnapshot.getUsername())
+        .firstName(userInfoSnapshot.getFirstName())
+        .surname(userInfoSnapshot.getSurname())
+        .build();
+  }
 }

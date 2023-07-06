@@ -32,12 +32,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE_AND_UPDATE;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -57,73 +57,72 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class ValidatingEventCheckerTest
-{
-    @Mock
-    private SchemaValidator schemaValidator;
+@ExtendWith(MockitoExtension.class)
+class ValidatingEventCheckerTest {
+  @Mock private SchemaValidator schemaValidator;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    private ValidationFactory validationFactory;
+  private ValidationFactory validationFactory;
 
-    @BeforeEach
-    public void setUp()
-    {
-        // Create a validation factory with a dummy check
-        validationFactory = new ValidationFactory( schemaValidator, schemaService, aclService, userService,
-            new ObjectBundleHooks( Collections.emptyList() ),
+  @BeforeEach
+  public void setUp() {
+    // Create a validation factory with a dummy check
+    validationFactory =
+        new ValidationFactory(
+            schemaValidator,
+            schemaService,
+            aclService,
+            userService,
+            new ObjectBundleHooks(Collections.emptyList()),
             new ValidationRunner(
-                ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( new DummyCheck() ) ) ) );
-    }
+                ImmutableMap.of(CREATE_AND_UPDATE, ListUtils.newList(new DummyCheck()))));
+  }
 
-    @Test
-    void verifyValidationFactoryProcessValidationCheck()
-    {
-        ObjectBundle bundle = createObjectBundle();
+  @Test
+  void verifyValidationFactoryProcessValidationCheck() {
+    ObjectBundle bundle = createObjectBundle();
 
-        TypeReport typeReport = validationFactory.validateBundle( bundle, Attribute.class,
-            bundle.getObjects( Attribute.class, true ), bundle.getObjects( Attribute.class, false ) );
+    TypeReport typeReport =
+        validationFactory.validateBundle(
+            bundle,
+            Attribute.class,
+            bundle.getObjects(Attribute.class, true),
+            bundle.getObjects(Attribute.class, false));
 
-        // verify that object has been removed from bundle
-        assertThat( bundle.getObjects( Attribute.class, false ), hasSize( 0 ) );
-        assertThat( bundle.getObjects( Attribute.class, true ), hasSize( 0 ) );
-        assertThat( typeReport.getStats().getCreated(), is( 0 ) );
-        assertThat( typeReport.getStats().getUpdated(), is( 0 ) );
-        assertThat( typeReport.getStats().getDeleted(), is( 0 ) );
-        assertThat( typeReport.getStats().getIgnored(), is( 1 ) );
-        assertThat( typeReport.getObjectReportsCount(), is( 1 ) );
-    }
+    // verify that object has been removed from bundle
+    assertThat(bundle.getObjects(Attribute.class, false), hasSize(0));
+    assertThat(bundle.getObjects(Attribute.class, true), hasSize(0));
+    assertThat(typeReport.getStats().getCreated(), is(0));
+    assertThat(typeReport.getStats().getUpdated(), is(0));
+    assertThat(typeReport.getStats().getDeleted(), is(0));
+    assertThat(typeReport.getStats().getIgnored(), is(1));
+    assertThat(typeReport.getObjectReportsCount(), is(1));
+  }
 
-    private ObjectBundle createObjectBundle()
-    {
+  private ObjectBundle createObjectBundle() {
 
-        Attribute attribute1 = new Attribute();
-        attribute1.setUid( "u1" );
+    Attribute attribute1 = new Attribute();
+    attribute1.setUid("u1");
 
-        ObjectBundleParams objectBundleParams = new ObjectBundleParams();
-        Preheat preheat = new Preheat();
+    ObjectBundleParams objectBundleParams = new ObjectBundleParams();
+    Preheat preheat = new Preheat();
 
-        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap = new HashMap<>();
-        objectMap.put( Attribute.class, new ArrayList<>() );
+    final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objectMap =
+        new HashMap<>();
+    objectMap.put(Attribute.class, new ArrayList<>());
 
-        objectMap.get( Attribute.class ).add( attribute1 );
+    objectMap.get(Attribute.class).add(attribute1);
 
-        preheat.put( PreheatIdentifier.UID, attribute1 );
+    preheat.put(PreheatIdentifier.UID, attribute1);
 
-        return new ObjectBundle( objectBundleParams, preheat, objectMap );
-    }
-
+    return new ObjectBundle(objectBundleParams, preheat, objectMap);
+  }
 }

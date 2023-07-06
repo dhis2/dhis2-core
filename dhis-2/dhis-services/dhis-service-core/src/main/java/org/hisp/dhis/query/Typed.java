@@ -27,60 +27,49 @@
  */
 package org.hisp.dhis.query;
 
+import com.google.common.collect.Iterators;
 import org.hisp.dhis.schema.Klass;
 
-import com.google.common.collect.Iterators;
-
 /**
- * Simple class for checking if an object is one of several allowed classes,
- * mainly used in Operator where a parameter can be type constrained.
+ * Simple class for checking if an object is one of several allowed classes, mainly used in Operator
+ * where a parameter can be type constrained.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Typed
-{
-    private final Class<?>[] klasses;
+public class Typed {
+  private final Class<?>[] klasses;
 
-    public Typed( Class<?>[] klasses )
-    {
-        this.klasses = klasses;
+  public Typed(Class<?>[] klasses) {
+    this.klasses = klasses;
+  }
+
+  public Class<?>[] getKlasses() {
+    return klasses;
+  }
+
+  public boolean isValid(Klass klass) {
+    return klass == null || isValid(klass.getKlass());
+  }
+
+  public boolean isValid(Class<?> klass) {
+    if (klasses.length == 0 || klass == null) {
+      return true;
     }
 
-    public Class<?>[] getKlasses()
-    {
-        return klasses;
+    for (Class<?> k : klasses) {
+      if (k != null && k.isAssignableFrom(klass)) {
+        return true;
+      }
     }
 
-    public boolean isValid( Klass klass )
-    {
-        return klass == null || isValid( klass.getKlass() );
-    }
+    return false;
+  }
 
-    public boolean isValid( Class<?> klass )
-    {
-        if ( klasses.length == 0 || klass == null )
-        {
-            return true;
-        }
+  public static Typed from(Class<?>... klasses) {
+    return new Typed(klasses);
+  }
 
-        for ( Class<?> k : klasses )
-        {
-            if ( k != null && k.isAssignableFrom( klass ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static Typed from( Class<?>... klasses )
-    {
-        return new Typed( klasses );
-    }
-
-    public static Typed from( Iterable<? extends Class<?>> iterable )
-    {
-        return new Typed( Iterators.toArray( iterable.iterator(), Class.class ) );
-    }
+  public static Typed from(Iterable<? extends Class<?>> iterable) {
+    return new Typed(Iterators.toArray(iterable.iterator(), Class.class));
+  }
 }

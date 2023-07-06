@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
@@ -50,76 +50,68 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Dusan Bernat
  */
-@ExtendWith( MockitoExtension.class )
-class AnalyticsCacheTest
-{
-    @Mock
-    private SystemSettingManager systemSettingManager;
+@ExtendWith(MockitoExtension.class)
+class AnalyticsCacheTest {
+  @Mock private SystemSettingManager systemSettingManager;
 
-    @Mock
-    private DefaultCacheProvider cacheProvider;
+  @Mock private DefaultCacheProvider cacheProvider;
 
-    @Test
-    void returnSameObjectAfterModifyCachedObject()
-    {
-        // arrange
-        final AnalyticsCacheSettings settings = new AnalyticsCacheSettings( systemSettingManager );
+  @Test
+  void returnSameObjectAfterModifyCachedObject() {
+    // arrange
+    final AnalyticsCacheSettings settings = new AnalyticsCacheSettings(systemSettingManager);
 
-        final CacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
+    final CacheBuilder<Grid> cacheBuilder = new SimpleCacheBuilder<>();
 
-        cacheBuilder.expireAfterWrite( 1L, TimeUnit.MINUTES );
+    cacheBuilder.expireAfterWrite(1L, TimeUnit.MINUTES);
 
-        final Cache<Grid> cache = new LocalCache<>( cacheBuilder );
+    final Cache<Grid> cache = new LocalCache<>(cacheBuilder);
 
-        Mockito.<Cache<Grid>> when( cacheProvider.createAnalyticsCache() )
-            .thenReturn( cache );
+    Mockito.<Cache<Grid>>when(cacheProvider.createAnalyticsCache()).thenReturn(cache);
 
-        final AnalyticsCache analyticsCache = new AnalyticsCache( cacheProvider, settings );
+    final AnalyticsCache analyticsCache = new AnalyticsCache(cacheProvider, settings);
 
-        final Grid grid = new ListGrid();
-        grid.addHeader( new GridHeader( "Header1" ) )
-            .addHeader( new GridHeader( "Header2" ) )
-            .addRow()
-            .addValue( "Value11" )
-            .addValue( "Value12" )
-            .addRow()
-            .addValue( "Value21" )
-            .addValue( "Value22" );
+    final Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader("Header1"))
+        .addHeader(new GridHeader("Header2"))
+        .addRow()
+        .addValue("Value11")
+        .addValue("Value12")
+        .addRow()
+        .addValue("Value21")
+        .addValue("Value22");
 
-        DataQueryParams params = DataQueryParams.newBuilder()
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
             .withDataElements(
-                Lists.newArrayList( new DataElement( "dataElementA" ), new DataElement( "dataElementB" ) ) )
+                Lists.newArrayList(
+                    new DataElement("dataElementA"), new DataElement("dataElementB")))
             .build();
 
-        // act, assert
-        analyticsCache.put( params.getKey(), grid, 60 );
+    // act, assert
+    analyticsCache.put(params.getKey(), grid, 60);
 
-        Optional<Grid> optCachedGrid = analyticsCache.get( params.getKey() );
+    Optional<Grid> optCachedGrid = analyticsCache.get(params.getKey());
 
-        assertTrue( optCachedGrid.isPresent() );
+    assertTrue(optCachedGrid.isPresent());
 
-        assertEquals( 2, optCachedGrid.get().getHeaderWidth() );
+    assertEquals(2, optCachedGrid.get().getHeaderWidth());
 
-        assertEquals( 2, optCachedGrid.get().getRows().size() );
+    assertEquals(2, optCachedGrid.get().getRows().size());
 
-        // when the cachedGrid is not the clone of grid, next actions will
-        // modify it
-        grid.addHeader( new GridHeader( "Header3" ) )
-            .addRow()
-            .addValue( "31" )
-            .addValue( "32" );
+    // when the cachedGrid is not the clone of grid, next actions will
+    // modify it
+    grid.addHeader(new GridHeader("Header3")).addRow().addValue("31").addValue("32");
 
-        optCachedGrid = analyticsCache.get( params.getKey() );
+    optCachedGrid = analyticsCache.get(params.getKey());
 
-        assertTrue( optCachedGrid.isPresent() );
+    assertTrue(optCachedGrid.isPresent());
 
-        assertEquals( 2, optCachedGrid.get().getHeaderWidth() );
+    assertEquals(2, optCachedGrid.get().getHeaderWidth());
 
-        assertEquals( 2, optCachedGrid.get().getRows().size() );
-    }
+    assertEquals(2, optCachedGrid.get().getRows().size());
+  }
 }

@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -55,70 +54,59 @@ import org.springframework.context.ApplicationContext;
 /**
  * @author Cambi Luca
  */
-@ExtendWith( MockitoExtension.class )
-class ClassBasedSupplierTest
-{
-    private ClassBasedSupplier classBasedSupplier;
+@ExtendWith(MockitoExtension.class)
+class ClassBasedSupplierTest {
+  private ClassBasedSupplier classBasedSupplier;
 
-    @Mock
-    private ApplicationContext applicationContext;
+  @Mock private ApplicationContext applicationContext;
 
-    @Mock
-    private TrackerIdentifierCollector identifierCollector;
+  @Mock private TrackerIdentifierCollector identifierCollector;
 
-    @Mock
-    private GenericStrategy genericStrategy;
+  @Mock private GenericStrategy genericStrategy;
 
-    @Mock
-    private TrackerImportParams trackerImportParams;
+  @Mock private TrackerImportParams trackerImportParams;
 
-    @Mock
-    private TrackerEntityInstanceStrategy trackerEntityInstanceStrategy;
+  @Mock private TrackerEntityInstanceStrategy trackerEntityInstanceStrategy;
 
-    @Mock
-    private HashMap<String, String> strategiesMap;
+  @Mock private HashMap<String, String> strategiesMap;
 
-    @BeforeEach
-    public void setUp()
-    {
-        classBasedSupplier = new ClassBasedSupplier( identifierCollector, strategiesMap );
-        classBasedSupplier.setApplicationContext( applicationContext );
+  @BeforeEach
+  public void setUp() {
+    classBasedSupplier = new ClassBasedSupplier(identifierCollector, strategiesMap);
+    classBasedSupplier.setApplicationContext(applicationContext);
 
-        TrackerPreheat trackerPreheat = new TrackerPreheat();
+    TrackerPreheat trackerPreheat = new TrackerPreheat();
 
-        when( identifierCollector.collect( trackerImportParams, trackerPreheat.getDefaults() ) )
-            .thenReturn( new HashMap<Class<?>, Set<String>>()
-            {
-                {
-                    put( TrackedEntity.class, new HashSet<>( Collections.singletonList( "trackedEntity" ) ) );
-                }
-            } );
-    }
+    when(identifierCollector.collect(trackerImportParams, trackerPreheat.getDefaults()))
+        .thenReturn(
+            new HashMap<Class<?>, Set<String>>() {
+              {
+                put(TrackedEntity.class, new HashSet<>(Collections.singletonList("trackedEntity")));
+              }
+            });
+  }
 
-    @Test
-    void verifyGenericStrategy()
-    {
-        when( strategiesMap.getOrDefault( anyString(), anyString() ) )
-            .thenReturn( Constant.GENERIC_STRATEGY_BEAN );
+  @Test
+  void verifyGenericStrategy() {
+    when(strategiesMap.getOrDefault(anyString(), anyString()))
+        .thenReturn(Constant.GENERIC_STRATEGY_BEAN);
 
-        when( applicationContext.getBean( Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class ) )
-            .thenReturn( genericStrategy );
+    when(applicationContext.getBean(Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class))
+        .thenReturn(genericStrategy);
 
-        classBasedSupplier.preheatAdd( trackerImportParams, new TrackerPreheat() );
-        verify( applicationContext ).getBean( Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class );
-    }
+    classBasedSupplier.preheatAdd(trackerImportParams, new TrackerPreheat());
+    verify(applicationContext).getBean(Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class);
+  }
 
-    @Test
-    void verifyClassBasedSupplierStrategy()
-    {
-        when( strategiesMap.getOrDefault( anyString(), anyString() ) )
-            .thenReturn( "classbasedstrategy" );
+  @Test
+  void verifyClassBasedSupplierStrategy() {
+    when(strategiesMap.getOrDefault(anyString(), anyString())).thenReturn("classbasedstrategy");
 
-        when( applicationContext.getBean( anyString(), eq( ClassBasedSupplierStrategy.class ) ) )
-            .thenReturn( trackerEntityInstanceStrategy );
+    when(applicationContext.getBean(anyString(), eq(ClassBasedSupplierStrategy.class)))
+        .thenReturn(trackerEntityInstanceStrategy);
 
-        classBasedSupplier.preheatAdd( trackerImportParams, new TrackerPreheat() );
+    classBasedSupplier.preheatAdd(trackerImportParams, new TrackerPreheat());
 
-        verify( applicationContext ).getBean( "classbasedstrategy", ClassBasedSupplierStrategy.class );
-    }
+    verify(applicationContext).getBean("classbasedstrategy", ClassBasedSupplierStrategy.class);
+  }
 }

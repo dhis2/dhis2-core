@@ -32,9 +32,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.Fields
 
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -44,29 +42,24 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class EventFieldsParamMapper
-{
-    private final FieldFilterService fieldFilterService;
+public class EventFieldsParamMapper {
+  private final FieldFilterService fieldFilterService;
 
-    public EventParams map( List<FieldPath> fields )
-    {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EventParams params = initUsingAllOrNoFields( roots );
-        return params
-            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
-    }
+  public EventParams map(List<FieldPath> fields) {
+    Map<String, FieldPath> roots = rootFields(fields);
+    EventParams params = initUsingAllOrNoFields(roots);
+    return params.withIncludeRelationships(
+        fieldFilterService.filterIncludes(Event.class, fields, FIELD_RELATIONSHIPS));
+  }
 
-    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
-    {
-        EventParams params = EventParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = EventParams.TRUE;
-            }
-        }
-        return params;
+  private static EventParams initUsingAllOrNoFields(Map<String, FieldPath> roots) {
+    EventParams params = EventParams.FALSE;
+    if (roots.containsKey(FieldPreset.ALL)) {
+      FieldPath p = roots.get(FieldPreset.ALL);
+      if (p.isRoot() && !p.isExclude()) {
+        params = EventParams.TRUE;
+      }
     }
+    return params;
+  }
 }

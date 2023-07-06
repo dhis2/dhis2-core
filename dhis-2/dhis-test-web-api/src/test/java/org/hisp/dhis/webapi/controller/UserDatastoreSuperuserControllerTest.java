@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -44,168 +43,213 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the special ability of a superuser to impersonate other users when
- * using the {@link UserDatastoreController} API.
+ * Tests the special ability of a superuser to impersonate other users when using the {@link
+ * UserDatastoreController} API.
  *
  * @author Jan Bernitt
  */
-class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest
-{
-    private User paul;
+class UserDatastoreSuperuserControllerTest extends DhisControllerConvenienceTest {
+  private User paul;
 
-    @BeforeEach
-    void setUp()
-    {
-        // All tests start as user Paul
-        paul = switchToNewUser( "Paul" );
-    }
+  @BeforeEach
+  void setUp() {
+    // All tests start as user Paul
+    paul = switchToNewUser("Paul");
+  }
 
-    @Test
-    void testDeleteKeys()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
+  @Test
+  void testDeleteKeys() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-        switchToSuperuser();
-        assertWebMessage( "OK", 200, "OK", "All keys from namespace 'test' deleted.",
-            DELETE( "/userDataStore/test?username=Paul" ).content( HttpStatus.OK ) );
+    switchToSuperuser();
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "All keys from namespace 'test' deleted.",
+        DELETE("/userDataStore/test?username=Paul").content(HttpStatus.OK));
 
-        switchContextToUser( paul );
-        assertEquals( HttpStatus.NOT_FOUND, GET( "/userDataStore/test" ).status() );
-    }
+    switchContextToUser(paul);
+    assertEquals(HttpStatus.NOT_FOUND, GET("/userDataStore/test").status());
+  }
 
-    @Test
-    void testDeleteKeys_NotSuperuser()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
+  @Test
+  void testDeleteKeys_NotSuperuser() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "Only superusers can read or write other users data using the `user` parameter.",
-            DELETE( "/userDataStore/test?username=Paul" ).content( HttpStatus.CONFLICT ) );
-    }
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Only superusers can read or write other users data using the `user` parameter.",
+        DELETE("/userDataStore/test?username=Paul").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testAddUserKeyJsonValue()
-    {
-        switchToSuperuser();
-        assertWebMessage( "Created", 201, "OK", "Key 'key1' in namespace 'test' created.",
-            POST( "/userDataStore/test/key1?username=Paul", "true" ).content( HttpStatus.CREATED ) );
+  @Test
+  void testAddUserKeyJsonValue() {
+    switchToSuperuser();
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Key 'key1' in namespace 'test' created.",
+        POST("/userDataStore/test/key1?username=Paul", "true").content(HttpStatus.CREATED));
 
-        switchContextToUser( paul );
-        assertTrue( GET( "/userDataStore/test/key1" ).content( HttpStatus.OK ).as( JsonBoolean.class ).booleanValue() );
-    }
+    switchContextToUser(paul);
+    assertTrue(
+        GET("/userDataStore/test/key1")
+            .content(HttpStatus.OK)
+            .as(JsonBoolean.class)
+            .booleanValue());
+  }
 
-    @Test
-    void testAddUserKeyJsonValue_MalformedValue()
-    {
-        switchToSuperuser();
-        assertWebMessage( "Bad Request", 400, "ERROR", "The data is not valid JSON.",
-            POST( "/userDataStore/test/key1?username=Paul", "invalidJson" ).content( HttpStatus.BAD_REQUEST )
-                .as( JsonWebMessage.class ) );
-    }
+  @Test
+  void testAddUserKeyJsonValue_MalformedValue() {
+    switchToSuperuser();
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "The data is not valid JSON.",
+        POST("/userDataStore/test/key1?username=Paul", "invalidJson")
+            .content(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testAddUserKeyJsonValue_AlreadyExists()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
+  @Test
+  void testAddUserKeyJsonValue_AlreadyExists() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-        switchToSuperuser();
-        assertWebMessage( "Conflict", 409, "ERROR", "The key 'key1' already exists in the namespace 'test'.",
-            POST( "/userDataStore/test/key1?username=Paul", "true" ).content( HttpStatus.CONFLICT )
-                .as( JsonWebMessage.class ) );
-    }
+    switchToSuperuser();
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "The key 'key1' already exists in the namespace 'test'.",
+        POST("/userDataStore/test/key1?username=Paul", "true")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testAddUserKeyJsonValue_NotSuperuser()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "Only superusers can read or write other users data using the `user` parameter.",
-            POST( "/userDataStore/test/key1?username=Paul", "true" ).content( HttpStatus.CONFLICT )
-                .as( JsonWebMessage.class ) );
-    }
+  @Test
+  void testAddUserKeyJsonValue_NotSuperuser() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Only superusers can read or write other users data using the `user` parameter.",
+        POST("/userDataStore/test/key1?username=Paul", "true")
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testUpdateUserKeyJsonValue()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
+  @Test
+  void testUpdateUserKeyJsonValue() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-        switchToSuperuser();
-        assertWebMessage( "Created", 201, "OK", "Key 'key1' in namespace 'test' updated.",
-            PUT( "/userDataStore/test/key1?username=Paul", "false" ).content( HttpStatus.CREATED ) );
+    switchToSuperuser();
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Key 'key1' in namespace 'test' updated.",
+        PUT("/userDataStore/test/key1?username=Paul", "false").content(HttpStatus.CREATED));
 
-        switchContextToUser( paul );
-        assertFalse(
-            GET( "/userDataStore/test/key1" ).content( HttpStatus.OK ).as( JsonBoolean.class ).booleanValue() );
-    }
+    switchContextToUser(paul);
+    assertFalse(
+        GET("/userDataStore/test/key1")
+            .content(HttpStatus.OK)
+            .as(JsonBoolean.class)
+            .booleanValue());
+  }
 
-    @Test
-    void testUpdateUserKeyJsonValue_UnknownKey()
-    {
-        switchToSuperuser();
-        assertWebMessage( "Not Found", 404, "ERROR", "The key 'unknown' was not found in the namespace 'test'.",
-            PUT( "/userDataStore/test/unknown?username=Paul", "false" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testUpdateUserKeyJsonValue_UnknownKey() {
+    switchToSuperuser();
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "The key 'unknown' was not found in the namespace 'test'.",
+        PUT("/userDataStore/test/unknown?username=Paul", "false").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testUpdateUserKeyJsonValue_MalformedValue()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
+  @Test
+  void testUpdateUserKeyJsonValue_MalformedValue() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-        switchToSuperuser();
-        assertWebMessage( "Bad Request", 400, "ERROR", "The data is not valid JSON.",
-            PUT( "/userDataStore/test/key1?username=Paul", "invalidJson" ).error( HttpStatus.BAD_REQUEST )
-                .as( JsonWebMessage.class ) );
-    }
+    switchToSuperuser();
+    assertWebMessage(
+        "Bad Request",
+        400,
+        "ERROR",
+        "The data is not valid JSON.",
+        PUT("/userDataStore/test/key1?username=Paul", "invalidJson")
+            .error(HttpStatus.BAD_REQUEST)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testUpdateUserKeyJsonValue_NotSuperuser()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
+  @Test
+  void testUpdateUserKeyJsonValue_NotSuperuser() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "Only superusers can read or write other users data using the `user` parameter.",
-            PUT( "/userDataStore/test/key1?username=Paul", "false" ).error( HttpStatus.CONFLICT )
-                .as( JsonWebMessage.class ) );
-    }
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Only superusers can read or write other users data using the `user` parameter.",
+        PUT("/userDataStore/test/key1?username=Paul", "false")
+            .error(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class));
+  }
 
-    @Test
-    void testDeleteUserKeyJsonValue()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key2", "42" ) );
+  @Test
+  void testDeleteUserKeyJsonValue() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key2", "42"));
 
-        switchToSuperuser();
-        assertWebMessage( "OK", 200, "OK", "Key 'key1' deleted from the namespace 'test'.",
-            DELETE( "/userDataStore/test/key1?username=Paul" ).content( HttpStatus.OK ) );
+    switchToSuperuser();
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Key 'key1' deleted from the namespace 'test'.",
+        DELETE("/userDataStore/test/key1?username=Paul").content(HttpStatus.OK));
 
-        switchContextToUser( paul );
-        assertEquals( List.of( "key2" ), GET( "/userDataStore/test" ).content().stringValues() );
-    }
+    switchContextToUser(paul);
+    assertEquals(List.of("key2"), GET("/userDataStore/test").content().stringValues());
+  }
 
-    @Test
-    void testDeleteUserKeyJsonValue_UnknownKey()
-    {
-        switchToSuperuser();
-        assertWebMessage( "Not Found", 404, "ERROR", "The key 'key1' was not found in the namespace 'test'.",
-            DELETE( "/userDataStore/test/key1?username=Paul" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testDeleteUserKeyJsonValue_UnknownKey() {
+    switchToSuperuser();
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "The key 'key1' was not found in the namespace 'test'.",
+        DELETE("/userDataStore/test/key1?username=Paul").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testDeleteUserKeyJsonValue_NotSuperuser()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
+  @Test
+  void testDeleteUserKeyJsonValue_NotSuperuser() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
 
-        assertWebMessage( "Conflict", 409, "ERROR",
-            "Only superusers can read or write other users data using the `user` parameter.",
-            DELETE( "/userDataStore/test/key1?username=Paul" ).content( HttpStatus.CONFLICT ) );
-    }
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Only superusers can read or write other users data using the `user` parameter.",
+        DELETE("/userDataStore/test/key1?username=Paul").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testGetNamespaces()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test/key1", "true" ) );
-        assertStatus( HttpStatus.CREATED, POST( "/userDataStore/test2/key1", "42" ) );
+  @Test
+  void testGetNamespaces() {
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test/key1", "true"));
+    assertStatus(HttpStatus.CREATED, POST("/userDataStore/test2/key1", "42"));
 
-        switchToSuperuser();
-        assertContainsOnly( GET( "/userDataStore?username=Paul" ).content().stringValues(), "test", "test2" );
-    }
+    switchToSuperuser();
+    assertContainsOnly(
+        GET("/userDataStore?username=Paul").content().stringValues(), "test", "test2");
+  }
 }

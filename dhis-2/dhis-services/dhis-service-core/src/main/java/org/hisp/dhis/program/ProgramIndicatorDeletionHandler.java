@@ -31,37 +31,31 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.HashSet;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
-@Component( "org.hisp.dhis.program.ProgramIndicatorDeletionHandler" )
-public class ProgramIndicatorDeletionHandler extends DeletionHandler
-{
-    private final ProgramIndicatorService programIndicatorService;
+@Component("org.hisp.dhis.program.ProgramIndicatorDeletionHandler")
+public class ProgramIndicatorDeletionHandler extends DeletionHandler {
+  private final ProgramIndicatorService programIndicatorService;
 
-    public ProgramIndicatorDeletionHandler( ProgramIndicatorService programIndicatorService )
-    {
-        checkNotNull( programIndicatorService );
-        this.programIndicatorService = programIndicatorService;
+  public ProgramIndicatorDeletionHandler(ProgramIndicatorService programIndicatorService) {
+    checkNotNull(programIndicatorService);
+    this.programIndicatorService = programIndicatorService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private void deleteProgram(Program program) {
+    Collection<ProgramIndicator> indicators = new HashSet<>(program.getProgramIndicators());
+
+    for (ProgramIndicator indicator : indicators) {
+      programIndicatorService.deleteProgramIndicator(indicator);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( Program.class, this::deleteProgram );
-    }
-
-    private void deleteProgram( Program program )
-    {
-        Collection<ProgramIndicator> indicators = new HashSet<>( program.getProgramIndicators() );
-
-        for ( ProgramIndicator indicator : indicators )
-        {
-            programIndicatorService.deleteProgramIndicator( indicator );
-        }
-    }
+  }
 }

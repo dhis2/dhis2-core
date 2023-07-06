@@ -38,39 +38,32 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base for integration tests that use a single setup for the class instead of a
- * setup for each individual test. Run with profile <code>integration</code>.
+ * Base for integration tests that use a single setup for the class instead of a setup for each
+ * individual test. Run with profile <code>integration</code>.
  *
  * @author Jim Grace
  */
-@ExtendWith( SpringExtension.class )
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {IntegrationTestConfig.class})
 @IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
+@ActiveProfiles(profiles = {"test-postgres"})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Transactional
-public abstract class SingleSetupIntegrationTestBase
-    extends BaseSpringTest
-{
-    @BeforeAll
-    public final void before()
-        throws Exception
-    {
-        bindSession();
+public abstract class SingleSetupIntegrationTestBase extends BaseSpringTest {
+  @BeforeAll
+  public final void before() throws Exception {
+    bindSession();
 
-        integrationTestBefore();
-    }
+    integrationTestBefore();
+  }
 
-    @AfterAll
-    public final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
-    }
+  @AfterAll
+  public final void after() throws Exception {
+    nonTransactionalAfter();
+  }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  @Override
+  public boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 }

@@ -36,17 +36,15 @@ import org.springframework.http.HttpStatus;
 /**
  * Tests the {@link CacheController}.
  *
- * Mostly that only users with proper authority can use it.
+ * <p>Mostly that only users with proper authority can use it.
  *
  * @author Jan Bernitt
  */
-class CacheControllerTest extends DhisControllerConvenienceTest
-{
+class CacheControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testInvalidate()
-    {
-        switchToNewUser( "no-special-authority-user" );
-        assertStatus( HttpStatus.FORBIDDEN, POST( "/caches/invalidate" ) );
-    }
+  @Test
+  void testInvalidate() {
+    switchToNewUser("no-special-authority-user");
+    assertStatus(HttpStatus.FORBIDDEN, POST("/caches/invalidate"));
+  }
 }

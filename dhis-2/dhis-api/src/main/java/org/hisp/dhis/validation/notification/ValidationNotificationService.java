@@ -28,15 +28,13 @@
 package org.hisp.dhis.validation.notification;
 
 import java.util.Set;
-
 import org.hisp.dhis.validation.ValidationResult;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface ValidationNotificationService
-{
-    Set<ValidationResult> sendNotifications( Set<ValidationResult> results );
+public interface ValidationNotificationService {
+  Set<ValidationResult> sendNotifications(Set<ValidationResult> results);
 
-    void sendUnsentNotifications();
+  void sendUnsentNotifications();
 }

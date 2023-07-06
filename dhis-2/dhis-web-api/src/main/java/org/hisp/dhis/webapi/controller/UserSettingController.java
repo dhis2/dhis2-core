@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -39,9 +40,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -67,188 +66,168 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
 @RestController
-@RequestMapping( "/userSettings" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class UserSettingController
-{
-    @Autowired
-    private UserSettingService userSettingService;
+@RequestMapping("/userSettings")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class UserSettingController {
+  @Autowired private UserSettingService userSettingService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
-        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
+  private static final Set<UserSettingKey> USER_SETTING_KEYS =
+      Sets.newHashSet(UserSettingKey.values()).stream().collect(Collectors.toSet());
 
-    // -------------------------------------------------------------------------
-    // Resources
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Resources
+  // -------------------------------------------------------------------------
 
-    @GetMapping
-    public Map<String, Serializable> getAllUserSettings(
-        @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
-        @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId,
-        @RequestParam( value = "key", required = false ) Set<String> keys, HttpServletResponse response )
-        throws WebMessageException
-    {
-        User user = getUser( userId, username );
+  @GetMapping
+  public Map<String, Serializable> getAllUserSettings(
+      @RequestParam(required = false, defaultValue = "true") boolean useFallback,
+      @RequestParam(value = "user", required = false) String username,
+      @RequestParam(value = "userId", required = false) String userId,
+      @RequestParam(value = "key", required = false) Set<String> keys,
+      HttpServletResponse response)
+      throws WebMessageException {
+    User user = getUser(userId, username);
 
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+    response.setHeader(
+        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
 
-        if ( keys == null )
-        {
-            return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, useFallback );
-        }
-
-        Map<String, Serializable> result = new HashMap<>();
-
-        for ( String key : keys )
-        {
-            UserSettingKey userSettingKey = getUserSettingKey( key );
-            result.put( userSettingKey.getName(), userSettingService.getUserSetting( userSettingKey ) );
-        }
-
-        return result;
+    if (keys == null) {
+      return userSettingService.getUserSettingsWithFallbackByUserAsMap(
+          user, USER_SETTING_KEYS, useFallback);
     }
 
-    @GetMapping( value = "/{key}" )
-    public void getUserSettingByKey(
-        @PathVariable( value = "key" ) String key,
-        @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
-        @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId, HttpServletResponse response )
-        throws WebMessageException,
-        IOException
-    {
-        UserSettingKey userSettingKey = getUserSettingKey( key );
-        User user = getUser( userId, username );
+    Map<String, Serializable> result = new HashMap<>();
 
-        Serializable value = userSettingService
-            .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey ), useFallback )
-            .get( key );
-
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        response.setHeader( HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT );
-        response.getWriter().print( value );
+    for (String key : keys) {
+      UserSettingKey userSettingKey = getUserSettingKey(key);
+      result.put(userSettingKey.getName(), userSettingService.getUserSetting(userSettingKey));
     }
 
-    @PostMapping( value = "/{key}" )
-    public WebMessage setUserSettingByKey(
-        @PathVariable( value = "key" ) String key,
-        @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId,
-        @RequestParam( required = false ) String value,
-        @RequestBody( required = false ) String valuePayload )
-        throws WebMessageException
-    {
-        UserSettingKey userSettingKey = getUserSettingKey( key );
-        User user = getUser( userId, username );
+    return result;
+  }
 
-        String newValue = ObjectUtils.firstNonNull( value, valuePayload );
+  @GetMapping(value = "/{key}")
+  public void getUserSettingByKey(
+      @PathVariable(value = "key") String key,
+      @RequestParam(required = false, defaultValue = "true") boolean useFallback,
+      @RequestParam(value = "user", required = false) String username,
+      @RequestParam(value = "userId", required = false) String userId,
+      HttpServletResponse response)
+      throws WebMessageException, IOException {
+    UserSettingKey userSettingKey = getUserSettingKey(key);
+    User user = getUser(userId, username);
 
-        if ( StringUtils.isEmpty( newValue ) )
-        {
-            throw new WebMessageException( conflict( "You need to specify a new value" ) );
-        }
+    Serializable value =
+        userSettingService
+            .getUserSettingsWithFallbackByUserAsMap(
+                user, Sets.newHashSet(userSettingKey), useFallback)
+            .get(key);
 
-        userSettingService.saveUserSetting( userSettingKey, UserSettingKey.getAsRealClass( key, newValue ), user );
+    response.setHeader(
+        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
+    response.setHeader(HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT);
+    response.getWriter().print(value);
+  }
 
-        return ok( "User setting saved" );
+  @PostMapping(value = "/{key}")
+  public WebMessage setUserSettingByKey(
+      @PathVariable(value = "key") String key,
+      @RequestParam(value = "user", required = false) String username,
+      @RequestParam(value = "userId", required = false) String userId,
+      @RequestParam(required = false) String value,
+      @RequestBody(required = false) String valuePayload)
+      throws WebMessageException {
+    UserSettingKey userSettingKey = getUserSettingKey(key);
+    User user = getUser(userId, username);
+
+    String newValue = ObjectUtils.firstNonNull(value, valuePayload);
+
+    if (StringUtils.isEmpty(newValue)) {
+      throw new WebMessageException(conflict("You need to specify a new value"));
     }
 
-    @DeleteMapping( value = "/{key}" )
-    public void deleteUserSettingByKey(
-        @PathVariable( value = "key" ) String key,
-        @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId )
-        throws WebMessageException
-    {
-        UserSettingKey userSettingKey = getUserSettingKey( key );
-        User user = getUser( userId, username );
+    userSettingService.saveUserSetting(
+        userSettingKey, UserSettingKey.getAsRealClass(key, newValue), user);
 
-        userSettingService.deleteUserSetting( userSettingKey, user );
+    return ok("User setting saved");
+  }
+
+  @DeleteMapping(value = "/{key}")
+  public void deleteUserSettingByKey(
+      @PathVariable(value = "key") String key,
+      @RequestParam(value = "user", required = false) String username,
+      @RequestParam(value = "userId", required = false) String userId)
+      throws WebMessageException {
+    UserSettingKey userSettingKey = getUserSettingKey(key);
+    User user = getUser(userId, username);
+
+    userSettingService.deleteUserSetting(userSettingKey, user);
+  }
+
+  /**
+   * Attempts to resolve the UserSettingKey based on the name (key) supplied
+   *
+   * @param key the name of a UserSettingKey
+   * @return the UserSettingKey
+   * @throws WebMessageException throws an exception if no UserSettingKey was found
+   */
+  private UserSettingKey getUserSettingKey(String key) throws WebMessageException {
+    Optional<UserSettingKey> userSettingKey = UserSettingKey.getByName(key);
+
+    if (!userSettingKey.isPresent()) {
+      throw new WebMessageException(notFound("No user setting found with key: " + key));
     }
 
-    /**
-     * Attempts to resolve the UserSettingKey based on the name (key) supplied
-     *
-     * @param key the name of a UserSettingKey
-     * @return the UserSettingKey
-     * @throws WebMessageException throws an exception if no UserSettingKey was
-     *         found
-     */
-    private UserSettingKey getUserSettingKey( String key )
-        throws WebMessageException
-    {
-        Optional<UserSettingKey> userSettingKey = UserSettingKey.getByName( key );
+    return userSettingKey.get();
+  }
 
-        if ( !userSettingKey.isPresent() )
-        {
-            throw new WebMessageException( notFound( "No user setting found with key: " + key ) );
-        }
+  /**
+   * Tries to find a user based on the uid or username. If none is supplied, currentUser will be
+   * returned. If uid or username is found, it will also make sure the current user has access to
+   * the user.
+   *
+   * @param uid the user uid
+   * @param username the user username
+   * @return the user found with uid or username, or current user if no uid or username was
+   *     specified
+   * @throws WebMessageException throws an exception if user was not found, or current user don't
+   *     have access
+   */
+  private User getUser(String uid, String username) throws WebMessageException {
+    User currentUser = currentUserService.getCurrentUser();
+    User user;
 
-        return userSettingKey.get();
+    if (uid == null && username == null) {
+      return currentUser;
     }
 
-    /**
-     * Tries to find a user based on the uid or username. If none is supplied,
-     * currentUser will be returned. If uid or username is found, it will also
-     * make sure the current user has access to the user.
-     *
-     * @param uid the user uid
-     * @param username the user username
-     * @return the user found with uid or username, or current user if no uid or
-     *         username was specified
-     * @throws WebMessageException throws an exception if user was not found, or
-     *         current user don't have access
-     */
-    private User getUser( String uid, String username )
-        throws WebMessageException
-    {
-        User currentUser = currentUserService.getCurrentUser();
-        User user;
-
-        if ( uid == null && username == null )
-        {
-            return currentUser;
-        }
-
-        if ( uid != null )
-        {
-            user = userService.getUser( uid );
-        }
-        else
-        {
-            user = userService.getUserByUsername( username );
-        }
-
-        if ( user == null )
-        {
-            throw new WebMessageException(
-                conflict( "Could not find user '" + ObjectUtils.firstNonNull( uid, username ) + "'" ) );
-        }
-        else
-        {
-            Set<String> userGroups = user.getGroups().stream().map( UserGroup::getUid ).collect( Collectors.toSet() );
-
-            if ( !userService.canAddOrUpdateUser( userGroups ) &&
-                !currentUser.canModifyUser( user ) )
-            {
-                throw new WebMessageException(
-                    unauthorized( "You are not authorized to access user: " + user.getUsername() ) );
-            }
-        }
-
-        return user;
+    if (uid != null) {
+      user = userService.getUser(uid);
+    } else {
+      user = userService.getUserByUsername(username);
     }
+
+    if (user == null) {
+      throw new WebMessageException(
+          conflict("Could not find user '" + ObjectUtils.firstNonNull(uid, username) + "'"));
+    } else {
+      Set<String> userGroups =
+          user.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet());
+
+      if (!userService.canAddOrUpdateUser(userGroups) && !currentUser.canModifyUser(user)) {
+        throw new WebMessageException(
+            unauthorized("You are not authorized to access user: " + user.getUsername()));
+      }
+    }
+
+    return user;
+  }
 }

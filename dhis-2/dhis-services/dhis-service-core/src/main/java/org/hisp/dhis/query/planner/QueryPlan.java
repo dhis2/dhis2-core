@@ -34,99 +34,77 @@ import org.hisp.dhis.user.User;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class QueryPlan
-{
-    private final Query persistedQuery;
+public class QueryPlan {
+  private final Query persistedQuery;
 
-    private final Query nonPersistedQuery;
+  private final Query nonPersistedQuery;
 
-    private QueryPlan( Query persistedQuery, Query nonPersistedQuery )
-    {
-        this.persistedQuery = persistedQuery;
-        this.nonPersistedQuery = nonPersistedQuery;
+  private QueryPlan(Query persistedQuery, Query nonPersistedQuery) {
+    this.persistedQuery = persistedQuery;
+    this.nonPersistedQuery = nonPersistedQuery;
+  }
+
+  public Query getPersistedQuery() {
+    return persistedQuery;
+  }
+
+  public Query getNonPersistedQuery() {
+    return nonPersistedQuery;
+  }
+
+  public Schema getSchema() {
+    if (persistedQuery != null) {
+      return persistedQuery.getSchema();
+    } else if (nonPersistedQuery != null) {
+      return nonPersistedQuery.getSchema();
     }
 
-    public Query getPersistedQuery()
-    {
-        return persistedQuery;
+    return null;
+  }
+
+  public User getUser() {
+    if (persistedQuery != null) {
+      return persistedQuery.getUser();
+    } else if (nonPersistedQuery != null) {
+      return nonPersistedQuery.getUser();
     }
 
-    public Query getNonPersistedQuery()
-    {
-        return nonPersistedQuery;
+    return null;
+  }
+
+  public void setUser(User user) {
+    if (persistedQuery != null) {
+      persistedQuery.setUser(user);
     }
 
-    public Schema getSchema()
-    {
-        if ( persistedQuery != null )
-        {
-            return persistedQuery.getSchema();
-        }
-        else if ( nonPersistedQuery != null )
-        {
-            return nonPersistedQuery.getSchema();
-        }
+    if (nonPersistedQuery != null) {
+      nonPersistedQuery.setUser(user);
+    }
+  }
 
-        return null;
+  public static final class QueryPlanBuilder {
+    private Query persistedQuery;
+
+    private Query nonPersistedQuery;
+
+    private QueryPlanBuilder() {}
+
+    public static QueryPlanBuilder newBuilder() {
+      return new QueryPlanBuilder();
     }
 
-    public User getUser()
-    {
-        if ( persistedQuery != null )
-        {
-            return persistedQuery.getUser();
-        }
-        else if ( nonPersistedQuery != null )
-        {
-            return nonPersistedQuery.getUser();
-        }
-
-        return null;
+    public QueryPlanBuilder persistedQuery(Query persistedQuery) {
+      this.persistedQuery = persistedQuery;
+      return this;
     }
 
-    public void setUser( User user )
-    {
-        if ( persistedQuery != null )
-        {
-            persistedQuery.setUser( user );
-        }
-
-        if ( nonPersistedQuery != null )
-        {
-            nonPersistedQuery.setUser( user );
-        }
+    public QueryPlanBuilder nonPersistedQuery(Query nonPersistedQuery) {
+      this.nonPersistedQuery = nonPersistedQuery;
+      return this;
     }
 
-    public static final class QueryPlanBuilder
-    {
-        private Query persistedQuery;
-
-        private Query nonPersistedQuery;
-
-        private QueryPlanBuilder()
-        {
-        }
-
-        public static QueryPlanBuilder newBuilder()
-        {
-            return new QueryPlanBuilder();
-        }
-
-        public QueryPlanBuilder persistedQuery( Query persistedQuery )
-        {
-            this.persistedQuery = persistedQuery;
-            return this;
-        }
-
-        public QueryPlanBuilder nonPersistedQuery( Query nonPersistedQuery )
-        {
-            this.nonPersistedQuery = nonPersistedQuery;
-            return this;
-        }
-
-        public QueryPlan build()
-        {
-            return new QueryPlan( persistedQuery, nonPersistedQuery );
-        }
+    public QueryPlan build() {
+      return new QueryPlan(persistedQuery, nonPersistedQuery);
     }
+  }
 }

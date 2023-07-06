@@ -40,33 +40,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = UserGroupSchemaDescriptor.API_ENDPOINT )
-public class UserGroupController
-    extends AbstractCrudController<UserGroup>
-{
-    @Autowired
-    private Environment env;
+@RequestMapping(value = UserGroupSchemaDescriptor.API_ENDPOINT)
+public class UserGroupController extends AbstractCrudController<UserGroup> {
+  @Autowired private Environment env;
 
-    @Override
-    protected void postUpdateEntity( UserGroup entity )
-    {
-        hibernateCacheManager.clearCache();
+  @Override
+  protected void postUpdateEntity(UserGroup entity) {
+    hibernateCacheManager.clearCache();
+  }
+
+  @Override
+  protected void postDeleteEntity(String entityUid) {
+    /*
+     * This function will caused error in
+     * SchemaBasedControllerTest.testCreateAndDeleteSchemaObjects because of
+     * H2 database being used. The test is instead covered in
+     * IdentifiableObjectManagerTest.testRemoveUserGroupFromSharing()
+     */
+    if (SystemUtils.isTestRun(env.getActiveProfiles())) {
+      return;
     }
 
-    @Override
-    protected void postDeleteEntity( String entityUid )
-    {
-        /*
-         * This function will caused error in
-         * SchemaBasedControllerTest.testCreateAndDeleteSchemaObjects because of
-         * H2 database being used. The test is instead covered in
-         * IdentifiableObjectManagerTest.testRemoveUserGroupFromSharing()
-         */
-        if ( SystemUtils.isTestRun( env.getActiveProfiles() ) )
-        {
-            return;
-        }
-
-        manager.removeUserGroupFromSharing( entityUid );
-    }
+    manager.removeUserGroupFromSharing(entityUid);
+  }
 }

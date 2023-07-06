@@ -38,132 +38,118 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.DateRange;
 
-public abstract class TimeFieldSqlRenderer
-{
+public abstract class TimeFieldSqlRenderer {
 
-    public String renderTimeFieldSql( EventQueryParams params )
-    {
-        StringBuilder sql = new StringBuilder();
+  public String renderTimeFieldSql(EventQueryParams params) {
+    StringBuilder sql = new StringBuilder();
 
-        if ( params.hasNonDefaultBoundaries() )
-        {
-            sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
-        }
-        // When multiple periods are set
-        // and date range list is no continuous
-        else if ( !params.hasContinuousDateRangeList() )
-        {
-            sql.append( getSqlConditionHasDateRangeList( params ) );
-        }
-        // otherwise
-        else if ( params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty() )
-        {
-            sql.append( getSqlConditionHasStartEndDate( params ) );
-        }
-        // Periods should not go here when line list, only pivot table
-        else
-        {
-            sql.append( getSqlConditionForPeriods( params ) );
-        }
-
-        return sql.toString();
+    if (params.hasNonDefaultBoundaries()) {
+      sql.append(getSqlConditionForNonDefaultBoundaries(params));
+    }
+    // When multiple periods are set
+    // and date range list is no continuous
+    else if (!params.hasContinuousDateRangeList()) {
+      sql.append(getSqlConditionHasDateRangeList(params));
+    }
+    // otherwise
+    else if (params.useStartEndDates() || !params.getDateRangeByDateFilter().isEmpty()) {
+      sql.append(getSqlConditionHasStartEndDate(params));
+    }
+    // Periods should not go here when line list, only pivot table
+    else {
+      sql.append(getSqlConditionForPeriods(params));
     }
 
-    @Data
-    @Builder
-    private static class ColumnWithDateRange
-    {
-        private final String column;
+    return sql.toString();
+  }
 
-        private final DateRange dateRange;
+  @Data
+  @Builder
+  private static class ColumnWithDateRange {
+    private final String column;
 
-        static ColumnWithDateRange of( Map.Entry<AnalyticsDateFilter, DateRange> entry )
-        {
-            return ColumnWithDateRange.builder()
-                .column( quoteAlias( entry.getKey().getTimeField().getField() ) )
-                .dateRange( entry.getValue() )
-                .build();
-        }
+    private final DateRange dateRange;
+
+    static ColumnWithDateRange of(Map.Entry<AnalyticsDateFilter, DateRange> entry) {
+      return ColumnWithDateRange.builder()
+          .column(quoteAlias(entry.getKey().getTimeField().getField()))
+          .dateRange(entry.getValue())
+          .build();
+    }
+  }
+
+  protected Optional<TimeField> getTimeField(EventQueryParams params) {
+    return TimeField.of(params.getTimeField()).filter(this::isAllowed);
+  }
+
+  private boolean isAllowed(TimeField timeField) {
+    return getAllowedTimeFields().contains(timeField);
+  }
+
+  protected abstract String getSqlConditionForPeriods(EventQueryParams params);
+
+  /** renders all periods, which are now organized by dateFilter, into SQL */
+  protected String getSqlConditionHasStartEndDate(EventQueryParams params) {
+
+    ColumnWithDateRange defaultColumn =
+        params.hasStartEndDate()
+            ? ColumnWithDateRange.builder()
+                .column(getColumnName(params))
+                .dateRange(new DateRange(params.getStartDate(), params.getEndDate()))
+                .build()
+            : null;
+
+    return Stream.concat(
+            Stream.of(defaultColumn),
+            params.getDateRangeByDateFilter().entrySet().stream().map(ColumnWithDateRange::of))
+        .filter(Objects::nonNull)
+        .map(
+            columnWithDateRange ->
+                new StringBuilder()
+                    .append(columnWithDateRange.getColumn())
+                    .append(" >= '")
+                    .append(getMediumDateString(columnWithDateRange.getDateRange().getStartDate()))
+                    .append("' and ")
+                    .append(columnWithDateRange.getColumn())
+                    .append(" < '")
+                    .append(
+                        getMediumDateString(
+                            columnWithDateRange.getDateRange().getEndDatePlusOneDay()))
+                    .append("' ")
+                    .toString())
+        .collect(Collectors.joining(" and "));
+  }
+
+  protected String getSqlConditionHasDateRangeList(EventQueryParams params) {
+    List<String> orConditions = new ArrayList<>();
+    for (DateRange dateRange : params.getDateRangeList()) {
+      ColumnWithDateRange columnWithDateRange =
+          ColumnWithDateRange.builder().column(getColumnName(params)).dateRange(dateRange).build();
+
+      orConditions.add(
+          columnWithDateRange.getColumn()
+              + " >= '"
+              + getMediumDateString(columnWithDateRange.getDateRange().getStartDate())
+              + "' and "
+              + columnWithDateRange.getColumn()
+              + " < '"
+              + getMediumDateString(columnWithDateRange.getDateRange().getEndDatePlusOneDay())
+              + "' ");
     }
 
-    protected Optional<TimeField> getTimeField( EventQueryParams params )
-    {
-        return TimeField.of( params.getTimeField() )
-            .filter( this::isAllowed );
-    }
+    return "(" + String.join(" or ", orConditions) + ")";
+  }
 
-    private boolean isAllowed( TimeField timeField )
-    {
-        return getAllowedTimeFields().contains( timeField );
-    }
+  protected abstract String getColumnName(EventQueryParams params);
 
-    protected abstract String getSqlConditionForPeriods( EventQueryParams params );
+  protected abstract String getSqlConditionForNonDefaultBoundaries(EventQueryParams params);
 
-    /**
-     * renders all periods, which are now organized by dateFilter, into SQL
-     */
-    protected String getSqlConditionHasStartEndDate( EventQueryParams params )
-    {
-
-        ColumnWithDateRange defaultColumn = params.hasStartEndDate() ? ColumnWithDateRange.builder()
-            .column( getColumnName( params ) )
-            .dateRange( new DateRange( params.getStartDate(), params.getEndDate() ) )
-            .build() : null;
-
-        return Stream.concat(
-            Stream.of( defaultColumn ),
-            params.getDateRangeByDateFilter().entrySet().stream().map( ColumnWithDateRange::of ) )
-            .filter( Objects::nonNull )
-            .map( columnWithDateRange -> new StringBuilder()
-                .append( columnWithDateRange.getColumn() )
-                .append( " >= '" )
-                .append( getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) )
-                .append( "' and " )
-                .append( columnWithDateRange.getColumn() )
-                .append( " < '" )
-                .append( getMediumDateString( columnWithDateRange.getDateRange().getEndDatePlusOneDay() ) )
-                .append( "' " )
-                .toString() )
-            .collect( Collectors.joining( " and " ) );
-    }
-
-    protected String getSqlConditionHasDateRangeList( EventQueryParams params )
-    {
-        List<String> orConditions = new ArrayList<>();
-        for ( DateRange dateRange : params.getDateRangeList() )
-        {
-            ColumnWithDateRange columnWithDateRange = ColumnWithDateRange.builder()
-                .column( getColumnName( params ) )
-                .dateRange( dateRange )
-                .build();
-
-            orConditions.add(
-                columnWithDateRange.getColumn() +
-                    " >= '" +
-                    getMediumDateString( columnWithDateRange.getDateRange().getStartDate() ) +
-                    "' and " +
-                    columnWithDateRange.getColumn() +
-                    " < '" +
-                    getMediumDateString( columnWithDateRange.getDateRange().getEndDatePlusOneDay() ) +
-                    "' " );
-        }
-
-        return "(" + String.join( " or ", orConditions ) + ")";
-    }
-
-    protected abstract String getColumnName( EventQueryParams params );
-
-    protected abstract String getSqlConditionForNonDefaultBoundaries( EventQueryParams params );
-
-    protected abstract Collection<TimeField> getAllowedTimeFields();
-
+  protected abstract Collection<TimeField> getAllowedTimeFields();
 }

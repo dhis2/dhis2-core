@@ -32,27 +32,23 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Locale;
 import java.util.Map;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class I18nLocaleServiceTest extends DhisSpringTest
-{
+class I18nLocaleServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private I18nLocaleService localeService;
+  @Autowired private I18nLocaleService localeService;
 
-    @Test
-    void testAvailable()
-    {
-        Map<String, String> languages = localeService.getAvailableLanguages();
-        Map<String, String> countries = localeService.getAvailableCountries();
-        assertNotNull( languages );
-        assertNotNull( countries );
-        assertFalse( languages.isEmpty() );
-        assertFalse( countries.isEmpty() );
-        localeService.addI18nLocale( "en", "US" );
-        assertNotNull( localeService.getI18nLocale( Locale.US ) );
-    }
+  @Test
+  void testAvailable() {
+    Map<String, String> languages = localeService.getAvailableLanguages();
+    Map<String, String> countries = localeService.getAvailableCountries();
+    assertNotNull(languages);
+    assertNotNull(countries);
+    assertFalse(languages.isEmpty());
+    assertFalse(countries.isEmpty());
+    localeService.addI18nLocale("en", "US");
+    assertNotNull(localeService.getI18nLocale(Locale.US));
+  }
 }

@@ -34,7 +34,6 @@ import static org.hamcrest.core.Every.everyItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -51,174 +50,160 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class EnrollmentAttrValidationTest extends AbstractImportValidationTest
-{
+class EnrollmentAttrValidationTest extends AbstractImportValidationTest {
 
-    @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired protected TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/tracker_basic_metadata_mandatory_attr.json" );
-        TrackerImportParams trackerBundleParams = fromJson( "tracker/validations/enrollments_te_te-data_2.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        manager.flush();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/tracker_basic_metadata_mandatory_attr.json");
+    TrackerImportParams trackerBundleParams =
+        fromJson("tracker/validations/enrollments_te_te-data_2.json");
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerBundleParams);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    manager.flush();
+  }
 
-    @Test
-    void failValidationWhenTrackedEntityAttributeHasWrongOptionValue()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_with_invalid_option_value.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
-    }
+  @Test
+  void failValidationWhenTrackedEntityAttributeHasWrongOptionValue() throws IOException {
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_with_invalid_option_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1125))));
+  }
 
-    @Test
-    void successValidationWhenTrackedEntityAttributeHasValidOptionValue()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_with_valid_option_value.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-    }
+  @Test
+  void successValidationWhenTrackedEntityAttributeHasValidOptionValue() throws IOException {
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_with_valid_option_value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+  }
 
-    @Test
-    void testAttributesMissingUid()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-missing-uuid.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1075 ) ) ) );
-    }
+  @Test
+  void testAttributesMissingUid() throws IOException {
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_attr-missing-uuid.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1075))));
+  }
 
-    @Test
-    void testAttributesMissingValues()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-missing-value.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
-    }
+  @Test
+  void testAttributesMissingValues() throws IOException {
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_attr-missing-value.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1076))));
+  }
 
-    // TODO: Fails with: (need to figure out how to force deletion here first)
-    // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute
-    // on DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java
-    // [main])
-    @Test
-    @Disabled( "Delete not impl." )
-    void testAttributesMissingTeA()
-        throws IOException
-    {
-        TrackedEntityAttribute sTJvSLN7Kcb = trackedEntityAttributeService.getTrackedEntityAttribute( "sTJvSLN7Kcb" );
-        trackedEntityAttributeService.deleteTrackedEntityAttribute( sTJvSLN7Kcb );
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
-    }
+  // TODO: Fails with: (need to figure out how to force deletion here first)
+  // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute
+  // on DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java
+  // [main])
+  @Test
+  @Disabled("Delete not impl.")
+  void testAttributesMissingTeA() throws IOException {
+    TrackedEntityAttribute sTJvSLN7Kcb =
+        trackedEntityAttributeService.getTrackedEntityAttribute("sTJvSLN7Kcb");
+    trackedEntityAttributeService.deleteTrackedEntityAttribute(sTJvSLN7Kcb);
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_attr-data.json");
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1006))));
+  }
 
-    @Test
-    void testAttributesMissingMandatory()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1018 ) ) ) );
-    }
+  @Test
+  void testAttributesMissingMandatory() throws IOException {
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_attr-missing-mandatory.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1018))));
+  }
 
-    @Test
-    void testAttributesUniquenessInSameTei()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-    }
+  @Test
+  void testAttributesUniquenessInSameTei() throws IOException {
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_unique_attr_same_tei.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+  }
 
-    @Test
-    void testAttributesUniquenessAlreadyInDB()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        manager.flush();
-        manager.clear();
-        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        manager.flush();
-        manager.clear();
-        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr_in_db.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
-    }
+  @Test
+  void testAttributesUniquenessAlreadyInDB() throws IOException {
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_te_te-data_3.json");
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    manager.flush();
+    manager.clear();
+    params = createBundleFromJson("tracker/validations/enrollments_te_unique_attr_same_tei.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+    manager.flush();
+    manager.clear();
+    params = createBundleFromJson("tracker/validations/enrollments_te_unique_attr_in_db.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1064))));
+  }
 
-    @Test
-    void testAttributesUniquenessInDifferentTeis()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
-        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        manager.flush();
-        manager.clear();
-        params = createBundleFromJson( "tracker/validations/enrollments_te_unique_attr.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
-    }
+  @Test
+  void testAttributesUniquenessInDifferentTeis() throws IOException {
+    TrackerImportParams params = fromJson("tracker/validations/enrollments_te_te-data_3.json");
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(0, trackerImportReport.getValidationReport().getErrors().size());
+    assertEquals(TrackerStatus.OK, trackerImportReport.getStatus());
+    manager.flush();
+    manager.clear();
+    params = createBundleFromJson("tracker/validations/enrollments_te_unique_attr.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(2, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1064))));
+  }
 
-    @Test
-    void testAttributesOnlyProgramAttrAllowed()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-only-program-attr.json" );
-        params.setImportStrategy( TrackerImportStrategy.CREATE );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrors(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
-    }
+  @Test
+  void testAttributesOnlyProgramAttrAllowed() throws IOException {
+    TrackerImportParams params =
+        createBundleFromJson("tracker/validations/enrollments_te_attr-only-program-attr.json");
+    params.setImportStrategy(TrackerImportStrategy.CREATE);
+    TrackerImportReport trackerImportReport = trackerImportService.importTracker(params);
+    assertEquals(1, trackerImportReport.getValidationReport().getErrors().size());
+    assertThat(
+        trackerImportReport.getValidationReport().getErrors(),
+        everyItem(hasProperty("errorCode", equalTo(TrackerErrorCode.E1019))));
+  }
 }

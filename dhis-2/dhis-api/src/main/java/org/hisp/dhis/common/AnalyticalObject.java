@@ -30,7 +30,6 @@ package org.hisp.dhis.common;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,47 +41,46 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
  * @author Lars Helge Overland
  */
 public interface AnalyticalObject
-    extends IdentifiableObject, InterpretableObject, SubscribableObject
-{
-    void populateAnalyticalProperties();
+    extends IdentifiableObject, InterpretableObject, SubscribableObject {
+  void populateAnalyticalProperties();
 
-    List<DimensionalObject> getColumns();
+  List<DimensionalObject> getColumns();
 
-    List<DimensionalObject> getRows();
+  List<DimensionalObject> getRows();
 
-    List<DimensionalObject> getFilters();
+  List<DimensionalObject> getFilters();
 
-    Map<String, String> getParentGraphMap();
+  Map<String, String> getParentGraphMap();
 
-    Date getRelativePeriodDate();
+  Date getRelativePeriodDate();
 
-    OrganisationUnit getRelativeOrganisationUnit();
+  OrganisationUnit getRelativeOrganisationUnit();
 
-    List<Period> getPeriods();
+  List<Period> getPeriods();
 
-    List<OrganisationUnit> getOrganisationUnits();
+  List<OrganisationUnit> getOrganisationUnits();
 
-    boolean addDataDimensionItem( DimensionalItemObject object );
+  boolean addDataDimensionItem(DimensionalItemObject object);
 
-    boolean removeDataDimensionItem( DimensionalItemObject object );
+  boolean removeDataDimensionItem(DimensionalItemObject object);
 
-    void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension );
+  void addDataElementGroupSetDimension(DataElementGroupSetDimension dimension);
 
-    void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
+  void addOrganisationUnitGroupSetDimension(OrganisationUnitGroupSetDimension dimension);
 
-    void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension );
+  void addCategoryOptionGroupSetDimension(CategoryOptionGroupSetDimension dimension);
 
-    void addTrackedEntityDataElementDimension( TrackedEntityDataElementDimension dimension );
+  void addTrackedEntityDataElementDimension(TrackedEntityDataElementDimension dimension);
 
-    boolean isCompletedOnly();
+  boolean isCompletedOnly();
 
-    String getTimeField();
+  String getTimeField();
 
-    String getOrgUnitField();
+  String getOrgUnitField();
 
-    String getTitle();
+  String getTitle();
 
-    boolean hasUserOrgUnit();
+  boolean hasUserOrgUnit();
 
-    void clearTransientState();
+  void clearTransientState();
 }

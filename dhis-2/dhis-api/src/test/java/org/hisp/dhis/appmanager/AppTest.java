@@ -30,106 +30,94 @@ package org.hisp.dhis.appmanager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Saptarshi
  * @version $Id$
  */
-class AppTest
-{
+class AppTest {
 
-    private App app;
+  private App app;
 
-    @BeforeEach
-    void setUp()
-        throws IOException
-    {
-        String appJson = FileUtils.readFileToString(
-            new File( this.getClass().getResource( "/manifest.webapp" ).getFile() ), StandardCharsets.UTF_8 );
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
-        this.app = mapper.readValue( appJson, App.class );
-    }
+  @BeforeEach
+  void setUp() throws IOException {
+    String appJson =
+        FileUtils.readFileToString(
+            new File(this.getClass().getResource("/manifest.webapp").getFile()),
+            StandardCharsets.UTF_8);
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    this.app = mapper.readValue(appJson, App.class);
+  }
 
-    @AfterEach
-    void tearDown()
-    {
-    }
+  @AfterEach
+  void tearDown() {}
 
-    // TODO: Verify missing property
-    @Test
-    void testRequiredProperties()
-    {
-        Assertions.assertEquals( "0.1", app.getVersion() );
-        Assertions.assertEquals( "Test App", app.getName() );
-        Assertions.assertEquals( "/index.html", app.getLaunchPath() );
-        Assertions.assertEquals( "*", app.getInstallsAllowedFrom()[0] );
-        Assertions.assertEquals( "en", app.getDefaultLocale() );
-    }
+  // TODO: Verify missing property
+  @Test
+  void testRequiredProperties() {
+    Assertions.assertEquals("0.1", app.getVersion());
+    Assertions.assertEquals("Test App", app.getName());
+    Assertions.assertEquals("/index.html", app.getLaunchPath());
+    Assertions.assertEquals("*", app.getInstallsAllowedFrom()[0]);
+    Assertions.assertEquals("en", app.getDefaultLocale());
+  }
 
-    // TODO: Complete test for skipped optional properties
-    @Test
-    void testOptionalProperties()
-    {
-        Assertions.assertEquals( "Test Description", app.getDescription() );
-        Assertions.assertEquals( false, app.getSettings().getDashboardWidget().getHideTitle() );
-    }
+  // TODO: Complete test for skipped optional properties
+  @Test
+  void testOptionalProperties() {
+    Assertions.assertEquals("Test Description", app.getDescription());
+    Assertions.assertEquals(false, app.getSettings().getDashboardWidget().getHideTitle());
+  }
 
-    @Test
-    void testIcons()
-    {
-        Assertions.assertEquals( "/img/icons/mortar-16.png", app.getIcons().getIcon16() );
-        Assertions.assertEquals( "/img/icons/mortar-48.png", app.getIcons().getIcon48() );
-        Assertions.assertEquals( "/img/icons/mortar-128.png", app.getIcons().getIcon128() );
-    }
+  @Test
+  void testIcons() {
+    Assertions.assertEquals("/img/icons/mortar-16.png", app.getIcons().getIcon16());
+    Assertions.assertEquals("/img/icons/mortar-48.png", app.getIcons().getIcon48());
+    Assertions.assertEquals("/img/icons/mortar-128.png", app.getIcons().getIcon128());
+  }
 
-    @Test
-    void testDeveloper()
-    {
-        Assertions.assertEquals( "Test Developer", app.getDeveloper().getName() );
-        Assertions.assertEquals( "http://test", app.getDeveloper().getUrl() );
-        Assertions.assertNull( app.getDeveloper().getEmail() );
-        Assertions.assertNull( app.getDeveloper().getCompany() );
-    }
+  @Test
+  void testDeveloper() {
+    Assertions.assertEquals("Test Developer", app.getDeveloper().getName());
+    Assertions.assertEquals("http://test", app.getDeveloper().getUrl());
+    Assertions.assertNull(app.getDeveloper().getEmail());
+    Assertions.assertNull(app.getDeveloper().getCompany());
+  }
 
-    @Test
-    void testActivities()
-    {
-        AppDhis dhisActivity = app.getActivities().getDhis();
-        Assertions.assertEquals( "http://localhost:8080/dhis", dhisActivity.getHref() );
-        dhisActivity.setHref( "ALL TEST" );
-        Assertions.assertEquals( "ALL TEST", dhisActivity.getHref() );
-    }
+  @Test
+  void testActivities() {
+    AppDhis dhisActivity = app.getActivities().getDhis();
+    Assertions.assertEquals("http://localhost:8080/dhis", dhisActivity.getHref());
+    dhisActivity.setHref("ALL TEST");
+    Assertions.assertEquals("ALL TEST", dhisActivity.getHref());
+  }
 
-    @Test
-    void testGetAuthorities()
-    {
-        Set<String> authorities = app.getAuthorities();
-        Assertions.assertNotNull( authorities );
-        Assertions.assertEquals( 4, authorities.size() );
-    }
+  @Test
+  void testGetAuthorities() {
+    Set<String> authorities = app.getAuthorities();
+    Assertions.assertNotNull(authorities);
+    Assertions.assertEquals(4, authorities.size());
+  }
 
-    @Test
-    void testGetUrlFriendlyName()
-    {
-        App appA = new App();
-        appA.setName( "Org [Facility] &Registry@" );
-        App appB = new App();
-        appB.setName( null );
-        assertEquals( "Org-Facility-Registry", appA.getUrlFriendlyName() );
-        assertNull( appB.getUrlFriendlyName() );
-    }
+  @Test
+  void testGetUrlFriendlyName() {
+    App appA = new App();
+    appA.setName("Org [Facility] &Registry@");
+    App appB = new App();
+    appB.setName(null);
+    assertEquals("Org-Facility-Registry", appA.getUrlFriendlyName());
+    assertNull(appB.getUrlFriendlyName());
+  }
 }

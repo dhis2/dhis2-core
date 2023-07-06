@@ -37,29 +37,26 @@ import org.springframework.http.HttpStatus;
 /**
  * @author viet@dhis2.org
  */
-public class GeoFeatureControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    public void testGetWithCoordinateField()
-    {
-        POST( "/metadata",
+public class GeoFeatureControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  public void testGetWithCoordinateField() {
+    POST(
+            "/metadata",
             "{\"organisationUnits\": ["
-
                 + "{\"id\":\"rXnqqH2Pu6N\",\"name\": \"My Unit 1\",\"shortName\": \"OU1\",\"openingDate\": \"2020-01-01\","
                 + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\","
                 + "\\\"coordinates\\\":  [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\","
                 + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]},"
-
                 + "{\"id\":\"NBfMnCrwlQc\",\"name\": \"My Unit 3\",\"shortName\": \"OU3\",\"openingDate\": \"2020-01-01\"}"
-
                 + "],"
-                + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
-                    .content( HttpStatus.OK );
+                + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}")
+        .content(HttpStatus.OK);
 
-        JsonResponse response = GET( "/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN" )
-            .content( HttpStatus.OK );
-        assertEquals( 1, response.size() );
-        assertEquals( "[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]",
-            response.getObject( 0 ).get( "co" ).node().value().toString() );
-    }
+    JsonResponse response =
+        GET("/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN").content(HttpStatus.OK);
+    assertEquals(1, response.size());
+    assertEquals(
+        "[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]",
+        response.getObject(0).get("co").node().value().toString());
+  }
 }

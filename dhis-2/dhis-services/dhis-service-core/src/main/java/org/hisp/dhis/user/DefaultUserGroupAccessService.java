@@ -30,7 +30,6 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,52 +39,47 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service( "org.hisp.dhis.user.UserGroupAccessService" )
-public class DefaultUserGroupAccessService implements UserGroupAccessService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Service("org.hisp.dhis.user.UserGroupAccessService")
+public class DefaultUserGroupAccessService implements UserGroupAccessService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private GenericStore<UserGroupAccess> userGroupAccessStore;
+  private GenericStore<UserGroupAccess> userGroupAccessStore;
 
-    public DefaultUserGroupAccessService(
-        @Qualifier( "org.hisp.dhis.user.UserGroupAccessStore" ) GenericStore<UserGroupAccess> userGroupAccessStore )
-    {
-        checkNotNull( userGroupAccessStore );
+  public DefaultUserGroupAccessService(
+      @Qualifier("org.hisp.dhis.user.UserGroupAccessStore")
+          GenericStore<UserGroupAccess> userGroupAccessStore) {
+    checkNotNull(userGroupAccessStore);
 
-        this.userGroupAccessStore = userGroupAccessStore;
-    }
+    this.userGroupAccessStore = userGroupAccessStore;
+  }
 
-    // -------------------------------------------------------------------------
-    // UserGroupAccess
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // UserGroupAccess
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void addUserGroupAccess( UserGroupAccess userGroupAccess )
-    {
-        userGroupAccessStore.save( userGroupAccess );
-    }
+  @Override
+  @Transactional
+  public void addUserGroupAccess(UserGroupAccess userGroupAccess) {
+    userGroupAccessStore.save(userGroupAccess);
+  }
 
-    @Override
-    @Transactional
-    public void updateUserGroupAccess( UserGroupAccess userGroupAccess )
-    {
-        userGroupAccessStore.update( userGroupAccess );
-    }
+  @Override
+  @Transactional
+  public void updateUserGroupAccess(UserGroupAccess userGroupAccess) {
+    userGroupAccessStore.update(userGroupAccess);
+  }
 
-    @Override
-    @Transactional
-    public void deleteUserGroupAccess( UserGroupAccess userGroupAccess )
-    {
-        userGroupAccessStore.delete( userGroupAccess );
-    }
+  @Override
+  @Transactional
+  public void deleteUserGroupAccess(UserGroupAccess userGroupAccess) {
+    userGroupAccessStore.delete(userGroupAccess);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<UserGroupAccess> getAllUserGroupAccesses()
-    {
-        return userGroupAccessStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserGroupAccess> getAllUserGroupAccesses() {
+    return userGroupAccessStore.getAll();
+  }
 }

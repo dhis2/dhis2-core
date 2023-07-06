@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonList;
@@ -40,104 +39,88 @@ import org.hisp.dhis.webapi.json.domain.JsonImportSummary.JsonConflict;
  *
  * @author Jan Bernitt
  */
-public interface JsonError extends JsonObject
-{
-    @Expected
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
+public interface JsonError extends JsonObject {
+  @Expected
+  default String getHttpStatus() {
+    return getString("httpStatus").string();
+  }
 
-    @Expected
-    default int getHttpStatusCode()
-    {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
+  @Expected
+  default int getHttpStatusCode() {
+    return getNumber("httpStatusCode").intValue();
+  }
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+  default String getStatus() {
+    return getString("status").string();
+  }
 
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
+  default String getMessage() {
+    return getString("message").string();
+  }
 
-    default String getDevMessage()
-    {
-        return getString( "devMessage" ).string();
-    }
+  default String getDevMessage() {
+    return getString("devMessage").string();
+  }
 
-    default ErrorCode getErrorCode()
-    {
-        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
-    }
+  default ErrorCode getErrorCode() {
+    return getString("errorCode").parsed(ErrorCode::valueOf);
+  }
 
-    /**
-     * OBS! This property only exists in some error responses.
-     */
-    default JsonTypeReport getTypeReport()
-    {
-        return get( "response", JsonTypeReport.class );
-    }
+  /** OBS! This property only exists in some error responses. */
+  default JsonTypeReport getTypeReport() {
+    return get("response", JsonTypeReport.class);
+  }
 
-    /**
-     * OBS! This is not a getter for a property in the response but a helper to
-     * extract a summary description based on the error response.
-     *
-     * @return a error summary suitable to be used as assert message.
-     */
-    default String summary()
-    {
-        if ( !isA( JsonError.class ) )
-        {
-            return node().getDeclaration();
-        }
-        StringBuilder str = new StringBuilder();
-        Consumer<JsonList<JsonErrorReport>> printer = errors -> {
-            if ( errors.exists() )
-            {
-                for ( JsonErrorReport error : errors )
-                {
-                    str.append( "\n  " ).append( error.getErrorCode() ).append( ' ' ).append( error.getMessage() );
-                }
+  /**
+   * OBS! This is not a getter for a property in the response but a helper to extract a summary
+   * description based on the error response.
+   *
+   * @return a error summary suitable to be used as assert message.
+   */
+  default String summary() {
+    if (!isA(JsonError.class)) {
+      return node().getDeclaration();
+    }
+    StringBuilder str = new StringBuilder();
+    Consumer<JsonList<JsonErrorReport>> printer =
+        errors -> {
+          if (errors.exists()) {
+            for (JsonErrorReport error : errors) {
+              str.append("\n  ")
+                  .append(error.getErrorCode())
+                  .append(' ')
+                  .append(error.getMessage());
             }
+          }
         };
-        String message = getMessage();
-        str.append( message != null
+    String message = getMessage();
+    str.append(
+        message != null
             ? message
-            : String.format( "(no error message in %d %s response)", getHttpStatusCode(),
-                getHttpStatus() ) );
-        JsonTypeReport report = getTypeReport();
-        if ( report.exists() )
-        {
-            printer.accept( report.getErrorReports() );
-            if ( report.getObjectReports().exists() )
-            {
-                for ( JsonObjectReport objectReport : report.getObjectReports() )
-                {
-                    str.append( "\n* " ).append( objectReport.getKlass() );
-                    printer.accept( objectReport.getErrorReports() );
-                }
-            }
-            addSummaries( str, report );
+            : String.format(
+                "(no error message in %d %s response)", getHttpStatusCode(), getHttpStatus()));
+    JsonTypeReport report = getTypeReport();
+    if (report.exists()) {
+      printer.accept(report.getErrorReports());
+      if (report.getObjectReports().exists()) {
+        for (JsonObjectReport objectReport : report.getObjectReports()) {
+          str.append("\n* ").append(objectReport.getKlass());
+          printer.accept(objectReport.getErrorReports());
         }
-        return str.toString();
+      }
+      addSummaries(str, report);
     }
+    return str.toString();
+  }
 
-    static void addSummaries( StringBuilder str, JsonTypeReport report )
-    {
-        JsonList<JsonImportSummary> summaries = report.getImportSummaries();
-        if ( summaries.exists() )
-        {
-            for ( JsonImportSummary summary : summaries )
-            {
-                for ( JsonConflict conflict : summary.getConflicts() )
-                {
-                    str.append( "\n  " ).append( conflict.getObject() ).append( ' ' ).append( conflict.getValue() );
-                }
-            }
+  static void addSummaries(StringBuilder str, JsonTypeReport report) {
+    JsonList<JsonImportSummary> summaries = report.getImportSummaries();
+    if (summaries.exists()) {
+      for (JsonImportSummary summary : summaries) {
+        for (JsonConflict conflict : summary.getConflicts()) {
+          str.append("\n  ").append(conflict.getObject()).append(' ').append(conflict.getValue());
         }
+      }
     }
+  }
 }

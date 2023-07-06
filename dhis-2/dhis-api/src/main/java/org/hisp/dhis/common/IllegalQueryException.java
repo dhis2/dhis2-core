@@ -35,50 +35,44 @@ import org.hisp.dhis.feedback.ErrorMessage;
  *
  * @author Lars Helge Overland
  */
-public class IllegalQueryException
-    extends RuntimeException
-{
-    private ErrorCode errorCode;
+public class IllegalQueryException extends RuntimeException {
+  private ErrorCode errorCode;
 
-    /**
-     * Constructor.
-     *
-     * @param message the exception message.
-     */
-    public IllegalQueryException( String message )
-    {
-        super( message );
-    }
+  /**
+   * Constructor.
+   *
+   * @param message the exception message.
+   */
+  public IllegalQueryException(String message) {
+    super(message);
+  }
 
-    /**
-     * Constructor. Sets the message based on the error code message.
-     *
-     * @param errorCode the {@link ErrorCode}.
-     */
-    public IllegalQueryException( ErrorCode errorCode )
-    {
-        super( errorCode.getMessage() );
-        this.errorCode = errorCode;
-    }
+  /**
+   * Constructor. Sets the message based on the error code message.
+   *
+   * @param errorCode the {@link ErrorCode}.
+   */
+  public IllegalQueryException(ErrorCode errorCode) {
+    super(errorCode.getMessage());
+    this.errorCode = errorCode;
+  }
 
-    /**
-     * Constructor. Sets the message and error code based on the error message.
-     *
-     * @param errorMessage the {@link ErrorMessage}.
-     */
-    public IllegalQueryException( ErrorMessage errorMessage )
-    {
-        super( errorMessage.getMessage() );
-        this.errorCode = errorMessage.getErrorCode();
-    }
+  /**
+   * Constructor. Sets the message and error code based on the error message.
+   *
+   * @param errorMessage the {@link ErrorMessage}.
+   */
+  public IllegalQueryException(ErrorMessage errorMessage) {
+    super(errorMessage.getMessage());
+    this.errorCode = errorMessage.getErrorCode();
+  }
 
-    /**
-     * Returns the {@link ErrorCode} of the exception.
-     *
-     * @return the {@link ErrorCode} of the exception.
-     */
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
+  /**
+   * Returns the {@link ErrorCode} of the exception.
+   *
+   * @return the {@link ErrorCode} of the exception.
+   */
+  public ErrorCode getErrorCode() {
+    return errorCode;
+  }
 }

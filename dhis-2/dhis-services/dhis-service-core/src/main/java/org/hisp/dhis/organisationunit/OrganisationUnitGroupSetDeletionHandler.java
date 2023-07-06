@@ -36,31 +36,24 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler" )
-public class OrganisationUnitGroupSetDeletionHandler
-    extends
-    DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+@Component("org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDeletionHandler")
+public class OrganisationUnitGroupSetDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    public OrganisationUnitGroupSetDeletionHandler( IdentifiableObjectManager idObjectManager )
-    {
-        checkNotNull( idObjectManager );
-        this.idObjectManager = idObjectManager;
-    }
+  public OrganisationUnitGroupSetDeletionHandler(IdentifiableObjectManager idObjectManager) {
+    checkNotNull(idObjectManager);
+    this.idObjectManager = idObjectManager;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+  }
 
-    private void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
-    {
-        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
-        {
-            groupSet.getOrganisationUnitGroups().remove( group );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+  private void deleteOrganisationUnitGroup(OrganisationUnitGroup group) {
+    for (OrganisationUnitGroupSet groupSet : group.getGroupSets()) {
+      groupSet.getOrganisationUnitGroups().remove(group);
+      idObjectManager.updateNoAcl(groupSet);
     }
+  }
 }

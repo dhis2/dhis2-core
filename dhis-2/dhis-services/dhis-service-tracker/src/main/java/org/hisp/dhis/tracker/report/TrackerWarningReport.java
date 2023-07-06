@@ -29,104 +29,98 @@ package org.hisp.dhis.tracker.report;
 
 import static org.hisp.dhis.tracker.report.TrackerReportUtils.buildArgumentList;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Enrico Colasante
  */
 @Data
 @Builder
-public class TrackerWarningReport
-{
-    private final String warningMessage;
+public class TrackerWarningReport {
+  private final String warningMessage;
 
-    private TrackerErrorCode warningCode;
+  private TrackerErrorCode warningCode;
 
-    private final TrackerType trackerType;
+  private final TrackerType trackerType;
 
-    private final String uid;
+  private final String uid;
 
-    @JsonCreator
-    public TrackerWarningReport( @JsonProperty( "message" ) String warningMessage,
-        @JsonProperty( "errorCode" ) TrackerErrorCode warningCode,
-        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.warningMessage = warningMessage;
-        this.warningCode = warningCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
+  @JsonCreator
+  public TrackerWarningReport(
+      @JsonProperty("message") String warningMessage,
+      @JsonProperty("errorCode") TrackerErrorCode warningCode,
+      @JsonProperty("trackerType") TrackerType trackerType,
+      @JsonProperty("uid") String uid) {
+    this.warningMessage = warningMessage;
+    this.warningCode = warningCode;
+    this.trackerType = trackerType;
+    this.uid = uid;
+  }
+
+  @JsonProperty
+  public TrackerErrorCode getWarningCode() {
+    return warningCode;
+  }
+
+  @JsonProperty
+  public String getMessage() {
+    return warningMessage;
+  }
+
+  @JsonProperty
+  public TrackerType getTrackerType() {
+    return trackerType;
+  }
+
+  @JsonProperty
+  public String getUid() {
+    return uid;
+  }
+
+  public static class TrackerWarningReportBuilder {
+    private final List<Object> arguments = new ArrayList<>();
+
+    public TrackerWarningReportBuilder addArg(Object arg) {
+      this.arguments.add(arg);
+      return this;
     }
 
-    @JsonProperty
-    public TrackerErrorCode getWarningCode()
-    {
-        return warningCode;
+    public TrackerWarningReportBuilder addArgs(Object... args) {
+      this.arguments.addAll(Arrays.asList(args));
+      return this;
     }
 
-    @JsonProperty
-    public String getMessage()
-    {
-        return warningMessage;
+    public TrackerWarningReport build(TrackerBundle bundle) {
+      return new TrackerWarningReport(
+          MessageFormat.format(
+              warningCode.getMessage(),
+              buildArgumentList(bundle, arguments).toArray(new Object[0])),
+          this.warningCode,
+          trackerType,
+          uid);
     }
+  }
 
-    @JsonProperty
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
+  public static TrackerWarningReportBuilder newWarningReport(TrackerErrorCode errorCode) {
+    return builder().warningCode(errorCode);
+  }
 
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public static class TrackerWarningReportBuilder
-    {
-        private final List<Object> arguments = new ArrayList<>();
-
-        public TrackerWarningReportBuilder addArg( Object arg )
-        {
-            this.arguments.add( arg );
-            return this;
-        }
-
-        public TrackerWarningReportBuilder addArgs( Object... args )
-        {
-            this.arguments.addAll( Arrays.asList( args ) );
-            return this;
-        }
-
-        public TrackerWarningReport build( TrackerBundle bundle )
-        {
-            return new TrackerWarningReport( MessageFormat.format( warningCode.getMessage(),
-                buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ), this.warningCode, trackerType, uid );
-        }
-    }
-
-    public static TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
-    {
-        return builder().warningCode( errorCode );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "TrackerWarningReport{" +
-            "message=" + warningMessage +
-            ", warningCode=" + warningCode +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "TrackerWarningReport{"
+        + "message="
+        + warningMessage
+        + ", warningCode="
+        + warningCode
+        + '}';
+  }
 }

@@ -36,25 +36,21 @@ import org.testcontainers.utility.DockerImageName;
  *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@SuppressWarnings( "rawtypes" )
-public class DhisPostgisContainerProvider
-    extends PostgisContainerProvider
-{
-    private static final String DEFAULT_TAG = "10-2.5-alpine";
+@SuppressWarnings("rawtypes")
+public class DhisPostgisContainerProvider extends PostgisContainerProvider {
+  private static final String DEFAULT_TAG = "10-2.5-alpine";
 
-    private static final String DEFAULT_IMAGE = "postgis/postgis";
+  private static final String DEFAULT_IMAGE = "postgis/postgis";
 
-    @Override
-    public JdbcDatabaseContainer newInstance()
-    {
-        return newInstance( DEFAULT_TAG );
-    }
+  @Override
+  public JdbcDatabaseContainer newInstance() {
+    return newInstance(DEFAULT_TAG);
+  }
 
-    @Override
-    public JdbcDatabaseContainer newInstance( String tag )
-    {
-        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
-            .asCompatibleSubstituteFor( "postgres" );
-        return new DhisPostgreSQLContainer( postgres );
-    }
+  @Override
+  public JdbcDatabaseContainer newInstance(String tag) {
+    DockerImageName postgres =
+        DockerImageName.parse(DEFAULT_IMAGE + ":" + tag).asCompatibleSubstituteFor("postgres");
+    return new DhisPostgreSQLContainer(postgres);
+  }
 }

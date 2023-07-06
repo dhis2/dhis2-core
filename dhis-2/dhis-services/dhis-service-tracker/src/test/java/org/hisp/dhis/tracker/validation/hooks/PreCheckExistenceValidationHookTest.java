@@ -73,497 +73,431 @@ import org.mockito.quality.Strictness;
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class PreCheckExistenceValidationHookTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class PreCheckExistenceValidationHookTest {
 
-    private PreCheckExistenceValidationHook validationHook;
+  private PreCheckExistenceValidationHook validationHook;
 
-    private final static String SOFT_DELETED_TEI_UID = "SoftDeletedTEIId";
+  private static final String SOFT_DELETED_TEI_UID = "SoftDeletedTEIId";
 
-    private final static String TEI_UID = "TEIId";
-
-    private final static String NOT_PRESENT_TEI_UID = "NotPresentTEIId";
+  private static final String TEI_UID = "TEIId";
 
-    private final static String SOFT_DELETED_ENROLLMENT_UID = "SoftDeletedEnrollmentId";
-
-    private final static String ENROLLMENT_UID = "EnrollmentId";
+  private static final String NOT_PRESENT_TEI_UID = "NotPresentTEIId";
 
-    private final static String NOT_PRESENT_ENROLLMENT_UID = "NotPresentEnrollmentId";
-
-    private final static String SOFT_DELETED_EVENT_UID = "SoftDeletedEventId";
+  private static final String SOFT_DELETED_ENROLLMENT_UID = "SoftDeletedEnrollmentId";
 
-    private final static String EVENT_UID = "EventId";
-
-    private final static String NOT_PRESENT_EVENT_UID = "NotPresentEventId";
-
-    private final static String NOT_PRESENT_RELATIONSHIP_UID = "NotPresentRelationshipId";
-
-    private final static String RELATIONSHIP_UID = "RelationshipId";
-
-    @Mock
-    private TrackerPreheat preheat;
-
-    @Mock
-    private TrackerBundle bundle;
-
-    @BeforeEach
-    public void setUp()
-    {
-        validationHook = new PreCheckExistenceValidationHook();
-
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getTrackedEntityInstance( SOFT_DELETED_TEI_UID ) ).thenReturn( getSoftDeletedTei() );
-        when( bundle.getTrackedEntityInstance( TEI_UID ) ).thenReturn( getTei() );
-        when( bundle.getProgramInstance( SOFT_DELETED_ENROLLMENT_UID ) ).thenReturn( getSoftDeletedEnrollment() );
-        when( bundle.getProgramInstance( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
-        when( bundle.getProgramStageInstance( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
-        when( bundle.getProgramStageInstance( EVENT_UID ) ).thenReturn( getEvent() );
-        when( preheat.getRelationship( getPayloadRelationship() ) )
-            .thenReturn( getRelationship() );
-    }
-
-    @Test
-    void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( NOT_PRESENT_TEI_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( NOT_PRESENT_TEI_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyTrackedEntityValidationSuccessWhenIsUpdate()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyTrackedEntityValidationFailsWhenIsSoftDeleted()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( SOFT_DELETED_TEI_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-
-        // then
-        hasTrackerError( reporter, E1114, TRACKED_ENTITY, trackedEntity.getUid() );
-    }
-
-    @Test
-    void verifyTrackedEntityValidationFailsWhenIsCreateAndTEIIsAlreadyPresent()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( TEI_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-
-        // then
-        hasTrackerError( reporter, E1002, TRACKED_ENTITY, trackedEntity.getUid() );
-    }
-
-    @Test
-    void verifyTrackedEntityValidationFailsWhenIsUpdateAndTEIIsNotPresent()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntity( NOT_PRESENT_TEI_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-
-        // then
-        hasTrackerError( reporter, E1063, TRACKED_ENTITY, trackedEntity.getUid() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationSuccessWhenIsUpdate()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( ENROLLMENT_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( SOFT_DELETED_ENROLLMENT_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-
-        // then
-        hasTrackerError( reporter, E1113, ENROLLMENT, enrollment.getUid() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( ENROLLMENT_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-
-        // then
-        hasTrackerError( reporter, E1080, ENROLLMENT, enrollment.getUid() );
-    }
-
-    @Test
-    void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( NOT_PRESENT_ENROLLMENT_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-
-        // then
-        hasTrackerError( reporter, E1081, ENROLLMENT, enrollment.getUid() );
-    }
-
-    @Test
-    void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent()
-    {
-        // given
-        Event event = Event.builder()
-            .event( NOT_PRESENT_EVENT_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEventValidationSuccessWhenEventIsNotPresent()
-    {
-        // given
-        Event event = Event.builder()
-            .event( NOT_PRESENT_EVENT_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEventValidationSuccessWhenIsUpdate()
-    {
-        // given
-        Event event = Event.builder()
-            .event( EVENT_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
-
-    @Test
-    void verifyEventValidationFailsWhenIsSoftDeleted()
-    {
-        // given
-        Event event = Event.builder()
-            .event( SOFT_DELETED_EVENT_UID )
-            .build();
-
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        hasTrackerError( reporter, E1082, EVENT, event.getUid() );
-    }
-
-    @Test
-    void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent()
-    {
-        // given
-        Event event = Event.builder()
-            .event( EVENT_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        hasTrackerError( reporter, E1030, EVENT, event.getUid() );
-    }
-
-    @Test
-    void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent()
-    {
-        // given
-        Event event = Event.builder()
-            .event( NOT_PRESENT_EVENT_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-
-        // then
-        hasTrackerError( reporter, E1032, EVENT, event.getUid() );
-    }
-
-    @Test
-    void verifyRelationshipValidationSuccessWhenIsCreate()
-    {
-        // given
-        Relationship rel = Relationship.builder()
-            .relationship( NOT_PRESENT_RELATIONSHIP_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-        assertThat( reporter.getWarningsReportList(), empty() );
-    }
-
-    @Test
-    void verifyRelationshipValidationSuccessWithWarningWhenUpdate()
-    {
-        // given
-        Relationship rel = getPayloadRelationship();
-
-        // when
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
-
-        // then
-        assertFalse( reporter.hasErrors() );
-        assertTrue( reporter.hasWarningReport( r -> E4015.equals( r.getWarningCode() ) &&
-            TrackerType.RELATIONSHIP.equals( r.getTrackerType() ) &&
-            rel.getUid().equals( r.getUid() ) ) );
-    }
-
-    @Test
-    void verifyRelationshipValidationFailsWhenIsCreateAndRelationshipIsAlreadyPresent()
-    {
-        // given
-        Relationship rel = getPayloadRelationship();
-
-        // when
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.CREATE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
-
-        // then
-        hasTrackerError( reporter, E4015, RELATIONSHIP, rel.getUid() );
-    }
-
-    @Test
-    void verifyRelationshipValidationFailsWhenIsDeleteAndRelationshipIsNotPresent()
-    {
-        // given
-        Relationship rel = Relationship.builder()
-            .relationship( NOT_PRESENT_RELATIONSHIP_UID )
-            .build();
-
-        // when
-        when( bundle.getStrategy( rel ) ).thenReturn( TrackerImportStrategy.DELETE );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, rel );
-
-        // then
-        hasTrackerError( reporter, E4016, RELATIONSHIP, rel.getUid() );
-    }
-
-    private TrackedEntityInstance getSoftDeletedTei()
-    {
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( SOFT_DELETED_TEI_UID );
-        trackedEntityInstance.setDeleted( true );
-        return trackedEntityInstance;
-    }
-
-    private TrackedEntityInstance getTei()
-    {
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( TEI_UID );
-        trackedEntityInstance.setDeleted( false );
-        return trackedEntityInstance;
-    }
-
-    private ProgramInstance getSoftDeletedEnrollment()
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( SOFT_DELETED_ENROLLMENT_UID );
-        programInstance.setDeleted( true );
-        return programInstance;
-    }
-
-    private ProgramInstance getEnrollment()
-    {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( ENROLLMENT_UID );
-        programInstance.setDeleted( false );
-        return programInstance;
-    }
-
-    private ProgramStageInstance getSoftDeletedEvent()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( SOFT_DELETED_EVENT_UID );
-        programStageInstance.setDeleted( true );
-        return programStageInstance;
-    }
-
-    private ProgramStageInstance getEvent()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( EVENT_UID );
-        programStageInstance.setDeleted( false );
-        return programStageInstance;
-    }
-
-    private Relationship getPayloadRelationship()
-    {
-        return Relationship.builder()
-            .relationship( RELATIONSHIP_UID )
-            .build();
-    }
-
-    private org.hisp.dhis.relationship.Relationship getRelationship()
-    {
-        org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
-        relationship.setUid( EVENT_UID );
-        return relationship;
-    }
+  private static final String ENROLLMENT_UID = "EnrollmentId";
+
+  private static final String NOT_PRESENT_ENROLLMENT_UID = "NotPresentEnrollmentId";
+
+  private static final String SOFT_DELETED_EVENT_UID = "SoftDeletedEventId";
+
+  private static final String EVENT_UID = "EventId";
+
+  private static final String NOT_PRESENT_EVENT_UID = "NotPresentEventId";
+
+  private static final String NOT_PRESENT_RELATIONSHIP_UID = "NotPresentRelationshipId";
+
+  private static final String RELATIONSHIP_UID = "RelationshipId";
+
+  @Mock private TrackerPreheat preheat;
+
+  @Mock private TrackerBundle bundle;
+
+  @BeforeEach
+  public void setUp() {
+    validationHook = new PreCheckExistenceValidationHook();
+
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getStrategy(any(Event.class))).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(bundle.getStrategy(any(Enrollment.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(bundle.getStrategy(any(TrackedEntity.class)))
+        .thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
+    when(bundle.getTrackedEntityInstance(SOFT_DELETED_TEI_UID)).thenReturn(getSoftDeletedTei());
+    when(bundle.getTrackedEntityInstance(TEI_UID)).thenReturn(getTei());
+    when(bundle.getProgramInstance(SOFT_DELETED_ENROLLMENT_UID))
+        .thenReturn(getSoftDeletedEnrollment());
+    when(bundle.getProgramInstance(ENROLLMENT_UID)).thenReturn(getEnrollment());
+    when(bundle.getProgramStageInstance(SOFT_DELETED_EVENT_UID)).thenReturn(getSoftDeletedEvent());
+    when(bundle.getProgramStageInstance(EVENT_UID)).thenReturn(getEvent());
+    when(preheat.getRelationship(getPayloadRelationship())).thenReturn(getRelationship());
+  }
+
+  @Test
+  void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent() {
+    // given
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder().trackedEntity(NOT_PRESENT_TEI_UID).build();
+
+    // when
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent() {
+    // given
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder().trackedEntity(NOT_PRESENT_TEI_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyTrackedEntityValidationSuccessWhenIsUpdate() {
+    // given
+    TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity(TEI_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyTrackedEntityValidationFailsWhenIsSoftDeleted() {
+    // given
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder().trackedEntity(SOFT_DELETED_TEI_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    // then
+    hasTrackerError(reporter, E1114, TRACKED_ENTITY, trackedEntity.getUid());
+  }
+
+  @Test
+  void verifyTrackedEntityValidationFailsWhenIsCreateAndTEIIsAlreadyPresent() {
+    // given
+    TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity(TEI_UID).build();
+
+    // when
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    // then
+    hasTrackerError(reporter, E1002, TRACKED_ENTITY, trackedEntity.getUid());
+  }
+
+  @Test
+  void verifyTrackedEntityValidationFailsWhenIsUpdateAndTEIIsNotPresent() {
+    // given
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder().trackedEntity(NOT_PRESENT_TEI_UID).build();
+
+    // when
+    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    // then
+    hasTrackerError(reporter, E1063, TRACKED_ENTITY, trackedEntity.getUid());
+  }
+
+  @Test
+  void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent() {
+    // given
+    Enrollment enrollment = Enrollment.builder().enrollment(NOT_PRESENT_ENROLLMENT_UID).build();
+
+    // when
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent() {
+    // given
+    Enrollment enrollment = Enrollment.builder().enrollment(NOT_PRESENT_ENROLLMENT_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyEnrollmentValidationSuccessWhenIsUpdate() {
+    // given
+    Enrollment enrollment = Enrollment.builder().enrollment(ENROLLMENT_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsSoftDeleted() {
+    // given
+    Enrollment enrollment = Enrollment.builder().enrollment(SOFT_DELETED_ENROLLMENT_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+
+    // then
+    hasTrackerError(reporter, E1113, ENROLLMENT, enrollment.getUid());
+  }
+
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent() {
+    // given
+    Enrollment enrollment = Enrollment.builder().enrollment(ENROLLMENT_UID).build();
+
+    // when
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+
+    // then
+    hasTrackerError(reporter, E1080, ENROLLMENT, enrollment.getUid());
+  }
+
+  @Test
+  void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent() {
+    // given
+    Enrollment enrollment = Enrollment.builder().enrollment(NOT_PRESENT_ENROLLMENT_UID).build();
+
+    // when
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+
+    // then
+    hasTrackerError(reporter, E1081, ENROLLMENT, enrollment.getUid());
+  }
+
+  @Test
+  void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent() {
+    // given
+    Event event = Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+
+    // when
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyEventValidationSuccessWhenEventIsNotPresent() {
+    // given
+    Event event = Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyEventValidationSuccessWhenIsUpdate() {
+    // given
+    Event event = Event.builder().event(EVENT_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+
+    // then
+    assertFalse(reporter.hasErrors());
+  }
+
+  @Test
+  void verifyEventValidationFailsWhenIsSoftDeleted() {
+    // given
+    Event event = Event.builder().event(SOFT_DELETED_EVENT_UID).build();
+
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+
+    // then
+    hasTrackerError(reporter, E1082, EVENT, event.getUid());
+  }
+
+  @Test
+  void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent() {
+    // given
+    Event event = Event.builder().event(EVENT_UID).build();
+
+    // when
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+
+    // then
+    hasTrackerError(reporter, E1030, EVENT, event.getUid());
+  }
+
+  @Test
+  void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent() {
+    // given
+    Event event = Event.builder().event(NOT_PRESENT_EVENT_UID).build();
+
+    // when
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+
+    // then
+    hasTrackerError(reporter, E1032, EVENT, event.getUid());
+  }
+
+  @Test
+  void verifyRelationshipValidationSuccessWhenIsCreate() {
+    // given
+    Relationship rel = Relationship.builder().relationship(NOT_PRESENT_RELATIONSHIP_UID).build();
+
+    // when
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, rel);
+
+    // then
+    assertFalse(reporter.hasErrors());
+    assertThat(reporter.getWarningsReportList(), empty());
+  }
+
+  @Test
+  void verifyRelationshipValidationSuccessWithWarningWhenUpdate() {
+    // given
+    Relationship rel = getPayloadRelationship();
+
+    // when
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.UPDATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, rel);
+
+    // then
+    assertFalse(reporter.hasErrors());
+    assertTrue(
+        reporter.hasWarningReport(
+            r ->
+                E4015.equals(r.getWarningCode())
+                    && TrackerType.RELATIONSHIP.equals(r.getTrackerType())
+                    && rel.getUid().equals(r.getUid())));
+  }
+
+  @Test
+  void verifyRelationshipValidationFailsWhenIsCreateAndRelationshipIsAlreadyPresent() {
+    // given
+    Relationship rel = getPayloadRelationship();
+
+    // when
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.CREATE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, rel);
+
+    // then
+    hasTrackerError(reporter, E4015, RELATIONSHIP, rel.getUid());
+  }
+
+  @Test
+  void verifyRelationshipValidationFailsWhenIsDeleteAndRelationshipIsNotPresent() {
+    // given
+    Relationship rel = Relationship.builder().relationship(NOT_PRESENT_RELATIONSHIP_UID).build();
+
+    // when
+    when(bundle.getStrategy(rel)).thenReturn(TrackerImportStrategy.DELETE);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, rel);
+
+    // then
+    hasTrackerError(reporter, E4016, RELATIONSHIP, rel.getUid());
+  }
+
+  private TrackedEntityInstance getSoftDeletedTei() {
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(SOFT_DELETED_TEI_UID);
+    trackedEntityInstance.setDeleted(true);
+    return trackedEntityInstance;
+  }
+
+  private TrackedEntityInstance getTei() {
+    TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+    trackedEntityInstance.setUid(TEI_UID);
+    trackedEntityInstance.setDeleted(false);
+    return trackedEntityInstance;
+  }
+
+  private ProgramInstance getSoftDeletedEnrollment() {
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid(SOFT_DELETED_ENROLLMENT_UID);
+    programInstance.setDeleted(true);
+    return programInstance;
+  }
+
+  private ProgramInstance getEnrollment() {
+    ProgramInstance programInstance = new ProgramInstance();
+    programInstance.setUid(ENROLLMENT_UID);
+    programInstance.setDeleted(false);
+    return programInstance;
+  }
+
+  private ProgramStageInstance getSoftDeletedEvent() {
+    ProgramStageInstance programStageInstance = new ProgramStageInstance();
+    programStageInstance.setUid(SOFT_DELETED_EVENT_UID);
+    programStageInstance.setDeleted(true);
+    return programStageInstance;
+  }
+
+  private ProgramStageInstance getEvent() {
+    ProgramStageInstance programStageInstance = new ProgramStageInstance();
+    programStageInstance.setUid(EVENT_UID);
+    programStageInstance.setDeleted(false);
+    return programStageInstance;
+  }
+
+  private Relationship getPayloadRelationship() {
+    return Relationship.builder().relationship(RELATIONSHIP_UID).build();
+  }
+
+  private org.hisp.dhis.relationship.Relationship getRelationship() {
+    org.hisp.dhis.relationship.Relationship relationship =
+        new org.hisp.dhis.relationship.Relationship();
+    relationship.setUid(EVENT_UID);
+    return relationship;
+  }
 }

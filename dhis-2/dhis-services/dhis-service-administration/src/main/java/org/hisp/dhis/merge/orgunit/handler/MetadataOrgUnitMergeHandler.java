@@ -31,9 +31,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -54,114 +52,122 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
-public class MetadataOrgUnitMergeHandler
-{
-    private final UserService userService;
+public class MetadataOrgUnitMergeHandler {
+  private final UserService userService;
 
-    private final ConfigurationService configService;
+  private final ConfigurationService configService;
 
-    public void mergeDataSets( OrgUnitMergeRequest request )
-    {
-        Set<DataSet> dataSets = request.getSources().stream()
-            .map( OrganisationUnit::getDataSets )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toSet() );
+  public void mergeDataSets(OrgUnitMergeRequest request) {
+    Set<DataSet> dataSets =
+        request.getSources().stream()
+            .map(OrganisationUnit::getDataSets)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
 
-        dataSets.forEach( ds -> {
-            ds.addOrganisationUnit( request.getTarget() );
-            ds.removeOrganisationUnits( request.getSources() );
-        } );
+    dataSets.forEach(
+        ds -> {
+          ds.addOrganisationUnit(request.getTarget());
+          ds.removeOrganisationUnits(request.getSources());
+        });
+  }
+
+  public void mergePrograms(OrgUnitMergeRequest request) {
+    Set<Program> programs =
+        request.getSources().stream()
+            .map(OrganisationUnit::getPrograms)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+
+    programs.forEach(
+        p -> {
+          p.addOrganisationUnit(request.getTarget());
+          p.removeOrganisationUnits(request.getSources());
+        });
+  }
+
+  public void mergeOrgUnitGroups(OrgUnitMergeRequest request) {
+    Set<OrganisationUnitGroup> groups =
+        request.getSources().stream()
+            .map(OrganisationUnit::getGroups)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+
+    groups.forEach(
+        oug -> {
+          oug.addOrganisationUnit(request.getTarget());
+          oug.removeOrganisationUnits(request.getSources());
+        });
+  }
+
+  public void mergeCategoryOptions(OrgUnitMergeRequest request) {
+    Set<CategoryOption> categoryOptions =
+        request.getSources().stream()
+            .map(OrganisationUnit::getCategoryOptions)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+
+    categoryOptions.forEach(
+        co -> {
+          co.addOrganisationUnit(request.getTarget());
+          co.removeOrganisationUnits(request.getSources());
+        });
+  }
+
+  public void mergeOrganisationUnits(OrgUnitMergeRequest request) {
+    Set<OrganisationUnit> children =
+        request.getSources().stream()
+            .map(OrganisationUnit::getChildren)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
+
+    children.forEach(c -> c.updateParent(request.getTarget()));
+  }
+
+  public void mergeUsers(OrgUnitMergeRequest request) {
+    List<User> dataCaptureUsers =
+        userService.getUsers(
+            new UserQueryParams()
+                .setCanSeeOwnUserRoles(true)
+                .setOrganisationUnits(request.getSources()));
+
+    dataCaptureUsers.forEach(
+        u -> {
+          u.addOrganisationUnit(request.getTarget());
+          u.removeOrganisationUnits(request.getSources());
+        });
+
+    List<User> dataViewUsers =
+        userService.getUsers(
+            new UserQueryParams()
+                .setCanSeeOwnUserRoles(true)
+                .setDataViewOrganisationUnits(request.getSources()));
+
+    dataViewUsers.forEach(
+        u -> {
+          u.getDataViewOrganisationUnits().add(request.getTarget());
+          u.getDataViewOrganisationUnits().removeAll(request.getSources());
+        });
+
+    List<User> teiSearchOrgUnits =
+        userService.getUsers(
+            new UserQueryParams()
+                .setCanSeeOwnUserRoles(true)
+                .setTeiSearchOrganisationUnits(request.getSources()));
+
+    teiSearchOrgUnits.forEach(
+        u -> {
+          u.getTeiSearchOrganisationUnits().add(request.getTarget());
+          u.getTeiSearchOrganisationUnits().removeAll(request.getSources());
+        });
+  }
+
+  public void mergeConfiguration(OrgUnitMergeRequest request) {
+    Configuration config = configService.getConfiguration();
+    OrganisationUnit selfRegistrationOrgUnit = config.getSelfRegistrationOrgUnit();
+
+    if (selfRegistrationOrgUnit != null && request.getSources().contains(selfRegistrationOrgUnit)) {
+      config.setSelfRegistrationOrgUnit(request.getTarget());
+      configService.setConfiguration(config);
     }
-
-    public void mergePrograms( OrgUnitMergeRequest request )
-    {
-        Set<Program> programs = request.getSources().stream()
-            .map( OrganisationUnit::getPrograms )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toSet() );
-
-        programs.forEach( p -> {
-            p.addOrganisationUnit( request.getTarget() );
-            p.removeOrganisationUnits( request.getSources() );
-        } );
-    }
-
-    public void mergeOrgUnitGroups( OrgUnitMergeRequest request )
-    {
-        Set<OrganisationUnitGroup> groups = request.getSources().stream()
-            .map( OrganisationUnit::getGroups )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toSet() );
-
-        groups.forEach( oug -> {
-            oug.addOrganisationUnit( request.getTarget() );
-            oug.removeOrganisationUnits( request.getSources() );
-        } );
-    }
-
-    public void mergeCategoryOptions( OrgUnitMergeRequest request )
-    {
-        Set<CategoryOption> categoryOptions = request.getSources().stream()
-            .map( OrganisationUnit::getCategoryOptions )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toSet() );
-
-        categoryOptions.forEach( co -> {
-            co.addOrganisationUnit( request.getTarget() );
-            co.removeOrganisationUnits( request.getSources() );
-        } );
-    }
-
-    public void mergeOrganisationUnits( OrgUnitMergeRequest request )
-    {
-        Set<OrganisationUnit> children = request.getSources().stream()
-            .map( OrganisationUnit::getChildren )
-            .flatMap( Collection::stream )
-            .collect( Collectors.toSet() );
-
-        children.forEach(
-            c -> c.updateParent( request.getTarget() ) );
-    }
-
-    public void mergeUsers( OrgUnitMergeRequest request )
-    {
-        List<User> dataCaptureUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserRoles( true )
-            .setOrganisationUnits( request.getSources() ) );
-
-        dataCaptureUsers.forEach( u -> {
-            u.addOrganisationUnit( request.getTarget() );
-            u.removeOrganisationUnits( request.getSources() );
-        } );
-
-        List<User> dataViewUsers = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserRoles( true )
-            .setDataViewOrganisationUnits( request.getSources() ) );
-
-        dataViewUsers.forEach( u -> {
-            u.getDataViewOrganisationUnits().add( request.getTarget() );
-            u.getDataViewOrganisationUnits().removeAll( request.getSources() );
-        } );
-
-        List<User> teiSearchOrgUnits = userService.getUsers( new UserQueryParams()
-            .setCanSeeOwnUserRoles( true )
-            .setTeiSearchOrganisationUnits( request.getSources() ) );
-
-        teiSearchOrgUnits.forEach( u -> {
-            u.getTeiSearchOrganisationUnits().add( request.getTarget() );
-            u.getTeiSearchOrganisationUnits().removeAll( request.getSources() );
-        } );
-    }
-
-    public void mergeConfiguration( OrgUnitMergeRequest request )
-    {
-        Configuration config = configService.getConfiguration();
-        OrganisationUnit selfRegistrationOrgUnit = config.getSelfRegistrationOrgUnit();
-
-        if ( selfRegistrationOrgUnit != null && request.getSources().contains( selfRegistrationOrgUnit ) )
-        {
-            config.setSelfRegistrationOrgUnit( request.getTarget() );
-            configService.setConfiguration( config );
-        }
-    }
+  }
 }

@@ -36,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -66,347 +65,360 @@ import org.mockito.quality.Strictness;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class TrackedEntityAttributeValidationHookTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class TrackedEntityAttributeValidationHookTest {
 
-    @InjectMocks
-    private TrackedEntityAttributeValidationHook trackedEntityAttributeValidationHook;
+  @InjectMocks private TrackedEntityAttributeValidationHook trackedEntityAttributeValidationHook;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private DhisConfigurationProvider dhisConfigurationProvider;
+  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-    @Mock
-    private TrackedEntityAttribute trackedEntityAttribute;
+  @Mock private TrackedEntityAttribute trackedEntityAttribute;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    public void setUp()
-    {
-        bundle = TrackerBundle.builder()
-            .preheat( preheat )
-            .build();
-        when( dhisConfigurationProvider.getEncryptionStatus() ).thenReturn( EncryptionStatus.OK );
-    }
+  @BeforeEach
+  public void setUp() {
+    bundle = TrackerBundle.builder().preheat(preheat).build();
+    when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
+  }
 
-    @Test
-    void shouldPassValidation()
-    {
-        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-        trackedEntityAttribute.setUid( "uid" );
-        trackedEntityAttribute.setValueType( ValueType.TEXT );
+  @Test
+  void shouldPassValidation() {
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("uid");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
 
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
-        when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
+    when(preheat.getTrackedEntityAttribute(anyString())).thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType(anyString())).thenReturn(new TrackedEntityType());
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "uid" ).value( "value" ).build() ) )
-            .trackedEntityType( "trackedEntityType" )
+                Collections.singletonList(
+                    Attribute.builder().attribute("uid").value("value").build()))
+            .trackedEntityType("trackedEntityType")
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-        assertEquals( 0, reporter.getReportList().size() );
-    }
+    assertFalse(reporter.hasErrors());
+    assertEquals(0, reporter.getReportList().size());
+  }
 
-    @Test
-    void shouldFailValidationMandatoryFields()
-    {
-        String tet = "tet";
+  @Test
+  void shouldFailValidationMandatoryFields() {
+    String tet = "tet";
 
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
-        trackedEntityTypeAttribute.setMandatory( true );
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setMandatory(true);
 
-        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-        trackedEntityAttribute.setUid( "c" );
-        trackedEntityTypeAttribute.setTrackedEntityAttribute( trackedEntityAttribute );
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("c");
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
 
-        trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        Collections.singletonList(trackedEntityTypeAttribute));
 
-        when( preheat.getTrackedEntityType( tet ) ).thenReturn( trackedEntityType );
+    when(preheat.getTrackedEntityType(tet)).thenReturn(trackedEntityType);
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .trackedEntityType( tet )
-            .attributes( Arrays.asList( Attribute.builder().attribute( "a" ).value( "value" ).build(),
-                Attribute.builder().attribute( "b" ).value( "value" ).build() ) )
-            .build();
-
-        TrackedEntityAttribute contextAttribute = new TrackedEntityAttribute();
-        contextAttribute.setUid( "uid" );
-        contextAttribute.setValueType( ValueType.TEXT );
-
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( contextAttribute );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        assertEquals( 1, reporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1090 ).count() );
-    }
-
-    @Test
-    void shouldFailValidationMissingTea()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .attributes( Arrays.asList( Attribute.builder().attribute( "aaaaa" ).build(),
-                Attribute.builder().attribute( "bbbbb" ).build() ) )
-            .trackedEntityType( "tet" )
-            .build();
-
-        when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 2, reporter.getReportList().size() );
-        assertEquals( 2, reporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1006 ).count() );
-    }
-
-    @Test
-    void shouldFailMissingAttributeValue()
-    {
-        String tea = "tea";
-        String tet = "tet";
-
-        TrackedEntity trackedEntity = TrackedEntity.builder()
-            .attributes( Collections.singletonList( Attribute.builder().attribute( tea ).build() ) )
-            .trackedEntityType( tet )
-            .build();
-
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
-        trackedEntityTypeAttribute.setMandatory( true );
-
-        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-        trackedEntityAttribute.setUid( tea );
-        trackedEntityTypeAttribute.setTrackedEntityAttribute( trackedEntityAttribute );
-
-        trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
-
-        when( preheat.getTrackedEntityType( tet ) ).thenReturn( trackedEntityType );
-        when( preheat.getTrackedEntityAttribute( tea ) ).thenReturn( trackedEntityAttribute );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        assertEquals( 1, reporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1076 ).count() );
-    }
-
-    @Test
-    void shouldFailValueTooLong()
-    {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
-        when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
-
-        StringBuilder sbString = new StringBuilder();
-
-        for ( int i = 0; i < Constant.MAX_ATTR_VALUE_LENGTH + 1; i++ )
-        {
-            sbString.append( "a" );
-        }
-
-        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
-        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
-            trackedEntityAttribute, sbString.toString() );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1077.equals( err.getErrorCode() ) &&
-            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            te.getTrackedEntity().equals( err.getUid() ) ) );
-    }
-
-    @Test
-    void shouldFailDataValueIsValid()
-    {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-
-        when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.NUMBER );
-
-        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
-        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
-            trackedEntityAttribute, "value" );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1085.equals( err.getErrorCode() ) &&
-            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            te.getTrackedEntity().equals( err.getUid() ) ) );
-    }
-
-    @Test
-    void shouldFailEncryptionStatus()
-    {
-        when( trackedEntityAttribute.isConfidentialBool() ).thenReturn( true );
-        when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.AGE );
-
-        when( dhisConfigurationProvider.getEncryptionStatus() )
-            .thenReturn( EncryptionStatus.ENCRYPTION_PASSWORD_TOO_SHORT );
-        when( dhisConfigurationProvider.getProperty( any() ) ).thenReturn( "property" );
-        when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
-
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
-
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
-        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
-            trackedEntityAttribute, "value" );
-
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1112.equals( err.getErrorCode() ) &&
-            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            te.getTrackedEntity().equals( err.getUid() ) ) );
-    }
-
-    @Test
-    void shouldFailOptionSetNotValid()
-    {
-        TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
-
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
-        when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
-
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntityType(tet)
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "uid" ).value( "wrongCode" ).build() ) )
-            .trackedEntityType( "trackedEntityType" )
+                Arrays.asList(
+                    Attribute.builder().attribute("a").value("value").build(),
+                    Attribute.builder().attribute("b").value("value").build()))
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+    TrackedEntityAttribute contextAttribute = new TrackedEntityAttribute();
+    contextAttribute.setUid("uid");
+    contextAttribute.setValueType(ValueType.TEXT);
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        assertEquals( 1, reporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
-    }
+    when(preheat.getTrackedEntityAttribute(anyString())).thenReturn(contextAttribute);
 
-    @Test
-    void shouldPassValidationValueInOptionSet()
-    {
-        TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        when( preheat.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
-        when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
+    assertTrue(reporter.hasErrors());
+    assertEquals(1, reporter.getReportList().size());
+    assertEquals(
+        1,
+        reporter.getReportList().stream()
+            .filter(e -> e.getErrorCode() == TrackerErrorCode.E1090)
+            .count());
+  }
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+  @Test
+  void shouldFailValidationMissingTea() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "trackedEntity" ).value( "code" ).build() ) )
-            .trackedEntityType( "trackedEntityType" )
+                Arrays.asList(
+                    Attribute.builder().attribute("aaaaa").build(),
+                    Attribute.builder().attribute("bbbbb").build()))
+            .trackedEntityType("tet")
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+    when(preheat.getTrackedEntityType(anyString())).thenReturn(new TrackedEntityType());
 
-        assertFalse( reporter.hasErrors() );
-        assertEquals( 0, reporter.getReportList().size() );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    assertTrue(reporter.hasErrors());
+    assertEquals(2, reporter.getReportList().size());
+    assertEquals(
+        2,
+        reporter.getReportList().stream()
+            .filter(e -> e.getErrorCode() == TrackerErrorCode.E1006)
+            .count());
+  }
+
+  @Test
+  void shouldFailMissingAttributeValue() {
+    String tea = "tea";
+    String tet = "tet";
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .attributes(Collections.singletonList(Attribute.builder().attribute(tea).build()))
+            .trackedEntityType(tet)
+            .build();
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    trackedEntityTypeAttribute.setMandatory(true);
+
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid(tea);
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
+
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        Collections.singletonList(trackedEntityTypeAttribute));
+
+    when(preheat.getTrackedEntityType(tet)).thenReturn(trackedEntityType);
+    when(preheat.getTrackedEntityAttribute(tea)).thenReturn(trackedEntityAttribute);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    assertTrue(reporter.hasErrors());
+    assertEquals(1, reporter.getReportList().size());
+    assertEquals(
+        1,
+        reporter.getReportList().stream()
+            .filter(e -> e.getErrorCode() == TrackerErrorCode.E1076)
+            .count());
+  }
+
+  @Test
+  void shouldFailValueTooLong() {
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+
+    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.TEXT);
+
+    StringBuilder sbString = new StringBuilder();
+
+    for (int i = 0; i < Constant.MAX_ATTR_VALUE_LENGTH + 1; i++) {
+      sbString.append("a");
     }
 
-    @Test
-    void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
-    {
-        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    TrackedEntity te = TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
+    trackedEntityAttributeValidationHook.validateAttributeValue(
+        reporter, te, trackedEntityAttribute, sbString.toString());
 
-        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-        trackedEntityAttribute.setUid( "trackedEntityAttribute" );
-        trackedEntityAttribute.setValueType( ValueType.TEXT );
-        trackedEntityTypeAttribute.setTrackedEntityAttribute( trackedEntityAttribute );
+    assertTrue(reporter.hasErrors());
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            err ->
+                TrackerErrorCode.E1077.equals(err.getErrorCode())
+                    && TrackerType.TRACKED_ENTITY.equals(err.getTrackerType())
+                    && te.getTrackedEntity().equals(err.getUid())));
+  }
 
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
+  @Test
+  void shouldFailDataValueIsValid() {
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
 
-        when( preheat.getTrackedEntityAttribute( "trackedEntityAttribute" ) )
-            .thenReturn( trackedEntityAttribute );
-        when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
+    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.NUMBER);
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+    TrackedEntity te = TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
+    trackedEntityAttributeValidationHook.validateAttributeValue(
+        reporter, te, trackedEntityAttribute, "value");
+
+    assertTrue(reporter.hasErrors());
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            err ->
+                TrackerErrorCode.E1085.equals(err.getErrorCode())
+                    && TrackerType.TRACKED_ENTITY.equals(err.getTrackerType())
+                    && te.getTrackedEntity().equals(err.getUid())));
+  }
+
+  @Test
+  void shouldFailEncryptionStatus() {
+    when(trackedEntityAttribute.isConfidentialBool()).thenReturn(true);
+    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.AGE);
+
+    when(dhisConfigurationProvider.getEncryptionStatus())
+        .thenReturn(EncryptionStatus.ENCRYPTION_PASSWORD_TOO_SHORT);
+    when(dhisConfigurationProvider.getProperty(any())).thenReturn("property");
+    when(trackedEntityAttribute.getValueType()).thenReturn(ValueType.TEXT);
+
+    when(preheat.getTrackedEntityAttribute(anyString())).thenReturn(trackedEntityAttribute);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    TrackedEntity te = TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
+    trackedEntityAttributeValidationHook.validateAttributeValue(
+        reporter, te, trackedEntityAttribute, "value");
+
+    assertTrue(reporter.hasErrors());
+    assertEquals(1, reporter.getReportList().size());
+    assertTrue(
+        reporter.hasErrorReport(
+            err ->
+                TrackerErrorCode.E1112.equals(err.getErrorCode())
+                    && TrackerType.TRACKED_ENTITY.equals(err.getTrackerType())
+                    && te.getTrackedEntity().equals(err.getUid())));
+  }
+
+  @Test
+  void shouldFailOptionSetNotValid() {
+    TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
+
+    when(preheat.getTrackedEntityAttribute(anyString())).thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType(anyString())).thenReturn(new TrackedEntityType());
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "trackedEntityAttribute" ).build() ) )
-            .trackedEntityType( "trackedEntityType" )
+                Collections.singletonList(
+                    Attribute.builder().attribute("uid").value("wrongCode").build()))
+            .trackedEntityType("trackedEntityType")
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        assertFalse( reporter.hasErrors() );
-        assertEquals( 0, reporter.getReportList().size() );
-    }
+    assertTrue(reporter.hasErrors());
+    assertEquals(1, reporter.getReportList().size());
+    assertEquals(
+        1,
+        reporter.getReportList().stream()
+            .filter(e -> e.getErrorCode() == TrackerErrorCode.E1125)
+            .count());
+  }
 
-    @Test
-    void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
-    {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+  @Test
+  void shouldPassValidationValueInOptionSet() {
+    TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
+
+    when(preheat.getTrackedEntityAttribute(anyString())).thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType(anyString())).thenReturn(new TrackedEntityType());
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
             .attributes(
-                Collections.singletonList( Attribute.builder().attribute( "trackedEntityAttribute" ).build() ) )
-            .trackedEntityType( "trackedEntityType" )
+                Collections.singletonList(
+                    Attribute.builder().attribute("trackedEntity").value("code").build()))
+            .trackedEntityType("trackedEntityType")
             .build();
 
-        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-        trackedEntityAttribute.setUid( "trackedEntityAttribute" );
-        trackedEntityAttribute.setValueType( ValueType.TEXT );
-        trackedEntityTypeAttribute.setTrackedEntityAttribute( trackedEntityAttribute );
-        trackedEntityTypeAttribute.setMandatory( true );
+    assertFalse(reporter.hasErrors());
+    assertEquals(0, reporter.getReportList().size());
+  }
 
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
+  @Test
+  void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory() {
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
 
-        when( preheat.getTrackedEntityAttribute( "trackedEntityAttribute" ) )
-            .thenReturn( trackedEntityAttribute );
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("trackedEntityAttribute");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
 
-        when( preheat.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        Collections.singletonList(trackedEntityTypeAttribute));
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        trackedEntityAttributeValidationHook.validateTrackedEntity( reporter,
-            trackedEntity );
+    when(preheat.getTrackedEntityAttribute("trackedEntityAttribute"))
+        .thenReturn(trackedEntityAttribute);
+    when(preheat.getTrackedEntityType(anyString())).thenReturn(trackedEntityType);
 
-        assertTrue( reporter.hasErrors() );
-        assertEquals( 1, reporter.getReportList().size() );
-        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
-    }
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder().attribute("trackedEntityAttribute").build()))
+            .trackedEntityType("trackedEntityType")
+            .build();
 
-    private TrackedEntityAttribute getTrackedEntityAttributeWithOptionSet()
-    {
-        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-        trackedEntityAttribute.setUid( "uid" );
-        trackedEntityAttribute.setValueType( ValueType.TEXT );
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
 
-        OptionSet optionSet = new OptionSet();
-        Option option = new Option();
-        option.setCode( "CODE" );
+    assertFalse(reporter.hasErrors());
+    assertEquals(0, reporter.getReportList().size());
+  }
 
-        Option option1 = new Option();
-        option1.setCode( "CODE1" );
+  @Test
+  void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory() {
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder().attribute("trackedEntityAttribute").build()))
+            .trackedEntityType("trackedEntityType")
+            .build();
 
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
+    TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
 
-        trackedEntityAttribute.setOptionSet( optionSet );
-        return trackedEntityAttribute;
-    }
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("trackedEntityAttribute");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+    trackedEntityTypeAttribute.setTrackedEntityAttribute(trackedEntityAttribute);
+    trackedEntityTypeAttribute.setMandatory(true);
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        Collections.singletonList(trackedEntityTypeAttribute));
+
+    when(preheat.getTrackedEntityAttribute("trackedEntityAttribute"))
+        .thenReturn(trackedEntityAttribute);
+
+    when(preheat.getTrackedEntityType(anyString())).thenReturn(trackedEntityType);
+
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    trackedEntityAttributeValidationHook.validateTrackedEntity(reporter, trackedEntity);
+
+    assertTrue(reporter.hasErrors());
+    assertEquals(1, reporter.getReportList().size());
+    assertEquals(TrackerErrorCode.E1076, reporter.getReportList().get(0).getErrorCode());
+  }
+
+  private TrackedEntityAttribute getTrackedEntityAttributeWithOptionSet() {
+    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+    trackedEntityAttribute.setUid("uid");
+    trackedEntityAttribute.setValueType(ValueType.TEXT);
+
+    OptionSet optionSet = new OptionSet();
+    Option option = new Option();
+    option.setCode("CODE");
+
+    Option option1 = new Option();
+    option1.setCode("CODE1");
+
+    optionSet.setOptions(Arrays.asList(option, option1));
+
+    trackedEntityAttribute.setOptionSet(optionSet);
+    return trackedEntityAttribute;
+  }
 }

@@ -27,103 +27,73 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-
 import org.hisp.dhis.analytics.AggregationType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * {@see DimensionalItemObject} modifiers for an analytics query, resulting from
- * a parsed indicator expression data item.
+ * {@see DimensionalItemObject} modifiers for an analytics query, resulting from a parsed indicator
+ * expression data item.
  *
  * @author Jim Grace
  */
 @Getter
 @ToString
 @EqualsAndHashCode
-@Builder( toBuilder = true )
-public class QueryModifiers
-{
-    private static final QueryModifiers DEFAULT = QueryModifiers.builder().build();
+@Builder(toBuilder = true)
+public class QueryModifiers {
+  private static final QueryModifiers DEFAULT = QueryModifiers.builder().build();
 
-    /**
-     * Overrides the default aggregation type of this object.
-     */
-    @JsonProperty
-    private final AggregationType aggregationType;
+  /** Overrides the default aggregation type of this object. */
+  @JsonProperty private final AggregationType aggregationType;
 
-    /**
-     * Period offset: the offset can be applied within an indicator formula in
-     * order to "shift" the query period by the offset value (e.g. Feb 2022 with
-     * offset -1 becomes Jan 2022). An offset with value 0 means no offset.
-     */
-    @JsonProperty
-    private final int periodOffset;
+  /**
+   * Period offset: the offset can be applied within an indicator formula in order to "shift" the
+   * query period by the offset value (e.g. Feb 2022 with offset -1 becomes Jan 2022). An offset
+   * with value 0 means no offset.
+   */
+  @JsonProperty private final int periodOffset;
 
-    /**
-     * The minimum date (start of any period) for querying this object.
-     */
-    @JsonProperty
-    private final Date minDate;
+  /** The minimum date (start of any period) for querying this object. */
+  @JsonProperty private final Date minDate;
 
-    /**
-     * The maximum date (end of any period) for querying this object.
-     */
-    @JsonProperty
-    private final Date maxDate;
+  /** The maximum date (end of any period) for querying this object. */
+  @JsonProperty private final Date maxDate;
 
-    /**
-     * The sub-expression used to query the analytics value column.
-     */
-    @JsonProperty
-    private final String subExpression;
+  /** The sub-expression used to query the analytics value column. */
+  @JsonProperty private final String subExpression;
 
-    /**
-     * The value type of the sub-expression (can be different from the value
-     * type of the object).
-     */
-    @JsonProperty
-    private final ValueType valueType;
+  /** The value type of the sub-expression (can be different from the value type of the object). */
+  @JsonProperty private final ValueType valueType;
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    /**
-     * Gets the query modifiers that matter for analytics grouping.
-     */
-    public QueryModifiers withQueryModsForAnalyticsGrouping()
-    {
-        return this.toBuilder().periodOffset( 0 ).build();
-    }
+  /** Gets the query modifiers that matter for analytics grouping. */
+  public QueryModifiers withQueryModsForAnalyticsGrouping() {
+    return this.toBuilder().periodOffset(0).build();
+  }
 
-    /**
-     * Gets an Id for these query modifiers that matter for analytics grouping.
-     */
-    public String getQueryModsId()
-    {
-        QueryModifiers analyticsQueryMods = withQueryModsForAnalyticsGrouping();
+  /** Gets an Id for these query modifiers that matter for analytics grouping. */
+  public String getQueryModsId() {
+    QueryModifiers analyticsQueryMods = withQueryModsForAnalyticsGrouping();
 
-        return analyticsQueryMods.isDefault()
-            ? null
-            : Integer.toHexString( analyticsQueryMods.hashCode() );
-    }
+    return analyticsQueryMods.isDefault()
+        ? null
+        : Integer.toHexString(analyticsQueryMods.hashCode());
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    /**
-     * Checks if these query mods have all default values.
-     */
-    private boolean isDefault()
-    {
-        return this.equals( DEFAULT );
-    }
+  /** Checks if these query mods have all default values. */
+  private boolean isDefault() {
+    return this.equals(DEFAULT);
+  }
 }

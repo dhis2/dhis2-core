@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.predictor.PredictionService;
@@ -52,32 +51,27 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Jim Grace
  */
 @Controller
-@RequestMapping( value = PredictorGroupSchemaDescriptor.API_ENDPOINT )
-public class PredictorGroupController
-    extends AbstractCrudController<PredictorGroup>
-{
-    @Autowired
-    private PredictionService predictionService;
+@RequestMapping(value = PredictorGroupSchemaDescriptor.API_ENDPOINT)
+public class PredictorGroupController extends AbstractCrudController<PredictorGroup> {
+  @Autowired private PredictionService predictionService;
 
-    @RequestMapping( value = "/{uid}/run", method = { RequestMethod.POST, RequestMethod.PUT } )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
-    @ResponseBody
-    public WebMessage runPredictorGroup(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
-        TranslateParams translateParams )
-    {
-        try
-        {
-            PredictionSummary predictionSummary = predictionService.predictAll( startDate, endDate,
-                null, List.of( uid ) );
+  @RequestMapping(
+      value = "/{uid}/run",
+      method = {RequestMethod.POST, RequestMethod.PUT})
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PREDICTOR_RUN')")
+  @ResponseBody
+  public WebMessage runPredictorGroup(
+      @PathVariable("uid") String uid,
+      @RequestParam Date startDate,
+      @RequestParam Date endDate,
+      TranslateParams translateParams) {
+    try {
+      PredictionSummary predictionSummary =
+          predictionService.predictAll(startDate, endDate, null, List.of(uid));
 
-            return ok( "Generated " + predictionSummary.getPredictions() + " predictions" );
-        }
-        catch ( Exception ex )
-        {
-            return conflict( "Unable to predict from predictor group " + uid, ex.getMessage() );
-        }
+      return ok("Generated " + predictionSummary.getPredictions() + " predictions");
+    } catch (Exception ex) {
+      return conflict("Unable to predict from predictor group " + uid, ex.getMessage());
     }
+  }
 }

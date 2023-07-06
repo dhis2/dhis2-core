@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.sync;
 
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -38,18 +37,16 @@ import org.hisp.dhis.scheduling.Job;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public abstract class SynchronizationJob implements Job
-{
-    protected Optional<ErrorReport> validateRemoteServerAvailability( SynchronizationManager synchronizationManager,
-        Class<?> klass )
-    {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+public abstract class SynchronizationJob implements Job {
+  protected Optional<ErrorReport> validateRemoteServerAvailability(
+      SynchronizationManager synchronizationManager, Class<?> klass) {
+    AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
 
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return Optional.of( new ErrorReport( klass, ErrorCode.E7010, isRemoteServerAvailable.getMessage() ) );
-        }
-
-        return Optional.empty();
+    if (!isRemoteServerAvailable.isAvailable()) {
+      return Optional.of(
+          new ErrorReport(klass, ErrorCode.E7010, isRemoteServerAvailable.getMessage()));
     }
+
+    return Optional.empty();
+  }
 }

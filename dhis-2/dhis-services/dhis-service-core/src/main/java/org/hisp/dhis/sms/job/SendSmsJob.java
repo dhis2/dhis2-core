@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.job;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
-
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
@@ -45,65 +44,59 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-@Component( "sendSmsJob" )
-public class SendSmsJob implements Job
-{
-    private final MessageSender smsSender;
+@Component("sendSmsJob")
+public class SendSmsJob implements Job {
+  private final MessageSender smsSender;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    private final OutboundSmsService outboundSmsService;
+  private final OutboundSmsService outboundSmsService;
 
-    public SendSmsJob( @Qualifier( "smsMessageSender" ) MessageSender smsSender, Notifier notifier,
-        OutboundSmsService outboundSmsService )
-    {
-        checkNotNull( smsSender );
-        checkNotNull( notifier );
-        checkNotNull( outboundSmsService );
+  public SendSmsJob(
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      Notifier notifier,
+      OutboundSmsService outboundSmsService) {
+    checkNotNull(smsSender);
+    checkNotNull(notifier);
+    checkNotNull(outboundSmsService);
 
-        this.smsSender = smsSender;
-        this.notifier = notifier;
-        this.outboundSmsService = outboundSmsService;
+    this.smsSender = smsSender;
+    this.notifier = notifier;
+    this.outboundSmsService = outboundSmsService;
+  }
+
+  // -------------------------------------------------------------------------
+  // I18n
+  // -------------------------------------------------------------------------
+
+  @Override
+  public JobType getJobType() {
+    return JobType.SMS_SEND;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
+    OutboundSms sms = new OutboundSms();
+    sms.setSubject(parameters.getSmsSubject());
+    sms.setMessage(parameters.getMessage());
+    sms.setRecipients(new HashSet<>(parameters.getRecipientsList()));
+
+    notifier.notify(jobConfiguration, "Sending SMS");
+
+    OutboundMessageResponse status =
+        smsSender.sendMessage(sms.getSubject(), sms.getMessage(), sms.getRecipients());
+
+    if (status.isOk()) {
+      notifier.notify(jobConfiguration, "Message sending successful");
+
+      sms.setStatus(OutboundSmsStatus.SENT);
+    } else {
+      notifier.notify(jobConfiguration, "Message sending failed");
+
+      sms.setStatus(OutboundSmsStatus.FAILED);
     }
 
-    // -------------------------------------------------------------------------
-    // I18n
-    // -------------------------------------------------------------------------
-
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.SMS_SEND;
-    }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
-        OutboundSms sms = new OutboundSms();
-        sms.setSubject( parameters.getSmsSubject() );
-        sms.setMessage( parameters.getMessage() );
-        sms.setRecipients( new HashSet<>( parameters.getRecipientsList() ) );
-
-        notifier.notify( jobConfiguration, "Sending SMS" );
-
-        OutboundMessageResponse status = smsSender.sendMessage( sms.getSubject(), sms.getMessage(),
-            sms.getRecipients() );
-
-        if ( status.isOk() )
-        {
-            notifier.notify( jobConfiguration, "Message sending successful" );
-
-            sms.setStatus( OutboundSmsStatus.SENT );
-        }
-        else
-        {
-            notifier.notify( jobConfiguration, "Message sending failed" );
-
-            sms.setStatus( OutboundSmsStatus.FAILED );
-        }
-
-        outboundSmsService.save( sms );
-    }
-
+    outboundSmsService.save(sms);
+  }
 }

@@ -36,9 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -67,117 +65,101 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
-@RequestMapping( value = "/locales" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class LocaleController
-{
-    @Autowired
-    private LocaleManager localeManager;
+@RequestMapping(value = "/locales")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class LocaleController {
+  @Autowired private LocaleManager localeManager;
 
-    @Autowired
-    private ContextService contextService;
+  @Autowired private ContextService contextService;
 
-    @Autowired
-    private I18nLocaleService localeService;
+  @Autowired private I18nLocaleService localeService;
 
-    // -------------------------------------------------------------------------
-    // Resources
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Resources
+  // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/ui" )
-    public @ResponseBody List<WebLocale> getUiLocales( Model model )
-    {
-        List<Locale> locales = localeManager.getAvailableLocales();
-        List<WebLocale> webLocales = locales.stream().map( WebLocale::fromLocale ).collect( Collectors.toList() );
+  @GetMapping(value = "/ui")
+  public @ResponseBody List<WebLocale> getUiLocales(Model model) {
+    List<Locale> locales = localeManager.getAvailableLocales();
+    List<WebLocale> webLocales =
+        locales.stream().map(WebLocale::fromLocale).collect(Collectors.toList());
 
-        return webLocales;
+    return webLocales;
+  }
+
+  @GetMapping(value = "/db")
+  public @ResponseBody List<WebLocale> getDbLocales() {
+    List<Locale> locales = localeService.getAllLocales();
+    List<WebLocale> webLocales =
+        locales.stream().map(WebLocale::fromLocale).collect(Collectors.toList());
+    return webLocales;
+  }
+
+  @GetMapping(value = "/languages", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Map<String, String> getAvailableLanguages() {
+    return localeService.getAvailableLanguages();
+  }
+
+  @GetMapping(value = "/countries", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Map<String, String> getAvailableCountries() {
+    return localeService.getAvailableCountries();
+  }
+
+  @GetMapping(value = "/dbLocales", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody List<I18nLocale> getDbLocalesWithId() {
+    return localeService.getAllI18nLocales();
+  }
+
+  @GetMapping(value = "/dbLocales/{uid}", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody I18nLocale getObject(
+      @PathVariable("uid") String uid, HttpServletResponse response) throws Exception {
+    response.setHeader(
+        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
+    I18nLocale locale = localeService.getI18nLocaleByUid(uid);
+
+    if (locale == null) {
+      throw new WebMessageException(notFound("Cannot find Locale with uid: " + uid));
     }
 
-    @GetMapping( value = "/db" )
-    public @ResponseBody List<WebLocale> getDbLocales()
-    {
-        List<Locale> locales = localeService.getAllLocales();
-        List<WebLocale> webLocales = locales.stream().map( WebLocale::fromLocale ).collect( Collectors.toList() );
-        return webLocales;
+    return locale;
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_LOCALE_ADD')")
+  @PostMapping(value = "/dbLocales")
+  @ResponseBody
+  public WebMessage addLocale(
+      @RequestParam String country, @RequestParam String language, HttpServletResponse response) {
+    if (StringUtils.isEmpty(country) || StringUtils.isEmpty(language)) {
+      return conflict("Invalid country or language code.");
     }
 
-    @GetMapping( value = "/languages", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Map<String, String> getAvailableLanguages()
-    {
-        return localeService.getAvailableLanguages();
+    String localeCode = LocaleUtils.getLocaleString(language, country, null);
+
+    Locale locale = LocaleUtils.getLocale(localeCode);
+
+    if (locale != null) {
+      I18nLocale i18nLocale = localeService.getI18nLocale(locale);
+
+      if (i18nLocale != null) {
+        return conflict("Locale code existed.");
+      }
     }
 
-    @GetMapping( value = "/countries", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Map<String, String> getAvailableCountries()
-    {
-        return localeService.getAvailableCountries();
+    I18nLocale i18nLocale = localeService.addI18nLocale(language, country);
+
+    return created("Locale created successfully").setLocation("/locales/" + i18nLocale.getUid());
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_LOCALE_DELETE')")
+  @DeleteMapping(path = "/dbLocales/{uid}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void delete(@PathVariable String uid) throws Exception {
+    I18nLocale i18nLocale = localeService.getI18nLocaleByUid(uid);
+
+    if (i18nLocale == null) {
+      throw new WebMessageException(notFound("Cannot find Locale with uid " + uid));
     }
 
-    @GetMapping( value = "/dbLocales", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody List<I18nLocale> getDbLocalesWithId()
-    {
-        return localeService.getAllI18nLocales();
-    }
-
-    @GetMapping( value = "/dbLocales/{uid}", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody I18nLocale getObject( @PathVariable( "uid" ) String uid, HttpServletResponse response )
-        throws Exception
-    {
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-        I18nLocale locale = localeService.getI18nLocaleByUid( uid );
-
-        if ( locale == null )
-        {
-            throw new WebMessageException( notFound( "Cannot find Locale with uid: " + uid ) );
-        }
-
-        return locale;
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_ADD')" )
-    @PostMapping( value = "/dbLocales" )
-    @ResponseBody
-    public WebMessage addLocale( @RequestParam String country, @RequestParam String language,
-        HttpServletResponse response )
-    {
-        if ( StringUtils.isEmpty( country ) || StringUtils.isEmpty( language ) )
-        {
-            return conflict( "Invalid country or language code." );
-        }
-
-        String localeCode = LocaleUtils.getLocaleString( language, country, null );
-
-        Locale locale = LocaleUtils.getLocale( localeCode );
-
-        if ( locale != null )
-        {
-            I18nLocale i18nLocale = localeService.getI18nLocale( locale );
-
-            if ( i18nLocale != null )
-            {
-                return conflict( "Locale code existed." );
-            }
-        }
-
-        I18nLocale i18nLocale = localeService.addI18nLocale( language, country );
-
-        return created( "Locale created successfully" )
-            .setLocation( "/locales/" + i18nLocale.getUid() );
-    }
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_LOCALE_DELETE')" )
-    @DeleteMapping( path = "/dbLocales/{uid}" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void delete( @PathVariable String uid )
-        throws Exception
-    {
-        I18nLocale i18nLocale = localeService.getI18nLocaleByUid( uid );
-
-        if ( i18nLocale == null )
-        {
-            throw new WebMessageException( notFound( "Cannot find Locale with uid " + uid ) );
-        }
-
-        localeService.deleteI18nLocale( i18nLocale );
-    }
+    localeService.deleteI18nLocale(i18nLocale);
+  }
 }

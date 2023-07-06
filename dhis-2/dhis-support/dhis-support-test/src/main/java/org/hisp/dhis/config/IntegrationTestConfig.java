@@ -28,9 +28,7 @@
 package org.hisp.dhis.config;
 
 import java.util.Properties;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.container.DhisPostgisContainerProvider;
 import org.hisp.dhis.container.DhisPostgreSQLContainer;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -45,59 +43,58 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  */
 @Slf4j
 @Configuration
-@ComponentScan( "org.hisp.dhis" )
-public class IntegrationTestConfig
-{
-    private static final String POSTGRES_DATABASE_NAME = "dhis";
+@ComponentScan("org.hisp.dhis")
+public class IntegrationTestConfig {
+  private static final String POSTGRES_DATABASE_NAME = "dhis";
 
-    private static final String POSTGRES_CREDENTIALS = "dhis";
+  private static final String POSTGRES_CREDENTIALS = "dhis";
 
-    public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
+  public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
 
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
-        JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    PostgresDhisConfigurationProvider dhisConfigurationProvider =
+        new PostgresDhisConfigurationProvider();
+    JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
-        final String username = postgreSQLContainer.getUsername();
-        final String password = postgreSQLContainer.getPassword();
+    final String username = postgreSQLContainer.getUsername();
+    final String password = postgreSQLContainer.getPassword();
 
-        Properties properties = new Properties();
+    Properties properties = new Properties();
 
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
-        properties.setProperty( "connection.url", jdbcUrl );
-        properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
-        properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
-        properties.setProperty( "connection.username", username );
-        properties.setProperty( "connection.password", password );
-        properties.setProperty( ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED.getKey(), "off" );
-        properties.setProperty( "metadata.audit.persist", "on" );
-        properties.setProperty( "tracker.audit.persist", "on" );
-        properties.setProperty( "aggregate.audit.persist", "on" );
-        properties.setProperty( "audit.metadata", CREATE_UPDATE_DELETE );
-        properties.setProperty( "audit.tracker", CREATE_UPDATE_DELETE );
-        properties.setProperty( "audit.aggregate", CREATE_UPDATE_DELETE );
+    String jdbcUrl = postgreSQLContainer.getJdbcUrl();
+    properties.setProperty("connection.url", jdbcUrl);
+    properties.setProperty(
+        "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
+    properties.setProperty("connection.driver_class", "org.postgresql.Driver");
+    properties.setProperty("connection.username", username);
+    properties.setProperty("connection.password", password);
+    properties.setProperty(ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED.getKey(), "off");
+    properties.setProperty("metadata.audit.persist", "on");
+    properties.setProperty("tracker.audit.persist", "on");
+    properties.setProperty("aggregate.audit.persist", "on");
+    properties.setProperty("audit.metadata", CREATE_UPDATE_DELETE);
+    properties.setProperty("audit.tracker", CREATE_UPDATE_DELETE);
+    properties.setProperty("audit.aggregate", CREATE_UPDATE_DELETE);
 
-        dhisConfigurationProvider.addProperties( properties );
+    dhisConfigurationProvider.addProperties(properties);
 
-        return dhisConfigurationProvider;
-    }
+    return dhisConfigurationProvider;
+  }
 
-    private JdbcDatabaseContainer<?> initContainer()
-    {
-        // NOSONAR
-        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
-            .newInstance()) // NOSONAR
-                .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
-                .withDatabaseName( POSTGRES_DATABASE_NAME )
-                .withUsername( POSTGRES_CREDENTIALS )
-                .withPassword( POSTGRES_CREDENTIALS );
+  private JdbcDatabaseContainer<?> initContainer() {
+    // NOSONAR
+    DhisPostgreSQLContainer<?> postgisContainer =
+        ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider().newInstance()) // NOSONAR
+            .appendCustomPostgresConfig("max_locks_per_transaction=100")
+            .withDatabaseName(POSTGRES_DATABASE_NAME)
+            .withUsername(POSTGRES_CREDENTIALS)
+            .withPassword(POSTGRES_CREDENTIALS);
 
-        postgisContainer.start();
+    postgisContainer.start();
 
-        log.info( String.format( "PostGIS container initialized: %s", postgisContainer.getJdbcUrl() ) );
+    log.info(String.format("PostGIS container initialized: %s", postgisContainer.getJdbcUrl()));
 
-        return postgisContainer;
-    }
+    return postgisContainer;
+  }
 }

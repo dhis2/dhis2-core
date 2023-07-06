@@ -33,17 +33,19 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
-public class AssertValidationErrorReporter
-{
+public class AssertValidationErrorReporter {
 
-    public static void hasTrackerError( ValidationErrorReporter reporter, TrackerErrorCode code, TrackerType type,
-        String uid )
-    {
-        assertTrue( reporter.hasErrors(), "error not found since reporter has no errors" );
-        assertTrue( reporter.hasErrorReport( err -> code == err.getErrorCode() &&
-            type == err.getTrackerType() &&
-            uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in reporter with %d error(s)", code, type,
-                uid, reporter.getReportList().size() ) );
-    }
+  public static void hasTrackerError(
+      ValidationErrorReporter reporter, TrackerErrorCode code, TrackerType type, String uid) {
+    assertTrue(reporter.hasErrors(), "error not found since reporter has no errors");
+    assertTrue(
+        reporter.hasErrorReport(
+            err ->
+                code == err.getErrorCode()
+                    && type == err.getTrackerType()
+                    && uid.equals(err.getUid())),
+        String.format(
+            "error with code %s, type %s, uid %s not found in reporter with %d error(s)",
+            code, type, uid, reporter.getReportList().size()));
+  }
 }

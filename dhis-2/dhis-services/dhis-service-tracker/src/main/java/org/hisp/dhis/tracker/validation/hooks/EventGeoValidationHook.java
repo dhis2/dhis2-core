@@ -38,20 +38,16 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EventGeoValidationHook
-    extends AbstractTrackerDtoValidationHook
-{
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
-    {
-        ProgramStage programStage = reporter.getBundle().getPreheat().getProgramStage( event.getProgramStage() );
-        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
+public class EventGeoValidationHook extends AbstractTrackerDtoValidationHook {
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, Event event) {
+    ProgramStage programStage =
+        reporter.getBundle().getPreheat().getProgramStage(event.getProgramStage());
+    checkNotNull(programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL);
 
-        if ( event.getGeometry() != null )
-        {
-            ValidationUtils.validateGeometry( reporter, event,
-                event.getGeometry(),
-                programStage.getFeatureType() );
-        }
+    if (event.getGeometry() != null) {
+      ValidationUtils.validateGeometry(
+          reporter, event, event.getGeometry(), programStage.getFeatureType());
     }
+  }
 }

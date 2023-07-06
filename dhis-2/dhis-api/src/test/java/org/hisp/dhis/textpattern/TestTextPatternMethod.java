@@ -32,137 +32,160 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
-class TestTextPatternMethod
-{
+class TestTextPatternMethod {
 
-    @Test
-    void testValidateText()
-    {
-        String[] valid = { "\"Hello world!\"", "\"Hello \\\"world\\\"\"" };
-        String[] invalid = { "Hello world", "Hello \" world", "\"Hello world", "Hello world\"" };
-        testSyntax( TextPatternMethod.TEXT, valid, true );
-        testSyntax( TextPatternMethod.TEXT, invalid, false );
-    }
+  @Test
+  void testValidateText() {
+    String[] valid = {"\"Hello world!\"", "\"Hello \\\"world\\\"\""};
+    String[] invalid = {"Hello world", "Hello \" world", "\"Hello world", "Hello world\""};
+    testSyntax(TextPatternMethod.TEXT, valid, true);
+    testSyntax(TextPatternMethod.TEXT, invalid, false);
+  }
 
-    @Test
-    void testValidateTextWithSpecialCharacters()
-    {
-        String[] valid = { "\"My digit is \\d\"", "\"My lowercase letter is \\x\"", "\"My uppercase letter is \\X\"",
-            "\"My any character is \\w\"" };
-        testSyntax( TextPatternMethod.TEXT, valid, true );
-    }
+  @Test
+  void testValidateTextWithSpecialCharacters() {
+    String[] valid = {
+      "\"My digit is \\d\"",
+      "\"My lowercase letter is \\x\"",
+      "\"My uppercase letter is \\X\"",
+      "\"My any character is \\w\""
+    };
+    testSyntax(TextPatternMethod.TEXT, valid, true);
+  }
 
-    @Test
-    void testValidateRandom()
-    {
-        String[] valid = { "RANDOM(#)", "RANDOM(X)", "RANDOM(x)", "RANDOM(Xx#)", "RANDOM(xX#)", "RANDOM(##XXxx)", // 12
-                                                                                                                  // characters
-            "RANDOM(#X#xXx#xX#XX)" };
-        String[] invalid = { "RAND(#)", "RANDOM()", "RANDOM(1)", // 13
-                                                                 // characters
-            "RANDOM(#############)" };
-        testSyntax( TextPatternMethod.RANDOM, valid, true );
-        testSyntax( TextPatternMethod.RANDOM, invalid, false );
-    }
+  @Test
+  void testValidateRandom() {
+    String[] valid = {
+      "RANDOM(#)",
+      "RANDOM(X)",
+      "RANDOM(x)",
+      "RANDOM(Xx#)",
+      "RANDOM(xX#)",
+      "RANDOM(##XXxx)", // 12
+      // characters
+      "RANDOM(#X#xXx#xX#XX)"
+    };
+    String[] invalid = {
+      "RAND(#)",
+      "RANDOM()",
+      "RANDOM(1)", // 13
+      // characters
+      "RANDOM(#############)"
+    };
+    testSyntax(TextPatternMethod.RANDOM, valid, true);
+    testSyntax(TextPatternMethod.RANDOM, invalid, false);
+  }
 
-    @Test
-    void testValidateSequential()
-    {
-        String[] valid = { "SEQUENTIAL(#)", // 12 characters
-            "SEQUENTIAL(############)" };
-        String[] invalid = { "SEQ(#)", "SEQUENTIAL()", "SEQUENTIAL(1)", "SEQUENTIAL(x)", "SEQUENTIAL(X)", // 13
-                                                                                                          // characters
-            "SEQUENTIAL(#############)" };
-        testSyntax( TextPatternMethod.SEQUENTIAL, valid, true );
-        testSyntax( TextPatternMethod.SEQUENTIAL, invalid, false );
-    }
+  @Test
+  void testValidateSequential() {
+    String[] valid = {
+      "SEQUENTIAL(#)", // 12 characters
+      "SEQUENTIAL(############)"
+    };
+    String[] invalid = {
+      "SEQ(#)",
+      "SEQUENTIAL()",
+      "SEQUENTIAL(1)",
+      "SEQUENTIAL(x)",
+      "SEQUENTIAL(X)", // 13
+      // characters
+      "SEQUENTIAL(#############)"
+    };
+    testSyntax(TextPatternMethod.SEQUENTIAL, valid, true);
+    testSyntax(TextPatternMethod.SEQUENTIAL, invalid, false);
+  }
 
-    @Test
-    void testValidateOrgUnitCode()
-    {
-        String[] valid = { "ORG_UNIT_CODE()", "ORG_UNIT_CODE(.)", "ORG_UNIT_CODE(...)", "ORG_UNIT_CODE(^.)",
-            "ORG_UNIT_CODE(.$)" };
-        String[] invalid = { "ORG_UNIT_CODE(1)", "ORG_UNIT_CODE(.^)", "ORG_UNIT_CODE($.)", "ORG_UNIT_CODE(.^.)",
-            "ORG_UNIT_CODE(.$.)", "ORG_UNIT_CODE(^$)", "ORG_UNIT_CODE(^^^)", "ORG_UNIT_CODE(.$$)" };
-        testSyntax( TextPatternMethod.ORG_UNIT_CODE, valid, true );
-        testSyntax( TextPatternMethod.ORG_UNIT_CODE, invalid, false );
-    }
+  @Test
+  void testValidateOrgUnitCode() {
+    String[] valid = {
+      "ORG_UNIT_CODE()",
+      "ORG_UNIT_CODE(.)",
+      "ORG_UNIT_CODE(...)",
+      "ORG_UNIT_CODE(^.)",
+      "ORG_UNIT_CODE(.$)"
+    };
+    String[] invalid = {
+      "ORG_UNIT_CODE(1)",
+      "ORG_UNIT_CODE(.^)",
+      "ORG_UNIT_CODE($.)",
+      "ORG_UNIT_CODE(.^.)",
+      "ORG_UNIT_CODE(.$.)",
+      "ORG_UNIT_CODE(^$)",
+      "ORG_UNIT_CODE(^^^)",
+      "ORG_UNIT_CODE(.$$)"
+    };
+    testSyntax(TextPatternMethod.ORG_UNIT_CODE, valid, true);
+    testSyntax(TextPatternMethod.ORG_UNIT_CODE, invalid, false);
+  }
 
-    @Test
-    void testValidateCurrentDate()
-    {
-        String[] valid = { "CURRENT_DATE(.)", "CURRENT_DATE(yy/mm/dd)", "CURRENT_DATE(DDMMYYYY)",
-            "CURRENT_DATE(DD-MM-HH)", "CURRENT_DATE(Hello world)" };
-        String[] invalid = { "CURRENT()", "CURRENT_DATE()" };
-        testSyntax( TextPatternMethod.CURRENT_DATE, valid, true );
-        testSyntax( TextPatternMethod.CURRENT_DATE, invalid, false );
-    }
+  @Test
+  void testValidateCurrentDate() {
+    String[] valid = {
+      "CURRENT_DATE(.)",
+      "CURRENT_DATE(yy/mm/dd)",
+      "CURRENT_DATE(DDMMYYYY)",
+      "CURRENT_DATE(DD-MM-HH)",
+      "CURRENT_DATE(Hello world)"
+    };
+    String[] invalid = {"CURRENT()", "CURRENT_DATE()"};
+    testSyntax(TextPatternMethod.CURRENT_DATE, valid, true);
+    testSyntax(TextPatternMethod.CURRENT_DATE, invalid, false);
+  }
 
-    @Test
-    void testGetParamText()
-    {
-        assertEquals( "Hello world", TextPatternMethod.TEXT.getType().getParam( "\"Hello world\"" ) );
-    }
+  @Test
+  void testGetParamText() {
+    assertEquals("Hello world", TextPatternMethod.TEXT.getType().getParam("\"Hello world\""));
+  }
 
-    @Test
-    void testGetParamRandom()
-    {
-        assertEquals( "##XXxx", TextPatternMethod.RANDOM.getType().getParam( "RANDOM(##XXxx)" ) );
-    }
+  @Test
+  void testGetParamRandom() {
+    assertEquals("##XXxx", TextPatternMethod.RANDOM.getType().getParam("RANDOM(##XXxx)"));
+  }
 
-    @Test
-    void testGetParamSequential()
-    {
-        assertEquals( "###", TextPatternMethod.SEQUENTIAL.getType().getParam( "SEQUENTIAL(###)" ) );
-    }
+  @Test
+  void testGetParamSequential() {
+    assertEquals("###", TextPatternMethod.SEQUENTIAL.getType().getParam("SEQUENTIAL(###)"));
+  }
 
-    @Test
-    void testGetParamOrgUnitCode()
-    {
-        assertEquals( "...", TextPatternMethod.ORG_UNIT_CODE.getType().getParam( "ORG_UNIT_CODE(...)" ) );
-    }
+  @Test
+  void testGetParamOrgUnitCode() {
+    assertEquals("...", TextPatternMethod.ORG_UNIT_CODE.getType().getParam("ORG_UNIT_CODE(...)"));
+  }
 
-    @Test
-    void testGetParamCurrentDate()
-    {
-        assertEquals( "DDMMYYYY", TextPatternMethod.CURRENT_DATE.getType().getParam( "CURRENT_DATE(DDMMYYYY)" ) );
-    }
+  @Test
+  void testGetParamCurrentDate() {
+    assertEquals(
+        "DDMMYYYY", TextPatternMethod.CURRENT_DATE.getType().getParam("CURRENT_DATE(DDMMYYYY)"));
+  }
 
-    @Test
-    void testGetParamTextFails()
-    {
-        assertNull( TextPatternMethod.TEXT.getType().getParam( "Hello world" ) );
-    }
+  @Test
+  void testGetParamTextFails() {
+    assertNull(TextPatternMethod.TEXT.getType().getParam("Hello world"));
+  }
 
-    @Test
-    void testGetParamRandomFails()
-    {
-        assertNull( TextPatternMethod.RANDOM.getType().getParam( "INVALID(##XXxx)" ) );
-    }
+  @Test
+  void testGetParamRandomFails() {
+    assertNull(TextPatternMethod.RANDOM.getType().getParam("INVALID(##XXxx)"));
+  }
 
-    @Test
-    void testGetParamSequentialFails()
-    {
-        assertNull( TextPatternMethod.SEQUENTIAL.getType().getParam( "INVALID(###)" ) );
-    }
+  @Test
+  void testGetParamSequentialFails() {
+    assertNull(TextPatternMethod.SEQUENTIAL.getType().getParam("INVALID(###)"));
+  }
 
-    @Test
-    void testGetParamOrgUnitCodeFails()
-    {
-        assertNull( TextPatternMethod.ORG_UNIT_CODE.getType().getParam( "INVALID(...)" ) );
-    }
+  @Test
+  void testGetParamOrgUnitCodeFails() {
+    assertNull(TextPatternMethod.ORG_UNIT_CODE.getType().getParam("INVALID(...)"));
+  }
 
-    @Test
-    void testGetParamCurrentDateFails()
-    {
-        assertNull( TextPatternMethod.CURRENT_DATE.getType().getParam( "INVALID(DDMMYYYY)" ) );
-    }
+  @Test
+  void testGetParamCurrentDateFails() {
+    assertNull(TextPatternMethod.CURRENT_DATE.getType().getParam("INVALID(DDMMYYYY)"));
+  }
 
-    private void testSyntax( TextPatternMethod method, String[] input, boolean expected )
-    {
-        for ( String s : input )
-        {
-            assertEquals( expected, method.getType().validatePattern( s ) );
-        }
+  private void testSyntax(TextPatternMethod method, String[] input, boolean expected) {
+    for (String s : input) {
+      assertEquals(expected, method.getType().validatePattern(s));
     }
+  }
 }

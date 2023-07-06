@@ -28,23 +28,19 @@
 package org.hisp.dhis.security;
 
 import javax.xml.bind.DatatypeConverter;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.security.core.Authentication;
 
-public class AuthenticationSerializer
-{
+public class AuthenticationSerializer {
 
-    public static String serialize( Authentication authentication )
-    {
-        byte[] bytes = SerializationUtils.serialize( authentication );
-        return DatatypeConverter.printBase64Binary( bytes );
-    }
+  public static String serialize(Authentication authentication) {
+    byte[] bytes = SerializationUtils.serialize(authentication);
+    return DatatypeConverter.printBase64Binary(bytes);
+  }
 
-    public static Authentication deserialize( String authentication )
-    {
-        byte[] decoded = DatatypeConverter.parseBase64Binary( authentication );
-        Authentication auth = (Authentication) SerializationUtils.deserialize( decoded );
-        return auth;
-    }
+  public static Authentication deserialize(String authentication) {
+    byte[] decoded = DatatypeConverter.parseBase64Binary(authentication);
+    Authentication auth = (Authentication) SerializationUtils.deserialize(decoded);
+    return auth;
+  }
 }

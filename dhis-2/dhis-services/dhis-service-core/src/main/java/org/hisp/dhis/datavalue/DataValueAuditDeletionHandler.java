@@ -39,55 +39,50 @@ import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.datavalue.DataValueAuditDeletionHandler" )
-public class DataValueAuditDeletionHandler
-    extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( DataValueAudit.class );
+@Component("org.hisp.dhis.datavalue.DataValueAuditDeletionHandler")
+public class DataValueAuditDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(DataValueAudit.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public DataValueAuditDeletionHandler( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-        this.jdbcTemplate = jdbcTemplate;
-    }
+  public DataValueAuditDeletionHandler(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
+    this.jdbcTemplate = jdbcTemplate;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+    whenVetoing(CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo);
+  }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "SELECT COUNT(*) FROM datavalueaudit where dataelementid=" + dataElement.getId();
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    String sql = "SELECT COUNT(*) FROM datavalueaudit where dataelementid=" + dataElement.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 
-    private DeletionVeto allowDeletePeriod( Period period )
-    {
-        String sql = "SELECT COUNT(*) FROM datavalueaudit where periodid=" + period.getId();
+  private DeletionVeto allowDeletePeriod(Period period) {
+    String sql = "SELECT COUNT(*) FROM datavalueaudit where periodid=" + period.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 
-    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
-    {
-        String sql = "SELECT COUNT(*) FROM datavalueaudit where organisationunitid=" + unit.getId();
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    String sql = "SELECT COUNT(*) FROM datavalueaudit where organisationunitid=" + unit.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 
-    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
-    {
-        String sql = "SELECT COUNT(*) FROM datavalueaudit where categoryoptioncomboid=" + optionCombo.getId()
-            + " or attributeoptioncomboid=" + optionCombo.getId();
+  private DeletionVeto allowDeleteCategoryOptionCombo(CategoryOptionCombo optionCombo) {
+    String sql =
+        "SELECT COUNT(*) FROM datavalueaudit where categoryoptioncomboid="
+            + optionCombo.getId()
+            + " or attributeoptioncomboid="
+            + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
 }

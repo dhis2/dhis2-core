@@ -30,9 +30,9 @@ package org.hisp.dhis.schema;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -41,67 +41,55 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class SchemaValidatorTest extends DhisSpringTest
-{
+class SchemaValidatorTest extends DhisSpringTest {
 
-    @Autowired
-    private SchemaValidator schemaValidator;
+  @Autowired private SchemaValidator schemaValidator;
 
-    @Test
-    void testCollectionOutOfMinRange()
-    {
-        TestCollectionSize objectUnderTest = new TestCollectionSize();
-        List<ErrorReport> errorReports = schemaValidator.validate( objectUnderTest, false );
-        assertEquals( 1, errorReports.size() );
-        assertEquals( ErrorCode.E4007, errorReports.get( 0 ).getErrorCode() );
+  @Test
+  void testCollectionOutOfMinRange() {
+    TestCollectionSize objectUnderTest = new TestCollectionSize();
+    List<ErrorReport> errorReports = schemaValidator.validate(objectUnderTest, false);
+    assertEquals(1, errorReports.size());
+    assertEquals(ErrorCode.E4007, errorReports.get(0).getErrorCode());
+  }
+
+  @Test
+  void testCollectionOutOfMaxRange() {
+    TestCollectionSize objectUnderTest = new TestCollectionSize();
+    objectUnderTest.getItems().add("Item #1");
+    objectUnderTest.getItems().add("Item #2");
+    objectUnderTest.getItems().add("Item #3");
+    List<ErrorReport> errorReports = schemaValidator.validate(objectUnderTest, false);
+    assertEquals(1, errorReports.size());
+    assertEquals(ErrorCode.E4007, errorReports.get(0).getErrorCode());
+  }
+
+  @Test
+  void testCollectionInRange() {
+    TestCollectionSize objectUnderTest = new TestCollectionSize();
+    objectUnderTest.getItems().add("Item #1");
+    objectUnderTest.getItems().add("Item #2");
+    List<ErrorReport> errorReports = schemaValidator.validate(objectUnderTest, false);
+    assertTrue(errorReports.isEmpty());
+  }
+
+  public static class TestCollectionSize {
+
+    private List<String> items = new ArrayList<>();
+
+    public TestCollectionSize() {}
+
+    @JsonProperty
+    @PropertyRange(min = 1, max = 2)
+    public List<String> getItems() {
+      return items;
     }
 
-    @Test
-    void testCollectionOutOfMaxRange()
-    {
-        TestCollectionSize objectUnderTest = new TestCollectionSize();
-        objectUnderTest.getItems().add( "Item #1" );
-        objectUnderTest.getItems().add( "Item #2" );
-        objectUnderTest.getItems().add( "Item #3" );
-        List<ErrorReport> errorReports = schemaValidator.validate( objectUnderTest, false );
-        assertEquals( 1, errorReports.size() );
-        assertEquals( ErrorCode.E4007, errorReports.get( 0 ).getErrorCode() );
+    public void setItems(List<String> items) {
+      this.items = items;
     }
-
-    @Test
-    void testCollectionInRange()
-    {
-        TestCollectionSize objectUnderTest = new TestCollectionSize();
-        objectUnderTest.getItems().add( "Item #1" );
-        objectUnderTest.getItems().add( "Item #2" );
-        List<ErrorReport> errorReports = schemaValidator.validate( objectUnderTest, false );
-        assertTrue( errorReports.isEmpty() );
-    }
-
-    public static class TestCollectionSize
-    {
-
-        private List<String> items = new ArrayList<>();
-
-        public TestCollectionSize()
-        {
-        }
-
-        @JsonProperty
-        @PropertyRange( min = 1, max = 2 )
-        public List<String> getItems()
-        {
-            return items;
-        }
-
-        public void setItems( List<String> items )
-        {
-            this.items = items;
-        }
-    }
+  }
 }

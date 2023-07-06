@@ -32,7 +32,6 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
 import java.util.Iterator;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -42,66 +41,56 @@ import org.springframework.stereotype.Component;
 /**
  * @author Quang Nguyen
  */
-@Component( "org.hisp.dhis.program.ProgramInstanceDeletionHandler" )
-public class ProgramInstanceDeletionHandler
-    extends
-    DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramInstance.class );
+@Component("org.hisp.dhis.program.ProgramInstanceDeletionHandler")
+public class ProgramInstanceDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(ProgramInstance.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    private final ProgramInstanceService programInstanceService;
+  private final ProgramInstanceService programInstanceService;
 
-    public ProgramInstanceDeletionHandler( JdbcTemplate jdbcTemplate, ProgramInstanceService programInstanceService )
-    {
-        checkNotNull( programInstanceService );
-        checkNotNull( jdbcTemplate );
-        this.programInstanceService = programInstanceService;
-        this.jdbcTemplate = jdbcTemplate;
+  public ProgramInstanceDeletionHandler(
+      JdbcTemplate jdbcTemplate, ProgramInstanceService programInstanceService) {
+    checkNotNull(programInstanceService);
+    checkNotNull(jdbcTemplate);
+    this.programInstanceService = programInstanceService;
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntityInstance.class, this::deleteTrackedEntityInstance);
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private void deleteTrackedEntityInstance(TrackedEntityInstance trackedEntityInstance) {
+    for (ProgramInstance programInstance : trackedEntityInstance.getProgramInstances()) {
+      programInstanceService.deleteProgramInstance(programInstance);
+    }
+  }
+
+  private DeletionVeto allowDeleteProgram(Program program) {
+    if (program.isWithoutRegistration()) {
+      return ACCEPT;
     }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
-        whenVetoing( Program.class, this::allowDeleteProgram );
-        whenDeleting( Program.class, this::deleteProgram );
+    String sql = "SELECT COUNT(*) FROM programinstance where programid = " + program.getId();
+
+    return jdbcTemplate.queryForObject(sql, Integer.class) == 0 ? ACCEPT : VETO;
+  }
+
+  private void deleteProgram(Program program) {
+    Collection<ProgramInstance> programInstances =
+        programInstanceService.getProgramInstances(program);
+
+    if (programInstances != null) {
+      Iterator<ProgramInstance> iterator = programInstances.iterator();
+      while (iterator.hasNext()) {
+        ProgramInstance programInstance = iterator.next();
+        iterator.remove();
+        programInstanceService.hardDeleteProgramInstance(programInstance);
+      }
     }
-
-    private void deleteTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
-    {
-        for ( ProgramInstance programInstance : trackedEntityInstance.getProgramInstances() )
-        {
-            programInstanceService.deleteProgramInstance( programInstance );
-        }
-    }
-
-    private DeletionVeto allowDeleteProgram( Program program )
-    {
-        if ( program.isWithoutRegistration() )
-        {
-            return ACCEPT;
-        }
-
-        String sql = "SELECT COUNT(*) FROM programinstance where programid = " + program.getId();
-
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
-    }
-
-    private void deleteProgram( Program program )
-    {
-        Collection<ProgramInstance> programInstances = programInstanceService.getProgramInstances( program );
-
-        if ( programInstances != null )
-        {
-            Iterator<ProgramInstance> iterator = programInstances.iterator();
-            while ( iterator.hasNext() )
-            {
-                ProgramInstance programInstance = iterator.next();
-                iterator.remove();
-                programInstanceService.hardDeleteProgramInstance( programInstance );
-            }
-        }
-    }
+  }
 }

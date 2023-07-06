@@ -34,13 +34,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.webapi.filter.RequestIdentifierFilter;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,63 +53,50 @@ import org.slf4j.MDC;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class RequestIdentifierFilterTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class RequestIdentifierFilterTest {
 
-    @Mock
-    private DhisConfigurationProvider dhisConfigurationProvider;
+  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-    private RequestIdentifierFilter subject;
+  private RequestIdentifierFilter subject;
 
-    @BeforeEach
-    public void setUp()
-    {
-        MDC.clear();
-    }
+  @BeforeEach
+  public void setUp() {
+    MDC.clear();
+  }
 
-    @Test
-    void testIsDisabled()
-        throws ServletException,
-        IOException
-    {
-        init( false );
-        doFilter();
+  @Test
+  void testIsDisabled() throws ServletException, IOException {
+    init(false);
+    doFilter();
 
-        assertNull( MDC.get( "sessionId" ) );
-    }
+    assertNull(MDC.get("sessionId"));
+  }
 
-    @Test
-    void testIsEnabled()
-        throws ServletException,
-        IOException
-    {
-        init( true );
-        doFilter();
+  @Test
+  void testIsEnabled() throws ServletException, IOException {
+    init(true);
+    doFilter();
 
-        assertNotNull( MDC.get( "sessionId" ) );
-    }
+    assertNotNull(MDC.get("sessionId"));
+  }
 
-    private void doFilter()
-        throws ServletException,
-        IOException
-    {
-        HttpServletRequest req = mock( HttpServletRequest.class );
-        HttpServletResponse res = mock( HttpServletResponse.class );
-        FilterChain filterChain = mock( FilterChain.class );
+  private void doFilter() throws ServletException, IOException {
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse res = mock(HttpServletResponse.class);
+    FilterChain filterChain = mock(FilterChain.class);
 
-        HttpSession session = mock( HttpSession.class );
+    HttpSession session = mock(HttpSession.class);
 
-        when( req.getSession() ).thenReturn( session );
-        when( session.getId() ).thenReturn( "ABCDEFGHILMNO" );
+    when(req.getSession()).thenReturn(session);
+    when(session.getId()).thenReturn("ABCDEFGHILMNO");
 
-        subject.doFilter( req, res, filterChain );
-    }
+    subject.doFilter(req, res, filterChain);
+  }
 
-    private void init( boolean enabled )
-    {
-        when( dhisConfigurationProvider.isEnabled( LOGGING_REQUEST_ID_ENABLED ) ).thenReturn( enabled );
-        subject = new RequestIdentifierFilter( dhisConfigurationProvider );
-    }
+  private void init(boolean enabled) {
+    when(dhisConfigurationProvider.isEnabled(LOGGING_REQUEST_ID_ENABLED)).thenReturn(enabled);
+    subject = new RequestIdentifierFilter(dhisConfigurationProvider);
+  }
 }

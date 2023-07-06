@@ -31,27 +31,22 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" )
-public class SequentialNumberCounterDeletionHandler
-    extends DeletionHandler
-{
+@Component("org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler")
+public class SequentialNumberCounterDeletionHandler extends DeletionHandler {
 
-    private final SequentialNumberCounterStore sequentialNumberCounterStore;
+  private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
-    public SequentialNumberCounterDeletionHandler(
-        SequentialNumberCounterStore sequentialNumberCounterStore )
-    {
-        this.sequentialNumberCounterStore = sequentialNumberCounterStore;
-    }
+  public SequentialNumberCounterDeletionHandler(
+      SequentialNumberCounterStore sequentialNumberCounterStore) {
+    this.sequentialNumberCounterStore = sequentialNumberCounterStore;
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute);
+  }
 
-    private void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        sequentialNumberCounterStore.deleteCounter( attribute.getUid() );
-    }
+  private void deleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    sequentialNumberCounterStore.deleteCounter(attribute.getUid());
+  }
 }

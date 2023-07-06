@@ -32,8 +32,7 @@ package org.hisp.dhis.analytics;
  *
  * @author Lars Helge Overland
  */
-public enum OutputFormat
-{
-    ANALYTICS,
-    DATA_VALUE_SET
+public enum OutputFormat {
+  ANALYTICS,
+  DATA_VALUE_SET
 }

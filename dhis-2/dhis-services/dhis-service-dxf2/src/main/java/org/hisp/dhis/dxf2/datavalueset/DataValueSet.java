@@ -29,232 +29,215 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.datavalue.DataValue;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
 
 /**
  * @author Lars Helge Overland
  */
 @Setter
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "dataValueSet", namespace = DxfNamespaces.DXF_2_0 )
-public final class DataValueSet
-{
-    // --------------------------------------------------------------------------
-    // Options
-    // --------------------------------------------------------------------------
+@JacksonXmlRootElement(localName = "dataValueSet", namespace = DxfNamespaces.DXF_2_0)
+public final class DataValueSet {
+  // --------------------------------------------------------------------------
+  // Options
+  // --------------------------------------------------------------------------
 
-    private String idScheme;
+  private String idScheme;
 
-    private String dataElementIdScheme;
+  private String dataElementIdScheme;
 
-    private String orgUnitIdScheme;
+  private String orgUnitIdScheme;
 
-    private String categoryOptionComboIdScheme;
+  private String categoryOptionComboIdScheme;
 
-    private String dataSetIdScheme;
+  private String dataSetIdScheme;
 
-    private Boolean dryRun;
+  private Boolean dryRun;
 
-    private String strategy;
+  private String strategy;
 
-    // --------------------------------------------------------------------------
-    // Properties
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Properties
+  // --------------------------------------------------------------------------
 
-    private String dataSet;
+  private String dataSet;
 
-    private String completeDate;
+  private String completeDate;
 
-    private String period;
+  private String period;
 
-    private String orgUnit;
+  private String orgUnit;
 
-    private String attributeOptionCombo;
+  private String attributeOptionCombo;
 
-    private List<DataValue> dataValues = new ArrayList<>();
+  private List<DataValue> dataValues = new ArrayList<>();
 
-    private List<String> attributeCategoryOptions;
+  private List<String> attributeCategoryOptions;
 
-    // --------------------------------------------------------------------------
-    // Getters and setters
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // Getters and setters
+  // --------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getIdScheme()
-    {
-        return idScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getIdScheme() {
+    return idScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getDataElementIdScheme()
-    {
-        return dataElementIdScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getDataElementIdScheme() {
+    return dataElementIdScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getOrgUnitIdScheme()
-    {
-        return orgUnitIdScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getOrgUnitIdScheme() {
+    return orgUnitIdScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCategoryOptionComboIdScheme()
-    {
-        return categoryOptionComboIdScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCategoryOptionComboIdScheme() {
+    return categoryOptionComboIdScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getDataSetIdScheme()
-    {
-        return dataSetIdScheme;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getDataSetIdScheme() {
+    return dataSetIdScheme;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Boolean getDryRun()
-    {
-        return dryRun;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public Boolean getDryRun() {
+    return dryRun;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getStrategy()
-    {
-        return strategy;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getStrategy() {
+    return strategy;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getDataSet()
-    {
-        return dataSet;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getDataSet() {
+    return dataSet;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getCompleteDate()
-    {
-        return completeDate;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCompleteDate() {
+    return completeDate;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getPeriod()
-    {
-        return period;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getPeriod() {
+    return period;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getOrgUnit()
-    {
-        return orgUnit;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getOrgUnit() {
+    return orgUnit;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getAttributeOptionCombo()
-    {
-        return attributeOptionCombo;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getAttributeOptionCombo() {
+    return attributeOptionCombo;
+  }
 
-    @JsonProperty( value = "dataValues" )
-    @JacksonXmlElementWrapper( localName = "dataValues", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataValue> getDataValues()
-    {
-        return dataValues;
-    }
+  @JsonProperty(value = "dataValues")
+  @JacksonXmlElementWrapper(
+      localName = "dataValues",
+      useWrapping = false,
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "dataValue", namespace = DxfNamespaces.DXF_2_0)
+  public List<DataValue> getDataValues() {
+    return dataValues;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getAttributeCategoryOptions()
-    {
-        return attributeCategoryOptions;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getAttributeCategoryOptions() {
+    return attributeCategoryOptions;
+  }
 
-    /**
-     * Returns the general identifier scheme. IdScheme.NULL is returned if
-     * scheme has not been set.
-     */
-    public IdScheme getIdSchemeProperty()
-    {
-        String scheme = getIdScheme();
-        return IdScheme.from( scheme );
-    }
+  /**
+   * Returns the general identifier scheme. IdScheme.NULL is returned if scheme has not been set.
+   */
+  public IdScheme getIdSchemeProperty() {
+    String scheme = getIdScheme();
+    return IdScheme.from(scheme);
+  }
 
-    /**
-     * Returns the data element identifier scheme. Falls back to the general
-     * identifier scheme if not set. IdScheme.NULL is returned if no scheme has
-     * been set.
-     */
-    public IdScheme getDataElementIdSchemeProperty()
-    {
-        return getIdScheme( getDataElementIdScheme() );
-    }
+  /**
+   * Returns the data element identifier scheme. Falls back to the general identifier scheme if not
+   * set. IdScheme.NULL is returned if no scheme has been set.
+   */
+  public IdScheme getDataElementIdSchemeProperty() {
+    return getIdScheme(getDataElementIdScheme());
+  }
 
-    /**
-     * Returns the organisation unit identifier scheme. Falls back to the
-     * general identifier scheme if not set. IdScheme.NULL is returned if no
-     * scheme has been set.
-     */
-    public IdScheme getOrgUnitIdSchemeProperty()
-    {
-        return getIdScheme( getOrgUnitIdScheme() );
-    }
+  /**
+   * Returns the organisation unit identifier scheme. Falls back to the general identifier scheme if
+   * not set. IdScheme.NULL is returned if no scheme has been set.
+   */
+  public IdScheme getOrgUnitIdSchemeProperty() {
+    return getIdScheme(getOrgUnitIdScheme());
+  }
 
-    /**
-     * Returns the category option combo identifier scheme. Falls back to the
-     * general identifier scheme if not set. IdScheme.NULL is returned if no
-     * scheme has been set.
-     */
-    public IdScheme getCategoryOptionComboIdSchemeProperty()
-    {
-        return getIdScheme( getCategoryOptionComboIdScheme() );
-    }
+  /**
+   * Returns the category option combo identifier scheme. Falls back to the general identifier
+   * scheme if not set. IdScheme.NULL is returned if no scheme has been set.
+   */
+  public IdScheme getCategoryOptionComboIdSchemeProperty() {
+    return getIdScheme(getCategoryOptionComboIdScheme());
+  }
 
-    /**
-     * Returns the data set identifier scheme. Falls back to the general
-     * identifier scheme if not set. IdScheme.NULL is returned if no scheme has
-     * been set.
-     */
-    public IdScheme getDataSetIdSchemeProperty()
-    {
-        return getIdScheme( getDataSetIdScheme() );
-    }
+  /**
+   * Returns the data set identifier scheme. Falls back to the general identifier scheme if not set.
+   * IdScheme.NULL is returned if no scheme has been set.
+   */
+  public IdScheme getDataSetIdSchemeProperty() {
+    return getIdScheme(getDataSetIdScheme());
+  }
 
-    private IdScheme getIdScheme( String objectIdScheme )
-    {
-        String scheme = getIdScheme();
-        scheme = defaultIfEmpty( objectIdScheme, scheme );
-        return IdScheme.from( scheme );
-    }
+  private IdScheme getIdScheme(String objectIdScheme) {
+    String scheme = getIdScheme();
+    scheme = defaultIfEmpty(objectIdScheme, scheme);
+    return IdScheme.from(scheme);
+  }
 
-    // --------------------------------------------------------------------------
-    // toString
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // toString
+  // --------------------------------------------------------------------------
 
-    @Override
-    public String toString()
-    {
-        return "[" + dataSet + ", " + completeDate + ", " + period + ", " + orgUnit + ", " + dataValues.size() + "]";
-    }
+  @Override
+  public String toString() {
+    return "["
+        + dataSet
+        + ", "
+        + completeDate
+        + ", "
+        + period
+        + ", "
+        + orgUnit
+        + ", "
+        + dataValues.size()
+        + "]";
+  }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.config;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.springframework.stereotype.Component;
@@ -37,36 +36,32 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar.
  */
-@Component( "org.hisp.dhis.sms.config.SMPPGateway" )
-public class SMPPGateway extends SmsGateway
-{
-    private final SMPPClient smppClient;
+@Component("org.hisp.dhis.sms.config.SMPPGateway")
+public class SMPPGateway extends SmsGateway {
+  private final SMPPClient smppClient;
 
-    public SMPPGateway( SMPPClient smppClient )
-    {
-        this.smppClient = smppClient;
-    }
+  public SMPPGateway(SMPPClient smppClient) {
+    this.smppClient = smppClient;
+  }
 
-    @Override
-    public boolean accept( SmsGatewayConfig gatewayConfig )
-    {
-        return gatewayConfig instanceof SMPPGatewayConfig;
-    }
+  @Override
+  public boolean accept(SmsGatewayConfig gatewayConfig) {
+    return gatewayConfig instanceof SMPPGatewayConfig;
+  }
 
-    @Override
-    public OutboundMessageResponse send( String subject, String text, Set<String> recipients,
-        SmsGatewayConfig gatewayConfig )
-    {
-        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
+  @Override
+  public OutboundMessageResponse send(
+      String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig) {
+    SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
 
-        return smppClient.send( text, recipients, config );
-    }
+    return smppClient.send(text, recipients, config);
+  }
 
-    @Override
-    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
-    {
-        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
+  @Override
+  public List<OutboundMessageResponse> sendBatch(
+      OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig) {
+    SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
 
-        return smppClient.sendBatch( batch, config );
-    }
+    return smppClient.sendBatch(batch, config);
+  }
 }

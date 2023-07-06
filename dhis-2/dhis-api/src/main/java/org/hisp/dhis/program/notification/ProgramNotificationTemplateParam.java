@@ -30,38 +30,36 @@ package org.hisp.dhis.program.notification;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Zubair Asghar
  */
-
 @Data
 @NoArgsConstructor
-public class ProgramNotificationTemplateParam extends BaseNotificationParam
-{
-    @Builder
-    public ProgramNotificationTemplateParam( Integer page, Integer pageSize, boolean skipPaging, Program program,
-        ProgramStage programStage )
-    {
-        super( page, pageSize, skipPaging );
-        this.program = program;
-        this.programStage = programStage;
-    }
+public class ProgramNotificationTemplateParam extends BaseNotificationParam {
+  @Builder
+  public ProgramNotificationTemplateParam(
+      Integer page,
+      Integer pageSize,
+      boolean skipPaging,
+      Program program,
+      ProgramStage programStage) {
+    super(page, pageSize, skipPaging);
+    this.program = program;
+    this.programStage = programStage;
+  }
 
-    private Program program;
+  private Program program;
 
-    private ProgramStage programStage;
+  private ProgramStage programStage;
 
-    public boolean hasProgram()
-    {
-        return this.program != null;
-    }
+  public boolean hasProgram() {
+    return this.program != null;
+  }
 
-    public boolean hasProgramStage()
-    {
-        return this.programStage != null;
-    }
+  public boolean hasProgramStage() {
+    return this.programStage != null;
+  }
 }

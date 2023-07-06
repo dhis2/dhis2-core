@@ -31,19 +31,20 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.validation.ValidationController} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.validation.ValidationController} using (mocked)
+ * REST requests.
  *
  * @author Jan Bernitt
  */
-class ValidationControllerTest extends DhisControllerConvenienceTest
-{
+class ValidationControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testRunValidationNotificationsTask()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated validation result notification",
-            POST( "/validation/sendNotifications" ).content() );
-    }
+  @Test
+  void testRunValidationNotificationsTask() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated validation result notification",
+        POST("/validation/sendNotifications").content());
+  }
 }

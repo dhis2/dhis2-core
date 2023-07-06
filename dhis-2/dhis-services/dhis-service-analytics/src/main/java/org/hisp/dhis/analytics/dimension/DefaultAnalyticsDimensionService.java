@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.category.Category;
@@ -49,63 +48,56 @@ import org.springframework.stereotype.Service;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.analytics.dimension.AnalyticsDimensionService" )
-public class DefaultAnalyticsDimensionService
-    implements AnalyticsDimensionService
-{
-    @Autowired
-    private DataQueryService dataQueryService;
+@Service("org.hisp.dhis.analytics.dimension.AnalyticsDimensionService")
+public class DefaultAnalyticsDimensionService implements AnalyticsDimensionService {
+  @Autowired private DataQueryService dataQueryService;
 
-    @Autowired
-    private AclService aclService;
+  @Autowired private AclService aclService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Override
-    public List<DimensionalObject> getRecommendedDimensions( DataQueryRequest request )
-    {
-        DataQueryParams params = dataQueryService.getFromRequest( request );
+  @Override
+  public List<DimensionalObject> getRecommendedDimensions(DataQueryRequest request) {
+    DataQueryParams params = dataQueryService.getFromRequest(request);
 
-        return getRecommendedDimensions( params );
+    return getRecommendedDimensions(params);
+  }
+
+  @Override
+  public List<DimensionalObject> getRecommendedDimensions(DataQueryParams params) {
+    User user = currentUserService.getCurrentUser();
+
+    Set<DimensionalObject> dimensions = new HashSet<>();
+
+    if (!params.getDataElements().isEmpty()) {
+      dimensions.addAll(
+          params.getDataElements().stream()
+              .map(de -> ((DataElement) de).getCategoryCombos())
+              .flatMap(cc -> cc.stream())
+              .map(cc -> cc.getCategories())
+              .flatMap(c -> c.stream())
+              .filter(Category::isDataDimension)
+              .collect(Collectors.toSet()));
+
+      dimensions.addAll(
+          params.getDataElements().stream()
+              .map(de -> ((DataElement) de).getDataSets())
+              .flatMap(ds -> ds.stream())
+              .map(ds -> ds.getCategoryCombo().getCategories())
+              .flatMap(c -> c.stream())
+              .filter(Category::isDataDimension)
+              .collect(Collectors.toSet()));
     }
 
-    @Override
-    public List<DimensionalObject> getRecommendedDimensions( DataQueryParams params )
-    {
-        User user = currentUserService.getCurrentUser();
+    dimensions.addAll(idObjectManager.getDataDimensions(OrganisationUnitGroupSet.class));
 
-        Set<DimensionalObject> dimensions = new HashSet<>();
+    // TODO Filter org unit group sets
 
-        if ( !params.getDataElements().isEmpty() )
-        {
-            dimensions.addAll( params.getDataElements().stream()
-                .map( de -> ((DataElement) de).getCategoryCombos() )
-                .flatMap( cc -> cc.stream() )
-                .map( cc -> cc.getCategories() )
-                .flatMap( c -> c.stream() )
-                .filter( Category::isDataDimension )
-                .collect( Collectors.toSet() ) );
-
-            dimensions.addAll( params.getDataElements().stream()
-                .map( de -> ((DataElement) de).getDataSets() )
-                .flatMap( ds -> ds.stream() )
-                .map( ds -> ds.getCategoryCombo().getCategories() )
-                .flatMap( c -> c.stream() )
-                .filter( Category::isDataDimension )
-                .collect( Collectors.toSet() ) );
-        }
-
-        dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
-
-        // TODO Filter org unit group sets
-
-        return dimensions.stream()
-            .filter( d -> aclService.canDataOrMetadataRead( user, d ) )
-            .sorted()
-            .collect( Collectors.toList() );
-    }
+    return dimensions.stream()
+        .filter(d -> aclService.canDataOrMetadataRead(user, d))
+        .sorted()
+        .collect(Collectors.toList());
+  }
 }

@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -45,107 +46,102 @@ import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-class OrgUnitSplitServiceTest extends DhisSpringTest
-{
+class OrgUnitSplitServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private OrgUnitSplitService service;
+  @Autowired private OrgUnitSplitService service;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    private PeriodType ptA;
+  private PeriodType ptA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    @Override
-    public void setUpTest()
-    {
-        ptA = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-    }
+  @Override
+  public void setUpTest() {
+    ptA = periodService.getPeriodTypeByClass(MonthlyPeriodType.class);
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+    idObjectManager.save(ouC);
+  }
 
-    @Test
-    void testGetFromQuery()
-    {
-        OrgUnitSplitQuery query = new OrgUnitSplitQuery();
-        query.setSource( BASE_OU_UID + 'A' );
-        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
-        query.setPrimaryTarget( BASE_OU_UID + 'B' );
-        OrgUnitSplitRequest request = service.getFromQuery( query );
-        assertEquals( ouA, request.getSource() );
-        assertEquals( 2, request.getTargets().size() );
-        assertTrue( request.getTargets().contains( ouB ) );
-        assertTrue( request.getTargets().contains( ouC ) );
-        assertEquals( ouB, request.getPrimaryTarget() );
-        assertTrue( request.isDeleteSource() );
-    }
+  @Test
+  void testGetFromQuery() {
+    OrgUnitSplitQuery query = new OrgUnitSplitQuery();
+    query.setSource(BASE_OU_UID + 'A');
+    query.setTargets(Lists.newArrayList(BASE_OU_UID + 'B', BASE_OU_UID + 'C'));
+    query.setPrimaryTarget(BASE_OU_UID + 'B');
+    OrgUnitSplitRequest request = service.getFromQuery(query);
+    assertEquals(ouA, request.getSource());
+    assertEquals(2, request.getTargets().size());
+    assertTrue(request.getTargets().contains(ouB));
+    assertTrue(request.getTargets().contains(ouC));
+    assertEquals(ouB, request.getPrimaryTarget());
+    assertTrue(request.isDeleteSource());
+  }
 
-    @Test
-    void testTargetOrgUnitNotFound()
-    {
-        OrgUnitSplitQuery query = new OrgUnitSplitQuery();
-        query.setSource( BASE_OU_UID + 'A' );
-        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'X' ) );
-        query.setPrimaryTarget( BASE_OU_UID + 'B' );
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> service.getFromQuery( query ) );
-        assertEquals( ErrorCode.E1515, ex.getErrorCode() );
-    }
+  @Test
+  void testTargetOrgUnitNotFound() {
+    OrgUnitSplitQuery query = new OrgUnitSplitQuery();
+    query.setSource(BASE_OU_UID + 'A');
+    query.setTargets(Lists.newArrayList(BASE_OU_UID + 'B', BASE_OU_UID + 'X'));
+    query.setPrimaryTarget(BASE_OU_UID + 'B');
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> service.getFromQuery(query));
+    assertEquals(ErrorCode.E1515, ex.getErrorCode());
+  }
 
-    @Test
-    void testGetFromQueryWithoutPrimaryTarget()
-    {
-        OrgUnitSplitQuery query = new OrgUnitSplitQuery();
-        query.setSource( BASE_OU_UID + 'A' );
-        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'C' ) );
-        OrgUnitSplitRequest request = service.getFromQuery( query );
-        assertEquals( ouA, request.getSource() );
-        assertEquals( 2, request.getTargets().size() );
-        assertTrue( request.getTargets().contains( ouB ) );
-        assertTrue( request.getTargets().contains( ouC ) );
-        assertEquals( ouB, request.getPrimaryTarget() );
-        assertTrue( request.isDeleteSource() );
-    }
+  @Test
+  void testGetFromQueryWithoutPrimaryTarget() {
+    OrgUnitSplitQuery query = new OrgUnitSplitQuery();
+    query.setSource(BASE_OU_UID + 'A');
+    query.setTargets(Lists.newArrayList(BASE_OU_UID + 'B', BASE_OU_UID + 'C'));
+    OrgUnitSplitRequest request = service.getFromQuery(query);
+    assertEquals(ouA, request.getSource());
+    assertEquals(2, request.getTargets().size());
+    assertTrue(request.getTargets().contains(ouB));
+    assertTrue(request.getTargets().contains(ouC));
+    assertEquals(ouB, request.getPrimaryTarget());
+    assertTrue(request.isDeleteSource());
+  }
 
-    @Test
-    void testSplit()
-    {
-        DataSet dsA = createDataSet( 'A', ptA );
-        dsA.addOrganisationUnit( ouA );
-        DataSet dsB = createDataSet( 'B', ptA );
-        dsB.addOrganisationUnit( ouA );
-        idObjectManager.save( dsA );
-        idObjectManager.save( dsB );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
-            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
-        assertEquals( 2, ouA.getDataSets().size() );
-        assertEquals( 0, ouB.getDataSets().size() );
-        assertEquals( 0, ouC.getDataSets().size() );
-        service.split( request );
-        assertEquals( 2, ouB.getDataSets().size() );
-        assertEquals( 2, ouC.getDataSets().size() );
-        assertNull( idObjectManager.get( OrganisationUnit.class, ouA.getUid() ) );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouB.getUid() ) );
-        assertNotNull( idObjectManager.get( OrganisationUnit.class, ouC.getUid() ) );
-    }
+  @Test
+  void testSplit() {
+    DataSet dsA = createDataSet('A', ptA);
+    dsA.addOrganisationUnit(ouA);
+    DataSet dsB = createDataSet('B', ptA);
+    dsB.addOrganisationUnit(ouA);
+    idObjectManager.save(dsA);
+    idObjectManager.save(dsB);
+    assertNotNull(idObjectManager.get(OrganisationUnit.class, ouA.getUid()));
+    assertNotNull(idObjectManager.get(OrganisationUnit.class, ouB.getUid()));
+    assertNotNull(idObjectManager.get(OrganisationUnit.class, ouC.getUid()));
+    OrgUnitSplitRequest request =
+        new OrgUnitSplitRequest.Builder()
+            .withSource(ouA)
+            .addTarget(ouB)
+            .addTarget(ouC)
+            .withPrimaryTarget(ouB)
+            .build();
+    assertEquals(2, ouA.getDataSets().size());
+    assertEquals(0, ouB.getDataSets().size());
+    assertEquals(0, ouC.getDataSets().size());
+    service.split(request);
+    assertEquals(2, ouB.getDataSets().size());
+    assertEquals(2, ouC.getDataSets().size());
+    assertNull(idObjectManager.get(OrganisationUnit.class, ouA.getUid()));
+    assertNotNull(idObjectManager.get(OrganisationUnit.class, ouB.getUid()));
+    assertNotNull(idObjectManager.get(OrganisationUnit.class, ouC.getUid()));
+  }
 }

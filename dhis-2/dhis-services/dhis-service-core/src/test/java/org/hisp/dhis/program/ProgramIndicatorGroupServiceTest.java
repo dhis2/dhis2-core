@@ -37,40 +37,34 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class ProgramIndicatorGroupServiceTest extends DhisSpringTest
-{
+class ProgramIndicatorGroupServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private ProgramIndicatorService service;
+  @Autowired private ProgramIndicatorService service;
 
-    private ProgramIndicatorGroup programIndicatorGroupA;
+  private ProgramIndicatorGroup programIndicatorGroupA;
 
-    @Override
-    public void setUpTest()
-    {
-        programIndicatorGroupA = new ProgramIndicatorGroup( "A" );
-    }
+  @Override
+  public void setUpTest() {
+    programIndicatorGroupA = new ProgramIndicatorGroup("A");
+  }
 
-    @Test
-    void testAddProgramIndicatorGroup()
-    {
-        service.addProgramIndicatorGroup( programIndicatorGroupA );
-        assertNotNull( programIndicatorGroupA.getUid() );
-    }
+  @Test
+  void testAddProgramIndicatorGroup() {
+    service.addProgramIndicatorGroup(programIndicatorGroupA);
+    assertNotNull(programIndicatorGroupA.getUid());
+  }
 
-    @Test
-    void testUpdateProgramIndicatorGroup()
-    {
-        service.addProgramIndicatorGroup( programIndicatorGroupA );
-        programIndicatorGroupA.setName( "B" );
-        assertEquals( "B", service.getProgramIndicatorGroup( programIndicatorGroupA.getId() ).getName() );
-    }
+  @Test
+  void testUpdateProgramIndicatorGroup() {
+    service.addProgramIndicatorGroup(programIndicatorGroupA);
+    programIndicatorGroupA.setName("B");
+    assertEquals("B", service.getProgramIndicatorGroup(programIndicatorGroupA.getId()).getName());
+  }
 
-    @Test
-    void testDeleteProgramIndicatorGroup()
-    {
-        long id = service.addProgramIndicatorGroup( programIndicatorGroupA );
-        service.deleteProgramIndicatorGroup( programIndicatorGroupA );
-        assertEquals( null, service.getProgramIndicatorGroup( id ) );
-    }
+  @Test
+  void testDeleteProgramIndicatorGroup() {
+    long id = service.addProgramIndicatorGroup(programIndicatorGroupA);
+    service.deleteProgramIndicatorGroup(programIndicatorGroupA);
+    assertEquals(null, service.getProgramIndicatorGroup(id));
+  }
 }

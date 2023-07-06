@@ -40,106 +40,99 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-class CrudControllerPagingTest extends DhisControllerConvenienceTest
-{
-    @Autowired
-    private OrganisationUnitService ouService;
+class CrudControllerPagingTest extends DhisControllerConvenienceTest {
+  @Autowired private OrganisationUnitService ouService;
 
-    @BeforeEach
-    void setUp()
-    {
-        ouService.addOrganisationUnit( createOrganisationUnit( "A" ) );
-        ouService.addOrganisationUnit( createOrganisationUnit( "B" ) );
-        ouService.addOrganisationUnit( createOrganisationUnit( "C" ) );
-        ouService.addOrganisationUnit( createOrganisationUnit( "D" ) );
-        ouService.addOrganisationUnit( createOrganisationUnit( "E" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    ouService.addOrganisationUnit(createOrganisationUnit("A"));
+    ouService.addOrganisationUnit(createOrganisationUnit("B"));
+    ouService.addOrganisationUnit(createOrganisationUnit("C"));
+    ouService.addOrganisationUnit(createOrganisationUnit("D"));
+    ouService.addOrganisationUnit(createOrganisationUnit("E"));
+  }
 
-    @ParameterizedTest
-    @CsvSource( {
-        "1, 2",
-        "2, 2",
-        "3, 1",
-    } )
-    void testPage1( int page, int num )
-    {
-        JsonList<JsonOrganisationUnit> ous = GET( "/organisationUnits?paging=true&pageSize=2&page=" + page )
-            .content( HttpStatus.OK )
-            .getList( "organisationUnits", JsonOrganisationUnit.class );
-        assertEquals( num, ous.size() );
-    }
+  @ParameterizedTest
+  @CsvSource({
+    "1, 2", "2, 2", "3, 1",
+  })
+  void testPage1(int page, int num) {
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?paging=true&pageSize=2&page=" + page)
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(num, ous.size());
+  }
 
-    @Test
-    void testPage2AndOrderByDisplayName()
-    {
-        JsonList<JsonOrganisationUnit> ous = GET( "/organisationUnits?order=displayName&paging=true&pageSize=2&page=2" )
-            .content( HttpStatus.OK )
-            .getList( "organisationUnits", JsonOrganisationUnit.class );
-        assertEquals( 2, ous.size() );
-        assertEquals( "C", ous.get( 0 ).getDisplayName() );
-        assertEquals( "D", ous.get( 1 ).getDisplayName() );
-    }
+  @Test
+  void testPage2AndOrderByDisplayName() {
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?order=displayName&paging=true&pageSize=2&page=2")
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(2, ous.size());
+    assertEquals("C", ous.get(0).getDisplayName());
+    assertEquals("D", ous.get(1).getDisplayName());
+  }
 
-    @ParameterizedTest
-    @CsvSource( {
-        "1, 2, A, B",
-        "2, 2, C, D",
-    } )
-    void testOrderByDisplayName( int page, int size, String firstItem, String secondItem )
-    {
-        JsonList<JsonOrganisationUnit> ous = GET(
-            "/organisationUnits?order=displayName&paging=true&pageSize=2&page=" + page )
-                .content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
-        assertEquals( size, ous.size() );
-        assertEquals( firstItem, ous.get( 0 ).getDisplayName() );
-        assertEquals( secondItem, ous.get( 1 ).getDisplayName() );
-    }
+  @ParameterizedTest
+  @CsvSource({
+    "1, 2, A, B",
+    "2, 2, C, D",
+  })
+  void testOrderByDisplayName(int page, int size, String firstItem, String secondItem) {
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?order=displayName&paging=true&pageSize=2&page=" + page)
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(size, ous.size());
+    assertEquals(firstItem, ous.get(0).getDisplayName());
+    assertEquals(secondItem, ous.get(1).getDisplayName());
+  }
 
-    @ParameterizedTest
-    @CsvSource( {
-        "1, 2, E, D",
-        "2, 2, C, B",
-    } )
-    void testOrderByDisplayNameDesc( int page, int size, String firstItem, String secondItem )
-    {
-        JsonList<JsonOrganisationUnit> ous = GET(
-            "/organisationUnits?order=displayName:desc&paging=true&pageSize=2&page=" + page )
-                .content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
-        assertEquals( size, ous.size() );
-        assertEquals( firstItem, ous.get( 0 ).getDisplayName() );
-        assertEquals( secondItem, ous.get( 1 ).getDisplayName() );
-    }
+  @ParameterizedTest
+  @CsvSource({
+    "1, 2, E, D",
+    "2, 2, C, B",
+  })
+  void testOrderByDisplayNameDesc(int page, int size, String firstItem, String secondItem) {
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?order=displayName:desc&paging=true&pageSize=2&page=" + page)
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(size, ous.size());
+    assertEquals(firstItem, ous.get(0).getDisplayName());
+    assertEquals(secondItem, ous.get(1).getDisplayName());
+  }
 
-    @Test
-    void testFilterByDisplayName()
-    {
-        JsonList<JsonOrganisationUnit> ous = GET(
-            "/organisationUnits?filter=displayName:in:[A,B,C]&paging=true&pageSize=2&page=2" ).content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
-        assertEquals( 1, ous.size() );
-        assertEquals( "C", ous.get( 0 ).getDisplayName() );
-    }
+  @Test
+  void testFilterByDisplayName() {
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?filter=displayName:in:[A,B,C]&paging=true&pageSize=2&page=2")
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(1, ous.size());
+    assertEquals("C", ous.get(0).getDisplayName());
+  }
 
-    @Test
-    void testOrderByName()
-    {
-        JsonList<JsonOrganisationUnit> ous = GET( "/organisationUnits?order=name&paging=true&pageSize=2&page=2" )
-            .content( HttpStatus.OK )
-            .getList( "organisationUnits", JsonOrganisationUnit.class );
-        assertEquals( 2, ous.size() );
-        assertEquals( "C", ous.get( 0 ).getDisplayName() );
-        assertEquals( "D", ous.get( 1 ).getDisplayName() );
-    }
+  @Test
+  void testOrderByName() {
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?order=name&paging=true&pageSize=2&page=2")
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(2, ous.size());
+    assertEquals("C", ous.get(0).getDisplayName());
+    assertEquals("D", ous.get(1).getDisplayName());
+  }
 
-    @Test
-    void testFilterByName()
-    {
-        JsonList<JsonOrganisationUnit> ous = GET(
-            "/organisationUnits?filter=name:in:[A,B,C]&paging=true&pageSize=2&page=2" ).content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
-        assertEquals( 1, ous.size() );
-        assertEquals( "C", ous.get( 0 ).getDisplayName() );
-    }
+  @Test
+  void testFilterByName() {
+    JsonList<JsonOrganisationUnit> ous =
+        GET("/organisationUnits?filter=name:in:[A,B,C]&paging=true&pageSize=2&page=2")
+            .content(HttpStatus.OK)
+            .getList("organisationUnits", JsonOrganisationUnit.class);
+    assertEquals(1, ous.size());
+    assertEquals("C", ous.get(0).getDisplayName());
+  }
 }

@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -45,101 +44,94 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackedEntityProgramAttributeTest extends TrackerTest
-{
+class TrackedEntityProgramAttributeTest extends TrackerTest {
 
-    @Autowired
-    private TrackerBundleService trackerBundleService;
+  @Autowired private TrackerBundleService trackerBundleService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/te_program_with_tea_metadata.json" );
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/te_program_with_tea_metadata.json");
+  }
 
-    @Test
-    void testTrackedEntityProgramAttributeValue()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        trackerImportParams.setUser( currentUserService.getCurrentUser() );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
-    }
+  @Test
+  void testTrackedEntityProgramAttributeValue() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
+    trackerImportParams.setUser(currentUserService.getCurrentUser());
+    TrackerBundle trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundleService.commit(trackerBundle);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(5, attributeValues.size());
+  }
 
-    @Test
-    void testTrackedEntityProgramAttributeValueUpdate()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
-        manager.clear();
-        // update
-        trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
-        trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
-        trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        trackedEntityInstance = trackedEntityInstances.get( 0 );
-        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
-    }
+  @Test
+  void testTrackedEntityProgramAttributeValueUpdate() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
+    TrackerBundle trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundleService.commit(trackerBundle);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(5, attributeValues.size());
+    manager.clear();
+    // update
+    trackerImportParams = fromJson("tracker/te_program_with_tea_update_data.json");
+    trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundleService.commit(trackerBundle);
+    trackedEntityInstances = manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    trackedEntityInstance = trackedEntityInstances.get(0);
+    attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(5, attributeValues.size());
+  }
 
-    @Test
-    void testTrackedEntityProgramAttributeValueUpdateAndDelete()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
-        manager.clear();
-        // update
-        trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
-        trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
-        trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        trackedEntityInstance = trackedEntityInstances.get( 0 );
-        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 5, attributeValues.size() );
-        manager.clear();
-        // delete
-        trackerImportParams = fromJson( "tracker/te_program_with_tea_delete_data.json" );
-        trackerBundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( trackerBundle );
-        trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        trackedEntityInstance = trackedEntityInstances.get( 0 );
-        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 1, attributeValues.size() );
-    }
+  @Test
+  void testTrackedEntityProgramAttributeValueUpdateAndDelete() throws IOException {
+    TrackerImportParams trackerImportParams = fromJson("tracker/te_program_with_tea_data.json");
+    TrackerBundle trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundleService.commit(trackerBundle);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(5, attributeValues.size());
+    manager.clear();
+    // update
+    trackerImportParams = fromJson("tracker/te_program_with_tea_update_data.json");
+    trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundleService.commit(trackerBundle);
+    trackedEntityInstances = manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    trackedEntityInstance = trackedEntityInstances.get(0);
+    attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(5, attributeValues.size());
+    manager.clear();
+    // delete
+    trackerImportParams = fromJson("tracker/te_program_with_tea_delete_data.json");
+    trackerBundle = trackerBundleService.create(trackerImportParams);
+    trackerBundleService.commit(trackerBundle);
+    trackedEntityInstances = manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    trackedEntityInstance = trackedEntityInstances.get(0);
+    attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(1, attributeValues.size());
+  }
 }

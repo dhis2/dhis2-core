@@ -37,12 +37,12 @@ import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDIC
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
@@ -71,198 +71,184 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Jim Grace
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
-{
-    private ProgramIndicator programIndicator;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest {
+  private ProgramIndicator programIndicator;
 
-    private ProgramStage programStageA;
+  private ProgramStage programStageA;
 
-    private Program programA;
+  private Program programA;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private TrackedEntityAttribute attributeA;
+  private TrackedEntityAttribute attributeA;
 
-    private Constant constantA;
+  private Constant constantA;
 
-    private Map<String, Constant> constantMap;
+  private Map<String, Constant> constantMap;
 
-    private Date startDate = getDate( 2020, 1, 1 );
+  private Date startDate = getDate(2020, 1, 1);
 
-    private Date endDate = getDate( 2020, 12, 31 );
+  private Date endDate = getDate(2020, 12, 31);
 
-    @Mock
-    private ProgramIndicatorService programIndicatorService;
+  @Mock private ProgramIndicatorService programIndicatorService;
 
-    @Mock
-    private ProgramStageService programStageService;
+  @Mock private ProgramStageService programStageService;
 
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private DimensionService dimensionService;
+  @Mock private DimensionService dimensionService;
 
-    private StatementBuilder statementBuilder;
+  private StatementBuilder statementBuilder;
 
-    @BeforeEach
-    public void setUp()
-    {
-        dataElementA = createDataElement( 'A' );
-        dataElementA.setDomainType( DataElementDomain.TRACKER );
-        dataElementA.setUid( "DataElmentA" );
+  @BeforeEach
+  public void setUp() {
+    dataElementA = createDataElement('A');
+    dataElementA.setDomainType(DataElementDomain.TRACKER);
+    dataElementA.setUid("DataElmentA");
 
-        attributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
-        attributeA.setUid( "Attribute0A" );
+    attributeA = createTrackedEntityAttribute('A', ValueType.NUMBER);
+    attributeA.setUid("Attribute0A");
 
-        constantA = new Constant( "Constant A", 123.456 );
-        constantA.setUid( "constant00A" );
+    constantA = new Constant("Constant A", 123.456);
+    constantA.setUid("constant00A");
 
-        constantMap = new ImmutableMap.Builder<String, Constant>()
-            .put( "constant00A", new Constant( "constant", 123.456 ) )
+    constantMap =
+        new ImmutableMap.Builder<String, Constant>()
+            .put("constant00A", new Constant("constant", 123.456))
             .build();
 
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
 
-        programStageA = new ProgramStage( "StageA", programA );
-        programStageA.setSortOrder( 1 );
-        programStageA.setUid( "ProgrmStagA" );
+    programStageA = new ProgramStage("StageA", programA);
+    programStageA.setSortOrder(1);
+    programStageA.setUid("ProgrmStagA");
 
-        programA = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programA.setUid( "Program000A" );
+    programA = createProgram('A', new HashSet<>(), organisationUnit);
+    programA.setUid("Program000A");
 
-        statementBuilder = new PostgreSQLStatementBuilder();
+    statementBuilder = new PostgreSQLStatementBuilder();
 
-        programIndicator = new ProgramIndicator();
-        programIndicator.setProgram( programA );
-        programIndicator.setAnalyticsType( AnalyticsType.EVENT );
-    }
+    programIndicator = new ProgramIndicator();
+    programIndicator.setProgram(programA);
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+  }
 
-    @Test
-    void testDataElement()
-    {
-        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+  @Test
+  void testDataElement() {
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
 
-        String sql = test( "#{ProgrmStagA.DataElmentA}" );
-        assertThat( sql, is( "coalesce(\"DataElmentA\"::numeric,0)" ) );
-    }
+    String sql = test("#{ProgrmStagA.DataElmentA}");
+    assertThat(sql, is("coalesce(\"DataElmentA\"::numeric,0)"));
+  }
 
-    @Test
-    void testDataElementAllowingNulls()
-    {
-        when( idObjectManager.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
-        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+  @Test
+  void testDataElementAllowingNulls() {
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
 
-        String sql = test( "d2:oizp(#{ProgrmStagA.DataElmentA})" );
-        assertThat( sql, is( "coalesce(case when \"DataElmentA\" >= 0 then 1 else 0 end, 0)" ) );
-    }
+    String sql = test("d2:oizp(#{ProgrmStagA.DataElmentA})");
+    assertThat(sql, is("coalesce(case when \"DataElmentA\" >= 0 then 1 else 0 end, 0)"));
+  }
 
-    @Test
-    void testDataElementNotFound()
-    {
-        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
-        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+  @Test
+  void testDataElementNotFound() {
+    when(idObjectManager.get(TrackedEntityAttribute.class, attributeA.getUid()))
+        .thenReturn(attributeA);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
 
-        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "#{ProgrmStagA.NotElementA}" ) );
-    }
+    assertThrows(
+        org.hisp.dhis.antlr.ParserException.class, () -> test("#{ProgrmStagA.NotElementA}"));
+  }
 
-    @Test
-    void testAttribute()
-    {
-        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
+  @Test
+  void testAttribute() {
+    when(idObjectManager.get(TrackedEntityAttribute.class, attributeA.getUid()))
+        .thenReturn(attributeA);
 
-        String sql = test( "A{Attribute0A}" );
-        assertThat( sql, is( "coalesce(\"Attribute0A\"::numeric,0)" ) );
-    }
+    String sql = test("A{Attribute0A}");
+    assertThat(sql, is("coalesce(\"Attribute0A\"::numeric,0)"));
+  }
 
-    @Test
-    void testAttributeAllowingNulls()
-    {
-        when( idObjectManager.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
+  @Test
+  void testAttributeAllowingNulls() {
+    when(idObjectManager.get(TrackedEntityAttribute.class, attributeA.getUid()))
+        .thenReturn(attributeA);
 
-        String sql = test( "d2:oizp(A{Attribute0A})" );
-        assertThat( sql, is( "coalesce(case when \"Attribute0A\" >= 0 then 1 else 0 end, 0)" ) );
-    }
+    String sql = test("d2:oizp(A{Attribute0A})");
+    assertThat(sql, is("coalesce(case when \"Attribute0A\" >= 0 then 1 else 0 end, 0)"));
+  }
 
-    @Test
-    void testAttributeNotFound()
-    {
-        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "A{NoAttribute}" ) );
-    }
+  @Test
+  void testAttributeNotFound() {
+    assertThrows(org.hisp.dhis.antlr.ParserException.class, () -> test("A{NoAttribute}"));
+  }
 
-    @Test
-    void testConstant()
-    {
-        String sql = test( "C{constant00A}" );
-        assertThat( sql, is( "123.456" ) );
-    }
+  @Test
+  void testConstant() {
+    String sql = test("C{constant00A}");
+    assertThat(sql, is("123.456"));
+  }
 
-    @Test
-    void testConstantNotFound()
-    {
-        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "C{notConstant}" ) );
-    }
+  @Test
+  void testConstantNotFound() {
+    assertThrows(org.hisp.dhis.antlr.ParserException.class, () -> test("C{notConstant}"));
+  }
 
-    @Test
-    void testInvalidItemType()
-    {
-        assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "I{notValidItm}" ) );
-    }
+  @Test
+  void testInvalidItemType() {
+    assertThrows(org.hisp.dhis.antlr.ParserException.class, () -> test("I{notValidItm}"));
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    private String test( String expression )
-    {
-        test( expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS );
+  private String test(String expression) {
+    test(expression, new DefaultLiteral(), ITEM_GET_DESCRIPTIONS);
 
-        return castString( test( expression, new SqlLiteral(), ITEM_GET_SQL ) );
-    }
+    return castString(test(expression, new SqlLiteral(), ITEM_GET_SQL));
+  }
 
-    private Object test( String expression, AntlrExprLiteral exprLiteral,
-        ExpressionItemMethod itemMethod )
-    {
-        Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
-        dataElementsAndAttributesIdentifiers.add( BASE_UID + "a" );
-        dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
-        dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
+  private Object test(
+      String expression, AntlrExprLiteral exprLiteral, ExpressionItemMethod itemMethod) {
+    Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
+    dataElementsAndAttributesIdentifiers.add(BASE_UID + "a");
+    dataElementsAndAttributesIdentifiers.add(BASE_UID + "b");
+    dataElementsAndAttributesIdentifiers.add(BASE_UID + "c");
 
-        ExpressionParams params = ExpressionParams.builder()
-            .dataType( NUMERIC )
+    ExpressionParams params = ExpressionParams.builder().dataType(NUMERIC).build();
+
+    ProgramExpressionParams progParams =
+        ProgramExpressionParams.builder()
+            .programIndicator(programIndicator)
+            .reportingStartDate(startDate)
+            .reportingEndDate(endDate)
+            .dataElementAndAttributeIdentifiers(dataElementsAndAttributesIdentifiers)
             .build();
 
-        ProgramExpressionParams progParams = ProgramExpressionParams.builder()
-            .programIndicator( programIndicator )
-            .reportingStartDate( startDate )
-            .reportingEndDate( endDate )
-            .dataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers )
+    CommonExpressionVisitor visitor =
+        CommonExpressionVisitor.builder()
+            .idObjectManager(idObjectManager)
+            .dimensionService(dimensionService)
+            .programIndicatorService(programIndicatorService)
+            .programStageService(programStageService)
+            .statementBuilder(statementBuilder)
+            .i18nSupplier(() -> new I18n(null, null))
+            .constantMap(constantMap)
+            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMethod(itemMethod)
+            .params(params)
+            .progParams(progParams)
             .build();
 
-        CommonExpressionVisitor visitor = CommonExpressionVisitor.builder()
-            .idObjectManager( idObjectManager )
-            .dimensionService( dimensionService )
-            .programIndicatorService( programIndicatorService )
-            .programStageService( programStageService )
-            .statementBuilder( statementBuilder )
-            .i18nSupplier( () -> new I18n( null, null ) )
-            .constantMap( constantMap )
-            .itemMap( PROGRAM_INDICATOR_ITEMS )
-            .itemMethod( itemMethod )
-            .params( params )
-            .progParams( progParams )
-            .build();
+    visitor.setExpressionLiteral(exprLiteral);
 
-        visitor.setExpressionLiteral( exprLiteral );
-
-        return Parser.visit( expression, visitor );
-    }
+    return Parser.visit(expression, visitor);
+  }
 }

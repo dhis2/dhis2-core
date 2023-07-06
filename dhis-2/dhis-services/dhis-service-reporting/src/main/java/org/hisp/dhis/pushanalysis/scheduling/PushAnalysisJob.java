@@ -40,33 +40,29 @@ import org.springframework.stereotype.Component;
 /**
  * @author Stian Sandvold
  */
-@Component( "pushAnalysisJob" )
-public class PushAnalysisJob implements Job
-{
-    private final PushAnalysisService pushAnalysisService;
+@Component("pushAnalysisJob")
+public class PushAnalysisJob implements Job {
+  private final PushAnalysisService pushAnalysisService;
 
-    public PushAnalysisJob( PushAnalysisService pushAnalysisService )
-    {
-        checkNotNull( pushAnalysisService );
-        this.pushAnalysisService = pushAnalysisService;
-    }
+  public PushAnalysisJob(PushAnalysisService pushAnalysisService) {
+    checkNotNull(pushAnalysisService);
+    this.pushAnalysisService = pushAnalysisService;
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.PUSH_ANALYSIS;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.PUSH_ANALYSIS;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        PushAnalysisJobParameters parameters = (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    PushAnalysisJobParameters parameters =
+        (PushAnalysisJobParameters) jobConfiguration.getJobParameters();
 
-        pushAnalysisService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
-    }
-
+    pushAnalysisService.runPushAnalysis(parameters.getPushAnalysis(), jobConfiguration);
+  }
 }

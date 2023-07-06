@@ -29,9 +29,7 @@ package org.hisp.dhis.scheduling;
 
 import java.util.EnumMap;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
@@ -40,17 +38,19 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @AllArgsConstructor
-public class DefaultJobService implements JobService
-{
-    private final ApplicationContext applicationContext;
+public class DefaultJobService implements JobService {
+  private final ApplicationContext applicationContext;
 
-    private final Map<JobType, Job> jobsByType = new EnumMap<>( JobType.class );
+  private final Map<JobType, Job> jobsByType = new EnumMap<>(JobType.class);
 
-    @Override
-    public Job getJob( JobType type )
-    {
-        return jobsByType.computeIfAbsent( type,
-            key -> applicationContext.getBeansOfType( Job.class ).values().stream()
-                .filter( job -> job.getJobType() == type ).findFirst().orElse( null ) );
-    }
+  @Override
+  public Job getJob(JobType type) {
+    return jobsByType.computeIfAbsent(
+        type,
+        key ->
+            applicationContext.getBeansOfType(Job.class).values().stream()
+                .filter(job -> job.getJobType() == type)
+                .findFirst()
+                .orElse(null));
+  }
 }

@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -45,123 +44,112 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * Consolidates Event Data Values in a single Map, where the key is the Event
- * uid and the value is a Set of {@see EventDataValue}, ready for persistence.
- *
+ * Consolidates Event Data Values in a single Map, where the key is the Event uid and the value is a
+ * Set of {@see EventDataValue}, ready for persistence.
  *
  * @author Luciano Fiandesio
  */
-public class EventDataValueAggregator
-{
-    public Map<String, Set<EventDataValue>> aggregateDataValues( List<Event> events,
-        Map<String, ProgramStageInstance> programStageInstanceMap, ImportOptions importOptions )
-    {
-        checkNotNull( programStageInstanceMap );
-        checkNotNull( events );
+public class EventDataValueAggregator {
+  public Map<String, Set<EventDataValue>> aggregateDataValues(
+      List<Event> events,
+      Map<String, ProgramStageInstance> programStageInstanceMap,
+      ImportOptions importOptions) {
+    checkNotNull(programStageInstanceMap);
+    checkNotNull(events);
 
-        Map<String, Set<EventDataValue>> eventDataValueMap = new HashMap<>();
-        for ( Event event : events )
-        {
-            if ( isNew( event.getUid(), programStageInstanceMap ) )
-            {
-                eventDataValueMap.put( event.getUid(), getDataValues( event.getDataValues() ) );
-            }
-            else
-            {
-                eventDataValueMap.put( event.getUid(),
-                    aggregateForUpdate( event, programStageInstanceMap, importOptions ) );
-            }
-        }
-        return eventDataValueMap;
+    Map<String, Set<EventDataValue>> eventDataValueMap = new HashMap<>();
+    for (Event event : events) {
+      if (isNew(event.getUid(), programStageInstanceMap)) {
+        eventDataValueMap.put(event.getUid(), getDataValues(event.getDataValues()));
+      } else {
+        eventDataValueMap.put(
+            event.getUid(), aggregateForUpdate(event, programStageInstanceMap, importOptions));
+      }
     }
+    return eventDataValueMap;
+  }
 
-    private Set<EventDataValue> aggregateForUpdate( Event event,
-        Map<String, ProgramStageInstance> programStageInstanceMap, ImportOptions importOptions )
-    {
-        final ProgramStageInstance programStageInstance = programStageInstanceMap.get( event.getUid() );
+  private Set<EventDataValue> aggregateForUpdate(
+      Event event,
+      Map<String, ProgramStageInstance> programStageInstanceMap,
+      ImportOptions importOptions) {
+    final ProgramStageInstance programStageInstance = programStageInstanceMap.get(event.getUid());
 
-        Set<EventDataValue> eventDataValues = new HashSet<>();
+    Set<EventDataValue> eventDataValues = new HashSet<>();
 
-        if ( importOptions.isMergeDataValues() )
-        {
-            // FIXME Luciano - this will not work if Id Scheme for data value is
-            // not UID
-            List<String> eventDataValueDataElementUids = event.getDataValues().stream().map( DataValue::getDataElement )
-                .collect( Collectors.toList() );
+    if (importOptions.isMergeDataValues()) {
+      // FIXME Luciano - this will not work if Id Scheme for data value is
+      // not UID
+      List<String> eventDataValueDataElementUids =
+          event.getDataValues().stream()
+              .map(DataValue::getDataElement)
+              .collect(Collectors.toList());
 
-            programStageInstance.getEventDataValues().forEach( edv -> {
-                if ( !eventDataValueDataElementUids.contains( edv.getDataElement() ) )
-                {
-                    eventDataValues.add( edv );
+      programStageInstance
+          .getEventDataValues()
+          .forEach(
+              edv -> {
+                if (!eventDataValueDataElementUids.contains(edv.getDataElement())) {
+                  eventDataValues.add(edv);
                 }
-            } );
-        }
-
-        eventDataValues.addAll( getDataValues( programStageInstance, event.getDataValues() ) );
-
-        return eventDataValues;
-
+              });
     }
 
-    private Set<EventDataValue> getDataValues( ProgramStageInstance psi, Set<DataValue> dataValues )
-    {
-        Set<EventDataValue> result = new HashSet<>();
+    eventDataValues.addAll(getDataValues(programStageInstance, event.getDataValues()));
 
-        for ( DataValue dataValue : dataValues )
-        {
-            EventDataValue eventDataValue = exist( dataValue, psi.getEventDataValues() );
-            if ( isNotEmpty( dataValue.getValue() ) && !dataValue.getValue().equals( "null" ) )
-            {
-                result.add( toEventDataValue( dataValue, eventDataValue ) );
-            }
-        }
+    return eventDataValues;
+  }
 
-        return result;
+  private Set<EventDataValue> getDataValues(ProgramStageInstance psi, Set<DataValue> dataValues) {
+    Set<EventDataValue> result = new HashSet<>();
+
+    for (DataValue dataValue : dataValues) {
+      EventDataValue eventDataValue = exist(dataValue, psi.getEventDataValues());
+      if (isNotEmpty(dataValue.getValue()) && !dataValue.getValue().equals("null")) {
+        result.add(toEventDataValue(dataValue, eventDataValue));
+      }
     }
 
-    private EventDataValue toEventDataValue( DataValue dataValue, EventDataValue existing )
-    {
-        EventDataValue eventDataValue = new EventDataValue();
-        eventDataValue.setDataElement( dataValue.getDataElement() );
-        eventDataValue.setValue( dataValue.getValue() );
-        // storedBy is always set by the EventStoredByPreProcessor
-        eventDataValue.setStoredBy( dataValue.getStoredBy() );
+    return result;
+  }
 
-        eventDataValue.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+  private EventDataValue toEventDataValue(DataValue dataValue, EventDataValue existing) {
+    EventDataValue eventDataValue = new EventDataValue();
+    eventDataValue.setDataElement(dataValue.getDataElement());
+    eventDataValue.setValue(dataValue.getValue());
+    // storedBy is always set by the EventStoredByPreProcessor
+    eventDataValue.setStoredBy(dataValue.getStoredBy());
 
-        if ( existing != null )
-        {
-            eventDataValue.setCreated( existing.getCreated() );
-        }
-        eventDataValue.setLastUpdated( new Date() );
+    eventDataValue.setProvidedElsewhere(dataValue.getProvidedElsewhere());
+
+    if (existing != null) {
+      eventDataValue.setCreated(existing.getCreated());
+    }
+    eventDataValue.setLastUpdated(new Date());
+    return eventDataValue;
+  }
+
+  private EventDataValue exist(DataValue dataValue, Set<EventDataValue> eventDataValues) {
+    for (EventDataValue eventDataValue : eventDataValues) {
+      final String dataElement = eventDataValue.getDataElement();
+      if (isNotEmpty(dataValue.getDataElement())
+          && dataValue.getDataElement().equals(dataElement)) {
         return eventDataValue;
+      }
     }
+    return null;
+  }
 
-    private EventDataValue exist( DataValue dataValue, Set<EventDataValue> eventDataValues )
-    {
-        for ( EventDataValue eventDataValue : eventDataValues )
-        {
-            final String dataElement = eventDataValue.getDataElement();
-            if ( isNotEmpty( dataValue.getDataElement() )
-                && dataValue.getDataElement().equals( dataElement ) )
-            {
-                return eventDataValue;
-            }
-        }
-        return null;
-    }
+  private Set<EventDataValue> getDataValues(Set<DataValue> dataValues) {
+    return dataValues.stream()
+        // do not include data values with no value
+        .filter(dv -> isNotEmpty(dv.getValue()))
+        .map(dv -> toEventDataValue(dv, null))
+        .collect(Collectors.toSet());
+  }
 
-    private Set<EventDataValue> getDataValues( Set<DataValue> dataValues )
-    {
-        return dataValues.stream()
-            // do not include data values with no value
-            .filter( dv -> isNotEmpty( dv.getValue() ) )
-            .map( dv -> toEventDataValue( dv, null ) )
-            .collect( Collectors.toSet() );
-    }
-
-    private boolean isNew( String eventUid, Map<String, ProgramStageInstance> programStageInstanceMap )
-    {
-        return !programStageInstanceMap.containsKey( eventUid );
-    }
+  private boolean isNew(
+      String eventUid, Map<String, ProgramStageInstance> programStageInstanceMap) {
+    return !programStageInstanceMap.containsKey(eventUid);
+  }
 }

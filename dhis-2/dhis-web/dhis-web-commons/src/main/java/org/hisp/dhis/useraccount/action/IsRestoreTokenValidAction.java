@@ -27,80 +27,68 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Lars Helge Overland
  */
-public class IsRestoreTokenValidAction
-    implements Action
-{
-    @Autowired
-    private SecurityService securityService;
+public class IsRestoreTokenValidAction implements Action {
+  @Autowired private SecurityService securityService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
 
-    private String username;
+  private String username;
 
-    public String getUsername()
-    {
-        return username;
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
+  }
+
+  private String token;
+
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    String[] idAndRestoreToken = securityService.decodeEncodedTokens(token);
+    String idToken = idAndRestoreToken[0];
+    String restoreToken = idAndRestoreToken[1];
+
+    User user = userService.getUserByIdToken(idToken);
+
+    if (user == null) {
+      return ERROR;
     }
 
-    public void setUsername( String username )
-    {
-        this.username = username;
+    String errorMessage =
+        securityService.verifyRestoreToken(user, restoreToken, RestoreType.RECOVER_PASSWORD);
+
+    if (errorMessage != null) {
+      return ERROR;
     }
 
-    private String token;
-
-    public String getToken()
-    {
-        return token;
-    }
-
-    public void setToken( String token )
-    {
-        this.token = token;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
-        String idToken = idAndRestoreToken[0];
-        String restoreToken = idAndRestoreToken[1];
-
-        User user = userService.getUserByIdToken( idToken );
-
-        if ( user == null )
-        {
-            return ERROR;
-        }
-
-        String errorMessage = securityService
-            .verifyRestoreToken( user, restoreToken, RestoreType.RECOVER_PASSWORD );
-
-        if ( errorMessage != null )
-        {
-            return ERROR;
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

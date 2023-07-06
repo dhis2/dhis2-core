@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
@@ -44,86 +43,72 @@ import org.springframework.stereotype.Component;
 /**
  * @author markusbekken
  */
-@Component( "org.hisp.dhis.programrule.ProgramRuleDeletionHandler" )
-public class ProgramRuleDeletionHandler
-    extends DeletionHandler
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Component("org.hisp.dhis.programrule.ProgramRuleDeletionHandler")
+public class ProgramRuleDeletionHandler extends DeletionHandler {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final ProgramRuleService programRuleService;
+  private final ProgramRuleService programRuleService;
 
-    public ProgramRuleDeletionHandler( ProgramRuleService programRuleService )
-    {
-        checkNotNull( programRuleService );
+  public ProgramRuleDeletionHandler(ProgramRuleService programRuleService) {
+    checkNotNull(programRuleService);
 
-        this.programRuleService = programRuleService;
+    this.programRuleService = programRuleService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(Program.class, this::deleteProgram);
+    whenVetoing(ProgramStageSection.class, this::allowDeleteProgramStageSection);
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
+  }
+
+  private void deleteProgram(Program program) {
+    for (ProgramRule programRule : programRuleService.getProgramRule(program)) {
+      programRuleService.deleteProgramRule(programRule);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( Program.class, this::deleteProgram );
-        whenVetoing( ProgramStageSection.class, this::allowDeleteProgramStageSection );
-        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
+  private DeletionVeto allowDeleteProgramStageSection(ProgramStageSection programStageSection) {
+    ProgramStage programStage = programStageSection.getProgramStage();
+    if (programStage == null) {
+      return DeletionVeto.ACCEPT;
     }
+    String programRules =
+        programRuleService.getProgramRule(programStage.getProgram()).stream()
+            .filter(pr -> isLinkedToProgramStageSection(programStageSection, pr))
+            .map(BaseIdentifiableObject::getName)
+            .collect(Collectors.joining(", "));
 
-    private void deleteProgram( Program program )
-    {
-        for ( ProgramRule programRule : programRuleService.getProgramRule( program ) )
-        {
-            programRuleService.deleteProgramRule( programRule );
-        }
-    }
+    return StringUtils.isBlank(programRules)
+        ? DeletionVeto.ACCEPT
+        : new DeletionVeto(ProgramRule.class, programRules);
+  }
 
-    private DeletionVeto allowDeleteProgramStageSection( ProgramStageSection programStageSection )
-    {
-        ProgramStage programStage = programStageSection.getProgramStage();
-        if ( programStage == null )
-        {
-            return DeletionVeto.ACCEPT;
-        }
-        String programRules = programRuleService
-            .getProgramRule( programStage.getProgram() )
-            .stream()
-            .filter( pr -> isLinkedToProgramStageSection( programStageSection, pr ) )
-            .map( BaseIdentifiableObject::getName )
-            .collect( Collectors.joining( ", " ) );
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    String programRules =
+        programRuleService.getProgramRule(programStage.getProgram()).stream()
+            .filter(pr -> isLinkedToProgramStage(programStage, pr))
+            .map(BaseIdentifiableObject::getName)
+            .collect(Collectors.joining(", "));
 
-        return StringUtils.isBlank( programRules )
-            ? DeletionVeto.ACCEPT
-            : new DeletionVeto( ProgramRule.class, programRules );
-    }
+    return StringUtils.isBlank(programRules)
+        ? DeletionVeto.ACCEPT
+        : new DeletionVeto(ProgramRule.class, programRules);
+  }
 
-    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
-    {
-        String programRules = programRuleService
-            .getProgramRule( programStage.getProgram() )
-            .stream()
-            .filter( pr -> isLinkedToProgramStage( programStage, pr ) )
-            .map( BaseIdentifiableObject::getName )
-            .collect( Collectors.joining( ", " ) );
+  private boolean isLinkedToProgramStage(ProgramStage programStage, ProgramRule programRule) {
+    return Objects.equals(programRule.getProgramStage(), programStage)
+        || programRule.getProgramRuleActions().stream()
+            .anyMatch(pra -> Objects.equals(pra.getProgramStage(), programStage))
+        || programStage.getProgramStageSections().stream()
+            .anyMatch(s -> isLinkedToProgramStageSection(s, programRule));
+  }
 
-        return StringUtils.isBlank( programRules )
-            ? DeletionVeto.ACCEPT
-            : new DeletionVeto( ProgramRule.class, programRules );
-    }
-
-    private boolean isLinkedToProgramStage( ProgramStage programStage, ProgramRule programRule )
-    {
-        return Objects.equals( programRule.getProgramStage(), programStage )
-            || programRule.getProgramRuleActions()
-                .stream()
-                .anyMatch( pra -> Objects.equals( pra.getProgramStage(), programStage ) )
-            || programStage.getProgramStageSections().stream()
-                .anyMatch( s -> isLinkedToProgramStageSection( s, programRule ) );
-    }
-
-    private boolean isLinkedToProgramStageSection( ProgramStageSection programStageSection, ProgramRule programRule )
-    {
-        return programRule.getProgramRuleActions()
-            .stream()
-            .anyMatch( pra -> Objects.equals( pra.getProgramStageSection(), programStageSection ) );
-    }
+  private boolean isLinkedToProgramStageSection(
+      ProgramStageSection programStageSection, ProgramRule programRule) {
+    return programRule.getProgramRuleActions().stream()
+        .anyMatch(pra -> Objects.equals(pra.getProgramStageSection(), programStageSection));
+  }
 }

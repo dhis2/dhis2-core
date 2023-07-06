@@ -45,15 +45,15 @@ import static org.hisp.dhis.resourcetable.ResourceTable.OLDEST_YEAR_PERIOD_SUPPO
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -87,534 +87,679 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.analytics.EventAnalyticsTableManager" )
-public class JdbcEventAnalyticsTableManager
-    extends AbstractEventJdbcTableManager
-{
-    public static final String OU_NAME_COL_SUFFIX = "_name";
+@Service("org.hisp.dhis.analytics.EventAnalyticsTableManager")
+public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManager {
+  public static final String OU_NAME_COL_SUFFIX = "_name";
 
-    public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
+  public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
 
-    public JdbcEventAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings,
-        PeriodDataProvider periodDataProvider )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings, periodDataProvider );
+  public JdbcEventAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      StatementBuilder statementBuilder,
+      PartitionManager partitionManager,
+      DatabaseInfo databaseInfo,
+      JdbcTemplate jdbcTemplate,
+      AnalyticsExportSettings analyticsExportSettings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        statementBuilder,
+        partitionManager,
+        databaseInfo,
+        jdbcTemplate,
+        analyticsExportSettings,
+        periodDataProvider);
+  }
+
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      ImmutableList.of(
+          new AnalyticsTableColumn(quote("psi"), CHARACTER_11, NOT_NULL, "psi.uid"),
+          new AnalyticsTableColumn(quote("pi"), CHARACTER_11, NOT_NULL, "pi.uid"),
+          new AnalyticsTableColumn(quote("ps"), CHARACTER_11, NOT_NULL, "ps.uid"),
+          new AnalyticsTableColumn(quote("ao"), CHARACTER_11, NOT_NULL, "ao.uid"),
+          new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
+          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
+          new AnalyticsTableColumn(quote("executiondate"), TIMESTAMP, "psi.executiondate"),
+          new AnalyticsTableColumn(quote("duedate"), TIMESTAMP, "psi.duedate"),
+          new AnalyticsTableColumn(quote("completeddate"), TIMESTAMP, "psi.completeddate"),
+          new AnalyticsTableColumn(quote("created"), TIMESTAMP, "psi.created"),
+          new AnalyticsTableColumn(quote("lastupdated"), TIMESTAMP, "psi.lastupdated"),
+          new AnalyticsTableColumn(quote(STORED_BY_COL_NAME), VARCHAR_255, "psi.storedby"),
+          new AnalyticsTableColumn(
+              quote(CREATED_BY_COL_USER_NAME),
+              VARCHAR_255,
+              "psi.createdbyuserinfo ->> 'username' as " + CREATED_BY_COL_USER_NAME),
+          new AnalyticsTableColumn(
+              quote(CREATED_BY_COL_NAME),
+              VARCHAR_255,
+              "psi.createdbyuserinfo ->> 'firstName' as " + CREATED_BY_COL_NAME),
+          new AnalyticsTableColumn(
+              quote(CREATED_BY_COL_LAST_NAME),
+              VARCHAR_255,
+              "psi.createdbyuserinfo ->> 'surname' as " + CREATED_BY_COL_LAST_NAME),
+          new AnalyticsTableColumn(
+              quote(CREATED_BY_COL_DISPLAY_LAST_NAME),
+              VARCHAR_255,
+              getDisplayName("createdbyuserinfo", "psi", CREATED_BY_COL_DISPLAY_LAST_NAME)),
+          new AnalyticsTableColumn(
+              quote(LAST_UPDATED_BY_COL_USER_NAME),
+              VARCHAR_255,
+              "psi.lastupdatedbyuserinfo ->> 'username' as " + LAST_UPDATED_BY_COL_USER_NAME),
+          new AnalyticsTableColumn(
+              quote(LAST_UPDATED_BY_COL_NAME),
+              VARCHAR_255,
+              "psi.lastupdatedbyuserinfo ->> 'firstName' as " + LAST_UPDATED_BY_COL_NAME),
+          new AnalyticsTableColumn(
+              quote(LAST_UPDATED_BY_COL_LAST_NAME),
+              VARCHAR_255,
+              "psi.lastupdatedbyuserinfo ->> 'surname' as " + LAST_UPDATED_BY_COL_LAST_NAME),
+          new AnalyticsTableColumn(
+              quote(LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME),
+              VARCHAR_255,
+              getDisplayName(
+                  "lastupdatedbyuserinfo", "psi", LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME)),
+          new AnalyticsTableColumn(quote("pistatus"), VARCHAR_50, "pi.status"),
+          new AnalyticsTableColumn(quote("psistatus"), VARCHAR_50, "psi.status"),
+          new AnalyticsTableColumn(quote("psigeometry"), GEOMETRY, "psi.geometry")
+              .withIndexType(IndexType.GIST),
+          // TODO latitude and longitude deprecated in 2.30, remove in 2.33
+          new AnalyticsTableColumn(
+              quote("longitude"),
+              DOUBLE,
+              "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END"),
+          new AnalyticsTableColumn(
+              quote("latitude"),
+              DOUBLE,
+              "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"),
+          new AnalyticsTableColumn(quote("ouname"), TEXT, NOT_NULL, "ou.name"),
+          new AnalyticsTableColumn(quote("oucode"), TEXT, "ou.code"),
+          new AnalyticsTableColumn(quote("oulevel"), INTEGER, "ous.level"),
+          new AnalyticsTableColumn(quote("ougeometry"), GEOMETRY, "ou.geometry")
+              .withIndexType(IndexType.GIST),
+          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
+              .withIndexType(IndexType.GIST));
+
+  @Override
+  public AnalyticsTableType getAnalyticsTableType() {
+    return AnalyticsTableType.EVENT;
+  }
+
+  @Override
+  @Transactional
+  public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    log.info(
+        String.format(
+            "Get tables using earliest: %s, spatial support: %b",
+            params.getFromDate(), databaseInfo.isSpatialSupport()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+    return params.isLatestUpdate()
+        ? getLatestAnalyticsTables(params)
+        : getRegularAnalyticsTables(params, availableDataYears);
+  }
+
+  /**
+   * Creates a list of {@link AnalyticsTable} for each program. The tables contain a partition for
+   * each year for which events exist.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @return a list of {@link AnalyticsTableUpdateParams}.
+   */
+  private List<AnalyticsTable> getRegularAnalyticsTables(
+      AnalyticsTableUpdateParams params, List<Integer> availableDataYears) {
+    List<AnalyticsTable> tables = new ArrayList<>();
+
+    Calendar calendar = PeriodType.getCalendar();
+
+    List<Program> programs =
+        params.isSkipPrograms()
+            ? idObjectManager.getAllNoAcl(Program.class)
+            : idObjectManager.getAllNoAcl(Program.class).stream()
+                .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
+                .collect(Collectors.toList());
+
+    Integer firstDataYear = availableDataYears.get(0);
+    Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
+
+    for (Program program : programs) {
+      List<Integer> dataYears = getDataYears(params, program, firstDataYear, latestDataYear);
+
+      Collections.sort(dataYears);
+
+      AnalyticsTable table =
+          new AnalyticsTable(
+              getAnalyticsTableType(), getDimensionColumns(program), Lists.newArrayList(), program);
+
+      for (Integer year : dataYears) {
+        table.addPartitionTable(
+            year,
+            PartitionUtils.getStartDate(calendar, year),
+            PartitionUtils.getEndDate(calendar, year));
+      }
+
+      if (table.hasPartitionTables()) {
+        tables.add(table);
+      }
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
-        new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
-        new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
-        new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
-        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ),
-        new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
-        new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
-        new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
-        new AnalyticsTableColumn( quote( "duedate" ), TIMESTAMP, "psi.duedate" ),
-        new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
-        new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
-        new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
-        new AnalyticsTableColumn( quote( STORED_BY_COL_NAME ), VARCHAR_255, "psi.storedby" ),
-        new AnalyticsTableColumn( quote( CREATED_BY_COL_USER_NAME ), VARCHAR_255,
-            "psi.createdbyuserinfo ->> 'username' as " + CREATED_BY_COL_USER_NAME ),
-        new AnalyticsTableColumn( quote( CREATED_BY_COL_NAME ), VARCHAR_255,
-            "psi.createdbyuserinfo ->> 'firstName' as " + CREATED_BY_COL_NAME ),
-        new AnalyticsTableColumn( quote( CREATED_BY_COL_LAST_NAME ), VARCHAR_255,
-            "psi.createdbyuserinfo ->> 'surname' as " + CREATED_BY_COL_LAST_NAME ),
-        new AnalyticsTableColumn( quote( CREATED_BY_COL_DISPLAY_LAST_NAME ), VARCHAR_255,
-            getDisplayName( "createdbyuserinfo", "psi", CREATED_BY_COL_DISPLAY_LAST_NAME ) ),
-        new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_USER_NAME ), VARCHAR_255,
-            "psi.lastupdatedbyuserinfo ->> 'username' as " + LAST_UPDATED_BY_COL_USER_NAME ),
-        new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_NAME ), VARCHAR_255,
-            "psi.lastupdatedbyuserinfo ->> 'firstName' as " + LAST_UPDATED_BY_COL_NAME ),
-        new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_LAST_NAME ), VARCHAR_255,
-            "psi.lastupdatedbyuserinfo ->> 'surname' as " + LAST_UPDATED_BY_COL_LAST_NAME ),
-        new AnalyticsTableColumn( quote( LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME ), VARCHAR_255,
-            getDisplayName( "lastupdatedbyuserinfo", "psi", LAST_UPDATED_BY_COL_DISPLAY_LAST_NAME ) ),
-        new AnalyticsTableColumn( quote( "pistatus" ), VARCHAR_50, "pi.status" ),
-        new AnalyticsTableColumn( quote( "psistatus" ), VARCHAR_50, "psi.status" ),
-        new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )
-            .withIndexType( IndexType.GIST ),
-        // TODO latitude and longitude deprecated in 2.30, remove in 2.33
-        new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
-        new AnalyticsTableColumn( quote( "latitude" ), DOUBLE,
-            "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
-        new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
-        new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
-        new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
-        new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, "ous.level" ),
-        new AnalyticsTableColumn( quote( "ougeometry" ), GEOMETRY, "ou.geometry" )
-            .withIndexType( IndexType.GIST ),
-        new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" )
-            .withIndexType( IndexType.GIST ) );
+    return tables;
+  }
 
-    @Override
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return AnalyticsTableType.EVENT;
+  /**
+   * Creates a list of {@link AnalyticsTable} with a partition each or the "latest" data. The start
+   * date of the partition is the time of the last successful full analytics table update. The end
+   * date of the partition is the start time of this analytics table update process.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @return a list of {@link AnalyticsTableUpdateParams}.
+   */
+  private List<AnalyticsTable> getLatestAnalyticsTables(AnalyticsTableUpdateParams params) {
+    Date lastFullTableUpdate =
+        systemSettingManager.getDateSetting(SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE);
+    Date lastLatestPartitionUpdate =
+        systemSettingManager.getDateSetting(
+            SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE);
+    Date lastAnyTableUpdate = DateUtils.getLatest(lastLatestPartitionUpdate, lastFullTableUpdate);
+
+    Assert.notNull(
+        lastFullTableUpdate,
+        "A full analytics table update process must be run prior to a latest partition update process");
+
+    Date startDate = lastFullTableUpdate;
+    Date endDate = params.getStartTime();
+
+    List<AnalyticsTable> tables = new ArrayList<>();
+
+    List<Program> programs =
+        params.isSkipPrograms()
+            ? idObjectManager.getAllNoAcl(Program.class).stream()
+                .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
+                .collect(Collectors.toList())
+            : idObjectManager.getAllNoAcl(Program.class);
+
+    for (Program program : programs) {
+      boolean hasUpdatedData = hasUpdatedLatestData(lastAnyTableUpdate, endDate, program);
+
+      if (hasUpdatedData) {
+        AnalyticsTable table =
+            new AnalyticsTable(
+                getAnalyticsTableType(),
+                getDimensionColumns(program),
+                Lists.newArrayList(),
+                program);
+        table.addPartitionTable(AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate);
+        tables.add(table);
+
+        log.info(
+            String.format(
+                "Added latest event analytics partition for program: '%s' with start: '%s' and end: '%s'",
+                program.getUid(), getLongDateString(startDate), getLongDateString(endDate)));
+      } else {
+        log.info(
+            String.format(
+                "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
+                program.getUid(),
+                getLongDateString(lastAnyTableUpdate),
+                getLongDateString(endDate)));
+      }
     }
 
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
-    {
-        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(),
-            databaseInfo.isSpatialSupport() ) );
+    return tables;
+  }
 
-        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+  /**
+   * Indicates whether event data stored between the given start and end date and for the given
+   * program exists.
+   *
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @param program the program.
+   * @return whether event data exists.
+   */
+  private boolean hasUpdatedLatestData(Date startDate, Date endDate, Program program) {
+    String sql =
+        "select psi.programstageinstanceid "
+            + "from programstageinstance psi "
+            + "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid "
+            + "where pi.programid = "
+            + program.getId()
+            + " "
+            + "and psi.lastupdated >= '"
+            + getLongDateString(startDate)
+            + "' "
+            + "and psi.lastupdated < '"
+            + getLongDateString(endDate)
+            + "' "
+            + "limit 1";
 
-        return params.isLatestUpdate() ? getLatestAnalyticsTables( params )
-            : getRegularAnalyticsTables( params, availableDataYears );
+    return !jdbcTemplate.queryForList(sql).isEmpty();
+  }
+
+  @Override
+  public void removeUpdatedData(List<AnalyticsTable> tables) {
+    for (AnalyticsTable table : tables) {
+      AnalyticsTablePartition partition = table.getLatestPartition();
+
+      String sql =
+          "delete from "
+              + quote(table.getTableName())
+              + " ax "
+              + "where ax.psi in ("
+              + "select psi.uid "
+              + "from programstageinstance psi "
+              + "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid "
+              + "where pi.programid = "
+              + table.getProgram().getId()
+              + " "
+              + "and psi.lastupdated >= '"
+              + getLongDateString(partition.getStartDate())
+              + "' "
+              + "and psi.lastupdated < '"
+              + getLongDateString(partition.getEndDate())
+              + "')";
+
+      invokeTimeAndLogSafely(
+          sql, String.format("Remove updated events for table: '%s'", table.getTableName()));
     }
+  }
 
-    /**
-     * Creates a list of {@link AnalyticsTable} for each program. The tables
-     * contain a partition for each year for which events exist.
-     *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     * @return a list of {@link AnalyticsTableUpdateParams}.
-     */
-    private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params,
-        List<Integer> availableDataYears )
-    {
-        List<AnalyticsTable> tables = new ArrayList<>();
+  @Override
+  public List<AnalyticsTableColumn> getFixedColumns() {
+    return FIXED_COLS;
+  }
 
-        Calendar calendar = PeriodType.getCalendar();
+  @Override
+  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+    return partition.isLatestPartition()
+        ? emptyList()
+        : List.of("yearly = '" + partition.getYear() + "'");
+  }
 
-        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
-            : idObjectManager.getAllNoAcl( Program.class )
-                .stream()
-                .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
-                .collect( Collectors.toList() );
-
-        Integer firstDataYear = availableDataYears.get( 0 );
-        Integer latestDataYear = availableDataYears.get( availableDataYears.size() - 1 );
-
-        for ( Program program : programs )
-        {
-            List<Integer> dataYears = getDataYears( params, program, firstDataYear, latestDataYear );
-
-            Collections.sort( dataYears );
-
-            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
-                Lists.newArrayList(), program );
-
-            for ( Integer year : dataYears )
-            {
-                table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ),
-                    PartitionUtils.getEndDate( calendar, year ) );
-            }
-
-            if ( table.hasPartitionTables() )
-            {
-                tables.add( table );
-            }
-        }
-
-        return tables;
-    }
-
-    /**
-     * Creates a list of {@link AnalyticsTable} with a partition each or the
-     * "latest" data. The start date of the partition is the time of the last
-     * successful full analytics table update. The end date of the partition is
-     * the start time of this analytics table update process.
-     *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     * @return a list of {@link AnalyticsTableUpdateParams}.
-     */
-    private List<AnalyticsTable> getLatestAnalyticsTables( AnalyticsTableUpdateParams params )
-    {
-        Date lastFullTableUpdate = systemSettingManager
-            .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
-        Date lastLatestPartitionUpdate = systemSettingManager
-            .getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
-        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate );
-
-        Assert.notNull( lastFullTableUpdate,
-            "A full analytics table update process must be run prior to a latest partition update process" );
-
-        Date startDate = lastFullTableUpdate;
-        Date endDate = params.getStartTime();
-
-        List<AnalyticsTable> tables = new ArrayList<>();
-
-        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
-            .stream()
-            .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
-            .collect( Collectors.toList() ) : idObjectManager.getAllNoAcl( Program.class );
-
-        for ( Program program : programs )
-        {
-            boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate, program );
-
-            if ( hasUpdatedData )
-            {
-                AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
-                    Lists.newArrayList(), program );
-                table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
-                tables.add( table );
-
-                log.info( String.format(
-                    "Added latest event analytics partition for program: '%s' with start: '%s' and end: '%s'",
-                    program.getUid(), getLongDateString( startDate ), getLongDateString( endDate ) ) );
-            }
-            else
-            {
-                log.info( String.format(
-                    "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
-                    program.getUid(), getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
-            }
-        }
-
-        return tables;
-    }
-
-    /**
-     * Indicates whether event data stored between the given start and end date
-     * and for the given program exists.
-     *
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @param program the program.
-     * @return whether event data exists.
-     */
-    private boolean hasUpdatedLatestData( Date startDate, Date endDate, Program program )
-    {
-        String sql = "select psi.programstageinstanceid " +
-            "from programstageinstance psi " +
-            "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
-            "where pi.programid = " + program.getId() + " " +
-            "and psi.lastupdated >= '" + getLongDateString( startDate ) + "' " +
-            "and psi.lastupdated < '" + getLongDateString( endDate ) + "' " +
-            "limit 1";
-
-        return !jdbcTemplate.queryForList( sql ).isEmpty();
-    }
-
-    @Override
-    public void removeUpdatedData( List<AnalyticsTable> tables )
-    {
-        for ( AnalyticsTable table : tables )
-        {
-            AnalyticsTablePartition partition = table.getLatestPartition();
-
-            String sql = "delete from " + quote( table.getTableName() ) + " ax " +
-                "where ax.psi in (" +
-                "select psi.uid " +
-                "from programstageinstance psi " +
-                "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
-                "where pi.programid = " + table.getProgram().getId() + " " +
-                "and psi.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
-                "and psi.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
-
-            invokeTimeAndLogSafely( sql,
-                String.format( "Remove updated events for table: '%s'", table.getTableName() ) );
-        }
-    }
-
-    @Override
-    public List<AnalyticsTableColumn> getFixedColumns()
-    {
-        return FIXED_COLS;
-    }
-
-    @Override
-    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
-    {
-        return partition.isLatestPartition() ? emptyList() : List.of( "yearly = '" + partition.getYear() + "'" );
-    }
-
-    @Override
-    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
-    {
-        Program program = partition.getMasterTable().getProgram();
-        String start = DateUtils.getLongDateString( partition.getStartDate() );
-        String end = DateUtils.getLongDateString( partition.getEndDate() );
-        String partitionClause = partition.isLatestPartition() ? "and psi.lastupdated >= '" + start + "' "
+  @Override
+  protected void populateTable(
+      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    Program program = partition.getMasterTable().getProgram();
+    String start = DateUtils.getLongDateString(partition.getStartDate());
+    String end = DateUtils.getLongDateString(partition.getEndDate());
+    String partitionClause =
+        partition.isLatestPartition()
+            ? "and psi.lastupdated >= '" + start + "' "
             : "and psi.executiondate >= '" + start + "' and psi.executiondate < '" + end + "' ";
 
-        String fromClause = "from programstageinstance psi " +
-            "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
-            "inner join programstage ps on psi.programstageid=ps.programstageid " +
-            "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
-            "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
-            "and tei.deleted is false " +
-            "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
-            "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
-            "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) " +
-            "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "left join _dateperiodstructure dps on cast(psi.executiondate as date)=dps.dateperiod " +
-            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
-            partitionClause +
-            "and pr.programid=" + program.getId() + " " +
-            "and psi.organisationunitid is not null " +
-            "and psi.executiondate is not null " +
-            "and dps.yearly is not null " +
-            "and dps.year >= " + OLDEST_YEAR_PERIOD_SUPPORTED + " " +
-            "and dps.year <= " + NEWEST_YEAR_PERIOD_SUPPORTED + " " +
-            "and psi.deleted is false ";
+    String fromClause =
+        "from programstageinstance psi "
+            + "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid "
+            + "inner join programstage ps on psi.programstageid=ps.programstageid "
+            + "inner join program pr on pi.programid=pr.programid and pi.deleted is false "
+            + "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid "
+            + "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid "
+            + "and tei.deleted is false "
+            + "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid "
+            + "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid "
+            + "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid "
+            + "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) "
+            + "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "left join _dateperiodstructure dps on cast(psi.executiondate as date)=dps.dateperiod "
+            + "where psi.lastupdated < '"
+            + getLongDateString(params.getStartTime())
+            + "' "
+            + partitionClause
+            + "and pr.programid="
+            + program.getId()
+            + " "
+            + "and psi.organisationunitid is not null "
+            + "and psi.executiondate is not null "
+            + "and dps.yearly is not null "
+            + "and dps.year >= "
+            + OLDEST_YEAR_PERIOD_SUPPORTED
+            + " "
+            + "and dps.year <= "
+            + NEWEST_YEAR_PERIOD_SUPPORTED
+            + " "
+            + "and psi.deleted is false ";
 
-        populateTableInternal( partition, getDimensionColumns( program ), fromClause );
-    }
+    populateTableInternal(partition, getDimensionColumns(program), fromClause);
+  }
 
-    /**
-     * Returns dimensional analytics table columns.
-     *
-     * @param program the program.
-     * @return a list of {@link AnalyticsTableColumn}.
-     */
-    private List<AnalyticsTableColumn> getDimensionColumns( Program program )
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
+  /**
+   * Returns dimensional analytics table columns.
+   *
+   * @param program the program.
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getDimensionColumns(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        if ( program.hasNonDefaultCategoryCombo() )
-        {
-            List<Category> categories = program.getCategoryCombo().getCategories();
+    if (program.hasNonDefaultCategoryCombo()) {
+      List<Category> categories = program.getCategoryCombo().getCategories();
 
-            for ( Category category : categories )
-            {
-                if ( category.isDataDimension() )
-                {
-                    columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11,
-                        "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
-                }
-            }
+      for (Category category : categories) {
+        if (category.isDataDimension()) {
+          columns.add(
+              new AnalyticsTableColumn(
+                      quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
+                  .withCreated(category.getCreated()));
         }
-
-        columns.addAll( addOrganisationUnitLevels() );
-        columns.addAll( addOrganisationUnitGroupSets() );
-
-        columns.addAll( categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-            .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) )
-            .collect( Collectors.toList() ) );
-        columns.addAll( addPeriodTypeColumns( "dps" ) );
-
-        columns.addAll( program.getAnalyticsDataElements().stream()
-            .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream )
-            .collect( Collectors.toList() ) );
-
-        columns.addAll( program.getAnalyticsDataElementsWithLegendSet().stream()
-            .map( de -> getColumnFromDataElement( de, true ) ).flatMap( Collection::stream )
-            .collect( Collectors.toList() ) );
-
-        columns.addAll( program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), false ) )
-            .flatMap( Collection::stream ).collect( Collectors.toList() ) );
-
-        columns.addAll( program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), true ) )
-            .flatMap( Collection::stream ).collect( Collectors.toList() ) );
-
-        columns.addAll( getFixedColumns() );
-
-        if ( program.isRegistration() )
-        {
-            columns.add( new AnalyticsTableColumn( quote( "tei" ), CHARACTER_11, "tei.uid" ) );
-        }
-
-        return filterDimensionColumns( columns );
+      }
     }
 
-    private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute( TrackedEntityAttribute attribute,
-        String numericClause, String dateClause, boolean withLegendSet )
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.addAll(addOrganisationUnitLevels());
+    columns.addAll(addOrganisationUnitGroupSets());
 
-        ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
-        String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-        String select = getSelectClause( attribute.getValueType(), "value" );
-        String sql = selectForInsert( attribute, select, dataClause );
-        boolean skipIndex = skipIndex( attribute.getValueType(), attribute.hasOptionSet() );
+    columns.addAll(
+        categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
+            .map(l -> toCharColumn(quote(l.getUid()), "acs", l.getCreated()))
+            .collect(Collectors.toList()));
+    columns.addAll(addPeriodTypeColumns("dps"));
 
-        if ( attribute.getValueType().isOrganisationUnit() )
-        {
-            columns.addAll( getColumnsFromOrgUnitTrackedEntityAttribute( attribute, dataClause ) );
-        }
+    columns.addAll(
+        program.getAnalyticsDataElements().stream()
+            .map(de -> getColumnFromDataElement(de, false))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList()));
 
-        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql )
-            .withSkipIndex( skipIndex ) );
+    columns.addAll(
+        program.getAnalyticsDataElementsWithLegendSet().stream()
+            .map(de -> getColumnFromDataElement(de, true))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList()));
 
-        return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause ) : columns;
+    columns.addAll(
+        program.getNonConfidentialTrackedEntityAttributes().stream()
+            .map(
+                tea ->
+                    getColumnFromTrackedEntityAttribute(
+                        tea, getNumericClause(), getDateClause(), false))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList()));
+
+    columns.addAll(
+        program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
+            .map(
+                tea ->
+                    getColumnFromTrackedEntityAttribute(
+                        tea, getNumericClause(), getDateClause(), true))
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList()));
+
+    columns.addAll(getFixedColumns());
+
+    if (program.isRegistration()) {
+      columns.add(new AnalyticsTableColumn(quote("tei"), CHARACTER_11, "tei.uid"));
     }
 
-    private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
-        TrackedEntityAttribute attribute, String numericClause )
-    {
-        String select = getSelectClause( attribute.getValueType(), "value" );
+    return filterDimensionColumns(columns);
+  }
 
-        return attribute.getLegendSets().stream().map( ls -> {
-            String column = quote( attribute.getUid() + PartitionUtils.SEP + ls.getUid() );
+  private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttribute(
+      TrackedEntityAttribute attribute,
+      String numericClause,
+      String dateClause,
+      boolean withLegendSet) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-            String sql = "(select l.uid from maplegend l " +
-                "inner join trackedentityattributevalue av on l.startvalue <= " + select + " " +
-                "and l.endvalue > " + select + " " +
-                "and l.maplegendsetid=" + ls.getId() + " " +
-                "and av.trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and av.trackedentityattributeid=" + attribute.getId() + numericClause + ") as " + column;
+    ColumnDataType dataType =
+        getColumnType(attribute.getValueType(), databaseInfo.isSpatialSupport());
+    String dataClause =
+        attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
+    String select = getSelectClause(attribute.getValueType(), "value");
+    String sql = selectForInsert(attribute, select, dataClause);
+    boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
 
-            return new AnalyticsTableColumn( column, CHARACTER_11, sql );
-        } ).collect( Collectors.toList() );
+    if (attribute.getValueType().isOrganisationUnit()) {
+      columns.addAll(getColumnsFromOrgUnitTrackedEntityAttribute(attribute, dataClause));
     }
 
-    private List<AnalyticsTableColumn> getColumnFromDataElement( DataElement dataElement, boolean withLegendSet )
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.add(
+        new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
+            .withSkipIndex(skipIndex));
 
-        ColumnDataType dataType = getColumnType( dataElement.getValueType(), databaseInfo.isSpatialSupport() );
-        String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
-        String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
-        String select = getSelectClause( dataElement.getValueType(), columnName );
-        String sql = selectForInsert( dataElement, select, dataClause );
-        boolean skipIndex = skipIndex( dataElement.getValueType(), dataElement.hasOptionSet() );
+    return withLegendSet
+        ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
+        : columns;
+  }
 
-        if ( dataElement.getValueType().isOrganisationUnit() )
-        {
-            columns.addAll( getColumnFromOrgUnitDataElement( dataElement, dataClause ) );
-        }
+  private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
+      TrackedEntityAttribute attribute, String numericClause) {
+    String select = getSelectClause(attribute.getValueType(), "value");
 
-        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql )
-            .withSkipIndex( skipIndex ) );
+    return attribute.getLegendSets().stream()
+        .map(
+            ls -> {
+              String column = quote(attribute.getUid() + PartitionUtils.SEP + ls.getUid());
 
-        return withLegendSet ? getColumnFromDataElementWithLegendSet( dataElement, select, dataClause ) : columns;
+              String sql =
+                  "(select l.uid from maplegend l "
+                      + "inner join trackedentityattributevalue av on l.startvalue <= "
+                      + select
+                      + " "
+                      + "and l.endvalue > "
+                      + select
+                      + " "
+                      + "and l.maplegendsetid="
+                      + ls.getId()
+                      + " "
+                      + "and av.trackedentityinstanceid=pi.trackedentityinstanceid "
+                      + "and av.trackedentityattributeid="
+                      + attribute.getId()
+                      + numericClause
+                      + ") as "
+                      + column;
+
+              return new AnalyticsTableColumn(column, CHARACTER_11, sql);
+            })
+        .collect(Collectors.toList());
+  }
+
+  private List<AnalyticsTableColumn> getColumnFromDataElement(
+      DataElement dataElement, boolean withLegendSet) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    ColumnDataType dataType =
+        getColumnType(dataElement.getValueType(), databaseInfo.isSpatialSupport());
+    String dataClause = getDataClause(dataElement.getUid(), dataElement.getValueType());
+    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    String select = getSelectClause(dataElement.getValueType(), columnName);
+    String sql = selectForInsert(dataElement, select, dataClause);
+    boolean skipIndex = skipIndex(dataElement.getValueType(), dataElement.hasOptionSet());
+
+    if (dataElement.getValueType().isOrganisationUnit()) {
+      columns.addAll(getColumnFromOrgUnitDataElement(dataElement, dataClause));
     }
 
-    private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute( TrackedEntityAttribute attribute,
-        String dataClause )
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
+    columns.add(
+        new AnalyticsTableColumn(quote(dataElement.getUid()), dataType, sql)
+            .withSkipIndex(skipIndex));
 
-        if ( databaseInfo.isSpatialSupport() )
-        {
-            String geoSql = selectForInsert( attribute,
-                "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
-                ColumnDataType.GEOMETRY, geoSql )
-                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
-        }
+    return withLegendSet
+        ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause)
+        : columns;
+  }
 
-        // Add org unit name column
-        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-        String ouNameSql = selectForInsert( attribute, fromTypeSql, dataClause );
+  private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute(
+      TrackedEntityAttribute attribute, String dataClause) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
-            .withSkipIndex( true ) );
-
-        return columns;
+    if (databaseInfo.isSpatialSupport()) {
+      String geoSql =
+          selectForInsert(
+              attribute,
+              "ou.geometry from organisationunit ou where ou.uid = (select value",
+              dataClause);
+      columns.add(
+          new AnalyticsTableColumn(
+                  quote(attribute.getUid() + OU_GEOMETRY_COL_SUFFIX),
+                  ColumnDataType.GEOMETRY,
+                  geoSql)
+              .withSkipIndex(false)
+              .withIndexType(IndexType.GIST));
     }
 
-    private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement( DataElement dataElement, String dataClause )
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
+    // Add org unit name column
+    String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+    String ouNameSql = selectForInsert(attribute, fromTypeSql, dataClause);
 
-        String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+    columns.add(
+        new AnalyticsTableColumn(quote(attribute.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
+            .withSkipIndex(true));
 
-        if ( databaseInfo.isSpatialSupport() )
-        {
-            String geoSql = selectForInsert( dataElement,
-                "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
+    return columns;
+  }
 
-            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
-                ColumnDataType.GEOMETRY, geoSql )
-                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
-        }
+  private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement(
+      DataElement dataElement, String dataClause) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        // Add org unit name column
-        String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
-        String ouNameSql = selectForInsert( dataElement, fromTypeSql, dataClause );
+    String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
 
-        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
-            .withSkipIndex( true ) );
+    if (databaseInfo.isSpatialSupport()) {
+      String geoSql =
+          selectForInsert(
+              dataElement,
+              "ou.geometry from organisationunit ou where ou.uid = (select " + columnName,
+              dataClause);
 
-        return columns;
+      columns.add(
+          new AnalyticsTableColumn(
+                  quote(dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX),
+                  ColumnDataType.GEOMETRY,
+                  geoSql)
+              .withSkipIndex(false)
+              .withIndexType(IndexType.GIST));
     }
 
-    private String selectForInsert( DataElement dataElement, String fromType, String dataClause )
-    {
-        return String.format(
-            "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
-                dataClause + ")" + getClosingParentheses( fromType ) + " as " + quote( dataElement.getUid() ),
-            fromType );
+    // Add org unit name column
+    String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
+    String ouNameSql = selectForInsert(dataElement, fromTypeSql, dataClause);
+
+    columns.add(
+        new AnalyticsTableColumn(quote(dataElement.getUid() + OU_NAME_COL_SUFFIX), TEXT, ouNameSql)
+            .withSkipIndex(true));
+
+    return columns;
+  }
+
+  private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
+    return String.format(
+        "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid "
+            + dataClause
+            + ")"
+            + getClosingParentheses(fromType)
+            + " as "
+            + quote(dataElement.getUid()),
+        fromType);
+  }
+
+  private String selectForInsert(
+      TrackedEntityAttribute attribute, String fromType, String dataClause) {
+    return String.format(
+        "(select %s"
+            + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+            + "and trackedentityattributeid="
+            + attribute.getId()
+            + dataClause
+            + ")"
+            + getClosingParentheses(fromType)
+            + " as "
+            + quote(attribute.getUid()),
+        fromType);
+  }
+
+  private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
+      DataElement dataElement, String select, String dataClause) {
+    return dataElement.getLegendSets().stream()
+        .map(
+            ls -> {
+              String column = quote(dataElement.getUid() + PartitionUtils.SEP + ls.getUid());
+
+              String sql =
+                  "(select l.uid from maplegend l "
+                      + "inner join programstageinstance on l.startvalue <= "
+                      + select
+                      + " "
+                      + "and l.endvalue > "
+                      + select
+                      + " "
+                      + "and l.maplegendsetid="
+                      + ls.getId()
+                      + " "
+                      + "and programstageinstanceid=psi.programstageinstanceid "
+                      + dataClause
+                      + ") as "
+                      + column;
+              return new AnalyticsTableColumn(column, CHARACTER_11, sql);
+            })
+        .collect(Collectors.toList());
+  }
+
+  private String getDataClause(String uid, ValueType valueType) {
+    if (valueType.isNumeric() || valueType.isDate()) {
+      String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
+
+      return " and eventdatavalues #>> '{"
+          + uid
+          + ",value}' "
+          + statementBuilder.getRegexpMatch()
+          + " '"
+          + regex
+          + "'";
     }
 
-    private String selectForInsert( TrackedEntityAttribute attribute, String fromType, String dataClause )
-    {
-        return String.format( "(select %s" +
-            " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-            "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( fromType ) +
-            " as " + quote( attribute.getUid() ), fromType );
+    return "";
+  }
+
+  private List<Integer> getDataYears(
+      AnalyticsTableUpdateParams params,
+      Program program,
+      Integer firstDataYear,
+      Integer latestDataYear) {
+    String sql =
+        "select temp.supportedyear from "
+            + "(select distinct extract(year from psi.executiondate) as supportedyear "
+            + "from programstageinstance psi "
+            + "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+            + "where psi.lastupdated <= '"
+            + getLongDateString(params.getStartTime())
+            + "' "
+            + "and pi.programid = "
+            + program.getId()
+            + " "
+            + "and psi.executiondate is not null "
+            + "and psi.executiondate > '1000-01-01' "
+            + "and psi.deleted is false ";
+    if (params.getFromDate() != null) {
+      sql +=
+          "and psi.executiondate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
     }
 
-    private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet( DataElement dataElement, String select,
-        String dataClause )
-    {
-        return dataElement.getLegendSets().stream().map( ls -> {
-            String column = quote( dataElement.getUid() + PartitionUtils.SEP + ls.getUid() );
+    sql +=
+        ") as temp where temp.supportedyear >= "
+            + firstDataYear
+            + " and temp.supportedyear <= "
+            + latestDataYear;
 
-            String sql = "(select l.uid from maplegend l " +
-                "inner join programstageinstance on l.startvalue <= " + select + " " +
-                "and l.endvalue > " + select + " " +
-                "and l.maplegendsetid=" + ls.getId() + " " +
-                "and programstageinstanceid=psi.programstageinstanceid " +
-                dataClause + ") as " + column;
-            return new AnalyticsTableColumn( column, CHARACTER_11, sql );
-        } ).collect( Collectors.toList() );
-    }
+    return jdbcTemplate.queryForList(sql, Integer.class);
+  }
 
-    private String getDataClause( String uid, ValueType valueType )
-    {
-        if ( valueType.isNumeric() || valueType.isDate() )
-        {
-            String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
-
-            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex
-                + "'";
-        }
-
-        return "";
-    }
-
-    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program, Integer firstDataYear,
-        Integer latestDataYear )
-    {
-        String sql = "select temp.supportedyear from " +
-            "(select distinct extract(year from psi.executiondate) as supportedyear " +
-            "from programstageinstance psi " +
-            "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-            "where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and pi.programid = " + program.getId() + " " +
-            "and psi.executiondate is not null " +
-            "and psi.executiondate > '1000-01-01' " +
-            "and psi.deleted is false ";
-        if ( params.getFromDate() != null )
-        {
-            sql += "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
-        }
-
-        sql += ") as temp where temp.supportedyear >= " + firstDataYear +
-            " and temp.supportedyear <= " + latestDataYear;
-
-        return jdbcTemplate.queryForList( sql, Integer.class );
-    }
-
-    private AnalyticsTableColumn toCharColumn( String name, String prefix, Date created )
-    {
-        return new AnalyticsTableColumn( name, CHARACTER_11, prefix + "." + name ).withCreated( created );
-    }
+  private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created) {
+    return new AnalyticsTableColumn(name, CHARACTER_11, prefix + "." + name).withCreated(created);
+  }
 }

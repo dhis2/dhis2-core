@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -42,53 +41,47 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ProgramStageInstanceDeletionHandler extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( ProgramStageInstance.class );
+public class ProgramStageInstanceDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(ProgramStageInstance.class);
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+  private final ProgramStageInstanceService programStageInstanceService;
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenVetoing( Program.class, this::allowDeleteProgram );
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
+  @Override
+  protected void register() {
+    whenVetoing(ProgramStage.class, this::allowDeleteProgramStage);
+    whenDeleting(ProgramInstance.class, this::deleteProgramInstance);
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
+
+  private DeletionVeto allowDeleteProgramStage(ProgramStage programStage) {
+    return vetoIfExists(
+        "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = " + programStage.getId());
+  }
+
+  private void deleteProgramInstance(ProgramInstance programInstance) {
+    for (ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances()) {
+      programStageInstanceService.deleteProgramStageInstance(programStageInstance);
     }
+  }
 
-    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
-    {
-        return vetoIfExists(
-            "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = " + programStage.getId() );
-    }
+  private DeletionVeto allowDeleteProgram(Program program) {
+    return vetoIfExists(
+        "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = "
+            + program.getId());
+  }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
-    {
-        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
-        {
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
-        }
-    }
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    return vetoIfExists(
+        "select count(*) from programstageinstance where eventdatavalues ? '"
+            + dataElement.getUid()
+            + "'");
+  }
 
-    private DeletionVeto allowDeleteProgram( Program program )
-    {
-        return vetoIfExists(
-            "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = "
-                + program.getId() );
-    }
-
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        return vetoIfExists(
-            "select count(*) from programstageinstance where eventdatavalues ? '" + dataElement.getUid() + "'" );
-    }
-
-    private DeletionVeto vetoIfExists( String sql )
-    {
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-        return count == null || count == 0 ? ACCEPT : VETO;
-    }
+  private DeletionVeto vetoIfExists(String sql) {
+    Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
+    return count == null || count == 0 ? ACCEPT : VETO;
+  }
 }

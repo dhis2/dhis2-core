@@ -28,122 +28,118 @@
 package org.hisp.dhis.analytics.event;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 
 /**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
+ * This interface is responsible for retrieving aggregated event data. Data will be returned in a
+ * grid object or as a dimensional key-value mapping.
  *
  * @author Lars Helge Overland
  */
-public interface EventAnalyticsService
-{
-    String ITEM_EVENT = "psi";
+public interface EventAnalyticsService {
+  String ITEM_EVENT = "psi";
 
-    String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
+  String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
 
-    String ITEM_PROGRAM_INSTANCE = "pi";
+  String ITEM_PROGRAM_INSTANCE = "pi";
 
-    String ITEM_PROGRAM_STAGE = "ps";
+  String ITEM_PROGRAM_STAGE = "ps";
 
-    String ITEM_EVENT_DATE = "eventdate";
+  String ITEM_EVENT_DATE = "eventdate";
 
-    String ITEM_STORED_BY = "storedby";
+  String ITEM_STORED_BY = "storedby";
 
-    String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
+  String ITEM_CREATED_BY_DISPLAY_NAME = "createdbydisplayname";
 
-    String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
+  String ITEM_LAST_UPDATED_BY_DISPLAY_NAME = "lastupdatedbydisplayname";
 
-    String ITEM_LAST_UPDATED = "lastupdated";
+  String ITEM_LAST_UPDATED = "lastupdated";
 
-    String ITEM_SCHEDULED_DATE = "scheduleddate";
+  String ITEM_SCHEDULED_DATE = "scheduleddate";
 
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+  String ITEM_ENROLLMENT_DATE = "enrollmentdate";
 
-    String ITEM_INCIDENT_DATE = "incidentdate";
+  String ITEM_INCIDENT_DATE = "incidentdate";
 
-    String ITEM_GEOMETRY = "geometry";
+  String ITEM_GEOMETRY = "geometry";
 
-    String ITEM_LONGITUDE = "longitude";
+  String ITEM_LONGITUDE = "longitude";
 
-    String ITEM_LATITUDE = "latitude";
+  String ITEM_LATITUDE = "latitude";
 
-    String ITEM_ORG_UNIT_NAME = "ouname";
+  String ITEM_ORG_UNIT_NAME = "ouname";
 
-    String ITEM_ORG_UNIT_CODE = "oucode";
+  String ITEM_ORG_UNIT_CODE = "oucode";
 
-    String ITEM_COUNT = "count";
+  String ITEM_COUNT = "count";
 
-    String ITEM_CENTER = "center";
+  String ITEM_CENTER = "center";
 
-    String ITEM_EXTENT = "extent";
+  String ITEM_EXTENT = "extent";
 
-    String ITEM_POINTS = "points";
+  String ITEM_POINTS = "points";
 
-    String ITEM_PROGRAM_STATUS = "programstatus";
+  String ITEM_PROGRAM_STATUS = "programstatus";
 
-    String ITEM_EVENT_STATUS = "eventstatus";
+  String ITEM_EVENT_STATUS = "eventstatus";
 
-    /**
-     * Generates aggregated event data for the given query.
-     *
-     * @param params the event query parameters.
-     * @return aggregated event data as a Grid object.
-     */
-    Grid getAggregatedEventData( EventQueryParams params );
+  /**
+   * Generates aggregated event data for the given query.
+   *
+   * @param params the event query parameters.
+   * @return aggregated event data as a Grid object.
+   */
+  Grid getAggregatedEventData(EventQueryParams params);
 
-    /**
-     * Generates an aggregated value grid for the given query. The grid will
-     * represent a table with dimensions used as columns and rows as specified
-     * in columns and rows dimension arguments. If columns and rows are null or
-     * empty, the normalized table will be returned.
-     *
-     * If meta data is included in the query, the meta data map of the grid will
-     * contain keys described in {@link AnalyticsMetaDataKey}.
-     *
-     * @param params the event query parameters.
-     * @param columns the identifiers of the dimensions to use as columns.
-     * @param rows the identifiers of the dimensions to use as rows.
-     * @return aggregated data as a Grid object.
-     */
-    Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
-        throws Exception;
+  /**
+   * Generates an aggregated value grid for the given query. The grid will represent a table with
+   * dimensions used as columns and rows as specified in columns and rows dimension arguments. If
+   * columns and rows are null or empty, the normalized table will be returned.
+   *
+   * <p>If meta data is included in the query, the meta data map of the grid will contain keys
+   * described in {@link AnalyticsMetaDataKey}.
+   *
+   * @param params the event query parameters.
+   * @param columns the identifiers of the dimensions to use as columns.
+   * @param rows the identifiers of the dimensions to use as rows.
+   * @return aggregated data as a Grid object.
+   */
+  Grid getAggregatedEventData(EventQueryParams params, List<String> columns, List<String> rows)
+      throws Exception;
 
-    /**
-     * Generates aggregated event data for the given analytical object.
-     *
-     * @param params the event query parameters.
-     * @return aggregated event data as a Grid object.
-     */
-    Grid getAggregatedEventData( AnalyticalObject params );
+  /**
+   * Generates aggregated event data for the given analytical object.
+   *
+   * @param params the event query parameters.
+   * @return aggregated event data as a Grid object.
+   */
+  Grid getAggregatedEventData(AnalyticalObject params);
 
-    /**
-     * Returns a list of events matching the given query.
-     *
-     * @param params the event query parameters.
-     * @return events as a Grid object.
-     */
-    Grid getEvents( EventQueryParams params );
+  /**
+   * Returns a list of events matching the given query.
+   *
+   * @param params the event query parameters.
+   * @return events as a Grid object.
+   */
+  Grid getEvents(EventQueryParams params);
 
-    /**
-     * Returns a list of event clusters matching the given query.
-     *
-     * @param params the event query parameters.
-     * @return event clusters as a Grid object.
-     */
-    Grid getEventClusters( EventQueryParams params );
+  /**
+   * Returns a list of event clusters matching the given query.
+   *
+   * @param params the event query parameters.
+   * @return event clusters as a Grid object.
+   */
+  Grid getEventClusters(EventQueryParams params);
 
-    /**
-     * Returns a Rectangle with information about event count and extent of the
-     * spatial rectangle for the given query.
-     *
-     * @param params the event query parameters.
-     * @return event clusters as a Grid object.
-     */
-    Rectangle getRectangle( EventQueryParams params );
-
+  /**
+   * Returns a Rectangle with information about event count and extent of the spatial rectangle for
+   * the given query.
+   *
+   * @param params the event query parameters.
+   * @return event clusters as a Grid object.
+   */
+  Rectangle getRectangle(EventQueryParams params);
 }

@@ -30,41 +30,37 @@ package org.hisp.dhis.dxf2.datavalueset;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataExportParams;
 
 /**
  * @author Lars Helge Overland
  */
-public interface DataValueSetStore
-{
-    void exportDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
+public interface DataValueSetStore {
+  void exportDataValueSetXml(DataExportParams params, Date completeDate, OutputStream out);
 
-    void exportDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
+  void exportDataValueSetJson(DataExportParams params, Date completeDate, OutputStream out);
 
-    void exportDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
+  void exportDataValueSetCsv(DataExportParams params, Date completeDate, Writer writer);
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+  /**
+   * Query for {@link DataValueSet DataValueSets} and write result as JSON.
+   *
+   * @param lastUpdated specifies the date to filter complete data sets last updated after
+   * @param outputStream the stream to write to
+   * @param idSchemes idSchemes
+   */
+  void exportDataValueSetJson(Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes);
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     * @param pageSize pageSize
-     * @param page page
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
-        int page );
+  /**
+   * Query for {@link DataValueSet DataValueSets} and write result as JSON.
+   *
+   * @param lastUpdated specifies the date to filter complete data sets last updated after
+   * @param outputStream the stream to write to
+   * @param idSchemes idSchemes
+   * @param pageSize pageSize
+   * @param page page
+   */
+  void exportDataValueSetJson(
+      Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page);
 }

@@ -30,14 +30,13 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public enum DataDimensionItemType
-{
-    INDICATOR,
-    DATA_ELEMENT,
-    DATA_ELEMENT_OPERAND,
-    REPORTING_RATE,
-    PROGRAM_INDICATOR,
-    PROGRAM_DATA_ELEMENT,
-    PROGRAM_ATTRIBUTE,
-    VALIDATION_RULE
+public enum DataDimensionItemType {
+  INDICATOR,
+  DATA_ELEMENT,
+  DATA_ELEMENT_OPERAND,
+  REPORTING_RATE,
+  PROGRAM_INDICATOR,
+  PROGRAM_DATA_ELEMENT,
+  PROGRAM_ATTRIBUTE,
+  VALIDATION_RULE
 }

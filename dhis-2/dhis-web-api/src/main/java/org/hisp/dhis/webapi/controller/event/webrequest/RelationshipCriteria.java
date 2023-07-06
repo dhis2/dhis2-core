@@ -35,20 +35,16 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
-public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String tei;
+public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter {
+  private String tei;
 
-    private String enrollment;
+  private String enrollment;
 
-    private String event;
+  private String event;
 
-    /**
-     * TODO Add Pager
-     */
-    @Override
-    public Boolean isSkipPaging()
-    {
-        return true;
-    }
+  /** TODO Add Pager */
+  @Override
+  public Boolean isSkipPaging() {
+    return true;
+  }
 }

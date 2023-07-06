@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -47,32 +45,31 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
-public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
-{
-    @NonNull
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+@StrategyFor(value = TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class)
+public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy {
+  @NonNull private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        for ( List<String> ids : splitList )
-        {
-            // Fetch all Tracked Entity Instance present in the payload
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getIncludingDeleted( ids );
+  @Override
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    for (List<String> ids : splitList) {
+      // Fetch all Tracked Entity Instance present in the payload
+      List<TrackedEntityInstance> trackedEntityInstances =
+          trackedEntityInstanceStore.getIncludingDeleted(ids);
 
-            // Get the uids of all the TEIs which are root (a TEI is not root
-            // when is a
-            // property of another object, e.g. enrollment)
-            final List<String> rootEntities = params.getTrackedEntities().stream()
-                .map( TrackedEntity::getTrackedEntity )
-                .collect( Collectors.toList() );
+      // Get the uids of all the TEIs which are root (a TEI is not root
+      // when is a
+      // property of another object, e.g. enrollment)
+      final List<String> rootEntities =
+          params.getTrackedEntities().stream()
+              .map(TrackedEntity::getTrackedEntity)
+              .collect(Collectors.toList());
 
-            // Add to preheat
-            preheat.putTrackedEntities(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    trackedEntityInstances ),
-                RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ) );
-        }
+      // Add to preheat
+      preheat.putTrackedEntities(
+          DetachUtils.detach(
+              this.getClass().getAnnotation(StrategyFor.class).mapper(), trackedEntityInstances),
+          RootEntitiesUtils.filterOutNonRootEntities(ids, rootEntities));
     }
+  }
 }

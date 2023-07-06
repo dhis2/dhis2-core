@@ -40,7 +40,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
@@ -54,103 +53,109 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class EnrollmentInExistingValidationHook
-    extends AbstractTrackerDtoValidationHook
-{
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
-    {
-        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+public class EnrollmentInExistingValidationHook extends AbstractTrackerDtoValidationHook {
+  @Override
+  public void validateEnrollment(ValidationErrorReporter reporter, Enrollment enrollment) {
+    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
 
-        if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
-        {
-            return;
-        }
-
-        Program program = reporter.getBundle().getPreheat().getProgram( enrollment.getProgram() );
-
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-
-        if ( (EnrollmentStatus.COMPLETED == enrollment.getStatus()
-            && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
-        {
-            return;
-        }
-
-        validateTeiNotEnrolledAlready( reporter, enrollment, program );
+    if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
+      return;
     }
 
-    private void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter,
-        Enrollment enrollment, Program program )
-    {
-        checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+    Program program = reporter.getBundle().getPreheat().getProgram(enrollment.getProgram());
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( reporter, enrollment.getTrackedEntity() );
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-        Set<Enrollment> payloadEnrollment = reporter.getBundle().getEnrollments()
-            .stream().filter( Objects::nonNull )
-            .filter( pi -> pi.getProgram().equals( program.getUid() ) )
-            .filter( pi -> pi.getTrackedEntity().equals( tei.getUid() )
-                && !pi.getEnrollment().equals( enrollment.getEnrollment() ) )
-            .filter( pi -> EnrollmentStatus.ACTIVE == pi.getStatus() || EnrollmentStatus.COMPLETED == pi.getStatus() )
-            .collect( Collectors.toSet() );
+    if ((EnrollmentStatus.COMPLETED == enrollment.getStatus()
+        && Boolean.FALSE.equals(program.getOnlyEnrollOnce()))) {
+      return;
+    }
 
-        Set<Enrollment> dbEnrollment = reporter.getBundle().getPreheat()
-            .getTrackedEntityToProgramInstanceMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
+    validateTeiNotEnrolledAlready(reporter, enrollment, program);
+  }
+
+  private void validateTeiNotEnrolledAlready(
+      ValidationErrorReporter reporter, Enrollment enrollment, Program program) {
+    checkNotNull(enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL);
+
+    TrackedEntityInstance tei = getTrackedEntityInstance(reporter, enrollment.getTrackedEntity());
+
+    Set<Enrollment> payloadEnrollment =
+        reporter.getBundle().getEnrollments().stream()
+            .filter(Objects::nonNull)
+            .filter(pi -> pi.getProgram().equals(program.getUid()))
+            .filter(
+                pi ->
+                    pi.getTrackedEntity().equals(tei.getUid())
+                        && !pi.getEnrollment().equals(enrollment.getEnrollment()))
+            .filter(
+                pi ->
+                    EnrollmentStatus.ACTIVE == pi.getStatus()
+                        || EnrollmentStatus.COMPLETED == pi.getStatus())
+            .collect(Collectors.toSet());
+
+    Set<Enrollment> dbEnrollment =
+        reporter
+            .getBundle()
+            .getPreheat()
+            .getTrackedEntityToProgramInstanceMap()
+            .getOrDefault(enrollment.getTrackedEntity(), new ArrayList<>())
             .stream()
-            .filter( Objects::nonNull )
-            .filter( pi -> pi.getProgram().getUid().equals( program.getUid() )
-                && !pi.getUid().equals( enrollment.getEnrollment() ) )
-            .filter( pi -> ProgramStatus.ACTIVE == pi.getStatus() || ProgramStatus.COMPLETED == pi.getStatus() )
-            .distinct().map( this::getEnrollmentFromProgramInstance )
-            .collect( Collectors.toSet() );
+            .filter(Objects::nonNull)
+            .filter(
+                pi ->
+                    pi.getProgram().getUid().equals(program.getUid())
+                        && !pi.getUid().equals(enrollment.getEnrollment()))
+            .filter(
+                pi ->
+                    ProgramStatus.ACTIVE == pi.getStatus()
+                        || ProgramStatus.COMPLETED == pi.getStatus())
+            .distinct()
+            .map(this::getEnrollmentFromProgramInstance)
+            .collect(Collectors.toSet());
 
-        // Priority to payload
-        Collection<Enrollment> mergedEnrollments = Stream.of( payloadEnrollment, dbEnrollment )
-            .flatMap( Set::stream )
-            .filter( e -> !Objects.equals( e.getEnrollment(), enrollment.getEnrollment() ) )
-            .collect( Collectors.toMap( Enrollment::getEnrollment,
-                p -> p,
-                ( Enrollment x, Enrollment y ) -> x ) )
+    // Priority to payload
+    Collection<Enrollment> mergedEnrollments =
+        Stream.of(payloadEnrollment, dbEnrollment)
+            .flatMap(Set::stream)
+            .filter(e -> !Objects.equals(e.getEnrollment(), enrollment.getEnrollment()))
+            .collect(
+                Collectors.toMap(
+                    Enrollment::getEnrollment, p -> p, (Enrollment x, Enrollment y) -> x))
             .values();
 
-        if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
-        {
-            Set<Enrollment> activeOnly = mergedEnrollments.stream()
-                .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() )
-                .collect( Collectors.toSet() );
+    if (EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
+      Set<Enrollment> activeOnly =
+          mergedEnrollments.stream()
+              .filter(e -> EnrollmentStatus.ACTIVE == e.getStatus())
+              .collect(Collectors.toSet());
 
-            if ( !activeOnly.isEmpty() )
-            {
-                reporter.addError( enrollment, E1015, tei, program );
-            }
-        }
-
-        if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !mergedEnrollments.isEmpty() )
-        {
-            reporter.addError( enrollment, E1016, tei, program );
-        }
+      if (!activeOnly.isEmpty()) {
+        reporter.addError(enrollment, E1015, tei, program);
+      }
     }
 
-    public Enrollment getEnrollmentFromProgramInstance( ProgramInstance programInstance )
-    {
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( programInstance.getUid() );
-        enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
-
-        return enrollment;
+    if (Boolean.TRUE.equals(program.getOnlyEnrollOnce()) && !mergedEnrollments.isEmpty()) {
+      reporter.addError(enrollment, E1016, tei, program);
     }
+  }
 
-    private TrackedEntityInstance getTrackedEntityInstance( ValidationErrorReporter reporter, String uid )
-    {
-        TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance( uid );
+  public Enrollment getEnrollmentFromProgramInstance(ProgramInstance programInstance) {
+    Enrollment enrollment = new Enrollment();
+    enrollment.setEnrollment(programInstance.getUid());
+    enrollment.setStatus(EnrollmentStatus.fromProgramStatus(programInstance.getStatus()));
 
-        if ( tei == null && reporter.getBundle().getPreheat().getReference( uid ).isPresent() )
-        {
-            tei = new TrackedEntityInstance();
-            tei.setUid( uid );
+    return enrollment;
+  }
 
-        }
-        return tei;
+  private TrackedEntityInstance getTrackedEntityInstance(
+      ValidationErrorReporter reporter, String uid) {
+    TrackedEntityInstance tei = reporter.getBundle().getTrackedEntityInstance(uid);
+
+    if (tei == null && reporter.getBundle().getPreheat().getReference(uid).isPresent()) {
+      tei = new TrackedEntityInstance();
+      tei.setUid(uid);
     }
+    return tei;
+  }
 }

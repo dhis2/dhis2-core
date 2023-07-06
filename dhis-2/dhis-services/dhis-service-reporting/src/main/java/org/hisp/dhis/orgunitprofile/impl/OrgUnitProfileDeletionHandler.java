@@ -39,75 +39,61 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
-@Component( "org.hisp.dhis.orgunitprofile.impl.OrgUnitProfileDeletionHandler" )
-public class OrgUnitProfileDeletionHandler
-    extends DeletionHandler
-{
-    private OrgUnitProfileService orgUnitProfileService;
+@Component("org.hisp.dhis.orgunitprofile.impl.OrgUnitProfileDeletionHandler")
+public class OrgUnitProfileDeletionHandler extends DeletionHandler {
+  private OrgUnitProfileService orgUnitProfileService;
 
-    public OrgUnitProfileDeletionHandler( OrgUnitProfileService orgUnitProfileService )
-    {
-        this.orgUnitProfileService = orgUnitProfileService;
+  public OrgUnitProfileDeletionHandler(OrgUnitProfileService orgUnitProfileService) {
+    this.orgUnitProfileService = orgUnitProfileService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(Indicator.class, this::deleteIndicator);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
+    whenDeleting(Attribute.class, this::deleteAttribute);
+    whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet);
+  }
+
+  private void deleteDataElement(DataElement dataElement) {
+    handleDataItem(dataElement);
+  }
+
+  private void deleteIndicator(Indicator indicator) {
+    handleDataItem(indicator);
+  }
+
+  private void deleteDataSet(DataSet dataSet) {
+    handleDataItem(dataSet);
+  }
+
+  private void deleteProgramIndicator(ProgramIndicator programIndicator) {
+    handleDataItem(programIndicator);
+  }
+
+  private void handleDataItem(IdentifiableObject dataItem) {
+    OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
+
+    if (profile.getDataItems().remove(dataItem.getUid())) {
+      orgUnitProfileService.saveOrgUnitProfile(profile);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( Indicator.class, this::deleteIndicator );
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
-        whenDeleting( Attribute.class, this::deleteAttribute );
-        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+  private void deleteAttribute(Attribute attribute) {
+    OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
+
+    if (profile.getAttributes().remove(attribute.getUid())) {
+      orgUnitProfileService.saveOrgUnitProfile(profile);
     }
+  }
 
-    private void deleteDataElement( DataElement dataElement )
-    {
-        handleDataItem( dataElement );
+  private void deleteOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet) {
+    OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
+
+    if (profile.getGroupSets().remove(groupSet.getUid())) {
+      orgUnitProfileService.saveOrgUnitProfile(profile);
     }
-
-    private void deleteIndicator( Indicator indicator )
-    {
-        handleDataItem( indicator );
-    }
-
-    private void deleteDataSet( DataSet dataSet )
-    {
-        handleDataItem( dataSet );
-    }
-
-    private void deleteProgramIndicator( ProgramIndicator programIndicator )
-    {
-        handleDataItem( programIndicator );
-    }
-
-    private void handleDataItem( IdentifiableObject dataItem )
-    {
-        OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
-
-        if ( profile.getDataItems().remove( dataItem.getUid() ) )
-        {
-            orgUnitProfileService.saveOrgUnitProfile( profile );
-        }
-    }
-
-    private void deleteAttribute( Attribute attribute )
-    {
-        OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
-
-        if ( profile.getAttributes().remove( attribute.getUid() ) )
-        {
-            orgUnitProfileService.saveOrgUnitProfile( profile );
-        }
-    }
-
-    private void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
-    {
-        OrgUnitProfile profile = orgUnitProfileService.getOrgUnitProfile();
-
-        if ( profile.getGroupSets().remove( groupSet.getUid() ) )
-        {
-            orgUnitProfileService.saveOrgUnitProfile( profile );
-        }
-    }
+  }
 }

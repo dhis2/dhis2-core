@@ -29,46 +29,42 @@ package org.hisp.dhis.system.filter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Sets;
 import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class AggregatableDataElementFilterTest extends DhisSpringTest
-{
+class AggregatableDataElementFilterTest extends DhisSpringTest {
 
-    @Test
-    void filter()
-    {
-        DataElement elA = createDataElement( 'A' );
-        DataElement elB = createDataElement( 'B' );
-        DataElement elC = createDataElement( 'C' );
-        DataElement elD = createDataElement( 'D' );
-        DataElement elE = createDataElement( 'E' );
-        DataElement elF = createDataElement( 'F' );
-        elA.setValueType( ValueType.BOOLEAN );
-        elB.setValueType( ValueType.INTEGER );
-        elC.setValueType( ValueType.DATE );
-        elD.setValueType( ValueType.BOOLEAN );
-        elE.setValueType( ValueType.INTEGER );
-        elF.setValueType( ValueType.DATE );
-        Set<DataElement> set = Sets.newHashSet( elA, elB, elC, elD, elE, elF );
-        Set<DataElement> reference = Sets.newHashSet( elA, elB, elD, elE );
-        FilterUtils.filter( set, AggregatableDataElementFilter.INSTANCE );
-        assertEquals( reference.size(), set.size() );
-        assertEquals( reference, set );
-        set = Sets.newHashSet( elA, elB, elC, elD, elE, elF );
-        Set<DataElement> inverseReference = Sets.newHashSet( elC, elF );
-        FilterUtils.inverseFilter( set, AggregatableDataElementFilter.INSTANCE );
-        assertEquals( inverseReference.size(), set.size() );
-        assertEquals( inverseReference, set );
-    }
+  @Test
+  void filter() {
+    DataElement elA = createDataElement('A');
+    DataElement elB = createDataElement('B');
+    DataElement elC = createDataElement('C');
+    DataElement elD = createDataElement('D');
+    DataElement elE = createDataElement('E');
+    DataElement elF = createDataElement('F');
+    elA.setValueType(ValueType.BOOLEAN);
+    elB.setValueType(ValueType.INTEGER);
+    elC.setValueType(ValueType.DATE);
+    elD.setValueType(ValueType.BOOLEAN);
+    elE.setValueType(ValueType.INTEGER);
+    elF.setValueType(ValueType.DATE);
+    Set<DataElement> set = Sets.newHashSet(elA, elB, elC, elD, elE, elF);
+    Set<DataElement> reference = Sets.newHashSet(elA, elB, elD, elE);
+    FilterUtils.filter(set, AggregatableDataElementFilter.INSTANCE);
+    assertEquals(reference.size(), set.size());
+    assertEquals(reference, set);
+    set = Sets.newHashSet(elA, elB, elC, elD, elE, elF);
+    Set<DataElement> inverseReference = Sets.newHashSet(elC, elF);
+    FilterUtils.inverseFilter(set, AggregatableDataElementFilter.INSTANCE);
+    assertEquals(inverseReference.size(), set.size());
+    assertEquals(inverseReference, set);
+  }
 }

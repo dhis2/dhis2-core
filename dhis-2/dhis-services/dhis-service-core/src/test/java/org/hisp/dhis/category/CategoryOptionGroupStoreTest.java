@@ -31,120 +31,113 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.DhisTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test needs to extend DhisTest in order to test the bidirectional group set to
- * group association from both sides as save transactions must commit.
+ * Test needs to extend DhisTest in order to test the bidirectional group set to group association
+ * from both sides as save transactions must commit.
  *
  * @author Lars Helge Overland
  */
-class CategoryOptionGroupStoreTest extends DhisTest
-{
+class CategoryOptionGroupStoreTest extends DhisTest {
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private CategoryOptionGroupStore categoryOptionGroupStore;
+  @Autowired private CategoryOptionGroupStore categoryOptionGroupStore;
 
-    private CategoryOption coA;
+  private CategoryOption coA;
 
-    private CategoryOption coB;
+  private CategoryOption coB;
 
-    private CategoryOption coC;
+  private CategoryOption coC;
 
-    private CategoryOption coD;
+  private CategoryOption coD;
 
-    private CategoryOption coE;
+  private CategoryOption coE;
 
-    private CategoryOption coF;
+  private CategoryOption coF;
 
-    private CategoryOption coG;
+  private CategoryOption coG;
 
-    private CategoryOption coH;
+  private CategoryOption coH;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    protected void setUpTest()
-    {
-        coA = createCategoryOption( 'A' );
-        coB = createCategoryOption( 'B' );
-        coC = createCategoryOption( 'C' );
-        coD = createCategoryOption( 'D' );
-        coE = createCategoryOption( 'E' );
-        coF = createCategoryOption( 'F' );
-        coG = createCategoryOption( 'G' );
-        coH = createCategoryOption( 'H' );
-        categoryService.addCategoryOption( coA );
-        categoryService.addCategoryOption( coB );
-        categoryService.addCategoryOption( coC );
-        categoryService.addCategoryOption( coD );
-        categoryService.addCategoryOption( coE );
-        categoryService.addCategoryOption( coF );
-        categoryService.addCategoryOption( coG );
-        categoryService.addCategoryOption( coH );
-    }
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  protected void setUpTest() {
+    coA = createCategoryOption('A');
+    coB = createCategoryOption('B');
+    coC = createCategoryOption('C');
+    coD = createCategoryOption('D');
+    coE = createCategoryOption('E');
+    coF = createCategoryOption('F');
+    coG = createCategoryOption('G');
+    coH = createCategoryOption('H');
+    categoryService.addCategoryOption(coA);
+    categoryService.addCategoryOption(coB);
+    categoryService.addCategoryOption(coC);
+    categoryService.addCategoryOption(coD);
+    categoryService.addCategoryOption(coE);
+    categoryService.addCategoryOption(coF);
+    categoryService.addCategoryOption(coG);
+    categoryService.addCategoryOption(coH);
+  }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
-    @Test
-    void testAddGet()
-    {
-        CategoryOptionGroup cogA = createCategoryOptionGroup( 'A', coA, coB );
-        CategoryOptionGroup cogB = createCategoryOptionGroup( 'B', coC, coD );
-        CategoryOptionGroup cogC = createCategoryOptionGroup( 'C', coE, coF );
-        CategoryOptionGroup cogD = createCategoryOptionGroup( 'D', coG, coH );
-        categoryOptionGroupStore.save( cogA );
-        categoryOptionGroupStore.save( cogB );
-        categoryOptionGroupStore.save( cogC );
-        categoryOptionGroupStore.save( cogD );
-        assertEquals( cogA, categoryOptionGroupStore.get( cogA.getId() ) );
-        assertTrue( cogA.getMembers().contains( coA ) );
-        assertTrue( cogA.getMembers().contains( coB ) );
-        assertEquals( cogB, categoryOptionGroupStore.get( cogB.getId() ) );
-        assertTrue( cogB.getMembers().contains( coC ) );
-        assertTrue( cogB.getMembers().contains( coD ) );
-        assertEquals( cogC, categoryOptionGroupStore.get( cogC.getId() ) );
-        assertTrue( cogC.getMembers().contains( coE ) );
-        assertTrue( cogC.getMembers().contains( coF ) );
-        assertEquals( cogD, categoryOptionGroupStore.get( cogD.getId() ) );
-        assertTrue( cogD.getMembers().contains( coG ) );
-        assertTrue( cogD.getMembers().contains( coH ) );
-    }
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
+  @Test
+  void testAddGet() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('A', coA, coB);
+    CategoryOptionGroup cogB = createCategoryOptionGroup('B', coC, coD);
+    CategoryOptionGroup cogC = createCategoryOptionGroup('C', coE, coF);
+    CategoryOptionGroup cogD = createCategoryOptionGroup('D', coG, coH);
+    categoryOptionGroupStore.save(cogA);
+    categoryOptionGroupStore.save(cogB);
+    categoryOptionGroupStore.save(cogC);
+    categoryOptionGroupStore.save(cogD);
+    assertEquals(cogA, categoryOptionGroupStore.get(cogA.getId()));
+    assertTrue(cogA.getMembers().contains(coA));
+    assertTrue(cogA.getMembers().contains(coB));
+    assertEquals(cogB, categoryOptionGroupStore.get(cogB.getId()));
+    assertTrue(cogB.getMembers().contains(coC));
+    assertTrue(cogB.getMembers().contains(coD));
+    assertEquals(cogC, categoryOptionGroupStore.get(cogC.getId()));
+    assertTrue(cogC.getMembers().contains(coE));
+    assertTrue(cogC.getMembers().contains(coF));
+    assertEquals(cogD, categoryOptionGroupStore.get(cogD.getId()));
+    assertTrue(cogD.getMembers().contains(coG));
+    assertTrue(cogD.getMembers().contains(coH));
+  }
 
-    @Test
-    void testGetByGroupSet()
-    {
-        CategoryOptionGroup cogA = createCategoryOptionGroup( 'A', coA, coB );
-        CategoryOptionGroup cogB = createCategoryOptionGroup( 'B', coC, coD );
-        CategoryOptionGroup cogC = createCategoryOptionGroup( 'C', coE, coF );
-        CategoryOptionGroup cogD = createCategoryOptionGroup( 'D', coG, coH );
-        categoryOptionGroupStore.save( cogA );
-        categoryOptionGroupStore.save( cogB );
-        categoryOptionGroupStore.save( cogC );
-        categoryOptionGroupStore.save( cogD );
-        CategoryOptionGroupSet cogsA = createCategoryOptionGroupSet( 'A', cogA, cogB );
-        CategoryOptionGroupSet cogsB = createCategoryOptionGroupSet( 'B', cogC, cogD );
-        categoryService.saveCategoryOptionGroupSet( cogsA );
-        categoryService.saveCategoryOptionGroupSet( cogsB );
-        assertEquals( 1, cogA.getGroupSets().size() );
-        assertEquals( cogsA, cogA.getGroupSets().iterator().next() );
-        assertEquals( 1, cogB.getGroupSets().size() );
-        assertEquals( cogsA, cogB.getGroupSets().iterator().next() );
-        List<CategoryOptionGroup> groupsA = categoryOptionGroupStore.getCategoryOptionGroups( cogsA );
-        assertEquals( 2, groupsA.size() );
-        assertTrue( groupsA.contains( cogA ) );
-        assertTrue( groupsA.contains( cogB ) );
-        List<CategoryOptionGroup> groupsB = categoryOptionGroupStore.getCategoryOptionGroups( cogsB );
-        assertEquals( 2, groupsB.size() );
-        assertTrue( groupsB.contains( cogC ) );
-        assertTrue( groupsB.contains( cogD ) );
-    }
+  @Test
+  void testGetByGroupSet() {
+    CategoryOptionGroup cogA = createCategoryOptionGroup('A', coA, coB);
+    CategoryOptionGroup cogB = createCategoryOptionGroup('B', coC, coD);
+    CategoryOptionGroup cogC = createCategoryOptionGroup('C', coE, coF);
+    CategoryOptionGroup cogD = createCategoryOptionGroup('D', coG, coH);
+    categoryOptionGroupStore.save(cogA);
+    categoryOptionGroupStore.save(cogB);
+    categoryOptionGroupStore.save(cogC);
+    categoryOptionGroupStore.save(cogD);
+    CategoryOptionGroupSet cogsA = createCategoryOptionGroupSet('A', cogA, cogB);
+    CategoryOptionGroupSet cogsB = createCategoryOptionGroupSet('B', cogC, cogD);
+    categoryService.saveCategoryOptionGroupSet(cogsA);
+    categoryService.saveCategoryOptionGroupSet(cogsB);
+    assertEquals(1, cogA.getGroupSets().size());
+    assertEquals(cogsA, cogA.getGroupSets().iterator().next());
+    assertEquals(1, cogB.getGroupSets().size());
+    assertEquals(cogsA, cogB.getGroupSets().iterator().next());
+    List<CategoryOptionGroup> groupsA = categoryOptionGroupStore.getCategoryOptionGroups(cogsA);
+    assertEquals(2, groupsA.size());
+    assertTrue(groupsA.contains(cogA));
+    assertTrue(groupsA.contains(cogB));
+    List<CategoryOptionGroup> groupsB = categoryOptionGroupStore.getCategoryOptionGroups(cogsB);
+    assertEquals(2, groupsB.size());
+    assertTrue(groupsB.contains(cogC));
+    assertTrue(groupsB.contains(cogD));
+  }
 }

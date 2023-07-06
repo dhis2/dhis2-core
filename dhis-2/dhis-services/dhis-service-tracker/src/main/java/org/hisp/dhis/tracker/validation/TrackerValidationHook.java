@@ -33,7 +33,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerValidationHook
-{
-    void validate( ValidationErrorReporter report, TrackerBundle bundle );
+public interface TrackerValidationHook {
+  void validate(ValidationErrorReporter report, TrackerBundle bundle);
 }

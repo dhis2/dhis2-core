@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.listener;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
-
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -53,80 +52,92 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component( "org.hisp.dhis.sms.listener.UnregisteredSMSListener" )
+@Component("org.hisp.dhis.sms.listener.UnregisteredSMSListener")
 @Transactional
-public class UnregisteredSMSListener
-    extends
-    CommandSMSListener
-{
-    private final SMSCommandService smsCommandService;
+public class UnregisteredSMSListener extends CommandSMSListener {
+  private final SMSCommandService smsCommandService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final MessageService messageService;
+  private final MessageService messageService;
 
-    public UnregisteredSMSListener( ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
-        UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        UserService userService1, MessageService messageService )
-    {
-        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
-            currentUserService, incomingSmsService, smsSender );
+  public UnregisteredSMSListener(
+      ProgramInstanceService programInstanceService,
+      CategoryService dataElementCategoryService,
+      ProgramStageInstanceService programStageInstanceService,
+      UserService userService,
+      CurrentUserService currentUserService,
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      SMSCommandService smsCommandService,
+      UserService userService1,
+      MessageService messageService) {
+    super(
+        programInstanceService,
+        dataElementCategoryService,
+        programStageInstanceService,
+        userService,
+        currentUserService,
+        incomingSmsService,
+        smsSender);
 
-        checkNotNull( smsCommandService );
-        checkNotNull( userService );
-        checkNotNull( messageService );
+    checkNotNull(smsCommandService);
+    checkNotNull(userService);
+    checkNotNull(messageService);
 
-        this.smsCommandService = smsCommandService;
-        this.userService = userService1;
-        this.messageService = messageService;
+    this.smsCommandService = smsCommandService;
+    this.userService = userService1;
+    this.messageService = messageService;
+  }
+
+  // -------------------------------------------------------------------------
+  // IncomingSmsListener implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  protected SMSCommand getSMSCommand(IncomingSms sms) {
+    return smsCommandService.getSMSCommand(
+        SmsUtils.getCommandString(sms), ParserType.UNREGISTERED_PARSER);
+  }
+
+  @Override
+  protected boolean hasCorrectFormat(IncomingSms sms, SMSCommand smsCommand) {
+    return true;
+  }
+
+  @Override
+  protected void postProcess(
+      IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage) {
+    UserGroup userGroup = smsCommand.getUserGroup();
+
+    String userName = sms.getOriginator();
+
+    if (userGroup != null) {
+      User anonymousUser = userService.getUserByUsername(userName);
+      if (anonymousUser == null) {
+        User user = new User();
+        user.setSurname(userName);
+        user.setFirstName("");
+        user.setAutoFields();
+
+        userService.addUser(user);
+
+        anonymousUser = userService.getUserByUsername(userName);
+      }
+
+      messageService.sendMessage(
+          new MessageConversationParams.Builder(
+                  userGroup.getMembers(),
+                  anonymousUser,
+                  smsCommand.getName(),
+                  sms.getText(),
+                  MessageType.SYSTEM,
+                  null)
+              .build());
+
+      sendFeedback(smsCommand.getReceivedMessage(), sms.getOriginator(), INFO);
+
+      update(sms, SmsMessageStatus.PROCESSED, true);
     }
-
-    // -------------------------------------------------------------------------
-    // IncomingSmsListener implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected SMSCommand getSMSCommand( IncomingSms sms )
-    {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.UNREGISTERED_PARSER );
-    }
-
-    @Override
-    protected boolean hasCorrectFormat( IncomingSms sms, SMSCommand smsCommand )
-    {
-        return true;
-    }
-
-    @Override
-    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
-    {
-        UserGroup userGroup = smsCommand.getUserGroup();
-
-        String userName = sms.getOriginator();
-
-        if ( userGroup != null )
-        {
-            User anonymousUser = userService.getUserByUsername( userName );
-            if ( anonymousUser == null )
-            {
-                User user = new User();
-                user.setSurname( userName );
-                user.setFirstName( "" );
-                user.setAutoFields();
-
-                userService.addUser( user );
-
-                anonymousUser = userService.getUserByUsername( userName );
-            }
-
-            messageService.sendMessage( new MessageConversationParams.Builder( userGroup.getMembers(),
-                anonymousUser, smsCommand.getName(), sms.getText(), MessageType.SYSTEM, null ).build() );
-
-            sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
-
-            update( sms, SmsMessageStatus.PROCESSED, true );
-        }
-    }
+  }
 }

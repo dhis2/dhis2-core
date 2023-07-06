@@ -37,42 +37,36 @@ import org.springframework.stereotype.Component;
  * @author Torgeir Lorange Ostby
  * @author Halvdan Hoem Grelland
  */
-@Component( "org.hisp.dhis.security.PasswordManager" )
-public class SpringSecurityPasswordManager
-    implements PasswordManager
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@Component("org.hisp.dhis.security.PasswordManager")
+public class SpringSecurityPasswordManager implements PasswordManager {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final PasswordEncoder passwordEncoder;
+  private final PasswordEncoder passwordEncoder;
 
-    public SpringSecurityPasswordManager( PasswordEncoder passwordEncoder )
-    {
-        checkNotNull( passwordEncoder );
+  public SpringSecurityPasswordManager(PasswordEncoder passwordEncoder) {
+    checkNotNull(passwordEncoder);
 
-        this.passwordEncoder = passwordEncoder;
-    }
+    this.passwordEncoder = passwordEncoder;
+  }
 
-    // -------------------------------------------------------------------------
-    // PasswordManager implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // PasswordManager implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public final String encode( String password )
-    {
-        return passwordEncoder.encode( password );
-    }
+  @Override
+  public final String encode(String password) {
+    return passwordEncoder.encode(password);
+  }
 
-    @Override
-    public boolean matches( String rawPassword, String encodedPassword )
-    {
-        return passwordEncoder.matches( rawPassword, encodedPassword );
-    }
+  @Override
+  public boolean matches(String rawPassword, String encodedPassword) {
+    return passwordEncoder.matches(rawPassword, encodedPassword);
+  }
 
-    @Override
-    public String getPasswordEncoderClassName()
-    {
-        return passwordEncoder.getClass().getName();
-    }
+  @Override
+  public String getPasswordEncoderClassName() {
+    return passwordEncoder.getClass().getName();
+  }
 }

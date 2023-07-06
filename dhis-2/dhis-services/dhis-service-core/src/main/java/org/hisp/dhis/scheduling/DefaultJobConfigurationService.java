@@ -30,6 +30,9 @@ package org.hisp.dhis.scheduling;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobType.values;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Primitives;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -42,9 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -57,263 +58,230 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Primitives;
-
 /**
  * @author Henning Håkonsen
  */
 @Slf4j
-@Service( "jobConfigurationService" )
-public class DefaultJobConfigurationService
-    implements JobConfigurationService
-{
+@Service("jobConfigurationService")
+public class DefaultJobConfigurationService implements JobConfigurationService {
 
-    private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+  private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
-    public DefaultJobConfigurationService(
-        @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
-    {
-        checkNotNull( jobConfigurationStore );
+  public DefaultJobConfigurationService(
+      @Qualifier("org.hisp.dhis.scheduling.JobConfigurationStore")
+          IdentifiableObjectStore<JobConfiguration> jobConfigurationStore) {
+    checkNotNull(jobConfigurationStore);
 
-        this.jobConfigurationStore = jobConfigurationStore;
+    this.jobConfigurationStore = jobConfigurationStore;
+  }
+
+  @Override
+  @Transactional
+  public long addJobConfiguration(JobConfiguration jobConfiguration) {
+    if (!jobConfiguration.isInMemoryJob()) {
+      jobConfigurationStore.save(jobConfiguration);
     }
 
-    @Override
-    @Transactional
-    public long addJobConfiguration( JobConfiguration jobConfiguration )
-    {
-        if ( !jobConfiguration.isInMemoryJob() )
-        {
-            jobConfigurationStore.save( jobConfiguration );
-        }
+    return jobConfiguration.getId();
+  }
 
-        return jobConfiguration.getId();
+  @Override
+  @Transactional
+  public void addJobConfigurations(List<JobConfiguration> jobConfigurations) {
+    jobConfigurations.forEach(this::addJobConfiguration);
+  }
+
+  @Override
+  @Transactional
+  public long updateJobConfiguration(JobConfiguration jobConfiguration) {
+    if (!jobConfiguration.isInMemoryJob()) {
+      jobConfigurationStore.update(jobConfiguration);
     }
 
-    @Override
-    @Transactional
-    public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
-    {
-        jobConfigurations.forEach( this::addJobConfiguration );
+    return jobConfiguration.getId();
+  }
+
+  @Override
+  @Transactional
+  public void deleteJobConfiguration(JobConfiguration jobConfiguration) {
+    if (!jobConfiguration.isInMemoryJob()) {
+      jobConfigurationStore.delete(jobConfigurationStore.getByUid(jobConfiguration.getUid()));
+    }
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public JobConfiguration getJobConfigurationByUid(String uid) {
+    return jobConfigurationStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public JobConfiguration getJobConfiguration(long jobId) {
+    return jobConfigurationStore.get(jobId);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<JobConfiguration> getAllJobConfigurations() {
+    return jobConfigurationStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Map<String, Property>> getJobParametersSchema() {
+    Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
+
+    for (JobType jobType : values()) {
+      if (!jobType.isConfigurable()) {
+        continue;
+      }
+
+      Map<String, Property> jobParameters =
+          Maps.uniqueIndex(getJobParameters(jobType), Property::getName);
+
+      propertyMap.put(jobType.name(), jobParameters);
     }
 
-    @Override
-    @Transactional
-    public long updateJobConfiguration( JobConfiguration jobConfiguration )
-    {
-        if ( !jobConfiguration.isInMemoryJob() )
-        {
-            jobConfigurationStore.update( jobConfiguration );
-        }
+    return propertyMap;
+  }
 
-        return jobConfiguration.getId();
+  @Override
+  public List<JobTypeInfo> getJobTypeInfo() {
+    List<JobTypeInfo> jobTypes = new ArrayList<>();
+
+    for (JobType jobType : values()) {
+      if (!jobType.isConfigurable()) {
+        continue;
+      }
+
+      String name = TextUtils.getPrettyEnumName(jobType);
+
+      List<Property> jobParameters = getJobParameters(jobType);
+
+      JobTypeInfo info = new JobTypeInfo(name, jobType, jobParameters);
+
+      jobTypes.add(info);
     }
 
-    @Override
-    @Transactional
-    public void deleteJobConfiguration( JobConfiguration jobConfiguration )
-    {
-        if ( !jobConfiguration.isInMemoryJob() )
-        {
-            jobConfigurationStore.delete( jobConfigurationStore.getByUid( jobConfiguration.getUid() ) );
-        }
+    return jobTypes;
+  }
+
+  @Override
+  @Transactional
+  public void refreshScheduling(JobConfiguration jobConfiguration) {
+    if (jobConfiguration.isEnabled()) {
+      jobConfiguration.setJobStatus(JobStatus.SCHEDULED);
+    } else {
+      jobConfiguration.setJobStatus(JobStatus.DISABLED);
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public JobConfiguration getJobConfigurationByUid( String uid )
-    {
-        return jobConfigurationStore.getByUid( uid );
+    jobConfigurationStore.update(jobConfiguration);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a list of job parameters for the given job type.
+   *
+   * @param jobType the {@link JobType}.
+   * @return a list of {@link Property}.
+   */
+  private List<Property> getJobParameters(JobType jobType) {
+    List<Property> jobParameters = new ArrayList<>();
+
+    Class<?> paramsType = jobType.getJobParameters();
+
+    if (paramsType == null) {
+      return jobParameters;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public JobConfiguration getJobConfiguration( long jobId )
-    {
-        return jobConfigurationStore.get( jobId );
+    final Set<PropertyDescriptor> properties =
+        Stream.of(PropertyUtils.getPropertyDescriptors(paramsType))
+            .filter(pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null)
+            .collect(Collectors.toSet());
+
+    for (Field field : paramsType.getDeclaredFields()) {
+      PropertyDescriptor descriptor =
+          properties.stream()
+              .filter(pd -> pd.getName().equals(field.getName()))
+              .findFirst()
+              .orElse(null);
+      if (isProperty(field, descriptor)) {
+        jobParameters.add(getProperty(jobType, paramsType, field));
+      }
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<JobConfiguration> getAllJobConfigurations()
-    {
-        return jobConfigurationStore.getAll();
+    return jobParameters;
+  }
+
+  private boolean isProperty(Field field, PropertyDescriptor descriptor) {
+    return !(descriptor == null
+        || (descriptor.getReadMethod().getAnnotation(JsonProperty.class) == null
+            && field.getAnnotation(JsonProperty.class) == null));
+  }
+
+  private static Property getProperty(JobType jobType, Class<?> paramsType, Field field) {
+    Class<?> valueType = field.getType();
+    Property property = new Property(Primitives.wrap(valueType), null, null);
+    property.setName(field.getName());
+    property.setFieldName(TextUtils.getPrettyPropertyName(field.getName()));
+
+    try {
+      field.setAccessible(true);
+      property.setDefaultValue(field.get(jobType.getJobParameters().newInstance()));
+    } catch (IllegalAccessException | InstantiationException e) {
+      log.error(
+          "Fetching default value for JobParameters properties failed for property: "
+              + field.getName(),
+          e);
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Map<String, Map<String, Property>> getJobParametersSchema()
-    {
-        Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
-
-        for ( JobType jobType : values() )
-        {
-            if ( !jobType.isConfigurable() )
-            {
-                continue;
-            }
-
-            Map<String, Property> jobParameters = Maps.uniqueIndex( getJobParameters( jobType ), Property::getName );
-
-            propertyMap.put( jobType.name(), jobParameters );
-        }
-
-        return propertyMap;
-    }
-
-    @Override
-    public List<JobTypeInfo> getJobTypeInfo()
-    {
-        List<JobTypeInfo> jobTypes = new ArrayList<>();
-
-        for ( JobType jobType : values() )
-        {
-            if ( !jobType.isConfigurable() )
-            {
-                continue;
-            }
-
-            String name = TextUtils.getPrettyEnumName( jobType );
-
-            List<Property> jobParameters = getJobParameters( jobType );
-
-            JobTypeInfo info = new JobTypeInfo( name, jobType, jobParameters );
-
-            jobTypes.add( info );
-        }
-
-        return jobTypes;
-    }
-
-    @Override
-    @Transactional
-    public void refreshScheduling( JobConfiguration jobConfiguration )
-    {
-        if ( jobConfiguration.isEnabled() )
-        {
-            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
-        }
-        else
-        {
-            jobConfiguration.setJobStatus( JobStatus.DISABLED );
-        }
-
-        jobConfigurationStore.update( jobConfiguration );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a list of job parameters for the given job type.
-     *
-     * @param jobType the {@link JobType}.
-     * @return a list of {@link Property}.
-     */
-    private List<Property> getJobParameters( JobType jobType )
-    {
-        List<Property> jobParameters = new ArrayList<>();
-
-        Class<?> paramsType = jobType.getJobParameters();
-
-        if ( paramsType == null )
-        {
-            return jobParameters;
-        }
-
-        final Set<PropertyDescriptor> properties = Stream.of( PropertyUtils.getPropertyDescriptors( paramsType ) )
-            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null )
-            .collect( Collectors.toSet() );
-
-        for ( Field field : paramsType.getDeclaredFields() )
-        {
-            PropertyDescriptor descriptor = properties.stream().filter( pd -> pd.getName().equals( field.getName() ) )
-                .findFirst().orElse( null );
-            if ( isProperty( field, descriptor ) )
-            {
-                jobParameters.add( getProperty( jobType, paramsType, field ) );
-            }
-        }
-
-        return jobParameters;
-    }
-
-    private boolean isProperty( Field field, PropertyDescriptor descriptor )
-    {
-        return !(descriptor == null || (descriptor.getReadMethod().getAnnotation( JsonProperty.class ) == null
-            && field.getAnnotation( JsonProperty.class ) == null));
-    }
-
-    private static Property getProperty( JobType jobType, Class<?> paramsType, Field field )
-    {
-        Class<?> valueType = field.getType();
-        Property property = new Property( Primitives.wrap( valueType ), null, null );
-        property.setName( field.getName() );
-        property.setFieldName( TextUtils.getPrettyPropertyName( field.getName() ) );
-
-        try
-        {
-            field.setAccessible( true );
-            property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
-        }
-        catch ( IllegalAccessException | InstantiationException e )
-        {
-            log.error(
-                "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
-        }
-
-        String relativeApiElements = jobType.getRelativeApiElements() != null
-            ? jobType.getRelativeApiElements().get( field.getName() )
+    String relativeApiElements =
+        jobType.getRelativeApiElements() != null
+            ? jobType.getRelativeApiElements().get(field.getName())
             : "";
 
-        if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
-        {
-            property.setRelativeApiEndpoint( relativeApiElements );
-        }
-
-        if ( Collection.class.isAssignableFrom( valueType ) )
-        {
-            return setPropertyIfCollection( property, field, paramsType );
-        }
-        if ( valueType.isEnum() )
-        {
-            property.setConstants( getConstants( valueType ) );
-        }
-        return property;
+    if (relativeApiElements != null && !relativeApiElements.equals("")) {
+      property.setRelativeApiEndpoint(relativeApiElements);
     }
 
-    private static Property setPropertyIfCollection( Property property, Field field, Class<?> klass )
-    {
-        property.setCollection( true );
-        property.setCollectionName( field.getName() );
-
-        Type type = field.getGenericType();
-
-        if ( type instanceof ParameterizedType )
-        {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            Class<?> itemKlass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-            property.setItemKlass( itemKlass );
-
-            property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( itemKlass ) );
-            property.setNameableObject( NameableObject.class.isAssignableFrom( itemKlass ) );
-            property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
-            property.setAnalyticalObject( AnalyticalObject.class.isAssignableFrom( klass ) );
-            if ( itemKlass.isEnum() )
-            {
-                property.setConstants( getConstants( itemKlass ) );
-            }
-        }
-        return property;
+    if (Collection.class.isAssignableFrom(valueType)) {
+      return setPropertyIfCollection(property, field, paramsType);
     }
-
-    private static List<String> getConstants( Class<?> enumType )
-    {
-        return Arrays.stream( enumType.getEnumConstants() )
-            .map( e -> ((Enum<?>) e).name() )
-            .collect( Collectors.toList() );
+    if (valueType.isEnum()) {
+      property.setConstants(getConstants(valueType));
     }
+    return property;
+  }
+
+  private static Property setPropertyIfCollection(Property property, Field field, Class<?> klass) {
+    property.setCollection(true);
+    property.setCollectionName(field.getName());
+
+    Type type = field.getGenericType();
+
+    if (type instanceof ParameterizedType) {
+      ParameterizedType parameterizedType = (ParameterizedType) type;
+      Class<?> itemKlass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+      property.setItemKlass(itemKlass);
+
+      property.setIdentifiableObject(IdentifiableObject.class.isAssignableFrom(itemKlass));
+      property.setNameableObject(NameableObject.class.isAssignableFrom(itemKlass));
+      property.setEmbeddedObject(EmbeddedObject.class.isAssignableFrom(klass));
+      property.setAnalyticalObject(AnalyticalObject.class.isAssignableFrom(klass));
+      if (itemKlass.isEnum()) {
+        property.setConstants(getConstants(itemKlass));
+      }
+    }
+    return property;
+  }
+
+  private static List<String> getConstants(Class<?> enumType) {
+    return Arrays.stream(enumType.getEnumConstants())
+        .map(e -> ((Enum<?>) e).name())
+        .collect(Collectors.toList());
+  }
 }

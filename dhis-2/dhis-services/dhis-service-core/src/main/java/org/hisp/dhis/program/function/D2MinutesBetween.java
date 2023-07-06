@@ -32,12 +32,13 @@ package org.hisp.dhis.program.function;
  *
  * @author Jim Grace
  */
-public class D2MinutesBetween
-    extends ProgramBetweenFunction
-{
-    @Override
-    public Object getSqlBetweenDates( String startDate, String endDate )
-    {
-        return "(extract(epoch from (cast(" + endDate + " as timestamp) - cast(" + startDate + " as timestamp))) / 60)";
-    }
+public class D2MinutesBetween extends ProgramBetweenFunction {
+  @Override
+  public Object getSqlBetweenDates(String startDate, String endDate) {
+    return "(extract(epoch from (cast("
+        + endDate
+        + " as timestamp) - cast("
+        + startDate
+        + " as timestamp))) / 60)";
+  }
 }

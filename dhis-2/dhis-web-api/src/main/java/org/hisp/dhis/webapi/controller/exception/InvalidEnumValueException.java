@@ -32,11 +32,10 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Getter
-public class InvalidEnumValueException extends Exception
-{
-    private final String invalidValue;
+public class InvalidEnumValueException extends Exception {
+  private final String invalidValue;
 
-    private final String fieldName;
+  private final String fieldName;
 
-    private final Class<? extends Enum> enumKlass;
+  private final Class<? extends Enum> enumKlass;
 }

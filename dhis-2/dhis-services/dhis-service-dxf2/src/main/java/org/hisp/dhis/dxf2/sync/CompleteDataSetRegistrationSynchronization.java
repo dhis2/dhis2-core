@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.sync;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
@@ -50,105 +48,122 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public class CompleteDataSetRegistrationSynchronization extends DataSynchronizationWithoutPaging
-{
-    private final SystemSettingManager systemSettingManager;
+public class CompleteDataSetRegistrationSynchronization extends DataSynchronizationWithoutPaging {
+  private final SystemSettingManager systemSettingManager;
 
-    private final RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
-    private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
+  private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
-    private final CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
+  private final CompleteDataSetRegistrationExchangeService
+      completeDataSetRegistrationExchangeService;
 
-    private Date lastUpdatedAfter;
+  private Date lastUpdatedAfter;
 
-    public CompleteDataSetRegistrationSynchronization( SystemSettingManager systemSettingManager,
-        RestTemplate restTemplate, CompleteDataSetRegistrationService completeDataSetRegistrationService,
-        CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( restTemplate );
-        checkNotNull( completeDataSetRegistrationService );
-        checkNotNull( completeDataSetRegistrationExchangeService );
+  public CompleteDataSetRegistrationSynchronization(
+      SystemSettingManager systemSettingManager,
+      RestTemplate restTemplate,
+      CompleteDataSetRegistrationService completeDataSetRegistrationService,
+      CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService) {
+    checkNotNull(systemSettingManager);
+    checkNotNull(restTemplate);
+    checkNotNull(completeDataSetRegistrationService);
+    checkNotNull(completeDataSetRegistrationExchangeService);
 
-        this.systemSettingManager = systemSettingManager;
-        this.restTemplate = restTemplate;
-        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
-        this.completeDataSetRegistrationExchangeService = completeDataSetRegistrationExchangeService;
+    this.systemSettingManager = systemSettingManager;
+    this.restTemplate = restTemplate;
+    this.completeDataSetRegistrationService = completeDataSetRegistrationService;
+    this.completeDataSetRegistrationExchangeService = completeDataSetRegistrationExchangeService;
+  }
+
+  @Override
+  public SynchronizationResult synchronizeData() {
+    if (!SyncUtils.testServerAvailability(systemSettingManager, restTemplate).isAvailable()) {
+      return SynchronizationResult.newFailureResultWithMessage(
+          "Complete data set registration synchronization failed. Remote server is unavailable.");
     }
 
-    @Override
-    public SynchronizationResult synchronizeData()
-    {
-        if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
-        {
-            return SynchronizationResult.newFailureResultWithMessage(
-                "Complete data set registration synchronization failed. Remote server is unavailable." );
-        }
+    initializeSyncVariables();
 
-        initializeSyncVariables();
-
-        if ( objectsToSynchronize == 0 )
-        {
-            SyncUtils.setLastSyncSuccess( systemSettingManager,
-                SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, new Date( clock.getStartTime() ) );
-            log.info( "Skipping completeness synchronization, no new or updated data" );
-            return SynchronizationResult
-                .newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
-        }
-
-        if ( sendSyncRequest() )
-        {
-            String resultMsg = "Complete data set registration synchronization is done. It took ";
-            clock.logTime( "SUCCESS! " + resultMsg );
-            SyncUtils.setLastSyncSuccess( systemSettingManager,
-                SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC,
-                new Date( clock.getStartTime() ) );
-
-            return SynchronizationResult.newSuccessResultWithMessage( resultMsg + clock.getTime() + " ms." );
-        }
-
-        return SynchronizationResult
-            .newFailureResultWithMessage( "Complete data set registration synchronization failed." );
+    if (objectsToSynchronize == 0) {
+      SyncUtils.setLastSyncSuccess(
+          systemSettingManager,
+          SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC,
+          new Date(clock.getStartTime()));
+      log.info("Skipping completeness synchronization, no new or updated data");
+      return SynchronizationResult.newSuccessResultWithMessage(
+          "Skipping completeness synchronization, no new or updated data");
     }
 
-    private void initializeSyncVariables()
-    {
-        clock = new Clock( log ).startClock().logTime( "Starting Complete data set registration synchronization job." );
+    if (sendSyncRequest()) {
+      String resultMsg = "Complete data set registration synchronization is done. It took ";
+      clock.logTime("SUCCESS! " + resultMsg);
+      SyncUtils.setLastSyncSuccess(
+          systemSettingManager,
+          SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC,
+          new Date(clock.getStartTime()));
 
-        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
-            SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
-        final Date skipChangedBefore = systemSettingManager
-            .getDateSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
-        lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
-        objectsToSynchronize = completeDataSetRegistrationService
-            .getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
-
-        log.info(
-            "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
-
-        if ( objectsToSynchronize != 0 )
-        {
-            instance = SyncUtils.getRemoteInstance( systemSettingManager,
-                SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
-
-            log.info( objectsToSynchronize + " completed data set registrations to synchronize were found." );
-            log.info( "Remote server URL for completeness POST synchronization: " + instance.getUrl() );
-        }
+      return SynchronizationResult.newSuccessResultWithMessage(
+          resultMsg + clock.getTime() + " ms.");
     }
 
-    private boolean sendSyncRequest()
-    {
-        final RequestCallback requestCallback = request -> {
-            request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
-            request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
-                CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
+    return SynchronizationResult.newFailureResultWithMessage(
+        "Complete data set registration synchronization failed.");
+  }
 
-            completeDataSetRegistrationExchangeService
-                .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
+  private void initializeSyncVariables() {
+    clock =
+        new Clock(log)
+            .startClock()
+            .logTime("Starting Complete data set registration synchronization job.");
+
+    final Date lastSuccessTime =
+        SyncUtils.getLastSyncSuccess(
+            systemSettingManager, SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC);
+    final Date skipChangedBefore =
+        systemSettingManager.getDateSetting(
+            SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE);
+    lastUpdatedAfter =
+        lastSuccessTime.after(skipChangedBefore) ? lastSuccessTime : skipChangedBefore;
+    objectsToSynchronize =
+        completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter(
+            lastUpdatedAfter);
+
+    log.info(
+        "CompleteDataSetRegistrations last changed before "
+            + skipChangedBefore
+            + " will not be synchronized.");
+
+    if (objectsToSynchronize != 0) {
+      instance =
+          SyncUtils.getRemoteInstance(
+              systemSettingManager, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS);
+
+      log.info(
+          objectsToSynchronize + " completed data set registrations to synchronize were found.");
+      log.info("Remote server URL for completeness POST synchronization: " + instance.getUrl());
+    }
+  }
+
+  private boolean sendSyncRequest() {
+    final RequestCallback requestCallback =
+        request -> {
+          request.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+          request
+              .getHeaders()
+              .add(
+                  SyncUtils.HEADER_AUTHORIZATION,
+                  CodecUtils.getBasicAuthString(instance.getUsername(), instance.getPassword()));
+
+          completeDataSetRegistrationExchangeService.writeCompleteDataSetRegistrationsJson(
+              lastUpdatedAfter, request.getBody(), new IdSchemes());
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance,
-            SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
-    }
+    return SyncUtils.sendSyncRequest(
+        systemSettingManager,
+        restTemplate,
+        requestCallback,
+        instance,
+        SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS);
+  }
 }

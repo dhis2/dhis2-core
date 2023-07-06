@@ -27,149 +27,133 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import java.util.List;
-import java.util.Map;
-
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.scheduling.JobParameters;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import java.util.List;
+import java.util.Map;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
- * PropertyFilter that supports filtering using FieldPaths, also supports
- * skipping of all fields related to sharing.
+ * PropertyFilter that supports filtering using FieldPaths, also supports skipping of all fields
+ * related to sharing.
  *
- * The filter _must_ be set on the ObjectMapper before serialising an object.
+ * <p>The filter _must_ be set on the ObjectMapper before serialising an object.
  *
  * @author Morten Olav Hansen
  */
 @RequiredArgsConstructor
-public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter
-{
-    private final List<FieldPath> fieldPaths;
+public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter {
+  private final List<FieldPath> fieldPaths;
 
-    private final boolean skipSharing;
+  private final boolean skipSharing;
 
-    @Override
-    protected boolean include( final BeanPropertyWriter writer )
-    {
+  @Override
+  protected boolean include(final BeanPropertyWriter writer) {
+    return true;
+  }
+
+  @Override
+  protected boolean include(final PropertyWriter writer) {
+    return true;
+  }
+
+  protected boolean include(final PropertyWriter writer, final JsonGenerator jgen) {
+    PathValue pathValue = getPath(writer, jgen);
+    String path = pathValue.getPath();
+
+    if (pathValue.getValue() == null) {
+      return false;
+    }
+
+    if (skipSharing
+        && StringUtils.equalsAny(
+            path,
+            "user",
+            "publicAccess",
+            "externalAccess",
+            "userGroupAccesses",
+            "userAccesses",
+            "sharing")) {
+      return false;
+    }
+
+    if (pathValue.isInsideMap()) {
+      return true;
+    }
+
+    for (FieldPath fieldPath : fieldPaths) {
+      if (fieldPath.toFullPath().equals(path)) {
         return true;
+      }
     }
 
-    @Override
-    protected boolean include( final PropertyWriter writer )
-    {
-        return true;
+    return false;
+  }
+
+  private PathValue getPath(PropertyWriter writer, JsonGenerator jgen) {
+    StringBuilder nestedPath = new StringBuilder();
+    JsonStreamContext sc = jgen.getOutputContext();
+    Object value = null;
+    boolean isInsideMap = false;
+
+    if (sc != null) {
+      nestedPath.append(writer.getName());
+      value = sc.getCurrentValue();
+      sc = sc.getParent();
     }
 
-    protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
-    {
-        PathValue pathValue = getPath( writer, jgen );
-        String path = pathValue.getPath();
+    while (sc != null) {
+      if (sc.getCurrentValue() != null
+          && (Map.class.isAssignableFrom(sc.getCurrentValue().getClass())
+              || JobParameters.class.isAssignableFrom(sc.getCurrentValue().getClass()))) {
+        sc = sc.getParent();
+        isInsideMap = true;
+        continue;
+      }
 
-        if ( pathValue.getValue() == null )
-        {
-            return false;
-        }
+      if (sc.getCurrentName() != null && sc.getCurrentValue() != null) {
+        nestedPath.insert(0, ".");
+        nestedPath.insert(0, sc.getCurrentName());
+      }
 
-        if ( skipSharing &&
-            StringUtils.equalsAny( path, "user", "publicAccess", "externalAccess", "userGroupAccesses",
-                "userAccesses", "sharing" ) )
-        {
-            return false;
-        }
-
-        if ( pathValue.isInsideMap() )
-        {
-            return true;
-        }
-
-        for ( FieldPath fieldPath : fieldPaths )
-        {
-            if ( fieldPath.toFullPath().equals( path ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
+      sc = sc.getParent();
     }
 
-    private PathValue getPath( PropertyWriter writer, JsonGenerator jgen )
-    {
-        StringBuilder nestedPath = new StringBuilder();
-        JsonStreamContext sc = jgen.getOutputContext();
-        Object value = null;
-        boolean isInsideMap = false;
-
-        if ( sc != null )
-        {
-            nestedPath.append( writer.getName() );
-            value = sc.getCurrentValue();
-            sc = sc.getParent();
-        }
-
-        while ( sc != null )
-        {
-            if ( sc.getCurrentValue() != null && (Map.class.isAssignableFrom( sc.getCurrentValue().getClass() )
-                || JobParameters.class.isAssignableFrom( sc.getCurrentValue().getClass() )) )
-            {
-                sc = sc.getParent();
-                isInsideMap = true;
-                continue;
-            }
-
-            if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
-            {
-                nestedPath.insert( 0, "." );
-                nestedPath.insert( 0, sc.getCurrentName() );
-            }
-
-            sc = sc.getParent();
-        }
-
-        if ( value != null && (Map.class.isAssignableFrom( value.getClass() )
-            || JobParameters.class.isAssignableFrom( value.getClass() )) )
-        {
-            isInsideMap = true;
-        }
-
-        return new PathValue( nestedPath.toString(), value, isInsideMap );
+    if (value != null
+        && (Map.class.isAssignableFrom(value.getClass())
+            || JobParameters.class.isAssignableFrom(value.getClass()))) {
+      isInsideMap = true;
     }
 
-    @Override
-    public void serializeAsField( Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer )
-        throws Exception
-    {
-        if ( include( writer, jgen ) )
-        {
-            writer.serializeAsField( pojo, jgen, provider );
-        }
-        else if ( !jgen.canOmitFields() )
-        { // since 2.3
-            writer.serializeAsOmittedField( pojo, jgen, provider );
-        }
+    return new PathValue(nestedPath.toString(), value, isInsideMap);
+  }
+
+  @Override
+  public void serializeAsField(
+      Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer)
+      throws Exception {
+    if (include(writer, jgen)) {
+      writer.serializeAsField(pojo, jgen, provider);
+    } else if (!jgen.canOmitFields()) { // since 2.3
+      writer.serializeAsOmittedField(pojo, jgen, provider);
     }
+  }
 }
 
-/**
- * Simple container class used by getPath to handle Maps.
- */
+/** Simple container class used by getPath to handle Maps. */
 @Data
 @RequiredArgsConstructor
-class PathValue
-{
-    private final String path;
+class PathValue {
+  private final String path;
 
-    private final Object value;
+  private final Object value;
 
-    private final boolean insideMap;
+  private final boolean insideMap;
 }

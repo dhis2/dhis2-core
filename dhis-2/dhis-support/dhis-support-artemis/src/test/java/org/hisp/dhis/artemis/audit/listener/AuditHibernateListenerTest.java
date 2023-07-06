@@ -34,7 +34,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.AuditManager;
@@ -50,68 +49,60 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-public class AuditHibernateListenerTest
-{
-    @InjectMocks
-    private PostInsertAuditListener postInsertAuditListener;
+@ExtendWith(MockitoExtension.class)
+public class AuditHibernateListenerTest {
+  @InjectMocks private PostInsertAuditListener postInsertAuditListener;
 
-    @Mock
-    private AuditManager auditManager;
+  @Mock private AuditManager auditManager;
 
-    @Mock
-    private AuditObjectFactory objectFactory;
+  @Mock private AuditObjectFactory objectFactory;
 
-    @Mock
-    private UsernameSupplier usernameSupplier;
+  @Mock private UsernameSupplier usernameSupplier;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    @Test
-    void testSavePassword()
-    {
-        User user = createUser( 1, "userA", "passwordA" );
+  @Test
+  void testSavePassword() {
+    User user = createUser(1, "userA", "passwordA");
 
-        Object[] state = new Object[] { "userA", "passwordA" };
-        EventSource session = mock( EventSource.class );
-        EntityPersister persister = mock( EntityPersister.class );
-        when( persister.getPropertyNames() ).thenReturn( new String[] { "userName", "password" } );
+    Object[] state = new Object[] {"userA", "passwordA"};
+    EventSource session = mock(EventSource.class);
+    EntityPersister persister = mock(EntityPersister.class);
+    when(persister.getPropertyNames()).thenReturn(new String[] {"userName", "password"});
 
-        Schema schema = mock( Schema.class );
+    Schema schema = mock(Schema.class);
 
-        HashMap<String, Property> map = new HashMap<>();
-        map.put( "userName", createProperty( "userName", true ) );
-        // password property has readable = false
-        map.put( "password", createProperty( "password", false ) );
+    HashMap<String, Property> map = new HashMap<>();
+    map.put("userName", createProperty("userName", true));
+    // password property has readable = false
+    map.put("password", createProperty("password", false));
 
-        when( schema.getFieldNameMapProperties() ).thenReturn( map );
-        when( schemaService.getDynamicSchema( User.class ) ).thenReturn( schema );
-        Map<String, Object> auditObjectMap = (Map<String, Object>) postInsertAuditListener.createAuditEntry( user,
-            state, session, 1, persister );
+    when(schema.getFieldNameMapProperties()).thenReturn(map);
+    when(schemaService.getDynamicSchema(User.class)).thenReturn(schema);
+    Map<String, Object> auditObjectMap =
+        (Map<String, Object>)
+            postInsertAuditListener.createAuditEntry(user, state, session, 1, persister);
 
-        // password is not included
-        assertNull( auditObjectMap.get( "password" ) );
-        assertEquals( 1, auditObjectMap.size() );
-        assertEquals( "userA", auditObjectMap.get( "userName" ).toString() );
-    }
+    // password is not included
+    assertNull(auditObjectMap.get("password"));
+    assertEquals(1, auditObjectMap.size());
+    assertEquals("userA", auditObjectMap.get("userName").toString());
+  }
 
-    private User createUser( int id, String userName, String password )
-    {
-        User user = new User();
-        user.setId( id );
-        user.setUsername( userName );
-        user.setPassword( password );
-        return user;
-    }
+  private User createUser(int id, String userName, String password) {
+    User user = new User();
+    user.setId(id);
+    user.setUsername(userName);
+    user.setPassword(password);
+    return user;
+  }
 
-    private Property createProperty( String name, boolean readable )
-    {
-        Property property = new Property( String.class );
-        property.setReadable( readable );
-        property.setFieldName( name );
-        property.setOwner( true );
-        property.setEmbeddedObject( false );
-        return property;
-    }
+  private Property createProperty(String name, boolean readable) {
+    Property property = new Property(String.class);
+    property.setReadable(readable);
+    property.setFieldName(name);
+    property.setOwner(true);
+    property.setEmbeddedObject(false);
+    return property;
+  }
 }

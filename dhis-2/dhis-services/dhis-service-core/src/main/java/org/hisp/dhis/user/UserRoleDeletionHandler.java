@@ -35,31 +35,25 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.user.UserRoleDeletionHandler" )
-public class UserRoleDeletionHandler
-    extends DeletionHandler
-{
-    private final UserService userService;
+@Component("org.hisp.dhis.user.UserRoleDeletionHandler")
+public class UserRoleDeletionHandler extends DeletionHandler {
+  private final UserService userService;
 
-    public UserRoleDeletionHandler( UserService userService )
-    {
-        checkNotNull( userService );
+  public UserRoleDeletionHandler(UserService userService) {
+    checkNotNull(userService);
 
-        this.userService = userService;
+    this.userService = userService;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+  }
+
+  private void deleteUser(User user) {
+    for (UserRole group : user.getUserRoles()) {
+      group.getMembers().remove(user);
+      userService.updateUserRole(group);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-    }
-
-    private void deleteUser( User user )
-    {
-        for ( UserRole group : user.getUserRoles() )
-        {
-            group.getMembers().remove( user );
-            userService.updateUserRole( group );
-        }
-    }
+  }
 }

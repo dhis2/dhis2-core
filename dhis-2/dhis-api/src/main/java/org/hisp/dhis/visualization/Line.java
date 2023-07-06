@@ -29,12 +29,10 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import java.io.Serializable;
-
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import lombok.Data;
 
 /**
  * This class represents a line in the axis. See {@link AxisV2}}.
@@ -42,13 +40,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author maikel arabori
  */
 @Data
-public class Line implements Serializable
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Double value;
+public class Line implements Serializable {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Double value;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private StyledObject title;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private StyledObject title;
 }

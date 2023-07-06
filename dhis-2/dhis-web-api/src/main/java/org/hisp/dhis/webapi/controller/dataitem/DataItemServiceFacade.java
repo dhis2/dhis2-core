@@ -44,10 +44,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -59,111 +57,101 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is tight to the controller layer and is responsible to encapsulate
- * logic that does not belong to the controller and does not belong to the
- * service layer either. In other words, these set of methods sit between the
- * controller and service layers. The main goal is to alleviate the controller
- * layer.
+ * This class is tight to the controller layer and is responsible to encapsulate logic that does not
+ * belong to the controller and does not belong to the service layer either. In other words, these
+ * set of methods sit between the controller and service layers. The main goal is to alleviate the
+ * controller layer.
  *
  * @author maikel arabori
  */
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class DataItemServiceFacade
-{
-    private final CurrentUserService currentUserService;
+public class DataItemServiceFacade {
+  private final CurrentUserService currentUserService;
 
-    private final QueryExecutor queryExecutor;
+  private final QueryExecutor queryExecutor;
 
-    /**
-     * This method will iterate through the list of target entities, and query
-     * each one of them using the filters and params provided. The result list
-     * will bring together the results of all target entities queried.
-     *
-     * @param targetEntities the list of entities to be retrieved
-     * @param orderParams request ordering params
-     * @param filters request filters
-     * @param options request options
-     * @return the consolidated collection of entities found.
-     */
-    List<DataItem> retrieveDataItemEntities(
-        final Set<Class<? extends BaseIdentifiableObject>> targetEntities, final Set<String> filters,
-        final WebOptions options, final OrderParams orderParams )
-    {
-        final List<DataItem> dataItems = new ArrayList<>();
+  /**
+   * This method will iterate through the list of target entities, and query each one of them using
+   * the filters and params provided. The result list will bring together the results of all target
+   * entities queried.
+   *
+   * @param targetEntities the list of entities to be retrieved
+   * @param orderParams request ordering params
+   * @param filters request filters
+   * @param options request options
+   * @return the consolidated collection of entities found.
+   */
+  List<DataItem> retrieveDataItemEntities(
+      final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      final Set<String> filters,
+      final WebOptions options,
+      final OrderParams orderParams) {
+    final List<DataItem> dataItems = new ArrayList<>();
 
-        final User currentUser = currentUserService.getCurrentUser();
+    final User currentUser = currentUserService.getCurrentUser();
 
-        if ( isNotEmpty( targetEntities ) )
-        {
-            // Defining the query params map, and setting the common params.
-            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
-                currentUser.getUid() );
+    if (isNotEmpty(targetEntities)) {
+      // Defining the query params map, and setting the common params.
+      final MapSqlParameterSource paramsMap =
+          new MapSqlParameterSource().addValue("userUid", currentUser.getUid());
 
-            setFilteringParams( filters, options, paramsMap, currentUser );
+      setFilteringParams(filters, options, paramsMap, currentUser);
 
-            setOrderingParams( orderParams, paramsMap );
+      setOrderingParams(orderParams, paramsMap);
 
-            setMaxResultsWhenPaging( options, paramsMap );
+      setMaxResultsWhenPaging(options, paramsMap);
 
-            dataItems.addAll( queryExecutor.find( targetEntities, paramsMap ) );
+      dataItems.addAll(queryExecutor.find(targetEntities, paramsMap));
 
-            // In memory pagination.
-            return paginate( options, dataItems );
-        }
-
-        return dataItems;
+      // In memory pagination.
+      return paginate(options, dataItems);
     }
 
-    /**
-     * This method returns a set of BaseDimensionalItemObject's based on the
-     * provided filters.
-     *
-     * @param filters
-     * @return the data items classes to be queried
-     */
-    Set<Class<? extends BaseIdentifiableObject>> extractTargetEntities( final Set<String> filters )
-    {
-        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>( 0 );
+    return dataItems;
+  }
 
-        if ( containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getCombination(),
-            DIMENSION_TYPE_IN.getCombination() ) )
-        {
-            addFilteredTargetEntities( filters, targetedEntities );
-        }
-        else
-        {
-            // If no filter is set we search for all entities.
-            targetedEntities.addAll( getEntities() );
-        }
+  /**
+   * This method returns a set of BaseDimensionalItemObject's based on the provided filters.
+   *
+   * @param filters
+   * @return the data items classes to be queried
+   */
+  Set<Class<? extends BaseIdentifiableObject>> extractTargetEntities(final Set<String> filters) {
+    final Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>(0);
 
-        return targetedEntities;
+    if (containsFilterWithAnyOfPrefixes(
+        filters, DIMENSION_TYPE_EQUAL.getCombination(), DIMENSION_TYPE_IN.getCombination())) {
+      addFilteredTargetEntities(filters, targetedEntities);
+    } else {
+      // If no filter is set we search for all entities.
+      targetedEntities.addAll(getEntities());
     }
 
-    private void addFilteredTargetEntities( final Set<String> filters,
-        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
-    {
-        final Iterator<String> iterator = filters.iterator();
+    return targetedEntities;
+  }
 
-        while ( iterator.hasNext() )
-        {
-            final String filter = iterator.next();
-            final Class<? extends BaseIdentifiableObject> entity = extractEntityFromEqualFilter( filter );
-            final Set<Class<? extends BaseIdentifiableObject>> entities = extractEntitiesFromInFilter( filter );
+  private void addFilteredTargetEntities(
+      final Set<String> filters,
+      final Set<Class<? extends BaseIdentifiableObject>> targetedEntities) {
+    final Iterator<String> iterator = filters.iterator();
 
-            if ( entity != null || isNotEmpty( entities ) )
-            {
-                if ( entity != null )
-                {
-                    targetedEntities.add( entity );
-                }
+    while (iterator.hasNext()) {
+      final String filter = iterator.next();
+      final Class<? extends BaseIdentifiableObject> entity = extractEntityFromEqualFilter(filter);
+      final Set<Class<? extends BaseIdentifiableObject>> entities =
+          extractEntitiesFromInFilter(filter);
 
-                if ( isNotEmpty( entities ) )
-                {
-                    targetedEntities.addAll( entities );
-                }
-            }
+      if (entity != null || isNotEmpty(entities)) {
+        if (entity != null) {
+          targetedEntities.add(entity);
         }
+
+        if (isNotEmpty(entities)) {
+          targetedEntities.addAll(entities);
+        }
+      }
     }
+  }
 }

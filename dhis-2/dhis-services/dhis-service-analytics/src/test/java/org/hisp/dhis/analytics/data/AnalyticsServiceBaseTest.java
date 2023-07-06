@@ -66,89 +66,82 @@ import org.mockito.quality.Strictness;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( { MockitoExtension.class } )
-abstract class AnalyticsServiceBaseTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith({MockitoExtension.class})
+abstract class AnalyticsServiceBaseTest {
 
-    @Mock
-    protected AnalyticsManager analyticsManager;
+  @Mock protected AnalyticsManager analyticsManager;
 
-    @Mock
-    private RawAnalyticsManager rawAnalyticsManager;
+  @Mock private RawAnalyticsManager rawAnalyticsManager;
 
-    @Mock
-    private AnalyticsSecurityManager securityManager;
+  @Mock private AnalyticsSecurityManager securityManager;
 
-    @Mock
-    private QueryPlanner queryPlanner;
+  @Mock private QueryPlanner queryPlanner;
 
-    @Mock
-    private ExpressionService expressionService;
+  @Mock private ExpressionService expressionService;
 
-    @Mock
-    private ConstantService constantService;
+  @Mock private ConstantService constantService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingManager systemSettingManager;
 
-    @Mock
-    protected EventAnalyticsService eventAnalyticsService;
+  @Mock protected EventAnalyticsService eventAnalyticsService;
 
-    @Mock
-    private DataQueryService dataQueryService;
+  @Mock private DataQueryService dataQueryService;
 
-    @Mock
-    private SchemaIdResponseMapper schemaIdResponseMapper;
+  @Mock private SchemaIdResponseMapper schemaIdResponseMapper;
 
-    @Mock
-    private DhisConfigurationProvider dhisConfig;
+  @Mock private DhisConfigurationProvider dhisConfig;
 
-    @Mock
-    private AnalyticsCache analyticsCache;
+  @Mock private AnalyticsCache analyticsCache;
 
-    @Mock
-    private AnalyticsCacheSettings analyticsCacheSettings;
+  @Mock private AnalyticsCacheSettings analyticsCacheSettings;
 
-    @Mock
-    private ExpressionResolvers resolvers;
+  @Mock private ExpressionResolvers resolvers;
 
-    @Mock
-    private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
+  @Mock private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
-    @Mock
-    private ExecutionPlanStore executionPlanStore;
+  @Mock private ExecutionPlanStore executionPlanStore;
 
-    DataAggregator target;
+  DataAggregator target;
 
-    @BeforeEach
-    public void baseSetUp()
-    {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
+  @BeforeEach
+  public void baseSetUp() {
+    DefaultQueryValidator queryValidator = new DefaultQueryValidator(systemSettingManager);
 
-        HeaderHandler headerHandler = new HeaderHandler();
-        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
-        DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
-            resolvers, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
-            organisationUnitService, executionPlanStore );
+    HeaderHandler headerHandler = new HeaderHandler();
+    MetadataHandler metadataHandler = new MetadataHandler(dataQueryService, schemaIdResponseMapper);
+    DataHandler dataHandler =
+        new DataHandler(
+            eventAnalyticsService,
+            rawAnalyticsManager,
+            constantService,
+            resolvers,
+            expressionService,
+            queryPlanner,
+            queryValidator,
+            systemSettingManager,
+            analyticsManager,
+            organisationUnitService,
+            executionPlanStore);
 
-        target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
-        target.feedHandlers();
+    target = new DataAggregator(headerHandler, metadataHandler, dataHandler);
+    target.feedHandlers();
 
-        when( systemSettingManager.getBooleanSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) )
-            .thenReturn( false );
-        when( analyticsCacheSettings.fixedExpirationTimeOrDefault() ).thenReturn( 0L );
-    }
+    when(systemSettingManager.getBooleanSetting(SettingKey.ANALYTICS_MAINTENANCE_MODE))
+        .thenReturn(false);
+    when(analyticsCacheSettings.fixedExpirationTimeOrDefault()).thenReturn(0L);
+  }
 
-    void initMock( DataQueryParams params )
-    {
-        when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) )
-            .thenReturn( params );
-        when( securityManager.withUserConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
-    }
+  void initMock(DataQueryParams params) {
+    when(securityManager.withDataApprovalConstraints(Mockito.any(DataQueryParams.class)))
+        .thenReturn(params);
+    when(securityManager.withUserConstraints(any(DataQueryParams.class))).thenReturn(params);
+    when(queryPlanner.planQuery(any(DataQueryParams.class), any(QueryPlannerParams.class)))
+        .thenReturn(
+            DataQueryGroups.newBuilder()
+                .withQueries(newArrayList(DataQueryParams.newBuilder().build()))
+                .build());
+  }
 }

@@ -41,45 +41,44 @@ import org.hisp.dhis.relationship.RelationshipType;
  *
  * @author Jim Grace
  */
-public class D2RelationshipCount
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( ctx.QUOTED_UID() != null )
-        {
-            String relationshipId = trimQuotes( ctx.QUOTED_UID().getText() );
+public class D2RelationshipCount extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    if (ctx.QUOTED_UID() != null) {
+      String relationshipId = trimQuotes(ctx.QUOTED_UID().getText());
 
-            RelationshipType relationshipType = visitor.getIdObjectManager()
-                .get( RelationshipType.class, relationshipId );
+      RelationshipType relationshipType =
+          visitor.getIdObjectManager().get(RelationshipType.class, relationshipId);
 
-            if ( relationshipType == null )
-            {
-                throw new ParserExceptionWithoutContext( "Relationship type " + relationshipId + " not found" );
-            }
+      if (relationshipType == null) {
+        throw new ParserExceptionWithoutContext(
+            "Relationship type " + relationshipId + " not found");
+      }
 
-            visitor.getItemDescriptions().put( ctx.QUOTED_UID().getText(), relationshipType.getDisplayName() );
-        }
-
-        return DEFAULT_DOUBLE_VALUE;
+      visitor
+          .getItemDescriptions()
+          .put(ctx.QUOTED_UID().getText(), relationshipType.getDisplayName());
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String relationshipIdConstraint = "";
+    return DEFAULT_DOUBLE_VALUE;
+  }
 
-        if ( ctx.QUOTED_UID() != null )
-        {
-            String relationshipId = trimQuotes( ctx.QUOTED_UID().getText() );
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String relationshipIdConstraint = "";
 
-            relationshipIdConstraint = " join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = '"
-                + relationshipId + "'";
-        }
+    if (ctx.QUOTED_UID() != null) {
+      String relationshipId = trimQuotes(ctx.QUOTED_UID().getText());
 
-        return "(select count(*) from relationship r" + relationshipIdConstraint +
-            " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid" +
-            " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+      relationshipIdConstraint =
+          " join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = '"
+              + relationshipId
+              + "'";
     }
+
+    return "(select count(*) from relationship r"
+        + relationshipIdConstraint
+        + " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid"
+        + " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+  }
 }

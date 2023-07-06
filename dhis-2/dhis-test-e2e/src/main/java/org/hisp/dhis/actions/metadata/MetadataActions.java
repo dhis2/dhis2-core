@@ -30,67 +30,60 @@ package org.hisp.dhis.actions.metadata;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.MetadataApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataActions
-    extends RestApiActions
-{
-    public MetadataActions()
-    {
-        super( "/metadata" );
-    }
+public class MetadataActions extends RestApiActions {
+  public MetadataActions() {
+    super("/metadata");
+  }
 
-    public MetadataApiResponse importMetadata( File file, String... queryParams )
-    {
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "importReportMode=FULL" );
+  public MetadataApiResponse importMetadata(File file, String... queryParams) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(queryParams);
+    queryParamsBuilder.addAll("importReportMode=FULL");
 
-        ApiResponse response = postFile( file, queryParamsBuilder );
-        response.validate().statusCode( 200 );
+    ApiResponse response = postFile(file, queryParamsBuilder);
+    response.validate().statusCode(200);
 
-        return new MetadataApiResponse( response );
-    }
+    return new MetadataApiResponse(response);
+  }
 
-    public MetadataApiResponse importMetadata( JsonObject object, String... queryParams )
-    {
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
+  public MetadataApiResponse importMetadata(JsonObject object, String... queryParams) {
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(queryParams);
+    queryParamsBuilder.addAll("atomicMode=OBJECT", "importReportMode=FULL");
 
-        ApiResponse response = post( object, queryParamsBuilder );
-        response.validate().statusCode( 200 );
+    ApiResponse response = post(object, queryParamsBuilder);
+    response.validate().statusCode(200);
 
-        return new MetadataApiResponse( response );
-    }
+    return new MetadataApiResponse(response);
+  }
 
-    public MetadataApiResponse importAndValidateMetadata( JsonObject object, String... queryParams )
-    {
-        ApiResponse response = importMetadata( object, queryParams );
+  public MetadataApiResponse importAndValidateMetadata(JsonObject object, String... queryParams) {
+    ApiResponse response = importMetadata(object, queryParams);
 
-        response.validate().body( "response.stats.ignored", not(
-            equalTo( response.extract( "response.stats.total" ) ) ) );
+    response
+        .validate()
+        .body("response.stats.ignored", not(equalTo(response.extract("response.stats.total"))));
 
-        return new MetadataApiResponse( response );
-    }
+    return new MetadataApiResponse(response);
+  }
 
-    public MetadataApiResponse importAndValidateMetadata( File file, String... queryParams )
-    {
-        ApiResponse response = importMetadata( file, queryParams );
+  public MetadataApiResponse importAndValidateMetadata(File file, String... queryParams) {
+    ApiResponse response = importMetadata(file, queryParams);
 
-        response.validate().body( "response.stats.ignored", not(
-            equalTo( response.extract( "response.stats.total" ) ) ) );
+    response
+        .validate()
+        .body("response.stats.ignored", not(equalTo(response.extract("response.stats.total"))));
 
-        return new MetadataApiResponse( response );
-    }
+    return new MetadataApiResponse(response);
+  }
 }

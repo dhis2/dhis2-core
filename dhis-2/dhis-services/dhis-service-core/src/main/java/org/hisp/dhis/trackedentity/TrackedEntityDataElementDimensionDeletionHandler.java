@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.legend.LegendSet;
@@ -41,38 +40,34 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class TrackedEntityDataElementDimensionDeletionHandler
-    extends DeletionHandler
-{
-    private final SessionFactory sessionFactory;
+public class TrackedEntityDataElementDimensionDeletionHandler extends DeletionHandler {
+  private final SessionFactory sessionFactory;
 
-    public TrackedEntityDataElementDimensionDeletionHandler( SessionFactory sessionFactory )
-    {
-        checkNotNull( sessionFactory );
-        this.sessionFactory = sessionFactory;
+  public TrackedEntityDataElementDimensionDeletionHandler(SessionFactory sessionFactory) {
+    checkNotNull(sessionFactory);
+    this.sessionFactory = sessionFactory;
+  }
+
+  @Override
+  protected void register() {
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void deleteLegendSet(LegendSet legendSet) {
+    // TODO Move this get-method to service layer
+
+    Query query =
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet");
+    query.setParameter("legendSet", legendSet);
+
+    List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
+
+    for (TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions) {
+      dataElementDimension.setLegendSet(null);
+      sessionFactory.getCurrentSession().update(dataElementDimension);
     }
-
-    @Override
-    protected void register()
-    {
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        // TODO Move this get-method to service layer
-
-        Query query = sessionFactory.getCurrentSession()
-            .createQuery( "FROM TrackedEntityDataElementDimension WHERE legendSet=:legendSet" );
-        query.setParameter( "legendSet", legendSet );
-
-        List<TrackedEntityDataElementDimension> dataElementDimensions = query.list();
-
-        for ( TrackedEntityDataElementDimension dataElementDimension : dataElementDimensions )
-        {
-            dataElementDimension.setLegendSet( null );
-            sessionFactory.getCurrentSession().update( dataElementDimension );
-        }
-    }
+  }
 }

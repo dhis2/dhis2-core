@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
+import com.csvreader.CsvReader;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
-
-import com.csvreader.CsvReader;
 
 /**
  * Reads {@link DataValueSet} from CSV input.
@@ -42,126 +39,102 @@ import com.csvreader.CsvReader;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
-{
-    private final CsvReader reader;
+final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry {
+  private final CsvReader reader;
 
-    private final ImportOptions importOptions;
+  private final ImportOptions importOptions;
 
-    @Override
-    public DataValueSet readHeader()
-    {
-        if ( importOptions == null || importOptions.isFirstRowIsHeader() )
-        {
-            readNext(); // Ignore the first row: assume header row
-        }
-        return new DataValueSet();
+  @Override
+  public DataValueSet readHeader() {
+    if (importOptions == null || importOptions.isFirstRowIsHeader()) {
+      readNext(); // Ignore the first row: assume header row
     }
+    return new DataValueSet();
+  }
 
-    @Override
-    public DataValueEntry readNext()
-    {
-        try
-        {
-            return reader.readRecord() ? this : null;
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( "Failed to read record", ex );
-        }
+  @Override
+  public DataValueEntry readNext() {
+    try {
+      return reader.readRecord() ? this : null;
+    } catch (IOException ex) {
+      throw new UncheckedIOException("Failed to read record", ex);
     }
+  }
 
-    /*
-     * When used as DataValueEntry
-     */
+  /*
+   * When used as DataValueEntry
+   */
 
-    @Override
-    public void close()
-    {
-        reader.close();
+  @Override
+  public void close() {
+    reader.close();
+  }
+
+  @Override
+  public String getDataElement() {
+    return getString(0);
+  }
+
+  @Override
+  public String getPeriod() {
+    return getString(1);
+  }
+
+  @Override
+  public String getOrgUnit() {
+    return getString(2);
+  }
+
+  @Override
+  public String getCategoryOptionCombo() {
+    return getString(3);
+  }
+
+  @Override
+  public String getAttributeOptionCombo() {
+    return getString(4);
+  }
+
+  @Override
+  public String getValue() {
+    return getString(5);
+  }
+
+  @Override
+  public String getStoredBy() {
+    return getString(6);
+  }
+
+  @Override
+  public String getCreated() {
+    return null;
+  }
+
+  @Override
+  public String getLastUpdated() {
+    return getString(7);
+  }
+
+  @Override
+  public String getComment() {
+    return getString(8);
+  }
+
+  @Override
+  public boolean getFollowup() {
+    return Boolean.parseBoolean(getString(9));
+  }
+
+  @Override
+  public Boolean getDeleted() {
+    return Boolean.valueOf(getString(10));
+  }
+
+  private String getString(int index) {
+    try {
+      return reader.get(index);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
-
-    @Override
-    public String getDataElement()
-    {
-        return getString( 0 );
-    }
-
-    @Override
-    public String getPeriod()
-    {
-        return getString( 1 );
-    }
-
-    @Override
-    public String getOrgUnit()
-    {
-        return getString( 2 );
-    }
-
-    @Override
-    public String getCategoryOptionCombo()
-    {
-        return getString( 3 );
-    }
-
-    @Override
-    public String getAttributeOptionCombo()
-    {
-        return getString( 4 );
-    }
-
-    @Override
-    public String getValue()
-    {
-        return getString( 5 );
-    }
-
-    @Override
-    public String getStoredBy()
-    {
-        return getString( 6 );
-    }
-
-    @Override
-    public String getCreated()
-    {
-        return null;
-    }
-
-    @Override
-    public String getLastUpdated()
-    {
-        return getString( 7 );
-    }
-
-    @Override
-    public String getComment()
-    {
-        return getString( 8 );
-    }
-
-    @Override
-    public boolean getFollowup()
-    {
-        return Boolean.parseBoolean( getString( 9 ) );
-    }
-
-    @Override
-    public Boolean getDeleted()
-    {
-        return Boolean.valueOf( getString( 10 ) );
-    }
-
-    private String getString( int index )
-    {
-        try
-        {
-            return reader.get( index );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
-    }
+  }
 }

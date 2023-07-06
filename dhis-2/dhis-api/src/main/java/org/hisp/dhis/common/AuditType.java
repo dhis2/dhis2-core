@@ -32,23 +32,20 @@ package org.hisp.dhis.common;
  *
  * @author Halvdan Hoem Grelland
  */
-public enum AuditType
-{
-    CREATE( "create" ),
-    UPDATE( "update" ),
-    DELETE( "delete" ),
-    READ( "read" ),
-    SEARCH( "search" );
+public enum AuditType {
+  CREATE("create"),
+  UPDATE("update"),
+  DELETE("delete"),
+  READ("read"),
+  SEARCH("search");
 
-    private final String value;
+  private final String value;
 
-    AuditType( String value )
-    {
-        this.value = value;
-    }
+  AuditType(String value) {
+    this.value = value;
+  }
 
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

@@ -42,103 +42,151 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceController}
- * using (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceController} using
+ * (mocked) REST requests.
  *
  * @author Jan Bernitt
  */
-class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest
-{
+class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest {
 
-    private String ouId;
+  private String ouId;
 
-    private String tetId;
+  private String tetId;
 
-    @BeforeEach
-    void setUp()
-    {
-        ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        tetId = assertStatus( HttpStatus.CREATED, POST( "/trackedEntityTypes/", "{'name': 'A'}" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    tetId = assertStatus(HttpStatus.CREATED, POST("/trackedEntityTypes/", "{'name': 'A'}"));
+  }
 
-    @Test
-    void testPostTrackedEntityInstanceJson()
-    {
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            POST( "/trackedEntityInstances",
-                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" )
-                    .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostTrackedEntityInstanceJson() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        POST(
+                "/trackedEntityInstances",
+                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostTrackedEntityInstanceJson_Async()
-    {
-        assertWebMessage( "OK", 200, "OK", "Initiated inMemoryEventImport",
-            POST( "/trackedEntityInstances?async=true",
-                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" )
-                    .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostTrackedEntityInstanceJson_Async() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Initiated inMemoryEventImport",
+        POST(
+                "/trackedEntityInstances?async=true",
+                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}")
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostTrackedEntityInstanceXml()
-    {
-        HttpResponse response = POST( "/trackedEntityInstances",
-            Body( "<trackedEntityInstance><name>A</name><trackedEntityType>" + tetId + "</trackedEntityType><orgUnit>"
-                + ouId + "</orgUnit></trackedEntityInstance>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
-    }
+  @Test
+  void testPostTrackedEntityInstanceXml() {
+    HttpResponse response =
+        POST(
+            "/trackedEntityInstances",
+            Body(
+                "<trackedEntityInstance><name>A</name><trackedEntityType>"
+                    + tetId
+                    + "</trackedEntityType><orgUnit>"
+                    + ouId
+                    + "</orgUnit></trackedEntityInstance>"),
+            ContentType(MediaType.APPLICATION_XML),
+            Accept(MediaType.APPLICATION_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    assertTrue(response.content(MediaType.APPLICATION_XML).startsWith("<webMessage"));
+  }
 
-    @Test
-    void testPostTrackedEntityInstanceXml_Async()
-    {
-        HttpResponse response = POST( "/trackedEntityInstances?async=true",
-            Body( "<trackedEntityInstance><name>A</name><trackedEntityType>" + tetId + "</trackedEntityType><orgUnit>"
-                + ouId + "</orgUnit></trackedEntityInstance>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
-    }
+  @Test
+  void testPostTrackedEntityInstanceXml_Async() {
+    HttpResponse response =
+        POST(
+            "/trackedEntityInstances?async=true",
+            Body(
+                "<trackedEntityInstance><name>A</name><trackedEntityType>"
+                    + tetId
+                    + "</trackedEntityType><orgUnit>"
+                    + ouId
+                    + "</orgUnit></trackedEntityInstance>"),
+            ContentType(MediaType.APPLICATION_XML),
+            Accept(MediaType.APPLICATION_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    assertTrue(response.content(MediaType.APPLICATION_XML).startsWith("<webMessage"));
+  }
 
-    @Test
-    void testUpdateTrackedEntityInstanceXml()
-    {
-        String uid = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
-            "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-        HttpResponse response = PUT( "/trackedEntityInstances/" + uid,
-            Body( "<trackedEntityInstance><name>A</name><trackedEntityType>" + tetId + "</trackedEntityType><orgUnit>"
-                + ouId + "</orgUnit></trackedEntityInstance>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
-    }
+  @Test
+  void testUpdateTrackedEntityInstanceXml() {
+    String uid =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/trackedEntityInstances",
+                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}"));
+    HttpResponse response =
+        PUT(
+            "/trackedEntityInstances/" + uid,
+            Body(
+                "<trackedEntityInstance><name>A</name><trackedEntityType>"
+                    + tetId
+                    + "</trackedEntityType><orgUnit>"
+                    + ouId
+                    + "</orgUnit></trackedEntityInstance>"),
+            ContentType(MediaType.APPLICATION_XML),
+            Accept(MediaType.APPLICATION_XML));
+    assertEquals(HttpStatus.OK, response.status());
+    assertTrue(response.content(MediaType.APPLICATION_XML).startsWith("<webMessage"));
+  }
 
-    @Test
-    void testUpdateTrackedEntityInstanceJson()
-    {
-        String uid = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
-            "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-        JsonObject tei = GET( "/trackedEntityInstances/" + uid ).content();
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            PUT( "/trackedEntityInstances/" + uid, tei.toString() ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testUpdateTrackedEntityInstanceJson() {
+    String uid =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/trackedEntityInstances",
+                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}"));
+    JsonObject tei = GET("/trackedEntityInstances/" + uid).content();
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        PUT("/trackedEntityInstances/" + uid, tei.toString()).content(HttpStatus.OK));
+  }
 
-    @Test
-    void testDeleteTrackedEntityInstance()
-    {
-        String uid = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
-            "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            DELETE( "/trackedEntityInstances/" + uid ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteTrackedEntityInstance() {
+    String uid =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/trackedEntityInstances",
+                "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}"));
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        DELETE("/trackedEntityInstances/" + uid).content(HttpStatus.OK));
+  }
 
-    @Test
-    void testDeleteTrackedEntityInstance_NoSuchObject()
-    {
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            DELETE( "/trackedEntityInstances/xyz" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteTrackedEntityInstance_NoSuchObject() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        DELETE("/trackedEntityInstances/xyz").content(HttpStatus.OK));
+  }
 }

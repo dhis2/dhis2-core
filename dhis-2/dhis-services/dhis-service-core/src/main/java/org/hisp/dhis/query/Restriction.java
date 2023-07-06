@@ -28,84 +28,67 @@
 package org.hisp.dhis.query;
 
 import javax.persistence.criteria.Predicate;
-
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class Restriction implements Criterion
-{
-    /**
-     * Path to property you want to restrict only, one first-level properties
-     * are currently supported.
-     */
-    private String path;
+public class Restriction implements Criterion {
+  /**
+   * Path to property you want to restrict only, one first-level properties are currently supported.
+   */
+  private String path;
 
-    /**
-     * Operator for restriction.
-     */
-    private Operator operator;
+  /** Operator for restriction. */
+  private Operator operator;
 
-    /**
-     * Query Path.
-     */
-    private QueryPath queryPath;
+  /** Query Path. */
+  private QueryPath queryPath;
 
-    private Predicate predicate;
+  private Predicate predicate;
 
-    public Restriction( String path, Predicate predicate )
-    {
-        this.path = path;
-        this.predicate = predicate;
-    }
+  public Restriction(String path, Predicate predicate) {
+    this.path = path;
+    this.predicate = predicate;
+  }
 
-    public Restriction( String path, Operator operator )
-    {
-        this.path = path;
-        this.operator = operator;
-    }
+  public Restriction(String path, Operator operator) {
+    this.path = path;
+    this.operator = operator;
+  }
 
-    public String getPath()
-    {
-        return path;
-    }
+  public String getPath() {
+    return path;
+  }
 
-    public Operator getOperator()
-    {
-        return operator;
-    }
+  public Operator getOperator() {
+    return operator;
+  }
 
-    public QueryPath getQueryPath()
-    {
-        return queryPath;
-    }
+  public QueryPath getQueryPath() {
+    return queryPath;
+  }
 
-    public Restriction setQueryPath( QueryPath queryPath )
-    {
-        this.queryPath = queryPath;
-        return this;
-    }
+  public Restriction setQueryPath(QueryPath queryPath) {
+    this.queryPath = queryPath;
+    return this;
+  }
 
-    public Predicate getPredicate()
-    {
-        return predicate;
-    }
+  public Predicate getPredicate() {
+    return predicate;
+  }
 
-    public void setPredicate( Predicate predicate )
-    {
-        this.predicate = predicate;
-    }
+  public void setPredicate(Predicate predicate) {
+    this.predicate = predicate;
+  }
 
-    public boolean haveQueryPath()
-    {
-        return queryPath != null;
-    }
+  public boolean haveQueryPath() {
+    return queryPath != null;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[" + path + ", op: " + operator + "]";
-    }
+  @Override
+  public String toString() {
+    return "[" + path + ", op: " + operator + "]";
+  }
 }

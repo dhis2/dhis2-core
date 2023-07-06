@@ -35,53 +35,75 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.http.HttpStatus;
 
-abstract class AbstractDataValueControllerTest
-    extends DhisControllerConvenienceTest
-{
-    protected String dataElementId;
+abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest {
+  protected String dataElementId;
 
-    protected String orgUnitId;
+  protected String orgUnitId;
 
-    protected String categoryComboId;
+  protected String categoryComboId;
 
-    protected String categoryOptionComboId;
+  protected String categoryOptionComboId;
 
-    @BeforeEach
-    void setUp()
-    {
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        // add OU to users hierarchy
-        assertStatus( HttpStatus.OK, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
-            Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
-        JsonObject ccDefault = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
-        categoryComboId = ccDefault.getString( "id" ).string();
-        categoryOptionComboId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
-        dataElementId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements/",
+  @BeforeEach
+  void setUp() {
+    orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    // add OU to users hierarchy
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/users/{id}/organisationUnits",
+            getCurrentUser().getUid(),
+            Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
+    JsonObject ccDefault =
+        GET("/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default")
+            .content()
+            .getObject(0);
+    categoryComboId = ccDefault.getString("id").string();
+    categoryOptionComboId = ccDefault.getArray("categoryOptionCombos").getString(0).string();
+    dataElementId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements/",
                 "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "
                     + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
-                    + "'categoryCombo': {'id': '" + categoryComboId + "'}}" ) );
-    }
+                    + "'categoryCombo': {'id': '"
+                    + categoryComboId
+                    + "'}}"));
+  }
 
-    /**
-     * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
-     */
-    protected final void addDataValue( String period, String value, String comment, boolean followup )
-    {
-        addDataValue( period, value, comment, followup, dataElementId, orgUnitId );
-    }
+  /**
+   * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
+   */
+  protected final void addDataValue(String period, String value, String comment, boolean followup) {
+    addDataValue(period, value, comment, followup, dataElementId, orgUnitId);
+  }
 
-    /**
-     * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
-     */
-    protected final void addDataValue( String period, String value, String comment, boolean followup,
-        String dataElementId, String orgUnitId )
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
-                dataElementId, period, orgUnitId, categoryOptionComboId, value, comment, followup ) );
-    }
+  /**
+   * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
+   */
+  protected final void addDataValue(
+      String period,
+      String value,
+      String comment,
+      boolean followup,
+      String dataElementId,
+      String orgUnitId) {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+            dataElementId,
+            period,
+            orgUnitId,
+            categoryOptionComboId,
+            value,
+            comment,
+            followup));
+  }
 }

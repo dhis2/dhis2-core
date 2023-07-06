@@ -43,98 +43,98 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RelationshipPersister
-    extends AbstractTrackerPersister<Relationship, org.hisp.dhis.relationship.Relationship>
-{
-    private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter;
+    extends AbstractTrackerPersister<Relationship, org.hisp.dhis.relationship.Relationship> {
+  private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
+      relationshipConverter;
 
-    public RelationshipPersister( ReservedValueService reservedValueService,
-        TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
+  public RelationshipPersister(
+      ReservedValueService reservedValueService,
+      TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
+          relationshipConverter,
+      TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
 
-    {
-        super( reservedValueService, trackedEntityAttributeValueAuditService );
-        this.relationshipConverter = relationshipConverter;
-    }
+    super(reservedValueService, trackedEntityAttributeValueAuditService);
+    this.relationshipConverter = relationshipConverter;
+  }
 
-    @Override
-    protected org.hisp.dhis.relationship.Relationship convert( TrackerBundle bundle, Relationship trackerDto )
-    {
-        return relationshipConverter.from( bundle.getPreheat(), trackerDto );
-    }
+  @Override
+  protected org.hisp.dhis.relationship.Relationship convert(
+      TrackerBundle bundle, Relationship trackerDto) {
+    return relationshipConverter.from(bundle.getPreheat(), trackerDto);
+  }
 
-    @Override
-    protected void persistComments( TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity )
-    {
-        // NOTHING TO DO
-    }
+  @Override
+  protected void persistComments(
+      TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity) {
+    // NOTHING TO DO
+  }
 
-    @Override
-    protected void updateAttributes( Session session, TrackerPreheat preheat, Relationship trackerDto,
-        org.hisp.dhis.relationship.Relationship hibernateEntity )
-    {
-        // NOTHING TO DO
-    }
+  @Override
+  protected void updateAttributes(
+      Session session,
+      TrackerPreheat preheat,
+      Relationship trackerDto,
+      org.hisp.dhis.relationship.Relationship hibernateEntity) {
+    // NOTHING TO DO
+  }
 
-    @Override
-    protected void updateDataValues( Session session, TrackerPreheat preheat, Relationship trackerDto,
-        org.hisp.dhis.relationship.Relationship hibernateEntity )
-    {
-        // NOTHING TO DO
-    }
+  @Override
+  protected void updateDataValues(
+      Session session,
+      TrackerPreheat preheat,
+      Relationship trackerDto,
+      org.hisp.dhis.relationship.Relationship hibernateEntity) {
+    // NOTHING TO DO
+  }
 
-    @Override
-    protected void updatePreheat( TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship convertedDto )
-    {
-        // NOTHING TO DO
-    }
+  @Override
+  protected void updatePreheat(
+      TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship convertedDto) {
+    // NOTHING TO DO
+  }
 
-    @Override
-    protected boolean isUpdatable()
-    {
-        // We don't want to update relationships. Only CREATE/DELETE is
-        // supported
-        // so this method will inform AbstractTrackerPersister to not proceed
-        // with merge.
-        return false;
-    }
+  @Override
+  protected boolean isUpdatable() {
+    // We don't want to update relationships. Only CREATE/DELETE is
+    // supported
+    // so this method will inform AbstractTrackerPersister to not proceed
+    // with merge.
+    return false;
+  }
 
-    @Override
-    protected boolean isNew( TrackerPreheat preheat, Relationship trackerDto )
-    {
-        return preheat.getRelationship( trackerDto ) == null;
-    }
+  @Override
+  protected boolean isNew(TrackerPreheat preheat, Relationship trackerDto) {
+    return preheat.getRelationship(trackerDto) == null;
+  }
 
-    @Override
-    protected boolean isNew( TrackerPreheat preheat, String uid )
-    {
-        // Normally this method is never invoked, since for Relationships
-        // isNew( TrackerPreheat, Relationship ) is invoked instead
-        throw new UnsupportedOperationException( "use isNew(TrackerPreheat preheat, Relationship trackerDto) instead" );
-    }
+  @Override
+  protected boolean isNew(TrackerPreheat preheat, String uid) {
+    // Normally this method is never invoked, since for Relationships
+    // isNew( TrackerPreheat, Relationship ) is invoked instead
+    throw new UnsupportedOperationException(
+        "use isNew(TrackerPreheat preheat, Relationship trackerDto) instead");
+  }
 
-    @Override
-    protected TrackerSideEffectDataBundle handleSideEffects( TrackerBundle bundle,
-        org.hisp.dhis.relationship.Relationship entity )
-    {
-        return TrackerSideEffectDataBundle.builder().build();
-    }
+  @Override
+  protected TrackerSideEffectDataBundle handleSideEffects(
+      TrackerBundle bundle, org.hisp.dhis.relationship.Relationship entity) {
+    return TrackerSideEffectDataBundle.builder().build();
+  }
 
-    @Override
-    protected TrackerType getType()
-    {
-        return TrackerType.RELATIONSHIP;
-    }
+  @Override
+  protected TrackerType getType() {
+    return TrackerType.RELATIONSHIP;
+  }
 
-    @Override
-    protected void persistOwnership( TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity )
-    {
-        // NOTHING TO DO
+  @Override
+  protected void persistOwnership(
+      TrackerPreheat preheat, org.hisp.dhis.relationship.Relationship entity) {
+    // NOTHING TO DO
 
-    }
+  }
 
-    @Override
-    protected String getUpdatedTrackedEntity( org.hisp.dhis.relationship.Relationship entity )
-    {
-        return null;
-    }
+  @Override
+  protected String getUpdatedTrackedEntity(org.hisp.dhis.relationship.Relationship entity) {
+    return null;
+  }
 }

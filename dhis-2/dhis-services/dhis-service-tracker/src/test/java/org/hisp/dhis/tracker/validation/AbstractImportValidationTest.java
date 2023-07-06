@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -42,54 +41,44 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class AbstractImportValidationTest extends TrackerTest
-{
-    @Autowired
-    protected TrackerBundleService trackerBundleService;
+public abstract class AbstractImportValidationTest extends TrackerTest {
+  @Autowired protected TrackerBundleService trackerBundleService;
 
-    @Autowired
-    protected ObjectBundleService objectBundleService;
+  @Autowired protected ObjectBundleService objectBundleService;
 
-    @Autowired
-    protected ObjectBundleValidationService objectBundleValidationService;
+  @Autowired protected ObjectBundleValidationService objectBundleValidationService;
 
-    @Autowired
-    protected DefaultTrackerValidationService trackerValidationService;
+  @Autowired protected DefaultTrackerValidationService trackerValidationService;
 
-    public static final String ADMIN_USER_UID = "M5zQapPyTZI";
+  public static final String ADMIN_USER_UID = "M5zQapPyTZI";
 
-    public static final String USER_1 = "oZZ43IHxuUM";
+  public static final String USER_1 = "oZZ43IHxuUM";
 
-    public static final String USER_2 = "MbkW4Bhfw7o";
+  public static final String USER_2 = "MbkW4Bhfw7o";
 
-    public static final String USER_3 = "fY22f5N1xSy";
+  public static final String USER_3 = "fY22f5N1xSy";
 
-    public static final String USER_4 = "iAji3gyZYQL";
+  public static final String USER_4 = "iAji3gyZYQL";
 
-    public static final String USER_5 = "oajYcE7VMBs";
+  public static final String USER_5 = "oajYcE7VMBs";
 
-    public static final String USER_6 = "VfaA5WwHLdP";
+  public static final String USER_6 = "VfaA5WwHLdP";
 
-    public static final String USER_7 = "E5AiPnHG3t5";
+  public static final String USER_7 = "E5AiPnHG3t5";
 
-    public static final String USER_8 = "xbgFeL0l3Ap";
+  public static final String USER_8 = "xbgFeL0l3Ap";
 
-    protected TrackerImportParams createBundleFromJson( String jsonFile )
-        throws IOException
-    {
-        InputStream inputStream = new ClassPathResource( jsonFile ).getInputStream();
+  protected TrackerImportParams createBundleFromJson(String jsonFile) throws IOException {
+    InputStream inputStream = new ClassPathResource(jsonFile).getInputStream();
 
-        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
+    TrackerImportParams params = renderService.fromJson(inputStream, TrackerImportParams.class);
 
-        User user = userService.getUser( ADMIN_USER_UID );
-        params.setUser( user );
+    User user = userService.getUser(ADMIN_USER_UID);
+    params.setUser(user);
 
-        return params;
-    }
+    return params;
+  }
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-    }
+  @Override
+  protected void initTest() throws IOException {}
 }

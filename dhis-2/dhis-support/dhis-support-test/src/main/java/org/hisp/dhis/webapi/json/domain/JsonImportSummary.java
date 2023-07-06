@@ -35,48 +35,38 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonImportSummary extends JsonObject
-{
-    default String getResponseType()
-    {
-        return getString( "responseType" ).string();
+public interface JsonImportSummary extends JsonObject {
+  default String getResponseType() {
+    return getString("responseType").string();
+  }
+
+  default String getStatus() {
+    return getString("status").string();
+  }
+
+  default JsonStats getStats() {
+    return get("stats", JsonStats.class);
+  }
+
+  default JsonList<JsonTypeReport> getTypeReports() {
+    return getList("typeReports", JsonTypeReport.class);
+  }
+
+  default JsonStats getImportCount() {
+    return get("importCount", JsonStats.class);
+  }
+
+  default JsonList<JsonConflict> getConflicts() {
+    return getList("conflicts", JsonConflict.class);
+  }
+
+  interface JsonConflict extends JsonObject {
+    default String getObject() {
+      return getString("object").string();
     }
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
+    default String getValue() {
+      return getString("value").string();
     }
-
-    default JsonStats getStats()
-    {
-        return get( "stats", JsonStats.class );
-    }
-
-    default JsonList<JsonTypeReport> getTypeReports()
-    {
-        return getList( "typeReports", JsonTypeReport.class );
-    }
-
-    default JsonStats getImportCount()
-    {
-        return get( "importCount", JsonStats.class );
-    }
-
-    default JsonList<JsonConflict> getConflicts()
-    {
-        return getList( "conflicts", JsonConflict.class );
-    }
-
-    interface JsonConflict extends JsonObject
-    {
-        default String getObject()
-        {
-            return getString( "object" ).string();
-        }
-
-        default String getValue()
-        {
-            return getString( "value" ).string();
-        }
-    }
+  }
 }

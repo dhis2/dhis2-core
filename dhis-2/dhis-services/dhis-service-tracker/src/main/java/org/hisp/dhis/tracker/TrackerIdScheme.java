@@ -30,25 +30,16 @@ package org.hisp.dhis.tracker;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerIdScheme
-{
-    /**
-     * Preheat using UID identifiers.
-     */
-    UID,
+public enum TrackerIdScheme {
+  /** Preheat using UID identifiers. */
+  UID,
 
-    /**
-     * Preheat using CODE identifiers.
-     */
-    CODE,
+  /** Preheat using CODE identifiers. */
+  CODE,
 
-    /**
-     * Preheat using NAME identifiers
-     */
-    NAME,
+  /** Preheat using NAME identifiers */
+  NAME,
 
-    /**
-     * Preheat using ATTRIBUTE identifiers
-     */
-    ATTRIBUTE,
+  /** Preheat using ATTRIBUTE identifiers */
+  ATTRIBUTE,
 }

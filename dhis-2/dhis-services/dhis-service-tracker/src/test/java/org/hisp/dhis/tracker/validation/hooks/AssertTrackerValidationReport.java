@@ -34,39 +34,43 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
-public class AssertTrackerValidationReport
-{
+public class AssertTrackerValidationReport {
 
-    public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
-    {
-        assertHasError( report, code, dto.getTrackerType(), dto.getUid() );
-    }
+  public static void assertHasError(
+      TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto) {
+    assertHasError(report, code, dto.getTrackerType(), dto.getUid());
+  }
 
-    public static void assertHasError( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
-        String uid )
-    {
-        assertTrue( report.hasErrors(), "error not found since report has no errors" );
-        assertTrue( report.hasError( err -> code == err.getErrorCode() &&
-            type == err.getTrackerType() &&
-            uid.equals( err.getUid() ) ),
-            String.format( "error with code %s, type %s, uid %s not found in report with %d unique error(s)", code,
-                type,
-                uid, report.size() ) );
-    }
+  public static void assertHasError(
+      TrackerValidationReport report, TrackerErrorCode code, TrackerType type, String uid) {
+    assertTrue(report.hasErrors(), "error not found since report has no errors");
+    assertTrue(
+        report.hasError(
+            err ->
+                code == err.getErrorCode()
+                    && type == err.getTrackerType()
+                    && uid.equals(err.getUid())),
+        String.format(
+            "error with code %s, type %s, uid %s not found in report with %d unique error(s)",
+            code, type, uid, report.size()));
+  }
 
-    public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto )
-    {
-        assertHasWarning( report, code, dto.getTrackerType(), dto.getUid() );
-    }
+  public static void assertHasWarning(
+      TrackerValidationReport report, TrackerErrorCode code, TrackerDto dto) {
+    assertHasWarning(report, code, dto.getTrackerType(), dto.getUid());
+  }
 
-    public static void assertHasWarning( TrackerValidationReport report, TrackerErrorCode code, TrackerType type,
-        String uid )
-    {
-        assertTrue( report.hasWarnings(), "warning not found since report has no warnings" );
-        assertTrue( report.hasWarning( warning -> code == warning.getWarningCode() &&
-            type == warning.getTrackerType() &&
-            uid.equals( warning.getUid() ) ),
-            String.format( "warning with code %s, type %s, uid %s not found in report with %d warnings(s)", code, type,
-                uid, report.getWarnings().size() ) );
-    }
+  public static void assertHasWarning(
+      TrackerValidationReport report, TrackerErrorCode code, TrackerType type, String uid) {
+    assertTrue(report.hasWarnings(), "warning not found since report has no warnings");
+    assertTrue(
+        report.hasWarning(
+            warning ->
+                code == warning.getWarningCode()
+                    && type == warning.getTrackerType()
+                    && uid.equals(warning.getUid())),
+        String.format(
+            "warning with code %s, type %s, uid %s not found in report with %d warnings(s)",
+            code, type, uid, report.getWarnings().size()));
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -37,67 +36,63 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Viet Nguyen
  */
-@Service( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService" )
+@Service("org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService")
 public class DefaultProgramTrackedEntityAttributeGroupService
-    implements ProgramTrackedEntityAttributeGroupService
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    implements ProgramTrackedEntityAttributeGroupService {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
+  private final IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
 
-    public DefaultProgramTrackedEntityAttributeGroupService(
-        @Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" ) IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
-    {
-        this.attributeGroupStore = attributeGroupStore;
-    }
+  public DefaultProgramTrackedEntityAttributeGroupService(
+      @Qualifier("org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore")
+          IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore) {
+    this.attributeGroupStore = attributeGroupStore;
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
-    {
-        attributeGroupStore.save( attributeGroup );
+  @Override
+  @Transactional
+  public long addProgramTrackedEntityAttributeGroup(
+      ProgramTrackedEntityAttributeGroup attributeGroup) {
+    attributeGroupStore.save(attributeGroup);
 
-        return attributeGroup.getId();
-    }
+    return attributeGroup.getId();
+  }
 
-    @Override
-    @Transactional
-    public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
-    {
-        attributeGroupStore.delete( attributeGroup );
-    }
+  @Override
+  @Transactional
+  public void deleteProgramTrackedEntityAttributeGroup(
+      ProgramTrackedEntityAttributeGroup attributeGroup) {
+    attributeGroupStore.delete(attributeGroup);
+  }
 
-    @Override
-    @Transactional
-    public void updateProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
-    {
-        attributeGroupStore.update( attributeGroup );
-    }
+  @Override
+  @Transactional
+  public void updateProgramTrackedEntityAttributeGroup(
+      ProgramTrackedEntityAttributeGroup attributeGroup) {
+    attributeGroupStore.update(attributeGroup);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( long id )
-    {
-        return attributeGroupStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup(long id) {
+    return attributeGroupStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( String uid )
-    {
-        return attributeGroupStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup(String uid) {
+    return attributeGroupStore.getByUid(uid);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramTrackedEntityAttributeGroup> getAllProgramTrackedEntityAttributeGroups()
-    {
-        return attributeGroupStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramTrackedEntityAttributeGroup> getAllProgramTrackedEntityAttributeGroups() {
+    return attributeGroupStore.getAll();
+  }
 }

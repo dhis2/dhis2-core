@@ -48,167 +48,171 @@ import org.springframework.http.HttpStatus.Series;
  *
  * @author Jan Bernitt
  */
-class MeControllerTest extends DhisControllerConvenienceTest
-{
+class MeControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetCurrentUser()
-    {
-        assertEquals( getCurrentUser().getUid(), GET( "/me" ).content().as( JsonUser.class ).getId() );
+  @Test
+  void testGetCurrentUser() {
+    assertEquals(getCurrentUser().getUid(), GET("/me").content().as(JsonUser.class).getId());
+  }
+
+  @Test
+  void testGetCurrentUserDataApprovalWorkflows() {
+    JsonArray workflows =
+        GET("/me/dataApprovalWorkflows").content().getArray("dataApprovalWorkflows");
+    assertTrue(workflows.isArray());
+    assertTrue(workflows.isEmpty());
+  }
+
+  @Test
+  void testGetAuthorities() {
+    assertEquals(
+        singletonList("ALL"), GET("/me/authorities").content(HttpStatus.OK).stringValues());
+  }
+
+  @Test
+  void testUpdateCurrentUser() {
+    assertSeries(Series.SUCCESSFUL, PUT("/me", "{'surname':'Lars'}"));
+    assertEquals("Lars", GET("/me").content().as(JsonUser.class).getSurname());
+  }
+
+  @Test
+  void testHasAuthority() {
+    assertTrue(GET("/me/authorities/ALL").content(HttpStatus.OK).booleanValue());
+    // with no authorities
+    switchToNewUser("Kalle");
+    assertFalse(GET("/me/authorities/missing").content(HttpStatus.OK).booleanValue());
+  }
+
+  @Test
+  void testGetSettings() {
+    JsonObject settings = GET("/me/settings").content(HttpStatus.OK);
+    assertTrue(settings.isObject());
+    assertFalse(settings.isEmpty());
+    assertTrue(settings.get("keyMessageSmsNotification").exists());
+    assertEquals("en", settings.getString("keyUiLocale").string());
+  }
+
+  @Test
+  void testGetSetting() {
+    assertEquals("en", GET("/me/settings/{key}", "keyUiLocale").content(HttpStatus.OK).string());
+  }
+
+  @Test
+  void testGetSetting_Missing() {
+    assertEquals(
+        "Key is not supported: missing",
+        GET("/me/settings/missing").error(Series.CLIENT_ERROR).getMessage());
+  }
+
+  @Test
+  void testChangePassword() {
+    assertStatus(
+        HttpStatus.ACCEPTED,
+        PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'$ecrEt42'}"));
+  }
+
+  @Test
+  void testChangePassword_WrongNew() {
+    assertEquals(
+        "Password must have at least 8, and at most 40 characters",
+        PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'secret'}")
+            .error(Series.CLIENT_ERROR)
+            .getMessage());
+  }
+
+  @Test
+  void testChangePassword_WrongOld() {
+    assertEquals(
+        "OldPassword is incorrect",
+        PUT("/me/changePassword", "{'oldPassword':'wrong','newPassword':'secret'}")
+            .error(Series.CLIENT_ERROR)
+            .getMessage());
+  }
+
+  @Test
+  void testChangePassword_NoUser() {
+    switchContextToUser(null);
+    assertEquals(
+        "User object is null, user is not authenticated.",
+        PUT("/me/changePassword", "{'oldPassword':'district','newPassword':'$ecrEt42'}")
+            .error(Series.CLIENT_ERROR)
+            .getMessage());
+  }
+
+  @Test
+  void testVerifyPasswordText() {
+    assertTrue(
+        POST("/me/verifyPassword", "text/plain:district")
+            .content()
+            .getBoolean("isCorrectPassword")
+            .booleanValue());
+    assertFalse(
+        POST("/me/verifyPassword", "text/plain:wrong")
+            .content()
+            .getBoolean("isCorrectPassword")
+            .booleanValue());
+  }
+
+  @Test
+  void testVerifyPasswordJson() {
+    assertTrue(
+        POST("/me/verifyPassword", "{'password':'district'}")
+            .content()
+            .getBoolean("isCorrectPassword")
+            .booleanValue());
+    assertFalse(
+        POST("/me/verifyPassword", "{'password':'wrong'}")
+            .content()
+            .getBoolean("isCorrectPassword")
+            .booleanValue());
+  }
+
+  public interface JsonPasswordValidation extends JsonObject {
+
+    default boolean isValidPassword() {
+      return getBoolean("isValidPassword").booleanValue();
     }
 
-    @Test
-    void testGetCurrentUserDataApprovalWorkflows()
-    {
-        JsonArray workflows = GET( "/me/dataApprovalWorkflows" ).content().getArray( "dataApprovalWorkflows" );
-        assertTrue( workflows.isArray() );
-        assertTrue( workflows.isEmpty() );
+    default String getErrorMessage() {
+      return getString("errorMessage").string();
     }
+  }
 
-    @Test
-    void testGetAuthorities()
-    {
-        assertEquals( singletonList( "ALL" ), GET( "/me/authorities" ).content( HttpStatus.OK ).stringValues() );
-    }
+  @Test
+  void testValidatePasswordText() {
+    JsonPasswordValidation result =
+        POST("/me/validatePassword", "text/plain:$ecrEt42")
+            .content()
+            .as(JsonPasswordValidation.class);
+    assertTrue(result.isValidPassword());
+    assertNull(result.getErrorMessage());
+  }
 
-    @Test
-    void testUpdateCurrentUser()
-    {
-        assertSeries( Series.SUCCESSFUL, PUT( "/me", "{'surname':'Lars'}" ) );
-        assertEquals( "Lars", GET( "/me" ).content().as( JsonUser.class ).getSurname() );
-    }
+  @Test
+  void testValidatePasswordText_NoDigits() {
+    JsonPasswordValidation result =
+        POST("/me/validatePassword", "text/plain:secret")
+            .content()
+            .as(JsonPasswordValidation.class);
+    assertFalse(result.isValidPassword());
+    assertEquals(
+        "Password must have at least 8, and at most 40 characters", result.getErrorMessage());
+  }
 
-    @Test
-    void testHasAuthority()
-    {
-        assertTrue( GET( "/me/authorities/ALL" ).content( HttpStatus.OK ).booleanValue() );
-        // with no authorities
-        switchToNewUser( "Kalle" );
-        assertFalse( GET( "/me/authorities/missing" ).content( HttpStatus.OK ).booleanValue() );
-    }
+  @Test
+  void testGetDashboard() {
+    JsonObject dashboard = GET("/me/dashboard").content();
+    assertEquals(0, dashboard.getNumber("unreadInterpretations").intValue());
+    assertEquals(0, dashboard.getNumber("unreadMessageConversations").intValue());
+  }
 
-    @Test
-    void testGetSettings()
-    {
-        JsonObject settings = GET( "/me/settings" ).content( HttpStatus.OK );
-        assertTrue( settings.isObject() );
-        assertFalse( settings.isEmpty() );
-        assertTrue( settings.get( "keyMessageSmsNotification" ).exists() );
-        assertEquals( "en", settings.getString( "keyUiLocale" ).string() );
-    }
+  @Test
+  void testUpdateInterpretationsLastRead() {
+    assertStatus(HttpStatus.NO_CONTENT, POST("/me/dashboard/interpretations/read"));
+  }
 
-    @Test
-    void testGetSetting()
-    {
-        assertEquals( "en", GET( "/me/settings/{key}", "keyUiLocale" ).content( HttpStatus.OK ).string() );
-    }
-
-    @Test
-    void testGetSetting_Missing()
-    {
-        assertEquals( "Key is not supported: missing",
-            GET( "/me/settings/missing" ).error( Series.CLIENT_ERROR ).getMessage() );
-    }
-
-    @Test
-    void testChangePassword()
-    {
-        assertStatus( HttpStatus.ACCEPTED,
-            PUT( "/me/changePassword", "{'oldPassword':'district','newPassword':'$ecrEt42'}" ) );
-    }
-
-    @Test
-    void testChangePassword_WrongNew()
-    {
-        assertEquals( "Password must have at least 8, and at most 40 characters",
-            PUT( "/me/changePassword", "{'oldPassword':'district','newPassword':'secret'}" )
-                .error( Series.CLIENT_ERROR ).getMessage() );
-    }
-
-    @Test
-    void testChangePassword_WrongOld()
-    {
-        assertEquals( "OldPassword is incorrect",
-            PUT( "/me/changePassword", "{'oldPassword':'wrong','newPassword':'secret'}" ).error( Series.CLIENT_ERROR )
-                .getMessage() );
-    }
-
-    @Test
-    void testChangePassword_NoUser()
-    {
-        switchContextToUser( null );
-        assertEquals( "User object is null, user is not authenticated.",
-            PUT( "/me/changePassword", "{'oldPassword':'district','newPassword':'$ecrEt42'}" )
-                .error( Series.CLIENT_ERROR ).getMessage() );
-    }
-
-    @Test
-    void testVerifyPasswordText()
-    {
-        assertTrue( POST( "/me/verifyPassword", "text/plain:district" ).content().getBoolean( "isCorrectPassword" )
-            .booleanValue() );
-        assertFalse( POST( "/me/verifyPassword", "text/plain:wrong" ).content().getBoolean( "isCorrectPassword" )
-            .booleanValue() );
-    }
-
-    @Test
-    void testVerifyPasswordJson()
-    {
-        assertTrue( POST( "/me/verifyPassword", "{'password':'district'}" ).content().getBoolean( "isCorrectPassword" )
-            .booleanValue() );
-        assertFalse( POST( "/me/verifyPassword", "{'password':'wrong'}" ).content().getBoolean( "isCorrectPassword" )
-            .booleanValue() );
-    }
-
-    public interface JsonPasswordValidation extends JsonObject
-    {
-
-        default boolean isValidPassword()
-        {
-            return getBoolean( "isValidPassword" ).booleanValue();
-        }
-
-        default String getErrorMessage()
-        {
-            return getString( "errorMessage" ).string();
-        }
-    }
-
-    @Test
-    void testValidatePasswordText()
-    {
-        JsonPasswordValidation result = POST( "/me/validatePassword", "text/plain:$ecrEt42" ).content()
-            .as( JsonPasswordValidation.class );
-        assertTrue( result.isValidPassword() );
-        assertNull( result.getErrorMessage() );
-    }
-
-    @Test
-    void testValidatePasswordText_NoDigits()
-    {
-        JsonPasswordValidation result = POST( "/me/validatePassword", "text/plain:secret" ).content()
-            .as( JsonPasswordValidation.class );
-        assertFalse( result.isValidPassword() );
-        assertEquals( "Password must have at least 8, and at most 40 characters", result.getErrorMessage() );
-    }
-
-    @Test
-    void testGetDashboard()
-    {
-        JsonObject dashboard = GET( "/me/dashboard" ).content();
-        assertEquals( 0, dashboard.getNumber( "unreadInterpretations" ).intValue() );
-        assertEquals( 0, dashboard.getNumber( "unreadMessageConversations" ).intValue() );
-    }
-
-    @Test
-    void testUpdateInterpretationsLastRead()
-    {
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/me/dashboard/interpretations/read" ) );
-    }
-
-    @Test
-    void testGetApprovalLevels()
-    {
-        assertTrue( GET( "/me/dataApprovalLevels" ).content( HttpStatus.OK ).isArray() );
-    }
+  @Test
+  void testGetApprovalLevels() {
+    assertTrue(GET("/me/dataApprovalLevels").content(HttpStatus.OK).isArray());
+  }
 }

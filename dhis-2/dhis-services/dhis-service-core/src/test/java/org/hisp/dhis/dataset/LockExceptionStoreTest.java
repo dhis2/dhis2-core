@@ -39,66 +39,62 @@ import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class LockExceptionStoreTest extends DhisSpringTest
-{
+class LockExceptionStoreTest extends DhisSpringTest {
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private LockExceptionStore store;
+  @Autowired private LockExceptionStore store;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    @Override
-    public void setUpTest()
-    {
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-    }
+  @Override
+  public void setUpTest() {
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+  }
 
-    @Test
-    void testDeleteByOrganisationUnit()
-    {
-        PeriodType periodType = new MonthlyPeriodType();
-        Period period = new MonthlyPeriodType().createPeriod();
-        DataSet ds = createDataSet( 'A', periodType );
-        dataSetService.addDataSet( ds );
-        LockException leA = new LockException( period, ouA, ds );
-        LockException leB = new LockException( period, ouB, ds );
-        store.save( leA );
-        store.save( leB );
-        assertEquals( 1, getLockExceptionCount( ouA ) );
-        assertEquals( 1, getLockExceptionCount( ouB ) );
-        store.delete( ouA );
-        assertEquals( 0, getLockExceptionCount( ouA ) );
-        assertEquals( 1, getLockExceptionCount( ouB ) );
-        store.delete( ouB );
-        assertEquals( 0, getLockExceptionCount( ouA ) );
-        assertEquals( 0, getLockExceptionCount( ouB ) );
-    }
+  @Test
+  void testDeleteByOrganisationUnit() {
+    PeriodType periodType = new MonthlyPeriodType();
+    Period period = new MonthlyPeriodType().createPeriod();
+    DataSet ds = createDataSet('A', periodType);
+    dataSetService.addDataSet(ds);
+    LockException leA = new LockException(period, ouA, ds);
+    LockException leB = new LockException(period, ouB, ds);
+    store.save(leA);
+    store.save(leB);
+    assertEquals(1, getLockExceptionCount(ouA));
+    assertEquals(1, getLockExceptionCount(ouB));
+    store.delete(ouA);
+    assertEquals(0, getLockExceptionCount(ouA));
+    assertEquals(1, getLockExceptionCount(ouB));
+    store.delete(ouB);
+    assertEquals(0, getLockExceptionCount(ouA));
+    assertEquals(0, getLockExceptionCount(ouB));
+  }
 
-    /**
-     * Test HQL delete statement with an HQL select statement to ensure the
-     * deleted rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getLockExceptionCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from LockException le where le.organisationUnit = :target" )
-            .setParameter( "target", target ).uniqueResult();
-    }
+  /**
+   * Test HQL delete statement with an HQL select statement to ensure the deleted rows are visible
+   * by the current transaction.
+   *
+   * @param target the {@link OrganisationUnit}
+   * @return the count of interpretations.
+   */
+  private long getLockExceptionCount(OrganisationUnit target) {
+    return (Long)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery(
+                "select count(*) from LockException le where le.organisationUnit = :target")
+            .setParameter("target", target)
+            .uniqueResult();
+  }
 }

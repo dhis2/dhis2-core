@@ -33,11 +33,11 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
+import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,82 +46,87 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" )
-public class JdbcOrgUnitAnalyticsManager
-    implements OrgUnitAnalyticsManager
-{
-    private final JdbcTemplate jdbcTemplate;
+@Component("org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager")
+public class JdbcOrgUnitAnalyticsManager implements OrgUnitAnalyticsManager {
+  private final JdbcTemplate jdbcTemplate;
 
-    public JdbcOrgUnitAnalyticsManager( JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
+  public JdbcOrgUnitAnalyticsManager(JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
 
-        this.jdbcTemplate = jdbcTemplate;
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  @Override
+  public Map<String, Integer> getOrgUnitData(OrgUnitQueryParams params) {
+    Map<String, Integer> dataMap = new HashMap<>();
+
+    List<String> columns = getMetadataColumns(params);
+
+    String sql = getQuerySql(params);
+
+    SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
+
+    while (rowSet.next()) {
+      StringBuilder key = new StringBuilder();
+
+      for (String column : columns) {
+        key.append(rowSet.getString(column)).append(DIMENSION_SEP);
+      }
+
+      key.deleteCharAt(key.length() - 1);
+
+      int value = rowSet.getInt("count");
+
+      dataMap.put(key.toString(), value);
     }
 
-    @Override
-    public Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params )
-    {
-        Map<String, Integer> dataMap = new HashMap<>();
+    return dataMap;
+  }
 
-        List<String> columns = getMetadataColumns( params );
+  private List<String> getMetadataColumns(OrgUnitQueryParams params) {
+    List<String> columns = Lists.newArrayList("orgunit");
+    params.getOrgUnitGroupSets().forEach(ougs -> columns.add(ougs.getUid()));
+    return columns;
+  }
 
-        String sql = getQuerySql( params );
+  private String getQuerySql(OrgUnitQueryParams params) {
+    String levelCol = String.format("ous.uidlevel%d", params.getOrgUnitLevel());
 
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+    List<String> orgUnits =
+        params.getOrgUnits().stream().map(OrganisationUnit::getUid).collect(Collectors.toList());
 
-        while ( rowSet.next() )
-        {
-            StringBuilder key = new StringBuilder();
+    List<String> quotedGroupSets =
+        params.getOrgUnitGroupSets().stream()
+            .map(OrganisationUnitGroupSet::getUid)
+            .map(uid -> quote("ougs", uid))
+            .collect(Collectors.toList());
 
-            for ( String column : columns )
-            {
-                key.append( rowSet.getString( column ) ).append( DIMENSION_SEP );
-            }
+    String sql =
+        "select "
+            + levelCol
+            + " as orgunit, "
+            + getCommaDelimitedString(quotedGroupSets)
+            + ", count(ougs.organisationunitid) as count "
+            + "from "
+            + quote("_orgunitstructure")
+            + " ous "
+            + "inner join "
+            + quote("_organisationunitgroupsetstructure")
+            + " ougs on ous.organisationunitid = ougs.organisationunitid "
+            + "where "
+            + levelCol
+            + " in ("
+            + getQuotedCommaDelimitedString(orgUnits)
+            + ") "
+            + "group by "
+            + levelCol
+            + ", "
+            + getCommaDelimitedString(quotedGroupSets)
+            + ";";
 
-            key.deleteCharAt( key.length() - 1 );
-
-            int value = rowSet.getInt( "count" );
-
-            dataMap.put( key.toString(), value );
-        }
-
-        return dataMap;
-    }
-
-    private List<String> getMetadataColumns( OrgUnitQueryParams params )
-    {
-        List<String> columns = Lists.newArrayList( "orgunit" );
-        params.getOrgUnitGroupSets().forEach( ougs -> columns.add( ougs.getUid() ) );
-        return columns;
-    }
-
-    private String getQuerySql( OrgUnitQueryParams params )
-    {
-        String levelCol = String.format( "ous.uidlevel%d", params.getOrgUnitLevel() );
-
-        List<String> orgUnits = params.getOrgUnits().stream()
-            .map( OrganisationUnit::getUid )
-            .collect( Collectors.toList() );
-
-        List<String> quotedGroupSets = params.getOrgUnitGroupSets().stream()
-            .map( OrganisationUnitGroupSet::getUid )
-            .map( uid -> quote( "ougs", uid ) )
-            .collect( Collectors.toList() );
-
-        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets )
-            + ", count(ougs.organisationunitid) as count " +
-            "from " + quote( "_orgunitstructure" ) + " ous " +
-            "inner join " + quote( "_organisationunitgroupsetstructure" )
-            + " ougs on ous.organisationunitid = ougs.organisationunitid " +
-            "where " + levelCol + " in (" + getQuotedCommaDelimitedString( orgUnits ) + ") " +
-            "group by " + levelCol + ", " + getCommaDelimitedString( quotedGroupSets ) + ";";
-
-        return sql;
-    }
+    return sql;
+  }
 }

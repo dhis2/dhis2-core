@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
@@ -36,39 +35,28 @@ import org.hisp.dhis.tracker.domain.RelationshipItem;
 /**
  * @author Enrico Colasante
  */
-public class RelationshipValidationUtils
-{
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( item.getTrackedEntity() != null && StringUtils.isNotEmpty( item.getTrackedEntity().getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( item.getEnrollment() != null && StringUtils.isNotEmpty( item.getEnrollment().getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( item.getEvent() != null && StringUtils.isNotEmpty( item.getEvent().getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
+public class RelationshipValidationUtils {
+  public static TrackerType relationshipItemValueType(RelationshipItem item) {
+    if (item.getTrackedEntity() != null
+        && StringUtils.isNotEmpty(item.getTrackedEntity().getTrackedEntity())) {
+      return TrackerType.TRACKED_ENTITY;
+    } else if (item.getEnrollment() != null
+        && StringUtils.isNotEmpty(item.getEnrollment().getEnrollment())) {
+      return TrackerType.ENROLLMENT;
+    } else if (item.getEvent() != null && StringUtils.isNotEmpty(item.getEvent().getEvent())) {
+      return TrackerType.EVENT;
     }
+    return null;
+  }
 
-    public static Optional<String> getUidFromRelationshipItem( RelationshipItem item )
-    {
-        if ( item.getTrackedEntity() != null )
-        {
-            return Optional.of( item.getTrackedEntity().getTrackedEntity() );
-        }
-        else if ( item.getEnrollment() != null )
-        {
-            return Optional.of( item.getEnrollment().getEnrollment() );
-        }
-        else if ( item.getEvent() != null )
-        {
-            return Optional.of( item.getEvent().getEvent() );
-        }
-        return Optional.empty();
+  public static Optional<String> getUidFromRelationshipItem(RelationshipItem item) {
+    if (item.getTrackedEntity() != null) {
+      return Optional.of(item.getTrackedEntity().getTrackedEntity());
+    } else if (item.getEnrollment() != null) {
+      return Optional.of(item.getEnrollment().getEnrollment());
+    } else if (item.getEvent() != null) {
+      return Optional.of(item.getEvent().getEvent());
     }
+    return Optional.empty();
+  }
 }

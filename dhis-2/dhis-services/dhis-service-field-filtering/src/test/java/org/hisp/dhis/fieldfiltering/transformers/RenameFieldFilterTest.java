@@ -30,35 +30,31 @@ package org.hisp.dhis.fieldfiltering.transformers;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Collections;
-
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Morten Olav Hansen
  */
-class RenameFieldFilterTest
-{
+class RenameFieldFilterTest {
 
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
-    void renameFieldNameTest()
-    {
-        ObjectNode objectNode = jsonMapper.createObjectNode();
-        objectNode.put( "a", 123 );
-        objectNode.put( "b", 123 );
-        objectNode.put( "c", 123 );
-        FieldPathTransformer fieldPathTransformer = new FieldPathTransformer( "rename",
-            Collections.singletonList( "aaa" ) );
-        RenameFieldTransformer transformer = new RenameFieldTransformer( fieldPathTransformer );
-        transformer.apply( "a", objectNode.get( "a" ), objectNode );
-        assertNull( objectNode.get( "a" ) );
-        assertNotNull( objectNode.get( "aaa" ) );
-    }
+  @Test
+  void renameFieldNameTest() {
+    ObjectNode objectNode = jsonMapper.createObjectNode();
+    objectNode.put("a", 123);
+    objectNode.put("b", 123);
+    objectNode.put("c", 123);
+    FieldPathTransformer fieldPathTransformer =
+        new FieldPathTransformer("rename", Collections.singletonList("aaa"));
+    RenameFieldTransformer transformer = new RenameFieldTransformer(fieldPathTransformer);
+    transformer.apply("a", objectNode.get("a"), objectNode);
+    assertNull(objectNode.get("a"));
+    assertNotNull(objectNode.get("aaa"));
+  }
 }

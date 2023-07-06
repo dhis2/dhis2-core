@@ -62,84 +62,71 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@ExtendWith( { RestDocumentationExtension.class, SpringExtension.class } )
+@ExtendWith({RestDocumentationExtension.class, SpringExtension.class})
 @WebAppConfiguration
-@ContextConfiguration( classes = { ConfigProviderConfiguration.class, MvcTestConfig.class,
-    WebTestConfiguration.class } )
-@ActiveProfiles( "test-h2" )
+@ContextConfiguration(
+    classes = {ConfigProviderConfiguration.class, MvcTestConfig.class, WebTestConfiguration.class})
+@ActiveProfiles("test-h2")
 @Transactional
-public abstract class DhisWebSpringTest extends DhisConvenienceTest
-{
-    @Autowired
-    protected WebApplicationContext webApplicationContext;
+public abstract class DhisWebSpringTest extends DhisConvenienceTest {
+  @Autowired protected WebApplicationContext webApplicationContext;
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+  @Autowired protected IdentifiableObjectManager manager;
 
-    @Autowired
-    protected RenderService renderService;
+  @Autowired protected RenderService renderService;
 
-    @Autowired
-    protected UserService _userService;
+  @Autowired protected UserService _userService;
 
-    protected MockMvc mvc;
+  protected MockMvc mvc;
 
-    @Autowired
-    protected SchemaService schemaService;
+  @Autowired protected SchemaService schemaService;
 
-    @BeforeEach
-    public void setup( RestDocumentationContextProvider restDocumentation )
-        throws Exception
-    {
-        userService = _userService;
-        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
-        characterEncodingFilter.setEncoding( "UTF-8" );
-        characterEncodingFilter.setForceEncoding( true );
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .apply( documentationConfiguration( restDocumentation ) )
+  @BeforeEach
+  public void setup(RestDocumentationContextProvider restDocumentation) throws Exception {
+    userService = _userService;
+    CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
+    characterEncodingFilter.setEncoding("UTF-8");
+    characterEncodingFilter.setForceEncoding(true);
+    mvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext)
+            .apply(documentationConfiguration(restDocumentation))
             .build();
 
-        TestUtils.executeStartupRoutines( webApplicationContext );
+    TestUtils.executeStartupRoutines(webApplicationContext);
 
-        setUpTest();
-    }
+    setUpTest();
+  }
 
-    protected void setUpTest()
-        throws Exception
-    {
-    }
+  protected void setUpTest() throws Exception {}
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-    public MockHttpSession getSession( String... authorities )
-    {
-        createAndInjectAdminUser( authorities );
+  public MockHttpSession getSession(String... authorities) {
+    createAndInjectAdminUser(authorities);
 
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-            SecurityContextHolder.getContext() );
-        return session;
-    }
+    MockHttpSession session = new MockHttpSession();
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        SecurityContextHolder.getContext());
+    return session;
+  }
 
-    public RestDocumentationResultHandler documentPrettyPrint( String useCase, Snippet... snippets )
-    {
-        return document( useCase, preprocessRequest( prettyPrint() ), preprocessResponse( prettyPrint() ), snippets );
-    }
+  public RestDocumentationResultHandler documentPrettyPrint(String useCase, Snippet... snippets) {
+    return document(
+        useCase, preprocessRequest(prettyPrint()), preprocessResponse(prettyPrint()), snippets);
+  }
 
-    public SchemaService getSchemaService()
-    {
-        return schemaService;
-    }
+  public SchemaService getSchemaService() {
+    return schemaService;
+  }
 
-    public MockMvc getMvc()
-    {
-        return mvc;
-    }
+  public MockMvc getMvc() {
+    return mvc;
+  }
 
-    public IdentifiableObjectManager getManager()
-    {
-        return manager;
-    }
+  public IdentifiableObjectManager getManager() {
+    return manager;
+  }
 }

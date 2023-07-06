@@ -28,7 +28,6 @@
 package org.hisp.dhis;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.hisp.dhis.config.IntegrationTestConfig;
@@ -43,57 +42,44 @@ import org.springframework.transaction.annotation.Transactional;
 /*
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@ExtendWith( SpringExtension.class )
-@ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {IntegrationTestConfig.class})
 @IntegrationTest
-@ActiveProfiles( profiles = { "test-postgres" } )
+@ActiveProfiles(profiles = {"test-postgres"})
 @Transactional
 @Slf4j
-public abstract class TransactionalIntegrationTest extends BaseSpringTest
-{
-    @BeforeEach
-    public final void before()
-        throws Exception
-    {
-        integrationTestBefore();
+public abstract class TransactionalIntegrationTest extends BaseSpringTest {
+  @BeforeEach
+  public final void before() throws Exception {
+    integrationTestBefore();
+  }
+
+  @AfterEach
+  public final void after() throws Exception {
+    clearSecurityContext();
+
+    tearDownTest();
+
+    try {
+      dbmsManager.clearSession();
+    } catch (Exception e) {
+      log.info("Failed to clear hibernate session, reason:" + e.getMessage());
     }
 
-    @AfterEach
-    public final void after()
-        throws Exception
-    {
-        clearSecurityContext();
+    if (emptyDatabaseAfterTest()) {
+      // We normally don't want all the delete/empty db statements in the
+      // query logger
+      Configurator.setLevel("org.hisp.dhis.datasource.query", Level.WARN);
 
-        tearDownTest();
-
-        try
-        {
-            dbmsManager.clearSession();
-        }
-        catch ( Exception e )
-        {
-            log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
-        }
-
-        if ( emptyDatabaseAfterTest() )
-        {
-            // We normally don't want all the delete/empty db statements in the
-            // query logger
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.WARN );
-
-            try
-            {
-                dbmsManager.emptyDatabase();
-            }
-            catch ( Exception e )
-            {
-                log.info( "Failed to empty db, reason:" + e.getMessage() );
-            }
-        }
+      try {
+        dbmsManager.emptyDatabase();
+      } catch (Exception e) {
+        log.info("Failed to empty db, reason:" + e.getMessage());
+      }
     }
+  }
 
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  protected boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 }

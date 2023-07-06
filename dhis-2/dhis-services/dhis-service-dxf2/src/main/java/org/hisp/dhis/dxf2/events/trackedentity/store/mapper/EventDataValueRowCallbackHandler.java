@@ -27,88 +27,75 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
+import com.google.gson.Gson;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.google.gson.Gson;
-
 /**
  * @author Luciano Fiandesio
  */
-public class EventDataValueRowCallbackHandler implements
-    RowCallbackHandler
+public class EventDataValueRowCallbackHandler implements RowCallbackHandler {
 
-{
-    private Map<String, List<DataValue>> dataValues;
+  private Map<String, List<DataValue>> dataValues;
 
-    private static final Gson gson = new Gson();
+  private static final Gson gson = new Gson();
 
-    public EventDataValueRowCallbackHandler()
-    {
-        this.dataValues = new HashMap<>();
+  public EventDataValueRowCallbackHandler() {
+    this.dataValues = new HashMap<>();
+  }
+
+  @Override
+  public void processRow(ResultSet rs) throws SQLException {
+    dataValues.put(rs.getString("key"), getDataValue(rs));
+  }
+
+  private List<DataValue> getDataValue(ResultSet rs) throws SQLException {
+    // TODO not sure this is the most efficient way to handle JSONB -> java
+    List<DataValue> dataValues = new ArrayList<>();
+
+    PGobject values = (PGobject) rs.getObject("eventdatavalues");
+    Map<String, ?> eventDataValuesJson = gson.fromJson(values.getValue(), Map.class);
+
+    for (String dataElementUid : eventDataValuesJson.keySet()) {
+      Map jsonValues = (Map) eventDataValuesJson.get(dataElementUid);
+      DataValue value = new DataValue(dataElementUid, (String) jsonValues.get("value"));
+
+      value.setCreated((String) jsonValues.get("created"));
+      value.setLastUpdated((String) jsonValues.get("lastUpdated"));
+      value.setStoredBy((String) jsonValues.get("storedBy"));
+      value.setProvidedElsewhere((Boolean) jsonValues.get("providedElsewhere"));
+      value.setCreatedByUserInfo(buildUserInfoSnapshot((Map) jsonValues.get("createdByUserInfo")));
+      value.setLastUpdatedByUserInfo(
+          buildUserInfoSnapshot((Map) jsonValues.get("lastUpdatedByUserInfo")));
+
+      dataValues.add(value);
     }
 
-    @Override
-    public void processRow( ResultSet rs )
-        throws SQLException
-    {
-        dataValues.put( rs.getString( "key" ), getDataValue( rs ) );
+    return dataValues;
+  }
+
+  private UserInfoSnapshot buildUserInfoSnapshot(Map createdByUserInfo) {
+    if (createdByUserInfo == null) {
+      return null;
     }
 
-    private List<DataValue> getDataValue( ResultSet rs )
-        throws SQLException
-    {
-        // TODO not sure this is the most efficient way to handle JSONB -> java
-        List<DataValue> dataValues = new ArrayList<>();
+    UserInfoSnapshot userInfoSnapshot = new UserInfoSnapshot();
+    userInfoSnapshot.setUid((String) createdByUserInfo.get("uid"));
+    userInfoSnapshot.setUsername((String) createdByUserInfo.get("username"));
+    userInfoSnapshot.setFirstName((String) createdByUserInfo.get("firstName"));
+    userInfoSnapshot.setSurname((String) createdByUserInfo.get("surname"));
+    return userInfoSnapshot;
+  }
 
-        PGobject values = (PGobject) rs.getObject( "eventdatavalues" );
-        Map<String, ?> eventDataValuesJson = gson.fromJson( values.getValue(), Map.class );
-
-        for ( String dataElementUid : eventDataValuesJson.keySet() )
-        {
-            Map jsonValues = (Map) eventDataValuesJson.get( dataElementUid );
-            DataValue value = new DataValue( dataElementUid,
-                (String) jsonValues.get( "value" ) );
-
-            value.setCreated( (String) jsonValues.get( "created" ) );
-            value.setLastUpdated( (String) jsonValues.get( "lastUpdated" ) );
-            value.setStoredBy( (String) jsonValues.get( "storedBy" ) );
-            value.setProvidedElsewhere( (Boolean) jsonValues.get( "providedElsewhere" ) );
-            value.setCreatedByUserInfo( buildUserInfoSnapshot( (Map) jsonValues.get( "createdByUserInfo" ) ) );
-            value.setLastUpdatedByUserInfo( buildUserInfoSnapshot( (Map) jsonValues.get( "lastUpdatedByUserInfo" ) ) );
-
-            dataValues.add( value );
-        }
-
-        return dataValues;
-    }
-
-    private UserInfoSnapshot buildUserInfoSnapshot( Map createdByUserInfo )
-    {
-        if ( createdByUserInfo == null )
-        {
-            return null;
-        }
-
-        UserInfoSnapshot userInfoSnapshot = new UserInfoSnapshot();
-        userInfoSnapshot.setUid( (String) createdByUserInfo.get( "uid" ) );
-        userInfoSnapshot.setUsername( (String) createdByUserInfo.get( "username" ) );
-        userInfoSnapshot.setFirstName( (String) createdByUserInfo.get( "firstName" ) );
-        userInfoSnapshot.setSurname( (String) createdByUserInfo.get( "surname" ) );
-        return userInfoSnapshot;
-    }
-
-    public Map<String, List<DataValue>> getItems()
-    {
-        return this.dataValues;
-    }
+  public Map<String, List<DataValue>> getItems() {
+    return this.dataValues;
+  }
 }

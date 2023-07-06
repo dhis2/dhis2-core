@@ -32,92 +32,83 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Iterator;
-
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Jan Bernitt
  */
-class ImportSummaryJacksonTest
-{
+class ImportSummaryJacksonTest {
 
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
-    void testIterableSerialisedAsJsonArray()
-    {
-        ImportSummary summary = new ImportSummary();
-        summary.addConflict( "foo", "bar" );
-        summary.addConflict( "x", "y" );
-        JsonNode summaryNode = jsonMapper.valueToTree( summary );
-        assertTrue( summaryNode.has( "conflicts" ) );
-        JsonNode conflicts = summaryNode.get( "conflicts" );
-        assertTrue( conflicts.isArray() );
-        assertEquals( 2, conflicts.size() );
-        assertEquals( "[{\"object\":\"foo\",\"value\":\"bar\"},{\"object\":\"x\",\"value\":\"y\"}]",
-            conflicts.toString() );
+  @Test
+  void testIterableSerialisedAsJsonArray() {
+    ImportSummary summary = new ImportSummary();
+    summary.addConflict("foo", "bar");
+    summary.addConflict("x", "y");
+    JsonNode summaryNode = jsonMapper.valueToTree(summary);
+    assertTrue(summaryNode.has("conflicts"));
+    JsonNode conflicts = summaryNode.get("conflicts");
+    assertTrue(conflicts.isArray());
+    assertEquals(2, conflicts.size());
+    assertEquals(
+        "[{\"object\":\"foo\",\"value\":\"bar\"},{\"object\":\"x\",\"value\":\"y\"}]",
+        conflicts.toString());
+  }
+
+  @Test
+  void testObjectsSerialisedAsIndividualProperties() {
+    ImportConflict conflict = createImportConflictForIndex(0);
+    JsonNode conflictNode = jsonMapper.valueToTree(conflict);
+    assertTrue(conflictNode.isObject());
+    assertEquals("value", conflictNode.get("objects").get("key").asText());
+  }
+
+  @Test
+  void testIndicesSerialiseAsArray() {
+    ImportConflict conflict1 = createImportConflictForIndex(5);
+    ImportConflict conflict2 = createImportConflictForIndex(7);
+    conflict1.mergeWith(conflict2);
+    JsonNode conflictNode = jsonMapper.valueToTree(conflict1);
+    assertTrue(conflictNode.isObject());
+    JsonNode indexesArray = conflictNode.get("indexes");
+    assertTrue(indexesArray.isArray());
+    assertEquals(2, indexesArray.size());
+    assertEquals(5, indexesArray.get(0).asInt());
+    assertEquals(7, indexesArray.get(1).asInt());
+  }
+
+  /**
+   * OBS! When redis is used as store {@link ImportSummary}s are serialised and deserialised again.
+   */
+  @Test
+  void testSummaryCanBeDeserialised() throws JsonProcessingException {
+    ImportSummary summary = new ImportSummary();
+    summary.addConflict(createImportConflictForIndex(2));
+    summary.addConflict(createImportConflictForIndex(4));
+    summary.addConflict("old", "school");
+    JsonNode summaryNode = jsonMapper.valueToTree(summary);
+    assertTrue(summaryNode.isObject());
+    ImportSummary deserialised = jsonMapper.treeToValue(summaryNode, ImportSummary.class);
+    assertNotNull(deserialised);
+    assertEquals(2, deserialised.getConflictCount());
+    Iterator<ImportConflict> beforeIter = summary.getConflicts().iterator();
+    Iterator<ImportConflict> afterIter = deserialised.getConflicts().iterator();
+    for (int i = 0; i < 2; i++) {
+      assertEquals(beforeIter.next(), afterIter.next());
     }
+  }
 
-    @Test
-    void testObjectsSerialisedAsIndividualProperties()
-    {
-        ImportConflict conflict = createImportConflictForIndex( 0 );
-        JsonNode conflictNode = jsonMapper.valueToTree( conflict );
-        assertTrue( conflictNode.isObject() );
-        assertEquals( "value", conflictNode.get( "objects" ).get( "key" ).asText() );
-    }
-
-    @Test
-    void testIndicesSerialiseAsArray()
-    {
-        ImportConflict conflict1 = createImportConflictForIndex( 5 );
-        ImportConflict conflict2 = createImportConflictForIndex( 7 );
-        conflict1.mergeWith( conflict2 );
-        JsonNode conflictNode = jsonMapper.valueToTree( conflict1 );
-        assertTrue( conflictNode.isObject() );
-        JsonNode indexesArray = conflictNode.get( "indexes" );
-        assertTrue( indexesArray.isArray() );
-        assertEquals( 2, indexesArray.size() );
-        assertEquals( 5, indexesArray.get( 0 ).asInt() );
-        assertEquals( 7, indexesArray.get( 1 ).asInt() );
-    }
-
-    /**
-     * OBS! When redis is used as store {@link ImportSummary}s are serialised
-     * and deserialised again.
-     */
-    @Test
-    void testSummaryCanBeDeserialised()
-        throws JsonProcessingException
-    {
-        ImportSummary summary = new ImportSummary();
-        summary.addConflict( createImportConflictForIndex( 2 ) );
-        summary.addConflict( createImportConflictForIndex( 4 ) );
-        summary.addConflict( "old", "school" );
-        JsonNode summaryNode = jsonMapper.valueToTree( summary );
-        assertTrue( summaryNode.isObject() );
-        ImportSummary deserialised = jsonMapper.treeToValue( summaryNode, ImportSummary.class );
-        assertNotNull( deserialised );
-        assertEquals( 2, deserialised.getConflictCount() );
-        Iterator<ImportConflict> beforeIter = summary.getConflicts().iterator();
-        Iterator<ImportConflict> afterIter = deserialised.getConflicts().iterator();
-        for ( int i = 0; i < 2; i++ )
-        {
-            assertEquals( beforeIter.next(), afterIter.next() );
-        }
-    }
-
-    private ImportConflict createImportConflictForIndex( int index )
-    {
-        return new ImportConflict( singletonMap( "key", "value" ), "message", ErrorCode.E7600, "property", index );
-    }
+  private ImportConflict createImportConflictForIndex(int index) {
+    return new ImportConflict(
+        singletonMap("key", "value"), "message", ErrorCode.E7600, "property", index);
+  }
 }

@@ -39,9 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Halvdan Hoem Grelland
  */
 @Controller
-@RequestMapping( value = ValidationNotificationTemplateSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = ValidationNotificationTemplateSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ValidationNotificationTemplateController
-    extends AbstractCrudController<ValidationNotificationTemplate>
-{
-}
+    extends AbstractCrudController<ValidationNotificationTemplate> {}

@@ -39,28 +39,24 @@ import org.springframework.stereotype.Component;
  * @author Ameen Mohamed
  */
 @Component
-public class LeaderRenewalJob implements Job
-{
-    private LeaderManager leaderManager;
+public class LeaderRenewalJob implements Job {
+  private LeaderManager leaderManager;
 
-    public LeaderRenewalJob( LeaderManager leaderManager )
-    {
-        this.leaderManager = leaderManager;
-    }
+  public LeaderRenewalJob(LeaderManager leaderManager) {
+    this.leaderManager = leaderManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.LEADER_RENEWAL;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.LEADER_RENEWAL;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        leaderManager.renewLeader();
-    }
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    leaderManager.renewLeader();
+  }
 }

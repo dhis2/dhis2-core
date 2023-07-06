@@ -31,9 +31,10 @@ import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.Date;
-
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -54,103 +55,101 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * ValidationService tests that need to run against a Postgres db.
  *
  * @author Jim Grace
  */
-class ValidationServiceIntegrationTest extends IntegrationTestBase
-{
+class ValidationServiceIntegrationTest extends IntegrationTestBase {
 
-    @Autowired
-    private ValidationService validationService;
+  @Autowired private ValidationService validationService;
 
-    @Autowired
-    private ValidationRuleService validationRuleService;
+  @Autowired private ValidationRuleService validationRuleService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private DataValueService dataValueService;
+  @Autowired private DataValueService dataValueService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private UserService injectUserService;
+  @Autowired private UserService injectUserService;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  @Override
+  public boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private Period periodA;
+  private Period periodA;
 
-    private int dayInPeriodA;
+  private int dayInPeriodA;
 
-    private OrganisationUnit orgUnitA;
+  private OrganisationUnit orgUnitA;
 
-    private PeriodType periodTypeMonthly;
+  private PeriodType periodTypeMonthly;
 
-    private CategoryOptionCombo defaultCombo;
+  private CategoryOptionCombo defaultCombo;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-    {
-        this.userService = injectUserService;
-        CurrentUserService currentUserService = new MockCurrentUserService( Sets.newHashSet( orgUnitA ), null );
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, validationService );
-        periodTypeMonthly = new MonthlyPeriodType();
-        dataElementA = createDataElement( 'A' );
-        dataElementService.addDataElement( dataElementA );
-        periodA = createPeriod( periodTypeMonthly, getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) );
-        dayInPeriodA = periodService.getDayInPeriod( periodA, new Date() );
-        orgUnitA = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( orgUnitA );
-        defaultCombo = categoryService.getDefaultCategoryOptionCombo();
-    }
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() {
+    this.userService = injectUserService;
+    CurrentUserService currentUserService =
+        new MockCurrentUserService(Sets.newHashSet(orgUnitA), null);
+    setDependency(
+        CurrentUserServiceTarget.class,
+        CurrentUserServiceTarget::setCurrentUserService,
+        currentUserService,
+        validationService);
+    periodTypeMonthly = new MonthlyPeriodType();
+    dataElementA = createDataElement('A');
+    dataElementService.addDataElement(dataElementA);
+    periodA = createPeriod(periodTypeMonthly, getDate(2000, 3, 1), getDate(2000, 3, 31));
+    dayInPeriodA = periodService.getDayInPeriod(periodA, new Date());
+    orgUnitA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgUnitA);
+    defaultCombo = categoryService.getDefaultCategoryOptionCombo();
+  }
 
-    // -------------------------------------------------------------------------
-    // Business logic tests
-    // -------------------------------------------------------------------------
-    /**
-     * See https://jira.dhis2.org/browse/DHIS2-10336.
-     */
-    @Test
-    void testDataElementAndDEO()
-    {
-        dataValueService
-            .addDataValue( createDataValue( dataElementA, periodA, orgUnitA, defaultCombo, defaultCombo, "10" ) );
-        Expression expressionLeft = new Expression(
-            "#{" + dataElementA.getUid() + "} + #{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "}",
-            "expressionLeft" );
-        Expression expressionRight = new Expression( "10", "expressionRight" );
-        ValidationRule validationRule = createValidationRule( "R", equal_to, expressionLeft, expressionRight,
-            periodTypeMonthly );
-        validationRuleService.saveValidationRule( validationRule );
-        Collection<ValidationResult> results = validationService.validationAnalysis( validationService
-            .newParamsBuilder( Lists.newArrayList( validationRule ), orgUnitA, Lists.newArrayList( periodA ) )
-            .build() );
-        ValidationResult referenceA = new ValidationResult( validationRule, periodA, orgUnitA, defaultCombo, 20.0, 10.0,
-            dayInPeriodA );
-        assertEquals( 1, results.size() );
-        assertTrue( results.contains( referenceA ) );
-    }
+  // -------------------------------------------------------------------------
+  // Business logic tests
+  // -------------------------------------------------------------------------
+  /** See https://jira.dhis2.org/browse/DHIS2-10336. */
+  @Test
+  void testDataElementAndDEO() {
+    dataValueService.addDataValue(
+        createDataValue(dataElementA, periodA, orgUnitA, defaultCombo, defaultCombo, "10"));
+    Expression expressionLeft =
+        new Expression(
+            "#{"
+                + dataElementA.getUid()
+                + "} + #{"
+                + dataElementA.getUid()
+                + "."
+                + defaultCombo.getUid()
+                + "}",
+            "expressionLeft");
+    Expression expressionRight = new Expression("10", "expressionRight");
+    ValidationRule validationRule =
+        createValidationRule("R", equal_to, expressionLeft, expressionRight, periodTypeMonthly);
+    validationRuleService.saveValidationRule(validationRule);
+    Collection<ValidationResult> results =
+        validationService.validationAnalysis(
+            validationService
+                .newParamsBuilder(
+                    Lists.newArrayList(validationRule), orgUnitA, Lists.newArrayList(periodA))
+                .build());
+    ValidationResult referenceA =
+        new ValidationResult(
+            validationRule, periodA, orgUnitA, defaultCombo, 20.0, 10.0, dayInPeriodA);
+    assertEquals(1, results.size());
+    assertTrue(results.contains(referenceA));
+  }
 }

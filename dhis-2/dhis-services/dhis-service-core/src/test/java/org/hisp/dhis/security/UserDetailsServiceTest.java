@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -42,90 +41,79 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
- * Tests the effects of {@link User#setDisabled(boolean)} or
- * {@link User#setAccountExpiry(Date)} on the {@link UserDetails} ability to log
- * in.
+ * Tests the effects of {@link User#setDisabled(boolean)} or {@link User#setAccountExpiry(Date)} on
+ * the {@link UserDetails} ability to log in.
  *
  * @author Jan Bernitt
  */
-class UserDetailsServiceTest extends DhisSpringTest
-{
+class UserDetailsServiceTest extends DhisSpringTest {
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+  @Autowired private UserDetailsService userDetailsService;
 
-    private User user;
+  private User user;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        user = createUser( 'A' );
-        userService.addUser( user );
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    user = createUser('A');
+    userService.addUser(user);
+  }
 
-    @Test
-    void baseline()
-    {
-        // a vanilla user should be able to log in
-        assertCanLogin( getUserDetails() );
-    }
+  @Test
+  void baseline() {
+    // a vanilla user should be able to log in
+    assertCanLogin(getUserDetails());
+  }
 
-    @Test
-    void disabledUserCanNotLogIn()
-    {
-        user.setDisabled( true );
-        userService.updateUser( user );
-        assertCanNotLogin( getUserDetails() );
-    }
+  @Test
+  void disabledUserCanNotLogIn() {
+    user.setDisabled(true);
+    userService.updateUser(user);
+    assertCanNotLogin(getUserDetails());
+  }
 
-    @Test
-    void enabledUserCanLogIn()
-    {
-        user.setDisabled( true );
-        userService.updateUser( user );
-        assertCanNotLogin( getUserDetails() );
-        user.setDisabled( false );
-        userService.updateUser( user );
-        assertCanLogin( getUserDetails() );
-    }
+  @Test
+  void enabledUserCanLogIn() {
+    user.setDisabled(true);
+    userService.updateUser(user);
+    assertCanNotLogin(getUserDetails());
+    user.setDisabled(false);
+    userService.updateUser(user);
+    assertCanLogin(getUserDetails());
+  }
 
-    @Test
-    void expiredUserAccountCanNotLogIn()
-    {
-        // expired 1000s in past
-        user.setAccountExpiry( new Date( currentTimeMillis() - 1000 ) );
-        userService.updateUser( user );
-        assertCanNotLogin( getUserDetails() );
-    }
+  @Test
+  void expiredUserAccountCanNotLogIn() {
+    // expired 1000s in past
+    user.setAccountExpiry(new Date(currentTimeMillis() - 1000));
+    userService.updateUser(user);
+    assertCanNotLogin(getUserDetails());
+  }
 
-    @Test
-    void notYetExpiredUserAccountCanStillLogIn()
-    {
-        user.setAccountExpiry( new Date( currentTimeMillis() + 10000 ) );
-        userService.updateUser( user );
-        assertCanLogin( getUserDetails() );
-    }
+  @Test
+  void notYetExpiredUserAccountCanStillLogIn() {
+    user.setAccountExpiry(new Date(currentTimeMillis() + 10000));
+    userService.updateUser(user);
+    assertCanLogin(getUserDetails());
+  }
 
-    private UserDetails getUserDetails()
-    {
-        return userDetailsService.loadUserByUsername( user.getUsername() );
-    }
+  private UserDetails getUserDetails() {
+    return userDetailsService.loadUserByUsername(user.getUsername());
+  }
 
-    private static void assertCanLogin( UserDetails details )
-    {
-        assertTrue( details.isEnabled() );
-        assertTrue( details.isAccountNonExpired() );
-        assertTrue( details.isAccountNonLocked() );
-        assertTrue( details.isCredentialsNonExpired() );
-    }
+  private static void assertCanLogin(UserDetails details) {
+    assertTrue(details.isEnabled());
+    assertTrue(details.isAccountNonExpired());
+    assertTrue(details.isAccountNonLocked());
+    assertTrue(details.isCredentialsNonExpired());
+  }
 
-    private static void assertCanNotLogin( UserDetails details )
-    {
-        assertFalse( details.isEnabled() && details.isAccountNonExpired() && details.isAccountNonLocked()
-            && details.isCredentialsNonExpired() );
-    }
+  private static void assertCanNotLogin(UserDetails details) {
+    assertFalse(
+        details.isEnabled()
+            && details.isAccountNonExpired()
+            && details.isAccountNonLocked()
+            && details.isCredentialsNonExpired());
+  }
 }

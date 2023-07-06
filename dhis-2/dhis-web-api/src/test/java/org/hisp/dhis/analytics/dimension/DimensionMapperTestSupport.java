@@ -36,53 +36,49 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
-public class DimensionMapperTestSupport
-{
-    public static <T extends BaseIdentifiableObject> void asserter(
-        DimensionMapper dimensionMapper,
-        Supplier<T> instanceSupplier,
-        List<Consumer<T>> instanceSetters,
-        List<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs )
-    {
-        asserter( dimensionMapper, instanceSupplier, instanceSetters, assertingPairs, null );
-    }
+public class DimensionMapperTestSupport {
+  public static <T extends BaseIdentifiableObject> void asserter(
+      DimensionMapper dimensionMapper,
+      Supplier<T> instanceSupplier,
+      List<Consumer<T>> instanceSetters,
+      List<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs) {
+    asserter(dimensionMapper, instanceSupplier, instanceSetters, assertingPairs, null);
+  }
 
-    public static <T extends BaseIdentifiableObject> void asserter(
-        DimensionMapper dimensionMapper,
-        Supplier<T> instanceSupplier,
-        List<Consumer<T>> instanceSetters,
-        List<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs,
-        String prefix )
-    {
+  public static <T extends BaseIdentifiableObject> void asserter(
+      DimensionMapper dimensionMapper,
+      Supplier<T> instanceSupplier,
+      List<Consumer<T>> instanceSetters,
+      List<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs,
+      String prefix) {
 
-        T item = getBaseIdentifiableObject( instanceSupplier, instanceSetters );
+    T item = getBaseIdentifiableObject(instanceSupplier, instanceSetters);
 
-        assertAll( assertingPairs.stream()
-            .map( functionObjectPair -> Pair.<Supplier<?>, Object> of(
-                () -> functionObjectPair.getKey().apply( dimensionMapper.map( item, prefix ) ),
-                functionObjectPair.getRight() ) )
-            .collect( Collectors.toList() ) );
-    }
+    assertAll(
+        assertingPairs.stream()
+            .map(
+                functionObjectPair ->
+                    Pair.<Supplier<?>, Object>of(
+                        () -> functionObjectPair.getKey().apply(dimensionMapper.map(item, prefix)),
+                        functionObjectPair.getRight()))
+            .collect(Collectors.toList()));
+  }
 
-    private static <T extends BaseIdentifiableObject> T getBaseIdentifiableObject( Supplier<T> instanceSupplier,
-        List<Consumer<T>> setters )
-    {
-        T baseIdentifiableObject = instanceSupplier.get();
-        setters.forEach( setter -> setter.accept( baseIdentifiableObject ) );
-        return baseIdentifiableObject;
-    }
+  private static <T extends BaseIdentifiableObject> T getBaseIdentifiableObject(
+      Supplier<T> instanceSupplier, List<Consumer<T>> setters) {
+    T baseIdentifiableObject = instanceSupplier.get();
+    setters.forEach(setter -> setter.accept(baseIdentifiableObject));
+    return baseIdentifiableObject;
+  }
 
-    private static void assertAll( Collection<Pair<Supplier<?>, Object>> assertions )
-    {
-        assertions.forEach( DimensionMapperTestSupport::assertOne );
-    }
+  private static void assertAll(Collection<Pair<Supplier<?>, Object>> assertions) {
+    assertions.forEach(DimensionMapperTestSupport::assertOne);
+  }
 
-    private static void assertOne( Pair<Supplier<?>, Object> assertingPair )
-    {
-        assertThat( assertingPair.getKey().get().toString(), is( assertingPair.getValue().toString() ) );
-    }
+  private static void assertOne(Pair<Supplier<?>, Object> assertingPair) {
+    assertThat(assertingPair.getKey().get().toString(), is(assertingPair.getValue().toString()));
+  }
 }

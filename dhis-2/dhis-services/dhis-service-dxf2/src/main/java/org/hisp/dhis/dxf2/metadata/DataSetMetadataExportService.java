@@ -30,21 +30,19 @@ package org.hisp.dhis.dxf2.metadata;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * Service responsible for retrieving metadata associated with data sets. The
- * object response is suitable for applications for data capture and form
- * rendering. This is a specialized service which related to the general
- * {@link MetadataExportService}.
+ * Service responsible for retrieving metadata associated with data sets. The object response is
+ * suitable for applications for data capture and form rendering. This is a specialized service
+ * which related to the general {@link MetadataExportService}.
  *
  * @author Lars Helge Overland
  */
-public interface DataSetMetadataExportService
-{
-    /**
-     * Retrieves metadata for data sets for which the current user has data
-     * write access together with other relevant entities such as data elements,
-     * category combinations, categories and category options.
-     *
-     * @return an {@link ObjectNode}.
-     */
-    ObjectNode getDataSetMetadata();
+public interface DataSetMetadataExportService {
+  /**
+   * Retrieves metadata for data sets for which the current user has data write access together with
+   * other relevant entities such as data elements, category combinations, categories and category
+   * options.
+   *
+   * @return an {@link ObjectNode}.
+   */
+  ObjectNode getDataSetMetadata();
 }

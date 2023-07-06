@@ -39,7 +39,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdScheme;
@@ -54,109 +53,104 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramSupplierTest extends AbstractSupplierTest<Program>
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ProgramSupplierTest extends AbstractSupplierTest<Program> {
 
-    private ProgramSupplier subject;
+  private ProgramSupplier subject;
 
-    @Mock
-    private CacheProvider cacheProvider;
+  @Mock private CacheProvider cacheProvider;
 
-    @Mock
-    private Cache cache;
+  @Mock private Cache cache;
 
-    private static Stream<Arguments> data()
-    {
-        return Stream.of( arguments( IdScheme.UID.name() ), arguments( IdScheme.ID.name() ),
-            arguments( IdScheme.CODE.name() ), arguments( IdScheme.NAME.name() ) );
+  private static Stream<Arguments> data() {
+    return Stream.of(
+        arguments(IdScheme.UID.name()),
+        arguments(IdScheme.ID.name()),
+        arguments(IdScheme.CODE.name()),
+        arguments(IdScheme.NAME.name()));
+  }
+
+  @BeforeEach
+  void setUp() {
+    when(cacheProvider.createProgramCache()).thenReturn(cache);
+    when(cache.get(anyString())).thenReturn(Optional.empty());
+    this.subject = new ProgramSupplier(jdbcTemplate, cacheProvider);
+  }
+
+  @ParameterizedTest
+  @MethodSource("data")
+  public void verifySupplier(String idScheme) throws SQLException {
+    when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+    when(mockResultSet.getLong("id")).thenReturn(100L);
+    when(mockResultSet.getString("uid")).thenReturn("abcded");
+    when(mockResultSet.getString("code")).thenReturn("ALFA");
+    when(mockResultSet.getString("name")).thenReturn("My Program");
+    when(mockResultSet.getString("type")).thenReturn(ProgramType.WITHOUT_REGISTRATION.getValue());
+    when(mockResultSet.getString("program_sharing"))
+        .thenReturn(generateSharing(null, "rw------", false));
+    when(mockResultSet.getInt("opendaysaftercoenddate")).thenReturn(42);
+    when(mockResultSet.getLong("catcombo_id")).thenReturn(200L);
+    when(mockResultSet.getString("catcombo_uid")).thenReturn("389dh83");
+    when(mockResultSet.getString("catcombo_code")).thenReturn("BETA");
+    when(mockResultSet.getString("catcombo_name")).thenReturn("My CatCombo");
+    when(mockResultSet.getLong("ps_id")).thenReturn(5L, 6L);
+    when(mockResultSet.getString("ps_uid")).thenReturn("abcd5", "abcd6");
+    when(mockResultSet.getString("ps_code")).thenReturn("cod5", "cod6");
+    when(mockResultSet.getString("ps_name")).thenReturn("name5", "name6");
+    when(mockResultSet.getInt("sort_order")).thenReturn(1, 2);
+    when(mockResultSet.getString("ps_sharing"))
+        .thenReturn(generateSharing(null, "rw------", false));
+    when(mockResultSet.getString("ps_feature_type")).thenReturn(null, "POINT");
+    when(mockResultSet.getBoolean("ps_repeatable")).thenReturn(true, false);
+    when(mockResultSet.getString("validationstrategy")).thenReturn("ON_COMPLETE");
+    when(mockResultSet.getObject("uid")).thenReturn("abcded");
+    when(mockResultSet.getObject("id")).thenReturn(100L);
+    when(mockResultSet.getObject("name")).thenReturn("My Program");
+    when(mockResultSet.getObject("code")).thenReturn("ALFA");
+    // mock resultset extraction
+    mockResultSetExtractorWithoutParameters(mockResultSet);
+    ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+    importOptions.getIdSchemes().setProgramIdScheme(idScheme);
+
+    final Map<String, Program> map = subject.get(importOptions, null);
+
+    Program program = map.get(getIdByScheme(idScheme));
+    assertThat(program, is(notNullValue()));
+    assertThat(program.getProgramStages(), hasSize(2));
+    assertThat(program.getId(), is(100L));
+    assertThat(program.getCode(), is("ALFA"));
+    assertThat(program.getName(), is("My Program"));
+    assertThat(program.getProgramType(), is(ProgramType.WITHOUT_REGISTRATION));
+    assertThat(program.getSharing().getPublicAccess(), is("rw------"));
+    assertThat(program.getOpenDaysAfterCoEndDate(), is(42));
+    assertThat(program.getCategoryCombo(), is(notNullValue()));
+    assertThat(program.getCategoryCombo().getId(), is(200L));
+    assertThat(program.getCategoryCombo().getUid(), is("389dh83"));
+    assertThat(program.getCategoryCombo().getName(), is("My CatCombo"));
+    assertThat(program.getCategoryCombo().getCode(), is("BETA"));
+    // TODO assert more data
+  }
+
+  private String getIdByScheme(String idScheme) {
+    if (idScheme.equals(IdScheme.UID.name())) {
+      return "abcded";
+    } else if (idScheme.equals(IdScheme.ID.name())) {
+      return "100";
+    } else if (idScheme.equals(IdScheme.CODE.name())) {
+      return "ALFA";
+    } else if (idScheme.equals(IdScheme.NAME.name())) {
+      return "My Program";
     }
+    return null;
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        when( cacheProvider.createProgramCache() ).thenReturn( cache );
-        when( cache.get( anyString() ) ).thenReturn( Optional.empty() );
-        this.subject = new ProgramSupplier( jdbcTemplate, cacheProvider );
-    }
-
-    @ParameterizedTest
-    @MethodSource( "data" )
-    public void verifySupplier( String idScheme )
-        throws SQLException
-    {
-        when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "id" ) ).thenReturn( 100L );
-        when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
-        when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
-        when( mockResultSet.getString( "name" ) ).thenReturn( "My Program" );
-        when( mockResultSet.getString( "type" ) ).thenReturn( ProgramType.WITHOUT_REGISTRATION.getValue() );
-        when( mockResultSet.getString( "program_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
-        when( mockResultSet.getInt( "opendaysaftercoenddate" ) ).thenReturn( 42 );
-        when( mockResultSet.getLong( "catcombo_id" ) ).thenReturn( 200L );
-        when( mockResultSet.getString( "catcombo_uid" ) ).thenReturn( "389dh83" );
-        when( mockResultSet.getString( "catcombo_code" ) ).thenReturn( "BETA" );
-        when( mockResultSet.getString( "catcombo_name" ) ).thenReturn( "My CatCombo" );
-        when( mockResultSet.getLong( "ps_id" ) ).thenReturn( 5L, 6L );
-        when( mockResultSet.getString( "ps_uid" ) ).thenReturn( "abcd5", "abcd6" );
-        when( mockResultSet.getString( "ps_code" ) ).thenReturn( "cod5", "cod6" );
-        when( mockResultSet.getString( "ps_name" ) ).thenReturn( "name5", "name6" );
-        when( mockResultSet.getInt( "sort_order" ) ).thenReturn( 1, 2 );
-        when( mockResultSet.getString( "ps_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
-        when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, "POINT" );
-        when( mockResultSet.getBoolean( "ps_repeatable" ) ).thenReturn( true, false );
-        when( mockResultSet.getString( "validationstrategy" ) ).thenReturn( "ON_COMPLETE" );
-        when( mockResultSet.getObject( "uid" ) ).thenReturn( "abcded" );
-        when( mockResultSet.getObject( "id" ) ).thenReturn( 100L );
-        when( mockResultSet.getObject( "name" ) ).thenReturn( "My Program" );
-        when( mockResultSet.getObject( "code" ) ).thenReturn( "ALFA" );
-        // mock resultset extraction
-        mockResultSetExtractorWithoutParameters( mockResultSet );
-        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
-        importOptions.getIdSchemes().setProgramIdScheme( idScheme );
-
-        final Map<String, Program> map = subject.get( importOptions, null );
-
-        Program program = map.get( getIdByScheme( idScheme ) );
-        assertThat( program, is( notNullValue() ) );
-        assertThat( program.getProgramStages(), hasSize( 2 ) );
-        assertThat( program.getId(), is( 100L ) );
-        assertThat( program.getCode(), is( "ALFA" ) );
-        assertThat( program.getName(), is( "My Program" ) );
-        assertThat( program.getProgramType(), is( ProgramType.WITHOUT_REGISTRATION ) );
-        assertThat( program.getSharing().getPublicAccess(), is( "rw------" ) );
-        assertThat( program.getOpenDaysAfterCoEndDate(), is( 42 ) );
-        assertThat( program.getCategoryCombo(), is( notNullValue() ) );
-        assertThat( program.getCategoryCombo().getId(), is( 200L ) );
-        assertThat( program.getCategoryCombo().getUid(), is( "389dh83" ) );
-        assertThat( program.getCategoryCombo().getName(), is( "My CatCombo" ) );
-        assertThat( program.getCategoryCombo().getCode(), is( "BETA" ) );
-        // TODO assert more data
-    }
-
-    private String getIdByScheme( String idScheme )
-    {
-        if ( idScheme.equals( IdScheme.UID.name() ) )
-        {
-            return "abcded";
-        }
-        else if ( idScheme.equals( IdScheme.ID.name() ) )
-        {
-            return "100";
-        }
-        else if ( idScheme.equals( IdScheme.CODE.name() ) )
-        {
-            return "ALFA";
-        }
-        else if ( idScheme.equals( IdScheme.NAME.name() ) )
-        {
-            return "My Program";
-        }
-        return null;
-    }
-
-    private String generateSharing( String owner, String publicAccess, boolean external )
-    {
-        return "{\"owner\": \"" + owner + "\", \"public\": \"" + publicAccess + "\", \"external\": " + external + "}";
-    }
+  private String generateSharing(String owner, String publicAccess, boolean external) {
+    return "{\"owner\": \""
+        + owner
+        + "\", \"public\": \""
+        + publicAccess
+        + "\", \"external\": "
+        + external
+        + "}";
+  }
 }

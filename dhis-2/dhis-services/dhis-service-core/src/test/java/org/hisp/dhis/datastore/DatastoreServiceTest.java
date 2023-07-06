@@ -30,116 +30,96 @@ package org.hisp.dhis.datastore;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.UncheckedIOException;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Lars Helge Overland
  */
-class DatastoreServiceTest extends DhisSpringTest
-{
+class DatastoreServiceTest extends DhisSpringTest {
 
-    private final String namespace = "DOGS";
+  private final String namespace = "DOGS";
 
-    @Autowired
-    private DatastoreService service;
+  @Autowired private DatastoreService service;
 
-    @Autowired
-    private ObjectMapper jsonMapper;
+  @Autowired private ObjectMapper jsonMapper;
 
-    @Test
-    void testAddGetObject()
-    {
-        Dog dogA = new Dog( "1", "Fido", "Brown" );
-        Dog dogB = new Dog( "2", "Aldo", "Black" );
-        addValue( namespace, dogA.getId(), dogA );
-        addValue( namespace, dogB.getId(), dogB );
-        dogA = getValue( namespace, dogA.getId(), Dog.class );
-        dogB = getValue( namespace, dogB.getId(), Dog.class );
-        assertNotNull( dogA );
-        assertEquals( "1", dogA.getId() );
-        assertEquals( "Fido", dogA.getName() );
-        assertNotNull( dogB );
-        assertEquals( "2", dogB.getId() );
-        assertEquals( "Aldo", dogB.getName() );
+  @Test
+  void testAddGetObject() {
+    Dog dogA = new Dog("1", "Fido", "Brown");
+    Dog dogB = new Dog("2", "Aldo", "Black");
+    addValue(namespace, dogA.getId(), dogA);
+    addValue(namespace, dogB.getId(), dogB);
+    dogA = getValue(namespace, dogA.getId(), Dog.class);
+    dogB = getValue(namespace, dogB.getId(), Dog.class);
+    assertNotNull(dogA);
+    assertEquals("1", dogA.getId());
+    assertEquals("Fido", dogA.getName());
+    assertNotNull(dogB);
+    assertEquals("2", dogB.getId());
+    assertEquals("Aldo", dogB.getName());
+  }
+
+  @Test
+  void testAddUpdateObject() {
+    Dog dogA = new Dog("1", "Fido", "Brown");
+    Dog dogB = new Dog("2", "Aldo", "Black");
+    addValue(namespace, dogA.getId(), dogA);
+    addValue(namespace, dogB.getId(), dogB);
+    dogA = getValue(namespace, dogA.getId(), Dog.class);
+    dogB = getValue(namespace, dogB.getId(), Dog.class);
+    assertEquals("Fido", dogA.getName());
+    assertEquals("Aldo", dogB.getName());
+    dogA.setName("Lilly");
+    dogB.setName("Teddy");
+    updateValue(namespace, dogA.getId(), dogA);
+    updateValue(namespace, dogB.getId(), dogB);
+    dogA = getValue(namespace, dogA.getId(), Dog.class);
+    dogB = getValue(namespace, dogB.getId(), Dog.class);
+    assertEquals("Lilly", dogA.getName());
+    assertEquals("Teddy", dogB.getName());
+  }
+
+  private <T> T getValue(String namespace, String key, Class<T> type) {
+    return mapJsonValueTo(type, service.getEntry(namespace, key));
+  }
+
+  private <T> DatastoreEntry addValue(String namespace, String key, T object) {
+    DatastoreEntry entry = new DatastoreEntry(namespace, key, mapValueToJson(object), false);
+    service.addEntry(entry);
+    return entry;
+  }
+
+  public <T> void updateValue(String namespace, String key, T object) {
+    DatastoreEntry entry = service.getEntry(namespace, key);
+    if (entry == null) {
+      throw new IllegalStateException(
+          String.format("No object found for namespace '%s' and key '%s'", namespace, key));
     }
+    entry.setValue(mapValueToJson(object));
+    service.updateEntry(entry);
+  }
 
-    @Test
-    void testAddUpdateObject()
-    {
-        Dog dogA = new Dog( "1", "Fido", "Brown" );
-        Dog dogB = new Dog( "2", "Aldo", "Black" );
-        addValue( namespace, dogA.getId(), dogA );
-        addValue( namespace, dogB.getId(), dogB );
-        dogA = getValue( namespace, dogA.getId(), Dog.class );
-        dogB = getValue( namespace, dogB.getId(), Dog.class );
-        assertEquals( "Fido", dogA.getName() );
-        assertEquals( "Aldo", dogB.getName() );
-        dogA.setName( "Lilly" );
-        dogB.setName( "Teddy" );
-        updateValue( namespace, dogA.getId(), dogA );
-        updateValue( namespace, dogB.getId(), dogB );
-        dogA = getValue( namespace, dogA.getId(), Dog.class );
-        dogB = getValue( namespace, dogB.getId(), Dog.class );
-        assertEquals( "Lilly", dogA.getName() );
-        assertEquals( "Teddy", dogB.getName() );
+  private <T> T mapJsonValueTo(Class<T> type, DatastoreEntry entry) {
+    if (entry == null || entry.getJbPlainValue() == null) {
+      return null;
     }
+    try {
+      return jsonMapper.readValue(entry.getJbPlainValue(), type);
+    } catch (JsonProcessingException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
 
-    private <T> T getValue( String namespace, String key, Class<T> type )
-    {
-        return mapJsonValueTo( type, service.getEntry( namespace, key ) );
+  private <T> String mapValueToJson(T object) {
+    try {
+      return jsonMapper.writeValueAsString(object);
+    } catch (JsonProcessingException ex) {
+      throw new UncheckedIOException(ex);
     }
-
-    private <T> DatastoreEntry addValue( String namespace, String key, T object )
-    {
-        DatastoreEntry entry = new DatastoreEntry( namespace, key, mapValueToJson( object ), false );
-        service.addEntry( entry );
-        return entry;
-    }
-
-    public <T> void updateValue( String namespace, String key, T object )
-    {
-        DatastoreEntry entry = service.getEntry( namespace, key );
-        if ( entry == null )
-        {
-            throw new IllegalStateException(
-                String.format( "No object found for namespace '%s' and key '%s'", namespace, key ) );
-        }
-        entry.setValue( mapValueToJson( object ) );
-        service.updateEntry( entry );
-    }
-
-    private <T> T mapJsonValueTo( Class<T> type, DatastoreEntry entry )
-    {
-        if ( entry == null || entry.getJbPlainValue() == null )
-        {
-            return null;
-        }
-        try
-        {
-            return jsonMapper.readValue( entry.getJbPlainValue(), type );
-        }
-        catch ( JsonProcessingException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
-    }
-
-    private <T> String mapValueToJson( T object )
-    {
-        try
-        {
-            return jsonMapper.writeValueAsString( object );
-        }
-        catch ( JsonProcessingException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
-    }
+  }
 }

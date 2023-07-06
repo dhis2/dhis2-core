@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataset.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -44,23 +43,33 @@ import org.springframework.stereotype.Repository;
  * @author Tri
  * @version $Id$
  */
-@Repository( "org.hisp.dhis.dataset.hibernate.HibernateSectionStore" )
-public class HibernateSectionStore
-    extends HibernateIdentifiableObjectStore<Section> implements SectionStore
-{
-    public HibernateSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Section.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.dataset.hibernate.HibernateSectionStore")
+public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Section>
+    implements SectionStore {
+  public HibernateSectionStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Section.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public Section getSectionByName( String name, DataSet dataSet )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public Section getSectionByName(String name, DataSet dataSet) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
-            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("name"), name))
+            .addPredicate(root -> builder.equal(root.get("dataSet"), dataSet)));
+  }
 }

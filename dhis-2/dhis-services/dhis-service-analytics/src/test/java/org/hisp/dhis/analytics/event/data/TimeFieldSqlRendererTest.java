@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -41,100 +42,104 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Dusan Bernat
  */
-class TimeFieldSqlRendererTest extends DhisConvenienceTest
-{
-    private Period peA;
+class TimeFieldSqlRendererTest extends DhisConvenienceTest {
+  private Period peA;
 
-    private Period peB;
+  private Period peB;
 
-    private Period peC;
+  private Period peC;
 
-    @BeforeEach
-    void before()
-    {
-        peA = new MonthlyPeriodType().createPeriod( new DateTime( 2022, 4, 1, 0, 0 ).toDate() );
-        peB = new MonthlyPeriodType().createPeriod( new DateTime( 2022, 5, 1, 0, 0 ).toDate() );
-        peC = new MonthlyPeriodType().createPeriod( new DateTime( 2022, 6, 1, 0, 0 ).toDate() );
-    }
+  @BeforeEach
+  void before() {
+    peA = new MonthlyPeriodType().createPeriod(new DateTime(2022, 4, 1, 0, 0).toDate());
+    peB = new MonthlyPeriodType().createPeriod(new DateTime(2022, 5, 1, 0, 0).toDate());
+    peC = new MonthlyPeriodType().createPeriod(new DateTime(2022, 6, 1, 0, 0).toDate());
+  }
 
-    @Test
-    void testRenderEventTimeFieldSqlWhenNonContinuousDateRangeList()
-    {
-        // Given
-        EventQueryParams params = new EventQueryParams.Builder()
+  @Test
+  void testRenderEventTimeFieldSqlWhenNonContinuousDateRangeList() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peC ) ) )
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peC)))
             .build();
-        TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer( new PostgreSQLStatementBuilder() );
+    TimeFieldSqlRenderer timeFieldSqlRenderer =
+        new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
-        // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+    // When
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-        // Then
-        assertEquals(
-            "(ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-05-01'orax.\"executiondate\">='2022-06-01'andax.\"executiondate\"<'2022-07-01')",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
-    }
+    // Then
+    assertEquals(
+        "(ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-05-01'orax.\"executiondate\">='2022-06-01'andax.\"executiondate\"<'2022-07-01')",
+        timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
+  }
 
-    @Test
-    void testRenderEventTimeFieldSqlWhenContinuousDateRangeList()
-    {
-        // Given
-        EventQueryParams params = new EventQueryParams.Builder()
+  @Test
+  void testRenderEventTimeFieldSqlWhenContinuousDateRangeList() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB, peC)))
             .build();
-        TimeFieldSqlRenderer timeFieldSqlRenderer = new EventTimeFieldSqlRenderer( new PostgreSQLStatementBuilder() );
+    TimeFieldSqlRenderer timeFieldSqlRenderer =
+        new EventTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
-        // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+    // When
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-        // Then
-        assertEquals( "ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01'",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
-    }
+    // Then
+    assertEquals(
+        "ax.\"executiondate\">='2022-04-01'andax.\"executiondate\"<'2022-07-01'",
+        timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
+  }
 
-    @Test
-    void testRenderEnrollmentTimeFieldSqlWhenNonContinuousDateRangeList()
-    {
-        // Given
-        EventQueryParams params = new EventQueryParams.Builder()
+  @Test
+  void testRenderEnrollmentTimeFieldSqlWhenNonContinuousDateRangeList() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peC ) ) )
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peC)))
             .build();
-        TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(
-            new PostgreSQLStatementBuilder() );
+    TimeFieldSqlRenderer timeFieldSqlRenderer =
+        new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
-        // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+    // When
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-        // Then
-        assertEquals(
-            "(enrollmentdate>='2022-04-01'andenrollmentdate<'2022-05-01'orenrollmentdate>='2022-06-01'andenrollmentdate<'2022-07-01')",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
-    }
+    // Then
+    assertEquals(
+        "(enrollmentdate>='2022-04-01'andenrollmentdate<'2022-05-01'orenrollmentdate>='2022-06-01'andenrollmentdate<'2022-07-01')",
+        timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
+  }
 
-    @Test
-    void testRenderEnrollmentTimeFieldSqlWhenContinuousDateRangeList()
-    {
-        // Given
-        EventQueryParams params = new EventQueryParams.Builder()
+  @Test
+  void testRenderEnrollmentTimeFieldSqlWhenContinuousDateRangeList() {
+    // Given
+    EventQueryParams params =
+        new EventQueryParams.Builder()
             .addDimension(
-                new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA, peB, peC ) ) )
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peA, peB, peC)))
             .build();
-        TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(
-            new PostgreSQLStatementBuilder() );
+    TimeFieldSqlRenderer timeFieldSqlRenderer =
+        new EnrollmentTimeFieldSqlRenderer(new PostgreSQLStatementBuilder());
 
-        // When
-        params = new EventQueryParams.Builder( params ).withStartEndDatesForPeriods().build();
+    // When
+    params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
-        // Then
-        assertEquals( "enrollmentdate>='2022-04-01'andenrollmentdate<'2022-07-01'",
-            timeFieldSqlRenderer.renderTimeFieldSql( params ).replace( " ", "" ) );
-    }
+    // Then
+    assertEquals(
+        "enrollmentdate>='2022-04-01'andenrollmentdate<'2022-07-01'",
+        timeFieldSqlRenderer.renderTimeFieldSql(params).replace(" ", ""));
+  }
 }

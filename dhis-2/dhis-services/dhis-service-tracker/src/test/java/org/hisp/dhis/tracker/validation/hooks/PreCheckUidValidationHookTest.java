@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -46,143 +47,144 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Enrico Colasante
  */
-class PreCheckUidValidationHookTest
-{
+class PreCheckUidValidationHookTest {
 
-    private static final String INVALID_UID = "InvalidUID";
+  private static final String INVALID_UID = "InvalidUID";
 
-    private PreCheckUidValidationHook validationHook;
+  private PreCheckUidValidationHook validationHook;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    void setUp()
-    {
-        bundle = TrackerBundle.builder().build();
+  @BeforeEach
+  void setUp() {
+    bundle = TrackerBundle.builder().build();
 
-        validationHook = new PreCheckUidValidationHook();
-    }
+    validationHook = new PreCheckUidValidationHook();
+  }
 
-    @Test
-    void verifyTrackedEntityValidationSuccess()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() )
-            .orgUnit( CodeGenerator.generateUid() ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-        assertFalse( reporter.hasErrors() );
-    }
+  @Test
+  void verifyTrackedEntityValidationSuccess() {
+    // given
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(CodeGenerator.generateUid())
+            .orgUnit(CodeGenerator.generateUid())
+            .build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyTrackedEntityWithInvalidUidFails()
-    {
-        // given
-        TrackedEntity trackedEntity = TrackedEntity.builder().trackedEntity( INVALID_UID )
-            .orgUnit( CodeGenerator.generateUid() ).build();
-        // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
-        // then
-        hasTrackerError( reporter, E1048, TRACKED_ENTITY, trackedEntity.getUid() );
-    }
+  @Test
+  void verifyTrackedEntityWithInvalidUidFails() {
+    // given
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(INVALID_UID)
+            .orgUnit(CodeGenerator.generateUid())
+            .build();
+    // when
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateTrackedEntity(reporter, trackedEntity);
+    // then
+    hasTrackerError(reporter, E1048, TRACKED_ENTITY, trackedEntity.getUid());
+  }
 
-    @Test
-    void verifyEnrollmentValidationSuccess()
-    {
-        // given
-        Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
-        Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
-            .notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
+  @Test
+  void verifyEnrollmentValidationSuccess() {
+    // given
+    Note note = Note.builder().note(CodeGenerator.generateUid()).build();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .notes(Lists.newArrayList(note))
+            .build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+    // then
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyEnrollmentWithInvalidUidFails()
-    {
-        // given
-        Enrollment enrollment = Enrollment.builder().enrollment( INVALID_UID ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-        // then
-        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
-    }
+  @Test
+  void verifyEnrollmentWithInvalidUidFails() {
+    // given
+    Enrollment enrollment = Enrollment.builder().enrollment(INVALID_UID).build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+    // then
+    hasTrackerError(reporter, E1048, ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void verifyEnrollmentWithNoteWithInvalidUidFails()
-    {
-        // given
-        Note note = Note.builder().note( INVALID_UID ).build();
-        Enrollment enrollment = Enrollment.builder().enrollment( CodeGenerator.generateUid() )
-            .notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEnrollment( reporter, enrollment );
-        // then
-        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
-    }
+  @Test
+  void verifyEnrollmentWithNoteWithInvalidUidFails() {
+    // given
+    Note note = Note.builder().note(INVALID_UID).build();
+    Enrollment enrollment =
+        Enrollment.builder()
+            .enrollment(CodeGenerator.generateUid())
+            .notes(Lists.newArrayList(note))
+            .build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEnrollment(reporter, enrollment);
+    // then
+    hasTrackerError(reporter, E1048, ENROLLMENT, enrollment.getUid());
+  }
 
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        // given
-        Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
+  @Test
+  void verifyEventValidationSuccess() {
+    // given
+    Note note = Note.builder().note(CodeGenerator.generateUid()).build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).notes(Lists.newArrayList(note)).build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+    // then
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyEventWithInvalidUidFails()
-    {
-        // given
-        Event event = Event.builder().event( INVALID_UID ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-        // then
-        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
-    }
+  @Test
+  void verifyEventWithInvalidUidFails() {
+    // given
+    Event event = Event.builder().event(INVALID_UID).build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+    // then
+    hasTrackerError(reporter, E1048, EVENT, event.getUid());
+  }
 
-    @Test
-    void verifyEventWithNoteWithInvalidUidFails()
-    {
-        // given
-        Note note = Note.builder().note( INVALID_UID ).build();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateEvent( reporter, event );
-        // then
-        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
-    }
+  @Test
+  void verifyEventWithNoteWithInvalidUidFails() {
+    // given
+    Note note = Note.builder().note(INVALID_UID).build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).notes(Lists.newArrayList(note)).build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateEvent(reporter, event);
+    // then
+    hasTrackerError(reporter, E1048, EVENT, event.getUid());
+  }
 
-    @Test
-    void verifyRelationshipValidationSuccess()
-    {
-        // given
-        Relationship relationship = Relationship.builder().relationship( CodeGenerator.generateUid() ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
-        // then
-        assertFalse( reporter.hasErrors() );
-    }
+  @Test
+  void verifyRelationshipValidationSuccess() {
+    // given
+    Relationship relationship =
+        Relationship.builder().relationship(CodeGenerator.generateUid()).build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, relationship);
+    // then
+    assertFalse(reporter.hasErrors());
+  }
 
-    @Test
-    void verifyRelationshipWithInvalidUidFails()
-    {
-        // given
-        Relationship relationship = Relationship.builder().relationship( INVALID_UID ).build();
-        ValidationErrorReporter reporter = new ValidationErrorReporter( bundle );
-        validationHook.validateRelationship( reporter, relationship );
-        // then
-        hasTrackerError( reporter, E1048, RELATIONSHIP, relationship.getUid() );
-    }
+  @Test
+  void verifyRelationshipWithInvalidUidFails() {
+    // given
+    Relationship relationship = Relationship.builder().relationship(INVALID_UID).build();
+    ValidationErrorReporter reporter = new ValidationErrorReporter(bundle);
+    validationHook.validateRelationship(reporter, relationship);
+    // then
+    hasTrackerError(reporter, E1048, RELATIONSHIP, relationship.getUid());
+  }
 }

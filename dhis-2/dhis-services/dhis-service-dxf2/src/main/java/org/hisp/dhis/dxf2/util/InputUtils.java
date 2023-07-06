@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.util;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -47,206 +46,185 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class InputUtils
-{
-    private final Cache<Long> attrOptionComboIdCache;
+public class InputUtils {
+  private final Cache<Long> attrOptionComboIdCache;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager,
-        CacheProvider cacheProvider )
-    {
-        this.categoryService = categoryService;
-        this.idObjectManager = idObjectManager;
-        this.attrOptionComboIdCache = cacheProvider.createAttrOptionComboIdCache();
+  public InputUtils(
+      CategoryService categoryService,
+      IdentifiableObjectManager idObjectManager,
+      CacheProvider cacheProvider) {
+    this.categoryService = categoryService;
+    this.idObjectManager = idObjectManager;
+    this.attrOptionComboIdCache = cacheProvider.createAttrOptionComboIdCache();
+  }
+
+  /**
+   * Validates and retrieves the attribute option combo. 409 conflict as status code along with a
+   * textual message will be set on the response in case of invalid input. The response is cached.
+   *
+   * @param cc the category combo identifier.
+   * @param cp the category and option query string.
+   * @param skipFallback whether to skip fallback to default option combo if attribute option combo
+   *     is not found.
+   * @return the attribute option combo identified from the given input, or null if the input was
+   *     invalid.
+   */
+  public CategoryOptionCombo getAttributeOptionCombo(String cc, String cp, boolean skipFallback) {
+    Set<String> options = TextUtils.splitToSet(cp, TextUtils.SEMICOLON);
+
+    return getAttributeOptionCombo(cc, options, skipFallback);
+  }
+
+  /**
+   * Validates and retrieves the attribute option combo. 409 conflict as status code along with a
+   * textual message will be set on the response in case of invalid input. The response is cached.
+   *
+   * @param cc the category combo identifier.
+   * @param options the set of category option identifiers.
+   * @param skipFallback whether to skip fallback to default option combo if attribute option combo
+   *     is not found.
+   * @return the attribute option combo identified from the given input, or null if the input was
+   *     invalid.
+   */
+  public CategoryOptionCombo getAttributeOptionCombo(
+      String cc, Set<String> options, boolean skipFallback) {
+    String cacheKey =
+        TextUtils.joinHyphen(cc, TextUtils.joinHyphen(options), String.valueOf(skipFallback));
+
+    Long id = attrOptionComboIdCache.getIfPresent(cacheKey).orElse(null);
+
+    if (id != null) {
+      return categoryService.getCategoryOptionCombo(id);
+    } else {
+      CategoryOptionCombo aoc = getAttributeOptionComboInternal(cc, options, skipFallback);
+
+      if (aoc != null) {
+        attrOptionComboIdCache.put(cacheKey, aoc.getId());
+      }
+
+      return aoc;
+    }
+  }
+
+  private CategoryOptionCombo getAttributeOptionComboInternal(
+      String cc, Set<String> options, boolean skipFallback) {
+    // ---------------------------------------------------------------------
+    // Attribute category combo validation
+    // ---------------------------------------------------------------------
+
+    if ((cc == null && options != null || (cc != null && options == null))) {
+      throw new IllegalQueryException(
+          "Both or none of category combination and category options must be present");
     }
 
-    /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input. The response is cached.
-     *
-     * @param cc the category combo identifier.
-     * @param cp the category and option query string.
-     * @param skipFallback whether to skip fallback to default option combo if
-     *        attribute option combo is not found.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
-     */
-    public CategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
-    {
-        Set<String> options = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
+    CategoryCombo categoryCombo = null;
 
-        return getAttributeOptionCombo( cc, options, skipFallback );
+    if (cc != null && (categoryCombo = idObjectManager.get(CategoryCombo.class, cc)) == null) {
+      throw new IllegalQueryException("Illegal category combo identifier: " + cc);
     }
 
-    /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input. The response is cached.
-     *
-     * @param cc the category combo identifier.
-     * @param options the set of category option identifiers.
-     * @param skipFallback whether to skip fallback to default option combo if
-     *        attribute option combo is not found.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
-     */
-    public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
-    {
-        String cacheKey = TextUtils.joinHyphen( cc, TextUtils.joinHyphen( options ), String.valueOf( skipFallback ) );
+    if (categoryCombo == null) {
+      if (skipFallback) {
+        return null;
+      }
 
-        Long id = attrOptionComboIdCache.getIfPresent( cacheKey ).orElse( null );
-
-        if ( id != null )
-        {
-            return categoryService.getCategoryOptionCombo( id );
-        }
-        else
-        {
-            CategoryOptionCombo aoc = getAttributeOptionComboInternal( cc, options, skipFallback );
-
-            if ( aoc != null )
-            {
-                attrOptionComboIdCache.put( cacheKey, aoc.getId() );
-            }
-
-            return aoc;
-        }
+      categoryCombo = categoryService.getDefaultCategoryCombo();
     }
 
-    private CategoryOptionCombo getAttributeOptionComboInternal( String cc, Set<String> options, boolean skipFallback )
-    {
-        // ---------------------------------------------------------------------
-        // Attribute category combo validation
-        // ---------------------------------------------------------------------
+    return getAttributeOptionCombo(categoryCombo, options, null, IdScheme.UID);
+  }
 
-        if ( (cc == null && options != null || (cc != null && options == null)) )
-        {
-            throw new IllegalQueryException(
-                "Both or none of category combination and category options must be present" );
-        }
+  /**
+   * Validates and retrieves the attribute option combo. 409 conflict as status code along with a
+   * textual message will be set on the response in case of invalid input.
+   *
+   * @param categoryCombo the category combo.
+   * @param options list of category option identifiers.
+   * @return the attribute option combo identified from the given input, or null if the input was
+   *     invalid.
+   */
+  public CategoryOptionCombo getAttributeOptionCombo(
+      CategoryCombo categoryCombo, Set<String> options, IdScheme idScheme) {
+    return getAttributeOptionCombo(categoryCombo, options, null, idScheme);
+  }
 
-        CategoryCombo categoryCombo = null;
-
-        if ( cc != null && (categoryCombo = idObjectManager.get( CategoryCombo.class, cc )) == null )
-        {
-            throw new IllegalQueryException( "Illegal category combo identifier: " + cc );
-        }
-
-        if ( categoryCombo == null )
-        {
-            if ( skipFallback )
-            {
-                return null;
-            }
-
-            categoryCombo = categoryService.getDefaultCategoryCombo();
-        }
-
-        return getAttributeOptionCombo( categoryCombo, options, null, IdScheme.UID );
+  /**
+   * Validates and retrieves the attribute option combo. 409 conflict as status code along with a
+   * textual message will be set on the response in case of invalid input.
+   *
+   * @param categoryCombo the category combo.
+   * @param options list of category option identifiers.
+   * @param attributeOptionCombo the explicit attribute option combo identifier.
+   * @return the attribute option combo identified from the given input, or null if the input was
+   *     invalid.
+   */
+  public CategoryOptionCombo getAttributeOptionCombo(
+      CategoryCombo categoryCombo,
+      Set<String> options,
+      String attributeOptionCombo,
+      IdScheme idScheme) {
+    if (categoryCombo == null) {
+      throw new IllegalQueryException("Illegal category combo");
     }
 
-    /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
-     *
-     * @param categoryCombo the category combo.
-     * @param options list of category option identifiers.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
-     */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> options,
-        IdScheme idScheme )
-    {
-        return getAttributeOptionCombo( categoryCombo, options, null, idScheme );
+    // ---------------------------------------------------------------------
+    // Attribute category options validation
+    // ---------------------------------------------------------------------
+
+    CategoryOptionCombo attrOptCombo = null;
+
+    if (options != null) {
+      Set<CategoryOption> categoryOptions = new HashSet<>();
+
+      for (String uid : options) {
+        CategoryOption categoryOption =
+            idObjectManager.getObject(CategoryOption.class, idScheme, uid);
+
+        if (categoryOption == null) {
+          throw new IllegalQueryException("Illegal category option identifier: " + uid);
+        }
+
+        categoryOptions.add(categoryOption);
+      }
+
+      attrOptCombo = categoryService.getCategoryOptionCombo(categoryCombo, categoryOptions);
+
+      if (attrOptCombo == null) {
+        throw new IllegalQueryException(
+            "Attribute option combo does not exist for given category combo and category options");
+      }
+    } else if (attributeOptionCombo != null) {
+      attrOptCombo = categoryService.getCategoryOptionCombo(attributeOptionCombo);
     }
 
-    /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
-     *
-     * @param categoryCombo the category combo.
-     * @param options list of category option identifiers.
-     * @param attributeOptionCombo the explicit attribute option combo
-     *        identifier.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
-     */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> options,
-        String attributeOptionCombo, IdScheme idScheme )
-    {
-        if ( categoryCombo == null )
-        {
-            throw new IllegalQueryException( "Illegal category combo" );
-        }
+    // ---------------------------------------------------------------------
+    // Fall back to default category option combination
+    // ---------------------------------------------------------------------
 
-        // ---------------------------------------------------------------------
-        // Attribute category options validation
-        // ---------------------------------------------------------------------
-
-        CategoryOptionCombo attrOptCombo = null;
-
-        if ( options != null )
-        {
-            Set<CategoryOption> categoryOptions = new HashSet<>();
-
-            for ( String uid : options )
-            {
-                CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, idScheme, uid );
-
-                if ( categoryOption == null )
-                {
-                    throw new IllegalQueryException( "Illegal category option identifier: " + uid );
-                }
-
-                categoryOptions.add( categoryOption );
-            }
-
-            attrOptCombo = categoryService.getCategoryOptionCombo( categoryCombo, categoryOptions );
-
-            if ( attrOptCombo == null )
-            {
-                throw new IllegalQueryException(
-                    "Attribute option combo does not exist for given category combo and category options" );
-            }
-        }
-        else if ( attributeOptionCombo != null )
-        {
-            attrOptCombo = categoryService.getCategoryOptionCombo( attributeOptionCombo );
-        }
-
-        // ---------------------------------------------------------------------
-        // Fall back to default category option combination
-        // ---------------------------------------------------------------------
-
-        if ( attrOptCombo == null )
-        {
-            attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
-        }
-
-        if ( attrOptCombo == null )
-        {
-            throw new IllegalQueryException( "Default attribute option combo does not exist" );
-        }
-
-        return attrOptCombo;
+    if (attrOptCombo == null) {
+      attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
     }
 
-    /**
-     * Checks if user is authorized to force data input. Having just the
-     * authority is not enough. User has to explicitly ask for it.
-     *
-     * @param currentUser the user attempting to force data input
-     * @param force request to force data input
-     * @return true if authorized and requested for it, otherwise false.
-     */
-    public boolean canForceDataInput( User currentUser, boolean force )
-    {
-        return force && currentUser.isSuper();
+    if (attrOptCombo == null) {
+      throw new IllegalQueryException("Default attribute option combo does not exist");
     }
+
+    return attrOptCombo;
+  }
+
+  /**
+   * Checks if user is authorized to force data input. Having just the authority is not enough. User
+   * has to explicitly ask for it.
+   *
+   * @param currentUser the user attempting to force data input
+   * @param force request to force data input
+   * @return true if authorized and requested for it, otherwise false.
+   */
+  public boolean canForceDataInput(User currentUser, boolean force) {
+    return force && currentUser.isSuper();
+  }
 }

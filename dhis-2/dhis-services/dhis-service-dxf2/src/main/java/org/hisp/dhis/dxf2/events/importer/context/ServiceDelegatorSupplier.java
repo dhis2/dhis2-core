@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.function.Supplier;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
@@ -45,60 +44,47 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Luciano Fiandesio
  */
-@Component( "workContextServiceDelegatorSupplier" )
+@Component("workContextServiceDelegatorSupplier")
 @RequiredArgsConstructor
-public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
-{
-    @NonNull
-    private final ProgramInstanceStore programInstanceStore;
+public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator> {
+  @NonNull private final ProgramInstanceStore programInstanceStore;
 
-    @NonNull
-    private final TrackerAccessManager trackerAccessManager;
+  @NonNull private final TrackerAccessManager trackerAccessManager;
 
-    @NonNull
-    private final ApplicationEventPublisher applicationEventPublisher;
+  @NonNull private final ApplicationEventPublisher applicationEventPublisher;
 
-    @NonNull
-    private final ProgramRuleVariableService programRuleVariableService;
+  @NonNull private final ProgramRuleVariableService programRuleVariableService;
 
-    @NonNull
-    private final EventImporterUserService eventImporterUserService;
+  @NonNull private final EventImporterUserService eventImporterUserService;
 
-    @NonNull
-    private final ObjectMapper jsonMapper;
+  @NonNull private final ObjectMapper jsonMapper;
 
-    @NonNull
-    @Qualifier( "readOnlyJdbcTemplate" )
-    private final JdbcTemplate jdbcTemplate;
+  @NonNull
+  @Qualifier("readOnlyJdbcTemplate")
+  private final JdbcTemplate jdbcTemplate;
 
-    @NonNull
-    private final AuditManager auditManager;
+  @NonNull private final AuditManager auditManager;
 
-    @NonNull
-    private final FileResourceService fileResourceService;
+  @NonNull private final FileResourceService fileResourceService;
 
-    @NonNull
-    private final OrganisationUnitService organisationUnitService;
+  @NonNull private final OrganisationUnitService organisationUnitService;
 
-    @Override
-    public ServiceDelegator get()
-    {
-        return ServiceDelegator.builder()
-            .programInstanceStore( programInstanceStore )
-            .trackerAccessManager( trackerAccessManager )
-            .applicationEventPublisher( applicationEventPublisher )
-            .programRuleVariableService( programRuleVariableService )
-            .eventImporterUserService( eventImporterUserService )
-            .jsonMapper( jsonMapper )
-            .jdbcTemplate( jdbcTemplate )
-            .auditManager( auditManager )
-            .fileResourceService( fileResourceService )
-            .organisationUnitService( organisationUnitService )
-            .build();
-    }
+  @Override
+  public ServiceDelegator get() {
+    return ServiceDelegator.builder()
+        .programInstanceStore(programInstanceStore)
+        .trackerAccessManager(trackerAccessManager)
+        .applicationEventPublisher(applicationEventPublisher)
+        .programRuleVariableService(programRuleVariableService)
+        .eventImporterUserService(eventImporterUserService)
+        .jsonMapper(jsonMapper)
+        .jdbcTemplate(jdbcTemplate)
+        .auditManager(auditManager)
+        .fileResourceService(fileResourceService)
+        .organisationUnitService(organisationUnitService)
+        .build();
+  }
 }

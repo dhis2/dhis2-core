@@ -42,36 +42,30 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 /**
  * @author Lars Helge Overland
  */
-@ExtendWith( SpringExtension.class )
-@ActiveProfiles( "test-h2" )
-@ContextConfiguration( classes = { UnitTestConfig.class } )
-public abstract class DhisTest extends BaseSpringTest
-{
+@ExtendWith(SpringExtension.class)
+@ActiveProfiles("test-h2")
+@ContextConfiguration(classes = {UnitTestConfig.class})
+public abstract class DhisTest extends BaseSpringTest {
 
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+  protected boolean emptyDatabaseAfterTest() {
+    return true;
+  }
 
-    @BeforeEach
-    final void before()
-        throws Exception
-    {
-        bindSession();
-        TestUtils.executeStartupRoutines( applicationContext );
-        boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-        if ( enableQueryLogging )
-        {
-            Configurator.setLevel( "org.hisp.dhis.datasource.query", Level.INFO );
-            Configurator.setRootLevel( Level.INFO );
-        }
-        setUpTest();
+  @BeforeEach
+  final void before() throws Exception {
+    bindSession();
+    TestUtils.executeStartupRoutines(applicationContext);
+    boolean enableQueryLogging =
+        dhisConfigurationProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
+    if (enableQueryLogging) {
+      Configurator.setLevel("org.hisp.dhis.datasource.query", Level.INFO);
+      Configurator.setRootLevel(Level.INFO);
     }
+    setUpTest();
+  }
 
-    @AfterEach
-    final void after()
-        throws Exception
-    {
-        nonTransactionalAfter();
-    }
+  @AfterEach
+  final void after() throws Exception {
+    nonTransactionalAfter();
+  }
 }

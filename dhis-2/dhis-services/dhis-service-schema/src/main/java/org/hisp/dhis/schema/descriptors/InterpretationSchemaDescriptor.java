@@ -34,20 +34,18 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InterpretationSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "interpretation";
+public class InterpretationSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "interpretation";
 
-    public static final String PLURAL = "interpretations";
+  public static final String PLURAL = "interpretations";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Interpretation.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Interpretation.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
 
-        return schema;
-    }
+    return schema;
+  }
 }

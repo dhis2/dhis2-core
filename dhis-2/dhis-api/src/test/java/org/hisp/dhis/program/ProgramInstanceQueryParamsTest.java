@@ -30,21 +30,19 @@ package org.hisp.dhis.program;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
+class ProgramInstanceQueryParamsTest {
 
-class ProgramInstanceQueryParamsTest
-{
-
-    @Test
-    void verifyIsSorting()
-    {
-        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
-        assertFalse( programInstanceQueryParams.isSorting() );
-        programInstanceQueryParams.setOrder( ImmutableList
-            .of( OrderParam.builder().field( "aField" ).direction( OrderParam.SortDirection.ASC ).build() ) );
-        assertTrue( programInstanceQueryParams.isSorting() );
-    }
+  @Test
+  void verifyIsSorting() {
+    ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
+    assertFalse(programInstanceQueryParams.isSorting());
+    programInstanceQueryParams.setOrder(
+        ImmutableList.of(
+            OrderParam.builder().field("aField").direction(OrderParam.SortDirection.ASC).build()));
+    assertTrue(programInstanceQueryParams.isSorting());
+  }
 }

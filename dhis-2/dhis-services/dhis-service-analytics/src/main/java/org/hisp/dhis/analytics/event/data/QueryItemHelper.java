@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.Grid;
@@ -56,274 +55,261 @@ import org.hisp.dhis.option.Option;
 /**
  * @author Dusan Bernat
  */
-public class QueryItemHelper
-{
-    private static final String ITEM_NAME_SEP = ": ";
+public class QueryItemHelper {
+  private static final String ITEM_NAME_SEP = ": ";
 
-    private static final String NA = "[N/A]";
+  private static final String NA = "[N/A]";
 
-    private QueryItemHelper()
-    {
-    }
+  private QueryItemHelper() {}
 
-    /**
-     * Returns an item value (legend) for OutputIdScheme (Code, Name, Id, Uid).
-     *
-     * @param itemValue the item value.
-     * @param params the {@link EventQueryParams}.
-     */
-    public static String getItemOptionValue( String itemValue, EventQueryParams params )
-    {
-        Optional<Option> itemOption = params.getItemOptions().stream()
-            .filter( option -> option.getDisplayName().equalsIgnoreCase( itemValue ) )
+  /**
+   * Returns an item value (legend) for OutputIdScheme (Code, Name, Id, Uid).
+   *
+   * @param itemValue the item value.
+   * @param params the {@link EventQueryParams}.
+   */
+  public static String getItemOptionValue(String itemValue, EventQueryParams params) {
+    Optional<Option> itemOption =
+        params.getItemOptions().stream()
+            .filter(option -> option.getDisplayName().equalsIgnoreCase(itemValue))
             .findFirst();
 
-        return itemOption.map( option -> params.getOutputIdScheme() == IdScheme.UID ? option.getUid()
-            : params.getOutputIdScheme() == IdScheme.CODE ? option.getCode()
-                : params.getOutputIdScheme() == IdScheme.NAME ? option.getName()
-                    : Long.toString( option.getId() ) )
-            .orElse( null );
-    }
+    return itemOption
+        .map(
+            option ->
+                params.getOutputIdScheme() == IdScheme.UID
+                    ? option.getUid()
+                    : params.getOutputIdScheme() == IdScheme.CODE
+                        ? option.getCode()
+                        : params.getOutputIdScheme() == IdScheme.NAME
+                            ? option.getName()
+                            : Long.toString(option.getId()))
+        .orElse(null);
+  }
 
-    /**
-     * Returns an item value (option) for OutputIdScheme (Code, Name, Id, Uid).
-     *
-     * @param itemValue the item value.
-     * @param params the {@link EventQueryParams}.
-     */
-    public static String getItemLegendValue( String itemValue, EventQueryParams params )
-    {
-        Optional<Legend> itemLegend = params.getItemLegends().stream()
-            .filter( legend -> legend.getDisplayName().equalsIgnoreCase( itemValue ) )
+  /**
+   * Returns an item value (option) for OutputIdScheme (Code, Name, Id, Uid).
+   *
+   * @param itemValue the item value.
+   * @param params the {@link EventQueryParams}.
+   */
+  public static String getItemLegendValue(String itemValue, EventQueryParams params) {
+    Optional<Legend> itemLegend =
+        params.getItemLegends().stream()
+            .filter(legend -> legend.getDisplayName().equalsIgnoreCase(itemValue))
             .findFirst();
 
-        return itemLegend.map( legend -> params.getOutputIdScheme() == IdScheme.UID ? legend.getUid()
-            : params.getOutputIdScheme() == IdScheme.CODE ? legend.getCode()
-                : params.getOutputIdScheme() == IdScheme.NAME ? legend.getName()
-                    : Long.toString( legend.getId() ) )
-            .orElse( null );
+    return itemLegend
+        .map(
+            legend ->
+                params.getOutputIdScheme() == IdScheme.UID
+                    ? legend.getUid()
+                    : params.getOutputIdScheme() == IdScheme.CODE
+                        ? legend.getCode()
+                        : params.getOutputIdScheme() == IdScheme.NAME
+                            ? legend.getName()
+                            : Long.toString(legend.getId()))
+        .orElse(null);
+  }
+
+  /**
+   * Returns an item value for the given query, query item and value. Assumes that data dimensions
+   * are collapsed for the given query. Returns the short name of the given query item followed by
+   * the item value. If the given query item has a legend set, the item value is treated as an id
+   * and substituted with the matching legend name. If the given query item has an option set, the
+   * item value is treated as a code and substituted with the matching option name.
+   *
+   * @param item the {@link QueryItem}.
+   * @param itemValue the item value.
+   */
+  public static String getCollapsedDataItemValue(QueryItem item, String itemValue) {
+    String value = item.getItem().getDisplayShortName() + ITEM_NAME_SEP;
+
+    Legend legend;
+    Option option;
+
+    if (item.hasLegendSet() && (legend = item.getLegendSet().getLegendByUid(itemValue)) != null) {
+      return value + legend.getDisplayName();
+    } else if (item.hasOptionSet()
+        && (option = item.getOptionSet().getOptionByCode(itemValue)) != null) {
+      return value + option.getDisplayName();
+    } else {
+      itemValue = StringUtils.defaultString(itemValue, NA);
+
+      return value + itemValue;
+    }
+  }
+
+  /**
+   * Returns a list of options {@link Option}.
+   *
+   * <p>Based on the given Grid and EventQueryParams, this method will return the options correct
+   * list of options.
+   *
+   * <p>When the Grid has no rows, it will return the options specified as element "filter", ie.:
+   * Zj7UnCAulEk.K6uUAvq500H:IN:A03, where "A03" is the option code.
+   *
+   * <p>When the Grid has rows, this method will return only the options that are part of the row
+   * object.
+   *
+   * @param grid the Grid instance
+   * @param params the EventQueryParams
+   * @return a list of options based on the Grid/EventQueryParams
+   */
+  public static Map<String, List<Option>> getItemOptions(
+      final Grid grid, final EventQueryParams params) {
+    final Map<String, List<Option>> options = new HashMap<>();
+
+    for (int i = 0; i < grid.getHeaders().size(); ++i) {
+      final GridHeader gridHeader = grid.getHeaders().get(i);
+
+      if (gridHeader.hasOptionSet() && isNotEmpty(grid.getRows())) {
+        options.put(gridHeader.getName(), getItemOptionsThatMatchesRows(grid, i));
+      } else if (gridHeader.hasOptionSet() && isEmpty(grid.getRows())) {
+        options.put(gridHeader.getName(), getItemOptionsForEmptyRows(params));
+      }
     }
 
-    /**
-     * Returns an item value for the given query, query item and value. Assumes
-     * that data dimensions are collapsed for the given query. Returns the short
-     * name of the given query item followed by the item value. If the given
-     * query item has a legend set, the item value is treated as an id and
-     * substituted with the matching legend name. If the given query item has an
-     * option set, the item value is treated as a code and substituted with the
-     * matching option name.
-     *
-     * @param item the {@link QueryItem}.
-     * @param itemValue the item value.
-     */
-    public static String getCollapsedDataItemValue( QueryItem item, String itemValue )
-    {
-        String value = item.getItem().getDisplayShortName() + ITEM_NAME_SEP;
+    return options;
+  }
 
-        Legend legend;
-        Option option;
+  /**
+   * Based on the given options, it returns a set of {@link Option} objects which are referenced as
+   * filter by any one of the query items provided.
+   *
+   * @param options the set of {@link Option}.
+   * @param queryItems the list of {@link QueryItem}.
+   * @return the set of {@link Option} found.
+   */
+  public static Set<Option> getItemOptions(Set<Option> options, List<QueryItem> queryItems) {
+    Set<Option> matchedOptions = new LinkedHashSet<>();
 
-        if ( item.hasLegendSet() && (legend = item.getLegendSet().getLegendByUid( itemValue )) != null )
-        {
-            return value + legend.getDisplayName();
-        }
-        else if ( item.hasOptionSet() && (option = item.getOptionSet().getOptionByCode( itemValue )) != null )
-        {
-            return value + option.getDisplayName();
-        }
-        else
-        {
-            itemValue = StringUtils.defaultString( itemValue, NA );
-
-            return value + itemValue;
-        }
-    }
-
-    /**
-     * Returns a list of options {@link Option}.
-     *
-     * Based on the given Grid and EventQueryParams, this method will return the
-     * options correct list of options.
-     *
-     * When the Grid has no rows, it will return the options specified as
-     * element "filter", ie.: Zj7UnCAulEk.K6uUAvq500H:IN:A03, where "A03" is the
-     * option code.
-     *
-     * When the Grid has rows, this method will return only the options that are
-     * part of the row object.
-     *
-     * @param grid the Grid instance
-     * @param params the EventQueryParams
-     * @return a list of options based on the Grid/EventQueryParams
-     */
-    public static Map<String, List<Option>> getItemOptions( final Grid grid, final EventQueryParams params )
-    {
-        final Map<String, List<Option>> options = new HashMap<>();
-
-        for ( int i = 0; i < grid.getHeaders().size(); ++i )
-        {
-            final GridHeader gridHeader = grid.getHeaders().get( i );
-
-            if ( gridHeader.hasOptionSet() && isNotEmpty( grid.getRows() ) )
-            {
-                options.put( gridHeader.getName(), getItemOptionsThatMatchesRows( grid, i ) );
-            }
-            else if ( gridHeader.hasOptionSet() && isEmpty( grid.getRows() ) )
-            {
-                options.put( gridHeader.getName(), getItemOptionsForEmptyRows( params ) );
-            }
-        }
-
-        return options;
-    }
-
-    /**
-     * Based on the given options, it returns a set of {@link Option} objects
-     * which are referenced as filter by any one of the query items provided.
-     *
-     * @param options the set of {@link Option}.
-     * @param queryItems the list of {@link QueryItem}.
-     * @return the set of {@link Option} found.
-     */
-    public static Set<Option> getItemOptions( Set<Option> options, List<QueryItem> queryItems )
-    {
-        Set<Option> matchedOptions = new LinkedHashSet<>();
-
-        options.stream().filter( Objects::nonNull ).forEach(
+    options.stream()
+        .filter(Objects::nonNull)
+        .forEach(
             option -> {
-                boolean queryItemsFilterMatchOptionCode = queryItems.stream().anyMatch(
-                    queryItem -> queryItem.hasFilter() && filtersContainOption( option, queryItem.getFilters() ) );
+              boolean queryItemsFilterMatchOptionCode =
+                  queryItems.stream()
+                      .anyMatch(
+                          queryItem ->
+                              queryItem.hasFilter()
+                                  && filtersContainOption(option, queryItem.getFilters()));
 
-                if ( queryItemsFilterMatchOptionCode )
-                {
-                    matchedOptions.add( option );
-                }
-            } );
+              if (queryItemsFilterMatchOptionCode) {
+                matchedOptions.add(option);
+              }
+            });
 
-        return matchedOptions;
-    }
+    return matchedOptions;
+  }
 
-    /**
-     * This method will check each filter in the given list of
-     * {@link QueryFilter} objects. For each filter, it will try to match the
-     * given option with any filter that contain an option or multiple options
-     * (split by ";"). If a match is found, it will return true.
-     *
-     * Example of a possible filter: Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where
-     * "A03;B01" are the options codes.
-     *
-     * @param option the {@link Option}.
-     * @param queryFilters the list of {@link QueryFilter}.
-     * @return true if a match is found, false otherwise.
-     */
-    private static boolean filtersContainOption( Option option, List<QueryFilter> queryFilters )
-    {
-        for ( QueryFilter queryFilter : queryFilters )
-        {
-            String[] filterValues = defaultString( queryFilter.getFilter() ).split( ";" );
+  /**
+   * This method will check each filter in the given list of {@link QueryFilter} objects. For each
+   * filter, it will try to match the given option with any filter that contain an option or
+   * multiple options (split by ";"). If a match is found, it will return true.
+   *
+   * <p>Example of a possible filter: Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where "A03;B01" are the
+   * options codes.
+   *
+   * @param option the {@link Option}.
+   * @param queryFilters the list of {@link QueryFilter}.
+   * @return true if a match is found, false otherwise.
+   */
+  private static boolean filtersContainOption(Option option, List<QueryFilter> queryFilters) {
+    for (QueryFilter queryFilter : queryFilters) {
+      String[] filterValues = defaultString(queryFilter.getFilter()).split(";");
 
-            for ( String filterValue : filterValues )
-            {
-                if ( filterValue.equalsIgnoreCase( option.getCode() ) )
-                {
-                    return true;
-                }
-            }
+      for (String filterValue : filterValues) {
+        if (filterValue.equalsIgnoreCase(option.getCode())) {
+          return true;
         }
-
-        return false;
+      }
     }
 
-    /**
-     * This method will extract the options (based on their codes) from the
-     * element filter.
-     *
-     * @param params the EventQueryParams
-     * @return the options for empty rows
-     */
-    private static List<Option> getItemOptionsForEmptyRows( final EventQueryParams params )
-    {
-        final List<Option> options = new ArrayList<>();
+    return false;
+  }
 
-        if ( isNotEmpty( params.getItems() ) )
-        {
-            final List<QueryItem> items = params.getItems();
+  /**
+   * This method will extract the options (based on their codes) from the element filter.
+   *
+   * @param params the EventQueryParams
+   * @return the options for empty rows
+   */
+  private static List<Option> getItemOptionsForEmptyRows(final EventQueryParams params) {
+    final List<Option> options = new ArrayList<>();
 
-            for ( final QueryItem item : items )
-            {
-                final boolean hasOptions = item.getOptionSet() != null
-                    && isNotEmpty( item.getOptionSet().getOptions() );
+    if (isNotEmpty(params.getItems())) {
+      final List<QueryItem> items = params.getItems();
 
-                if ( hasOptions && isNotEmpty( item.getFilters() ) )
-                {
-                    options.addAll( getItemOptionsForFilter( item ) );
-                }
-            }
+      for (final QueryItem item : items) {
+        final boolean hasOptions =
+            item.getOptionSet() != null && isNotEmpty(item.getOptionSet().getOptions());
+
+        if (hasOptions && isNotEmpty(item.getFilters())) {
+          options.addAll(getItemOptionsForFilter(item));
         }
-
-        return options;
+      }
     }
 
-    /**
-     * For the list of rows, in the Grid, it will return only the options that
-     * are part of each row object. It picks each option, from the list of all
-     * options available, that matches the current header.
-     *
-     * @param grid the Grid
-     * @param columnIndex
-     * @return the list of matching options
-     */
-    private static List<Option> getItemOptionsThatMatchesRows( final Grid grid, final int columnIndex )
-    {
-        final List<Option> options = new ArrayList<>();
-        final GridHeader gridHeader = grid.getHeaders().get( columnIndex );
+    return options;
+  }
 
-        options.addAll( gridHeader
-            .getOptionSetObject()
-            .getOptions()
-            .stream()
-            .filter( opt -> opt != null && grid.getRows().stream().anyMatch( r -> {
-                Object o = r.get( columnIndex );
-                if ( o instanceof String )
-                {
-                    return ((String) o).equalsIgnoreCase( opt.getCode() );
-                }
+  /**
+   * For the list of rows, in the Grid, it will return only the options that are part of each row
+   * object. It picks each option, from the list of all options available, that matches the current
+   * header.
+   *
+   * @param grid the Grid
+   * @param columnIndex
+   * @return the list of matching options
+   */
+  private static List<Option> getItemOptionsThatMatchesRows(
+      final Grid grid, final int columnIndex) {
+    final List<Option> options = new ArrayList<>();
+    final GridHeader gridHeader = grid.getHeaders().get(columnIndex);
 
-                return false;
-            } ) ).collect( toList() ) );
+    options.addAll(
+        gridHeader.getOptionSetObject().getOptions().stream()
+            .filter(
+                opt ->
+                    opt != null
+                        && grid.getRows().stream()
+                            .anyMatch(
+                                r -> {
+                                  Object o = r.get(columnIndex);
+                                  if (o instanceof String) {
+                                    return ((String) o).equalsIgnoreCase(opt.getCode());
+                                  }
 
-        return options;
-    }
+                                  return false;
+                                }))
+            .collect(toList()));
 
-    /**
-     * Returns the options specified as element "filter" (option code), ie.:
-     * Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where "A03;B01" are the options
-     * codes.
-     *
-     * The codes are split by the token ";" and the respective {@link Option}
-     * objects are returned.
-     *
-     * @param item the QueryItem
-     * @return the list of options found in the filter
-     */
-    private static List<Option> getItemOptionsForFilter( final QueryItem item )
-    {
-        final List<Option> options = new ArrayList<>();
+    return options;
+  }
 
-        for ( final Option option : item.getOptionSet().getOptions() )
-        {
-            for ( final QueryFilter filter : item.getFilters() )
-            {
-                final List<String> filterSplit = Arrays
-                    .stream( trimToEmpty( filter.getFilter() ).split( ";" ) )
-                    .collect( toList() );
-                if ( filterSplit.contains( trimToEmpty( option.getCode() ) ) )
-                {
-                    options.add( option );
-                }
-            }
+  /**
+   * Returns the options specified as element "filter" (option code), ie.:
+   * Zj7UnCAulEk.K6uUAvq500H:IN:A03;B01, where "A03;B01" are the options codes.
+   *
+   * <p>The codes are split by the token ";" and the respective {@link Option} objects are returned.
+   *
+   * @param item the QueryItem
+   * @return the list of options found in the filter
+   */
+  private static List<Option> getItemOptionsForFilter(final QueryItem item) {
+    final List<Option> options = new ArrayList<>();
+
+    for (final Option option : item.getOptionSet().getOptions()) {
+      for (final QueryFilter filter : item.getFilters()) {
+        final List<String> filterSplit =
+            Arrays.stream(trimToEmpty(filter.getFilter()).split(";")).collect(toList());
+        if (filterSplit.contains(trimToEmpty(option.getCode()))) {
+          options.add(option);
         }
-
-        return options;
+      }
     }
+
+    return options;
+  }
 }

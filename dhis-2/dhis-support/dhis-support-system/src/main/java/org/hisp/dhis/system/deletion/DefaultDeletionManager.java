@@ -34,9 +34,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,138 +47,123 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * TODO: Add support for failed allow tests on "transitive" deletion handlers
- * which are called as part of delete methods.
+ * TODO: Add support for failed allow tests on "transitive" deletion handlers which are called as
+ * part of delete methods.
  *
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "deletionManager" )
-public class DefaultDeletionManager
-    implements DeletionManager
-{
+@Component("deletionManager")
+public class DefaultDeletionManager implements DeletionManager {
 
-    @SuppressWarnings( "rawtypes" )
-    private static final Queue EMPTY = new LinkedList();
+  @SuppressWarnings("rawtypes")
+  private static final Queue EMPTY = new LinkedList();
 
-    private final ConcurrentMap<Class<?>, Queue<Function<?, DeletionVeto>>> vetoHandlersByType = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Class<?>, Queue<Function<?, DeletionVeto>>> vetoHandlersByType =
+      new ConcurrentHashMap<>();
 
-    private final ConcurrentMap<Class<?>, Queue<Consumer<?>>> deletionHandlersByType = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Class<?>, Queue<Consumer<?>>> deletionHandlersByType =
+      new ConcurrentHashMap<>();
 
-    @Override
-    public <T extends IdentifiableObject> void whenVetoing( Class<T> type, Function<T, DeletionVeto> vetoFunction )
-    {
-        vetoHandlersByType.computeIfAbsent( type, key -> new ConcurrentLinkedQueue<>() ).add( vetoFunction );
+  @Override
+  public <T extends IdentifiableObject> void whenVetoing(
+      Class<T> type, Function<T, DeletionVeto> vetoFunction) {
+    vetoHandlersByType
+        .computeIfAbsent(type, key -> new ConcurrentLinkedQueue<>())
+        .add(vetoFunction);
+  }
+
+  @Override
+  public <T extends IdentifiableObject> void whenDeleting(Class<T> type, Consumer<T> action) {
+    deletionHandlersByType.computeIfAbsent(type, key -> new ConcurrentLinkedQueue<>()).add(action);
+  }
+
+  @Override
+  public <T extends EmbeddedObject> void whenDeletingEmbedded(Class<T> type, Consumer<T> action) {
+    deletionHandlersByType.computeIfAbsent(type, key -> new ConcurrentLinkedQueue<>()).add(action);
+  }
+
+  @Override
+  @Transactional
+  @EventListener(condition = "#event.shouldRollBack")
+  public void onDeletion(ObjectDeletionRequestedEvent event) {
+    deleteObjects(event.getSource());
+  }
+
+  @Override
+  @Transactional(noRollbackFor = DeleteNotAllowedException.class)
+  @EventListener(condition = "!#event.shouldRollBack")
+  public void onDeletionWithoutRollBack(ObjectDeletionRequestedEvent event) {
+    deleteObjects(event.getSource());
+  }
+
+  private <T> void deleteObjects(T object) {
+    Class<T> clazz = getClazz(object);
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Queue<Function<T, DeletionVeto>> vetoHandlers =
+        (Queue) vetoHandlersByType.getOrDefault(clazz, EMPTY);
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Queue<Consumer<T>> deletionHandlers = (Queue) deletionHandlersByType.getOrDefault(clazz, EMPTY);
+    if (vetoHandlers.isEmpty() && deletionHandlers.isEmpty()) {
+      log.debug("No deletion handlers registered, aborting deletion handling");
+      return;
     }
 
-    @Override
-    public <T extends IdentifiableObject> void whenDeleting( Class<T> type, Consumer<T> action )
-    {
-        deletionHandlersByType.computeIfAbsent( type, key -> new ConcurrentLinkedQueue<>() ).add( action );
-    }
+    log.debug("Veto handlers detected: " + vetoHandlers.size());
+    log.debug("Deletion handlers detected: " + deletionHandlers.size());
 
-    @Override
-    public <T extends EmbeddedObject> void whenDeletingEmbedded( Class<T> type, Consumer<T> action )
-    {
-        deletionHandlersByType.computeIfAbsent( type, key -> new ConcurrentLinkedQueue<>() ).add( action );
-    }
+    String className = clazz.getSimpleName();
 
-    @Override
-    @Transactional
-    @EventListener( condition = "#event.shouldRollBack" )
-    public void onDeletion( ObjectDeletionRequestedEvent event )
-    {
-        deleteObjects( event.getSource() );
-    }
+    // ---------------------------------------------------------------------
+    // Verify that object is allowed to be deleted
+    // ---------------------------------------------------------------------
 
-    @Override
-    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
-    @EventListener( condition = "!#event.shouldRollBack" )
-    public void onDeletionWithoutRollBack( ObjectDeletionRequestedEvent event )
-    {
-        deleteObjects( event.getSource() );
-    }
+    String handlerName = "";
+    try {
+      for (Function<T, DeletionVeto> handler : vetoHandlers) {
+        handlerName = handler.toString();
+        log.debug("Check if allowed using " + handlerName + " for class " + className);
 
-    private <T> void deleteObjects( T object )
-    {
-        Class<T> clazz = getClazz( object );
-        @SuppressWarnings( { "rawtypes", "unchecked" } )
-        Queue<Function<T, DeletionVeto>> vetoHandlers = (Queue) vetoHandlersByType.getOrDefault( clazz, EMPTY );
-        @SuppressWarnings( { "rawtypes", "unchecked" } )
-        Queue<Consumer<T>> deletionHandlers = (Queue) deletionHandlersByType.getOrDefault( clazz, EMPTY );
-        if ( vetoHandlers.isEmpty() && deletionHandlers.isEmpty() )
-        {
-            log.debug( "No deletion handlers registered, aborting deletion handling" );
-            return;
+        DeletionVeto veto = handler.apply(object);
+
+        if (veto.isVetoed()) {
+          ErrorMessage errorMessage = new ErrorMessage(ErrorCode.E4030, veto.getMessage());
+
+          log.debug("Delete was not allowed by " + handlerName + ": " + errorMessage.toString());
+
+          throw new DeleteNotAllowedException(errorMessage);
         }
-
-        log.debug( "Veto handlers detected: " + vetoHandlers.size() );
-        log.debug( "Deletion handlers detected: " + deletionHandlers.size() );
-
-        String className = clazz.getSimpleName();
-
-        // ---------------------------------------------------------------------
-        // Verify that object is allowed to be deleted
-        // ---------------------------------------------------------------------
-
-        String handlerName = "";
-        try
-        {
-            for ( Function<T, DeletionVeto> handler : vetoHandlers )
-            {
-                handlerName = handler.toString();
-                log.debug( "Check if allowed using " + handlerName + " for class " + className );
-
-                DeletionVeto veto = handler.apply( object );
-
-                if ( veto.isVetoed() )
-                {
-                    ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, veto.getMessage() );
-
-                    log.debug( "Delete was not allowed by " + handlerName + ": " + errorMessage.toString() );
-
-                    throw new DeleteNotAllowedException( errorMessage );
-                }
-            }
-        }
-        catch ( DeleteNotAllowedException ex )
-        {
-            throw ex;
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Deletion failed, veto handler '" + handlerName + "' threw an exception: ", ex );
-            return;
-        }
-
-        // ---------------------------------------------------------------------
-        // Delete associated objects
-        // ---------------------------------------------------------------------
-
-        handlerName = "";
-        try
-        {
-            for ( Consumer<T> handler : deletionHandlers )
-            {
-                handlerName = handler.toString();
-
-                log.debug( "Deleting object using " + handlerName + " for class " + className );
-
-                handler.accept( object );
-            }
-        }
-        catch ( Exception ex )
-        {
-            log.error( "Deletion failed, deletion handler '" + handlerName + "' threw an exception: ", ex );
-            return;
-        }
-
-        log.debug( "Deleted objects associated with object of type " + className );
+      }
+    } catch (DeleteNotAllowedException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      log.error("Deletion failed, veto handler '" + handlerName + "' threw an exception: ", ex);
+      return;
     }
 
-    @SuppressWarnings( "unchecked" )
-    private <T> Class<T> getClazz( T object )
-    {
-        return HibernateProxyUtils.getRealClass( object );
+    // ---------------------------------------------------------------------
+    // Delete associated objects
+    // ---------------------------------------------------------------------
+
+    handlerName = "";
+    try {
+      for (Consumer<T> handler : deletionHandlers) {
+        handlerName = handler.toString();
+
+        log.debug("Deleting object using " + handlerName + " for class " + className);
+
+        handler.accept(object);
+      }
+    } catch (Exception ex) {
+      log.error("Deletion failed, deletion handler '" + handlerName + "' threw an exception: ", ex);
+      return;
     }
+
+    log.debug("Deleted objects associated with object of type " + className);
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> Class<T> getClazz(T object) {
+    return HibernateProxyUtils.getRealClass(object);
+  }
 }

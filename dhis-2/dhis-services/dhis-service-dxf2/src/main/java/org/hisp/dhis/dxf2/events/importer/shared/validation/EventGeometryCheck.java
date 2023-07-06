@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import java.util.Objects;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -45,29 +44,32 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventGeometryCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
-        ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
+public class EventGeometryCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+    ProgramStage programStage = ctx.getProgramStage(scheme, event.getProgramStage());
 
-        if ( Objects.nonNull( event.getGeometry() )
-            && programStageFeatureCompatibleWithEventGeometry( event, programStage ) )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type ("
-                    + programStage.getFeatureType().value() + ") specified for the program stage: "
-                    + programStage.getUid() ).setReference( event.getEvent() ).incrementIgnored();
-        }
-
-        return success();
+    if (Objects.nonNull(event.getGeometry())
+        && programStageFeatureCompatibleWithEventGeometry(event, programStage)) {
+      return new ImportSummary(
+              ImportStatus.ERROR,
+              "Geometry ("
+                  + event.getGeometry().getGeometryType()
+                  + ") does not conform to the feature type ("
+                  + programStage.getFeatureType().value()
+                  + ") specified for the program stage: "
+                  + programStage.getUid())
+          .setReference(event.getEvent())
+          .incrementIgnored();
     }
 
-    private boolean programStageFeatureCompatibleWithEventGeometry( ImmutableEvent event, ProgramStage programStage )
-    {
-        return programStage.getFeatureType().equals( FeatureType.NONE )
-            || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() );
-    }
+    return success();
+  }
+
+  private boolean programStageFeatureCompatibleWithEventGeometry(
+      ImmutableEvent event, ProgramStage programStage) {
+    return programStage.getFeatureType().equals(FeatureType.NONE)
+        || !programStage.getFeatureType().value().equals(event.getGeometry().getGeometryType());
+  }
 }

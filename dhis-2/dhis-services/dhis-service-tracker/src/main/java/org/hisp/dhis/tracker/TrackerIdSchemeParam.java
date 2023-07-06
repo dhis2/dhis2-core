@@ -27,69 +27,58 @@
  */
 package org.hisp.dhis.tracker;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Value;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * @author Stian Sandvold
  */
 @Value
 @Builder
-@JsonDeserialize( builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class )
-@AllArgsConstructor( staticName = "of" )
-public class TrackerIdSchemeParam
-{
-    public static final TrackerIdSchemeParam UID = builder().idScheme( TrackerIdScheme.UID ).build();
+@JsonDeserialize(builder = TrackerIdSchemeParam.TrackerIdSchemeParamBuilder.class)
+@AllArgsConstructor(staticName = "of")
+public class TrackerIdSchemeParam {
+  public static final TrackerIdSchemeParam UID = builder().idScheme(TrackerIdScheme.UID).build();
 
-    public static final TrackerIdSchemeParam CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
+  public static final TrackerIdSchemeParam CODE = builder().idScheme(TrackerIdScheme.CODE).build();
 
-    public static final TrackerIdSchemeParam NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
+  public static final TrackerIdSchemeParam NAME = builder().idScheme(TrackerIdScheme.NAME).build();
 
-    @JsonProperty
-    @Builder.Default
-    private final TrackerIdScheme idScheme = TrackerIdScheme.UID;
+  @JsonProperty @Builder.Default private final TrackerIdScheme idScheme = TrackerIdScheme.UID;
 
-    @JsonProperty
-    @Builder.Default
-    private final String value = null;
+  @JsonProperty @Builder.Default private final String value = null;
 
-    /**
-     * Creates a TrackerIdentifier of idScheme ATTRIBUTE.
-     *
-     * @param value the attribute value
-     * @return tracker identifier representing an attribute
-     */
-    public static TrackerIdSchemeParam ofAttribute( String value )
-    {
-        return new TrackerIdSchemeParam( TrackerIdScheme.ATTRIBUTE, value );
+  /**
+   * Creates a TrackerIdentifier of idScheme ATTRIBUTE.
+   *
+   * @param value the attribute value
+   * @return tracker identifier representing an attribute
+   */
+  public static TrackerIdSchemeParam ofAttribute(String value) {
+    return new TrackerIdSchemeParam(TrackerIdScheme.ATTRIBUTE, value);
+  }
+
+  public <T extends IdentifiableObject> String getIdentifier(T object) {
+    switch (idScheme) {
+      case UID:
+        return object.getUid();
+      case CODE:
+        return object.getCode();
+      case NAME:
+        return object.getName();
+      case ATTRIBUTE:
+        return object.getAttributeValues().stream()
+            .filter(av -> av.getAttribute().getUid().equals(value))
+            .map(AttributeValue::getValue)
+            .findFirst()
+            .orElse(null);
     }
 
-    public <T extends IdentifiableObject> String getIdentifier( T object )
-    {
-        switch ( idScheme )
-        {
-        case UID:
-            return object.getUid();
-        case CODE:
-            return object.getCode();
-        case NAME:
-            return object.getName();
-        case ATTRIBUTE:
-            return object.getAttributeValues()
-                .stream()
-                .filter( av -> av.getAttribute().getUid().equals( value ) )
-                .map( AttributeValue::getValue )
-                .findFirst()
-                .orElse( null );
-        }
-
-        throw new RuntimeException( "Unhandled identifier type." );
-    }
+    throw new RuntimeException("Unhandled identifier type.");
+  }
 }
