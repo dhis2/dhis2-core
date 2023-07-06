@@ -37,6 +37,7 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
@@ -117,6 +118,26 @@ public class TrackerExportTests
         teiWithEnrollmentAndEventsTemplate = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
             .get( JsonObject.class );
+    }
+
+    @Test
+    public void shouldGetTeiWhenAttributeFilterValueContainsComma()
+    {
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "filter", "kZeSYCgaHTk:eq:Test/,Test" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].attributes.value", hasItem( "Test,Test" ) );
+    }
+
+    @Test
+    public void shouldGetTeiWhenAttributeFilterValueContainsColon()
+    {
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "filter", "dIVt4l5vIOa:eq:Test/:Test" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].attributes.value", hasItem( "Test:Test" ) );
     }
 
     private Stream<Arguments> shouldReturnRequestedFields()

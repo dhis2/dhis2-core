@@ -543,12 +543,11 @@ public class DefaultDataApprovalService
     @Transactional( readOnly = true )
     public List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, OrganisationUnit orgUnitFilter, CategoryCombo attributeCombo,
-        CategoryOptionCombo attributeOptionCombo )
+        Set<CategoryOptionCombo> attributeOptionCombos )
     {
         List<DataApprovalStatus> statusList = dataApprovalStore.getDataApprovalStatuses(
             workflow, period, orgUnit == null ? null : Lists.newArrayList( orgUnit ),
-            orgUnit == null ? 0 : orgUnit.getHierarchyLevel(), orgUnitFilter, attributeCombo,
-            attributeOptionCombo == null ? null : Set.of( attributeOptionCombo ),
+            orgUnit == null ? 0 : orgUnit.getHierarchyLevel(), orgUnitFilter, attributeCombo, attributeOptionCombos,
             dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(),
                 workflow ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
