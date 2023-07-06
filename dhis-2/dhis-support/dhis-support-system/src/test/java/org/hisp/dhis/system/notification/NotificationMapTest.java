@@ -36,80 +36,73 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.junit.jupiter.api.Test;
 
-class NotificationMapTest
-{
-    private final NotificationMap notifications = new NotificationMap( 50 );
+class NotificationMapTest {
+  private final NotificationMap notifications = new NotificationMap(50);
 
-    @Test
-    void testFirstSummaryToBeCreatedIsTheFirstOneToBeRemoved()
-    {
-        final int maxSize = 50;
-        // Fill the map with jobs
-        JobConfiguration config = new JobConfiguration( null, DATAVALUE_IMPORT, "userId", false );
-        addSummaryEntries( config, maxSize );
-        // Add one more
-        config.setUid( String.valueOf( maxSize ) );
-        notifications.addSummary( config, maxSize );
-        // Check that oldest job is not in the map anymore
-        assertFalse( notifications.getJobSummariesForJobType( config.getJobType() ).containsKey( "0" ) );
-        // Add one more
-        config.setUid( String.valueOf( maxSize + 1 ) );
-        notifications.addSummary( config, maxSize + 1 );
-        // Check that oldest job is not in the map anymore
-        assertFalse( notifications.getJobSummariesForJobType( config.getJobType() ).containsKey( "1" ) );
+  @Test
+  void testFirstSummaryToBeCreatedIsTheFirstOneToBeRemoved() {
+    final int maxSize = 50;
+    // Fill the map with jobs
+    JobConfiguration config = new JobConfiguration(null, DATAVALUE_IMPORT, "userId", false);
+    addSummaryEntries(config, maxSize);
+    // Add one more
+    config.setUid(String.valueOf(maxSize));
+    notifications.addSummary(config, maxSize);
+    // Check that oldest job is not in the map anymore
+    assertFalse(notifications.getJobSummariesForJobType(config.getJobType()).containsKey("0"));
+    // Add one more
+    config.setUid(String.valueOf(maxSize + 1));
+    notifications.addSummary(config, maxSize + 1);
+    // Check that oldest job is not in the map anymore
+    assertFalse(notifications.getJobSummariesForJobType(config.getJobType()).containsKey("1"));
+  }
+
+  @Test
+  void testFirstNotificationToBeCreatedIsTheFirstOneToBeRemoved() {
+    final int maxSize = 50;
+    // Fill the map with jobs
+    JobConfiguration config = new JobConfiguration(null, DATAVALUE_IMPORT, "userId", false);
+    config.setUid("1");
+    addNotificationEntries(config, maxSize);
+
+    Map<String, Deque<Notification>> typeNotification =
+        notifications.getNotificationsWithType(config.getJobType());
+    Deque<Notification> jobNotifications = typeNotification.get(config.getUid());
+    assertNotNull(jobNotifications);
+    assertEquals(maxSize, jobNotifications.size());
+    // Add one more
+    notifications.add(config, newNotification(config, maxSize));
+    // Check that oldest job is not in the map anymore
+    assertFalse(jobNotifications.stream().anyMatch(n -> "0".equals(n.getMessage())));
+    assertTrue(jobNotifications.stream().anyMatch(n -> (maxSize + "").equals(n.getMessage())));
+    assertEquals(maxSize, jobNotifications.size());
+    // Add one more
+    notifications.add(config, newNotification(config, maxSize + 1));
+    // Check that oldest job is not in the map anymore
+    assertFalse(jobNotifications.stream().anyMatch(n -> "1".equals(n.getMessage())));
+    assertTrue(
+        jobNotifications.stream().anyMatch(n -> ((maxSize + 1) + "").equals(n.getMessage())));
+    assertEquals(maxSize, jobNotifications.size());
+  }
+
+  private void addSummaryEntries(JobConfiguration config, int n) {
+    for (int i = 0; i < n; i++) {
+      config.setUid(String.valueOf(i));
+      notifications.addSummary(config, i);
     }
+  }
 
-    @Test
-    void testFirstNotificationToBeCreatedIsTheFirstOneToBeRemoved()
-    {
-        final int maxSize = 50;
-        // Fill the map with jobs
-        JobConfiguration config = new JobConfiguration( null, DATAVALUE_IMPORT, "userId", false );
-        config.setUid( "1" );
-        addNotificationEntries( config, maxSize );
-
-        Map<String, Deque<Notification>> typeNotification = notifications
-            .getNotificationsWithType( config.getJobType() );
-        Deque<Notification> jobNotifications = typeNotification.get( config.getUid() );
-        assertNotNull( jobNotifications );
-        assertEquals( maxSize, jobNotifications.size() );
-        // Add one more
-        notifications.add( config, newNotification( config, maxSize ) );
-        // Check that oldest job is not in the map anymore
-        assertFalse( jobNotifications.stream().anyMatch( n -> "0".equals( n.getMessage() ) ) );
-        assertTrue( jobNotifications.stream().anyMatch( n -> (maxSize + "").equals( n.getMessage() ) ) );
-        assertEquals( maxSize, jobNotifications.size() );
-        // Add one more
-        notifications.add( config, newNotification( config, maxSize + 1 ) );
-        // Check that oldest job is not in the map anymore
-        assertFalse( jobNotifications.stream().anyMatch( n -> "1".equals( n.getMessage() ) ) );
-        assertTrue( jobNotifications.stream().anyMatch( n -> ((maxSize + 1) + "").equals( n.getMessage() ) ) );
-        assertEquals( maxSize, jobNotifications.size() );
+  private void addNotificationEntries(JobConfiguration config, int n) {
+    for (int i = 0; i < n; i++) {
+      notifications.add(config, newNotification(config, i));
     }
+  }
 
-    private void addSummaryEntries( JobConfiguration config, int n )
-    {
-        for ( int i = 0; i < n; i++ )
-        {
-            config.setUid( String.valueOf( i ) );
-            notifications.addSummary( config, i );
-        }
-    }
-
-    private void addNotificationEntries( JobConfiguration config, int n )
-    {
-        for ( int i = 0; i < n; i++ )
-        {
-            notifications.add( config, newNotification( config, i ) );
-        }
-    }
-
-    private Notification newNotification( JobConfiguration config, int no )
-    {
-        return new Notification( NotificationLevel.INFO, config.getJobType(), new Date(), "" + no, false, null, null );
-    }
+  private Notification newNotification(JobConfiguration config, int no) {
+    return new Notification(
+        NotificationLevel.INFO, config.getJobType(), new Date(), "" + no, false, null, null);
+  }
 }

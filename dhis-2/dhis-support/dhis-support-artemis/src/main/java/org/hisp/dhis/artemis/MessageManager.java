@@ -37,36 +37,35 @@ import org.springframework.stereotype.Component;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class MessageManager
-{
-    private final JmsTemplate jmsTopicTemplate;
+public class MessageManager {
+  private final JmsTemplate jmsTopicTemplate;
 
-    private final JmsTemplate jmsQueueTemplate;
+  private final JmsTemplate jmsQueueTemplate;
 
-    private final RenderService renderService;
+  private final RenderService renderService;
 
-    public MessageManager( JmsTemplate jmsTopicTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService )
-    {
-        this.jmsTopicTemplate = jmsTopicTemplate;
-        this.jmsQueueTemplate = jmsQueueTemplate;
-        this.renderService = renderService;
-    }
+  public MessageManager(
+      JmsTemplate jmsTopicTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService) {
+    this.jmsTopicTemplate = jmsTopicTemplate;
+    this.jmsQueueTemplate = jmsQueueTemplate;
+    this.renderService = renderService;
+  }
 
-    public void send( String destinationName, Message message )
-    {
-        jmsTopicTemplate.send( destinationName,
-            session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
+  public void send(String destinationName, Message message) {
+    jmsTopicTemplate.send(
+        destinationName,
+        session -> session.createTextMessage(renderService.toJsonAsString(message)));
+  }
 
-    public void sendTopic( String destinationName, Message message )
-    {
-        jmsTopicTemplate.send( new ActiveMQTopic( destinationName ),
-            session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
+  public void sendTopic(String destinationName, Message message) {
+    jmsTopicTemplate.send(
+        new ActiveMQTopic(destinationName),
+        session -> session.createTextMessage(renderService.toJsonAsString(message)));
+  }
 
-    public void sendQueue( String destinationName, Message message )
-    {
-        jmsQueueTemplate.send( new ActiveMQQueue( destinationName ),
-            session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
-    }
+  public void sendQueue(String destinationName, Message message) {
+    jmsQueueTemplate.send(
+        new ActiveMQQueue(destinationName),
+        session -> session.createTextMessage(renderService.toJsonAsString(message)));
+  }
 }

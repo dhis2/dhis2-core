@@ -37,80 +37,90 @@ import org.hisp.dhis.webapi.json.domain.JsonDataElementGroup;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for data elements which are not part of any data element group.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_no_groups.yaml}
+ * Test for data elements which are not part of any data element group. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_no_groups.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "data_elements_aggregate_no_groups";
+class DataIntegrityDataElementsAggregateNotInDataElementGroupControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "data_elements_aggregate_no_groups";
 
-    private static final String detailsIdType = "dataElements";
+  private static final String detailsIdType = "dataElements";
 
-    private String dataElementA;
+  private String dataElementA;
 
-    private String dataElementB;
+  private String dataElementB;
 
-    private String dataElementGroupA;
+  private String dataElementGroupA;
 
-    @Test
-    void testDataElementNotInGroup()
-    {
+  @Test
+  void testDataElementNotInGroup() {
 
-        setUpDataElements();
+    setUpDataElements();
 
-        dataElementGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroups",
-                "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '" + dataElementB + "'}]}" ) );
+    dataElementGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElementGroups",
+                "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '"
+                    + dataElementB
+                    + "'}]}"));
 
-        JsonDataElementGroup deg = GET( "/dataElementGroups/" + dataElementGroupA ).content()
-            .as( JsonDataElementGroup.class );
-        JsonList<JsonDataElement> des = deg.getDataElements();
-        assertEquals( 1, des.size() );
+    JsonDataElementGroup deg =
+        GET("/dataElementGroups/" + dataElementGroupA).content().as(JsonDataElementGroup.class);
+    JsonList<JsonDataElement> des = deg.getDataElements();
+    assertEquals(1, des.size());
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 50, dataElementA, "ANC1", null,
-            true );
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, dataElementA, "ANC1", null, true);
+  }
 
-    }
+  @Test
+  void testDataElementsInGroup() {
+    setUpDataElements();
 
-    @Test
-    void testDataElementsInGroup()
-    {
-        setUpDataElements();
+    dataElementGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElementGroups",
+                "{ 'name' : 'ANC', 'shortName': 'ANC' , "
+                    + "'dataElements':[{'id':'"
+                    + dataElementA
+                    + "'},{'id': '"
+                    + dataElementB
+                    + "'}]}"));
 
-        dataElementGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroups",
-                "{ 'name' : 'ANC', 'shortName': 'ANC' , " +
-                    "'dataElements':[{'id':'" + dataElementA + "'},{'id': '" + dataElementB + "'}]}" ) );
+    JsonDataElementGroup deg =
+        GET("/dataElementGroups/" + dataElementGroupA).content().as(JsonDataElementGroup.class);
+    JsonList<JsonDataElement> des = deg.getDataElements();
+    assertEquals(2, des.size());
 
-        JsonDataElementGroup deg = GET( "/dataElementGroups/" + dataElementGroupA ).content()
-            .as( JsonDataElementGroup.class );
-        JsonList<JsonDataElement> des = deg.getDataElements();
-        assertEquals( 2, des.size() );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+  @Test
+  void testDataElementsInGroupDivideByZero() {
 
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    @Test
-    void testDataElementsInGroupDivideByZero()
-    {
+  void setUpDataElements() {
+    dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
-    void setUpDataElements()
-    {
-        dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-    }
+    dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+  }
 }

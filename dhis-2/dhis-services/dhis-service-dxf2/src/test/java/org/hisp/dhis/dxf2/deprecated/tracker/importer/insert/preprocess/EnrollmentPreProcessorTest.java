@@ -36,13 +36,13 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hamcrest.MatcherAssert;
 import org.hisp.dhis.common.CodeGenerator;
@@ -65,162 +65,159 @@ import org.mockito.stubbing.Answer;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class EnrollmentPreProcessorTest extends BasePreProcessTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class EnrollmentPreProcessorTest extends BasePreProcessTest {
 
-    private EnrollmentPreProcessor subject;
+  private EnrollmentPreProcessor subject;
 
-    private final Map<String, Enrollment> programInstanceMap = new HashMap<>();
+  private final Map<String, Enrollment> programInstanceMap = new HashMap<>();
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Captor
-    protected ArgumentCaptor<String> sql;
+  @Captor protected ArgumentCaptor<String> sql;
 
-    @Mock
-    protected ResultSet mockResultSet;
+  @Mock protected ResultSet mockResultSet;
 
-    @BeforeEach
-    void setUp()
-    {
-        this.subject = new EnrollmentPreProcessor();
-        //
-        // empty Enrollment Map
-        //
-        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-    }
+  @BeforeEach
+  void setUp() {
+    this.subject = new EnrollmentPreProcessor();
+    //
+    // empty Enrollment Map
+    //
+    when(workContext.getProgramInstanceMap()).thenReturn(programInstanceMap);
+  }
 
-    @Test
-    void verifyExitOnNullProgram()
-    {
-        when( workContext.getProgramsMap() ).thenReturn( new HashMap<>() );
-        subject.process( event, workContext );
-        MatcherAssert.assertThat( event.getEnrollment(), is( nullValue() ) );
-    }
+  @Test
+  void verifyExitOnNullProgram() {
+    when(workContext.getProgramsMap()).thenReturn(new HashMap<>());
+    subject.process(event, workContext);
+    MatcherAssert.assertThat(event.getEnrollment(), is(nullValue()));
+  }
 
-    @Test
-    void verifyEnrollmentIsSetOnEventWhenOneProgramInstanceIsFound()
-    {
-        //
-        // Tracked Entity Instance
-        //
-        TrackedEntity tei = createTrackedEntity( createOrganisationUnit( 'A' ) );
-        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( CodeGenerator.generateUid() );
-        when( enrollmentStore.get( tei, program, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( enrollment ) );
-        event.setProgram( program.getUid() );
-        //
-        // Method under test
-        //
-        subject.process( event, workContext );
-        MatcherAssert.assertThat( event.getEnrollment(), is( enrollment.getUid() ) );
-        assertThat( programInstanceMap.get( event.getUid() ), is( enrollment ) );
-    }
+  @Test
+  void verifyEnrollmentIsSetOnEventWhenOneProgramInstanceIsFound() {
+    //
+    // Tracked Entity Instance
+    //
+    TrackedEntity tei = createTrackedEntity(createOrganisationUnit('A'));
+    when(workContext.getTrackedEntityInstance(event.getUid())).thenReturn(Optional.of(tei));
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(CodeGenerator.generateUid());
+    when(enrollmentStore.get(tei, program, ProgramStatus.ACTIVE))
+        .thenReturn(Lists.newArrayList(enrollment));
+    event.setProgram(program.getUid());
+    //
+    // Method under test
+    //
+    subject.process(event, workContext);
+    MatcherAssert.assertThat(event.getEnrollment(), is(enrollment.getUid()));
+    assertThat(programInstanceMap.get(event.getUid()), is(enrollment));
+  }
 
-    @Test
-    void verifyEnrollmentIsNotSetOnEventWhenMultipleProgramInstanceAreFound()
-    {
-        //
-        // Tracked Entity Instance
-        //
-        TrackedEntity tei = createTrackedEntity( createOrganisationUnit( 'A' ) );
-        Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), Pair.of( tei, true ) );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
+  @Test
+  void verifyEnrollmentIsNotSetOnEventWhenMultipleProgramInstanceAreFound() {
+    //
+    // Tracked Entity Instance
+    //
+    TrackedEntity tei = createTrackedEntity(createOrganisationUnit('A'));
+    Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
+    teiMap.put(event.getUid(), Pair.of(tei, true));
+    when(workContext.getTrackedEntityInstanceMap()).thenReturn(teiMap);
 
-        event.setProgram( program.getUid() );
-        subject.process( event, workContext );
-        MatcherAssert.assertThat( event.getEnrollment(), is( nullValue() ) );
-        assertThat( programInstanceMap.get( event.getUid() ), is( nullValue() ) );
-    }
+    event.setProgram(program.getUid());
+    subject.process(event, workContext);
+    MatcherAssert.assertThat(event.getEnrollment(), is(nullValue()));
+    assertThat(programInstanceMap.get(event.getUid()), is(nullValue()));
+  }
 
-    @Test
-    void verifyEnrollmentIsSetWithProgramWithoutRegistrationAndOneProgramStageInstance()
-        throws SQLException
-    {
-        // crete a Program "without registration"
-        Program programWithoutReg = createProgram( 'W' );
-        programWithoutReg.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        // add the program to the work context map
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( programWithoutReg.getUid(), programWithoutReg );
-        // make sure tha map is returned when invoking the mock work context
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( CodeGenerator.generateUid() );
-        enrollment.setId( 100L );
-        when( workContext.getServiceDelegator().getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        //
-        // simulate one record returned from query
-        //
-        when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( enrollment.getId() );
-        when( mockResultSet.getString( "uid" ) ).thenReturn( enrollment.getUid() );
-        // Mock jdbc call
-        mockResultSetExtractor( mockResultSet );
-        event.setProgram( programWithoutReg.getUid() );
-        // method under test
-        subject.process( event, workContext );
-        MatcherAssert.assertThat( event.getEnrollment(), is( enrollment.getUid() ) );
-        assertThat( programInstanceMap.get( event.getUid() ).getUid(), is( enrollment.getUid() ) );
-        assertThat( programInstanceMap.get( event.getUid() ).getProgram().getUid(), is( programWithoutReg.getUid() ) );
-        assertThat( sql.getValue(), is(
-            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
-    }
+  @Test
+  void verifyEnrollmentIsSetWithProgramWithoutRegistrationAndOneProgramStageInstance()
+      throws SQLException {
+    // crete a Program "without registration"
+    Program programWithoutReg = createProgram('W');
+    programWithoutReg.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    // add the program to the work context map
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(programWithoutReg.getUid(), programWithoutReg);
+    // make sure tha map is returned when invoking the mock work context
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(CodeGenerator.generateUid());
+    enrollment.setId(100L);
+    when(workContext.getServiceDelegator().getJdbcTemplate()).thenReturn(jdbcTemplate);
+    //
+    // simulate one record returned from query
+    //
+    when(mockResultSet.next()).thenReturn(true).thenReturn(false);
+    when(mockResultSet.getLong("programinstanceid")).thenReturn(enrollment.getId());
+    when(mockResultSet.getString("uid")).thenReturn(enrollment.getUid());
+    // Mock jdbc call
+    mockResultSetExtractor(mockResultSet);
+    event.setProgram(programWithoutReg.getUid());
+    // method under test
+    subject.process(event, workContext);
+    MatcherAssert.assertThat(event.getEnrollment(), is(enrollment.getUid()));
+    assertThat(programInstanceMap.get(event.getUid()).getUid(), is(enrollment.getUid()));
+    assertThat(
+        programInstanceMap.get(event.getUid()).getProgram().getUid(),
+        is(programWithoutReg.getUid()));
+    assertThat(
+        sql.getValue(),
+        is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?"));
+  }
 
-    @Test
-    void verifyEnrollmentIsNotSetWithProgramWithoutRegistrationAndMultipleProgramStageInstances()
-        throws SQLException
-    {
-        // crete a Program "without registration"
-        Program programWithoutReg = createProgram( 'W' );
-        programWithoutReg.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        // add the program to the work context map
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( programWithoutReg.getUid(), programWithoutReg );
-        // make sure tha map is returned when invoking the mock work context
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-        Enrollment enrollment1 = new Enrollment();
-        enrollment1.setUid( CodeGenerator.generateUid() );
-        enrollment1.setId( 100L );
-        Enrollment enrollment2 = new Enrollment();
-        enrollment2.setUid( CodeGenerator.generateUid() );
-        enrollment2.setId( 100L );
-        when( workContext.getServiceDelegator().getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        //
-        // simulate 2 records returned from query
-        //
-        when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( enrollment1.getId(),
-            enrollment2.getId() );
-        when( mockResultSet.getString( "uid" ) ).thenReturn( enrollment1.getUid(), enrollment2.getUid() );
-        // Mock jdbc call
-        mockResultSetExtractor( mockResultSet );
-        event.setProgram( programWithoutReg.getUid() );
-        // method under test
-        subject.process( event, workContext );
-        MatcherAssert.assertThat( event.getEnrollment(), is( nullValue() ) );
-        assertThat( sql.getValue(), is(
-            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
-    }
+  @Test
+  void verifyEnrollmentIsNotSetWithProgramWithoutRegistrationAndMultipleProgramStageInstances()
+      throws SQLException {
+    // crete a Program "without registration"
+    Program programWithoutReg = createProgram('W');
+    programWithoutReg.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    // add the program to the work context map
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(programWithoutReg.getUid(), programWithoutReg);
+    // make sure tha map is returned when invoking the mock work context
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+    Enrollment enrollment1 = new Enrollment();
+    enrollment1.setUid(CodeGenerator.generateUid());
+    enrollment1.setId(100L);
+    Enrollment enrollment2 = new Enrollment();
+    enrollment2.setUid(CodeGenerator.generateUid());
+    enrollment2.setId(100L);
+    when(workContext.getServiceDelegator().getJdbcTemplate()).thenReturn(jdbcTemplate);
+    //
+    // simulate 2 records returned from query
+    //
+    when(mockResultSet.next()).thenReturn(true).thenReturn(true).thenReturn(false);
+    when(mockResultSet.getLong("programinstanceid"))
+        .thenReturn(enrollment1.getId(), enrollment2.getId());
+    when(mockResultSet.getString("uid")).thenReturn(enrollment1.getUid(), enrollment2.getUid());
+    // Mock jdbc call
+    mockResultSetExtractor(mockResultSet);
+    event.setProgram(programWithoutReg.getUid());
+    // method under test
+    subject.process(event, workContext);
+    MatcherAssert.assertThat(event.getEnrollment(), is(nullValue()));
+    assertThat(
+        sql.getValue(),
+        is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?"));
+  }
 
-    public void mockResultSetExtractor( ResultSet resultSetMock )
-    {
-        when( jdbcTemplate.query( sql.capture(), (Object[]) any( Object.class ), any( ResultSetExtractor.class ) ) )
-            .thenAnswer( (Answer<List<Enrollment>>) invocationOnMock -> {
-                Object[] args = invocationOnMock.getArguments();
-                ResultSetExtractor<List<Enrollment>> rm = (ResultSetExtractor<List<Enrollment>>) args[2];
-                return rm.extractData( resultSetMock );
-            } );
-    }
+  public void mockResultSetExtractor(ResultSet resultSetMock) {
+    when(jdbcTemplate.query(
+            sql.capture(), (Object[]) any(Object.class), any(ResultSetExtractor.class)))
+        .thenAnswer(
+            (Answer<List<Enrollment>>)
+                invocationOnMock -> {
+                  Object[] args = invocationOnMock.getArguments();
+                  ResultSetExtractor<List<Enrollment>> rm =
+                      (ResultSetExtractor<List<Enrollment>>) args[2];
+                  return rm.extractData(resultSetMock);
+                });
+  }
 }

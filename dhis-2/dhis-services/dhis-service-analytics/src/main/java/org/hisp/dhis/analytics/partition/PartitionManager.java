@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.partition;
 
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
@@ -38,34 +37,33 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  *
  * @author Lars Helge Overland
  */
-public interface PartitionManager
-{
-    /**
-     * Returns a set of names of current event analytics partitions.
-     *
-     * @param tableType the type to get all existing table partitions for.
-     */
-    Set<String> getAnalyticsPartitions( AnalyticsTableType tableType );
+public interface PartitionManager {
+  /**
+   * Returns a set of names of current event analytics partitions.
+   *
+   * @param tableType the type to get all existing table partitions for.
+   */
+  Set<String> getAnalyticsPartitions(AnalyticsTableType tableType);
 
-    /**
-     * Indicates whether the given analytics table exists.
-     *
-     * @param table the analytics table name.
-     */
-    boolean tableExists( String table );
+  /**
+   * Indicates whether the given analytics table exists.
+   *
+   * @param table the analytics table name.
+   */
+  boolean tableExists(String table);
 
-    /**
-     * Filters the set of integers for which a database partition table exists.
-     *
-     * @param partitions the partitions.
-     * @param tableName the table name.
-     */
-    void filterNonExistingPartitions( Partitions partitions, String tableName );
+  /**
+   * Filters the set of integers for which a database partition table exists.
+   *
+   * @param partitions the partitions.
+   * @param tableName the table name.
+   */
+  void filterNonExistingPartitions(Partitions partitions, String tableName);
 
-    /**
-     * Event handler for {@link ApplicationCacheClearedEvent}.
-     *
-     * @param event the {@link ApplicationCacheClearedEvent}.
-     */
-    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
+  /**
+   * Event handler for {@link ApplicationCacheClearedEvent}.
+   *
+   * @param event the {@link ApplicationCacheClearedEvent}.
+   */
+  void handleApplicationCachesCleared(ApplicationCacheClearedEvent event);
 }

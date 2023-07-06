@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import java.util.Optional;
-
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -48,127 +47,159 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
-public class ConstraintValidator implements Validator<Relationship>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
-    {
-        RelationshipType relationshipType = bundle.getPreheat()
-            .getRelationshipType( relationship.getRelationshipType() );
+public class ConstraintValidator implements Validator<Relationship> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    RelationshipType relationshipType =
+        bundle.getPreheat().getRelationshipType(relationship.getRelationshipType());
 
-        validateRelationshipConstraint( reporter, bundle, relationship, "from", relationship.getFrom(),
-            relationshipType.getFromConstraint() );
-        validateRelationshipConstraint( reporter, bundle, relationship, "to", relationship.getTo(),
-            relationshipType.getToConstraint() );
+    validateRelationshipConstraint(
+        reporter,
+        bundle,
+        relationship,
+        "from",
+        relationship.getFrom(),
+        relationshipType.getFromConstraint());
+    validateRelationshipConstraint(
+        reporter,
+        bundle,
+        relationship,
+        "to",
+        relationship.getTo(),
+        relationshipType.getToConstraint());
+  }
+
+  private void validateRelationshipConstraint(
+      Reporter reporter,
+      TrackerBundle bundle,
+      Relationship relationship,
+      String relSide,
+      RelationshipItem item,
+      RelationshipConstraint constraint) {
+    switch (constraint.getRelationshipEntity()) {
+      case TRACKED_ENTITY_INSTANCE:
+        validateTrackedEntityRelationship(
+            reporter, bundle, relationship, item, relSide, constraint);
+        break;
+      case PROGRAM_INSTANCE:
+        validateEnrollmentRelationship(reporter, bundle, relationship, item, relSide);
+        break;
+      case PROGRAM_STAGE_INSTANCE:
+        validateEventRelationship(reporter, bundle, relationship, item, relSide);
+        break;
+      default:
+        break;
     }
+  }
 
-    private void validateRelationshipConstraint( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship,
-        String relSide,
-        RelationshipItem item,
-        RelationshipConstraint constraint )
-    {
-        switch ( constraint.getRelationshipEntity() )
-        {
-        case TRACKED_ENTITY_INSTANCE:
-            validateTrackedEntityRelationship( reporter, bundle, relationship, item, relSide, constraint );
-            break;
-        case PROGRAM_INSTANCE:
-            validateEnrollmentRelationship( reporter, bundle, relationship, item, relSide );
-            break;
-        case PROGRAM_STAGE_INSTANCE:
-            validateEventRelationship( reporter, bundle, relationship, item, relSide );
-            break;
-        default:
-            break;
-        }
+  private void validateTrackedEntityRelationship(
+      Reporter reporter,
+      TrackerBundle bundle,
+      Relationship relationship,
+      RelationshipItem item,
+      String relSide,
+      RelationshipConstraint constraint) {
+    if (item.getTrackedEntity() == null) {
+      reporter.addError(
+          relationship,
+          ValidationCode.E4010,
+          relSide,
+          TrackerType.TRACKED_ENTITY.getName(),
+          relationshipItemValueType(item).getName());
+    } else if (!trackedEntityExists(bundle, item.getTrackedEntity())) {
+      reporter.addError(
+          relationship, E4012, TrackerType.TRACKED_ENTITY.getName(), item.getTrackedEntity());
+    } else {
+      validateTrackedEntityType(item, reporter, relationship, relSide, bundle, constraint);
     }
+  }
 
-    private void validateTrackedEntityRelationship( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship, RelationshipItem item, String relSide, RelationshipConstraint constraint )
-    {
-        if ( item.getTrackedEntity() == null )
-        {
-            reporter.addError( relationship, ValidationCode.E4010, relSide,
-                TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
-        }
-        else if ( !trackedEntityExists( bundle, item.getTrackedEntity() ) )
-        {
-            reporter.addError( relationship, E4012, TrackerType.TRACKED_ENTITY.getName(), item.getTrackedEntity() );
-        }
-        else
-        {
-            validateTrackedEntityType( item, reporter, relationship, relSide, bundle, constraint );
-        }
+  private void validateEnrollmentRelationship(
+      Reporter reporter,
+      TrackerBundle bundle,
+      Relationship relationship,
+      RelationshipItem item,
+      String relSide) {
+    if (item.getEnrollment() == null) {
+      reporter.addError(
+          relationship,
+          ValidationCode.E4010,
+          relSide,
+          TrackerType.ENROLLMENT.getName(),
+          relationshipItemValueType(item).getName());
+    } else if (!enrollmentExist(bundle, item.getEnrollment())) {
+      reporter.addError(
+          relationship, E4012, TrackerType.ENROLLMENT.getName(), item.getEnrollment());
     }
+  }
 
-    private void validateEnrollmentRelationship( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship, RelationshipItem item, String relSide )
-    {
-        if ( item.getEnrollment() == null )
-        {
-            reporter.addError( relationship, ValidationCode.E4010, relSide, TrackerType.ENROLLMENT.getName(),
-                relationshipItemValueType( item ).getName() );
-        }
-        else if ( !enrollmentExist( bundle, item.getEnrollment() ) )
-        {
-            reporter.addError( relationship, E4012, TrackerType.ENROLLMENT.getName(), item.getEnrollment() );
-        }
+  private static void validateEventRelationship(
+      Reporter reporter,
+      TrackerBundle bundle,
+      Relationship relationship,
+      RelationshipItem item,
+      String relSide) {
+    if (item.getEvent() == null) {
+      reporter.addError(
+          relationship,
+          ValidationCode.E4010,
+          relSide,
+          TrackerType.EVENT.getName(),
+          relationshipItemValueType(item).getName());
+    } else if (!eventExist(bundle, item.getEvent())) {
+      reporter.addError(relationship, E4012, TrackerType.EVENT.getName(), item.getEvent());
     }
+  }
 
-    private static void validateEventRelationship( Reporter reporter, TrackerBundle bundle,
-        Relationship relationship, RelationshipItem item, String relSide )
-    {
-        if ( item.getEvent() == null )
-        {
-            reporter.addError( relationship, ValidationCode.E4010, relSide,
-                TrackerType.EVENT.getName(), relationshipItemValueType( item ).getName() );
-        }
-        else if ( !eventExist( bundle, item.getEvent() ) )
-        {
-            reporter.addError( relationship, E4012, TrackerType.EVENT.getName(), item.getEvent() );
-        }
-    }
+  private void validateTrackedEntityType(
+      RelationshipItem item,
+      Reporter reporter,
+      Relationship relationship,
+      String relSide,
+      TrackerBundle bundle,
+      RelationshipConstraint constraint) {
+    getRelationshipTypeUidFromTrackedEntity(bundle, item.getTrackedEntity())
+        .ifPresent(
+            type -> {
+              if (!type.isEqualTo(constraint.getTrackedEntityType())) {
+                reporter.addError(
+                    relationship,
+                    ValidationCode.E4014,
+                    relSide,
+                    type.identifierOf(constraint.getTrackedEntityType()),
+                    type);
+              }
+            });
+  }
 
-    private void validateTrackedEntityType( RelationshipItem item, Reporter reporter, Relationship relationship,
-        String relSide, TrackerBundle bundle, RelationshipConstraint constraint )
-    {
-        getRelationshipTypeUidFromTrackedEntity( bundle, item.getTrackedEntity() )
-            .ifPresent( type -> {
-                if ( !type.isEqualTo( constraint.getTrackedEntityType() ) )
-                {
-                    reporter.addError( relationship, ValidationCode.E4014, relSide,
-                        type.identifierOf( constraint.getTrackedEntityType() ), type );
-                }
-            } );
-    }
+  private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity(
+      TrackerBundle bundle, String uid) {
+    return getTrackedEntityTypeFromTrackedEntity(bundle, uid)
+        .or(() -> getTrackedEntityTypeFromTrackedEntityRef(bundle, uid));
+  }
 
-    private Optional<MetadataIdentifier> getRelationshipTypeUidFromTrackedEntity( TrackerBundle bundle, String uid )
-    {
-        return getTrackedEntityTypeFromTrackedEntity( bundle, uid )
-            .or( () -> getTrackedEntityTypeFromTrackedEntityRef( bundle, uid ) );
-    }
+  private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity(
+      TrackerBundle bundle, String uid) {
+    final TrackedEntity trackedEntity = bundle.getPreheat().getTrackedEntity(uid);
 
-    private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
-    {
-        final TrackedEntity trackedEntity = bundle.getPreheat().getTrackedEntity( uid );
+    return trackedEntity != null
+        ? Optional.of(
+            bundle
+                .getPreheat()
+                .getIdSchemes()
+                .toMetadataIdentifier(trackedEntity.getTrackedEntityType()))
+        : Optional.empty();
+  }
 
-        return trackedEntity != null
-            ? Optional
-                .of( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( trackedEntity.getTrackedEntityType() ) )
-            : Optional.empty();
-    }
+  private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef(
+      TrackerBundle bundle, String uid) {
+    final Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> payloadTei =
+        bundle.findTrackedEntityByUid(uid);
+    return payloadTei.map(org.hisp.dhis.tracker.imports.domain.TrackedEntity::getTrackedEntityType);
+  }
 
-    private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
-    {
-        final Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> payloadTei = bundle
-            .findTrackedEntityByUid( uid );
-        return payloadTei.map( org.hisp.dhis.tracker.imports.domain.TrackedEntity::getTrackedEntityType );
-    }
-
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy.isCreate();
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy.isCreate();
+  }
 }

@@ -36,14 +36,13 @@ import lombok.experimental.Accessors;
  * @author Jan Bernitt
  */
 @Value
-@Accessors( fluent = true )
-public class DataValueKey
-{
-    String de;
+@Accessors(fluent = true)
+public class DataValueKey {
+  String de;
 
-    String ou;
+  String ou;
 
-    long pe;
+  long pe;
 
-    String co;
+  String co;
 }

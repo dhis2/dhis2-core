@@ -31,9 +31,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackerTest;
@@ -45,67 +45,64 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityAttributesAggregateAclTest extends TrackerTest
-{
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+class TrackedEntityAttributesAggregateAclTest extends TrackerTest {
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private User superUser;
+  private User superUser;
 
-    @Test
-    void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType()
-    {
-        doInTransaction( () -> {
-            this.persistTrackedEntity();
-            this.persistTrackedEntity();
-            this.persistTrackedEntity();
-            this.persistTrackedEntity();
-        } );
-        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( trackedEntityInstances, hasSize( 0 ) );
-    }
+  @Test
+  void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType() {
+    doInTransaction(
+        () -> {
+          this.persistTrackedEntity();
+          this.persistTrackedEntity();
+          this.persistTrackedEntity();
+          this.persistTrackedEntity();
+        });
+    TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
+    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setTrackedEntityType(trackedEntityTypeA);
+    queryParams.setIncludeAllAttributes(true);
+    TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+    final List<TrackedEntityInstance> trackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(trackedEntityInstances, hasSize(0));
+  }
 
-    @Test
-    void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
-    {
-        final String tetUid = CodeGenerator.generateUid();
-        doInTransaction( () -> {
-            injectSecurityContext( superUser );
-            TrackedEntityType trackedEntityTypeZ = createTrackedEntityType( 'Z' );
-            trackedEntityTypeZ.setUid( tetUid );
-            trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );
-            trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeZ );
-            // When saving the trackedEntityType using addTrackedEntityType, the
-            // public access value is ignored
-            // therefore we need to update the previously saved TeiType
-            final TrackedEntityType trackedEntityType = trackedEntityTypeService
-                .getTrackedEntityType( trackedEntityTypeZ.getUid() );
-            trackedEntityType.setPublicAccess( DATA_READ );
-            trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-            this.persistTrackedEntity( Map.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntity( Map.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntity();
-            this.persistTrackedEntity();
-        } );
-        final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( tetUid );
-        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityType );
-        queryParams.setIncludeAllAttributes( true );
-        TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        assertThat( trackedEntityInstances, hasSize( 2 ) );
-    }
+  @Test
+  void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType() {
+    final String tetUid = CodeGenerator.generateUid();
+    doInTransaction(
+        () -> {
+          injectSecurityContext(superUser);
+          TrackedEntityType trackedEntityTypeZ = createTrackedEntityType('Z');
+          trackedEntityTypeZ.setUid(tetUid);
+          trackedEntityTypeZ.setName("TrackedEntityTypeZ" + trackedEntityTypeZ.getUid());
+          trackedEntityTypeService.addTrackedEntityType(trackedEntityTypeZ);
+          // When saving the trackedEntityType using addTrackedEntityType, the
+          // public access value is ignored
+          // therefore we need to update the previously saved TeiType
+          final TrackedEntityType trackedEntityType =
+              trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeZ.getUid());
+          trackedEntityType.setPublicAccess(DATA_READ);
+          trackedEntityTypeService.updateTrackedEntityType(trackedEntityType);
+          this.persistTrackedEntity(Map.of("trackedEntityType", trackedEntityType));
+          this.persistTrackedEntity(Map.of("trackedEntityType", trackedEntityType));
+          this.persistTrackedEntity();
+          this.persistTrackedEntity();
+        });
+    final TrackedEntityType trackedEntityType =
+        trackedEntityTypeService.getTrackedEntityType(tetUid);
+    TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
+    queryParams.setOrganisationUnits(Sets.newHashSet(organisationUnitA));
+    queryParams.setTrackedEntityType(trackedEntityType);
+    queryParams.setIncludeAllAttributes(true);
+    TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
+    final List<TrackedEntityInstance> trackedEntityInstances =
+        trackedEntityInstanceService.getTrackedEntityInstances(queryParams, params, false, true);
+    assertThat(trackedEntityInstances, hasSize(2));
+  }
 }

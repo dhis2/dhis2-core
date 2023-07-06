@@ -30,19 +30,15 @@ package org.hisp.dhis.period;
 /**
  * @author Kristian Wærstad
  */
-public class BiWeeklyPeriodType
-    extends BiWeeklyAbstractPeriodType
-{
-    public static final String NAME = "BiWeekly";
+public class BiWeeklyPeriodType extends BiWeeklyAbstractPeriodType {
+  public static final String NAME = "BiWeekly";
 
-    public BiWeeklyPeriodType()
-    {
-        super( NAME, 1, "yyyyBiWn", "P14D", 14, "2 weeks", "BiW" );
-    }
+  public BiWeeklyPeriodType() {
+    super(NAME, 1, "yyyyBiWn", "P14D", 14, "2 weeks", "BiW");
+  }
 
-    @Override
-    public PeriodTypeEnum getPeriodTypeEnum()
-    {
-        return PeriodTypeEnum.BI_WEEKLY;
-    }
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.BI_WEEKLY;
+  }
 }

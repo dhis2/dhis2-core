@@ -32,84 +32,65 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
-
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Event;
 
 /**
- * This class aggregates Events by operation type (Insert, Update, Delete)
- * during an Event import process, based on the specified {@see ImportStrategy}
+ * This class aggregates Events by operation type (Insert, Update, Delete) during an Event import
+ * process, based on the specified {@see ImportStrategy}
  *
  * @author Luciano Fiandesio
  */
 @Getter
-public class ImportStrategyAccumulator
-{
-    private final List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> create = new ArrayList<>();
+public class ImportStrategyAccumulator {
+  private final List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> create = new ArrayList<>();
 
-    private final List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> update = new ArrayList<>();
+  private final List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> update = new ArrayList<>();
 
-    private final List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> delete = new ArrayList<>();
+  private final List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> delete = new ArrayList<>();
 
-    public ImportStrategyAccumulator partitionEvents( List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
-        ImportStrategy importStrategy,
-        Map<String, Event> existingEvents )
-    {
-        if ( importStrategy.isCreate() )
-        {
-            create.addAll( events );
+  public ImportStrategyAccumulator partitionEvents(
+      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events,
+      ImportStrategy importStrategy,
+      Map<String, Event> existingEvents) {
+    if (importStrategy.isCreate()) {
+      create.addAll(events);
+    } else if (importStrategy.isCreateAndUpdate()) {
+      for (org.hisp.dhis.dxf2.deprecated.tracker.event.Event event : events) {
+        sortCreatesAndUpdates(event, create, update, existingEvents);
+      }
+    } else if (importStrategy.isUpdate()) {
+      update.addAll(events);
+    } else if (importStrategy.isDelete()) {
+      final Set<String> existingEventKeys = existingEvents.keySet();
+      delete.addAll(
+          events.stream()
+              .filter(event -> existingEventKeys.contains(event.getUid()))
+              .collect(Collectors.toSet()));
+    } else if (importStrategy.isSync()) {
+      for (org.hisp.dhis.dxf2.deprecated.tracker.event.Event event : events) {
+        if (event.isDeleted()) {
+          delete.add(event);
+        } else {
+          sortCreatesAndUpdates(event, create, update, existingEvents);
         }
-        else if ( importStrategy.isCreateAndUpdate() )
-        {
-            for ( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event : events )
-            {
-                sortCreatesAndUpdates( event, create, update, existingEvents );
-            }
-        }
-        else if ( importStrategy.isUpdate() )
-        {
-            update.addAll( events );
-        }
-        else if ( importStrategy.isDelete() )
-        {
-            final Set<String> existingEventKeys = existingEvents.keySet();
-            delete.addAll( events.stream()
-                .filter( event -> existingEventKeys.contains( event.getUid() ) )
-                .collect( Collectors.toSet() ) );
-        }
-        else if ( importStrategy.isSync() )
-        {
-            for ( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event : events )
-            {
-                if ( event.isDeleted() )
-                {
-                    delete.add( event );
-                }
-                else
-                {
-                    sortCreatesAndUpdates( event, create, update, existingEvents );
-                }
-            }
-        }
-        return this;
+      }
     }
+    return this;
+  }
 
-    private void sortCreatesAndUpdates( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-        List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> create,
-        List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> update,
-        Map<String, Event> existingEvents )
-    {
-        Event programStageInstance = existingEvents.get( event.getEvent() );
+  private void sortCreatesAndUpdates(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
+      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> create,
+      List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> update,
+      Map<String, Event> existingEvents) {
+    Event programStageInstance = existingEvents.get(event.getEvent());
 
-        if ( programStageInstance == null )
-        {
-            create.add( event );
-        }
-        else
-        {
-            update.add( event );
-        }
+    if (programStageInstance == null) {
+      create.add(event);
+    } else {
+      update.add(event);
     }
+  }
 }

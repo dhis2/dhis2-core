@@ -33,9 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Collections;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPathConverter;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
@@ -49,59 +47,54 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-class FieldPathConverterTest
-{
-    private MockMvc mockMvc;
+class FieldPathConverterTest {
+  private MockMvc mockMvc;
 
-    @BeforeEach
-    void setUp()
-    {
-        List<FieldPath> expected = List.of(
-            new FieldPath( "attributes", Collections.emptyList() ),
-            new FieldPath( "attribute", List.of( "attributes" ) ),
-            new FieldPath( "value", List.of( "attributes" ) ),
-            new FieldPath( "deleted", Collections.emptyList() ) );
+  @BeforeEach
+  void setUp() {
+    List<FieldPath> expected =
+        List.of(
+            new FieldPath("attributes", Collections.emptyList()),
+            new FieldPath("attribute", List.of("attributes")),
+            new FieldPath("value", List.of("attributes")),
+            new FieldPath("deleted", Collections.emptyList()));
 
-        DefaultFormattingConversionService formattingConversionService = new DefaultFormattingConversionService();
-        formattingConversionService.addConverter( new FieldPathConverter() );
-        mockMvc = MockMvcBuilders
-            .standaloneSetup( new FieldPathController( expected ) )
-            .setConversionService( formattingConversionService )
+    DefaultFormattingConversionService formattingConversionService =
+        new DefaultFormattingConversionService();
+    formattingConversionService.addConverter(new FieldPathConverter());
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(new FieldPathController(expected))
+            .setConversionService(formattingConversionService)
             .build();
+  }
 
+  @Test
+  void shouldConvertFieldPathGivenASingleRequestParameter() throws Exception {
+    mockMvc
+        .perform(get("/test").param("fields", "attributes[attribute,value],deleted"))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  void shouldConvertFieldPathGivenMultipleRequestParameters() throws Exception {
+    mockMvc
+        .perform(
+            get("/test")
+                .param("fields", "attributes[attribute]")
+                .param("fields", "attributes[value]")
+                .param("fields", "deleted"))
+        .andExpect(status().isOk());
+  }
+
+  @Controller
+  @RequiredArgsConstructor
+  private static class FieldPathController extends CrudControllerAdvice {
+    private final List<FieldPath> expected;
+
+    @GetMapping("/test")
+    public @ResponseBody String get(@RequestParam List<FieldPath> fields) {
+      assertEquals(expected, fields);
+      return "";
     }
-
-    @Test
-    void shouldConvertFieldPathGivenASingleRequestParameter()
-        throws Exception
-    {
-        mockMvc.perform( get( "/test" )
-            .param( "fields", "attributes[attribute,value],deleted" ) )
-            .andExpect( status().isOk() );
-    }
-
-    @Test
-    void shouldConvertFieldPathGivenMultipleRequestParameters()
-        throws Exception
-    {
-        mockMvc.perform( get( "/test" )
-            .param( "fields", "attributes[attribute]" )
-            .param( "fields", "attributes[value]" )
-            .param( "fields", "deleted" ) )
-            .andExpect( status().isOk() );
-    }
-
-    @Controller
-    @RequiredArgsConstructor
-    private static class FieldPathController extends CrudControllerAdvice
-    {
-        private final List<FieldPath> expected;
-
-        @GetMapping( "/test" )
-        public @ResponseBody String get( @RequestParam List<FieldPath> fields )
-        {
-            assertEquals( expected, fields );
-            return "";
-        }
-    }
+  }
 }

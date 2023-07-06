@@ -30,10 +30,10 @@ package org.hisp.dhis.actions.tracker;
 import static org.awaitility.Awaitility.with;
 import static org.hamcrest.Matchers.notNullValue;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.actions.RestApiActions;
@@ -41,182 +41,156 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackerImportExportActions
-    extends RestApiActions
-{
-    private Logger logger = LogManager.getLogger( TrackerImportExportActions.class.getName() );
+public class TrackerImportExportActions extends RestApiActions {
+  private Logger logger = LogManager.getLogger(TrackerImportExportActions.class.getName());
 
-    public TrackerImportExportActions()
-    {
-        super( "/tracker" );
+  public TrackerImportExportActions() {
+    super("/tracker");
+  }
+
+  public ApiResponse getJob(String jobId) {
+    return this.get("/jobs/" + jobId);
+  }
+
+  public void waitUntilJobIsCompleted(String jobId) {
+    logger.info(String.format("Waiting until tracker job with id %s is completed", jobId));
+
+    Callable<Boolean> jobIsCompleted =
+        () -> getJob(jobId).validateStatus(200).extractList("completed").contains(true);
+
+    with().atMost(20, TimeUnit.SECONDS).await().until(() -> jobIsCompleted.call());
+
+    logger.info("Tracker job is completed. Message: " + getJob(jobId).extract("message"));
+  }
+
+  public TrackerApiResponse postAndGetJobReport(File file) {
+    ApiResponse response = this.postFile(file);
+
+    return getJobReportByImportResponse(response);
+  }
+
+  public TrackerApiResponse postAndGetJobReport(File file, QueryParamsBuilder queryParamsBuilder) {
+    ApiResponse response = this.postFile(file, queryParamsBuilder);
+
+    return getJobReportByImportResponse(response);
+  }
+
+  public TrackerApiResponse postAndGetJobReport(JsonObject jsonObject) {
+    ApiResponse response = this.post(jsonObject);
+
+    return getJobReportByImportResponse(response);
+  }
+
+  public TrackerApiResponse postAndGetJobReport(
+      Object jsonObject, QueryParamsBuilder queryParamsBuilder) {
+    ApiResponse response = this.post(jsonObject, queryParamsBuilder);
+
+    return getJobReportByImportResponse(response);
+  }
+
+  public TrackerApiResponse getJobReport(String jobId, String reportMode) {
+    ApiResponse response =
+        this.get(String.format("/jobs/%s/report?reportMode=%s", jobId, reportMode));
+
+    // add created entities
+
+    saveCreatedData(response);
+    return new TrackerApiResponse(response);
+  }
+
+  public TrackerApiResponse getTrackedEntity(String entityId) {
+    return getTrackedEntity(entityId, new QueryParamsBuilder());
+  }
+
+  public TrackerApiResponse getTrackedEntity(
+      String entityId, QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/trackedEntities/" + entityId, queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getTrackedEntities(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/trackedEntities/", queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getEnrollment(String enrollmentId) {
+    return new TrackerApiResponse(this.get("/enrollments/" + enrollmentId));
+  }
+
+  public TrackerApiResponse getEnrollment(
+      String enrollmentId, QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/enrollments/" + enrollmentId, queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getEnrollments(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/enrollments/", queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getEvent(String eventId) {
+    return new TrackerApiResponse(this.get("/events/" + eventId));
+  }
+
+  public TrackerApiResponse getEvents(QueryParamsBuilder queryParamsBuilder) {
+    return new TrackerApiResponse(this.get("/events/", queryParamsBuilder));
+  }
+
+  public TrackerApiResponse getRelationship(String relationshipId) {
+    return new TrackerApiResponse(this.get("/relationships/" + relationshipId));
+  }
+
+  public void overrideOwnership(String tei, String program, String reason) {
+    this.post(
+            String.format(
+                "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s",
+                tei, program, reason),
+            new JsonObject())
+        .validateStatus(200);
+  }
+
+  public void transferOwnership(String tei, String program, String ou) {
+    this.update(
+            String.format(
+                "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", tei, program, ou),
+            new JsonObject())
+        .validateStatus(200);
+  }
+
+  private void saveCreatedData(ApiResponse response) {
+    String[] val = {
+      "TRACKED_ENTITY,/trackedEntityInstances",
+      "EVENT,/events",
+      "ENROLLMENT,/enrollments",
+      "RELATIONSHIP,/relationships"
+    };
+
+    for (String s : val) {
+      String path =
+          String.format("bundleReport.typeReportMap.%s.objectReports.uid", s.split(",")[0]);
+
+      if (response.extractList(path) != null) {
+        response.extractList(path).stream()
+            .filter(o -> o != null)
+            .forEach(
+                id -> {
+                  this.addCreatedEntity(s.split(",")[1], id.toString());
+                });
+      }
+    }
+  }
+
+  private TrackerApiResponse getJobReportByImportResponse(ApiResponse response) {
+    // if import is sync, just return response
+    if (response.extractString("response.id") == null) {
+      return new TrackerApiResponse(response);
     }
 
-    public ApiResponse getJob( String jobId )
-    {
-        return this.get( "/jobs/" + jobId );
-    }
+    response.validate().statusCode(200).body("response.id", notNullValue());
 
-    public void waitUntilJobIsCompleted( String jobId )
-    {
-        logger.info( String.format( "Waiting until tracker job with id %s is completed", jobId ) );
+    String jobId = response.extractString("response.id");
 
-        Callable<Boolean> jobIsCompleted = () -> getJob( jobId )
-            .validateStatus( 200 )
-            .extractList( "completed" ).contains( true );
+    this.waitUntilJobIsCompleted(jobId);
 
-        with()
-            .atMost( 20, TimeUnit.SECONDS )
-            .await().until( () -> jobIsCompleted.call() );
-
-        logger.info( "Tracker job is completed. Message: " + getJob( jobId ).extract( "message" ) );
-    }
-
-    public TrackerApiResponse postAndGetJobReport( File file )
-    {
-        ApiResponse response = this.postFile( file );
-
-        return getJobReportByImportResponse( response );
-    }
-
-    public TrackerApiResponse postAndGetJobReport( File file, QueryParamsBuilder queryParamsBuilder )
-    {
-        ApiResponse response = this.postFile( file, queryParamsBuilder );
-
-        return getJobReportByImportResponse( response );
-    }
-
-    public TrackerApiResponse postAndGetJobReport( JsonObject jsonObject )
-    {
-        ApiResponse response = this.post( jsonObject );
-
-        return getJobReportByImportResponse( response );
-    }
-
-    public TrackerApiResponse postAndGetJobReport( Object jsonObject, QueryParamsBuilder queryParamsBuilder )
-    {
-        ApiResponse response = this.post( jsonObject, queryParamsBuilder );
-
-        return getJobReportByImportResponse( response );
-    }
-
-    public TrackerApiResponse getJobReport( String jobId, String reportMode )
-    {
-        ApiResponse response = this.get( String.format( "/jobs/%s/report?reportMode=%s", jobId, reportMode ) );
-
-        // add created entities
-
-        saveCreatedData( response );
-        return new TrackerApiResponse( response );
-    }
-
-    public TrackerApiResponse getTrackedEntity( String entityId )
-    {
-        return getTrackedEntity( entityId, new QueryParamsBuilder() );
-    }
-
-    public TrackerApiResponse getTrackedEntity( String entityId, QueryParamsBuilder queryParamsBuilder )
-    {
-        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId, queryParamsBuilder ) );
-    }
-
-    public TrackerApiResponse getTrackedEntities( QueryParamsBuilder queryParamsBuilder )
-    {
-        return new TrackerApiResponse( this.get( "/trackedEntities/", queryParamsBuilder ) );
-    }
-
-    public TrackerApiResponse getEnrollment( String enrollmentId )
-    {
-        return new TrackerApiResponse( this.get( "/enrollments/" + enrollmentId ) );
-    }
-
-    public TrackerApiResponse getEnrollment( String enrollmentId, QueryParamsBuilder queryParamsBuilder )
-    {
-        return new TrackerApiResponse( this.get( "/enrollments/" + enrollmentId, queryParamsBuilder ) );
-    }
-
-    public TrackerApiResponse getEnrollments( QueryParamsBuilder queryParamsBuilder )
-    {
-        return new TrackerApiResponse( this.get( "/enrollments/", queryParamsBuilder ) );
-    }
-
-    public TrackerApiResponse getEvent( String eventId )
-    {
-        return new TrackerApiResponse( this.get( "/events/" + eventId ) );
-    }
-
-    public TrackerApiResponse getEvents( QueryParamsBuilder queryParamsBuilder )
-    {
-        return new TrackerApiResponse( this.get( "/events/", queryParamsBuilder ) );
-    }
-
-    public TrackerApiResponse getRelationship( String relationshipId )
-    {
-        return new TrackerApiResponse( this.get( "/relationships/" + relationshipId ) );
-    }
-
-    public void overrideOwnership( String tei, String program, String reason )
-    {
-        this.post(
-            String.format( "/ownership/override?trackedEntityInstance=%s&program=%s&reason=%s", tei, program, reason ),
-            new JsonObject() )
-            .validateStatus( 200 );
-    }
-
-    public void transferOwnership( String tei, String program, String ou )
-    {
-        this.update( String
-            .format( "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", tei, program,
-                ou ),
-            new JsonObject() ).validateStatus( 200 );
-
-    }
-
-    private void saveCreatedData( ApiResponse response )
-    {
-        String[] val = {
-            "TRACKED_ENTITY,/trackedEntityInstances",
-            "EVENT,/events",
-            "ENROLLMENT,/enrollments",
-            "RELATIONSHIP,/relationships"
-        };
-
-        for ( String s : val )
-        {
-            String path = String.format( "bundleReport.typeReportMap.%s.objectReports.uid", s.split( "," )[0] );
-
-            if ( response.extractList( path ) != null )
-            {
-                response.extractList( path ).stream()
-                    .filter( o -> o != null )
-                    .forEach( id -> {
-                        this.addCreatedEntity( s.split( "," )[1], id.toString() );
-                    } );
-            }
-        }
-
-    }
-
-    private TrackerApiResponse getJobReportByImportResponse( ApiResponse response )
-    {
-        // if import is sync, just return response
-        if ( response.extractString( "response.id" ) == null )
-        {
-            return new TrackerApiResponse( response );
-        }
-
-        response.validate()
-            .statusCode( 200 )
-            .body( "response.id", notNullValue() );
-
-        String jobId = response.extractString( "response.id" );
-
-        this.waitUntilJobIsCompleted( jobId );
-
-        return this.getJobReport( jobId, "FULL" );
-    }
+    return this.getJobReport(jobId, "FULL");
+  }
 }

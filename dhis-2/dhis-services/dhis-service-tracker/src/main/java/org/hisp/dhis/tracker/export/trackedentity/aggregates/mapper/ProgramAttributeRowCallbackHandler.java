@@ -29,26 +29,19 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.ProgramAttributeQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.ProgramAttributeQuery.COLUMNS;
 
-public class ProgramAttributeRowCallbackHandler
-    extends
-    AbstractMapper<TrackedEntityAttributeValue>
-    implements AttributeMapper
-{
-    @Override
-    TrackedEntityAttributeValue getItem( ResultSet rs )
-        throws SQLException
-    {
-        return getAttribute( rs );
-    }
+public class ProgramAttributeRowCallbackHandler extends AbstractMapper<TrackedEntityAttributeValue>
+    implements AttributeMapper {
+  @Override
+  TrackedEntityAttributeValue getItem(ResultSet rs) throws SQLException {
+    return getAttribute(rs);
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return ProgramAttributeQuery.getColumnName( COLUMNS.PI_UID );
-    }
+  @Override
+  String getKeyColumn() {
+    return ProgramAttributeQuery.getColumnName(COLUMNS.PI_UID);
+  }
 }

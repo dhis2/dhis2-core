@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.BufferedInputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,58 +42,50 @@ import org.junit.jupiter.api.Test;
 /**
  * @author bobj
  */
-class StreamUtilsTest
-{
+class StreamUtilsTest {
 
-    private BufferedInputStream zipStream;
+  private BufferedInputStream zipStream;
 
-    private BufferedInputStream gzipStream;
+  private BufferedInputStream gzipStream;
 
-    private BufferedInputStream plainStream;
+  private BufferedInputStream plainStream;
 
-    @BeforeEach
-    void setUp()
-    {
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        zipStream = new BufferedInputStream( classLoader.getResourceAsStream( "dxfA.zip" ) );
-        gzipStream = new BufferedInputStream( classLoader.getResourceAsStream( "Export.xml.gz" ) );
-        plainStream = new BufferedInputStream( classLoader.getResourceAsStream( "Export.xml" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    zipStream = new BufferedInputStream(classLoader.getResourceAsStream("dxfA.zip"));
+    gzipStream = new BufferedInputStream(classLoader.getResourceAsStream("Export.xml.gz"));
+    plainStream = new BufferedInputStream(classLoader.getResourceAsStream("Export.xml"));
+  }
 
-    @AfterEach
-    void tearDown()
-        throws Exception
-    {
-        zipStream.close();
-        gzipStream.close();
-        plainStream.close();
-    }
+  @AfterEach
+  void tearDown() throws Exception {
+    zipStream.close();
+    gzipStream.close();
+    plainStream.close();
+  }
 
-    @Test
-    void testIsZip()
-    {
-        assertTrue( StreamUtils.isZip( zipStream ) );
-        assertFalse( StreamUtils.isGZip( zipStream ) );
-        assertFalse( StreamUtils.isZip( plainStream ) );
-    }
+  @Test
+  void testIsZip() {
+    assertTrue(StreamUtils.isZip(zipStream));
+    assertFalse(StreamUtils.isGZip(zipStream));
+    assertFalse(StreamUtils.isZip(plainStream));
+  }
 
-    @Test
-    void testIsGZip()
-    {
-        assertTrue( StreamUtils.isGZip( gzipStream ) );
-        assertFalse( StreamUtils.isZip( gzipStream ) );
-        assertFalse( StreamUtils.isGZip( plainStream ) );
-    }
+  @Test
+  void testIsGZip() {
+    assertTrue(StreamUtils.isGZip(gzipStream));
+    assertFalse(StreamUtils.isZip(gzipStream));
+    assertFalse(StreamUtils.isGZip(plainStream));
+  }
 
-    @Test
-    void testWrapAndCheckZip()
-        throws Exception
-    {
-        Reader reader = new InputStreamReader( StreamUtils.wrapAndCheckCompressionFormat( zipStream ) );
-        assertEquals( '<', reader.read() );
-        assertEquals( '?', reader.read() );
-        assertEquals( 'x', reader.read() );
-        assertEquals( 'm', reader.read() );
-        assertEquals( 'l', reader.read() );
-    }
+  @Test
+  void testWrapAndCheckZip() throws Exception {
+    Reader reader = new InputStreamReader(StreamUtils.wrapAndCheckCompressionFormat(zipStream));
+    assertEquals('<', reader.read());
+    assertEquals('?', reader.read());
+    assertEquals('x', reader.read());
+    assertEquals('m', reader.read());
+    assertEquals('l', reader.read());
+  }
 }

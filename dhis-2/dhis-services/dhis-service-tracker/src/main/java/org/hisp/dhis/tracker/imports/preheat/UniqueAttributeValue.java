@@ -30,27 +30,25 @@ package org.hisp.dhis.tracker.imports.preheat;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 
 /**
- * Simple pojo used to store the data for {@link TrackedEntityAttributeValue}
- * that are needed in the Validation phase
+ * Simple pojo used to store the data for {@link TrackedEntityAttributeValue} that are needed in the
+ * Validation phase
  *
  * @author Enrico Colasante
  */
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode
-public class UniqueAttributeValue
-{
+public class UniqueAttributeValue {
 
-    private String teiUid;
+  private String teiUid;
 
-    private MetadataIdentifier attribute;
+  private MetadataIdentifier attribute;
 
-    private String value;
+  private String value;
 
-    private MetadataIdentifier orgUnit;
+  private MetadataIdentifier orgUnit;
 }

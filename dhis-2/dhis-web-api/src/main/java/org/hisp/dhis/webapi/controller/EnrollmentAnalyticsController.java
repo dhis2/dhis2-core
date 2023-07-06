@@ -30,14 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
-
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
@@ -71,216 +69,223 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Markus Bekken
  */
-@OpenApi.Tags( "analytics" )
+@OpenApi.Tags("analytics")
 @Controller
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequestMapping( "/analytics/enrollments" )
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequestMapping("/analytics/enrollments")
 @AllArgsConstructor
-public class EnrollmentAnalyticsController
-{
-    @Nonnull
-    private final EventDataQueryService eventDataQueryService;
+public class EnrollmentAnalyticsController {
+  @Nonnull private final EventDataQueryService eventDataQueryService;
 
-    @Nonnull
-    private final EnrollmentAnalyticsService analyticsService;
+  @Nonnull private final EnrollmentAnalyticsService analyticsService;
 
-    @Nonnull
-    private final ContextUtils contextUtils;
+  @Nonnull private final ContextUtils contextUtils;
 
-    @Nonnull
-    private final ExecutionPlanStore executionPlanStore;
+  @Nonnull private final ExecutionPlanStore executionPlanStore;
 
-    @Nonnull
-    private DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
+  @Nonnull private DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
-    @Nonnull
-    private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
+  @Nonnull private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
-    @Nonnull
-    private DimensionMapperService dimensionMapperService;
+  @Nonnull private DimensionMapperService dimensionMapperService;
 
-    @Nonnull
-    private final SystemSettingManager systemSettingManager;
+  @Nonnull private final SystemSettingManager systemSettingManager;
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
-    @GetMapping( value = "/query/{program}/explain", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
-        @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true, QUERY );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')")
+  @GetMapping(
+      value = "/query/{program}/explain",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getExplainQueryJson( // JSON, JSONP
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, true, QUERY);
 
-        Grid grid = analyticsService.getEnrollments( params );
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+    Grid grid = analyticsService.getEnrollments(params);
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
 
-        if ( params.analyzeOnly() )
-        {
-            String key = params.getExplainOrderId();
-            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( key ) );
-        }
-
-        return grid;
+    if (params.analyzeOnly()) {
+      String key = params.getExplainOrderId();
+      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(key));
     }
 
-    @GetMapping( value = "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody Grid getQueryJson( // JSON, JSONP
-        @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+    return grid;
+  }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
+  @GetMapping(
+      value = "/query/{program}",
+      produces = {APPLICATION_JSON_VALUE, "application/javascript"})
+  public @ResponseBody Grid getQueryJson( // JSON, JSONP
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-        return analyticsService.getEnrollments( params );
-    }
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
 
-    @SneakyThrows
-    @GetMapping( "/query/{program}.xml" )
-    public void getQueryXml(
-        @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+    return analyticsService.getEnrollments(params);
+  }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.xml", false );
-        Grid grid = analyticsService.getEnrollments( params );
-        GridUtils.toXml( grid, response.getOutputStream() );
-    }
+  @SneakyThrows
+  @GetMapping("/query/{program}.xml")
+  public void getQueryXml(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-    @SneakyThrows
-    @GetMapping( "/query/{program}.xls" )
-    public void getQueryXls(
-        @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_XML,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.xml",
+        false);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toXml(grid, response.getOutputStream());
+  }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.xls", true );
-        Grid grid = analyticsService.getEnrollments( params );
-        GridUtils.toXls( grid, response.getOutputStream() );
-    }
+  @SneakyThrows
+  @GetMapping("/query/{program}.xls")
+  public void getQueryXls(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-    @SneakyThrows
-    @GetMapping( "/query/{program}.csv" )
-    public void getQueryCsv(
-        @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_EXCEL,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.xls",
+        true);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toXls(grid, response.getOutputStream());
+  }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.csv", true );
-        Grid grid = analyticsService.getEnrollments( params );
-        GridUtils.toCsv( grid, response.getWriter() );
-    }
+  @SneakyThrows
+  @GetMapping("/query/{program}.csv")
+  public void getQueryCsv(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-    @SneakyThrows
-    @GetMapping( "/query/{program}.html" )
-    public void getQueryHtml(
-        @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_CSV,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.csv",
+        true);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toCsv(grid, response.getWriter());
+  }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.html", false );
-        Grid grid = analyticsService.getEnrollments( params );
-        GridUtils.toHtml( grid, response.getWriter() );
-    }
+  @SneakyThrows
+  @GetMapping("/query/{program}.html")
+  public void getQueryHtml(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-    @SneakyThrows
-    @GetMapping( "/query/{program}.html+css" )
-    public void getQueryHtmlCss(
-        @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-    {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_HTML,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.html",
+        false);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toHtml(grid, response.getWriter());
+  }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            "enrollments.html", false );
-        Grid grid = analyticsService.getEnrollments( params );
-        GridUtils.toHtmlCss( grid, response.getWriter() );
-    }
+  @SneakyThrows
+  @GetMapping("/query/{program}.html+css")
+  public void getQueryHtmlCss(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response) {
+    EventQueryParams params = getEventQueryParams(program, criteria, apiVersion, false, QUERY);
 
-    @ResponseBody
-    @GetMapping( "/query/dimensions" )
-    public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
-        @RequestParam String programId,
-        @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionsCriteria dimensionsCriteria,
-        HttpServletResponse response )
-    {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return dimensionFilteringAndPagingService
-            .pageAndFilter(
-                dimensionMapperService.toDimensionResponse(
-                    enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId( programId ),
-                    EnrollmentAnalyticsPrefixStrategy.INSTANCE ),
-                dimensionsCriteria,
-                fields );
-    }
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_HTML,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        "enrollments.html",
+        false);
+    Grid grid = analyticsService.getEnrollments(params);
+    GridUtils.toHtmlCss(grid, response.getWriter());
+  }
 
-    @ResponseBody
-    @GetMapping( "/aggregate/dimensions" )
-    public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
-        @RequestParam String programId,
-        @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionsCriteria dimensionsCriteria,
-        HttpServletResponse response )
-    {
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return dimensionFilteringAndPagingService
-            .pageAndFilter(
-                dimensionMapperService.toDimensionResponse(
-                    enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programId ),
-                    EnrollmentAnalyticsPrefixStrategy.INSTANCE ),
-                dimensionsCriteria,
-                fields );
-    }
+  @ResponseBody
+  @GetMapping("/query/dimensions")
+  public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
+      @RequestParam String programId,
+      @RequestParam(defaultValue = "*") List<String> fields,
+      DimensionsCriteria dimensionsCriteria,
+      HttpServletResponse response) {
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    return dimensionFilteringAndPagingService.pageAndFilter(
+        dimensionMapperService.toDimensionResponse(
+            enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId(programId),
+            EnrollmentAnalyticsPrefixStrategy.INSTANCE),
+        dimensionsCriteria,
+        fields);
+  }
 
-    private EventQueryParams getEventQueryParams( @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly,
-        EndpointAction endpointAction )
-    {
-        criteria
-            .definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
+  @ResponseBody
+  @GetMapping("/aggregate/dimensions")
+  public AnalyticsDimensionsPagingWrapper<ObjectNode> getAggregateDimensions(
+      @RequestParam String programId,
+      @RequestParam(defaultValue = "*") List<String> fields,
+      DimensionsCriteria dimensionsCriteria,
+      HttpServletResponse response) {
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    return dimensionFilteringAndPagingService.pageAndFilter(
+        dimensionMapperService.toDimensionResponse(
+            enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId(programId),
+            EnrollmentAnalyticsPrefixStrategy.INSTANCE),
+        dimensionsCriteria,
+        fields);
+  }
 
-        PeriodCriteriaUtils.defineDefaultPeriodForCriteria( criteria,
-            systemSettingManager.getSystemSetting( SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class ) );
+  private EventQueryParams getEventQueryParams(
+      @PathVariable String program,
+      EnrollmentAnalyticsQueryCriteria criteria,
+      DhisApiVersion apiVersion,
+      boolean analyzeOnly,
+      EndpointAction endpointAction) {
+    criteria.definePageSize(systemSettingManager.getIntSetting(SettingKey.ANALYTICS_MAX_LIMIT));
 
-        EventDataQueryRequest request = EventDataQueryRequest.builder()
+    PeriodCriteriaUtils.defineDefaultPeriodForCriteria(
+        criteria,
+        systemSettingManager.getSystemSetting(
+            SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class));
+
+    EventDataQueryRequest request =
+        EventDataQueryRequest.builder()
             .fromCriteria(
-                (EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction( endpointAction )
-                    .withEndpointItem( RequestTypeAware.EndpointItem.ENROLLMENT ) )
-            .program( program )
-            .apiVersion( apiVersion )
+                (EnrollmentAnalyticsQueryCriteria)
+                    criteria
+                        .withEndpointAction(endpointAction)
+                        .withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT))
+            .program(program)
+            .apiVersion(apiVersion)
             .build();
 
-        return eventDataQueryService.getFromRequest( request, analyzeOnly );
-    }
+    return eventDataQueryService.getFromRequest(request, analyzeOnly);
+  }
 }

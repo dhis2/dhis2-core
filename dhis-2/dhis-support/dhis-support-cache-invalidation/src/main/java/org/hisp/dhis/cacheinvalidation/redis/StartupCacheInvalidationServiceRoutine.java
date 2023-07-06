@@ -34,16 +34,12 @@ import org.springframework.context.annotation.Conditional;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Conditional( value = CacheInvalidationEnabledCondition.class )
-public class StartupCacheInvalidationServiceRoutine extends AbstractStartupRoutine
-{
-    @Autowired
-    private CacheInvalidationSubscriptionService subscriptionService;
+@Conditional(value = CacheInvalidationEnabledCondition.class)
+public class StartupCacheInvalidationServiceRoutine extends AbstractStartupRoutine {
+  @Autowired private CacheInvalidationSubscriptionService subscriptionService;
 
-    @Override
-    public void execute()
-        throws InterruptedException
-    {
-        subscriptionService.start();
-    }
+  @Override
+  public void execute() throws InterruptedException {
+    subscriptionService.start();
+  }
 }

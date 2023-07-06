@@ -29,28 +29,23 @@ package org.hisp.dhis.system.collection;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author Lars Helge Overland
  */
-public class JobLocalMap<T, V>
-{
-    private final Map<JobConfiguration, Map<T, V>> internalMap;
+public class JobLocalMap<T, V> {
+  private final Map<JobConfiguration, Map<T, V>> internalMap;
 
-    public JobLocalMap()
-    {
-        this.internalMap = new HashMap<>();
-    }
+  public JobLocalMap() {
+    this.internalMap = new HashMap<>();
+  }
 
-    public Map<T, V> get( JobConfiguration id )
-    {
-        return internalMap.computeIfAbsent( id, k -> new HashMap<>() );
-    }
+  public Map<T, V> get(JobConfiguration id) {
+    return internalMap.computeIfAbsent(id, k -> new HashMap<>());
+  }
 
-    public boolean clear( JobConfiguration id )
-    {
-        return internalMap.remove( id ) != null;
-    }
+  public boolean clear(JobConfiguration id) {
+    return internalMap.remove(id) != null;
+  }
 }

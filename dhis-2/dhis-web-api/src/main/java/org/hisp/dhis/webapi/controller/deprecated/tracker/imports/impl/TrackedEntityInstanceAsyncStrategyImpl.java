@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker.imports.impl;
 
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ImportTrackedEntitiesTask;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
@@ -43,27 +42,28 @@ import org.springframework.stereotype.Component;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @Component
-public class TrackedEntityInstanceAsyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy
-{
-    public TrackedEntityInstanceAsyncStrategyImpl( TrackedEntityInstanceService trackedEntityInstanceService,
-        AsyncTaskExecutor taskExecutor )
-    {
-        super( trackedEntityInstanceService, taskExecutor );
-    }
+public class TrackedEntityInstanceAsyncStrategyImpl extends AbstractTrackedEntityInstanceStrategy {
+  public TrackedEntityInstanceAsyncStrategyImpl(
+      TrackedEntityInstanceService trackedEntityInstanceService, AsyncTaskExecutor taskExecutor) {
+    super(trackedEntityInstanceService, taskExecutor);
+  }
 
-    @Override
-    public ImportSummaries mergeOrDeleteTrackedEntityInstances(
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest )
-        throws IOException,
-        BadRequestException
-    {
-        List<TrackedEntityInstance> trackedEntityInstanceList = getTrackedEntityInstancesListByMediaType(
-            trackerEntityInstanceRequest.getMediaType(), trackerEntityInstanceRequest.getInputStream() );
+  @Override
+  public ImportSummaries mergeOrDeleteTrackedEntityInstances(
+      TrackerEntityInstanceRequest trackerEntityInstanceRequest)
+      throws IOException, BadRequestException {
+    List<TrackedEntityInstance> trackedEntityInstanceList =
+        getTrackedEntityInstancesListByMediaType(
+            trackerEntityInstanceRequest.getMediaType(),
+            trackerEntityInstanceRequest.getInputStream());
 
-        taskExecutor.executeTask( new ImportTrackedEntitiesTask( trackedEntityInstanceList,
-            trackedEntityInstanceService, trackerEntityInstanceRequest.getImportOptions(),
-            trackerEntityInstanceRequest.getJobConfiguration() ) );
+    taskExecutor.executeTask(
+        new ImportTrackedEntitiesTask(
+            trackedEntityInstanceList,
+            trackedEntityInstanceService,
+            trackerEntityInstanceRequest.getImportOptions(),
+            trackerEntityInstanceRequest.getJobConfiguration()));
 
-        return null;
-    }
+    return null;
+  }
 }

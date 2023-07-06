@@ -33,227 +33,235 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public class PostgreSQLStatementBuilder
-    extends AbstractStatementBuilder
-{
-    @Override
-    public String getDoubleColumnType()
-    {
-        return "double precision";
+public class PostgreSQLStatementBuilder extends AbstractStatementBuilder {
+  @Override
+  public String getDoubleColumnType() {
+    return "double precision";
+  }
+
+  @Override
+  public String getLongVarBinaryType() {
+    return "BYTEA";
+  }
+
+  @Override
+  public String getColumnQuote() {
+    return "\"";
+  }
+
+  @Override
+  public String getVacuum(String table) {
+    return "vacuum " + table + ";";
+  }
+
+  @Override
+  public String getAnalyze(String table) {
+    return "analyze " + table + ";";
+  }
+
+  @Override
+  public String getAutoIncrementValue() {
+    return "nextval('hibernate_sequence')";
+  }
+
+  @Override
+  public String getTableOptions(boolean autoVacuum) {
+    String sql = "";
+
+    if (!autoVacuum) {
+      sql += "autovacuum_enabled = false";
     }
 
-    @Override
-    public String getLongVarBinaryType()
-    {
-        return "BYTEA";
+    if (!sql.isEmpty()) {
+      sql = "with (" + sql + ")";
     }
 
-    @Override
-    public String getColumnQuote()
-    {
-        return "\"";
+    return sql;
+  }
+
+  @Override
+  public String getRegexpMatch() {
+    return "~*";
+  }
+
+  @Override
+  public String getRegexpWordStart() {
+    return "\\m";
+  }
+
+  @Override
+  public String getRegexpWordEnd() {
+    return "\\M";
+  }
+
+  @Override
+  public String getRandom(int n) {
+    return "cast(floor(" + n + "*random()) as int)";
+  }
+
+  @Override
+  public String getCharAt(String str, String n) {
+    return "substring(" + str + " from " + n + " for 1)";
+  }
+
+  @Override
+  public String getAddDate(String dateField, int days) {
+    return "(" + dateField + "+" + days + ")";
+  }
+
+  @Override
+  public String getDaysBetweenDates(String fromColumn, String toColumn) {
+    return toColumn + " - " + fromColumn;
+  }
+
+  @Override
+  public String getDropPrimaryKey(String table) {
+    return "alter table " + table + " drop constraint " + table + "_pkey;";
+  }
+
+  @Override
+  public String getAddPrimaryKeyToExistingTable(String table, String column) {
+    return "alter table "
+        + table
+        + " add column "
+        + column
+        + " bigint;"
+        + "update "
+        + table
+        + " set "
+        + column
+        + " = nextval('hibernate_sequence') where "
+        + column
+        + " is null;"
+        + "alter table "
+        + table
+        + " alter column "
+        + column
+        + " set not null;"
+        + "alter table "
+        + table
+        + " add primary key("
+        + column
+        + ");";
+  }
+
+  @Override
+  public String getDropNotNullConstraint(String table, String column, String type) {
+    return "alter table " + table + " alter column " + column + " drop not null;";
+  }
+
+  /**
+   * Generates a derived table containing one column of literal strings.
+   *
+   * <p>The PostgreSQL implementation returns the following form: <code>
+   *     (values ('s1'),('s2'),('s3')) table (column)
+   * </code>
+   *
+   * @param values (non-empty) String values for the derived table
+   * @param table the desired table name alias
+   * @param column the desired column name
+   * @return the derived literal table
+   */
+  @Override
+  public String literalStringTable(Collection<String> values, String table, String column) {
+    StringBuilder sb = new StringBuilder("(values ");
+
+    for (String value : values) {
+      sb.append("('").append(value).append("'),");
     }
 
-    @Override
-    public String getVacuum( String table )
-    {
-        return "vacuum " + table + ";";
+    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
+        .append(") ")
+        .append(table)
+        .append(" (")
+        .append(column)
+        .append(")")
+        .toString();
+  }
+
+  /**
+   * Generates a derived table containing literals in two columns: long and string.
+   *
+   * <p>The generic implementation, which works in all supported database types, returns a subquery
+   * in the following form: <code>
+   *     (values (i1, 's1'),(i2, 's2'),(i3, 's3')) table (intColumn, strColumn)
+   * </code>
+   *
+   * @param longValues (non-empty) long values for the derived table
+   * @param strValues (same size) String values for the derived table
+   * @param table the desired table name alias
+   * @param longColumn the desired long column name
+   * @param strColumn the desired string column name
+   * @return the derived literal table
+   */
+  @Override
+  public String literalLongStringTable(
+      List<Long> longValues,
+      List<String> strValues,
+      String table,
+      String longColumn,
+      String strColumn) {
+    StringBuilder sb = new StringBuilder("(values ");
+
+    for (int i = 0; i < longValues.size(); i++) {
+      sb.append("(").append(longValues.get(i)).append(", '").append(strValues.get(i)).append("'),");
     }
 
-    @Override
-    public String getAnalyze( String table )
-    {
-        return "analyze " + table + ";";
+    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
+        .append(") ")
+        .append(table)
+        .append(" (")
+        .append(longColumn)
+        .append(", ")
+        .append(strColumn)
+        .append(")")
+        .toString();
+  }
+
+  /**
+   * Generates a derived table containing literals in two columns: long and long.
+   *
+   * @param long1Values (non-empty) 1st long column values for the table
+   * @param long2Values (same size) 2nd long column values for the table
+   * @param table the desired table name alias
+   * @param long1Column the desired 1st long column name
+   * @param long2Column the desired 2nd long column name
+   * @return the derived literal table
+   *     <p>The generic implementation, which works in all supported database types, returns a
+   *     subquery in the following form: <code>
+   *     (values (i1_1, i2_1),(i1_2, i2_2),(i1_3, i2_3)) table (int1Column, int2Column)
+   * </code>
+   */
+  @Override
+  public String literalLongLongTable(
+      List<Long> long1Values,
+      List<Long> long2Values,
+      String table,
+      String long1Column,
+      String long2Column) {
+    StringBuilder sb = new StringBuilder("(values ");
+
+    for (int i = 0; i < long1Values.size(); i++) {
+      sb.append("(")
+          .append(long1Values.get(i))
+          .append(", ")
+          .append(long2Values.get(i))
+          .append("),");
     }
 
-    @Override
-    public String getAutoIncrementValue()
-    {
-        return "nextval('hibernate_sequence')";
-    }
+    return sb.deleteCharAt(sb.length() - 1) // Remove the final ','.
+        .append(") ")
+        .append(table)
+        .append(" (")
+        .append(long1Column)
+        .append(", ")
+        .append(long2Column)
+        .append(")")
+        .toString();
+  }
 
-    @Override
-    public String getTableOptions( boolean autoVacuum )
-    {
-        String sql = "";
-
-        if ( !autoVacuum )
-        {
-            sql += "autovacuum_enabled = false";
-        }
-
-        if ( !sql.isEmpty() )
-        {
-            sql = "with (" + sql + ")";
-        }
-
-        return sql;
-    }
-
-    @Override
-    public String getRegexpMatch()
-    {
-        return "~*";
-    }
-
-    @Override
-    public String getRegexpWordStart()
-    {
-        return "\\m";
-    }
-
-    @Override
-    public String getRegexpWordEnd()
-    {
-        return "\\M";
-    }
-
-    @Override
-    public String getRandom( int n )
-    {
-        return "cast(floor(" + n + "*random()) as int)";
-    }
-
-    @Override
-    public String getCharAt( String str, String n )
-    {
-        return "substring(" + str + " from " + n + " for 1)";
-    }
-
-    @Override
-    public String getAddDate( String dateField, int days )
-    {
-        return "(" + dateField + "+" + days + ")";
-    }
-
-    @Override
-    public String getDaysBetweenDates( String fromColumn, String toColumn )
-    {
-        return toColumn + " - " + fromColumn;
-    }
-
-    @Override
-    public String getDropPrimaryKey( String table )
-    {
-        return "alter table " + table + " drop constraint " + table + "_pkey;";
-    }
-
-    @Override
-    public String getAddPrimaryKeyToExistingTable( String table, String column )
-    {
-        return "alter table " + table + " add column " + column + " bigint;" +
-            "update " + table + " set " + column + " = nextval('hibernate_sequence') where " + column + " is null;" +
-            "alter table " + table + " alter column " + column + " set not null;" +
-            "alter table " + table + " add primary key(" + column + ");";
-    }
-
-    @Override
-    public String getDropNotNullConstraint( String table, String column, String type )
-    {
-        return "alter table " + table + " alter column " + column + " drop not null;";
-    }
-
-    /**
-     * Generates a derived table containing one column of literal strings.
-     *
-     * The PostgreSQL implementation returns the following form: <code>
-     *     (values ('s1'),('s2'),('s3')) table (column)
-     * </code>
-     *
-     * @param values (non-empty) String values for the derived table
-     * @param table the desired table name alias
-     * @param column the desired column name
-     * @return the derived literal table
-     */
-    @Override
-    public String literalStringTable( Collection<String> values, String table, String column )
-    {
-        StringBuilder sb = new StringBuilder( "(values " );
-
-        for ( String value : values )
-        {
-            sb.append( "('" ).append( value ).append( "')," );
-        }
-
-        return sb.deleteCharAt( sb.length() - 1 ) // Remove the final ','.
-            .append( ") " ).append( table )
-            .append( " (" ).append( column ).append( ")" )
-            .toString();
-    }
-
-    /**
-     * Generates a derived table containing literals in two columns: long and
-     * string.
-     *
-     * The generic implementation, which works in all supported database types,
-     * returns a subquery in the following form: <code>
-     *     (values (i1, 's1'),(i2, 's2'),(i3, 's3')) table (intColumn, strColumn)
-     * </code>
-     *
-     * @param longValues (non-empty) long values for the derived table
-     * @param strValues (same size) String values for the derived table
-     * @param table the desired table name alias
-     * @param longColumn the desired long column name
-     * @param strColumn the desired string column name
-     * @return the derived literal table
-     */
-    @Override
-    public String literalLongStringTable( List<Long> longValues,
-        List<String> strValues, String table, String longColumn, String strColumn )
-    {
-        StringBuilder sb = new StringBuilder( "(values " );
-
-        for ( int i = 0; i < longValues.size(); i++ )
-        {
-            sb.append( "(" ).append( longValues.get( i ) ).append( ", '" )
-                .append( strValues.get( i ) ).append( "')," );
-        }
-
-        return sb.deleteCharAt( sb.length() - 1 ) // Remove the final ','.
-            .append( ") " ).append( table )
-            .append( " (" ).append( longColumn ).append( ", " )
-            .append( strColumn ).append( ")" )
-            .toString();
-    }
-
-    /**
-     * Generates a derived table containing literals in two columns: long and
-     * long.
-     *
-     * @param long1Values (non-empty) 1st long column values for the table
-     * @param long2Values (same size) 2nd long column values for the table
-     * @param table the desired table name alias
-     * @param long1Column the desired 1st long column name
-     * @param long2Column the desired 2nd long column name
-     * @return the derived literal table
-     *
-     *         The generic implementation, which works in all supported database
-     *         types, returns a subquery in the following form: <code>
-     *     (values (i1_1, i2_1),(i1_2, i2_2),(i1_3, i2_3)) table (int1Column, int2Column)
-     * </code>
-     */
-    @Override
-    public String literalLongLongTable( List<Long> long1Values,
-        List<Long> long2Values, String table, String long1Column, String long2Column )
-    {
-        StringBuilder sb = new StringBuilder( "(values " );
-
-        for ( int i = 0; i < long1Values.size(); i++ )
-        {
-            sb.append( "(" ).append( long1Values.get( i ) ).append( ", " )
-                .append( long2Values.get( i ) ).append( ")," );
-        }
-
-        return sb.deleteCharAt( sb.length() - 1 ) // Remove the final ','.
-            .append( ") " ).append( table )
-            .append( " (" ).append( long1Column ).append( ", " )
-            .append( long2Column ).append( ")" )
-            .toString();
-    }
-
-    @Override
-    public boolean supportsPartialIndexes()
-    {
-        return true;
-    }
+  @Override
+  public boolean supportsPartialIndexes() {
+    return true;
+  }
 }

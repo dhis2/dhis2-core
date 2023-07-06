@@ -30,18 +30,17 @@ package org.hisp.dhis.scheduling;
 /**
  * Gives access to all managed instances of {@link Job}s.
  *
- * Each {@link JobType} has a specific implementation of its {@link Job} which
- * also is a managed instance (component).
+ * <p>Each {@link JobType} has a specific implementation of its {@link Job} which also is a managed
+ * instance (component).
  *
  * @author Jan Bernitt
  */
-public interface JobService
-{
-    /**
-     * Get a {@link Job} component based on the job type.
-     *
-     * @param type the job type for the job we want to collect
-     * @return the managed {@link Job} component for the given {@link JobType}
-     */
-    Job getJob( JobType type );
+public interface JobService {
+  /**
+   * Get a {@link Job} component based on the job type.
+   *
+   * @param type the job type for the job we want to collect
+   * @return the managed {@link Job} component for the given {@link JobType}
+   */
+  Job getJob(JobType type);
 }

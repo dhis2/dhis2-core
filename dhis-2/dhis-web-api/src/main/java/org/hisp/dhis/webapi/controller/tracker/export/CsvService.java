@@ -32,12 +32,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-public interface CsvService<T>
-{
-    void write( OutputStream outputStream, List<T> events, boolean withHeader )
-        throws IOException;
+public interface CsvService<T> {
+  void write(OutputStream outputStream, List<T> events, boolean withHeader) throws IOException;
 
-    List<T> read( InputStream inputStream, boolean skipFirst )
-        throws IOException,
-        org.locationtech.jts.io.ParseException;
+  List<T> read(InputStream inputStream, boolean skipFirst)
+      throws IOException, org.locationtech.jts.io.ParseException;
 }

@@ -29,89 +29,76 @@ package org.hisp.dhis.dto;
 
 import static org.hisp.dhis.utils.SharingUtils.getSafe;
 
+import com.google.gson.JsonObject;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.google.gson.JsonObject;
+public class Sharing {
+  private String publicAccess;
 
-public class Sharing
-{
-    private String publicAccess;
+  private String owner;
 
-    private String owner;
+  private boolean external;
 
-    private boolean external;
+  private Map<String, String> userGroups;
 
-    private Map<String, String> userGroups;
+  private Map<String, String> users;
 
-    private Map<String, String> users;
+  public Sharing() {}
 
-    public Sharing()
-    {
+  public Sharing(JsonObject object) {
+    publicAccess = getSafe(object, "public");
+    owner = getSafe(object, "owner");
+    external = false;
+    userGroups = readAccess(object, "userGroups");
+    users = readAccess(object, "users");
+  }
+
+  private Map<String, String> readAccess(JsonObject object, String accessProperty) {
+    if (!object.has("sharing")) {
+      return null;
     }
 
-    public Sharing( JsonObject object )
-    {
-        publicAccess = getSafe( object, "public" );
-        owner = getSafe( object, "owner" );
-        external = false;
-        userGroups = readAccess( object, "userGroups" );
-        users = readAccess( object, "users" );
+    JsonObject sharingObject = object.getAsJsonObject("sharing");
+
+    if (!sharingObject.has(accessProperty)) {
+      return null;
     }
 
-    private Map<String, String> readAccess( JsonObject object, String accessProperty )
-    {
-        if ( !object.has( "sharing" ) )
-        {
-            return null;
-        }
+    JsonObject accessObject = sharingObject.getAsJsonObject(accessProperty);
 
-        JsonObject sharingObject = object.getAsJsonObject( "sharing" );
+    return accessObject.entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                e -> e.getValue().getAsJsonObject().get("access").getAsString()));
+  }
 
-        if ( !sharingObject.has( accessProperty ) )
-        {
-            return null;
-        }
+  public String getPublicAccess() {
+    return publicAccess;
+  }
 
-        JsonObject accessObject = sharingObject.getAsJsonObject( accessProperty );
+  public String getOwner() {
+    return owner;
+  }
 
-        return accessObject.entrySet().stream()
-            .collect( Collectors.toMap( Map.Entry::getKey,
-                e -> e.getValue().getAsJsonObject().get( "access" ).getAsString() ) );
-    }
+  public boolean isExternal() {
+    return external;
+  }
 
-    public String getPublicAccess()
-    {
-        return publicAccess;
-    }
+  public Map<String, String> getUserGroups() {
+    return userGroups;
+  }
 
-    public String getOwner()
-    {
-        return owner;
-    }
+  public Map<String, String> getUsers() {
+    return users;
+  }
 
-    public boolean isExternal()
-    {
-        return external;
-    }
+  public boolean hasUsers() {
+    return users != null && !users.isEmpty();
+  }
 
-    public Map<String, String> getUserGroups()
-    {
-        return userGroups;
-    }
-
-    public Map<String, String> getUsers()
-    {
-        return users;
-    }
-
-    public boolean hasUsers()
-    {
-        return users != null && !users.isEmpty();
-    }
-
-    public boolean hasUserGroups()
-    {
-        return userGroups != null && !userGroups.isEmpty();
-    }
+  public boolean hasUserGroups() {
+    return userGroups != null && !userGroups.isEmpty();
+  }
 }

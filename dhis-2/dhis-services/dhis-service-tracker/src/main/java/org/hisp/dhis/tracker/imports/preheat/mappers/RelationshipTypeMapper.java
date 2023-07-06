@@ -35,30 +35,26 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    AttributeValueMapper.class
-} )
-public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType>
-{
-    RelationshipTypeMapper INSTANCE = Mappers.getMapper( RelationshipTypeMapper.class );
+@Mapper(uses = {DebugMapper.class, AttributeValueMapper.class})
+public interface RelationshipTypeMapper extends PreheatMapper<RelationshipType> {
+  RelationshipTypeMapper INSTANCE = Mappers.getMapper(RelationshipTypeMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "fromConstraint", qualifiedByName = "constraintMapper" )
-    @Mapping( target = "toConstraint", qualifiedByName = "constraintMapper" )
-    @Mapping( target = "bidirectional" )
-    RelationshipType map( RelationshipType relationshipType );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "code")
+  @Mapping(target = "name")
+  @Mapping(target = "attributeValues")
+  @Mapping(target = "fromConstraint", qualifiedByName = "constraintMapper")
+  @Mapping(target = "toConstraint", qualifiedByName = "constraintMapper")
+  @Mapping(target = "bidirectional")
+  RelationshipType map(RelationshipType relationshipType);
 
-    @Named( "constraintMapper" )
-    @Mapping( target = "id" )
-    @Mapping( target = "relationshipEntity" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "program" )
-    @Mapping( target = "programStage" )
-    RelationshipConstraint mapConstraint( RelationshipConstraint constraint );
+  @Named("constraintMapper")
+  @Mapping(target = "id")
+  @Mapping(target = "relationshipEntity")
+  @Mapping(target = "trackedEntityType")
+  @Mapping(target = "program")
+  @Mapping(target = "programStage")
+  RelationshipConstraint mapConstraint(RelationshipConstraint constraint);
 }

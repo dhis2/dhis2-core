@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
 import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
@@ -40,8 +40,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleMode;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -49,112 +47,57 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-class RequestParams
-{
-    /**
-     * Should import be imported or just validated.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
+class RequestParams {
+  /** Should import be imported or just validated. */
+  @JsonProperty @Builder.Default private TrackerBundleMode importMode = TrackerBundleMode.COMMIT;
 
-    /**
-     * Sets import strategy (create, update, etc).
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
+  /** Sets import strategy (create, update, etc). */
+  @JsonProperty @Builder.Default
+  private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
 
-    /**
-     * Should import be treated as a atomic import (all or nothing).
-     */
-    @JsonProperty
-    @Builder.Default
-    private AtomicMode atomicMode = AtomicMode.ALL;
+  /** Should import be treated as a atomic import (all or nothing). */
+  @JsonProperty @Builder.Default private AtomicMode atomicMode = AtomicMode.ALL;
 
-    /**
-     * Flush for every object or per type.
-     */
-    @JsonProperty
-    @Builder.Default
-    private FlushMode flushMode = FlushMode.AUTO;
+  /** Flush for every object or per type. */
+  @JsonProperty @Builder.Default private FlushMode flushMode = FlushMode.AUTO;
 
-    /**
-     * Validation mode to use, defaults to fully validated objects.
-     */
-    @JsonProperty
-    @Builder.Default
-    private ValidationMode validationMode = ValidationMode.FULL;
+  /** Validation mode to use, defaults to fully validated objects. */
+  @JsonProperty @Builder.Default private ValidationMode validationMode = ValidationMode.FULL;
 
-    /**
-     * Should text pattern validation be skipped or not, default is not.
-     */
-    @JsonProperty
-    @Builder.Default
-    private boolean skipPatternValidation = false;
+  /** Should text pattern validation be skipped or not, default is not. */
+  @JsonProperty @Builder.Default private boolean skipPatternValidation = false;
 
-    /**
-     * Should side effects be skipped or not, default is not.
-     */
-    @JsonProperty
-    @Builder.Default
-    private boolean skipSideEffects = false;
+  /** Should side effects be skipped or not, default is not. */
+  @JsonProperty @Builder.Default private boolean skipSideEffects = false;
 
-    /**
-     * Should rule engine call be skipped or not, default is to skip.
-     */
-    @JsonProperty
-    @Builder.Default
-    private boolean skipRuleEngine = false;
+  /** Should rule engine call be skipped or not, default is to skip. */
+  @JsonProperty @Builder.Default private boolean skipRuleEngine = false;
 
-    /**
-     * The mode in which the response is going to be reported.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
+  /** The mode in which the response is going to be reported. */
+  @JsonProperty @Builder.Default
+  private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
-    /**
-     * Specific identifier to match data elements on.
-     */
-    @JsonProperty
-    private TrackerIdSchemeParam dataElementIdScheme;
+  /** Specific identifier to match data elements on. */
+  @JsonProperty private TrackerIdSchemeParam dataElementIdScheme;
 
-    /**
-     * Specific identifier to match organisation units on.
-     */
-    @JsonProperty
-    private TrackerIdSchemeParam orgUnitIdScheme;
+  /** Specific identifier to match organisation units on. */
+  @JsonProperty private TrackerIdSchemeParam orgUnitIdScheme;
 
-    /**
-     * Specific identifier to match program on.
-     */
-    @JsonProperty
-    private TrackerIdSchemeParam programIdScheme;
+  /** Specific identifier to match program on. */
+  @JsonProperty private TrackerIdSchemeParam programIdScheme;
 
-    /**
-     * Specific identifier to match program stage on.
-     */
-    @JsonProperty
-    private TrackerIdSchemeParam programStageIdScheme;
+  /** Specific identifier to match program stage on. */
+  @JsonProperty private TrackerIdSchemeParam programStageIdScheme;
 
-    /**
-     * Specific identifier to match all metadata on. Will be overridden by
-     * metadata-specific idSchemes.
-     */
-    @JsonProperty
-    @Builder.Default
-    private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
+  /**
+   * Specific identifier to match all metadata on. Will be overridden by metadata-specific
+   * idSchemes.
+   */
+  @JsonProperty @Builder.Default private TrackerIdSchemeParam idScheme = TrackerIdSchemeParam.UID;
 
-    /**
-     * Specific identifier to match category option combo on.
-     */
-    @JsonProperty
-    private TrackerIdSchemeParam categoryOptionComboIdScheme;
+  /** Specific identifier to match category option combo on. */
+  @JsonProperty private TrackerIdSchemeParam categoryOptionComboIdScheme;
 
-    /**
-     * Specific identifier to match category option on.
-     */
-    @JsonProperty
-    private TrackerIdSchemeParam categoryOptionIdScheme;
+  /** Specific identifier to match category option on. */
+  @JsonProperty private TrackerIdSchemeParam categoryOptionIdScheme;
 }

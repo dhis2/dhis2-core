@@ -40,22 +40,16 @@ import org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class GeoValidator
-    implements Validator<Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
+class GeoValidator implements Validator<Enrollment> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
 
-        checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
+    checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
-        if ( enrollment.getGeometry() != null )
-        {
-            ValidationUtils.validateGeometry( reporter, enrollment,
-                enrollment.getGeometry(),
-                program.getFeatureType() );
-        }
+    if (enrollment.getGeometry() != null) {
+      ValidationUtils.validateGeometry(
+          reporter, enrollment, enrollment.getGeometry(), program.getFeatureType());
     }
-
+  }
 }

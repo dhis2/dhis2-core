@@ -32,9 +32,7 @@ import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.
 
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -53,146 +51,124 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EnrollmentOperationParams} to {@link EnrollmentQueryParams} which
- * is used to fetch enrollments from the DB.
+ * Maps {@link EnrollmentOperationParams} to {@link EnrollmentQueryParams} which is used to fetch
+ * enrollments from the DB.
  */
 @Component
 @RequiredArgsConstructor
-class EnrollmentOperationParamsMapper
-{
-    private final CurrentUserService currentUserService;
+class EnrollmentOperationParamsMapper {
+  private final CurrentUserService currentUserService;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    private final TrackedEntityTypeService trackedEntityTypeService;
+  private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityService trackedEntityService;
 
-    private final TrackerAccessManager trackerAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
 
-    @Transactional( readOnly = true )
-    public EnrollmentQueryParams map( EnrollmentOperationParams operationParams )
-        throws BadRequestException,
-        ForbiddenException
-    {
-        Program program = validateProgram( operationParams.getProgramUid() );
-        TrackedEntityType trackedEntityType = validateTrackedEntityType( operationParams.getTrackedEntityTypeUid() );
-        TrackedEntity trackedEntity = validateTrackedEntity( operationParams.getTrackedEntityUid() );
+  @Transactional(readOnly = true)
+  public EnrollmentQueryParams map(EnrollmentOperationParams operationParams)
+      throws BadRequestException, ForbiddenException {
+    Program program = validateProgram(operationParams.getProgramUid());
+    TrackedEntityType trackedEntityType =
+        validateTrackedEntityType(operationParams.getTrackedEntityTypeUid());
+    TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
-        User user = currentUserService.getCurrentUser();
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, operationParams.getOrgUnitUids(), program );
+    User user = currentUserService.getCurrentUser();
+    Set<OrganisationUnit> orgUnits =
+        validateOrgUnits(user, operationParams.getOrgUnitUids(), program);
 
-        EnrollmentQueryParams params = new EnrollmentQueryParams();
-        params.setProgram( program );
-        params.setProgramStatus( operationParams.getProgramStatus() );
-        params.setFollowUp( operationParams.getFollowUp() );
-        params.setLastUpdated( operationParams.getLastUpdated() );
-        params.setLastUpdatedDuration( operationParams.getLastUpdatedDuration() );
-        params.setProgramStartDate( operationParams.getProgramStartDate() );
-        params.setProgramEndDate( operationParams.getProgramEndDate() );
-        params.setTrackedEntityType( trackedEntityType );
-        params.setTrackedEntity( trackedEntity );
-        params.addOrganisationUnits( orgUnits );
-        params.setOrganisationUnitMode( operationParams.getOrgUnitMode() );
-        if ( !params.isPaging() && !params.isSkipPaging() )
-        {
-            params.setPage( DEFAULT_PAGE );
-            params.setPageSize( DEFAULT_PAGE_SIZE );
-            params.setSkipPaging( false );
-        }
-        else
-        {
-            params.setPage( operationParams.getPage() );
-            params.setPageSize( operationParams.getPageSize() );
-            params.setSkipPaging( operationParams.isSkipPaging() );
-        }
-        params.setTotalPages( operationParams.isTotalPages() );
-        params.setIncludeDeleted( operationParams.isIncludeDeleted() );
-        params.setUser( user );
-        params.setOrder( operationParams.getOrder() );
+    EnrollmentQueryParams params = new EnrollmentQueryParams();
+    params.setProgram(program);
+    params.setProgramStatus(operationParams.getProgramStatus());
+    params.setFollowUp(operationParams.getFollowUp());
+    params.setLastUpdated(operationParams.getLastUpdated());
+    params.setLastUpdatedDuration(operationParams.getLastUpdatedDuration());
+    params.setProgramStartDate(operationParams.getProgramStartDate());
+    params.setProgramEndDate(operationParams.getProgramEndDate());
+    params.setTrackedEntityType(trackedEntityType);
+    params.setTrackedEntity(trackedEntity);
+    params.addOrganisationUnits(orgUnits);
+    params.setOrganisationUnitMode(operationParams.getOrgUnitMode());
+    if (!params.isPaging() && !params.isSkipPaging()) {
+      params.setPage(DEFAULT_PAGE);
+      params.setPageSize(DEFAULT_PAGE_SIZE);
+      params.setSkipPaging(false);
+    } else {
+      params.setPage(operationParams.getPage());
+      params.setPageSize(operationParams.getPageSize());
+      params.setSkipPaging(operationParams.isSkipPaging());
+    }
+    params.setTotalPages(operationParams.isTotalPages());
+    params.setIncludeDeleted(operationParams.isIncludeDeleted());
+    params.setUser(user);
+    params.setOrder(operationParams.getOrder());
 
-        return params;
+    return params;
+  }
+
+  private Program validateProgram(String uid) throws BadRequestException {
+    if (uid == null) {
+      return null;
     }
 
-    private Program validateProgram( String uid )
-        throws BadRequestException
-    {
-        if ( uid == null )
-        {
-            return null;
-        }
-
-        Program program = programService.getProgram( uid );
-        if ( program == null )
-        {
-            throw new BadRequestException( "Program is specified but does not exist: " + uid );
-        }
-
-        return program;
+    Program program = programService.getProgram(uid);
+    if (program == null) {
+      throw new BadRequestException("Program is specified but does not exist: " + uid);
     }
 
-    private TrackedEntityType validateTrackedEntityType( String uid )
-        throws BadRequestException
-    {
-        if ( uid == null )
-        {
-            return null;
-        }
+    return program;
+  }
 
-        TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( uid );
-        if ( trackedEntityType == null )
-        {
-            throw new BadRequestException( "Tracked entity type is specified but does not exist: " + uid );
-        }
-
-        return trackedEntityType;
+  private TrackedEntityType validateTrackedEntityType(String uid) throws BadRequestException {
+    if (uid == null) {
+      return null;
     }
 
-    private TrackedEntity validateTrackedEntity( String uid )
-        throws BadRequestException
-    {
-        if ( uid == null )
-        {
-            return null;
-        }
-
-        TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity( uid );
-        if ( trackedEntity == null )
-        {
-            throw new BadRequestException( "Tracked entity is specified but does not exist: " + uid );
-        }
-
-        return trackedEntity;
+    TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType(uid);
+    if (trackedEntityType == null) {
+      throw new BadRequestException("Tracked entity type is specified but does not exist: " + uid);
     }
 
-    private Set<OrganisationUnit> validateOrgUnits( User user, Set<String> orgUnitUids, Program program )
-        throws BadRequestException,
-        ForbiddenException
-    {
-        Set<OrganisationUnit> orgUnits = new HashSet<>();
-        if ( orgUnitUids != null )
-        {
-            for ( String orgUnitUid : orgUnitUids )
-            {
-                OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(
-                    orgUnitUid );
+    return trackedEntityType;
+  }
 
-                if ( orgUnit == null )
-                {
-                    throw new BadRequestException( "Organisation unit does not exist: " + orgUnitUid );
-                }
+  private TrackedEntity validateTrackedEntity(String uid) throws BadRequestException {
+    if (uid == null) {
+      return null;
+    }
 
-                if ( !trackerAccessManager.canAccess( user, program, orgUnit ) )
-                {
-                    throw new ForbiddenException(
-                        "User does not have access to organisation unit: " + orgUnit.getUid() );
-                }
-                orgUnits.add( orgUnit );
-            }
+    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(uid);
+    if (trackedEntity == null) {
+      throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
+    }
+
+    return trackedEntity;
+  }
+
+  private Set<OrganisationUnit> validateOrgUnits(
+      User user, Set<String> orgUnitUids, Program program)
+      throws BadRequestException, ForbiddenException {
+    Set<OrganisationUnit> orgUnits = new HashSet<>();
+    if (orgUnitUids != null) {
+      for (String orgUnitUid : orgUnitUids) {
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
+
+        if (orgUnit == null) {
+          throw new BadRequestException("Organisation unit does not exist: " + orgUnitUid);
         }
 
-        return orgUnits;
+        if (!trackerAccessManager.canAccess(user, program, orgUnit)) {
+          throw new ForbiddenException(
+              "User does not have access to organisation unit: " + orgUnit.getUid());
+        }
+        orgUnits.add(orgUnit);
+      }
     }
+
+    return orgUnits;
+  }
 }

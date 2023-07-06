@@ -43,31 +43,29 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-class AppHubControllerTest extends DhisControllerConvenienceTest
-{
-    @Autowired
-    private DhisConfigurationProvider configuration;
+class AppHubControllerTest extends DhisControllerConvenienceTest {
+  @Autowired private DhisConfigurationProvider configuration;
 
-    @AfterEach
-    void cleanUp()
-    {
-        // back to default
-        configuration.getProperties().remove( ConfigurationKey.APPHUB_API_URL.getKey() );
-    }
+  @AfterEach
+  void cleanUp() {
+    // back to default
+    configuration.getProperties().remove(ConfigurationKey.APPHUB_API_URL.getKey());
+  }
 
-    @Test
-    void testListAppHub()
-    {
-        JsonArray apps = GET( "/appHub" ).content();
-        assertTrue( apps.isArray() );
-        assertTrue( apps.size() > 0, "There should be apps registered" );
-    }
+  @Test
+  void testListAppHub() {
+    JsonArray apps = GET("/appHub").content();
+    assertTrue(apps.isArray());
+    assertTrue(apps.size() > 0, "There should be apps registered");
+  }
 
-    @Test
-    void testGetAppHubApiResponse()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR",
-            "404 Not Found: \"{\"statusCode\":404,\"error\":\"Not Found\",\"message\":\"Not Found\"}\"",
-            GET( "/appHub/v37/test" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testGetAppHubApiResponse() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "404 Not Found: \"{\"statusCode\":404,\"error\":\"Not Found\",\"message\":\"Not Found\"}\"",
+        GET("/appHub/v37/test").content(HttpStatus.NOT_FOUND));
+  }
 }

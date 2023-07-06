@@ -34,17 +34,15 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityAttributeValueSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "trackedEntityAttributeValue";
+public class TrackedEntityAttributeValueSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "trackedEntityAttributeValue";
 
-    public static final String PLURAL = "trackedEntityAttributeValues";
+  public static final String PLURAL = "trackedEntityAttributeValues";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( TrackedEntityAttributeValue.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(TrackedEntityAttributeValue.class, SINGULAR, PLURAL);
+  }
 }

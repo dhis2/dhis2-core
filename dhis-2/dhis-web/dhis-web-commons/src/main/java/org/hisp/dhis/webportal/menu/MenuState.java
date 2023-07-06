@@ -30,9 +30,8 @@ package org.hisp.dhis.webportal.menu;
 /**
  * @author Torgeir Lorange Ostby
  */
-public enum MenuState
-{
-    HIDDEN,
-    VISIBLE,
-    EXTENDED
+public enum MenuState {
+  HIDDEN,
+  VISIBLE,
+  EXTENDED
 }

@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,177 +46,200 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Service;
 
-@Service( "org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper" )
-public class NotificationTemplateMapper
-{
+@Service("org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper")
+public class NotificationTemplateMapper {
 
-    public ProgramNotificationTemplate toProgramNotificationTemplate(
-        ProgramNotificationTemplateSnapshot templateSnapshot )
-    {
-        return toBaseIdentifiableObject( templateSnapshot, ProgramNotificationTemplate::new, List.of(
-            t -> t.setMessageTemplate( templateSnapshot.getMessageTemplate() ),
-            t -> t.setNotificationRecipient( templateSnapshot.getNotificationRecipient() ),
-            t -> t.setRecipientProgramAttribute(
-                toBaseIdentifiableObject( templateSnapshot.getRecipientProgramAttribute(),
-                    TrackedEntityAttribute::new, Collections.emptyList() ) ),
-            t -> t.setNotificationTrigger( templateSnapshot.getNotificationTrigger() ),
-            t -> t.setSubjectTemplate( templateSnapshot.getSubjectTemplate() ),
-            t -> t.setDeliveryChannels( templateSnapshot.getDeliveryChannels() ),
-            t -> t.setNotifyParentOrganisationUnitOnly( templateSnapshot.getNotifyParentOrganisationUnitOnly() ),
-            t -> t.setNotifyUsersInHierarchyOnly( templateSnapshot.getNotifyUsersInHierarchyOnly() ),
-            t -> t.setRecipientDataElement( toBaseIdentifiableObject( templateSnapshot.getRecipientDataElement(),
-                DataElement::new, Collections.emptyList() ) ),
-            t -> t.setRecipientUserGroup( toUserGroup( templateSnapshot.getRecipientUserGroup() ) ) ) );
+  public ProgramNotificationTemplate toProgramNotificationTemplate(
+      ProgramNotificationTemplateSnapshot templateSnapshot) {
+    return toBaseIdentifiableObject(
+        templateSnapshot,
+        ProgramNotificationTemplate::new,
+        List.of(
+            t -> t.setMessageTemplate(templateSnapshot.getMessageTemplate()),
+            t -> t.setNotificationRecipient(templateSnapshot.getNotificationRecipient()),
+            t ->
+                t.setRecipientProgramAttribute(
+                    toBaseIdentifiableObject(
+                        templateSnapshot.getRecipientProgramAttribute(),
+                        TrackedEntityAttribute::new,
+                        Collections.emptyList())),
+            t -> t.setNotificationTrigger(templateSnapshot.getNotificationTrigger()),
+            t -> t.setSubjectTemplate(templateSnapshot.getSubjectTemplate()),
+            t -> t.setDeliveryChannels(templateSnapshot.getDeliveryChannels()),
+            t ->
+                t.setNotifyParentOrganisationUnitOnly(
+                    templateSnapshot.getNotifyParentOrganisationUnitOnly()),
+            t -> t.setNotifyUsersInHierarchyOnly(templateSnapshot.getNotifyUsersInHierarchyOnly()),
+            t ->
+                t.setRecipientDataElement(
+                    toBaseIdentifiableObject(
+                        templateSnapshot.getRecipientDataElement(),
+                        DataElement::new,
+                        Collections.emptyList())),
+            t -> t.setRecipientUserGroup(toUserGroup(templateSnapshot.getRecipientUserGroup()))));
+  }
+
+  public ProgramNotificationTemplateSnapshot toProgramNotificationTemplateSnapshot(
+      ProgramNotificationTemplate template) {
+
+    return toIdentifiableObjectSnapshot(
+        template,
+        ProgramNotificationTemplateSnapshot::new,
+        List.of(
+            t -> t.setMessageTemplate(template.getMessageTemplate()),
+            t -> t.setNotificationRecipient(template.getNotificationRecipient()),
+            t ->
+                t.setRecipientProgramAttribute(
+                    toIdentifiableObjectSnapshot(
+                        template.getRecipientProgramAttribute(),
+                        IdentifiableObjectSnapshot::new,
+                        Collections.emptyList())),
+            t -> t.setNotificationTrigger(template.getNotificationTrigger()),
+            t -> t.setSubjectTemplate(template.getSubjectTemplate()),
+            t -> t.setDeliveryChannels(template.getDeliveryChannels()),
+            t ->
+                t.setNotifyParentOrganisationUnitOnly(
+                    template.getNotifyParentOrganisationUnitOnly()),
+            t -> t.setNotifyUsersInHierarchyOnly(template.getNotifyUsersInHierarchyOnly()),
+            t ->
+                t.setRecipientDataElement(
+                    toIdentifiableObjectSnapshot(
+                        template.getRecipientDataElement(),
+                        IdentifiableObjectSnapshot::new,
+                        Collections.emptyList())),
+            t -> t.setSendRepeatable(t.isSendRepeatable()),
+            t -> t.setRecipientUserGroup(toUserGroupSnapshot(template.getRecipientUserGroup()))));
+  }
+
+  private UserGroup toUserGroup(UserGroupSnapshot userGroupSnapshot) {
+    return toBaseIdentifiableObject(
+        userGroupSnapshot,
+        UserGroup::new,
+        List.of(ug -> ug.setMembers(toUsers(userGroupSnapshot.getMembers()))));
+  }
+
+  private UserGroupSnapshot toUserGroupSnapshot(UserGroup userGroup) {
+    return toIdentifiableObjectSnapshot(
+        userGroup,
+        UserGroupSnapshot::new,
+        List.of(ug -> ug.setMembers(toUserSnapshot(userGroup.getMembers(), 0))));
+  }
+
+  private Set<User> toUsers(Set<UserSnapshot> userSnapshots) {
+    Set<User> users = new HashSet<>();
+
+    for (UserSnapshot userSnapshot : userSnapshots) {
+      users.add(
+          toBaseIdentifiableObject(
+              userSnapshot,
+              User::new,
+              List.of(
+                  u -> u.setName(userSnapshot.getName()),
+                  u -> u.setUsername(userSnapshot.getUsername()),
+                  u -> u.setEmail(userSnapshot.getEmail()),
+                  u -> u.setPhoneNumber(userSnapshot.getPhoneNumber()),
+                  u ->
+                      u.setOrganisationUnits(
+                          singleton(toOrganisationUnit(userSnapshot.getOrganisationUnit()))))));
     }
+    return users;
+  }
 
-    public ProgramNotificationTemplateSnapshot toProgramNotificationTemplateSnapshot(
-        ProgramNotificationTemplate template )
-    {
+  private Set<UserSnapshot> toUserSnapshot(Set<User> users, int ouLevel) {
+    Set<UserSnapshot> userSnapshots = new HashSet<>();
 
-        return toIdentifiableObjectSnapshot( template, ProgramNotificationTemplateSnapshot::new, List.of(
-            t -> t.setMessageTemplate( template.getMessageTemplate() ),
-            t -> t.setNotificationRecipient( template.getNotificationRecipient() ),
-            t -> t.setRecipientProgramAttribute(
-                toIdentifiableObjectSnapshot( template.getRecipientProgramAttribute(), IdentifiableObjectSnapshot::new,
-                    Collections.emptyList() ) ),
-            t -> t.setNotificationTrigger( template.getNotificationTrigger() ),
-            t -> t.setSubjectTemplate( template.getSubjectTemplate() ),
-            t -> t.setDeliveryChannels( template.getDeliveryChannels() ),
-            t -> t.setNotifyParentOrganisationUnitOnly( template.getNotifyParentOrganisationUnitOnly() ),
-            t -> t.setNotifyUsersInHierarchyOnly( template.getNotifyUsersInHierarchyOnly() ),
-            t -> t.setRecipientDataElement(
-                toIdentifiableObjectSnapshot( template.getRecipientDataElement(), IdentifiableObjectSnapshot::new,
-                    Collections.emptyList() ) ),
-            t -> t.setSendRepeatable( t.isSendRepeatable() ),
-            t -> t.setRecipientUserGroup( toUserGroupSnapshot( template.getRecipientUserGroup() ) ) ) );
+    for (User user : users) {
+      userSnapshots.add(
+          toIdentifiableObjectSnapshot(
+              user,
+              UserSnapshot::new,
+              List.of(
+                  u -> u.setName(user.getName()),
+                  u -> u.setUsername(user.getUsername()),
+                  u -> u.setEmail(user.getEmail()),
+                  u -> u.setPhoneNumber(user.getPhoneNumber()),
+                  u ->
+                      u.setOrganisationUnit(
+                          toOrganisationUnitSnapshot(user.getOrganisationUnit(), ouLevel)))));
     }
+    return userSnapshots;
+  }
 
-    private UserGroup toUserGroup( UserGroupSnapshot userGroupSnapshot )
-    {
-        return toBaseIdentifiableObject( userGroupSnapshot, UserGroup::new, List.of(
-            ug -> ug.setMembers( toUsers( userGroupSnapshot.getMembers() ) ) ) );
-    }
-
-    private UserGroupSnapshot toUserGroupSnapshot(
-        UserGroup userGroup )
-    {
-        return toIdentifiableObjectSnapshot( userGroup,
-            UserGroupSnapshot::new, List.of(
-                ug -> ug.setMembers( toUserSnapshot( userGroup.getMembers(), 0 ) ) ) );
-    }
-
-    private Set<User> toUsers( Set<UserSnapshot> userSnapshots )
-    {
-        Set<User> users = new HashSet<>();
-
-        for ( UserSnapshot userSnapshot : userSnapshots )
-        {
-            users.add(
-                toBaseIdentifiableObject( userSnapshot, User::new,
-                    List.of(
-                        u -> u.setName( userSnapshot.getName() ),
-                        u -> u.setUsername( userSnapshot.getUsername() ),
-                        u -> u.setEmail( userSnapshot.getEmail() ),
-                        u -> u.setPhoneNumber( userSnapshot.getPhoneNumber() ),
-                        u -> u.setOrganisationUnits(
-                            singleton( toOrganisationUnit( userSnapshot.getOrganisationUnit() ) ) ) ) ) );
-        }
-        return users;
-    }
-
-    private Set<UserSnapshot> toUserSnapshot(
-        Set<User> users, int ouLevel )
-    {
-        Set<UserSnapshot> userSnapshots = new HashSet<>();
-
-        for ( User user : users )
-        {
-            userSnapshots.add(
-                toIdentifiableObjectSnapshot( user, UserSnapshot::new,
-                    List.of(
-                        u -> u.setName( user.getName() ),
-                        u -> u.setUsername( user.getUsername() ),
-                        u -> u.setEmail( user.getEmail() ),
-                        u -> u.setPhoneNumber( user.getPhoneNumber() ),
-                        u -> u.setOrganisationUnit(
-                            toOrganisationUnitSnapshot( user.getOrganisationUnit(), ouLevel ) ) ) ) );
-        }
-        return userSnapshots;
-    }
-
-    private OrganisationUnit toOrganisationUnit( OrganisationUnitSnapshot organisationUnitSnapshot )
-    {
-        return toBaseIdentifiableObject(
-            organisationUnitSnapshot,
-            OrganisationUnit::new,
-            List.of(
-                ou -> ou.setName( organisationUnitSnapshot.getName() ),
-                ou -> ou.setDescription( organisationUnitSnapshot.getDescription() ),
-                ou -> ou.setShortName( organisationUnitSnapshot.getShortName() ),
-                ou -> ou.setParent(
+  private OrganisationUnit toOrganisationUnit(OrganisationUnitSnapshot organisationUnitSnapshot) {
+    return toBaseIdentifiableObject(
+        organisationUnitSnapshot,
+        OrganisationUnit::new,
+        List.of(
+            ou -> ou.setName(organisationUnitSnapshot.getName()),
+            ou -> ou.setDescription(organisationUnitSnapshot.getDescription()),
+            ou -> ou.setShortName(organisationUnitSnapshot.getShortName()),
+            ou ->
+                ou.setParent(
                     organisationUnitSnapshot.getParent() != null
-                        ? toOrganisationUnit( organisationUnitSnapshot.getParent() )
-                        : null ),
-                ou -> ou.setUsers( toUsers( organisationUnitSnapshot.getUsers() ) ) ) );
+                        ? toOrganisationUnit(organisationUnitSnapshot.getParent())
+                        : null),
+            ou -> ou.setUsers(toUsers(organisationUnitSnapshot.getUsers()))));
+  }
+
+  private OrganisationUnitSnapshot toOrganisationUnitSnapshot(
+      OrganisationUnit organisationUnit, int level) {
+    if (level < 2) {
+      return toIdentifiableObjectSnapshot(
+          organisationUnit,
+          OrganisationUnitSnapshot::new,
+          List.of(
+              ou -> ou.setName(organisationUnit.getName()),
+              ou -> ou.setDescription(organisationUnit.getDescription()),
+              ou -> ou.setShortName(organisationUnit.getShortName()),
+              ou ->
+                  ou.setParent(
+                      organisationUnit.getParent() != null
+                          ? toOrganisationUnitSnapshot(organisationUnit.getParent(), level + 1)
+                          : null),
+              ou -> ou.setUsers(toUserSnapshot(organisationUnit.getUsers(), level + 1))));
     }
+    return null;
+  }
 
-    private OrganisationUnitSnapshot toOrganisationUnitSnapshot( OrganisationUnit organisationUnit,
-        int level )
-    {
-        if ( level < 2 )
-        {
-            return toIdentifiableObjectSnapshot(
-                organisationUnit,
-                OrganisationUnitSnapshot::new,
-                List.of(
-                    ou -> ou.setName( organisationUnit.getName() ),
-                    ou -> ou.setDescription( organisationUnit.getDescription() ),
-                    ou -> ou.setShortName( organisationUnit.getShortName() ),
-                    ou -> ou.setParent(
-                        organisationUnit.getParent() != null
-                            ? toOrganisationUnitSnapshot( organisationUnit.getParent(), level + 1 )
-                            : null ),
-                    ou -> ou.setUsers( toUserSnapshot( organisationUnit.getUsers(), level + 1 ) ) ) );
-        }
-        return null;
-    }
+  private <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot(
+      BaseIdentifiableObject from,
+      Supplier<T> instanceSupplier,
+      Collection<Consumer<T>> instanceTransformers) {
+    Optional<T> optionalInstance =
+        Optional.ofNullable(from)
+            .map(
+                baseIdentifiableObject -> {
+                  T instance = instanceSupplier.get();
+                  instance.setId(baseIdentifiableObject.getId());
+                  instance.setUid(baseIdentifiableObject.getUid());
+                  instance.setCode(baseIdentifiableObject.getCode());
+                  return instance;
+                });
 
-    private <T extends IdentifiableObjectSnapshot> T toIdentifiableObjectSnapshot( BaseIdentifiableObject from,
-        Supplier<T> instanceSupplier,
-        Collection<Consumer<T>> instanceTransformers )
-    {
-        Optional<T> optionalInstance = Optional.ofNullable( from )
-            .map( baseIdentifiableObject -> {
-                T instance = instanceSupplier.get();
-                instance.setId( baseIdentifiableObject.getId() );
-                instance.setUid( baseIdentifiableObject.getUid() );
-                instance.setCode( baseIdentifiableObject.getCode() );
-                return instance;
-            } );
+    optionalInstance.ifPresent(
+        t -> instanceTransformers.forEach(instanceTransformer -> instanceTransformer.accept(t)));
 
-        optionalInstance
-            .ifPresent( t -> instanceTransformers.forEach( instanceTransformer -> instanceTransformer.accept( t ) ) );
+    return optionalInstance.orElse(null);
+  }
 
-        return optionalInstance.orElse( null );
-    }
+  private <T extends BaseIdentifiableObject> T toBaseIdentifiableObject(
+      IdentifiableObjectSnapshot from,
+      Supplier<T> instanceSupplier,
+      Collection<Consumer<T>> instanceTransformers) {
+    Optional<T> optionalInstance =
+        Optional.ofNullable(from)
+            .map(
+                identifiableObjectSnapshot -> {
+                  T instance = instanceSupplier.get();
+                  instance.setId(identifiableObjectSnapshot.getId());
+                  instance.setUid(identifiableObjectSnapshot.getUid());
+                  instance.setCode(identifiableObjectSnapshot.getCode());
+                  return instance;
+                });
 
-    private <T extends BaseIdentifiableObject> T toBaseIdentifiableObject( IdentifiableObjectSnapshot from,
-        Supplier<T> instanceSupplier,
-        Collection<Consumer<T>> instanceTransformers )
-    {
-        Optional<T> optionalInstance = Optional.ofNullable( from )
-            .map( identifiableObjectSnapshot -> {
-                T instance = instanceSupplier.get();
-                instance.setId( identifiableObjectSnapshot.getId() );
-                instance.setUid( identifiableObjectSnapshot.getUid() );
-                instance.setCode( identifiableObjectSnapshot.getCode() );
-                return instance;
-            } );
+    optionalInstance.ifPresent(
+        t -> instanceTransformers.forEach(instanceTransformer -> instanceTransformer.accept(t)));
 
-        optionalInstance
-            .ifPresent( t -> instanceTransformers.forEach( instanceTransformer -> instanceTransformer.accept( t ) ) );
-
-        return optionalInstance.orElse( null );
-    }
-
+    return optionalInstance.orElse(null);
+  }
 }

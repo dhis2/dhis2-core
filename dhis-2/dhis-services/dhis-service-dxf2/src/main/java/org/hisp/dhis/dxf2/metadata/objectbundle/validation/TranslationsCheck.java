@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -44,95 +43,92 @@ import org.hisp.dhis.translation.Translation;
 import org.springframework.stereotype.Component;
 
 /**
- * This class contains all validations to be performed on {@link Translation}
- * objects as a part of the validation sequence in MetadataImportService
+ * This class contains all validations to be performed on {@link Translation} objects as a part of
+ * the validation sequence in MetadataImportService
  *
  * @author viet@dhis2.org
  */
 @Component
-public class TranslationsCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass, List<T> persistedObjects,
-        List<T> nonPersistedObjects, ImportStrategy importStrategy, ValidationContext context,
-        Consumer<ObjectReport> addReports )
-    {
-        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+public class TranslationsCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports) {
+    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
 
-        if ( CollectionUtils.isEmpty( objects ) )
-        {
-            return;
-        }
-
-        Schema schema = context.getSchemaService().getDynamicSchema( klass );
-
-        for ( int i = 0; i < objects.size(); i++ )
-        {
-            run( objects.get( i ), klass, addReports, schema, i );
-        }
+    if (CollectionUtils.isEmpty(objects)) {
+      return;
     }
 
-    public <T extends IdentifiableObject> void run( IdentifiableObject object, Class<T> klass,
-        Consumer<ObjectReport> addReports, Schema schema, int index )
-    {
-        Set<Translation> translations = object.getTranslations();
+    Schema schema = context.getSchemaService().getDynamicSchema(klass);
 
-        if ( CollectionUtils.isEmpty( translations ) )
-        {
-            return;
-        }
-
-        ObjectReport objectReport = new ObjectReport( klass, index );
-
-        if ( !schema.isTranslatable() )
-        {
-            objectReport.addErrorReport(
-                new ErrorReport( Translation.class, ErrorCode.E1107, klass.getSimpleName() ).setErrorKlass( klass ) );
-            addReports.accept( objectReport );
-            return;
-        }
-
-        Set<String> setPropertyLocales = new HashSet<>();
-
-        for ( Translation translation : translations )
-        {
-            String key = String.join( "_", translation.getProperty(), translation.getLocale() );
-
-            if ( setPropertyLocales.contains( key ) )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E1106, translation.getProperty(),
-                        translation.getLocale() )
-                        .setErrorKlass( klass ) );
-            }
-            else
-            {
-                setPropertyLocales.add( key );
-            }
-
-            if ( translation.getLocale() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( klass ) );
-            }
-
-            if ( translation.getProperty() == null )
-            {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" )
-                    .setErrorKlass( klass ) );
-            }
-
-            if ( translation.getValue() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( klass ) );
-            }
-
-        }
-
-        if ( objectReport.hasErrorReports() )
-        {
-            addReports.accept( objectReport );
-        }
+    for (int i = 0; i < objects.size(); i++) {
+      run(objects.get(i), klass, addReports, schema, i);
     }
+  }
+
+  public <T extends IdentifiableObject> void run(
+      IdentifiableObject object,
+      Class<T> klass,
+      Consumer<ObjectReport> addReports,
+      Schema schema,
+      int index) {
+    Set<Translation> translations = object.getTranslations();
+
+    if (CollectionUtils.isEmpty(translations)) {
+      return;
+    }
+
+    ObjectReport objectReport = new ObjectReport(klass, index);
+
+    if (!schema.isTranslatable()) {
+      objectReport.addErrorReport(
+          new ErrorReport(Translation.class, ErrorCode.E1107, klass.getSimpleName())
+              .setErrorKlass(klass));
+      addReports.accept(objectReport);
+      return;
+    }
+
+    Set<String> setPropertyLocales = new HashSet<>();
+
+    for (Translation translation : translations) {
+      String key = String.join("_", translation.getProperty(), translation.getLocale());
+
+      if (setPropertyLocales.contains(key)) {
+        objectReport.addErrorReport(
+            new ErrorReport(
+                    Translation.class,
+                    ErrorCode.E1106,
+                    translation.getProperty(),
+                    translation.getLocale())
+                .setErrorKlass(klass));
+      } else {
+        setPropertyLocales.add(key);
+      }
+
+      if (translation.getLocale() == null) {
+        objectReport.addErrorReport(
+            new ErrorReport(Translation.class, ErrorCode.E4000, "locale").setErrorKlass(klass));
+      }
+
+      if (translation.getProperty() == null) {
+        objectReport.addErrorReport(
+            new ErrorReport(Translation.class, ErrorCode.E4000, "property").setErrorKlass(klass));
+      }
+
+      if (translation.getValue() == null) {
+        objectReport.addErrorReport(
+            new ErrorReport(Translation.class, ErrorCode.E4000, "value").setErrorKlass(klass));
+      }
+    }
+
+    if (objectReport.hasErrorReports()) {
+      addReports.accept(objectReport);
+    }
+  }
 }

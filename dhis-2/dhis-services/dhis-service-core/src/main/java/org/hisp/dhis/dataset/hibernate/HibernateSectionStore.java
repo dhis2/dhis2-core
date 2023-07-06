@@ -28,9 +28,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,36 +44,47 @@ import org.springframework.stereotype.Repository;
  * @author Tri
  */
 @Repository
-public class HibernateSectionStore
-    extends HibernateIdentifiableObjectStore<Section>
-    implements SectionStore
-{
-    public HibernateSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Section.class, currentUserService, aclService, true );
-    }
+public class HibernateSectionStore extends HibernateIdentifiableObjectStore<Section>
+    implements SectionStore {
+  public HibernateSectionStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Section.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public Section getSectionByName( String name, DataSet dataSet )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public Section getSectionByName(String name, DataSet dataSet) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
-            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("name"), name))
+            .addPredicate(root -> builder.equal(root.get("dataSet"), dataSet)));
+  }
 
-    @Override
-    public List<Section> getSectionsByDataElement( String dataElementUid )
-    {
-        String hql = "select * from section s"
+  @Override
+  public List<Section> getSectionsByDataElement(String dataElementUid) {
+    String hql =
+        "select * from section s"
             + " left join sectiondataelements sde on s.sectionid = sde.sectionid"
             + " left join sectiongreyedfields sgf on s.sectionid = sgf.sectionid"
             + " left join dataelementoperand deo on sgf.dataelementoperandid = deo.dataelementoperandid"
             + ", dataelement de"
             + " where de.uid = :dataElementId and (sde.dataelementid = de.dataelementid or deo.dataelementid = de.dataelementid);";
-        return getSession().createNativeQuery( hql, Section.class ).setParameter( "dataElementId", dataElementUid )
-            .list();
-    }
+    return getSession()
+        .createNativeQuery(hql, Section.class)
+        .setParameter("dataElementId", dataElementUid)
+        .list();
+  }
 }

@@ -28,50 +28,45 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /**
- * Adapter interface to write {@link DataValueSet} data to different output
- * formats like JSON, XML and CSV.
+ * Adapter interface to write {@link DataValueSet} data to different output formats like JSON, XML
+ * and CSV.
  *
- * Data is written by the following method call sequence:
+ * <p>Data is written by the following method call sequence:
+ *
  * <ol>
- * <li>{@link #writeHeader()} or
- * {@link #writeHeader(String, String, String, String)}</li>
- * <li>0 or more times {@link #writeValue(DataValueEntry)}</li>
- * <li>{@link #close()}</li>
+ *   <li>{@link #writeHeader()} or {@link #writeHeader(String, String, String, String)}
+ *   <li>0 or more times {@link #writeValue(DataValueEntry)}
+ *   <li>{@link #close()}
  * </ol>
  *
  * All methods might throw an {@link java.io.UncheckedIOException}.
  *
  * @author Jan Bernitt
- *
  * @see XmlDataValueSetWriter
  * @see JsonDataValueSetWriter
  * @see CsvDataValueSetWriter
  */
-public interface DataValueSetWriter extends AutoCloseable
-{
-    /**
-     * Add a minimum document header to the output, so it is ready for calls of
-     * {@link #writeValue(DataValueEntry)}
-     */
-    void writeHeader();
+public interface DataValueSetWriter extends AutoCloseable {
+  /**
+   * Add a minimum document header to the output, so it is ready for calls of {@link
+   * #writeValue(DataValueEntry)}
+   */
+  void writeHeader();
 
-    /**
-     * Add a header with the provided information to the output. Afterwards the
-     * output should be ready for calls to {@link #writeValue(DataValueEntry)}.
-     *
-     * @param dataSetId ID of the written dataset
-     * @param completeDate the completeDate of the set
-     * @param isoPeriod the period of the set
-     * @param orgUnitId the organisation unit of the set
-     */
-    void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId );
+  /**
+   * Add a header with the provided information to the output. Afterwards the output should be ready
+   * for calls to {@link #writeValue(DataValueEntry)}.
+   *
+   * @param dataSetId ID of the written dataset
+   * @param completeDate the completeDate of the set
+   * @param isoPeriod the period of the set
+   * @param orgUnitId the organisation unit of the set
+   */
+  void writeHeader(String dataSetId, String completeDate, String isoPeriod, String orgUnitId);
 
-    void writeValue( DataValueEntry entry );
+  void writeValue(DataValueEntry entry);
 
-    /**
-     * Add the document footer to the output and close the document.
-     */
-    @Override
-    void close();
-
+  /** Add the document footer to the output and close the document. */
+  @Override
+  void close();
 }

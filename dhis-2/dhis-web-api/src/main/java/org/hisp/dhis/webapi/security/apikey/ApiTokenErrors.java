@@ -30,41 +30,29 @@ package org.hisp.dhis.webapi.security.apikey;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.BearerTokenErrorCodes;
 
-public final class ApiTokenErrors
-{
+public final class ApiTokenErrors {
 
-    private static final ApiTokenError DEFAULT_INVALID_REQUEST = invalidRequest( "Invalid request" );
+  private static final ApiTokenError DEFAULT_INVALID_REQUEST = invalidRequest("Invalid request");
 
-    private static final ApiTokenError DEFAULT_INVALID_TOKEN = invalidToken( "Invalid token" );
+  private static final ApiTokenError DEFAULT_INVALID_TOKEN = invalidToken("Invalid token");
 
-    private ApiTokenErrors()
-    {
+  private ApiTokenErrors() {}
+
+  public static ApiTokenError invalidRequest(String message) {
+    try {
+      return new ApiTokenError(
+          BearerTokenErrorCodes.INVALID_REQUEST, HttpStatus.BAD_REQUEST, message, null);
+    } catch (IllegalArgumentException ex) {
+      return DEFAULT_INVALID_REQUEST;
     }
+  }
 
-    public static ApiTokenError invalidRequest( String message )
-    {
-        try
-        {
-            return new ApiTokenError( BearerTokenErrorCodes.INVALID_REQUEST, HttpStatus.BAD_REQUEST, message,
-                null );
-        }
-        catch ( IllegalArgumentException ex )
-        {
-            return DEFAULT_INVALID_REQUEST;
-        }
+  public static ApiTokenError invalidToken(String message) {
+    try {
+      return new ApiTokenError(
+          BearerTokenErrorCodes.INVALID_TOKEN, HttpStatus.UNAUTHORIZED, message, null);
+    } catch (IllegalArgumentException ex) {
+      return DEFAULT_INVALID_TOKEN;
     }
-
-    public static ApiTokenError invalidToken( String message )
-    {
-        try
-        {
-            return new ApiTokenError( BearerTokenErrorCodes.INVALID_TOKEN, HttpStatus.UNAUTHORIZED, message,
-                null );
-        }
-        catch ( IllegalArgumentException ex )
-        {
-            return DEFAULT_INVALID_TOKEN;
-        }
-    }
-
+  }
 }

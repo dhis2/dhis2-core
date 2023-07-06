@@ -35,9 +35,8 @@ import java.lang.annotation.Target;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Target( { ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface Description
-{
-    String value();
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Description {
+  String value();
 }

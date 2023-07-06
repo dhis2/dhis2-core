@@ -34,27 +34,23 @@ import java.util.Collections;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public final class TestJwtClaimsSets
-{
-    private TestJwtClaimsSets()
-    {
-    }
+public final class TestJwtClaimsSets {
+  private TestJwtClaimsSets() {}
 
-    public static JwtClaimsSet.Builder jwtClaimsSet( final String providerURI, String clientId,
-        String customClaimKey1, String customClaimValue1 )
-    {
-        String issuer = "https://" + providerURI;
-        Instant issuedAt = Instant.now();
-        Instant expiresAt = issuedAt.plus( 1, ChronoUnit.HOURS );
+  public static JwtClaimsSet.Builder jwtClaimsSet(
+      final String providerURI, String clientId, String customClaimKey1, String customClaimValue1) {
+    String issuer = "https://" + providerURI;
+    Instant issuedAt = Instant.now();
+    Instant expiresAt = issuedAt.plus(1, ChronoUnit.HOURS);
 
-        return JwtClaimsSet.builder()
-            .issuer( issuer )
-            .subject( "subject" )
-            .audience( Collections.singletonList( clientId ) )
-            .issuedAt( issuedAt )
-            .notBefore( issuedAt )
-            .expiresAt( expiresAt )
-            .id( "jti" )
-            .claim( customClaimKey1, customClaimValue1 );
-    }
+    return JwtClaimsSet.builder()
+        .issuer(issuer)
+        .subject("subject")
+        .audience(Collections.singletonList(clientId))
+        .issuedAt(issuedAt)
+        .notBefore(issuedAt)
+        .expiresAt(expiresAt)
+        .id("jti")
+        .claim(customClaimKey1, customClaimValue1);
+  }
 }

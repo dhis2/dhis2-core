@@ -27,21 +27,6 @@
  */
 package org.hisp.dhis.commons.jackson.config;
 
-import java.time.Instant;
-import java.util.Date;
-
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
-import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
-import org.hisp.dhis.dataexchange.aggregate.Api;
-import org.hisp.dhis.dataexchange.aggregate.ApiSerializer;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.PrecisionModel;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -57,164 +42,165 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.time.Instant;
+import java.util.Date;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.commons.jackson.config.geometry.GeometrySerializer;
+import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
+import org.hisp.dhis.dataexchange.aggregate.Api;
+import org.hisp.dhis.dataexchange.aggregate.ApiSerializer;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
- * Main Jackson Mapper configuration. Any component that requires JSON/XML
- * serialization should use the Jackson mappers configured in this class.
+ * Main Jackson Mapper configuration. Any component that requires JSON/XML serialization should use
+ * the Jackson mappers configured in this class.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Configuration
-public class JacksonObjectMapperConfig
-{
-    /*
-     * Standard JSON mapper.
-     */
-    public static final ObjectMapper jsonMapper = configureMapper( new ObjectMapper() );
+public class JacksonObjectMapperConfig {
+  /*
+   * Standard JSON mapper.
+   */
+  public static final ObjectMapper jsonMapper = configureMapper(new ObjectMapper());
 
-    /*
-     * Standard mapper that have {@link Hibernate5Module} registered.
-     */
-    public static final ObjectMapper hibernateAwareJsonMapper = configureMapper( new ObjectMapper() );
+  /*
+   * Standard mapper that have {@link Hibernate5Module} registered.
+   */
+  public static final ObjectMapper hibernateAwareJsonMapper = configureMapper(new ObjectMapper());
 
-    /*
-     * Standard JSON mapper for Program Stage Instance data values.
-     */
-    public static final ObjectMapper dataValueJsonMapper = configureMapper( new ObjectMapper(), true );
+  /*
+   * Standard JSON mapper for Program Stage Instance data values.
+   */
+  public static final ObjectMapper dataValueJsonMapper = configureMapper(new ObjectMapper(), true);
 
-    /*
-     * Standard XML mapper.
-     */
-    public static final ObjectMapper xmlMapper = configureMapper( new XmlMapper() );
+  /*
+   * Standard XML mapper.
+   */
+  public static final ObjectMapper xmlMapper = configureMapper(new XmlMapper());
 
-    /**
-     * Standard CSV mapper.
-     */
-    public static final CsvMapper csvMapper = configureCsvMapper( new CsvMapper() );
+  /** Standard CSV mapper. */
+  public static final CsvMapper csvMapper = configureCsvMapper(new CsvMapper());
 
-    @Primary
-    @Bean( "jsonMapper" )
-    public ObjectMapper jsonMapper()
-    {
-        return jsonMapper;
+  @Primary
+  @Bean("jsonMapper")
+  public ObjectMapper jsonMapper() {
+    return jsonMapper;
+  }
+
+  @Bean("hibernateAwareJsonMapper")
+  public ObjectMapper hibernateAwareJsonMapper(SessionFactory sessionFactory) {
+    Hibernate5Module hibernate5Module = new Hibernate5Module(sessionFactory);
+    hibernate5Module.enable(
+        Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS);
+    hibernateAwareJsonMapper.registerModule(hibernate5Module);
+    return hibernateAwareJsonMapper;
+  }
+
+  @Bean("dataValueJsonMapper")
+  public ObjectMapper dataValueJsonMapper() {
+    return dataValueJsonMapper;
+  }
+
+  @Bean("xmlMapper")
+  public ObjectMapper xmlMapper() {
+    return xmlMapper;
+  }
+
+  @Bean
+  public CsvMapper csvMapper() {
+    return csvMapper;
+  }
+
+  public static ObjectMapper staticJsonMapper() {
+    return jsonMapper;
+  }
+
+  public static ObjectMapper staticXmlMapper() {
+    return xmlMapper;
+  }
+
+  static {
+    JtsModule jtsModule = new JtsModule(new GeometryFactory(new PrecisionModel(), 4326));
+    jtsModule.addSerializer(Geometry.class, new GeometrySerializer());
+    jsonMapper.registerModule(jtsModule);
+    dataValueJsonMapper.registerModule(jtsModule);
+    xmlMapper.registerModule(new JtsXmlModule());
+  }
+
+  private static ObjectMapper configureMapper(ObjectMapper objectMapper) {
+    return configureMapper(objectMapper, false);
+  }
+
+  /**
+   * Provides shared configuration for all Jackson mappers.
+   *
+   * @param objectMapper an {@see ObjectMapper}
+   * @param autoDetectGetters if true, enable `autoDetectGetters`
+   * @return a configured {@see ObjectMapper}
+   */
+  private static ObjectMapper configureMapper(
+      ObjectMapper objectMapper, boolean autoDetectGetters) {
+    SimpleModule module = new SimpleModule();
+    module.addDeserializer(String.class, new EmptyStringToNullStdDeserializer());
+    module.addDeserializer(Date.class, new ParseDateStdDeserializer());
+    module.addDeserializer(JsonPointer.class, new JsonPointerStdDeserializer());
+    module.addSerializer(Date.class, new WriteDateStdSerializer());
+    module.addSerializer(JsonPointer.class, new JsonPointerStdSerializer());
+    module.addSerializer(Api.class, new ApiSerializer());
+
+    // Registering a custom Instant serializer/deserializer for DTOs
+    JavaTimeModule javaTimeModule = new JavaTimeModule();
+    javaTimeModule.addSerializer(Instant.class, new WriteInstantStdSerializer());
+    javaTimeModule.addDeserializer(Instant.class, new ParseInstantStdDeserializer());
+
+    objectMapper.registerModules(module, javaTimeModule, new Jdk8Module());
+
+    objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    objectMapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
+    objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    objectMapper.enable(SerializationFeature.WRAP_EXCEPTIONS);
+
+    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    objectMapper.disable(DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY);
+    objectMapper.enable(DeserializationFeature.WRAP_EXCEPTIONS);
+
+    objectMapper.disable(MapperFeature.AUTO_DETECT_FIELDS);
+    objectMapper.disable(MapperFeature.AUTO_DETECT_CREATORS);
+
+    if (!autoDetectGetters) {
+      objectMapper.disable(MapperFeature.AUTO_DETECT_GETTERS);
     }
 
-    @Bean( "hibernateAwareJsonMapper" )
-    public ObjectMapper hibernateAwareJsonMapper( SessionFactory sessionFactory )
-    {
-        Hibernate5Module hibernate5Module = new Hibernate5Module( sessionFactory );
-        hibernate5Module.enable( Hibernate5Module.Feature.SERIALIZE_IDENTIFIER_FOR_LAZY_NOT_LOADED_OBJECTS );
-        hibernateAwareJsonMapper.registerModule( hibernate5Module );
-        return hibernateAwareJsonMapper;
-    }
+    objectMapper.disable(MapperFeature.AUTO_DETECT_SETTERS);
+    objectMapper.disable(MapperFeature.AUTO_DETECT_IS_GETTERS);
 
-    @Bean( "dataValueJsonMapper" )
-    public ObjectMapper dataValueJsonMapper()
-    {
-        return dataValueJsonMapper;
-    }
+    return objectMapper;
+  }
 
-    @Bean( "xmlMapper" )
-    public ObjectMapper xmlMapper()
-    {
-        return xmlMapper;
-    }
+  /**
+   * Configures the shared CSV mapper.
+   *
+   * @param mapper the {@link CsvMapper}.
+   * @return the {@link CsvMapper}.
+   */
+  private static CsvMapper configureCsvMapper(CsvMapper mapper) {
+    mapper.disable(CsvParser.Feature.FAIL_ON_MISSING_COLUMNS);
+    mapper.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
 
-    @Bean
-    public CsvMapper csvMapper()
-    {
-        return csvMapper;
-    }
+    mapper.registerModule(
+        new SimpleModule()
+            .addSerializer(Date.class, new WriteDateStdSerializer())
+            .addSerializer(Instant.class, new WriteInstantStdSerializer()));
 
-    public static ObjectMapper staticJsonMapper()
-    {
-        return jsonMapper;
-    }
+    mapper.registerModule(new Jdk8Module());
 
-    public static ObjectMapper staticXmlMapper()
-    {
-        return xmlMapper;
-    }
-
-    static
-    {
-        JtsModule jtsModule = new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) );
-        jtsModule.addSerializer( Geometry.class, new GeometrySerializer() );
-        jsonMapper.registerModule( jtsModule );
-        dataValueJsonMapper.registerModule( jtsModule );
-        xmlMapper.registerModule( new JtsXmlModule() );
-    }
-
-    private static ObjectMapper configureMapper( ObjectMapper objectMapper )
-    {
-        return configureMapper( objectMapper, false );
-    }
-
-    /**
-     * Provides shared configuration for all Jackson mappers.
-     *
-     * @param objectMapper an {@see ObjectMapper}
-     * @param autoDetectGetters if true, enable `autoDetectGetters`
-     * @return a configured {@see ObjectMapper}
-     */
-    private static ObjectMapper configureMapper( ObjectMapper objectMapper, boolean autoDetectGetters )
-    {
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addDeserializer( JsonPointer.class, new JsonPointerStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-        module.addSerializer( JsonPointer.class, new JsonPointerStdSerializer() );
-        module.addSerializer( Api.class, new ApiSerializer() );
-
-        // Registering a custom Instant serializer/deserializer for DTOs
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        javaTimeModule.addSerializer( Instant.class, new WriteInstantStdSerializer() );
-        javaTimeModule.addDeserializer( Instant.class, new ParseInstantStdDeserializer() );
-
-        objectMapper.registerModules( module, javaTimeModule, new Jdk8Module() );
-
-        objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-        objectMapper.setDefaultPropertyInclusion( JsonInclude.Include.NON_NULL );
-        objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
-        objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
-        objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
-
-        objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        objectMapper.disable( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY );
-        objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
-
-        objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
-
-        if ( !autoDetectGetters )
-        {
-            objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        }
-
-        objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        return objectMapper;
-    }
-
-    /**
-     * Configures the shared CSV mapper.
-     *
-     * @param mapper the {@link CsvMapper}.
-     * @return the {@link CsvMapper}.
-     */
-    private static CsvMapper configureCsvMapper( CsvMapper mapper )
-    {
-        mapper.disable( CsvParser.Feature.FAIL_ON_MISSING_COLUMNS );
-        mapper.configure( JsonGenerator.Feature.IGNORE_UNKNOWN, true );
-
-        mapper.registerModule( new SimpleModule()
-            .addSerializer( Date.class, new WriteDateStdSerializer() )
-            .addSerializer( Instant.class, new WriteInstantStdSerializer() ) );
-
-        mapper.registerModule( new Jdk8Module() );
-
-        return mapper;
-    }
+    return mapper;
+  }
 }

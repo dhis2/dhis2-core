@@ -30,54 +30,41 @@ package org.hisp.dhis.webapi.controller.tracker;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.Enrollment}.
- */
-public interface JsonEnrollment extends JsonObject
-{
-    default String getEnrollment()
-    {
-        return getString( "enrollment" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Enrollment}. */
+public interface JsonEnrollment extends JsonObject {
+  default String getEnrollment() {
+    return getString("enrollment").string();
+  }
 
-    default String getTrackedEntity()
-    {
-        return getString( "trackedEntity" ).string();
-    }
+  default String getTrackedEntity() {
+    return getString("trackedEntity").string();
+  }
 
-    default String getProgram()
-    {
-        return getString( "program" ).string();
-    }
+  default String getProgram() {
+    return getString("program").string();
+  }
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+  default String getStatus() {
+    return getString("status").string();
+  }
 
-    default String getOrgUnit()
-    {
-        return getString( "orgUnit" ).string();
-    }
+  default String getOrgUnit() {
+    return getString("orgUnit").string();
+  }
 
-    default String getOrgUnitName()
-    {
-        return getString( "orgUnitName" ).string();
-    }
+  default String getOrgUnitName() {
+    return getString("orgUnitName").string();
+  }
 
-    default JsonList<JsonEvent> getEvents()
-    {
-        return get( "events" ).asList( JsonEvent.class );
-    }
+  default JsonList<JsonEvent> getEvents() {
+    return get("events").asList(JsonEvent.class);
+  }
 
-    default JsonList<JsonAttribute> getAttributes()
-    {
-        return get( "attributes" ).asList( JsonAttribute.class );
-    }
+  default JsonList<JsonAttribute> getAttributes() {
+    return get("attributes").asList(JsonAttribute.class);
+  }
 
-    default JsonList<JsonNote> getNotes()
-    {
-        return get( "notes" ).asList( JsonNote.class );
-    }
+  default JsonList<JsonNote> getNotes() {
+    return get("notes").asList(JsonNote.class);
+  }
 }

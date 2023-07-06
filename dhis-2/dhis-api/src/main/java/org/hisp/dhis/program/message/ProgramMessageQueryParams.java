@@ -29,160 +29,142 @@ package org.hisp.dhis.program.message;
 
 import java.util.Date;
 import java.util.Set;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class ProgramMessageQueryParams
-{
-    private Set<String> organisationUnit;
+public class ProgramMessageQueryParams {
+  private Set<String> organisationUnit;
 
-    private ProgramMessageStatus messageStatus;
+  private ProgramMessageStatus messageStatus;
 
-    private Enrollment enrollment;
+  private Enrollment enrollment;
 
-    private Event event;
+  private Event event;
 
-    private Date afterDate;
+  private Date afterDate;
 
-    private Date beforeDate;
+  private Date beforeDate;
 
-    private Integer page;
+  private Integer page;
 
-    private Integer pageSize;
+  private Integer pageSize;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ProgramMessageQueryParams()
-    {
-        super();
-    }
+  public ProgramMessageQueryParams() {
+    super();
+  }
 
-    public ProgramMessageQueryParams( Set<String> organisationUnit, ProgramMessageStatus messageStatus,
-        Enrollment enrollment, Event event, Date afterDate, Date beforeDate,
-        Integer page, Integer pageSize )
-    {
-        super();
-        this.organisationUnit = organisationUnit;
-        this.messageStatus = messageStatus;
-        this.enrollment = enrollment;
-        this.event = event;
-        this.afterDate = afterDate;
-        this.beforeDate = beforeDate;
-        this.page = page;
-        this.pageSize = pageSize;
-    }
+  public ProgramMessageQueryParams(
+      Set<String> organisationUnit,
+      ProgramMessageStatus messageStatus,
+      Enrollment enrollment,
+      Event event,
+      Date afterDate,
+      Date beforeDate,
+      Integer page,
+      Integer pageSize) {
+    super();
+    this.organisationUnit = organisationUnit;
+    this.messageStatus = messageStatus;
+    this.enrollment = enrollment;
+    this.event = event;
+    this.afterDate = afterDate;
+    this.beforeDate = beforeDate;
+    this.page = page;
+    this.pageSize = pageSize;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean hasOrignisationUnit()
-    {
-        return organisationUnit != null;
-    }
+  public boolean hasOrignisationUnit() {
+    return organisationUnit != null;
+  }
 
-    public boolean hasEnrollment()
-    {
-        return enrollment != null;
-    }
+  public boolean hasEnrollment() {
+    return enrollment != null;
+  }
 
-    public boolean hasEvent()
-    {
-        return event != null;
-    }
+  public boolean hasEvent() {
+    return event != null;
+  }
 
-    public boolean hasPaging()
-    {
-        return page != null && pageSize != null;
-    }
+  public boolean hasPaging() {
+    return page != null && pageSize != null;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and Setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and Setters
+  // -------------------------------------------------------------------------
 
-    public Enrollment getEnrollment()
-    {
-        return enrollment;
-    }
+  public Enrollment getEnrollment() {
+    return enrollment;
+  }
 
-    public void setEnrollment( Enrollment enrollment )
-    {
-        this.enrollment = enrollment;
-    }
+  public void setEnrollment(Enrollment enrollment) {
+    this.enrollment = enrollment;
+  }
 
-    public Event getEvent()
-    {
-        return event;
-    }
+  public Event getEvent() {
+    return event;
+  }
 
-    public void setEvent( Event event )
-    {
-        this.event = event;
-    }
+  public void setEvent(Event event) {
+    this.event = event;
+  }
 
-    public Set<String> getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
+  public Set<String> getOrganisationUnit() {
+    return organisationUnit;
+  }
 
-    public void setOrganisationUnit( Set<String> organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
+  public void setOrganisationUnit(Set<String> organisationUnit) {
+    this.organisationUnit = organisationUnit;
+  }
 
-    public Integer getPage()
-    {
-        return page;
-    }
+  public Integer getPage() {
+    return page;
+  }
 
-    public void setPage( Integer page )
-    {
-        this.page = page;
-    }
+  public void setPage(Integer page) {
+    this.page = page;
+  }
 
-    public Integer getPageSize()
-    {
-        return pageSize;
-    }
+  public Integer getPageSize() {
+    return pageSize;
+  }
 
-    public void setPageSize( Integer pageSize )
-    {
-        this.pageSize = pageSize;
-    }
+  public void setPageSize(Integer pageSize) {
+    this.pageSize = pageSize;
+  }
 
-    public ProgramMessageStatus getMessageStatus()
-    {
-        return messageStatus;
-    }
+  public ProgramMessageStatus getMessageStatus() {
+    return messageStatus;
+  }
 
-    public void setMessageStatus( ProgramMessageStatus messageStatus )
-    {
-        this.messageStatus = messageStatus;
-    }
+  public void setMessageStatus(ProgramMessageStatus messageStatus) {
+    this.messageStatus = messageStatus;
+  }
 
-    public Date getAfterDate()
-    {
-        return afterDate;
-    }
+  public Date getAfterDate() {
+    return afterDate;
+  }
 
-    public void setAfterDate( Date afterDate )
-    {
-        this.afterDate = afterDate;
-    }
+  public void setAfterDate(Date afterDate) {
+    this.afterDate = afterDate;
+  }
 
-    public Date getBeforeDate()
-    {
-        return beforeDate;
-    }
+  public Date getBeforeDate() {
+    return beforeDate;
+  }
 
-    public void setBeforeDate( Date beforeDate )
-    {
-        this.beforeDate = beforeDate;
-    }
+  public void setBeforeDate(Date beforeDate) {
+    this.beforeDate = beforeDate;
+  }
 }

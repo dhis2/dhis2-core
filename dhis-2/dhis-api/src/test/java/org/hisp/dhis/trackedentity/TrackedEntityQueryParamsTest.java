@@ -31,35 +31,31 @@ import static org.hisp.dhis.common.AssignedUserSelectionMode.PROVIDED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TrackedEntityQueryParamsTest
-{
+class TrackedEntityQueryParamsTest {
 
-    private TrackedEntityQueryParams params;
+  private TrackedEntityQueryParams params;
 
-    private User current;
+  private User current;
 
-    @BeforeEach
-    void setUp()
-    {
-        current = new User();
-        current.setUid( "Kj6vYde4LHh" );
+  @BeforeEach
+  void setUp() {
+    current = new User();
+    current.setUid("Kj6vYde4LHh");
 
-        params = new TrackedEntityQueryParams();
-    }
+    params = new TrackedEntityQueryParams();
+  }
 
-    @Test
-    void testUserWithAssignedUsersGivenCurrentUserAndModeProvidedWithUsers()
-    {
+  @Test
+  void testUserWithAssignedUsersGivenCurrentUserAndModeProvidedWithUsers() {
 
-        params.setUserWithAssignedUsers( PROVIDED, current, Set.of( "f1AyMswryyX" ) );
+    params.setUserWithAssignedUsers(PROVIDED, current, Set.of("f1AyMswryyX"));
 
-        assertEquals( current, params.getUser() );
-        assertEquals( PROVIDED, params.getAssignedUserQueryParam().getMode() );
-        assertEquals( Set.of( "f1AyMswryyX" ), params.getAssignedUserQueryParam().getAssignedUsers() );
-    }
+    assertEquals(current, params.getUser());
+    assertEquals(PROVIDED, params.getAssignedUserQueryParam().getMode());
+    assertEquals(Set.of("f1AyMswryyX"), params.getAssignedUserQueryParam().getAssignedUsers());
+  }
 }

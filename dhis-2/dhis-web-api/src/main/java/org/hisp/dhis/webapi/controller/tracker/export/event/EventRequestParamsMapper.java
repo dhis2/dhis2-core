@@ -35,9 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -52,134 +50,138 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps query parameters from {@link EventsExportController} stored in
- * {@link RequestParams} to {@link EventOperationParams} which is used to fetch
- * events from the DB.
+ * Maps query parameters from {@link EventsExportController} stored in {@link RequestParams} to
+ * {@link EventOperationParams} which is used to fetch events from the DB.
  */
 @Component
 @RequiredArgsConstructor
-class EventRequestParamsMapper
-{
-    private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
+class EventRequestParamsMapper {
+  private static final Set<String> SORTABLE_PROPERTIES =
+      JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
-    public EventOperationParams map( RequestParams requestParams )
-        throws BadRequestException
-    {
-        UID attributeCategoryCombo = validateDeprecatedUidParameter( "attributeCc", requestParams.getAttributeCc(),
-            "attributeCategoryCombo", requestParams.getAttributeCategoryCombo() );
+  public EventOperationParams map(RequestParams requestParams) throws BadRequestException {
+    UID attributeCategoryCombo =
+        validateDeprecatedUidParameter(
+            "attributeCc",
+            requestParams.getAttributeCc(),
+            "attributeCategoryCombo",
+            requestParams.getAttributeCategoryCombo());
 
-        Set<UID> attributeCategoryOptions = validateDeprecatedUidsParameter( "attributeCos",
+    Set<UID> attributeCategoryOptions =
+        validateDeprecatedUidsParameter(
+            "attributeCos",
             requestParams.getAttributeCos(),
             "attributeCategoryOptions",
-            requestParams.getAttributeCategoryOptions() );
+            requestParams.getAttributeCategoryOptions());
 
-        Set<UID> eventUids = validateDeprecatedUidsParameter( "event", requestParams.getEvent(),
-            "events",
-            requestParams.getEvents() );
+    Set<UID> eventUids =
+        validateDeprecatedUidsParameter(
+            "event", requestParams.getEvent(), "events", requestParams.getEvents());
 
-        validateFilter( requestParams.getFilter(), eventUids );
+    validateFilter(requestParams.getFilter(), eventUids);
 
-        Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
+    Set<UID> assignedUsers =
+        validateDeprecatedUidsParameter(
+            "assignedUser",
+            requestParams.getAssignedUser(),
             "assignedUsers",
-            requestParams.getAssignedUsers() );
+            requestParams.getAssignedUsers());
 
-        validateUpdateDurationParams( requestParams );
+    validateUpdateDurationParams(requestParams);
 
-        return EventOperationParams.builder()
-            .programUid( requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null )
-            .programStageUid(
-                requestParams.getProgramStage() != null ? requestParams.getProgramStage().getValue() : null )
-            .orgUnitUid( requestParams.getOrgUnit() != null ? requestParams.getOrgUnit().getValue() : null )
-            .trackedEntityUid(
-                requestParams.getTrackedEntity() != null ? requestParams.getTrackedEntity().getValue() : null )
-            .programStatus( requestParams.getProgramStatus() )
-            .followUp( requestParams.getFollowUp() )
-            .orgUnitSelectionMode( requestParams.getOuMode() )
-            .assignedUserMode( requestParams.getAssignedUserMode() )
-            .assignedUsers( UID.toValueSet( assignedUsers ) )
-            .startDate( requestParams.getOccurredAfter() )
-            .endDate( requestParams.getOccurredBefore() )
-            .scheduledAfter( requestParams.getScheduledAfter() )
-            .scheduledBefore( requestParams.getScheduledBefore() )
-            .updatedAfter( requestParams.getUpdatedAfter() )
-            .updatedBefore( requestParams.getUpdatedBefore() )
-            .updatedWithin( requestParams.getUpdatedWithin() )
-            .enrollmentEnrolledBefore( requestParams.getEnrollmentEnrolledBefore() )
-            .enrollmentEnrolledAfter( requestParams.getEnrollmentEnrolledAfter() )
-            .enrollmentOccurredBefore( requestParams.getEnrollmentOccurredBefore() )
-            .enrollmentOccurredAfter( requestParams.getEnrollmentOccurredAfter() )
-            .eventStatus( requestParams.getStatus() )
-            .attributeCategoryCombo( attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null )
-            .attributeCategoryOptions( UID.toValueSet( attributeCategoryOptions ) )
-            .idSchemes( requestParams.getIdSchemes() )
-            .page( requestParams.getPage() )
-            .pageSize( requestParams.getPageSize() )
-            .totalPages( requestParams.isTotalPages() )
-            .skipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
-            .skipEventId( requestParams.getSkipEventId() )
-            .includeAttributes( false )
-            .includeAllDataElements( false )
-            .filters( requestParams.getFilter() )
-            .filterAttributes( requestParams.getFilterAttributes() )
-            .orders( getOrderParams( requestParams.getOrder() ) )
-            .attributeOrders( requestParams.getOrder() )
-            .events( UID.toValueSet( eventUids ) )
-            .enrollments( UID.toValueSet( requestParams.getEnrollments() ) )
-            .includeDeleted( requestParams.isIncludeDeleted() ).build();
+    return EventOperationParams.builder()
+        .programUid(
+            requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
+        .programStageUid(
+            requestParams.getProgramStage() != null
+                ? requestParams.getProgramStage().getValue()
+                : null)
+        .orgUnitUid(
+            requestParams.getOrgUnit() != null ? requestParams.getOrgUnit().getValue() : null)
+        .trackedEntityUid(
+            requestParams.getTrackedEntity() != null
+                ? requestParams.getTrackedEntity().getValue()
+                : null)
+        .programStatus(requestParams.getProgramStatus())
+        .followUp(requestParams.getFollowUp())
+        .orgUnitSelectionMode(requestParams.getOuMode())
+        .assignedUserMode(requestParams.getAssignedUserMode())
+        .assignedUsers(UID.toValueSet(assignedUsers))
+        .startDate(requestParams.getOccurredAfter())
+        .endDate(requestParams.getOccurredBefore())
+        .scheduledAfter(requestParams.getScheduledAfter())
+        .scheduledBefore(requestParams.getScheduledBefore())
+        .updatedAfter(requestParams.getUpdatedAfter())
+        .updatedBefore(requestParams.getUpdatedBefore())
+        .updatedWithin(requestParams.getUpdatedWithin())
+        .enrollmentEnrolledBefore(requestParams.getEnrollmentEnrolledBefore())
+        .enrollmentEnrolledAfter(requestParams.getEnrollmentEnrolledAfter())
+        .enrollmentOccurredBefore(requestParams.getEnrollmentOccurredBefore())
+        .enrollmentOccurredAfter(requestParams.getEnrollmentOccurredAfter())
+        .eventStatus(requestParams.getStatus())
+        .attributeCategoryCombo(
+            attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null)
+        .attributeCategoryOptions(UID.toValueSet(attributeCategoryOptions))
+        .idSchemes(requestParams.getIdSchemes())
+        .page(requestParams.getPage())
+        .pageSize(requestParams.getPageSize())
+        .totalPages(requestParams.isTotalPages())
+        .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
+        .skipEventId(requestParams.getSkipEventId())
+        .includeAttributes(false)
+        .includeAllDataElements(false)
+        .filters(requestParams.getFilter())
+        .filterAttributes(requestParams.getFilterAttributes())
+        .orders(getOrderParams(requestParams.getOrder()))
+        .attributeOrders(requestParams.getOrder())
+        .events(UID.toValueSet(eventUids))
+        .enrollments(UID.toValueSet(requestParams.getEnrollments()))
+        .includeDeleted(requestParams.isIncludeDeleted())
+        .build();
+  }
+
+  private static void validateFilter(String filter, Set<UID> eventIds) throws BadRequestException {
+    if (!CollectionUtils.isEmpty(eventIds) && !StringUtils.isEmpty(filter)) {
+      throw new BadRequestException("Event UIDs and filters can not be specified at the same time");
+    }
+  }
+
+  private List<OrderParam> getOrderParams(List<OrderCriteria> order) throws BadRequestException {
+    if (order == null || order.isEmpty()) {
+      return Collections.emptyList();
+    }
+    validateOrderParams(order);
+
+    return OrderParamsHelper.toOrderParams(order);
+  }
+
+  private void validateOrderParams(List<OrderCriteria> order) throws BadRequestException {
+    Set<String> requestProperties =
+        order.stream()
+            .map(OrderCriteria::getField)
+            .filter(field -> !CodeGenerator.isValidUid(field))
+            .collect(Collectors.toSet());
+
+    requestProperties.removeAll(SORTABLE_PROPERTIES);
+    if (!requestProperties.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "Order by property `%s` is not supported. Supported are `%s`",
+              String.join(", ", requestProperties), String.join(", ", SORTABLE_PROPERTIES)));
+    }
+  }
+
+  private void validateUpdateDurationParams(RequestParams requestParams)
+      throws BadRequestException {
+    if (requestParams.getUpdatedWithin() != null
+        && (requestParams.getUpdatedAfter() != null || requestParams.getUpdatedBefore() != null)) {
+      throw new BadRequestException(
+          "Last updated from and/or to and last updated duration cannot be specified simultaneously");
     }
 
-    private static void validateFilter( String filter, Set<UID> eventIds )
-        throws BadRequestException
-    {
-        if ( !CollectionUtils.isEmpty( eventIds ) && !StringUtils.isEmpty( filter ) )
-        {
-            throw new BadRequestException( "Event UIDs and filters can not be specified at the same time" );
-        }
+    if (requestParams.getUpdatedWithin() != null
+        && DateUtils.getDuration(requestParams.getUpdatedWithin()) == null) {
+      throw new BadRequestException("Duration is not valid: " + requestParams.getUpdatedWithin());
     }
-
-    private List<OrderParam> getOrderParams( List<OrderCriteria> order )
-        throws BadRequestException
-    {
-        if ( order == null || order.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-        validateOrderParams( order );
-
-        return OrderParamsHelper.toOrderParams( order );
-    }
-
-    private void validateOrderParams( List<OrderCriteria> order )
-        throws BadRequestException
-    {
-        Set<String> requestProperties = order.stream()
-            .map( OrderCriteria::getField )
-            .filter( field -> !CodeGenerator.isValidUid( field ) )
-            .collect( Collectors.toSet() );
-
-        requestProperties.removeAll( SORTABLE_PROPERTIES );
-        if ( !requestProperties.isEmpty() )
-        {
-            throw new BadRequestException(
-                String.format( "Order by property `%s` is not supported. Supported are `%s`",
-                    String.join( ", ", requestProperties ), String.join( ", ", SORTABLE_PROPERTIES ) ) );
-        }
-    }
-
-    private void validateUpdateDurationParams( RequestParams requestParams )
-        throws BadRequestException
-    {
-        if ( requestParams.getUpdatedWithin() != null
-            && (requestParams.getUpdatedAfter() != null || requestParams.getUpdatedBefore() != null) )
-        {
-            throw new BadRequestException(
-                "Last updated from and/or to and last updated duration cannot be specified simultaneously" );
-        }
-
-        if ( requestParams.getUpdatedWithin() != null
-            && DateUtils.getDuration( requestParams.getUpdatedWithin() ) == null )
-        {
-            throw new BadRequestException( "Duration is not valid: " + requestParams.getUpdatedWithin() );
-        }
-    }
+  }
 }

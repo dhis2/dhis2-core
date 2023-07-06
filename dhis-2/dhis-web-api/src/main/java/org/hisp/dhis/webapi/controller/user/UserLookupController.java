@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -50,76 +50,74 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.Sets;
-
 /**
  * The user lookup API provides a minimal user information endpoint.
  *
  * @author Lars Helge Overland
  */
-@OpenApi.Tags( { "user", "query" } )
+@OpenApi.Tags({"user", "query"})
 @RestController
-@RequestMapping( value = UserLookupController.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class UserLookupController
-{
-    static final String API_ENDPOINT = "/userLookup";
+@RequestMapping(value = UserLookupController.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class UserLookupController {
+  static final String API_ENDPOINT = "/userLookup";
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final ConfigurationService config;
+  private final ConfigurationService config;
 
-    public UserLookupController( UserService userService, ConfigurationService config )
-    {
-        this.userService = userService;
-        this.config = config;
+  public UserLookupController(UserService userService, ConfigurationService config) {
+    this.userService = userService;
+    this.config = config;
+  }
+
+  @GetMapping(value = "/{id}")
+  public UserLookup lookUpUser(@PathVariable String id) {
+    User user = userService.getUserByIdentifier(id);
+
+    return user != null ? UserLookup.fromUser(user) : null;
+  }
+
+  @GetMapping
+  public UserLookups lookUpUsers(
+      @RequestParam String query,
+      @RequestParam(required = false) @OpenApi.Param(UserOrgUnitType.class)
+          String orgUnitBoundary) {
+    UserQueryParams params =
+        new UserQueryParams()
+            .setQuery(query)
+            .setCanSeeOwnRoles(true)
+            .setOrgUnitBoundary(UserOrgUnitType.fromValue(orgUnitBoundary))
+            .setMax(25);
+
+    List<UserLookup> users =
+        userService.getUsers(params).stream()
+            .map(UserLookup::fromUser)
+            .collect(Collectors.toList());
+
+    return new UserLookups(users);
+  }
+
+  @GetMapping(value = "/feedbackRecipients")
+  public UserLookups lookUpFeedbackRecipients(@RequestParam String query) {
+    UserGroup feedbackRecipients = config.getConfiguration().getFeedbackRecipients();
+
+    if (feedbackRecipients == null) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E6200));
     }
 
-    @GetMapping( value = "/{id}" )
-    public UserLookup lookUpUser( @PathVariable String id )
-    {
-        User user = userService.getUserByIdentifier( id );
+    UserQueryParams params =
+        new UserQueryParams()
+            .setQuery(query)
+            .setUserGroups(Sets.newHashSet(feedbackRecipients))
+            .setCanSeeOwnRoles(true)
+            .setMax(25);
 
-        return user != null ? UserLookup.fromUser( user ) : null;
-    }
+    List<UserLookup> users =
+        userService.getUsers(params).stream()
+            .map(UserLookup::fromUser)
+            .collect(Collectors.toList());
 
-    @GetMapping
-    public UserLookups lookUpUsers( @RequestParam String query,
-        @RequestParam( required = false ) @OpenApi.Param( UserOrgUnitType.class ) String orgUnitBoundary )
-    {
-        UserQueryParams params = new UserQueryParams()
-            .setQuery( query )
-            .setCanSeeOwnRoles( true )
-            .setOrgUnitBoundary( UserOrgUnitType.fromValue( orgUnitBoundary ) )
-            .setMax( 25 );
-
-        List<UserLookup> users = userService.getUsers( params ).stream()
-            .map( UserLookup::fromUser )
-            .collect( Collectors.toList() );
-
-        return new UserLookups( users );
-    }
-
-    @GetMapping( value = "/feedbackRecipients" )
-    public UserLookups lookUpFeedbackRecipients( @RequestParam String query )
-    {
-        UserGroup feedbackRecipients = config.getConfiguration().getFeedbackRecipients();
-
-        if ( feedbackRecipients == null )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E6200 ) );
-        }
-
-        UserQueryParams params = new UserQueryParams()
-            .setQuery( query )
-            .setUserGroups( Sets.newHashSet( feedbackRecipients ) )
-            .setCanSeeOwnRoles( true )
-            .setMax( 25 );
-
-        List<UserLookup> users = userService.getUsers( params ).stream()
-            .map( UserLookup::fromUser )
-            .collect( Collectors.toList() );
-
-        return new UserLookups( users );
-    }
+    return new UserLookups(users);
+  }
 }

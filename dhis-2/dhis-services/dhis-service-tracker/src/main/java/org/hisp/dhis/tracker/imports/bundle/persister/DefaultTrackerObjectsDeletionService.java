@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
@@ -49,159 +48,148 @@ import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Zubair Asghar
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultTrackerObjectsDeletionService
-    implements TrackerObjectDeletionService
-{
-    private final EnrollmentService enrollmentService;
+public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
+  private final EnrollmentService enrollmentService;
 
-    private final TrackedEntityService teiService;
+  private final TrackedEntityService teiService;
 
-    private final EventService eventService;
+  private final EventService eventService;
 
-    private final RelationshipService relationshipService;
+  private final RelationshipService relationshipService;
 
-    private final EnrollmentTrackerConverterService enrollmentTrackerConverterService;
+  private final EnrollmentTrackerConverterService enrollmentTrackerConverterService;
 
-    private final EventTrackerConverterService eventTrackerConverterService;
+  private final EventTrackerConverterService eventTrackerConverterService;
 
-    @Override
-    public TrackerTypeReport deleteEnrollments( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
+  @Override
+  public TrackerTypeReport deleteEnrollments(TrackerBundle bundle) {
+    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.ENROLLMENT);
 
-        List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
+    List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
 
-        for ( int idx = 0; idx < enrollments.size(); idx++ )
-        {
-            String uid = enrollments.get( idx ).getEnrollment();
+    for (int idx = 0; idx < enrollments.size(); idx++) {
+      String uid = enrollments.get(idx).getEnrollment();
 
-            Entity objectReport = new Entity( TrackerType.ENROLLMENT, uid, idx );
+      Entity objectReport = new Entity(TrackerType.ENROLLMENT, uid, idx);
 
-            Enrollment enrollment = enrollmentService.getEnrollment( uid );
+      Enrollment enrollment = enrollmentService.getEnrollment(uid);
 
-            List<org.hisp.dhis.tracker.imports.domain.Event> events = eventTrackerConverterService
-                .to( Lists.newArrayList( enrollment.getEvents()
-                    .stream().filter( event -> !event.isDeleted() )
-                    .collect( Collectors.toList() ) ) );
+      List<org.hisp.dhis.tracker.imports.domain.Event> events =
+          eventTrackerConverterService.to(
+              Lists.newArrayList(
+                  enrollment.getEvents().stream()
+                      .filter(event -> !event.isDeleted())
+                      .collect(Collectors.toList())));
 
-            TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() )
-                .build();
+      TrackerBundle trackerBundle =
+          TrackerBundle.builder().events(events).user(bundle.getUser()).build();
 
-            deleteEvents( trackerBundle );
+      deleteEvents(trackerBundle);
 
-            TrackedEntity tei = enrollment.getTrackedEntity();
-            tei.getEnrollments().remove( enrollment );
+      TrackedEntity tei = enrollment.getTrackedEntity();
+      tei.getEnrollments().remove(enrollment);
 
-            enrollmentService.deleteEnrollment( enrollment );
-            teiService.updateTrackedEntity( tei );
+      enrollmentService.deleteEnrollment(enrollment);
+      teiService.updateTrackedEntity(tei);
 
-            typeReport.getStats().incDeleted();
-            typeReport.addEntity( objectReport );
-        }
-
-        return typeReport;
+      typeReport.getStats().incDeleted();
+      typeReport.addEntity(objectReport);
     }
 
-    @Override
-    public TrackerTypeReport deleteEvents( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
+    return typeReport;
+  }
 
-        List<org.hisp.dhis.tracker.imports.domain.Event> events = bundle.getEvents();
+  @Override
+  public TrackerTypeReport deleteEvents(TrackerBundle bundle) {
+    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.EVENT);
 
-        for ( int idx = 0; idx < events.size(); idx++ )
-        {
-            String uid = events.get( idx ).getEvent();
+    List<org.hisp.dhis.tracker.imports.domain.Event> events = bundle.getEvents();
 
-            Entity objectReport = new Entity( TrackerType.EVENT, uid, idx );
+    for (int idx = 0; idx < events.size(); idx++) {
+      String uid = events.get(idx).getEvent();
 
-            Event event = eventService.getEvent( uid );
+      Entity objectReport = new Entity(TrackerType.EVENT, uid, idx);
 
-            Enrollment enrollment = event.getEnrollment();
+      Event event = eventService.getEvent(uid);
 
-            eventService.deleteEvent( event );
+      Enrollment enrollment = event.getEnrollment();
 
-            if ( event.getProgramStage().getProgram().isRegistration() )
-            {
-                teiService.updateTrackedEntity( event.getEnrollment().getTrackedEntity() );
+      eventService.deleteEvent(event);
 
-                enrollment.getEvents().remove( event );
-                enrollmentService.updateEnrollment( enrollment );
-            }
+      if (event.getProgramStage().getProgram().isRegistration()) {
+        teiService.updateTrackedEntity(event.getEnrollment().getTrackedEntity());
 
-            typeReport.getStats().incDeleted();
-            typeReport.addEntity( objectReport );
-        }
+        enrollment.getEvents().remove(event);
+        enrollmentService.updateEnrollment(enrollment);
+      }
 
-        return typeReport;
+      typeReport.getStats().incDeleted();
+      typeReport.addEntity(objectReport);
     }
 
-    @Override
-    public TrackerTypeReport deleteTrackedEntity( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
+    return typeReport;
+  }
 
-        List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities = bundle.getTrackedEntities();
+  @Override
+  public TrackerTypeReport deleteTrackedEntity(TrackerBundle bundle) {
+    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.TRACKED_ENTITY);
 
-        for ( int idx = 0; idx < trackedEntities.size(); idx++ )
-        {
-            String uid = trackedEntities.get( idx ).getTrackedEntity();
+    List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities =
+        bundle.getTrackedEntities();
 
-            Entity objectReport = new Entity( TrackerType.TRACKED_ENTITY, uid, idx );
+    for (int idx = 0; idx < trackedEntities.size(); idx++) {
+      String uid = trackedEntities.get(idx).getTrackedEntity();
 
-            TrackedEntity daoEntityInstance = teiService
-                .getTrackedEntity( uid );
+      Entity objectReport = new Entity(TrackerType.TRACKED_ENTITY, uid, idx);
 
-            Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
+      TrackedEntity daoEntityInstance = teiService.getTrackedEntity(uid);
 
-            List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = enrollmentTrackerConverterService
-                .to( Lists.newArrayList( daoEnrollments.stream()
-                    .filter( enrollment -> !enrollment.isDeleted() )
-                    .toList() ) );
+      Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
 
-            TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments )
-                .user( bundle.getUser() )
-                .build();
+      List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments =
+          enrollmentTrackerConverterService.to(
+              Lists.newArrayList(
+                  daoEnrollments.stream().filter(enrollment -> !enrollment.isDeleted()).toList()));
 
-            deleteEnrollments( trackerBundle );
+      TrackerBundle trackerBundle =
+          TrackerBundle.builder().enrollments(enrollments).user(bundle.getUser()).build();
 
-            teiService.deleteTrackedEntity( daoEntityInstance );
+      deleteEnrollments(trackerBundle);
 
-            typeReport.getStats().incDeleted();
-            typeReport.addEntity( objectReport );
-        }
+      teiService.deleteTrackedEntity(daoEntityInstance);
 
-        return typeReport;
+      typeReport.getStats().incDeleted();
+      typeReport.addEntity(objectReport);
     }
 
-    @Override
-    public TrackerTypeReport deleteRelationships( TrackerBundle bundle )
-    {
-        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
+    return typeReport;
+  }
 
-        List<Relationship> relationships = bundle.getRelationships();
+  @Override
+  public TrackerTypeReport deleteRelationships(TrackerBundle bundle) {
+    TrackerTypeReport typeReport = new TrackerTypeReport(TrackerType.RELATIONSHIP);
 
-        for ( int idx = 0; idx < relationships.size(); idx++ )
-        {
-            String uid = relationships.get( idx ).getRelationship();
+    List<Relationship> relationships = bundle.getRelationships();
 
-            Entity objectReport = new Entity( TrackerType.RELATIONSHIP, uid, idx );
+    for (int idx = 0; idx < relationships.size(); idx++) {
+      String uid = relationships.get(idx).getRelationship();
 
-            org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( uid );
+      Entity objectReport = new Entity(TrackerType.RELATIONSHIP, uid, idx);
 
-            relationshipService.deleteRelationship( relationship );
+      org.hisp.dhis.relationship.Relationship relationship =
+          relationshipService.getRelationship(uid);
 
-            typeReport.getStats().incDeleted();
-            typeReport.addEntity( objectReport );
-        }
+      relationshipService.deleteRelationship(relationship);
 
-        return typeReport;
+      typeReport.getStats().incDeleted();
+      typeReport.addEntity(objectReport);
     }
+
+    return typeReport;
+  }
 }

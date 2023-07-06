@@ -28,7 +28,6 @@
 package org.hisp.dhis.common;
 
 import javax.annotation.PreDestroy;
-
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
@@ -36,65 +35,52 @@ import org.springframework.stereotype.Service;
  * @author Jan Bernitt
  */
 @Service
-public class DefaultRequestInfoService implements RequestInfoService
-{
-    /**
-     * Key used for slf4j logging of the X-Request header.
-     */
-    private static final String X_REQUEST_ID = "xRequestID";
+public class DefaultRequestInfoService implements RequestInfoService {
+  /** Key used for slf4j logging of the X-Request header. */
+  private static final String X_REQUEST_ID = "xRequestID";
 
-    private final ThreadLocal<RequestInfo> currentInfo = new ThreadLocal<>();
+  private final ThreadLocal<RequestInfo> currentInfo = new ThreadLocal<>();
 
-    /**
-     * This method is by intention not part of the {@link RequestInfoService}
-     * interface as it should only be used in one place to update the info for
-     * the current thread at the beginning of a request.
-     *
-     * @param info the info to set
-     */
-    public void setCurrentInfo( RequestInfo info )
-    {
-        info = sanitised( info );
-        currentInfo.set( info );
-        if ( info == null )
-        {
-            MDC.remove( X_REQUEST_ID );
-            return;
-        }
-        String xRequestID = info.getHeaderXRequestID();
-        if ( xRequestID == null )
-        {
-            MDC.remove( X_REQUEST_ID );
-        }
-        else
-        {
-            MDC.put( X_REQUEST_ID, xRequestID );
-        }
+  /**
+   * This method is by intention not part of the {@link RequestInfoService} interface as it should
+   * only be used in one place to update the info for the current thread at the beginning of a
+   * request.
+   *
+   * @param info the info to set
+   */
+  public void setCurrentInfo(RequestInfo info) {
+    info = sanitised(info);
+    currentInfo.set(info);
+    if (info == null) {
+      MDC.remove(X_REQUEST_ID);
+      return;
     }
-
-    private RequestInfo sanitised( RequestInfo info )
-    {
-        if ( info == null )
-        {
-            return null;
-        }
-        String xRequestID = info.getHeaderXRequestID();
-        if ( !RequestInfo.isValidXRequestID( xRequestID ) )
-        {
-            return info.toBuilder().headerXRequestID( "(illegal)" ).build();
-        }
-        return info;
+    String xRequestID = info.getHeaderXRequestID();
+    if (xRequestID == null) {
+      MDC.remove(X_REQUEST_ID);
+    } else {
+      MDC.put(X_REQUEST_ID, xRequestID);
     }
+  }
 
-    @Override
-    public RequestInfo getCurrentInfo()
-    {
-        return currentInfo.get();
+  private RequestInfo sanitised(RequestInfo info) {
+    if (info == null) {
+      return null;
     }
+    String xRequestID = info.getHeaderXRequestID();
+    if (!RequestInfo.isValidXRequestID(xRequestID)) {
+      return info.toBuilder().headerXRequestID("(illegal)").build();
+    }
+    return info;
+  }
 
-    @PreDestroy
-    public void preDestroy()
-    {
-        currentInfo.remove();
-    }
+  @Override
+  public RequestInfo getCurrentInfo() {
+    return currentInfo.get();
+  }
+
+  @PreDestroy
+  public void preDestroy() {
+    currentInfo.remove();
+  }
 }

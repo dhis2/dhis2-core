@@ -29,9 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,762 +52,641 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class DefaultTrackerAccessManager implements TrackerAccessManager
-{
-    private final AclService aclService;
+public class DefaultTrackerAccessManager implements TrackerAccessManager {
+  private final AclService aclService;
 
-    private final TrackerOwnershipManager ownershipAccessManager;
+  private final TrackerOwnershipManager ownershipAccessManager;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    @Override
-    public List<String> canRead( User user, TrackedEntity trackedEntity )
-    {
-        List<String> errors = new ArrayList<>();
+  @Override
+  public List<String> canRead(User user, TrackedEntity trackedEntity) {
+    List<String> errors = new ArrayList<>();
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntity == null )
-        {
-            return errors;
-        }
-
-        OrganisationUnit ou = trackedEntity.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
-            {
-                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-            }
-        }
-
-        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
-        if ( !aclService.canDataRead( user, trackedEntityType ) )
-        {
-            errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
-        }
-
-        return errors;
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || trackedEntity == null) {
+      return errors;
     }
 
-    @Override
-    public List<String> canWrite( User user, TrackedEntity trackedEntity )
-    {
-        List<String> errors = new ArrayList<>();
+    OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntity == null )
-        {
-            return errors;
-        }
-
-        OrganisationUnit ou = trackedEntity.getOrganisationUnit();
-
-        if ( ou != null )
-        { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
-            {
-                errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-            }
-        }
-
-        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
-        if ( !aclService.canDataWrite( user, trackedEntityType ) )
-        {
-            errors.add( "User has no data write access to tracked entity: " + trackedEntityType.getUid() );
-        }
-
-        return errors;
+    if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
+      if (!organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
+        errors.add("User has no read access to organisation unit: " + ou.getUid());
+      }
     }
 
-    @Override
-    public List<String> canRead( User user, TrackedEntity trackedEntity, Program program,
-        boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntity == null )
-        {
-            return errors;
-        }
-
-        if ( !aclService.canDataRead( user, program ) )
-        {
-            errors.add( "User has no data read access to program: " + program.getUid() );
-        }
-
-        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
-        if ( !aclService.canDataRead( user, trackedEntityType ) )
-        {
-            errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
-        }
-
-        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntity, program ) )
-        {
-            errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-        }
-
-        return errors;
+    if (!aclService.canDataRead(user, trackedEntityType)) {
+      errors.add("User has no data read access to tracked entity: " + trackedEntityType.getUid());
     }
 
-    @Override
-    public List<String> canWrite( User user, TrackedEntity trackedEntity, Program program,
-        boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    return errors;
+  }
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntity == null )
-        {
-            return errors;
-        }
+  @Override
+  public List<String> canWrite(User user, TrackedEntity trackedEntity) {
+    List<String> errors = new ArrayList<>();
 
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            errors.add( "User has no data write access to program: " + program.getUid() );
-        }
-
-        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-
-        if ( !aclService.canDataWrite( user, trackedEntityType ) )
-        {
-            errors.add( "User has no data write access to tracked entity: " + trackedEntityType.getUid() );
-        }
-
-        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntity, program ) )
-        {
-            errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-        }
-
-        return errors;
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || trackedEntity == null) {
+      return errors;
     }
 
-    @Override
-    public List<String> canRead( User user, Enrollment enrollment, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || enrollment == null )
-        {
-            return errors;
-        }
-
-        Program program = enrollment.getProgram();
-
-        if ( !aclService.canDataRead( user, program ) )
-        {
-            errors.add( "User has no data read access to program: " + program.getUid() );
-        }
-
-        if ( !program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-        else // this branch will only happen if coming from /events
-        {
-            OrganisationUnit ou = enrollment.getOrganisationUnit();
-
-            if ( ou != null && !canAccess( user, program, ou ) )
-            {
-                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-            }
-        }
-
-        return errors;
+    if (ou != null) { // ou should never be null, but needs to be checked for legacy reasons
+      if (!organisationUnitService.isInUserSearchHierarchyCached(user, ou)) {
+        errors.add("User has no write access to organisation unit: " + ou.getUid());
+      }
     }
 
-    @Override
-    public List<String> canCreate( User user, Enrollment enrollment, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || enrollment == null )
-        {
-            return errors;
-        }
-
-        Program program = enrollment.getProgram();
-
-        OrganisationUnit ou = enrollment.getOrganisationUnit();
-        if ( ou != null )
-        {
-            if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-            {
-                errors.add( "User has no create access to organisation unit: " + ou.getUid() );
-            }
-        }
-
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            errors.add( "User has no data write access to program: " + program.getUid() );
-        }
-
-        if ( !program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-
-        return errors;
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
+      errors.add("User has no data write access to tracked entity: " + trackedEntityType.getUid());
     }
 
-    @Override
-    public List<String> canUpdate( User user, Enrollment enrollment, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    return errors;
+  }
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || enrollment == null )
-        {
-            return errors;
-        }
+  @Override
+  public List<String> canRead(
+      User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
 
-        Program program = enrollment.getProgram();
-
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            errors.add( "User has no data write access to program: " + program.getUid() );
-        }
-
-        if ( !program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-
-        }
-        else
-        {
-            OrganisationUnit ou = enrollment.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-                }
-            }
-        }
-
-        return errors;
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || trackedEntity == null) {
+      return errors;
     }
 
-    @Override
-    public List<String> canDelete( User user, Enrollment enrollment, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
-
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || enrollment == null )
-        {
-            return errors;
-        }
-
-        Program program = enrollment.getProgram();
-
-        if ( !aclService.canDataWrite( user, program ) )
-        {
-            errors.add( "User has no data write access to program: " + program.getUid() );
-        }
-
-        if ( !program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-
-        else
-        {
-            OrganisationUnit ou = enrollment.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
-                }
-            }
-        }
-
-        return errors;
+    if (!aclService.canDataRead(user, program)) {
+      errors.add("User has no data read access to program: " + program.getUid());
     }
 
-    @Override
-    public List<String> canRead( User user, Event event, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || event == null )
-        {
-            return errors;
-        }
-
-        ProgramStage programStage = event.getProgramStage();
-
-        if ( isNull( programStage ) )
-        {
-            return errors;
-        }
-
-        Program program = programStage.getProgram();
-
-        if ( !aclService.canDataRead( user, program ) )
-        {
-            errors.add( "User has no data read access to program: " + program.getUid() );
-        }
-
-        if ( !program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataRead( user, programStage ) )
-            {
-                errors.add( "User has no data read access to program stage: " + programStage.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-        else
-        {
-            OrganisationUnit ou = event.getOrganisationUnit();
-
-            if ( !canAccess( user, program, ou ) )
-            {
-                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-            }
-        }
-
-        errors.addAll( canRead( user, event.getAttributeOptionCombo() ) );
-
-        return errors;
+    if (!aclService.canDataRead(user, trackedEntityType)) {
+      errors.add("User has no data read access to tracked entity: " + trackedEntityType.getUid());
     }
 
-    @Override
-    public List<String> canCreate( User user, Event event, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
-
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || event == null )
-        {
-            return errors;
-        }
-
-        ProgramStage programStage = event.getProgramStage();
-
-        if ( isNull( programStage ) )
-        {
-            return errors;
-        }
-
-        Program program = programStage.getProgram();
-
-        OrganisationUnit ou = event.getOrganisationUnit();
-        if ( ou != null )
-        {
-            if ( event.isCreatableInSearchScope()
-                ? !organisationUnitService.isInUserSearchHierarchyCached( user, ou )
-                : !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-            {
-                errors.add( "User has no create access to organisation unit: " + ou.getUid() );
-            }
-        }
-
-        if ( program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataWrite( user, program ) )
-            {
-                errors.add( "User has no data write access to program: " + program.getUid() );
-            }
-        }
-        else
-        {
-            if ( !aclService.canDataWrite( user, programStage ) )
-            {
-                errors.add( "User has no data write access to program stage: " + programStage.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program ) )
-            {
-                errors.add( "User has no data read access to program: " + program.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-
-        errors.addAll( canWrite( user, event.getAttributeOptionCombo() ) );
-
-        return errors;
+    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
+      errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
     }
 
-    @Override
-    public List<String> canUpdate( User user, Event event, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    return errors;
+  }
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || event == null )
-        {
-            return errors;
-        }
+  @Override
+  public List<String> canWrite(
+      User user, TrackedEntity trackedEntity, Program program, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
 
-        ProgramStage programStage = event.getProgramStage();
-
-        if ( isNull( programStage ) )
-        {
-            return errors;
-        }
-
-        Program program = programStage.getProgram();
-
-        if ( program.isWithoutRegistration() )
-        {
-            if ( !aclService.canDataWrite( user, program ) )
-            {
-                errors.add( "User has no data write access to program: " + program.getUid() );
-            }
-        }
-        else
-        {
-            if ( !aclService.canDataWrite( user, programStage ) )
-            {
-                errors.add( "User has no data write access to program stage: " + programStage.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program ) )
-            {
-                errors.add( "User has no data read access to program: " + program.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            OrganisationUnit ou = event.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserSearchHierarchy( user, ou ) )
-                {
-                    errors.add( "User has no update access to organisation unit: " + ou.getUid() );
-                }
-            }
-
-            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-
-        errors.addAll( canWrite( user, event.getAttributeOptionCombo() ) );
-
-        return errors;
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || trackedEntity == null) {
+      return errors;
     }
 
-    @Override
-    public List<String> canDelete( User user, Event event, boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
-
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || event == null )
-        {
-            return errors;
-        }
-
-        ProgramStage programStage = event.getProgramStage();
-
-        if ( isNull( programStage ) )
-        {
-            return errors;
-        }
-
-        Program program = programStage.getProgram();
-
-        if ( program.isWithoutRegistration() )
-        {
-            OrganisationUnit ou = event.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
-                }
-            }
-
-            if ( !aclService.canDataWrite( user, program ) )
-            {
-                errors.add( "User has no data write access to program: " + program.getUid() );
-            }
-        }
-        else
-        {
-            if ( !aclService.canDataWrite( user, programStage ) )
-            {
-                errors.add( "User has no data write access to program stage: " + programStage.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program ) )
-            {
-                errors.add( "User has no data read access to program: " + program.getUid() );
-            }
-
-            if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
-            {
-                errors.add(
-                    "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
-            }
-
-            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getTrackedEntity(), program ) )
-            {
-                errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
-            }
-        }
-
-        errors.addAll( canWrite( user, event.getAttributeOptionCombo() ) );
-
-        return errors;
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add("User has no data write access to program: " + program.getUid());
     }
 
-    @Override
-    public List<String> canRead( User user, Relationship relationship )
-    {
-        List<String> errors = new ArrayList<>();
-        RelationshipType relationshipType;
-        RelationshipItem from;
-        RelationshipItem to;
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || relationship == null )
-        {
-            return errors;
-        }
-
-        relationshipType = relationship.getRelationshipType();
-
-        if ( !aclService.canDataRead( user, relationshipType ) )
-        {
-            errors.add( "User has no data read access to relationshipType: " + relationshipType.getUid() );
-        }
-
-        from = relationship.getFrom();
-        to = relationship.getTo();
-
-        errors.addAll( canRead( user, from.getTrackedEntity() ) );
-        errors.addAll( canRead( user, from.getEnrollment(), false ) );
-        errors.addAll( canRead( user, from.getEvent(), false ) );
-
-        errors.addAll( canRead( user, to.getTrackedEntity() ) );
-        errors.addAll( canRead( user, to.getEnrollment(), false ) );
-        errors.addAll( canRead( user, to.getEvent(), false ) );
-
-        return errors;
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
+      errors.add("User has no data write access to tracked entity: " + trackedEntityType.getUid());
     }
 
-    @Override
-    public List<String> canWrite( User user, Relationship relationship )
-    {
-        List<String> errors = new ArrayList<>();
-        RelationshipType relationshipType;
-        RelationshipItem from;
-        RelationshipItem to;
-
-        // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || relationship == null )
-        {
-            return errors;
-        }
-
-        relationshipType = relationship.getRelationshipType();
-
-        if ( !aclService.canDataWrite( user, relationshipType ) )
-        {
-            errors.add( "User has no data write access to relationshipType: " + relationshipType.getUid() );
-        }
-
-        from = relationship.getFrom();
-        to = relationship.getTo();
-
-        errors.addAll( canWrite( user, from.getTrackedEntity() ) );
-        errors.addAll( canUpdate( user, from.getEnrollment(), false ) );
-        errors.addAll( canUpdate( user, from.getEvent(), false ) );
-
-        errors.addAll( canWrite( user, to.getTrackedEntity() ) );
-        errors.addAll( canUpdate( user, to.getEnrollment(), false ) );
-        errors.addAll( canUpdate( user, to.getEvent(), false ) );
-
-        return errors;
+    if (!skipOwnershipCheck && !ownershipAccessManager.hasAccess(user, trackedEntity, program)) {
+      errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
     }
 
-    @Override
-    public List<String> canRead( User user, Event event, DataElement dataElement,
-        boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    return errors;
+  }
 
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
+  @Override
+  public List<String> canRead(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
 
-        errors.addAll( canRead( user, event, skipOwnershipCheck ) );
-
-        if ( !aclService.canRead( user, dataElement ) )
-        {
-            errors.add( "User has no read access to data element: " + dataElement.getUid() );
-        }
-
-        return errors;
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || enrollment == null) {
+      return errors;
     }
 
-    @Override
-    public List<String> canWrite( User user, Event event, DataElement dataElement,
-        boolean skipOwnershipCheck )
-    {
-        List<String> errors = new ArrayList<>();
+    Program program = enrollment.getProgram();
 
-        if ( user == null || user.isSuper() )
-        {
-            return errors;
-        }
-
-        errors.addAll( canUpdate( user, event, skipOwnershipCheck ) );
-
-        if ( !aclService.canRead( user, dataElement ) )
-        {
-            errors.add( "User has no read access to data element: " + dataElement.getUid() );
-        }
-
-        return errors;
+    if (!aclService.canDataRead(user, program)) {
+      errors.add("User has no data read access to program: " + program.getUid());
     }
 
-    @Override
-    public List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo )
+    if (!program.isWithoutRegistration()) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+    } else // this branch will only happen if coming from /events
     {
-        List<String> errors = new ArrayList<>();
+      OrganisationUnit ou = enrollment.getOrganisationUnit();
 
-        if ( user == null || user.isSuper() || categoryOptionCombo == null )
-        {
-            return errors;
-        }
-
-        for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
-        {
-            if ( !aclService.canDataRead( user, categoryOption ) )
-            {
-                errors.add( "User has no read access to category option: " + categoryOption.getUid() );
-            }
-        }
-
-        return errors;
+      if (ou != null && !canAccess(user, program, ou)) {
+        errors.add("User has no read access to organisation unit: " + ou.getUid());
+      }
     }
 
-    @Override
-    public List<String> canWrite( User user, CategoryOptionCombo categoryOptionCombo )
-    {
-        List<String> errors = new ArrayList<>();
+    return errors;
+  }
 
-        if ( user == null || user.isSuper() || categoryOptionCombo == null )
-        {
-            return errors;
-        }
+  @Override
+  public List<String> canCreate(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
 
-        for ( CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions() )
-        {
-            if ( !aclService.canDataWrite( user, categoryOption ) )
-            {
-                errors.add( "User has no write access to category option: " + categoryOption.getUid() );
-            }
-        }
-
-        return errors;
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || enrollment == null) {
+      return errors;
     }
 
-    @Override
-    public boolean canAccess( User user, Program program, OrganisationUnit orgUnit )
-    {
-        if ( orgUnit == null )
-        {
-            return false;
-        }
+    Program program = enrollment.getProgram();
 
-        if ( user == null || user.isSuper() )
-        {
-            return true;
-        }
-
-        if ( program != null && (program.isClosed() || program.isProtected()) )
-        {
-            return organisationUnitService.isInUserHierarchy( user, orgUnit );
-        }
-
-        return organisationUnitService.isInUserSearchHierarchy( user, orgUnit );
+    OrganisationUnit ou = enrollment.getOrganisationUnit();
+    if (ou != null) {
+      if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+        errors.add("User has no create access to organisation unit: " + ou.getUid());
+      }
     }
 
-    private boolean isNull( ProgramStage programStage )
-    {
-        return programStage == null || programStage.getProgram() == null;
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add("User has no data write access to program: " + program.getUid());
     }
+
+    if (!program.isWithoutRegistration()) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canUpdate(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || enrollment == null) {
+      return errors;
+    }
+
+    Program program = enrollment.getProgram();
+
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add("User has no data write access to program: " + program.getUid());
+    }
+
+    if (!program.isWithoutRegistration()) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+
+    } else {
+      OrganisationUnit ou = enrollment.getOrganisationUnit();
+      if (ou != null) {
+        if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+          errors.add("User has no write access to organisation unit: " + ou.getUid());
+        }
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canDelete(User user, Enrollment enrollment, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || enrollment == null) {
+      return errors;
+    }
+
+    Program program = enrollment.getProgram();
+
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add("User has no data write access to program: " + program.getUid());
+    }
+
+    if (!program.isWithoutRegistration()) {
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+    } else {
+      OrganisationUnit ou = enrollment.getOrganisationUnit();
+      if (ou != null) {
+        if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+          errors.add("User has no delete access to organisation unit: " + ou.getUid());
+        }
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canRead(User user, Event event, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || event == null) {
+      return errors;
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+
+    if (isNull(programStage)) {
+      return errors;
+    }
+
+    Program program = programStage.getProgram();
+
+    if (!aclService.canDataRead(user, program)) {
+      errors.add("User has no data read access to program: " + program.getUid());
+    }
+
+    if (!program.isWithoutRegistration()) {
+      if (!aclService.canDataRead(user, programStage)) {
+        errors.add("User has no data read access to program stage: " + programStage.getUid());
+      }
+
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(
+              user, event.getEnrollment().getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+    } else {
+      OrganisationUnit ou = event.getOrganisationUnit();
+
+      if (!canAccess(user, program, ou)) {
+        errors.add("User has no read access to organisation unit: " + ou.getUid());
+      }
+    }
+
+    errors.addAll(canRead(user, event.getAttributeOptionCombo()));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canCreate(User user, Event event, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || event == null) {
+      return errors;
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+
+    if (isNull(programStage)) {
+      return errors;
+    }
+
+    Program program = programStage.getProgram();
+
+    OrganisationUnit ou = event.getOrganisationUnit();
+    if (ou != null) {
+      if (event.isCreatableInSearchScope()
+          ? !organisationUnitService.isInUserSearchHierarchyCached(user, ou)
+          : !organisationUnitService.isInUserHierarchyCached(user, ou)) {
+        errors.add("User has no create access to organisation unit: " + ou.getUid());
+      }
+    }
+
+    if (program.isWithoutRegistration()) {
+      if (!aclService.canDataWrite(user, program)) {
+        errors.add("User has no data write access to program: " + program.getUid());
+      }
+    } else {
+      if (!aclService.canDataWrite(user, programStage)) {
+        errors.add("User has no data write access to program stage: " + programStage.getUid());
+      }
+
+      if (!aclService.canDataRead(user, program)) {
+        errors.add("User has no data read access to program: " + program.getUid());
+      }
+
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(
+              user, event.getEnrollment().getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+    }
+
+    errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canUpdate(User user, Event event, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || event == null) {
+      return errors;
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+
+    if (isNull(programStage)) {
+      return errors;
+    }
+
+    Program program = programStage.getProgram();
+
+    if (program.isWithoutRegistration()) {
+      if (!aclService.canDataWrite(user, program)) {
+        errors.add("User has no data write access to program: " + program.getUid());
+      }
+    } else {
+      if (!aclService.canDataWrite(user, programStage)) {
+        errors.add("User has no data write access to program stage: " + programStage.getUid());
+      }
+
+      if (!aclService.canDataRead(user, program)) {
+        errors.add("User has no data read access to program: " + program.getUid());
+      }
+
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      OrganisationUnit ou = event.getOrganisationUnit();
+      if (ou != null) {
+        if (!organisationUnitService.isInUserSearchHierarchy(user, ou)) {
+          errors.add("User has no update access to organisation unit: " + ou.getUid());
+        }
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(
+              user, event.getEnrollment().getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+    }
+
+    errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canDelete(User user, Event event, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || event == null) {
+      return errors;
+    }
+
+    ProgramStage programStage = event.getProgramStage();
+
+    if (isNull(programStage)) {
+      return errors;
+    }
+
+    Program program = programStage.getProgram();
+
+    if (program.isWithoutRegistration()) {
+      OrganisationUnit ou = event.getOrganisationUnit();
+      if (ou != null) {
+        if (!organisationUnitService.isInUserHierarchyCached(user, ou)) {
+          errors.add("User has no delete access to organisation unit: " + ou.getUid());
+        }
+      }
+
+      if (!aclService.canDataWrite(user, program)) {
+        errors.add("User has no data write access to program: " + program.getUid());
+      }
+    } else {
+      if (!aclService.canDataWrite(user, programStage)) {
+        errors.add("User has no data write access to program stage: " + programStage.getUid());
+      }
+
+      if (!aclService.canDataRead(user, program)) {
+        errors.add("User has no data read access to program: " + program.getUid());
+      }
+
+      if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+        errors.add(
+            "User has no data read access to tracked entity type: "
+                + program.getTrackedEntityType().getUid());
+      }
+
+      if (!skipOwnershipCheck
+          && !ownershipAccessManager.hasAccess(
+              user, event.getEnrollment().getTrackedEntity(), program)) {
+        errors.add(TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED);
+      }
+    }
+
+    errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canRead(User user, Relationship relationship) {
+    List<String> errors = new ArrayList<>();
+    RelationshipType relationshipType;
+    RelationshipItem from;
+    RelationshipItem to;
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || relationship == null) {
+      return errors;
+    }
+
+    relationshipType = relationship.getRelationshipType();
+
+    if (!aclService.canDataRead(user, relationshipType)) {
+      errors.add("User has no data read access to relationshipType: " + relationshipType.getUid());
+    }
+
+    from = relationship.getFrom();
+    to = relationship.getTo();
+
+    errors.addAll(canRead(user, from.getTrackedEntity()));
+    errors.addAll(canRead(user, from.getEnrollment(), false));
+    errors.addAll(canRead(user, from.getEvent(), false));
+
+    errors.addAll(canRead(user, to.getTrackedEntity()));
+    errors.addAll(canRead(user, to.getEnrollment(), false));
+    errors.addAll(canRead(user, to.getEvent(), false));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canWrite(User user, Relationship relationship) {
+    List<String> errors = new ArrayList<>();
+    RelationshipType relationshipType;
+    RelationshipItem from;
+    RelationshipItem to;
+
+    // always allow if user == null (internal process) or user is superuser
+    if (user == null || user.isSuper() || relationship == null) {
+      return errors;
+    }
+
+    relationshipType = relationship.getRelationshipType();
+
+    if (!aclService.canDataWrite(user, relationshipType)) {
+      errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
+    }
+
+    from = relationship.getFrom();
+    to = relationship.getTo();
+
+    errors.addAll(canWrite(user, from.getTrackedEntity()));
+    errors.addAll(canUpdate(user, from.getEnrollment(), false));
+    errors.addAll(canUpdate(user, from.getEvent(), false));
+
+    errors.addAll(canWrite(user, to.getTrackedEntity()));
+    errors.addAll(canUpdate(user, to.getEnrollment(), false));
+    errors.addAll(canUpdate(user, to.getEvent(), false));
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canRead(
+      User user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    if (user == null || user.isSuper()) {
+      return errors;
+    }
+
+    errors.addAll(canRead(user, event, skipOwnershipCheck));
+
+    if (!aclService.canRead(user, dataElement)) {
+      errors.add("User has no read access to data element: " + dataElement.getUid());
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canWrite(
+      User user, Event event, DataElement dataElement, boolean skipOwnershipCheck) {
+    List<String> errors = new ArrayList<>();
+
+    if (user == null || user.isSuper()) {
+      return errors;
+    }
+
+    errors.addAll(canUpdate(user, event, skipOwnershipCheck));
+
+    if (!aclService.canRead(user, dataElement)) {
+      errors.add("User has no read access to data element: " + dataElement.getUid());
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canRead(User user, CategoryOptionCombo categoryOptionCombo) {
+    List<String> errors = new ArrayList<>();
+
+    if (user == null || user.isSuper() || categoryOptionCombo == null) {
+      return errors;
+    }
+
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataRead(user, categoryOption)) {
+        errors.add("User has no read access to category option: " + categoryOption.getUid());
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<String> canWrite(User user, CategoryOptionCombo categoryOptionCombo) {
+    List<String> errors = new ArrayList<>();
+
+    if (user == null || user.isSuper() || categoryOptionCombo == null) {
+      return errors;
+    }
+
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataWrite(user, categoryOption)) {
+        errors.add("User has no write access to category option: " + categoryOption.getUid());
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
+  public boolean canAccess(User user, Program program, OrganisationUnit orgUnit) {
+    if (orgUnit == null) {
+      return false;
+    }
+
+    if (user == null || user.isSuper()) {
+      return true;
+    }
+
+    if (program != null && (program.isClosed() || program.isProtected())) {
+      return organisationUnitService.isInUserHierarchy(user, orgUnit);
+    }
+
+    return organisationUnitService.isInUserSearchHierarchy(user, orgUnit);
+  }
+
+  private boolean isNull(ProgramStage programStage) {
+    return programStage == null || programStage.getProgram() == null;
+  }
 }

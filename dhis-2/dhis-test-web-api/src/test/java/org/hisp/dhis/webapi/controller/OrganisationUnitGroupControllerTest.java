@@ -36,35 +36,47 @@ import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.organisationunit.OrganisationUnitGroup} using (mocked) REST
+ * requests.
  *
  * @author Jan Bernitt
  */
-class OrganisationUnitGroupControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void testCreateWithDescription()
-    {
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups/", "{'name':'test', 'shortName':'test', 'description': 'desc' }" ) );
+class OrganisationUnitGroupControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void testCreateWithDescription() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups/",
+                "{'name':'test', 'shortName':'test', 'description': 'desc' }"));
 
-        assertEquals( "desc", GET( "/organisationUnitGroups/{id}", id ).content()
-            .as( JsonIdentifiableObject.class ).getDescription() );
-    }
+    assertEquals(
+        "desc",
+        GET("/organisationUnitGroups/{id}", id)
+            .content()
+            .as(JsonIdentifiableObject.class)
+            .getDescription());
+  }
 
-    @Test
-    void testUpdateWithDescription()
-    {
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups/", "{'name':'test', 'shortName':'test'}" ) );
+  @Test
+  void testUpdateWithDescription() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/organisationUnitGroups/", "{'name':'test', 'shortName':'test'}"));
 
-        assertStatus( HttpStatus.OK, PATCH( "/organisationUnitGroups/" + id + "?importReportMode=ERRORS", "["
-            + "{'op': 'add', 'path': '/description', 'value': 'desc' }"
-            + "]" ) );
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/organisationUnitGroups/" + id + "?importReportMode=ERRORS",
+            "[" + "{'op': 'add', 'path': '/description', 'value': 'desc' }" + "]"));
 
-        assertEquals( "desc", GET( "/organisationUnitGroups/{id}", id ).content()
-            .as( JsonIdentifiableObject.class ).getDescription() );
-
-    }
+    assertEquals(
+        "desc",
+        GET("/organisationUnitGroups/{id}", id)
+            .content()
+            .as(JsonIdentifiableObject.class)
+            .getDescription());
+  }
 }

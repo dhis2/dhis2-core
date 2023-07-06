@@ -30,9 +30,7 @@ package org.hisp.dhis.analytics.common;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.Optional;
-
 import javax.annotation.Nonnull;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -45,44 +43,39 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult>
-{
-    @Nonnull
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+public class SqlQueryExecutor implements QueryExecutor<SqlQuery, SqlQueryResult> {
+  @Nonnull private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public SqlQueryExecutor( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
-    {
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
-    }
+  public SqlQueryExecutor(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+  }
 
-    /**
-     * @throws IllegalArgumentException if the query argument is null.
-     */
-    @Override
-    public SqlQueryResult find( SqlQuery query )
-    {
-        notNull( query, "The 'query' must not be null" );
+  /**
+   * @throws IllegalArgumentException if the query argument is null.
+   */
+  @Override
+  public SqlQueryResult find(SqlQuery query) {
+    notNull(query, "The 'query' must not be null");
 
-        SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet( query.getStatement(),
-            new MapSqlParameterSource().addValues( query.getParams() ) );
+    SqlRowSet rowSet =
+        namedParameterJdbcTemplate.queryForRowSet(
+            query.getStatement(), new MapSqlParameterSource().addValues(query.getParams()));
 
-        return new SqlQueryResult( rowSet );
-    }
+    return new SqlQueryResult(rowSet);
+  }
 
-    /**
-     * @throws IllegalArgumentException if the query argument is null.
-     */
-    @Override
-    public long count( SqlQuery query )
-    {
-        notNull( query, "The 'query' must not be null" );
+  /**
+   * @throws IllegalArgumentException if the query argument is null.
+   */
+  @Override
+  public long count(SqlQuery query) {
+    notNull(query, "The 'query' must not be null");
 
-        return Optional.ofNullable(
+    return Optional.ofNullable(
             namedParameterJdbcTemplate.queryForObject(
                 query.getStatement(),
-                new MapSqlParameterSource()
-                    .addValues( query.getParams() ),
-                Long.class ) )
-            .orElse( 0L );
-    }
+                new MapSqlParameterSource().addValues(query.getParams()),
+                Long.class))
+        .orElse(0L);
+  }
 }

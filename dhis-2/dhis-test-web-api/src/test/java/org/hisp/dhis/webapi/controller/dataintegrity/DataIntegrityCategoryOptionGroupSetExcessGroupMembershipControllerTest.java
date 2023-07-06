@@ -33,97 +33,119 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for metadata check which category options which are part of two or more
- * category option groups within a category option group set.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/category_option_groups_excess_members.yaml}
+ * Test for metadata check which category options which are part of two or more category option
+ * groups within a category option group set. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/category_option_groups_excess_members.yaml}
  *
  * @author Jason P. Pickering
  */
 class DataIntegrityCategoryOptionGroupSetExcessGroupMembershipControllerTest
-    extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "category_options_excess_groupset_membership";
+    extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "category_options_excess_groupset_membership";
 
-    private String categoryOptionSour;
+  private String categoryOptionSour;
 
-    private String categoryOptionGroupColor;
+  private String categoryOptionGroupColor;
 
-    private String categoryOptionSweet;
+  private String categoryOptionSweet;
 
-    private String categoryOptionRed;
+  private String categoryOptionRed;
 
-    @Test
-    void testCategoryOptionInMultipleGroups()
-    {
+  @Test
+  void testCategoryOptionInMultipleGroups() {
 
-        setUpTest();
+    setUpTest();
 
-        String categoryOptionGroupTaste = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptionGroups",
-                "{ 'name': 'Taste', 'shortName': 'Taste' , 'categoryOptions' : [{'id' : '" +
-                    categoryOptionSweet + "'}, {'id': '" + categoryOptionSour + "'}, {'id' : '" +
-                    categoryOptionRed + "'}]}" ) );
+    String categoryOptionGroupTaste =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptionGroups",
+                "{ 'name': 'Taste', 'shortName': 'Taste' , 'categoryOptions' : [{'id' : '"
+                    + categoryOptionSweet
+                    + "'}, {'id': '"
+                    + categoryOptionSour
+                    + "'}, {'id' : '"
+                    + categoryOptionRed
+                    + "'}]}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptionGroupSets",
-                "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'categoryOptionGroups' : [{'id': '" +
-                    categoryOptionGroupColor + "'}, {'id' : '" + categoryOptionGroupTaste + "'}]}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryOptionGroupSets",
+            "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'categoryOptionGroups' : [{'id': '"
+                + categoryOptionGroupColor
+                + "'}, {'id' : '"
+                + categoryOptionGroupTaste
+                + "'}]}"));
 
-        //Total number of category options is 5 with the default
-        assertHasDataIntegrityIssues( "categories", check, 20, categoryOptionRed, "Red", null,
-            true );
+    // Total number of category options is 5 with the default
+    assertHasDataIntegrityIssues("categories", check, 20, categoryOptionRed, "Red", null, true);
+  }
 
-    }
+  @Test
+  void testCategoryOptionsInOneGroup() {
+    setUpTest();
 
-    @Test
-    void testCategoryOptionsInOneGroup()
-    {
-        setUpTest();
+    String categoryOptionGroupTaste =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptionGroups",
+                "{ 'name': 'Taste', 'shortName': 'Taste' , 'categoryOptions' : [{'id' : '"
+                    + categoryOptionSweet
+                    + "'}, {'id': '"
+                    + categoryOptionSour
+                    + "'}]}"));
 
-        String categoryOptionGroupTaste = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptionGroups",
-                "{ 'name': 'Taste', 'shortName': 'Taste' , 'categoryOptions' : [{'id' : '" +
-                    categoryOptionSweet + "'}, {'id': '" + categoryOptionSour + "'}]}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/categoryOptionGroupSets",
+            "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'categoryOptionGroups' : [{'id': '"
+                + categoryOptionGroupColor
+                + "'}, {'id' : '"
+                + categoryOptionGroupTaste
+                + "'}]}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptionGroupSets",
-                "{ 'name': 'Taste and Color', 'shortName': 'Taste and Color', 'categoryOptionGroups' : [{'id': '" +
-                    categoryOptionGroupColor + "'}, {'id' : '" + categoryOptionGroupTaste + "'}]}" ) );
+    assertHasNoDataIntegrityIssues("categories", check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+  @Test
+  void testCategoryOptionsInGroupRuns() {
 
-    }
+    assertHasNoDataIntegrityIssues("categories", check, true);
+  }
 
-    @Test
-    void testCategoryOptionsInGroupRuns()
-    {
+  void setUpTest() {
+    categoryOptionRed =
+        assertStatus(
+            HttpStatus.CREATED, POST("/categoryOptions", "{ 'name': 'Red', 'shortName': 'Red' }"));
 
-        assertHasNoDataIntegrityIssues( "categories", check, true );
+    String categoryOptionBlue =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Blue', 'shortName': 'Blue' }"));
 
-    }
+    categoryOptionSweet =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Sweet', 'shortName': 'Sweet' }"));
 
-    void setUpTest()
-    {
-        categoryOptionRed = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Red', 'shortName': 'Red' }" ) );
+    categoryOptionSour =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/categoryOptions", "{ 'name': 'Sour', 'shortName': 'Sour' }"));
 
-        String categoryOptionBlue = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Blue', 'shortName': 'Blue' }" ) );
-
-        categoryOptionSweet = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Sweet', 'shortName': 'Sweet' }" ) );
-
-        categoryOptionSour = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptions",
-                "{ 'name': 'Sour', 'shortName': 'Sour' }" ) );
-
-        categoryOptionGroupColor = assertStatus( HttpStatus.CREATED,
-            POST( "/categoryOptionGroups",
-                "{ 'name': 'Color', 'shortName': 'Color', 'categoryOptions' : [{'id' : '" +
-                    categoryOptionRed + "'}, {'id': '" + categoryOptionBlue + "'}]}" ) );
-
-    }
+    categoryOptionGroupColor =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categoryOptionGroups",
+                "{ 'name': 'Color', 'shortName': 'Color', 'categoryOptions' : [{'id' : '"
+                    + categoryOptionRed
+                    + "'}, {'id': '"
+                    + categoryOptionBlue
+                    + "'}]}"));
+  }
 }

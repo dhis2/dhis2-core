@@ -38,63 +38,101 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class MessageConversationControllerTest extends DhisControllerConvenienceTest
-{
+class MessageConversationControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPostJsonObject()
-    {
-        assertWebMessage( "Created", 201, "OK", "Message conversation created",
-            POST( "/messageConversations/",
-                "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" )
-                .content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testPostJsonObject() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Message conversation created",
+        POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}")
+            .content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testPostJsonObject_MissingProperty()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "No recipients selected.",
-            POST( "/messageConversations/", "{'subject':'Subject','text':'Text','users':[]}" )
-                .content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testPostJsonObject_MissingProperty() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "No recipients selected.",
+        POST("/messageConversations/", "{'subject':'Subject','text':'Text','users':[]}")
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testDeleteObject()
-    {
-        String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
-            "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-        assertWebMessage( "OK", 200, "OK", null, DELETE( "/messageConversations/" + uid ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteObject() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'"
+                    + getSuperuserUid()
+                    + "'}]}"));
+    assertWebMessage(
+        "OK", 200, "OK", null, DELETE("/messageConversations/" + uid).content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostMessageConversationReply()
-    {
-        String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
-            "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-        assertWebMessage( "Created", 201, "OK", "Message conversation created",
-            POST( "/messageConversations/" + uid, "The message" ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testPostMessageConversationReply() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'"
+                    + getSuperuserUid()
+                    + "'}]}"));
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Message conversation created",
+        POST("/messageConversations/" + uid, "The message").content(HttpStatus.CREATED));
+  }
 
-    @Test
-    void testPostMessageConversationReply_NoSuchObject()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "Message conversation does not exist: xyz",
-            POST( "/messageConversations/xyz", "The message" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testPostMessageConversationReply_NoSuchObject() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Message conversation does not exist: xyz",
+        POST("/messageConversations/xyz", "The message").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testPostMessageConversationReply_NoSuchAttachment()
-    {
-        String uid = assertStatus( HttpStatus.CREATED, POST( "/messageConversations/",
-            "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "Attachment 'xyz' not found.",
-            POST( "/messageConversations/" + uid + "?attachments=xyz", "The message" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testPostMessageConversationReply_NoSuchAttachment() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Text','users':[{'id':'"
+                    + getSuperuserUid()
+                    + "'}]}"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Attachment 'xyz' not found.",
+        POST("/messageConversations/" + uid + "?attachments=xyz", "The message")
+            .content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testPostMessageConversationFeedback()
-    {
-        assertWebMessage( "Created", 201, "OK", "Feedback created",
-            POST( "/messageConversations/feedback?subject=test", "The message" ).content( HttpStatus.CREATED ) );
-    }
+  @Test
+  void testPostMessageConversationFeedback() {
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Feedback created",
+        POST("/messageConversations/feedback?subject=test", "The message")
+            .content(HttpStatus.CREATED));
+  }
 }

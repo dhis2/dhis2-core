@@ -34,9 +34,7 @@ import static java.util.Collections.unmodifiableSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
@@ -54,121 +52,110 @@ import org.hisp.dhis.user.sharing.Sharing;
 /**
  * Encapsulates all access control related logic of gist API request processing.
  *
- * An instance is always related to the current {@link User} of the currently
- * processed gist API request.
+ * <p>An instance is always related to the current {@link User} of the currently processed gist API
+ * request.
  *
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-public class DefaultGistAccessControl implements GistAccessControl
-{
+public class DefaultGistAccessControl implements GistAccessControl {
 
-    private static final Set<String> PUBLIC_USER_PROPERTY_PATHS = unmodifiableSet(
-        new HashSet<>(
-            asList( "id", "code", "displayName", "name", "surname", "firstName", "username" ) ) );
+  private static final Set<String> PUBLIC_USER_PROPERTY_PATHS =
+      unmodifiableSet(
+          new HashSet<>(
+              asList("id", "code", "displayName", "name", "surname", "firstName", "username")));
 
-    private static final Set<String> PUBLIC_PROPERTY_PATHS = unmodifiableSet(
-        new HashSet<>( asList( "sharing", "access", "translations" ) ) );
+  private static final Set<String> PUBLIC_PROPERTY_PATHS =
+      unmodifiableSet(new HashSet<>(asList("sharing", "access", "translations")));
 
-    private final User currentUser;
+  private final User currentUser;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final UserService userService;
+  private final UserService userService;
 
-    private final GistService gistService;
+  private final GistService gistService;
 
-    @Override
-    public String getCurrentUserUid()
-    {
-        return currentUser.getUid();
+  @Override
+  public String getCurrentUserUid() {
+    return currentUser.getUid();
+  }
+
+  @Override
+  public boolean isSuperuser() {
+    return currentUser != null && currentUser.isSuper();
+  }
+
+  @Override
+  public boolean canReadHQL() {
+    return isSuperuser() || currentUser.isAuthorized("F_METADATA_EXPORT");
+  }
+
+  @Override
+  public boolean canRead(Class<? extends PrimaryKeyObject> type) {
+    if (!IdentifiableObject.class.isAssignableFrom(type)) {
+      return true;
+    }
+    @SuppressWarnings("unchecked")
+    Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
+    return aclService.canRead(currentUser, ioType);
+  }
+
+  @Override
+  public boolean canReadObject(Class<? extends PrimaryKeyObject> type, String uid) {
+    if (!IdentifiableObject.class.isAssignableFrom(type)) {
+      return true;
+    }
+    @SuppressWarnings("unchecked")
+    Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
+    if (!aclService.isClassShareable(ioType)) {
+      return aclService.canRead(currentUser, ioType);
+    }
+    List<?> res =
+        gistService.gist(
+            GistQuery.builder()
+                .elementType(ioType)
+                .autoType(GistAutoType.M)
+                .fields(singletonList(new Field("sharing", Transform.NONE)))
+                .filters(singletonList(new Filter("id", Comparison.EQ, uid)))
+                .build());
+    Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get(0);
+    BaseIdentifiableObject object = new BaseIdentifiableObject();
+    object.setSharing(sharing);
+    return aclService.canRead(currentUser, object, ioType);
+  }
+
+  @Override
+  public boolean canRead(Class<? extends PrimaryKeyObject> type, String path) {
+    if (!IdentifiableObject.class.isAssignableFrom(type)) {
+      return true;
+    }
+    boolean isUserField = type == User.class;
+    if (isUserField && PUBLIC_USER_PROPERTY_PATHS.contains(path)) {
+      return true;
     }
 
-    @Override
-    public boolean isSuperuser()
-    {
-        return currentUser != null && currentUser.isSuper();
-    }
+    @SuppressWarnings("unchecked")
+    Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
+    return PUBLIC_PROPERTY_PATHS.contains(path) || aclService.canRead(currentUser, ioType);
+  }
 
-    @Override
-    public boolean canReadHQL()
-    {
-        return isSuperuser() || currentUser.isAuthorized( "F_METADATA_EXPORT" );
-    }
+  @Override
+  public boolean canFilterByAccessOfUser(String userUid) {
+    User user = getCurrentUserUid().equals(userUid) ? currentUser : userService.getUser(userUid);
+    return user != null && aclService.canRead(currentUser, user);
+  }
 
-    @Override
-    public boolean canRead( Class<? extends PrimaryKeyObject> type )
-    {
-        if ( !IdentifiableObject.class.isAssignableFrom( type ) )
-        {
-            return true;
-        }
-        @SuppressWarnings( "unchecked" )
-        Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
-        return aclService.canRead( currentUser, ioType );
-    }
+  @Override
+  public Access asAccess(Class<? extends IdentifiableObject> type, Sharing value) {
+    BaseIdentifiableObject object = new BaseIdentifiableObject();
+    object.setSharing(value);
+    return aclService.getAccess(object, currentUser, type);
+  }
 
-    @Override
-    public boolean canReadObject( Class<? extends PrimaryKeyObject> type, String uid )
-    {
-        if ( !IdentifiableObject.class.isAssignableFrom( type ) )
-        {
-            return true;
-        }
-        @SuppressWarnings( "unchecked" )
-        Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
-        if ( !aclService.isClassShareable( ioType ) )
-        {
-            return aclService.canRead( currentUser, ioType );
-        }
-        List<?> res = gistService.gist( GistQuery.builder()
-            .elementType( ioType )
-            .autoType( GistAutoType.M )
-            .fields( singletonList( new Field( "sharing", Transform.NONE ) ) )
-            .filters( singletonList( new Filter( "id", Comparison.EQ, uid ) ) )
-            .build() );
-        Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get( 0 );
-        BaseIdentifiableObject object = new BaseIdentifiableObject();
-        object.setSharing( sharing );
-        return aclService.canRead( currentUser, object, ioType );
-    }
-
-    @Override
-    public boolean canRead( Class<? extends PrimaryKeyObject> type, String path )
-    {
-        if ( !IdentifiableObject.class.isAssignableFrom( type ) )
-        {
-            return true;
-        }
-        boolean isUserField = type == User.class;
-        if ( isUserField && PUBLIC_USER_PROPERTY_PATHS.contains( path ) )
-        {
-            return true;
-        }
-
-        @SuppressWarnings( "unchecked" )
-        Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
-        return PUBLIC_PROPERTY_PATHS.contains( path ) || aclService.canRead( currentUser, ioType );
-    }
-
-    @Override
-    public boolean canFilterByAccessOfUser( String userUid )
-    {
-        User user = getCurrentUserUid().equals( userUid ) ? currentUser : userService.getUser( userUid );
-        return user != null && aclService.canRead( currentUser, user );
-    }
-
-    @Override
-    public Access asAccess( Class<? extends IdentifiableObject> type, Sharing value )
-    {
-        BaseIdentifiableObject object = new BaseIdentifiableObject();
-        object.setSharing( value );
-        return aclService.getAccess( object, currentUser, type );
-    }
-
-    @Override
-    public String createAccessFilterHQL( String tableName )
-    {
-        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, currentUser, AclService.LIKE_READ_METADATA );
-    }
+  @Override
+  public String createAccessFilterHQL(String tableName) {
+    return JpaQueryUtils.generateHqlQueryForSharingCheck(
+        tableName, currentUser, AclService.LIKE_READ_METADATA);
+  }
 }

@@ -33,7 +33,6 @@ import static java.util.Calendar.DAY_OF_YEAR;
 import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.hisp.dhis.period.BiMonthlyPeriodType;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -46,69 +45,54 @@ import org.hisp.dhis.period.YearlyPeriodType;
  *
  * @author Jim Grace
  */
-public class ItemPeriodInYear
-    extends ItemPeriodBase
-{
-    private static final Pattern TRAILING_DIGITS = Pattern.compile( "\\d+$" );
+public class ItemPeriodInYear extends ItemPeriodBase {
+  private static final Pattern TRAILING_DIGITS = Pattern.compile("\\d+$");
 
-    @Override
-    public Double evaluate( PeriodType periodType, Period period )
-    {
-        if ( periodType instanceof DailyPeriodType )
-        {
-            return dayOfYear( period );
-        }
-        else if ( periodType instanceof MonthlyPeriodType
-            || periodType instanceof BiMonthlyPeriodType )
-        {
-            return monthOrBiMonthOfYear( period );
-        }
-        else if ( periodType.getFrequencyOrder() >= YearlyPeriodType.FREQUENCY_ORDER )
-        {
-            return 1.0;
-        }
-
-        return trailingDigits( period );
+  @Override
+  public Double evaluate(PeriodType periodType, Period period) {
+    if (periodType instanceof DailyPeriodType) {
+      return dayOfYear(period);
+    } else if (periodType instanceof MonthlyPeriodType
+        || periodType instanceof BiMonthlyPeriodType) {
+      return monthOrBiMonthOfYear(period);
+    } else if (periodType.getFrequencyOrder() >= YearlyPeriodType.FREQUENCY_ORDER) {
+      return 1.0;
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return trailingDigits(period);
+  }
 
-    /**
-     * Finds the day of the year for a daily period type.
-     */
-    private double dayOfYear( Period period )
-    {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime( period.getStartDate() );
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-        return cal.get( DAY_OF_YEAR );
+  /** Finds the day of the year for a daily period type. */
+  private double dayOfYear(Period period) {
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(period.getStartDate());
+
+    return cal.get(DAY_OF_YEAR);
+  }
+
+  /**
+   * For Monthly yyyyMM and BiMonthly yyyyMMB types, the period number is in the fourth and fifth
+   * characters of the period's ISO Date.
+   */
+  private double monthOrBiMonthOfYear(Period period) {
+    return parseInt(period.getIsoDate().substring(4, 6));
+  }
+
+  /**
+   * For many period types, the period number can be found in the trailing digits of the period's
+   * ISO Date, for example Weekly yyyWn, Quarterly yyyyQn, SixMonthly yyyySn, etc.
+   */
+  private double trailingDigits(Period period) {
+    Matcher m = TRAILING_DIGITS.matcher(period.getIsoDate());
+
+    if (m.find()) {
+      return parseInt(m.group());
     }
 
-    /**
-     * For Monthly yyyyMM and BiMonthly yyyyMMB types, the period number is in
-     * the fourth and fifth characters of the period's ISO Date.
-     */
-    private double monthOrBiMonthOfYear( Period period )
-    {
-        return parseInt( period.getIsoDate().substring( 4, 6 ) );
-    }
-
-    /**
-     * For many period types, the period number can be found in the trailing
-     * digits of the period's ISO Date, for example Weekly yyyWn, Quarterly
-     * yyyyQn, SixMonthly yyyySn, etc.
-     */
-    private double trailingDigits( Period period )
-    {
-        Matcher m = TRAILING_DIGITS.matcher( period.getIsoDate() );
-
-        if ( m.find() )
-        {
-            return parseInt( m.group() );
-        }
-
-        return 0; // Unexpected
-    }
+    return 0; // Unexpected
+  }
 }

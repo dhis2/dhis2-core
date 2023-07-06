@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.shared;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
@@ -41,185 +40,149 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-public class ImmutableEvent
-{
-    private Event event;
+public class ImmutableEvent {
+  private Event event;
 
-    public ImmutableEvent( Event event )
-    {
-        this.event = event;
-    }
+  public ImmutableEvent(Event event) {
+    this.event = event;
+  }
 
-    public String getUid()
-    {
-        return event.getUid();
-    }
+  public String getUid() {
+    return event.getUid();
+  }
 
-    public String getEvent()
-    {
-        return event.getEvent();
-    }
+  public String getEvent() {
+    return event.getEvent();
+  }
 
-    public EnrollmentStatus getEnrollmentStatus()
-    {
-        return event.getEnrollmentStatus();
-    }
+  public EnrollmentStatus getEnrollmentStatus() {
+    return event.getEnrollmentStatus();
+  }
 
-    public EventStatus getStatus()
-    {
-        return event.getStatus();
-    }
+  public EventStatus getStatus() {
+    return event.getStatus();
+  }
 
-    public String getProgram()
-    {
-        return event.getProgram();
-    }
+  public String getProgram() {
+    return event.getProgram();
+  }
 
-    public String getProgramStage()
-    {
-        return event.getProgramStage();
-    }
+  public String getProgramStage() {
+    return event.getProgramStage();
+  }
 
-    public String getEnrollment()
-    {
-        return event.getEnrollment();
-    }
+  public String getEnrollment() {
+    return event.getEnrollment();
+  }
 
-    public String getOrgUnit()
-    {
-        return event.getOrgUnit();
-    }
+  public String getOrgUnit() {
+    return event.getOrgUnit();
+  }
 
-    public String getOrgUnitName()
-    {
-        return event.getOrgUnitName();
-    }
+  public String getOrgUnitName() {
+    return event.getOrgUnitName();
+  }
 
-    public String getTrackedEntityInstance()
-    {
-        return event.getTrackedEntityInstance();
-    }
+  public String getTrackedEntityInstance() {
+    return event.getTrackedEntityInstance();
+  }
 
-    public String getEventDate()
-    {
-        return event.getEventDate();
-    }
+  public String getEventDate() {
+    return event.getEventDate();
+  }
 
-    public String getDueDate()
-    {
-        return event.getDueDate();
-    }
+  public String getDueDate() {
+    return event.getDueDate();
+  }
 
-    public String getStoredBy()
-    {
-        return event.getStoredBy();
-    }
+  public String getStoredBy() {
+    return event.getStoredBy();
+  }
 
-    public Set<DataValue> getDataValues()
-    {
-        return event.getDataValues();
-    }
+  public Set<DataValue> getDataValues() {
+    return event.getDataValues();
+  }
 
-    public List<Note> getNotes()
-    {
-        return event.getNotes();
-    }
+  public List<Note> getNotes() {
+    return event.getNotes();
+  }
 
-    public Boolean getFollowup()
-    {
-        return event.getFollowup();
-    }
+  public Boolean getFollowup() {
+    return event.getFollowup();
+  }
 
-    public String getCreated()
-    {
-        return event.getCreated();
-    }
+  public String getCreated() {
+    return event.getCreated();
+  }
 
-    public String getLastUpdated()
-    {
-        return event.getLastUpdated();
-    }
+  public String getLastUpdated() {
+    return event.getLastUpdated();
+  }
 
-    public String getCreatedAtClient()
-    {
-        return event.getCreatedAtClient();
-    }
+  public String getCreatedAtClient() {
+    return event.getCreatedAtClient();
+  }
 
-    public String getLastUpdatedAtClient()
-    {
-        return event.getLastUpdatedAtClient();
-    }
+  public String getLastUpdatedAtClient() {
+    return event.getLastUpdatedAtClient();
+  }
 
-    public String getAttributeOptionCombo()
-    {
-        return event.getAttributeOptionCombo();
-    }
+  public String getAttributeOptionCombo() {
+    return event.getAttributeOptionCombo();
+  }
 
-    public String getAttributeCategoryOptions()
-    {
-        return event.getAttributeCategoryOptions();
-    }
+  public String getAttributeCategoryOptions() {
+    return event.getAttributeCategoryOptions();
+  }
 
-    public String getCompletedBy()
-    {
-        return event.getCompletedBy();
-    }
+  public String getCompletedBy() {
+    return event.getCompletedBy();
+  }
 
-    public String getCompletedDate()
-    {
-        return event.getCompletedDate();
-    }
+  public String getCompletedDate() {
+    return event.getCompletedDate();
+  }
 
-    public Boolean isDeleted()
-    {
-        return event.isDeleted();
-    }
+  public Boolean isDeleted() {
+    return event.isDeleted();
+  }
 
-    public int getOptionSize()
-    {
-        return event.getOptionSize();
-    }
+  public int getOptionSize() {
+    return event.getOptionSize();
+  }
 
-    public Set<Relationship> getRelationships()
-    {
-        return event.getRelationships();
-    }
+  public Set<Relationship> getRelationships() {
+    return event.getRelationships();
+  }
 
-    public Geometry getGeometry()
-    {
-        return event.getGeometry();
-    }
+  public Geometry getGeometry() {
+    return event.getGeometry();
+  }
 
-    public String getAssignedUser()
-    {
-        return event.getAssignedUser();
-    }
+  public String getAssignedUser() {
+    return event.getAssignedUser();
+  }
 
-    public String getAssignedUserUsername()
-    {
-        return event.getAssignedUserUsername();
-    }
+  public String getAssignedUserUsername() {
+    return event.getAssignedUserUsername();
+  }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        return event.equals( o );
-    }
+  @Override
+  public boolean equals(Object o) {
+    return event.equals(o);
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return event.hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return event.hashCode();
+  }
 
-    @Override
-    public String toString()
-    {
-        return event.toString();
-    }
+  @Override
+  public String toString() {
+    return event.toString();
+  }
 
-    public String getHref()
-    {
-        return event.getHref();
-    }
+  public String getHref() {
+    return event.getHref();
+  }
 }

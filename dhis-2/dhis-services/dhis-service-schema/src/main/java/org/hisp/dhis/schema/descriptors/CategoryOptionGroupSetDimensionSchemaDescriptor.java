@@ -34,17 +34,15 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CategoryOptionGroupSetDimensionSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "categoryOptionGroupSetDimension";
+public class CategoryOptionGroupSetDimensionSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "categoryOptionGroupSetDimension";
 
-    public static final String PLURAL = "categoryOptionGroupSetDimensions";
+  public static final String PLURAL = "categoryOptionGroupSetDimensions";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( CategoryOptionGroupSetDimension.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(CategoryOptionGroupSetDimension.class, SINGULAR, PLURAL);
+  }
 }

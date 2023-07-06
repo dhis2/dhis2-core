@@ -32,18 +32,14 @@ import java.util.List;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class FailFastException
-    extends RuntimeException
-{
-    private final transient List<Error> errorReportRef;
+class FailFastException extends RuntimeException {
+  private final transient List<Error> errorReportRef;
 
-    public FailFastException( List<Error> errorReportRef )
-    {
-        this.errorReportRef = errorReportRef;
-    }
+  public FailFastException(List<Error> errorReportRef) {
+    this.errorReportRef = errorReportRef;
+  }
 
-    public List<Error> getErrors()
-    {
-        return errorReportRef;
-    }
+  public List<Error> getErrors() {
+    return errorReportRef;
+  }
 }

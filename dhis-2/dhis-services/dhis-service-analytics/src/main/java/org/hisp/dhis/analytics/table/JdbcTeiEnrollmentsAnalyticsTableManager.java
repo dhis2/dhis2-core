@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -75,189 +74,205 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component( "org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableManager" )
-public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager
-{
-    private final TrackedEntityTypeService trackedEntityTypeService;
+@Component("org.hisp.dhis.analytics.TeiEnrollmentsAnalyticsTableManager")
+public class JdbcTeiEnrollmentsAnalyticsTableManager extends AbstractJdbcTableManager {
+  private final TrackedEntityTypeService trackedEntityTypeService;
 
-    public JdbcTeiEnrollmentsAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, TrackedEntityTypeService trackedEntityTypeService, AnalyticsExportSettings settings,
-        PeriodDataProvider periodDataProvider )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, settings, periodDataProvider );
+  public JdbcTeiEnrollmentsAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      StatementBuilder statementBuilder,
+      PartitionManager partitionManager,
+      DatabaseInfo databaseInfo,
+      JdbcTemplate jdbcTemplate,
+      TrackedEntityTypeService trackedEntityTypeService,
+      AnalyticsExportSettings settings,
+      PeriodDataProvider periodDataProvider) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        statementBuilder,
+        partitionManager,
+        databaseInfo,
+        jdbcTemplate,
+        settings,
+        periodDataProvider);
 
-        notNull( trackedEntityTypeService, "trackedEntityTypeService cannot be null" );
-        this.trackedEntityTypeService = trackedEntityTypeService;
+    notNull(trackedEntityTypeService, "trackedEntityTypeService cannot be null");
+    this.trackedEntityTypeService = trackedEntityTypeService;
+  }
+
+  private static final List<AnalyticsTableColumn> FIXED_COLUMNS =
+      List.of(
+          new AnalyticsTableColumn(
+              quote("trackedentityinstanceuid"), CHARACTER_11, NOT_NULL, "tei.uid"),
+          new AnalyticsTableColumn(quote("programuid"), CHARACTER_11, NULL, "p.uid"),
+          new AnalyticsTableColumn(quote("programinstanceuid"), CHARACTER_11, NULL, "pi.uid"),
+          new AnalyticsTableColumn(quote("enrollmentdate"), TIMESTAMP, "pi.enrollmentdate"),
+          new AnalyticsTableColumn(quote("enddate"), TIMESTAMP, "pi.enddate"),
+          new AnalyticsTableColumn(quote("incidentdate"), TIMESTAMP, "pi.incidentdate"),
+          new AnalyticsTableColumn(quote("enrollmentstatus"), VARCHAR_50, "pi.status"),
+          new AnalyticsTableColumn(quote("pigeometry"), GEOMETRY, "pi.geometry")
+              .withIndexType(GIST),
+          new AnalyticsTableColumn(
+              quote("pilongitude"),
+              DOUBLE,
+              "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end"),
+          new AnalyticsTableColumn(
+              quote("pilatitude"),
+              DOUBLE,
+              "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end"),
+          new AnalyticsTableColumn(quote("uidlevel1"), CHARACTER_11, NULL, "ous.uidlevel1"),
+          new AnalyticsTableColumn(quote("uidlevel2"), CHARACTER_11, NULL, "ous.uidlevel2"),
+          new AnalyticsTableColumn(quote("uidlevel3"), CHARACTER_11, NULL, "ous.uidlevel3"),
+          new AnalyticsTableColumn(quote("uidlevel4"), CHARACTER_11, NULL, "ous.uidlevel4"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NULL, "ou.uid"),
+          new AnalyticsTableColumn(quote("ouname"), VARCHAR_255, NULL, "ou.name"),
+          new AnalyticsTableColumn(quote("oucode"), CHARACTER_32, NULL, "ou.code"),
+          new AnalyticsTableColumn(quote("oulevel"), INTEGER, NULL, "ous.level"));
+
+  /**
+   * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
+   *
+   * @return type of analytics table.
+   */
+  @Override
+  public AnalyticsTableType getAnalyticsTableType() {
+    return TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+  }
+
+  /**
+   * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @return the analytics table with partitions.
+   */
+  @Override
+  @Transactional
+  public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    return trackedEntityTypeService.getAllTrackedEntityType().stream()
+        .map(
+            tet -> new AnalyticsTable(getAnalyticsTableType(), getTableColumns(), emptyList(), tet))
+        .collect(Collectors.toList());
+  }
+
+  private List<AnalyticsTableColumn> getTableColumns() {
+    List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>(getFixedColumns());
+    analyticsTableColumnList.add(getOrganisationUnitNameHierarchyColumn());
+
+    return analyticsTableColumnList;
+  }
+
+  /**
+   * Checks if the database content is in valid state for analytics table generation.
+   *
+   * @return null if valid, a descriptive string if invalid.
+   */
+  @Override
+  public String validState() {
+    return null;
+  }
+
+  /**
+   * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
+   *
+   * @return a List of {@link AnalyticsTableColumn}.
+   */
+  @Override
+  public List<AnalyticsTableColumn> getFixedColumns() {
+    return FIXED_COLUMNS;
+  }
+
+  /**
+   * Returns a list of table checks (constraints) for the given analytics table partition.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   */
+  @Override
+  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+    return emptyList();
+  }
+
+  /**
+   * Populates the given analytics table.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param partition the {@link AnalyticsTablePartition} to populate.
+   */
+  @Override
+  protected void populateTable(
+      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+    List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+
+    validateDimensionColumns(columns);
+
+    StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+
+    for (AnalyticsTableColumn col : ListUtils.union(columns, values)) {
+      if (col.isVirtual()) {
+        continue;
+      }
+
+      sql.append(col.getName() + ",");
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLUMNS = List.of(
-        new AnalyticsTableColumn( quote( "trackedentityinstanceuid" ), CHARACTER_11, NOT_NULL, "tei.uid" ),
-        new AnalyticsTableColumn( quote( "programuid" ), CHARACTER_11, NULL, "p.uid" ),
-        new AnalyticsTableColumn( quote( "programinstanceuid" ), CHARACTER_11, NULL, "pi.uid" ),
-        new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
-        new AnalyticsTableColumn( quote( "enddate" ), TIMESTAMP, "pi.enddate" ),
-        new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
-        new AnalyticsTableColumn( quote( "enrollmentstatus" ), VARCHAR_50, "pi.status" ),
-        new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" ).withIndexType( GIST ),
-        new AnalyticsTableColumn( quote( "pilongitude" ), DOUBLE,
-            "case when 'POINT' = GeometryType(pi.geometry) then ST_X(pi.geometry) end" ),
-        new AnalyticsTableColumn( quote( "pilatitude" ), DOUBLE,
-            "case when 'POINT' = GeometryType(pi.geometry) then ST_Y(pi.geometry) end" ),
-        new AnalyticsTableColumn( quote( "uidlevel1" ), CHARACTER_11, NULL, "ous.uidlevel1" ),
-        new AnalyticsTableColumn( quote( "uidlevel2" ), CHARACTER_11, NULL, "ous.uidlevel2" ),
-        new AnalyticsTableColumn( quote( "uidlevel3" ), CHARACTER_11, NULL, "ous.uidlevel3" ),
-        new AnalyticsTableColumn( quote( "uidlevel4" ), CHARACTER_11, NULL, "ous.uidlevel4" ),
-        new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NULL, "ou.uid" ),
-        new AnalyticsTableColumn( quote( "ouname" ), VARCHAR_255, NULL, "ou.name" ),
-        new AnalyticsTableColumn( quote( "oucode" ), CHARACTER_32, NULL, "ou.code" ),
-        new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, NULL, "ous.level" ) );
+    removeLastComma(sql).append(") select ");
 
-    /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this
-     * manager handles.
-     *
-     * @return type of analytics table.
-     */
-    @Override
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return TRACKED_ENTITY_INSTANCE_ENROLLMENTS;
+    for (AnalyticsTableColumn col : columns) {
+      if (col.isVirtual()) {
+        continue;
+      }
+
+      sql.append(col.getAlias() + ",");
     }
 
-    /**
-     * Returns a {@link AnalyticsTable} with a list of yearly
-     * {@link AnalyticsTablePartition}.
-     *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     * @return the analytics table with partitions.
-     */
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
-    {
-        return trackedEntityTypeService.getAllTrackedEntityType()
-            .stream()
-            .map( tet -> new AnalyticsTable( getAnalyticsTableType(), getTableColumns(), emptyList(), tet ) )
-            .collect( Collectors.toList() );
-    }
+    removeLastComma(sql)
+        .append(" from programinstance pi")
+        .append(
+            " inner join trackedentityinstance tei "
+                + "on pi.trackedentityinstanceid = tei.trackedentityinstanceid")
+        .append(" and tei.deleted is false ")
+        .append(
+            " and tei.trackedentitytypeid = "
+                + partition.getMasterTable().getTrackedEntityType().getId())
+        .append(" and tei.lastupdated < '" + getLongDateString(params.getStartTime()) + "'")
+        .append(" left join program p on p.programid = pi.programid")
+        .append(" left join organisationunit ou on pi.organisationunitid = ou.organisationunitid")
+        .append(
+            " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid")
+        .append(
+            " where exists ( select 1 from event psi where psi.deleted is false"
+                + " and psi.programinstanceid = pi.programinstanceid"
+                + " and psi.status in ("
+                + join(",", EXPORTABLE_EVENT_STATUSES)
+                + "))")
+        .append(" and pi.incidentdate is not null ")
+        .append(" and pi.deleted is false");
 
-    private List<AnalyticsTableColumn> getTableColumns()
-    {
-        List<AnalyticsTableColumn> analyticsTableColumnList = new ArrayList<>( getFixedColumns() );
-        analyticsTableColumnList.add( getOrganisationUnitNameHierarchyColumn() );
+    invokeTimeAndLog(sql.toString(), partition.getTempTableName());
+  }
 
-        return analyticsTableColumnList;
-    }
-
-    /**
-     * Checks if the database content is in valid state for analytics table
-     * generation.
-     *
-     * @return null if valid, a descriptive string if invalid.
-     */
-    @Override
-    public String validState()
-    {
-        return null;
-    }
-
-    /**
-     * Returns a list of non-dynamic {@link AnalyticsTableColumn}.
-     *
-     * @return a List of {@link AnalyticsTableColumn}.
-     */
-    @Override
-    public List<AnalyticsTableColumn> getFixedColumns()
-    {
-        return FIXED_COLUMNS;
-    }
-
-    /**
-     * Returns a list of table checks (constraints) for the given analytics
-     * table partition.
-     *
-     * @param partition the {@link AnalyticsTablePartition}.
-     */
-    @Override
-    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
-    {
-        return emptyList();
-    }
-
-    /**
-     * Populates the given analytics table.
-     *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param partition the {@link AnalyticsTablePartition} to populate.
-     */
-    @Override
-    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
-    {
-        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
-
-        validateDimensionColumns( columns );
-
-        StringBuilder sql = new StringBuilder( "insert into " + partition.getTempTableName() + " (" );
-
-        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
-        {
-            if ( col.isVirtual() )
-            {
-                continue;
-            }
-
-            sql.append( col.getName() + "," );
-        }
-
-        removeLastComma( sql ).append( ") select " );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            if ( col.isVirtual() )
-            {
-                continue;
-            }
-
-            sql.append( col.getAlias() + "," );
-        }
-
-        removeLastComma( sql )
-            .append( " from programinstance pi" )
-            .append( " inner join trackedentityinstance tei " +
-                "on pi.trackedentityinstanceid = tei.trackedentityinstanceid" )
-            .append( " and tei.deleted is false " )
-            .append( " and tei.trackedentitytypeid = " + partition.getMasterTable().getTrackedEntityType().getId() )
-            .append( " and tei.lastupdated < '" + getLongDateString( params.getStartTime() ) + "'" )
-            .append( " left join program p on p.programid = pi.programid" )
-            .append( " left join organisationunit ou on pi.organisationunitid = ou.organisationunitid" )
-            .append( " left join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid" )
-            .append( " where exists ( select 1 from event psi where psi.deleted is false" +
-                " and psi.programinstanceid = pi.programinstanceid" +
-                " and psi.status in (" + join( ",", EXPORTABLE_EVENT_STATUSES ) + "))" )
-            .append( " and pi.incidentdate is not null " )
-            .append( " and pi.deleted is false" );
-
-        invokeTimeAndLog( sql.toString(), partition.getTempTableName() );
-    }
-
-    /**
-     * Indicates whether data was created or updated for the given time range
-     * since last successful "latest" table partition update.
-     *
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return true if updated data exists.
-     */
-    @Override
-    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
-    {
-        return false;
-    }
+  /**
+   * Indicates whether data was created or updated for the given time range since last successful
+   * "latest" table partition update.
+   *
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return true if updated data exists.
+   */
+  @Override
+  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+    return false;
+  }
 }

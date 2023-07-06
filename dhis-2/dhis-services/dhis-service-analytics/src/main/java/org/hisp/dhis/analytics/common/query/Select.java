@@ -33,33 +33,23 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.common.query.RenderableHelper.join;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class Select extends BaseRenderable
-{
-    @Singular
-    private final List<Field> fields;
+@RequiredArgsConstructor(staticName = "of")
+public class Select extends BaseRenderable {
+  @Singular private final List<Field> fields;
 
-    public static Select of( String... fields )
-    {
-        return of( stream( fields )
-            .map( s -> Field.of( EMPTY, () -> s, EMPTY ) )
-            .collect( toList() ) );
-    }
+  public static Select of(String... fields) {
+    return of(stream(fields).map(s -> Field.of(EMPTY, () -> s, EMPTY)).collect(toList()));
+  }
 
-    public static Select ofUnquoted( String... fields )
-    {
-        return of( stream( fields )
-            .map( s -> Field.ofUnquoted( "", () -> s, EMPTY ) )
-            .collect( toList() ) );
-    }
+  public static Select ofUnquoted(String... fields) {
+    return of(stream(fields).map(s -> Field.ofUnquoted("", () -> s, EMPTY)).collect(toList()));
+  }
 
-    @Override
-    public String render()
-    {
-        return join( fields, ", ", "select " );
-    }
+  @Override
+  public String render() {
+    return join(fields, ", ", "select ");
+  }
 }

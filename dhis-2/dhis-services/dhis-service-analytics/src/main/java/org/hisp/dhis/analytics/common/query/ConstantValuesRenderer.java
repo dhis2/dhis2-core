@@ -38,98 +38,81 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
 /**
- * This class represents the constant values renderer. It will render the
- * constant values and bind them to the query.
+ * This class represents the constant values renderer. It will render the constant values and bind
+ * them to the query.
  */
 @Getter
-@RequiredArgsConstructor( staticName = "of" )
-public class ConstantValuesRenderer extends BaseRenderable
-{
-    private final Object values;
+@RequiredArgsConstructor(staticName = "of")
+public class ConstantValuesRenderer extends BaseRenderable {
+  private final Object values;
 
-    private final ValueTypeMapping valueTypeMapping;
+  private final ValueTypeMapping valueTypeMapping;
 
-    private final QueryContext queryContext;
+  private final QueryContext queryContext;
 
-    private final Function<String, String> argumentTransformer;
+  private final Function<String, String> argumentTransformer;
 
-    public static ConstantValuesRenderer of( Object values, ValueTypeMapping valueTypeMapping,
-        QueryContext queryContext )
-    {
-        return of( values, valueTypeMapping, queryContext, Function.identity() );
+  public static ConstantValuesRenderer of(
+      Object values, ValueTypeMapping valueTypeMapping, QueryContext queryContext) {
+    return of(values, valueTypeMapping, queryContext, Function.identity());
+  }
+
+  @Override
+  public String render() {
+    if (values instanceof Collection) {
+      return renderCollection((Collection<?>) values);
+    } else {
+      return renderSingleValue(values);
+    }
+  }
+
+  private String renderSingleValue(Object value) {
+    return renderCollection(singleton(value));
+  }
+
+  private String renderCollection(Collection<?> values) {
+    List<String> valuesAsStringList =
+        values.stream()
+            .map(Object::toString)
+            .filter(not(isEqual(NV)))
+            .map(argumentTransformer)
+            .collect(toList());
+
+    if (valuesAsStringList.isEmpty()) {
+      return EMPTY;
     }
 
-    @Override
-    public String render()
-    {
-        if ( values instanceof Collection )
-        {
-            return renderCollection( (Collection<?>) values );
-        }
-        else
-        {
-            return renderSingleValue( values );
-        }
+    if (valuesAsStringList.size() > 1) {
+      return queryContext.bindParamAndGetIndex(valueTypeMapping.convertMany(valuesAsStringList));
     }
+    return queryContext.bindParamAndGetIndex(
+        valueTypeMapping.convertSingle(valuesAsStringList.get(0)));
+  }
 
-    private String renderSingleValue( Object value )
-    {
-        return renderCollection( singleton( value ) );
+  public static boolean hasNullValue(Renderable renderableValues) {
+    if (renderableValues instanceof ConstantValuesRenderer) {
+      Object values = ((ConstantValuesRenderer) renderableValues).getValues();
+      if (values instanceof Collection) {
+        return ((Collection<?>) values).stream().anyMatch(isEqual(NV));
+      }
+      return values.equals(NV);
     }
+    return false;
+  }
 
-    private String renderCollection( Collection<?> values )
-    {
-        List<String> valuesAsStringList = values.stream()
-            .map( Object::toString )
-            .filter( not( isEqual( NV ) ) )
-            .map( argumentTransformer )
-            .collect( toList() );
+  public static boolean hasMultipleValues(Renderable renderableValues) {
+    return renderableValues instanceof ConstantValuesRenderer
+        && ((ConstantValuesRenderer) renderableValues).getValues() instanceof Collection
+        && ((Collection<?>) ((ConstantValuesRenderer) renderableValues).getValues()).size() > 1;
+  }
 
-        if ( valuesAsStringList.isEmpty() )
-        {
-            return EMPTY;
-        }
-
-        if ( valuesAsStringList.size() > 1 )
-        {
-            return queryContext.bindParamAndGetIndex(
-                valueTypeMapping.convertMany( valuesAsStringList ) );
-        }
-        return queryContext.bindParamAndGetIndex(
-            valueTypeMapping.convertSingle( valuesAsStringList.get( 0 ) ) );
-    }
-
-    public static boolean hasNullValue( Renderable renderableValues )
-    {
-        if ( renderableValues instanceof ConstantValuesRenderer )
-        {
-            Object values = ((ConstantValuesRenderer) renderableValues).getValues();
-            if ( values instanceof Collection )
-            {
-                return ((Collection<?>) values).stream().anyMatch( isEqual( NV ) );
-            }
-            return values.equals( NV );
-        }
-        return false;
-    }
-
-    public static boolean hasMultipleValues( Renderable renderableValues )
-    {
-        return renderableValues instanceof ConstantValuesRenderer &&
-            ((ConstantValuesRenderer) renderableValues).getValues() instanceof Collection &&
-            ((Collection<?>) ((ConstantValuesRenderer) renderableValues).getValues()).size() > 1;
-    }
-
-    public ConstantValuesRenderer withArgumentTransformer( UnaryOperator<String> valueTransformer )
-    {
-        return of( values, valueTypeMapping, queryContext, valueTransformer );
-    }
+  public ConstantValuesRenderer withArgumentTransformer(UnaryOperator<String> valueTransformer) {
+    return of(values, valueTypeMapping, queryContext, valueTransformer);
+  }
 }

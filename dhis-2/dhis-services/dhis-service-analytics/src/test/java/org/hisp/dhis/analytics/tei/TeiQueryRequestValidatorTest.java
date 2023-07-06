@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestValidator;
@@ -45,155 +44,170 @@ import org.junit.jupiter.api.Test;
  *
  * @author maikel arabori
  */
-class TeiQueryRequestValidatorTest
-{
-    @Test
-    void testValidateWithSuccess()
-    {
-        // Given
-        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( "uidabcdef11" );
-        CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
-        commonQueryRequest.setProgram( Set.of( "prgabcdef11" ) );
-        commonQueryRequest.setDimension( Set.of( "ou:jmIPBj66vD6" ) );
+class TeiQueryRequestValidatorTest {
+  @Test
+  void testValidateWithSuccess() {
+    // Given
+    TeiQueryRequest teiQueryRequest = new TeiQueryRequest("uidabcdef11");
+    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+    commonQueryRequest.setProgram(Set.of("prgabcdef11"));
+    commonQueryRequest.setDimension(Set.of("ou:jmIPBj66vD6"));
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .commonQueryRequest( commonQueryRequest )
-            .request( teiQueryRequest ).build();
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder()
+            .commonQueryRequest(commonQueryRequest)
+            .request(teiQueryRequest)
+            .build();
 
-        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
-        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+    CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+    TeiQueryRequestValidator teiQueryRequestValidator =
+        new TeiQueryRequestValidator(commonQueryRequestValidator);
 
-        // Then
-        assertDoesNotThrow(
-            () -> teiQueryRequestValidator.validate( queryRequest ) );
-    }
+    // Then
+    assertDoesNotThrow(() -> teiQueryRequestValidator.validate(queryRequest));
+  }
 
-    @Test
-    void testValidateWhenProgramIsNotDefined()
-    {
-        // Given
-        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( "uidabcdef11" );
-        CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
-        commonQueryRequest.setDimension( Set.of( "ou:jmIPBj66vD6" ) );
+  @Test
+  void testValidateWhenProgramIsNotDefined() {
+    // Given
+    TeiQueryRequest teiQueryRequest = new TeiQueryRequest("uidabcdef11");
+    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+    commonQueryRequest.setDimension(Set.of("ou:jmIPBj66vD6"));
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .commonQueryRequest( commonQueryRequest )
-            .request( teiQueryRequest ).build();
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder()
+            .commonQueryRequest(commonQueryRequest)
+            .request(teiQueryRequest)
+            .build();
 
-        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
-        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+    CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+    TeiQueryRequestValidator teiQueryRequestValidator =
+        new TeiQueryRequestValidator(commonQueryRequestValidator);
 
-        // When
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> teiQueryRequestValidator.validate( queryRequest ) );
+    // When
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(queryRequest));
 
-        // Then
-        assertEquals( "Program is not specified", exception.getMessage() );
-    }
+    // Then
+    assertEquals("Program is not specified", exception.getMessage());
+  }
 
-    @Test
-    void testValidateWhenPeIsDefined()
-    {
-        // Given
-        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( "uidabcdef11" );
-        CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
-        commonQueryRequest.setProgram( Set.of( "prgabcdef11" ) );
-        commonQueryRequest.setDimension( Set.of( "pe:LAST_YEAR" ) );
+  @Test
+  void testValidateWhenPeIsDefined() {
+    // Given
+    TeiQueryRequest teiQueryRequest = new TeiQueryRequest("uidabcdef11");
+    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+    commonQueryRequest.setProgram(Set.of("prgabcdef11"));
+    commonQueryRequest.setDimension(Set.of("pe:LAST_YEAR"));
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .commonQueryRequest( commonQueryRequest )
-            .request( teiQueryRequest ).build();
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder()
+            .commonQueryRequest(commonQueryRequest)
+            .request(teiQueryRequest)
+            .build();
 
-        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
-        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+    CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+    TeiQueryRequestValidator teiQueryRequestValidator =
+        new TeiQueryRequestValidator(commonQueryRequestValidator);
 
-        // When
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> teiQueryRequestValidator.validate( queryRequest ) );
+    // When
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(queryRequest));
 
-        // Then
-        assertEquals( "Query item or filter is invalid: `pe:LAST_YEAR`", exception.getMessage() );
-    }
+    // Then
+    assertEquals("Query item or filter is invalid: `pe:LAST_YEAR`", exception.getMessage());
+  }
 
-    @Test
-    void testValidateWhenNoTrackedEntityType()
-    {
-        // Given
-        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( null );
+  @Test
+  void testValidateWhenNoTrackedEntityType() {
+    // Given
+    TeiQueryRequest teiQueryRequest = new TeiQueryRequest(null);
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .request( teiQueryRequest ).build();
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder().request(teiQueryRequest).build();
 
-        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
-        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+    CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+    TeiQueryRequestValidator teiQueryRequestValidator =
+        new TeiQueryRequestValidator(commonQueryRequestValidator);
 
-        // When
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> teiQueryRequestValidator.validate( queryRequest ) );
+    // When
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(queryRequest));
 
-        // Then
-        assertEquals( "Invalid UID `null` for property `trackedEntityType`", exception.getMessage() );
-    }
+    // Then
+    assertEquals("Invalid UID `null` for property `trackedEntityType`", exception.getMessage());
+  }
 
-    @Test
-    void testValidateWhenTrackedEntityTypeIsInvalid()
-    {
-        String teiUid = CodeGenerator.generateUid() + "invalid";
-        // Given
-        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( teiUid );
+  @Test
+  void testValidateWhenTrackedEntityTypeIsInvalid() {
+    String teiUid = CodeGenerator.generateUid() + "invalid";
+    // Given
+    TeiQueryRequest teiQueryRequest = new TeiQueryRequest(teiUid);
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .request( teiQueryRequest ).build();
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder().request(teiQueryRequest).build();
 
-        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
-        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+    CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+    TeiQueryRequestValidator teiQueryRequestValidator =
+        new TeiQueryRequestValidator(commonQueryRequestValidator);
 
-        // When
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> teiQueryRequestValidator.validate( queryRequest ) );
+    // When
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(queryRequest));
 
-        // Then
-        assertEquals( "Invalid UID `" + teiUid + "` for property `trackedEntityType`", exception.getMessage() );
-    }
+    // Then
+    assertEquals(
+        "Invalid UID `" + teiUid + "` for property `trackedEntityType`", exception.getMessage());
+  }
 
-    @Test
-    void testValidateWhenProgramUidIsInvalid()
-    {
-        String teiUid = CodeGenerator.generateUid();
-        String invalidProgramUid = CodeGenerator.generateUid() + "invalid";
-        String validProgramUid = CodeGenerator.generateUid();
-        // Given
-        TeiQueryRequest teiQueryRequest = new TeiQueryRequest( teiUid );
+  @Test
+  void testValidateWhenProgramUidIsInvalid() {
+    String teiUid = CodeGenerator.generateUid();
+    String invalidProgramUid = CodeGenerator.generateUid() + "invalid";
+    String validProgramUid = CodeGenerator.generateUid();
+    // Given
+    TeiQueryRequest teiQueryRequest = new TeiQueryRequest(teiUid);
 
-        CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
-        commonQueryRequest.setProgram( Set.of( validProgramUid, invalidProgramUid ) );
+    CommonQueryRequest commonQueryRequest = new CommonQueryRequest();
+    commonQueryRequest.setProgram(Set.of(validProgramUid, invalidProgramUid));
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .commonQueryRequest( commonQueryRequest )
-            .request( teiQueryRequest ).build();
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder()
+            .commonQueryRequest(commonQueryRequest)
+            .request(teiQueryRequest)
+            .build();
 
-        CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
-        TeiQueryRequestValidator teiQueryRequestValidator = new TeiQueryRequestValidator( commonQueryRequestValidator );
+    CommonQueryRequestValidator commonQueryRequestValidator = new CommonQueryRequestValidator();
+    TeiQueryRequestValidator teiQueryRequestValidator =
+        new TeiQueryRequestValidator(commonQueryRequestValidator);
 
-        // When
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> teiQueryRequestValidator.validate( queryRequest ) );
+    // When
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> teiQueryRequestValidator.validate(queryRequest));
 
-        // Then
-        assertEquals( "Invalid UID `" + invalidProgramUid + "` for property `program`", exception.getMessage() );
-    }
+    // Then
+    assertEquals(
+        "Invalid UID `" + invalidProgramUid + "` for property `program`", exception.getMessage());
+  }
 
-    @Test
-    void testProgramStatusAndEnrollmentStatusThrowsException()
-    {
-        CommonQueryRequest request = new CommonQueryRequest()
-            .withProgram( Set.of( "IpHINAT79UW" ) )
-            .withProgramStatus( Set.of( "IpHINAT79UW.COMPLETED" ) )
-            .withEnrollmentStatus( Set.of( "IpHINAT79UW.COMPLETED" ) );
+  @Test
+  void testProgramStatusAndEnrollmentStatusThrowsException() {
+    CommonQueryRequest request =
+        new CommonQueryRequest()
+            .withProgram(Set.of("IpHINAT79UW"))
+            .withProgramStatus(Set.of("IpHINAT79UW.COMPLETED"))
+            .withEnrollmentStatus(Set.of("IpHINAT79UW.COMPLETED"));
 
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> new CommonQueryRequestValidator().validate( request ) );
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class, () -> new CommonQueryRequestValidator().validate(request));
 
-        assertEquals( "programStatus and enrollmentStatus cannot be used together.", exception.getMessage() );
-    }
+    assertEquals(
+        "programStatus and enrollmentStatus cannot be used together.", exception.getMessage());
+  }
 }

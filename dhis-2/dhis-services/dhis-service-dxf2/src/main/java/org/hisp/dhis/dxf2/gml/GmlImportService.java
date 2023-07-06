@@ -28,26 +28,23 @@
 package org.hisp.dhis.dxf2.gml;
 
 import java.io.InputStream;
-
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
 /**
- * Handles the transformation, sanitation and merging of geospatial data for
- * OrganisationUnits through processing and importing GML files.
+ * Handles the transformation, sanitation and merging of geospatial data for OrganisationUnits
+ * through processing and importing GML files.
  *
  * @author Halvdan Hoem Grelland
  */
-public interface GmlImportService
-{
-    /**
-     * Import the geospatial data from a GML document.
-     *
-     * @param userUid the UID of the user performing the import.
-     * @param importOptions the ImportOptions. ImportStrategy is always
-     *        overridden to UPDATE.
-     * @param taskId the TaskId of the import process.
-     * @param inputStream the GML document.
-     */
-    ImportReport importGml( InputStream inputStream, MetadataImportParams importParams );
+public interface GmlImportService {
+  /**
+   * Import the geospatial data from a GML document.
+   *
+   * @param userUid the UID of the user performing the import.
+   * @param importOptions the ImportOptions. ImportStrategy is always overridden to UPDATE.
+   * @param taskId the TaskId of the import process.
+   * @param inputStream the GML document.
+   */
+  ImportReport importGml(InputStream inputStream, MetadataImportParams importParams);
 }

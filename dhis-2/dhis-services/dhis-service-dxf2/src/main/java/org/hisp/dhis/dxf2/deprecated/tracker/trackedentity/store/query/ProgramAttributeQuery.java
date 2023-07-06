@@ -27,62 +27,55 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.TableColumn;
 
-import com.google.common.collect.ImmutableMap;
+public class ProgramAttributeQuery {
+  public enum COLUMNS {
+    PI_UID,
+    PI_ID,
+    CREATED,
+    UPDATED,
+    VALUE,
+    STOREDBY,
+    ATTR_UID,
+    ATTR_NAME,
+    ATTR_VALUE_TYPE,
+    ATTR_CODE,
+    ATTR_SKIP_SYNC
+  }
 
-public class ProgramAttributeQuery
-{
-    public enum COLUMNS
-    {
-        PI_UID,
-        PI_ID,
-        CREATED,
-        UPDATED,
-        VALUE,
-        STOREDBY,
-        ATTR_UID,
-        ATTR_NAME,
-        ATTR_VALUE_TYPE,
-        ATTR_CODE,
-        ATTR_SKIP_SYNC
-    }
+  public static final Map<COLUMNS, TableColumn> columnMap =
+      ImmutableMap.<COLUMNS, TableColumn>builder()
+          .put(COLUMNS.PI_UID, new TableColumn("pi", "uid", "pi_uid"))
+          .put(COLUMNS.PI_ID, new TableColumn("pi", "programinstanceid", "id"))
+          .put(COLUMNS.CREATED, new TableColumn("teav", "created"))
+          .put(COLUMNS.UPDATED, new TableColumn("teav", "lastupdated"))
+          .put(COLUMNS.STOREDBY, new TableColumn("teav", "storedby"))
+          .put(COLUMNS.VALUE, new TableColumn("teav", "value"))
+          .put(COLUMNS.ATTR_UID, new TableColumn("t", "uid", "att_uid"))
+          .put(COLUMNS.ATTR_VALUE_TYPE, new TableColumn("t", "valuetype", "att_val_type"))
+          .put(COLUMNS.ATTR_CODE, new TableColumn("t", "code", "att_code"))
+          .put(COLUMNS.ATTR_NAME, new TableColumn("t", "name", "att_name"))
+          .put(COLUMNS.ATTR_SKIP_SYNC, new TableColumn("t", "skipsynchronization", "att_skip_sync"))
+          .build();
 
-    public static final Map<COLUMNS, TableColumn> columnMap = ImmutableMap.<COLUMNS, TableColumn> builder()
-        .put( COLUMNS.PI_UID, new TableColumn( "pi", "uid", "pi_uid" ) )
-        .put( COLUMNS.PI_ID, new TableColumn( "pi", "programinstanceid", "id" ) )
-        .put( COLUMNS.CREATED, new TableColumn( "teav", "created" ) )
-        .put( COLUMNS.UPDATED, new TableColumn( "teav", "lastupdated" ) )
-        .put( COLUMNS.STOREDBY, new TableColumn( "teav", "storedby" ) )
-        .put( COLUMNS.VALUE, new TableColumn( "teav", "value" ) )
-        .put( COLUMNS.ATTR_UID, new TableColumn( "t", "uid", "att_uid" ) )
-        .put( COLUMNS.ATTR_VALUE_TYPE, new TableColumn( "t", "valuetype", "att_val_type" ) )
-        .put( COLUMNS.ATTR_CODE, new TableColumn( "t", "code", "att_code" ) )
-        .put( COLUMNS.ATTR_NAME, new TableColumn( "t", "name", "att_name" ) )
-        .put( COLUMNS.ATTR_SKIP_SYNC, new TableColumn( "t", "skipsynchronization", "att_skip_sync" ) )
-        .build();
+  public static String getQuery() {
+    return getSelect()
+        + "from trackedentityattributevalue teav "
+        + "join program_attributes pa on teav.trackedentityattributeid  = pa.trackedentityattributeid "
+        + "join trackedentityattribute t on t.trackedentityattributeid = pa.trackedentityattributeid "
+        + "join trackedentityinstance tei on tei.trackedentityinstanceid = teav.trackedentityinstanceid "
+        + "join programinstance pi on pi.programid = pa.programid and pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+        + "where pi.programinstanceid IN (:ids)";
+  }
 
-    public static String getQuery()
-    {
-        return getSelect() +
-            "from trackedentityattributevalue teav " +
-            "join program_attributes pa on teav.trackedentityattributeid  = pa.trackedentityattributeid " +
-            "join trackedentityattribute t on t.trackedentityattributeid = pa.trackedentityattributeid " +
-            "join trackedentityinstance tei on tei.trackedentityinstanceid = teav.trackedentityinstanceid " +
-            "join programinstance pi on pi.programid = pa.programid and pi.trackedentityinstanceid = tei.trackedentityinstanceid "
-            +
-            "where pi.programinstanceid IN (:ids)";
-    }
+  private static String getSelect() {
+    return QueryUtils.getSelect(columnMap.values());
+  }
 
-    private static String getSelect()
-    {
-        return QueryUtils.getSelect( columnMap.values() );
-    }
-
-    public static String getColumnName( COLUMNS columns )
-    {
-        return columnMap.get( columns ).getResultsetValue();
-    }
+  public static String getColumnName(COLUMNS columns) {
+    return columnMap.get(columns).getResultsetValue();
+  }
 }

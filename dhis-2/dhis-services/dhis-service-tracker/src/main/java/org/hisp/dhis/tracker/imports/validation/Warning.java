@@ -28,51 +28,43 @@
 package org.hisp.dhis.tracker.imports.validation;
 
 import lombok.Value;
-
 import org.hisp.dhis.tracker.imports.TrackerType;
 
 @Value
-public class Warning implements Validation
-{
-    String message;
+public class Warning implements Validation {
+  String message;
 
-    ValidationCode code;
+  ValidationCode code;
 
-    TrackerType type;
+  TrackerType type;
 
-    String uid;
+  String uid;
 
-    public ValidationCode getWarningCode()
-    {
-        return code;
-    }
+  public ValidationCode getWarningCode() {
+    return code;
+  }
 
-    public TrackerType getTrackerType()
-    {
-        return type;
-    }
+  public TrackerType getTrackerType() {
+    return type;
+  }
 
-    @Override
-    public String getCode()
-    {
-        return code.name();
-    }
+  @Override
+  public String getCode() {
+    return code.name();
+  }
 
-    @Override
-    public String getMessage()
-    {
-        return message;
-    }
+  @Override
+  public String getMessage() {
+    return message;
+  }
 
-    @Override
-    public String getType()
-    {
-        return type.name();
-    }
+  @Override
+  public String getType() {
+    return type.name();
+  }
 
-    @Override
-    public String getUid()
-    {
-        return uid;
-    }
+  @Override
+  public String getUid() {
+    return uid;
+  }
 }

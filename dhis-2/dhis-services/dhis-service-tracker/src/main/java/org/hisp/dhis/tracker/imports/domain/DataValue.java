@@ -27,14 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,29 +41,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DataValue
-{
-    @JsonProperty
-    private Instant createdAt;
+public class DataValue {
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private boolean providedElsewhere;
+  @JsonProperty private boolean providedElsewhere;
 
-    @JsonProperty
-    private MetadataIdentifier dataElement;
+  @JsonProperty private MetadataIdentifier dataElement;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 
-    @JsonProperty
-    private User createdBy;
+  @JsonProperty private User createdBy;
 
-    @JsonProperty
-    private User updatedBy;
+  @JsonProperty private User updatedBy;
 }

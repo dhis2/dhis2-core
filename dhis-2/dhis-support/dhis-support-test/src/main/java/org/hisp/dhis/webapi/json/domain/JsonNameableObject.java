@@ -32,36 +32,29 @@ package org.hisp.dhis.webapi.json.domain;
  *
  * @author Jan Bernitt
  */
-public interface JsonNameableObject extends JsonIdentifiableObject
-{
+public interface JsonNameableObject extends JsonIdentifiableObject {
 
-    default String getShortName()
-    {
-        return getString( "shortName" ).string();
-    }
+  default String getShortName() {
+    return getString("shortName").string();
+  }
 
-    default String getDisplayShortName()
-    {
-        return getString( "displayShortName" ).string();
-    }
+  default String getDisplayShortName() {
+    return getString("displayShortName").string();
+  }
 
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
+  default String getDescription() {
+    return getString("description").string();
+  }
 
-    default String getDisplayDescription()
-    {
-        return getString( "displayDescription" ).string();
-    }
+  default String getDisplayDescription() {
+    return getString("displayDescription").string();
+  }
 
-    default String getFormName()
-    {
-        return getString( "formName" ).string();
-    }
+  default String getFormName() {
+    return getString("formName").string();
+  }
 
-    default String getDisplayFormName()
-    {
-        return getString( "displayFormName" ).string();
-    }
+  default String getDisplayFormName() {
+    return getString("displayFormName").string();
+  }
 }

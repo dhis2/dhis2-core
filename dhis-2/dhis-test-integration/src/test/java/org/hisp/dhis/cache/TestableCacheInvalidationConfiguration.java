@@ -44,32 +44,28 @@ import org.springframework.security.core.session.SessionRegistryImpl;
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Order( 10002 )
+@Order(10002)
 @Configuration
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Profile( { "cache-invalidation-test" } )
-@Conditional( value = CacheInvalidationEnabledCondition.class )
-public class TestableCacheInvalidationConfiguration
-{
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
-    {
-        return new SessionRegistryImpl();
-    }
+@ComponentScan(basePackages = {"org.hisp.dhis"})
+@Profile({"cache-invalidation-test"})
+@Conditional(value = CacheInvalidationEnabledCondition.class)
+public class TestableCacheInvalidationConfiguration {
+  @Bean
+  public static SessionRegistryImpl sessionRegistry() {
+    return new SessionRegistryImpl();
+  }
 
-    @Bean( name = "cacheInvalidationServerId" )
-    public String getCacheInvalidationServerId()
-    {
-        return generateUid();
-    }
+  @Bean(name = "cacheInvalidationServerId")
+  public String getCacheInvalidationServerId() {
+    return generateUid();
+  }
 
-    @Bean
-    public CacheInvalidationPreStartupRoutine redisCacheInvalidationPreStartupRoutine()
-    {
-        CacheInvalidationPreStartupRoutine routine = new CacheInvalidationPreStartupRoutine();
-        routine.setName( "redisPreStartupRoutine" );
-        routine.setRunlevel( 20 );
-        routine.setSkipInTests( false );
-        return routine;
-    }
+  @Bean
+  public CacheInvalidationPreStartupRoutine redisCacheInvalidationPreStartupRoutine() {
+    CacheInvalidationPreStartupRoutine routine = new CacheInvalidationPreStartupRoutine();
+    routine.setName("redisPreStartupRoutine");
+    routine.setRunlevel(20);
+    routine.setSkipInTests(false);
+    return routine;
+  }
 }

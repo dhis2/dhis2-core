@@ -144,7 +144,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.29.0</artemis.version>
     <netty-all.version>4.1.94.Final</netty-all.version>
-    <classgraph.version>4.8.160</classgraph.version>
+    <classgraph.version>4.8.161</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -199,7 +199,7 @@
     <swagger.version>2.1.16</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
-    <h2.version>2.1.214</h2.version>
+    <h2.version>2.2.220</h2.version>
     <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
     <!-- Maven plugin versions -->
@@ -652,26 +652,13 @@
           <artifactId>spotless-maven-plugin</artifactId>
           <version>${spotless.version}</version>
           <configuration>
-              <upToDateChecking>
-                  <enabled>true</enabled>
-              </upToDateChecking>
-              <java>
-                  <eclipse>
-                      <file>${rootDir}/DHISFormatter.xml</file>
-                      <version>4.27</version>
-                  </eclipse>
-                  <trimTrailingWhitespace />
-                  <removeUnusedImports />
-                  <importOrder>
-                      <order>
-                          java,javax,lombok,net,org,com
-                      </order>
-                  </importOrder>
-                  <licenseHeader>
-                      <file>${rootDir}/license-header</file>
-                  </licenseHeader>
-              </java>
-              <lineEndings>UNIX</lineEndings>
+            <upToDateChecking>
+              <enabled>true</enabled>
+            </upToDateChecking>
+            <java>
+              <googleJavaFormat />
+            </java>
+            <lineEndings>UNIX</lineEndings>
           </configuration>
         </plugin>
         <plugin>

@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -38,63 +37,56 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test the metadata check for periods which have the same period type and which
- * have the same start and end date. The test scenario is not possible to
- * recreate in current versions of DHIS2 because of a unique constraint placed
- * on the period type, start date and end date. Here, we will only test that the
- * check actually runs.*
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_end_date.yaml}
+ * Test the metadata check for periods which have the same period type and which have the same start
+ * and end date. The test scenario is not possible to recreate in current versions of DHIS2 because
+ * of a unique constraint placed on the period type, start date and end date. Here, we will only
+ * test that the check actually runs.* {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/periods/periods_same_start_end_date.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityPeriodsThreeYearFutureControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    @Autowired
-    private PeriodService periodService;
+class DataIntegrityPeriodsThreeYearFutureControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  @Autowired private PeriodService periodService;
 
-    private static final String check = "periods_3y_future";
+  private static final String check = "periods_3y_future";
 
-    @Test
-    void testPeriodsInFarFutureExist()
-    {
+  @Test
+  void testPeriodsInFarFutureExist() {
 
-        PeriodType periodType = new MonthlyPeriodType();
-        Date threeYearsFromNow = Date.from( ZonedDateTime.now().plusYears( 3 ).plusDays( 1 ).toInstant() );
-        Period periodA = periodType.createPeriod( threeYearsFromNow );
+    PeriodType periodType = new MonthlyPeriodType();
+    Date threeYearsFromNow = Date.from(ZonedDateTime.now().plusYears(3).plusDays(1).toInstant());
+    Period periodA = periodType.createPeriod(threeYearsFromNow);
 
-        Date date_now = Date.from( ZonedDateTime.now().toInstant() );
-        Period periodB = periodType.createPeriod( date_now );
+    Date date_now = Date.from(ZonedDateTime.now().toInstant());
+    Period periodB = periodType.createPeriod(date_now);
 
-        periodService.addPeriod( periodA );
-        periodService.addPeriod( periodB );
-        dbmsManager.clearSession();
+    periodService.addPeriod(periodA);
+    periodService.addPeriod(periodB);
+    dbmsManager.clearSession();
 
-        assertHasDataIntegrityIssues( "periods", check, 50, (String) null, null, null, true );
+    assertHasDataIntegrityIssues("periods", check, 50, (String) null, null, null, true);
+  }
 
-    }
+  @Test
+  void testPeriodsInFarFutureDoNotExist() {
 
-    @Test
-    void testPeriodsInFarFutureDoNotExist()
-    {
+    PeriodType periodType = new MonthlyPeriodType();
+    Date oneYearFromNow = Date.from(ZonedDateTime.now().plusYears(1).plusDays(1).toInstant());
+    Period periodA = periodType.createPeriod(oneYearFromNow);
 
-        PeriodType periodType = new MonthlyPeriodType();
-        Date oneYearFromNow = Date.from( ZonedDateTime.now().plusYears( 1 ).plusDays( 1 ).toInstant() );
-        Period periodA = periodType.createPeriod( oneYearFromNow );
+    Date date_now = Date.from(ZonedDateTime.now().toInstant());
+    Period periodB = periodType.createPeriod(date_now);
 
-        Date date_now = Date.from( ZonedDateTime.now().toInstant() );
-        Period periodB = periodType.createPeriod( date_now );
+    periodService.addPeriod(periodA);
+    periodService.addPeriod(periodB);
+    dbmsManager.clearSession();
 
-        periodService.addPeriod( periodA );
-        periodService.addPeriod( periodB );
-        dbmsManager.clearSession();
+    assertHasNoDataIntegrityIssues("periods", check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( "periods", check, true );
-
-    }
-
-    @Test
-    void testPeriodsInFutureRuns()
-    {
-        assertHasNoDataIntegrityIssues( "periods", check, false );
-    }
+  @Test
+  void testPeriodsInFutureRuns() {
+    assertHasNoDataIntegrityIssues("periods", check, false);
+  }
 }

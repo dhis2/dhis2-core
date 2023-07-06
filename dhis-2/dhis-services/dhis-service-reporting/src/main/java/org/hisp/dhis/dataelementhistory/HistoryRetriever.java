@@ -35,12 +35,14 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Torgeir Lorange Ostby
  */
-public interface HistoryRetriever
-{
-    String ID = HistoryRetriever.class.getName();
+public interface HistoryRetriever {
+  String ID = HistoryRetriever.class.getName();
 
-    DataElementHistory getHistory( DataElement dataElement, CategoryOptionCombo optionCombo,
-        CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod,
-        int historyLength );
-
+  DataElementHistory getHistory(
+      DataElement dataElement,
+      CategoryOptionCombo optionCombo,
+      CategoryOptionCombo attributeOptionCombo,
+      OrganisationUnit organisationUnit,
+      Period lastPeriod,
+      int historyLength);
 }

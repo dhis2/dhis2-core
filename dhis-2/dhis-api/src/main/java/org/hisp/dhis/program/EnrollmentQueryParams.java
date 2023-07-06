@@ -31,10 +31,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,270 +45,180 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-@Accessors( chain = true )
-public class EnrollmentQueryParams
-{
-    public static final int DEFAULT_PAGE = 1;
+@Accessors(chain = true)
+public class EnrollmentQueryParams {
+  public static final int DEFAULT_PAGE = 1;
 
-    public static final int DEFAULT_PAGE_SIZE = 50;
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-    /**
-     * Last updated for enrollment.
-     */
-    private Date lastUpdated;
+  /** Last updated for enrollment. */
+  private Date lastUpdated;
 
-    /**
-     * The last updated duration filter.
-     */
-    private String lastUpdatedDuration;
+  /** The last updated duration filter. */
+  private String lastUpdatedDuration;
 
-    /**
-     * Organisation units for which instances in the response were registered
-     * at. Is related to the specified OrganisationUnitMode.
-     */
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+  /**
+   * Organisation units for which instances in the response were registered at. Is related to the
+   * specified OrganisationUnitMode.
+   */
+  private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    /**
-     * Selection mode for the specified organisation units.
-     */
-    private OrganisationUnitSelectionMode organisationUnitMode;
+  /** Selection mode for the specified organisation units. */
+  private OrganisationUnitSelectionMode organisationUnitMode;
 
-    /**
-     * Program for which instances in the response must be enrolled in.
-     */
-    private Program program;
+  /** Program for which instances in the response must be enrolled in. */
+  private Program program;
 
-    /**
-     * Status of the tracked entity instance in the given program.
-     */
-    private ProgramStatus programStatus;
+  /** Status of the tracked entity instance in the given program. */
+  private ProgramStatus programStatus;
 
-    /**
-     * Indicates whether tracked entity instance is marked for follow up for the
-     * specified program.
-     */
-    private Boolean followUp;
+  /**
+   * Indicates whether tracked entity instance is marked for follow up for the specified program.
+   */
+  private Boolean followUp;
 
-    /**
-     * Start date for enrollment in the given program.
-     */
-    private Date programStartDate;
+  /** Start date for enrollment in the given program. */
+  private Date programStartDate;
 
-    /**
-     * End date for enrollment in the given program.
-     */
-    private Date programEndDate;
+  /** End date for enrollment in the given program. */
+  private Date programEndDate;
 
-    /**
-     * Tracked entity of the instances in the response.
-     */
-    private TrackedEntityType trackedEntityType;
+  /** Tracked entity of the instances in the response. */
+  private TrackedEntityType trackedEntityType;
 
-    /**
-     * Tracked entity instance.
-     */
-    private TrackedEntity trackedEntity;
+  /** Tracked entity instance. */
+  private TrackedEntity trackedEntity;
 
-    /**
-     * Page number.
-     */
-    private Integer page;
+  /** Page number. */
+  private Integer page;
 
-    /**
-     * Page size.
-     */
-    private Integer pageSize;
+  /** Page size. */
+  private Integer pageSize;
 
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private boolean totalPages;
+  /** Indicates whether to include the total number of pages in the paging response. */
+  private boolean totalPages;
 
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private boolean skipPaging;
+  /** Indicates whether paging should be skipped. */
+  private boolean skipPaging;
 
-    /**
-     * Indicates whether to include soft-deleted enrollments
-     */
-    private boolean includeDeleted;
+  /** Indicates whether to include soft-deleted enrollments */
+  private boolean includeDeleted;
 
-    /**
-     * List of order params
-     */
-    private List<OrderParam> order;
+  /** List of order params */
+  private List<OrderParam> order;
 
-    // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Transient properties
+  // -------------------------------------------------------------------------
 
-    /**
-     * Current user for query.
-     */
-    private transient User user;
+  /** Current user for query. */
+  private transient User user;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public EnrollmentQueryParams()
-    {
-    }
+  public EnrollmentQueryParams() {}
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds an organisation unit to the parameters.
-     */
-    public void addOrganisationUnit( OrganisationUnit unit )
-    {
-        this.organisationUnits.add( unit );
-    }
+  /** Adds an organisation unit to the parameters. */
+  public void addOrganisationUnit(OrganisationUnit unit) {
+    this.organisationUnits.add(unit);
+  }
 
-    public void addOrganisationUnits( Set<OrganisationUnit> orgUnits )
-    {
-        this.organisationUnits.addAll( orgUnits );
-    }
+  public void addOrganisationUnits(Set<OrganisationUnit> orgUnits) {
+    this.organisationUnits.addAll(orgUnits);
+  }
 
-    /**
-     * Indicates whether this params specifies last updated.
-     */
-    public boolean hasLastUpdated()
-    {
-        return lastUpdated != null;
-    }
+  /** Indicates whether this params specifies last updated. */
+  public boolean hasLastUpdated() {
+    return lastUpdated != null;
+  }
 
-    /**
-     * Indicates whether this parameters has a lastUpdatedDuration filter.
-     */
-    public boolean hasLastUpdatedDuration()
-    {
-        return lastUpdatedDuration != null;
-    }
+  /** Indicates whether this parameters has a lastUpdatedDuration filter. */
+  public boolean hasLastUpdatedDuration() {
+    return lastUpdatedDuration != null;
+  }
 
-    /**
-     * Indicates whether this params specifies any organisation units.
-     */
-    public boolean hasOrganisationUnits()
-    {
-        return organisationUnits != null && !organisationUnits.isEmpty();
-    }
+  /** Indicates whether this params specifies any organisation units. */
+  public boolean hasOrganisationUnits() {
+    return organisationUnits != null && !organisationUnits.isEmpty();
+  }
 
-    /**
-     * Indicates whether this params specifies a program.
-     */
-    public boolean hasProgram()
-    {
-        return program != null;
-    }
+  /** Indicates whether this params specifies a program. */
+  public boolean hasProgram() {
+    return program != null;
+  }
 
-    /**
-     * Indicates whether this params specifies a program status.
-     */
-    public boolean hasProgramStatus()
-    {
-        return programStatus != null;
-    }
+  /** Indicates whether this params specifies a program status. */
+  public boolean hasProgramStatus() {
+    return programStatus != null;
+  }
 
-    /**
-     * Indicates whether this params specifies follow up for the given program.
-     * Follow up can be specified as true or false.
-     */
-    public boolean hasFollowUp()
-    {
-        return followUp != null;
-    }
+  /**
+   * Indicates whether this params specifies follow up for the given program. Follow up can be
+   * specified as true or false.
+   */
+  public boolean hasFollowUp() {
+    return followUp != null;
+  }
 
-    /**
-     * Indicates whether this params specifies a program start date.
-     */
-    public boolean hasProgramStartDate()
-    {
-        return programStartDate != null;
-    }
+  /** Indicates whether this params specifies a program start date. */
+  public boolean hasProgramStartDate() {
+    return programStartDate != null;
+  }
 
-    /**
-     * Indicates whether this params specifies a program end date.
-     */
-    public boolean hasProgramEndDate()
-    {
-        return programEndDate != null;
-    }
+  /** Indicates whether this params specifies a program end date. */
+  public boolean hasProgramEndDate() {
+    return programEndDate != null;
+  }
 
-    /**
-     * Indicates whether this params specifies a tracked entity.
-     */
-    public boolean hasTrackedEntityType()
-    {
-        return trackedEntityType != null;
-    }
+  /** Indicates whether this params specifies a tracked entity. */
+  public boolean hasTrackedEntityType() {
+    return trackedEntityType != null;
+  }
 
-    /**
-     * Indicates whether this params specifies a tracked entity instance.
-     */
-    public boolean hasTrackedEntity()
-    {
-        return this.trackedEntity != null;
-    }
+  /** Indicates whether this params specifies a tracked entity instance. */
+  public boolean hasTrackedEntity() {
+    return this.trackedEntity != null;
+  }
 
-    /**
-     * Indicates whether this params is of the given organisation unit mode.
-     */
-    public boolean isOrganisationUnitMode( OrganisationUnitSelectionMode mode )
-    {
-        return organisationUnitMode != null && organisationUnitMode.equals( mode );
-    }
+  /** Indicates whether this params is of the given organisation unit mode. */
+  public boolean isOrganisationUnitMode(OrganisationUnitSelectionMode mode) {
+    return organisationUnitMode != null && organisationUnitMode.equals(mode);
+  }
 
-    /**
-     * Indicates whether paging is enabled.
-     */
-    public boolean isPaging()
-    {
-        return page != null || pageSize != null;
-    }
+  /** Indicates whether paging is enabled. */
+  public boolean isPaging() {
+    return page != null || pageSize != null;
+  }
 
-    /**
-     * Returns the page number, falls back to default value of 1 if not
-     * specified.
-     */
-    public int getPageWithDefault()
-    {
-        return page != null && page > 0 ? page : DEFAULT_PAGE;
-    }
+  /** Returns the page number, falls back to default value of 1 if not specified. */
+  public int getPageWithDefault() {
+    return page != null && page > 0 ? page : DEFAULT_PAGE;
+  }
 
-    /**
-     * Returns the page size, falls back to default value of 50 if not
-     * specified.
-     */
-    public int getPageSizeWithDefault()
-    {
-        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-    }
+  /** Returns the page size, falls back to default value of 50 if not specified. */
+  public int getPageSizeWithDefault() {
+    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+  }
 
-    /**
-     * Returns the offset based on the page number and page size.
-     */
-    public int getOffset()
-    {
-        return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-    }
+  /** Returns the offset based on the page number and page size. */
+  public int getOffset() {
+    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
+  }
 
-    /**
-     * Sets paging properties to default values.
-     */
-    public void setDefaultPaging()
-    {
-        this.page = DEFAULT_PAGE;
-        this.pageSize = DEFAULT_PAGE_SIZE;
-        this.skipPaging = false;
-    }
+  /** Sets paging properties to default values. */
+  public void setDefaultPaging() {
+    this.page = DEFAULT_PAGE;
+    this.pageSize = DEFAULT_PAGE_SIZE;
+    this.skipPaging = false;
+  }
 
-    public boolean isSorting()
-    {
-        return !CollectionUtils.emptyIfNull( order ).isEmpty();
-    }
+  public boolean isSorting() {
+    return !CollectionUtils.emptyIfNull(order).isEmpty();
+  }
 }

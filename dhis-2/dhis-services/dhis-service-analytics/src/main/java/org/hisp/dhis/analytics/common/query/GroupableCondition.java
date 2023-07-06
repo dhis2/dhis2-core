@@ -30,26 +30,21 @@ package org.hisp.dhis.analytics.common.query;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Class to represent a renderable with it's groupId.
- */
+/** Class to represent a renderable with it's groupId. */
 @Data
-@RequiredArgsConstructor( staticName = "of" )
-public class GroupableCondition
-{
-    public static final String UNGROUPED_CONDITION = "UNGROUPED_CONDITION";
+@RequiredArgsConstructor(staticName = "of")
+public class GroupableCondition {
+  public static final String UNGROUPED_CONDITION = "UNGROUPED_CONDITION";
 
-    private final String groupId;
+  private final String groupId;
 
-    private final Renderable renderable;
+  private final Renderable renderable;
 
-    public static GroupableCondition ofUngroupedCondition( Renderable renderable )
-    {
-        return GroupableCondition.of( UNGROUPED_CONDITION, renderable );
-    }
+  public static GroupableCondition ofUngroupedCondition(Renderable renderable) {
+    return GroupableCondition.of(UNGROUPED_CONDITION, renderable);
+  }
 
-    public boolean isGrouped()
-    {
-        return !UNGROUPED_CONDITION.equals( groupId );
-    }
+  public boolean isGrouped() {
+    return !UNGROUPED_CONDITION.equals(groupId);
+  }
 }

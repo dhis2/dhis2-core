@@ -28,9 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dxf2.expressiondimensionitem.ExpressionDimensionItemService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
@@ -42,37 +40,44 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class ExpressionDimensionItemObjectBundleHook extends AbstractObjectBundleHook<ExpressionDimensionItem>
-{
-    private final ExpressionDimensionItemService expressionDimensionItemService;
+public class ExpressionDimensionItemObjectBundleHook
+    extends AbstractObjectBundleHook<ExpressionDimensionItem> {
+  private final ExpressionDimensionItemService expressionDimensionItemService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    @Override
-    public void validate( ExpressionDimensionItem expressionDimensionItem, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        String expression = expressionDimensionItem.getExpression();
+  @Override
+  public void validate(
+      ExpressionDimensionItem expressionDimensionItem,
+      ObjectBundle bundle,
+      Consumer<ErrorReport> addReports) {
+    String expression = expressionDimensionItem.getExpression();
 
-        if ( !expressionDimensionItemService.isValidExpressionItems( expression ) )
-        {
-            addReports.accept( new ErrorReport( ExpressionDimensionItem.class, ErrorCode.E7137, expression,
-                "Not a valid expression" ) );
-        }
-
-        validateSecurity( expressionDimensionItem, bundle, addReports );
+    if (!expressionDimensionItemService.isValidExpressionItems(expression)) {
+      addReports.accept(
+          new ErrorReport(
+              ExpressionDimensionItem.class,
+              ErrorCode.E7137,
+              expression,
+              "Not a valid expression"));
     }
 
-    private void validateSecurity( ExpressionDimensionItem expressionDimensionItem, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+    validateSecurity(expressionDimensionItem, bundle, addReports);
+  }
 
-        if ( !aclService.canRead( bundle.getUser(), expressionDimensionItem ) )
-        {
-            addReports.accept( new ErrorReport( ExpressionDimensionItem.class, ErrorCode.E3012,
-                identifier.getIdentifiersWithName( bundle.getUser() ),
-                identifier.getIdentifiersWithName( expressionDimensionItem ) ) );
-        }
+  private void validateSecurity(
+      ExpressionDimensionItem expressionDimensionItem,
+      ObjectBundle bundle,
+      Consumer<ErrorReport> addReports) {
+    PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+    if (!aclService.canRead(bundle.getUser(), expressionDimensionItem)) {
+      addReports.accept(
+          new ErrorReport(
+              ExpressionDimensionItem.class,
+              ErrorCode.E3012,
+              identifier.getIdentifiersWithName(bundle.getUser()),
+              identifier.getIdentifiersWithName(expressionDimensionItem)));
     }
+  }
 }

@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
@@ -57,255 +56,233 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class ExistingEnrollmentValidatorTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class ExistingEnrollmentValidatorTest {
 
-    private ExistingEnrollmentValidator validator;
+  private ExistingEnrollmentValidator validator;
 
-    @Mock
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
+  @Mock org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
 
-    @Mock
-    TrackerBundle bundle;
+  @Mock TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private TrackedEntity trackedEntity;
+  @Mock private TrackedEntity trackedEntity;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    private static final String programUid = "program";
+  private static final String programUid = "program";
 
-    private static final String trackedEntitUid = "trackedEntity";
+  private static final String trackedEntitUid = "trackedEntity";
 
-    private static final String enrollmentUid = "enrollment";
+  private static final String enrollmentUid = "enrollment";
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new ExistingEnrollmentValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new ExistingEnrollmentValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
-        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
-        when( enrollment.getProgram() ).thenReturn( MetadataIdentifier.ofUid( programUid ) );
-        when( enrollment.getTrackedEntity() ).thenReturn( trackedEntitUid );
-        when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.ACTIVE );
-        when( enrollment.getEnrollment() ).thenReturn( enrollmentUid );
-        when( enrollment.getUid() ).thenReturn( enrollmentUid );
-        when( enrollment.getTrackerType() ).thenCallRealMethod();
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid(programUid));
+    when(enrollment.getTrackedEntity()).thenReturn(trackedEntitUid);
+    when(enrollment.getStatus()).thenReturn(EnrollmentStatus.ACTIVE);
+    when(enrollment.getEnrollment()).thenReturn(enrollmentUid);
+    when(enrollment.getUid()).thenReturn(enrollmentUid);
+    when(enrollment.getTrackerType()).thenCallRealMethod();
 
-        when( preheat.getTrackedEntity( trackedEntitUid ) ).thenReturn( trackedEntity );
-        when( trackedEntity.getUid() ).thenReturn( trackedEntitUid );
+    when(preheat.getTrackedEntity(trackedEntitUid)).thenReturn(trackedEntity);
+    when(trackedEntity.getUid()).thenReturn(trackedEntitUid);
 
-        Program program = new Program();
-        program.setOnlyEnrollOnce( false );
-        program.setUid( programUid );
+    Program program = new Program();
+    program.setOnlyEnrollOnce(false);
+    program.setUid(programUid);
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void shouldExitCancelledStatus()
-    {
-        when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.CANCELLED );
-        validator.validate( reporter, bundle, enrollment );
+  @Test
+  void shouldExitCancelledStatus() {
+    when(enrollment.getStatus()).thenReturn(EnrollmentStatus.CANCELLED);
+    validator.validate(reporter, bundle, enrollment);
 
-        verify( preheat, times( 0 ) ).getProgram( programUid );
-    }
+    verify(preheat, times(0)).getProgram(programUid);
+  }
 
-    @Test
-    void shouldThrowProgramNotFound()
-    {
-        when( enrollment.getProgram() ).thenReturn( null );
-        when( preheat.getProgram( (MetadataIdentifier) null ) ).thenReturn( null );
+  @Test
+  void shouldThrowProgramNotFound() {
+    when(enrollment.getProgram()).thenReturn(null);
+    when(preheat.getProgram((MetadataIdentifier) null)).thenReturn(null);
 
-        assertThrows( NullPointerException.class,
-            () -> validator.validate( reporter, bundle, enrollment ) );
-    }
+    assertThrows(
+        NullPointerException.class, () -> validator.validate(reporter, bundle, enrollment));
+  }
 
-    @Test
-    void shouldExitProgramOnlyEnrollOnce()
-    {
-        Program program = new Program();
-        program.setOnlyEnrollOnce( false );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
-        when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.COMPLETED );
+  @Test
+  void shouldExitProgramOnlyEnrollOnce() {
+    Program program = new Program();
+    program.setOnlyEnrollOnce(false);
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    when(enrollment.getStatus()).thenReturn(EnrollmentStatus.COMPLETED);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void shouldThrowTrackedEntityNotFound()
-    {
-        Program program = new Program();
-        program.setOnlyEnrollOnce( true );
+  @Test
+  void shouldThrowTrackedEntityNotFound() {
+    Program program = new Program();
+    program.setOnlyEnrollOnce(true);
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
 
-        when( enrollment.getTrackedEntity() ).thenReturn( null );
-        assertThrows( NullPointerException.class,
-            () -> validator.validate( reporter, bundle, enrollment ) );
-    }
+    when(enrollment.getTrackedEntity()).thenReturn(null);
+    assertThrows(
+        NullPointerException.class, () -> validator.validate(reporter, bundle, enrollment));
+  }
 
-    @Test
-    void shouldPassValidation()
-    {
-        Program program = new Program();
-        program.setOnlyEnrollOnce( true );
+  @Test
+  void shouldPassValidation() {
+    Program program = new Program();
+    program.setOnlyEnrollOnce(true);
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void shouldFailActiveEnrollmentAlreadyInPayload()
-    {
-        setEnrollmentInPayload( EnrollmentStatus.ACTIVE );
+  @Test
+  void shouldFailActiveEnrollmentAlreadyInPayload() {
+    setEnrollmentInPayload(EnrollmentStatus.ACTIVE);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1015 );
-    }
+    assertHasError(reporter, enrollment, E1015);
+  }
 
-    @Test
-    void shouldFailNotActiveEnrollmentAlreadyInPayloadAndEnrollOnce()
-    {
-        Program program = new Program();
-        program.setUid( programUid );
-        program.setOnlyEnrollOnce( true );
+  @Test
+  void shouldFailNotActiveEnrollmentAlreadyInPayloadAndEnrollOnce() {
+    Program program = new Program();
+    program.setUid(programUid);
+    program.setOnlyEnrollOnce(true);
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
-        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1016 );
-    }
+    assertHasError(reporter, enrollment, E1016);
+  }
 
-    @Test
-    void shouldPassNotActiveEnrollmentAlreadyInPayloadAndNotEnrollOnce()
-    {
-        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
+  @Test
+  void shouldPassNotActiveEnrollmentAlreadyInPayloadAndNotEnrollOnce() {
+    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void shouldFailActiveEnrollmentAlreadyInDb()
-    {
-        setTeiInDb();
+  @Test
+  void shouldFailActiveEnrollmentAlreadyInDb() {
+    setTeiInDb();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1015 );
-    }
+    assertHasError(reporter, enrollment, E1015);
+  }
 
-    @Test
-    void shouldFailNotActiveEnrollmentAlreadyInDbAndEnrollOnce()
-    {
-        Program program = new Program();
-        program.setUid( programUid );
-        program.setOnlyEnrollOnce( true );
+  @Test
+  void shouldFailNotActiveEnrollmentAlreadyInDbAndEnrollOnce() {
+    Program program = new Program();
+    program.setUid(programUid);
+    program.setOnlyEnrollOnce(true);
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
-        setTeiInDb( ProgramStatus.COMPLETED );
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    setTeiInDb(ProgramStatus.COMPLETED);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1016 );
-    }
+    assertHasError(reporter, enrollment, E1016);
+  }
 
-    @Test
-    void shouldPassNotActiveEnrollmentAlreadyInDbAndNotEnrollOnce()
-    {
-        setTeiInDb( ProgramStatus.COMPLETED );
+  @Test
+  void shouldPassNotActiveEnrollmentAlreadyInDbAndNotEnrollOnce() {
+    setTeiInDb(ProgramStatus.COMPLETED);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void shouldFailAnotherEnrollmentAndEnrollOnce()
-    {
-        Program program = new Program();
-        program.setUid( programUid );
-        program.setOnlyEnrollOnce( true );
+  @Test
+  void shouldFailAnotherEnrollmentAndEnrollOnce() {
+    Program program = new Program();
+    program.setUid(programUid);
+    program.setOnlyEnrollOnce(true);
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
-        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
-        setTeiInDb();
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
+    setTeiInDb();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1016 );
-    }
+    assertHasError(reporter, enrollment, E1016);
+  }
 
-    @Test
-    void shouldPassWhenAnotherEnrollmentAndNotEnrollOnce()
-    {
-        Program program = new Program();
-        program.setUid( programUid );
-        program.setOnlyEnrollOnce( false );
+  @Test
+  void shouldPassWhenAnotherEnrollmentAndNotEnrollOnce() {
+    Program program = new Program();
+    program.setUid(programUid);
+    program.setOnlyEnrollOnce(false);
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( programUid ) ) ).thenReturn( program );
-        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
-        setTeiInDb();
+    when(preheat.getProgram(MetadataIdentifier.ofUid(programUid))).thenReturn(program);
+    setEnrollmentInPayload(EnrollmentStatus.COMPLETED);
+    setTeiInDb();
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    }
+  private void setTeiInDb() {
+    setTeiInDb(ProgramStatus.ACTIVE);
+  }
 
-    private void setTeiInDb()
-    {
-        setTeiInDb( ProgramStatus.ACTIVE );
-    }
-
-    private void setTeiInDb( ProgramStatus programStatus )
-    {
-        when( preheat.getTrackedEntityToEnrollmentMap() ).thenReturn( new HashMap<>()
-        {
-            {
+  private void setTeiInDb(ProgramStatus programStatus) {
+    when(preheat.getTrackedEntityToEnrollmentMap())
+        .thenReturn(
+            new HashMap<>() {
+              {
                 Enrollment enrollment = new Enrollment();
 
                 Program program = new Program();
-                program.setUid( programUid );
+                program.setUid(programUid);
 
-                enrollment.setUid( "another_enrollment" );
-                enrollment.setStatus( programStatus );
-                enrollment.setProgram( program );
+                enrollment.setUid("another_enrollment");
+                enrollment.setStatus(programStatus);
+                enrollment.setProgram(program);
 
-                put( trackedEntitUid, Collections.singletonList( enrollment ) );
-            }
-        } );
-    }
+                put(trackedEntitUid, Collections.singletonList(enrollment));
+              }
+            });
+  }
 
-    private void setEnrollmentInPayload( EnrollmentStatus enrollmentStatus )
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle = org.hisp.dhis.tracker.imports.domain.Enrollment
-            .builder()
-            .enrollment( "another_enrollment" )
-            .program( MetadataIdentifier.ofUid( programUid ) )
-            .trackedEntity( trackedEntitUid )
-            .status( enrollmentStatus )
+  private void setEnrollmentInPayload(EnrollmentStatus enrollmentStatus) {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment("another_enrollment")
+            .program(MetadataIdentifier.ofUid(programUid))
+            .trackedEntity(trackedEntitUid)
+            .status(enrollmentStatus)
             .build();
 
-        when( bundle.getEnrollments() ).thenReturn( Collections.singletonList( enrollmentInBundle ) );
-    }
+    when(bundle.getEnrollments()).thenReturn(Collections.singletonList(enrollmentInBundle));
+  }
 }

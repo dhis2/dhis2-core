@@ -30,25 +30,24 @@ package org.hisp.dhis.analytics;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
- * Interface responsible for generating analytics tables. Will look for and
- * invoke implementations of interface {@link AnalyticsTableService}.
+ * Interface responsible for generating analytics tables. Will look for and invoke implementations
+ * of interface {@link AnalyticsTableService}.
  *
  * @author Lars Helge Overland
  */
-public interface AnalyticsTableGenerator
-{
-    /**
-     * Generates analytics tables.
-     *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param progress job progress tracking and control flow
-     */
-    void generateTables( AnalyticsTableUpdateParams params, JobProgress progress );
+public interface AnalyticsTableGenerator {
+  /**
+   * Generates analytics tables.
+   *
+   * @param params the {@link AnalyticsTableUpdateParams}.
+   * @param progress job progress tracking and control flow
+   */
+  void generateTables(AnalyticsTableUpdateParams params, JobProgress progress);
 
-    /**
-     * Generates all resource tables.
-     *
-     * @param progress job progress tracking and control flow
-     */
-    void generateResourceTables( JobProgress progress );
+  /**
+   * Generates all resource tables.
+   *
+   * @param progress job progress tracking and control flow
+   */
+  void generateResourceTables(JobProgress progress);
 }

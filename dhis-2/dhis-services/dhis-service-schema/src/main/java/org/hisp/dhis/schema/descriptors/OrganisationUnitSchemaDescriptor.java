@@ -27,35 +27,33 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OrganisationUnitSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "organisationUnit";
+public class OrganisationUnitSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "organisationUnit";
 
-    public static final String PLURAL = "organisationUnits";
+  public static final String PLURAL = "organisationUnits";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( OrganisationUnit.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1100 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(OrganisationUnit.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1100);
 
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ORGANISATIONUNIT_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ORGANISATIONUNIT_DELETE" ) ) );
+    schema.add(new Authority(AuthorityType.CREATE, Lists.newArrayList("F_ORGANISATIONUNIT_ADD")));
+    schema.add(
+        new Authority(AuthorityType.DELETE, Lists.newArrayList("F_ORGANISATIONUNIT_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

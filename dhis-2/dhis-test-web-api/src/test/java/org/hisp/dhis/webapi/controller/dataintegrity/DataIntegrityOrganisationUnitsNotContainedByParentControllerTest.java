@@ -33,78 +33,95 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Checks for organisation units which have point coordinates which are not
- * contained by their parent organisation unit. This only applies to situations
- * where the parent has geometry of type Polygon or Multipolygon.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_trailing_spaces.yaml}
+ * Checks for organisation units which have point coordinates which are not contained by their
+ * parent organisation unit. This only applies to situations where the parent has geometry of type
+ * Polygon or Multipolygon. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_trailing_spaces.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOrganisationUnitsNotContainedByParentControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private String clinicB;
+  private String clinicB;
 
-    private String districtA;
+  private String districtA;
 
-    private static final String check = "orgunits_not_contained_by_parent";
+  private static final String check = "orgunits_not_contained_by_parent";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrgunitsNotContainedByParent()
-    {
+  @Test
+  void testOrgunitsNotContainedByParent() {
 
-        districtA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'District A', 'shortName': 'District A', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
+    districtA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'District A', 'shortName': 'District A', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Clinic A', 'shortName': 'Clinic A', "
+                + "'parent': {'id' : '"
+                + districtA
+                + "'}, "
+                + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }"));
 
-        clinicB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }" ) );
+    clinicB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', "
+                    + "'parent': {'id' : '"
+                    + districtA
+                    + "'}, "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [5, 5]} }"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 50, clinicB, "Clinic B", null, true );
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, clinicB, "Clinic B", null, true);
+  }
 
-    }
+  @Test
+  void testOrgunitsContainedByParent() {
 
-    @Test
-    void testOrgunitsContainedByParent()
-    {
+    districtA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'District A', 'shortName': 'District A', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }"));
 
-        districtA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'District A', 'shortName': 'District A', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Polygon', 'coordinates' : [[[0,0],[3,0],[3,3],[0,3],[0,0]]]} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Clinic A', 'shortName': 'Clinic A', "
+                + "'parent': {'id' : '"
+                + districtA
+                + "'}, "
+                + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic A', 'shortName': 'Clinic A', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [1, 1]} }" ) );
+    clinicB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', "
+                    + "'parent': {'id' : '"
+                    + districtA
+                    + "'}, "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }"));
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        clinicB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Clinic B', 'shortName': 'Clinic B', " +
-                    "'parent': {'id' : '" + districtA + "'}, " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [2, 2]} }" ) );
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-
-    }
-
-    @Test
-    void testOrgunitsContainedByParentDivideRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
+  @Test
+  void testOrgunitsContainedByParentDivideRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

@@ -33,97 +33,98 @@ import static org.apache.commons.lang3.StringUtils.replaceEach;
 import lombok.NoArgsConstructor;
 
 /**
- * This class keeps basic SQL statements/keywords/constants so they can be
- * reused by the queries.
+ * This class keeps basic SQL statements/keywords/constants so they can be reused by the queries.
  *
  * @author maikel arabori
  */
-@NoArgsConstructor( access = PRIVATE )
-public class StatementUtil
-{
-    public static final String SPACED_SELECT = " select ";
+@NoArgsConstructor(access = PRIVATE)
+public class StatementUtil {
+  public static final String SPACED_SELECT = " select ";
 
-    public static final String SPACED_WHERE = " where ";
+  public static final String SPACED_WHERE = " where ";
 
-    public static final String SPACED_OR = " or ";
+  public static final String SPACED_OR = " or ";
 
-    public static final String SPACED_AND = " and ";
+  public static final String SPACED_AND = " and ";
 
-    public static final String EQUAL = " = :";
+  public static final String EQUAL = " = :";
 
-    public static final String ILIKE = " ilike :";
+  public static final String ILIKE = " ilike :";
 
-    public static final String SPACED_LEFT_PARENTHESIS = " ( ";
+  public static final String SPACED_LEFT_PARENTHESIS = " ( ";
 
-    public static final String SPACED_RIGHT_PARENTHESIS = " ) ";
+  public static final String SPACED_RIGHT_PARENTHESIS = " ) ";
 
-    public static final String SPACED_FROM = " from ";
+  public static final String SPACED_FROM = " from ";
 
-    /**
-     * This method is specific for strings used in "ilike" filters where some
-     * non accepted characters will fail at querying time. It will only replace
-     * common characters by the form accepted in SQL ilike queries.
-     *
-     * @param value the value where characters will ve replaced.
-     * @return the input value with the characters replaced.
-     */
-    public static String addIlikeReplacingCharacters( String value )
-    {
-        return replaceEach( value, new String[] { "%", "," }, new String[] { "\\%", "\\," } );
-    }
+  /**
+   * This method is specific for strings used in "ilike" filters where some non accepted characters
+   * will fail at querying time. It will only replace common characters by the form accepted in SQL
+   * ilike queries.
+   *
+   * @param value the value where characters will ve replaced.
+   * @return the input value with the characters replaced.
+   */
+  public static String addIlikeReplacingCharacters(String value) {
+    return replaceEach(value, new String[] {"%", ","}, new String[] {"\\%", "\\,"});
+  }
 
-    /**
-     * Creates a "in" SQL statement isolated by parenthesis, ie.: "( column in
-     * (:param) )"
-     *
-     * @param column
-     * @param namedParam
-     * @return the SQL string
-     */
-    public static String inFiltering( String column, String namedParam )
-    {
-        return SPACED_LEFT_PARENTHESIS + column + " in (:" + namedParam + ")" + SPACED_RIGHT_PARENTHESIS;
-    }
+  /**
+   * Creates a "in" SQL statement isolated by parenthesis, ie.: "( column in (:param) )"
+   *
+   * @param column
+   * @param namedParam
+   * @return the SQL string
+   */
+  public static String inFiltering(String column, String namedParam) {
+    return SPACED_LEFT_PARENTHESIS
+        + column
+        + " in (:"
+        + namedParam
+        + ")"
+        + SPACED_RIGHT_PARENTHESIS;
+  }
 
-    /**
-     * Creates a "ilike" SQL statement isolated by parenthesis, ie.: "( column
-     * ilike :param )"
-     *
-     * @param column
-     * @param namedParam
-     * @return the SQL string
-     */
-    public static String ilikeFiltering( String column, String namedParam )
-    {
-        return SPACED_LEFT_PARENTHESIS + column + ILIKE + namedParam + SPACED_RIGHT_PARENTHESIS;
-    }
+  /**
+   * Creates a "ilike" SQL statement isolated by parenthesis, ie.: "( column ilike :param )"
+   *
+   * @param column
+   * @param namedParam
+   * @return the SQL string
+   */
+  public static String ilikeFiltering(String column, String namedParam) {
+    return SPACED_LEFT_PARENTHESIS + column + ILIKE + namedParam + SPACED_RIGHT_PARENTHESIS;
+  }
 
-    /**
-     * Creates a "ilike" SQL statement isolated by parenthesis. It consider two
-     * different columns and uses "or" as junction, ie.: "( columnOne ilike
-     * :param or columnTwo ilike :param)"
-     *
-     * @param columnOne
-     * @param columnTwo
-     * @param namedParam
-     * @return the SQL string
-     */
-    public static String ilikeOrFiltering( String columnOne, String columnTwo, String namedParam )
-    {
-        return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + namedParam + " or " + columnTwo + ILIKE
-            + namedParam + SPACED_RIGHT_PARENTHESIS;
-    }
+  /**
+   * Creates a "ilike" SQL statement isolated by parenthesis. It consider two different columns and
+   * uses "or" as junction, ie.: "( columnOne ilike :param or columnTwo ilike :param)"
+   *
+   * @param columnOne
+   * @param columnTwo
+   * @param namedParam
+   * @return the SQL string
+   */
+  public static String ilikeOrFiltering(String columnOne, String columnTwo, String namedParam) {
+    return SPACED_LEFT_PARENTHESIS
+        + columnOne
+        + ILIKE
+        + namedParam
+        + " or "
+        + columnTwo
+        + ILIKE
+        + namedParam
+        + SPACED_RIGHT_PARENTHESIS;
+  }
 
-    /**
-     * Creates a "equal" SQL statement isolated by parenthesis, ie.: "( column =
-     * :param )"
-     *
-     * @param column
-     * @param namedParam
-     * @return the SQL string
-     */
-    public static String equalsFiltering( String column, String namedParam )
-    {
-        return SPACED_LEFT_PARENTHESIS + column + EQUAL + namedParam + SPACED_RIGHT_PARENTHESIS;
-    }
+  /**
+   * Creates a "equal" SQL statement isolated by parenthesis, ie.: "( column = :param )"
+   *
+   * @param column
+   * @param namedParam
+   * @return the SQL string
+   */
+  public static String equalsFiltering(String column, String namedParam) {
+    return SPACED_LEFT_PARENTHESIS + column + EQUAL + namedParam + SPACED_RIGHT_PARENTHESIS;
+  }
 }

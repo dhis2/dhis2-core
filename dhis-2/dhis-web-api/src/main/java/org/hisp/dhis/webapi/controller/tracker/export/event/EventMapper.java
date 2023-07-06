@@ -37,36 +37,38 @@ import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    DataValueMapper.class,
-    CategoryOptionMapper.class,
-    InstantMapper.class,
-    NoteMapper.class,
-    RelationshipMapper.class,
-    UserMapper.class } )
-public interface EventMapper extends ViewMapper<Event, org.hisp.dhis.webapi.controller.tracker.view.Event>
-{
-    @Mapping( target = "event", source = "uid" )
-    @Mapping( target = "program", source = "enrollment.program.uid" )
-    @Mapping( target = "programStage", source = "programStage.uid" )
-    @Mapping( target = "enrollment", source = "enrollment.uid" )
-    @Mapping( target = "trackedEntity", source = "enrollment.trackedEntity.uid" )
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
-    @Mapping( target = "occurredAt", source = "executionDate" )
-    @Mapping( target = "scheduledAt", source = "dueDate" )
-    @Mapping( target = "followup", source = "enrollment.followup" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "attributeOptionCombo", source = "attributeOptionCombo.uid" )
-    @Mapping( target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "dataValues", source = "eventDataValues" )
-    @Mapping( target = "relationships", source = "relationshipItems" )
-    @Mapping( target = "notes", source = "comments" )
-    org.hisp.dhis.webapi.controller.tracker.view.Event from( Event event );
+@Mapper(
+    uses = {
+      DataValueMapper.class,
+      CategoryOptionMapper.class,
+      InstantMapper.class,
+      NoteMapper.class,
+      RelationshipMapper.class,
+      UserMapper.class
+    })
+public interface EventMapper
+    extends ViewMapper<Event, org.hisp.dhis.webapi.controller.tracker.view.Event> {
+  @Mapping(target = "event", source = "uid")
+  @Mapping(target = "program", source = "enrollment.program.uid")
+  @Mapping(target = "programStage", source = "programStage.uid")
+  @Mapping(target = "enrollment", source = "enrollment.uid")
+  @Mapping(target = "trackedEntity", source = "enrollment.trackedEntity.uid")
+  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "orgUnitName", source = "organisationUnit.name")
+  @Mapping(target = "occurredAt", source = "executionDate")
+  @Mapping(target = "scheduledAt", source = "dueDate")
+  @Mapping(target = "followup", source = "enrollment.followup")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
+  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
+  @Mapping(target = "completedAt", source = "completedDate")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "dataValues", source = "eventDataValues")
+  @Mapping(target = "relationships", source = "relationshipItems")
+  @Mapping(target = "notes", source = "comments")
+  org.hisp.dhis.webapi.controller.tracker.view.Event from(Event event);
 }

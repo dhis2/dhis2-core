@@ -29,40 +29,33 @@ package org.hisp.dhis.actions.metadata;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
-
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ProgramStageActions extends RestApiActions
-{
-    public ProgramStageActions()
-    {
-        super( "/programStages" );
-    }
+public class ProgramStageActions extends RestApiActions {
+  public ProgramStageActions() {
+    super("/programStages");
+  }
 
-    public ApiResponse enableUserAssignment( String programStageId, boolean enabled )
-    {
-        JsonObject body = this.get( programStageId ).getBody();
+  public ApiResponse enableUserAssignment(String programStageId, boolean enabled) {
+    JsonObject body = this.get(programStageId).getBody();
 
-        body.addProperty( "enableUserAssignment", enabled );
+    body.addProperty("enableUserAssignment", enabled);
 
-        ApiResponse response = this.update( programStageId, body );
+    ApiResponse response = this.update(programStageId, body);
 
-        response.validate().statusCode( 200 );
+    response.validate().statusCode(200);
 
-        return response;
-    }
+    return response;
+  }
 
-    public void setValidationStrategy( String programStageId, String strategy )
-    {
-        this.patch( programStageId, "add", "/validationStrategy", strategy )
-            .validate().statusCode( 200 );
+  public void setValidationStrategy(String programStageId, String strategy) {
+    this.patch(programStageId, "add", "/validationStrategy", strategy).validate().statusCode(200);
 
-        this.get( programStageId )
-            .validate().body( "validationStrategy", equalTo( strategy ) );
-    }
+    this.get(programStageId).validate().body("validationStrategy", equalTo(strategy));
+  }
 }

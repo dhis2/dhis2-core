@@ -32,14 +32,13 @@ import java.util.Map;
 /**
  * @author Lars Helge Overland
  */
-public interface OrgUnitAnalyticsManager
-{
-    /**
-     * Returns a data map with a composite metadata key and an org unit count as
-     * value for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a map of metadata key and org unit count.
-     */
-    Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params );
+public interface OrgUnitAnalyticsManager {
+  /**
+   * Returns a data map with a composite metadata key and an org unit count as value for the given
+   * parameters.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a map of metadata key and org unit count.
+   */
+  Map<String, Integer> getOrgUnitData(OrgUnitQueryParams params);
 }

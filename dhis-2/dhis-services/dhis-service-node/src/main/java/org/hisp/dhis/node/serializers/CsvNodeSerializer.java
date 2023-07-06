@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.node.serializers;
 
+import com.fasterxml.jackson.dataformat.csv.CsvFactory;
+import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.google.common.collect.Lists;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -43,201 +47,159 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.dataformat.csv.CsvFactory;
-import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-@Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
-public class CsvNodeSerializer extends AbstractNodeSerializer
-{
-    private static final String[] CONTENT_TYPES = { "application/csv", "text/csv" };
+@Scope(value = "prototype", proxyMode = ScopedProxyMode.INTERFACES)
+public class CsvNodeSerializer extends AbstractNodeSerializer {
+  private static final String[] CONTENT_TYPES = {"application/csv", "text/csv"};
 
-    private static final CsvMapper CSV_MAPPER = new CsvMapper();
+  private static final CsvMapper CSV_MAPPER = new CsvMapper();
 
-    private static final CsvFactory CSV_FACTORY = CSV_MAPPER.getFactory();
+  private static final CsvFactory CSV_FACTORY = CSV_MAPPER.getFactory();
 
-    private CsvGenerator csvGenerator;
+  private CsvGenerator csvGenerator;
 
-    @Override
-    public List<String> contentTypes()
-    {
-        return Lists.newArrayList( CONTENT_TYPES );
-    }
+  @Override
+  public List<String> contentTypes() {
+    return Lists.newArrayList(CONTENT_TYPES);
+  }
 
-    @Override
-    protected void startSerialize( RootNode rootNode, OutputStream outputStream )
-        throws Exception
-    {
-        csvGenerator = CSV_FACTORY.createGenerator( outputStream );
+  @Override
+  protected void startSerialize(RootNode rootNode, OutputStream outputStream) throws Exception {
+    csvGenerator = CSV_FACTORY.createGenerator(outputStream);
 
-        CsvSchema.Builder schemaBuilder = CsvSchema.builder()
-            .setUseHeader( true );
+    CsvSchema.Builder schemaBuilder = CsvSchema.builder().setUseHeader(true);
 
-        // build schema
-        for ( Node child : rootNode.getChildren() )
-        {
-            if ( child.isCollection() && !child.getChildren().isEmpty() )
-            {
-                Node node = child.getChildren().get( 0 );
+    // build schema
+    for (Node child : rootNode.getChildren()) {
+      if (child.isCollection() && !child.getChildren().isEmpty()) {
+        Node node = child.getChildren().get(0);
 
-                for ( Node property : node.getChildren() )
-                {
-                    if ( property.isSimple() )
-                    {
-                        schemaBuilder.addColumn( property.getName() );
-                    }
-                    if ( property.getName().equals( "attributes" ) )
-                    {
-                        property.getChildren().stream().findFirst()
-                            .ifPresent( fc -> fc.getChildren().forEach( p -> schemaBuilder.addColumn( p.getName() ) ) );
-                    }
-                }
-            }
+        for (Node property : node.getChildren()) {
+          if (property.isSimple()) {
+            schemaBuilder.addColumn(property.getName());
+          }
+          if (property.getName().equals("attributes")) {
+            property.getChildren().stream()
+                .findFirst()
+                .ifPresent(
+                    fc -> fc.getChildren().forEach(p -> schemaBuilder.addColumn(p.getName())));
+          }
         }
-
-        csvGenerator.setSchema( schemaBuilder.build() );
+      }
     }
 
-    @Override
-    protected void flushStream()
-        throws Exception
-    {
-        csvGenerator.flush();
-    }
+    csvGenerator.setSchema(schemaBuilder.build());
+  }
 
-    @Override
-    protected void startWriteRootNode( RootNode rootNode )
-        throws Exception
-    {
-        for ( Node child : rootNode.getChildren() )
-        {
-            if ( child.isCollection() )
-            {
-                for ( Node node : child.getChildren() )
-                {
-                    writeNode( node );
-                }
-            }
+  @Override
+  protected void flushStream() throws Exception {
+    csvGenerator.flush();
+  }
+
+  @Override
+  protected void startWriteRootNode(RootNode rootNode) throws Exception {
+    for (Node child : rootNode.getChildren()) {
+      if (child.isCollection()) {
+        for (Node node : child.getChildren()) {
+          writeNode(node);
         }
+      }
+    }
+  }
+
+  private void writeNode(Node node) throws Exception {
+    List<SimpleNode> simpleNodeList = new ArrayList<>();
+    boolean hasAttributes = false;
+
+    for (Node property : node.getChildren()) {
+      if (property.isSimple()) {
+        simpleNodeList.add((SimpleNode) property);
+      }
+
+      if (property.getName().equals("attributes")) {
+        hasAttributes = true;
+        writeComplexNode(property.getChildren(), simpleNodeList, csvGenerator);
+      }
+    }
+    writeSimpleNode(hasAttributes, simpleNodeList, csvGenerator);
+  }
+
+  private void writeComplexNode(
+      List<Node> rootNodeList, List<SimpleNode> simpleNodeList, CsvGenerator csvGenerator)
+      throws Exception {
+    for (Node attributeRootNode : rootNodeList) {
+      csvGenerator.writeStartObject();
+
+      for (SimpleNode simplePropertyNode : simpleNodeList) {
+        writeSimpleNode(simplePropertyNode);
+      }
+
+      for (Node attribute : attributeRootNode.getChildren()) {
+        writeSimpleNode((SimpleNode) attribute);
+      }
+
+      csvGenerator.writeEndObject();
+    }
+  }
+
+  private void writeSimpleNode(
+      boolean hasAttributes, List<SimpleNode> nodeList, CsvGenerator csvGenerator)
+      throws Exception {
+    if (!hasAttributes) {
+      csvGenerator.writeStartObject();
+      for (SimpleNode simplePropertyNode : nodeList) {
+        writeSimpleNode(simplePropertyNode);
+      }
+      csvGenerator.writeEndObject();
+    }
+  }
+
+  @Override
+  protected void endWriteRootNode(RootNode rootNode) {
+    // Do nothing
+  }
+
+  @Override
+  protected void startWriteSimpleNode(SimpleNode simpleNode) throws Exception {
+    String value = String.format("%s", simpleNode.getValue());
+
+    if (Date.class.isAssignableFrom(simpleNode.getValue().getClass())) {
+      value = DateUtils.getIso8601NoTz((Date) simpleNode.getValue());
     }
 
-    private void writeNode( Node node )
-        throws Exception
-    {
-        List<SimpleNode> simpleNodeList = new ArrayList<>();
-        boolean hasAttributes = false;
+    csvGenerator.writeObjectField(simpleNode.getName(), value);
+  }
 
-        for ( Node property : node.getChildren() )
-        {
-            if ( property.isSimple() )
-            {
-                simpleNodeList.add( (SimpleNode) property );
-            }
+  @Override
+  protected void endWriteSimpleNode(SimpleNode simpleNode) {
+    // Do nothing
+  }
 
-            if ( property.getName().equals( "attributes" ) )
-            {
-                hasAttributes = true;
-                writeComplexNode( property.getChildren(), simpleNodeList, csvGenerator );
-            }
-        }
-        writeSimpleNode( hasAttributes, simpleNodeList, csvGenerator );
-    }
+  @Override
+  protected void startWriteComplexNode(ComplexNode complexNode) {
+    // Do nothing
+  }
 
-    private void writeComplexNode( List<Node> rootNodeList, List<SimpleNode> simpleNodeList, CsvGenerator csvGenerator )
-        throws Exception
-    {
-        for ( Node attributeRootNode : rootNodeList )
-        {
-            csvGenerator.writeStartObject();
+  @Override
+  protected void endWriteComplexNode(ComplexNode complexNode) {
+    // Do nothing
+  }
 
-            for ( SimpleNode simplePropertyNode : simpleNodeList )
-            {
-                writeSimpleNode( simplePropertyNode );
-            }
+  @Override
+  protected void startWriteCollectionNode(CollectionNode collectionNode) {
+    // Do nothing
+  }
 
-            for ( Node attribute : attributeRootNode.getChildren() )
-            {
-                writeSimpleNode( (SimpleNode) attribute );
-            }
+  @Override
+  protected void endWriteCollectionNode(CollectionNode collectionNode) {
+    // Do nothing
+  }
 
-            csvGenerator.writeEndObject();
-        }
-    }
-
-    private void writeSimpleNode( boolean hasAttributes, List<SimpleNode> nodeList, CsvGenerator csvGenerator )
-        throws Exception
-    {
-        if ( !hasAttributes )
-        {
-            csvGenerator.writeStartObject();
-            for ( SimpleNode simplePropertyNode : nodeList )
-            {
-                writeSimpleNode( simplePropertyNode );
-            }
-            csvGenerator.writeEndObject();
-        }
-    }
-
-    @Override
-    protected void endWriteRootNode( RootNode rootNode )
-    {
-        // Do nothing
-    }
-
-    @Override
-    protected void startWriteSimpleNode( SimpleNode simpleNode )
-        throws Exception
-    {
-        String value = String.format( "%s", simpleNode.getValue() );
-
-        if ( Date.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
-        {
-            value = DateUtils.getIso8601NoTz( (Date) simpleNode.getValue() );
-        }
-
-        csvGenerator.writeObjectField( simpleNode.getName(), value );
-    }
-
-    @Override
-    protected void endWriteSimpleNode( SimpleNode simpleNode )
-    {
-        // Do nothing
-    }
-
-    @Override
-    protected void startWriteComplexNode( ComplexNode complexNode )
-    {
-        // Do nothing
-    }
-
-    @Override
-    protected void endWriteComplexNode( ComplexNode complexNode )
-    {
-        // Do nothing
-    }
-
-    @Override
-    protected void startWriteCollectionNode( CollectionNode collectionNode )
-    {
-        // Do nothing
-    }
-
-    @Override
-    protected void endWriteCollectionNode( CollectionNode collectionNode )
-    {
-        // Do nothing
-    }
-
-    @Override
-    protected void dispatcher( Node node )
-        throws Exception
-    {
-        // Do nothing
-    }
+  @Override
+  protected void dispatcher(Node node) throws Exception {
+    // Do nothing
+  }
 }

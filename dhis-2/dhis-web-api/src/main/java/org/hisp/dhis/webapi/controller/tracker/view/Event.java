@@ -27,123 +27,90 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.webapi.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared( pattern = Pattern.INFO )
+@OpenApi.Shared(pattern = Pattern.INFO)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Event
-{
-    @OpenApi.Property( { UID.class, Event.class } )
-    @JsonProperty
-    private String event;
+public class Event {
+  @OpenApi.Property({UID.class, Event.class})
+  @JsonProperty
+  private String event;
 
-    @JsonProperty
-    @Builder.Default
-    private EventStatus status = EventStatus.ACTIVE;
+  @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
-    @JsonProperty
-    private String program;
+  @JsonProperty private String program;
 
-    @JsonProperty
-    private String programStage;
+  @JsonProperty private String programStage;
 
-    @OpenApi.Property( { UID.class, Enrollment.class } )
-    @JsonProperty
-    private String enrollment;
+  @OpenApi.Property({UID.class, Enrollment.class})
+  @JsonProperty
+  private String enrollment;
 
-    @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    @JsonProperty
-    private String trackedEntity;
+  @OpenApi.Property({UID.class, TrackedEntity.class})
+  @JsonProperty
+  private String trackedEntity;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String orgUnitName;
+  @JsonProperty private String orgUnitName;
 
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-    @JsonProperty
-    private Instant occurredAt;
+  @JsonProperty private Instant occurredAt;
 
-    @JsonProperty
-    private Instant scheduledAt;
+  @JsonProperty private Instant scheduledAt;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private boolean followup;
+  @JsonProperty private boolean followup;
 
-    @JsonProperty
-    private boolean deleted;
+  @JsonProperty private boolean deleted;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant createdAtClient;
+  @JsonProperty private Instant createdAtClient;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private Instant updatedAtClient;
+  @JsonProperty private Instant updatedAtClient;
 
-    @JsonProperty
-    private String attributeOptionCombo;
+  @JsonProperty private String attributeOptionCombo;
 
-    @JsonProperty
-    private String attributeCategoryOptions;
+  @JsonProperty private String attributeCategoryOptions;
 
-    @JsonProperty
-    private String completedBy;
+  @JsonProperty private String completedBy;
 
-    @JsonProperty
-    private Instant completedAt;
+  @JsonProperty private Instant completedAt;
 
-    @JsonProperty
-    private Geometry geometry;
+  @JsonProperty private Geometry geometry;
 
-    @JsonProperty
-    private User assignedUser;
+  @JsonProperty private User assignedUser;
 
-    @JsonProperty
-    private User createdBy;
+  @JsonProperty private User createdBy;
 
-    @JsonProperty
-    private User updatedBy;
+  @JsonProperty private User updatedBy;
 
-    @JsonProperty
-    @Builder.Default
-    private Set<DataValue> dataValues = new HashSet<>();
+  @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<Note> notes = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 }

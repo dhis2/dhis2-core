@@ -30,73 +30,57 @@ package org.hisp.dhis.webapi.controller.tracker;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Event}.
- */
-public interface JsonEvent extends JsonObject
-{
-    default String getEvent()
-    {
-        return getString( "event" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.Event}. */
+public interface JsonEvent extends JsonObject {
+  default String getEvent() {
+    return getString("event").string();
+  }
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+  default String getStatus() {
+    return getString("status").string();
+  }
 
-    default String getProgram()
-    {
-        return getString( "program" ).string();
-    }
+  default String getProgram() {
+    return getString("program").string();
+  }
 
-    default String getProgramStage()
-    {
-        return getString( "programStage" ).string();
-    }
+  default String getProgramStage() {
+    return getString("programStage").string();
+  }
 
-    default String getEnrollment()
-    {
-        return getString( "enrollment" ).string();
-    }
+  default String getEnrollment() {
+    return getString("enrollment").string();
+  }
 
-    default String getTrackedEntity()
-    {
-        return getString( "trackedEntity" ).string();
-    }
+  default String getTrackedEntity() {
+    return getString("trackedEntity").string();
+  }
 
-    default String getOrgUnit()
-    {
-        return getString( "orgUnit" ).string();
-    }
+  default String getOrgUnit() {
+    return getString("orgUnit").string();
+  }
 
-    default String getOrgUnitName()
-    {
-        return getString( "orgUnitName" ).string();
-    }
+  default String getOrgUnitName() {
+    return getString("orgUnitName").string();
+  }
 
-    default Boolean getDeleted()
-    {
-        return getBoolean( "deleted" ).bool();
-    }
+  default Boolean getDeleted() {
+    return getBoolean("deleted").bool();
+  }
 
-    default JsonUser getAssignedUser()
-    {
-        return get( "assignedUser" ).as( JsonUser.class );
-    }
+  default JsonUser getAssignedUser() {
+    return get("assignedUser").as(JsonUser.class);
+  }
 
-    default JsonList<JsonRelationship> getRelationships()
-    {
-        return get( "relationships" ).asList( JsonRelationship.class );
-    }
+  default JsonList<JsonRelationship> getRelationships() {
+    return get("relationships").asList(JsonRelationship.class);
+  }
 
-    default JsonList<JsonDataValue> getDataValues()
-    {
-        return get( "dataValues" ).asList( JsonDataValue.class );
-    }
+  default JsonList<JsonDataValue> getDataValues() {
+    return get("dataValues").asList(JsonDataValue.class);
+  }
 
-    default JsonList<JsonNote> getNotes()
-    {
-        return get( "notes" ).asList( JsonNote.class );
-    }
+  default JsonList<JsonNote> getNotes() {
+    return get("notes").asList(JsonNote.class);
+  }
 }

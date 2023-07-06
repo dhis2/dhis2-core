@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.Relationship;
@@ -51,137 +50,139 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class DuplicateRelationshipSupplierTest extends DhisConvenienceTest {
 
-    private static final String REL_A_UID = "RELA";
+  private static final String REL_A_UID = "RELA";
 
-    private static final String REL_B_UID = "RELB";
+  private static final String REL_B_UID = "RELB";
 
-    private static final String REL_C_UID = "RELC";
+  private static final String REL_C_UID = "RELC";
 
-    private static final String TEIA_UID = "TEIA";
+  private static final String TEIA_UID = "TEIA";
 
-    private static final String TEIB_UID = "TEIB";
+  private static final String TEIB_UID = "TEIB";
 
-    private static final String TEIC_UID = "TEIC";
+  private static final String TEIC_UID = "TEIC";
 
-    private static final String KEY_REL_A = "UNIRELTYPE_TEIA_TEIB";
+  private static final String KEY_REL_A = "UNIRELTYPE_TEIA_TEIB";
 
-    private static final String KEY_REL_B = "BIRELTYPE_TEIB_TEIC";
+  private static final String KEY_REL_B = "BIRELTYPE_TEIB_TEIC";
 
-    private static final String KEY_REL_C = "UNIRELTYPE_TEIC_TEIA";
+  private static final String KEY_REL_C = "UNIRELTYPE_TEIC_TEIA";
 
-    private static final String UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "UNIRELTYPE";
+  private static final String UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "UNIRELTYPE";
 
-    private static final String BIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "BIRELTYPE";
+  private static final String BIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "BIRELTYPE";
 
-    private org.hisp.dhis.tracker.imports.domain.Relationship relationshipA;
+  private org.hisp.dhis.tracker.imports.domain.Relationship relationshipA;
 
-    private org.hisp.dhis.tracker.imports.domain.Relationship relationshipB;
+  private org.hisp.dhis.tracker.imports.domain.Relationship relationshipB;
 
-    private org.hisp.dhis.tracker.imports.domain.Relationship relationshipC;
+  private org.hisp.dhis.tracker.imports.domain.Relationship relationshipC;
 
-    private RelationshipType unidirectionalRelationshipType;
+  private RelationshipType unidirectionalRelationshipType;
 
-    private RelationshipType bidirectionalRelationshipType;
+  private RelationshipType bidirectionalRelationshipType;
 
-    private TrackedEntity teiA, teiB, teiC;
+  private TrackedEntity teiA, teiB, teiC;
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    @Mock
-    private RelationshipStore relationshipStore;
+  @Mock private RelationshipStore relationshipStore;
 
-    @InjectMocks
-    private DuplicateRelationshipSupplier supplier;
+  @InjectMocks private DuplicateRelationshipSupplier supplier;
 
-    @BeforeEach
-    public void setUp()
-    {
-        unidirectionalRelationshipType = createRelationshipType( 'A' );
-        unidirectionalRelationshipType.setUid( UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID );
-        unidirectionalRelationshipType.setBidirectional( false );
+  @BeforeEach
+  public void setUp() {
+    unidirectionalRelationshipType = createRelationshipType('A');
+    unidirectionalRelationshipType.setUid(UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID);
+    unidirectionalRelationshipType.setBidirectional(false);
 
-        bidirectionalRelationshipType = createRelationshipType( 'B' );
-        bidirectionalRelationshipType.setUid( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID );
-        bidirectionalRelationshipType.setBidirectional( true );
+    bidirectionalRelationshipType = createRelationshipType('B');
+    bidirectionalRelationshipType.setUid(BIDIRECTIONAL_RELATIONSHIP_TYPE_UID);
+    bidirectionalRelationshipType.setBidirectional(true);
 
-        OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
 
-        teiA = createTrackedEntity( organisationUnit );
-        teiA.setUid( TEIA_UID );
-        teiB = createTrackedEntity( organisationUnit );
-        teiB.setUid( TEIB_UID );
-        teiC = createTrackedEntity( organisationUnit );
-        teiC.setUid( TEIC_UID );
+    teiA = createTrackedEntity(organisationUnit);
+    teiA.setUid(TEIA_UID);
+    teiB = createTrackedEntity(organisationUnit);
+    teiB.setUid(TEIB_UID);
+    teiC = createTrackedEntity(organisationUnit);
+    teiC.setUid(TEIC_UID);
 
-        relationshipA = org.hisp.dhis.tracker.imports.domain.Relationship.builder()
-            .relationship( REL_A_UID )
-            .relationshipType( MetadataIdentifier.ofUid( UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) )
-            .from( RelationshipItem.builder().trackedEntity( TEIA_UID ).build() )
-            .to( RelationshipItem.builder().trackedEntity( TEIB_UID ).build() )
+    relationshipA =
+        org.hisp.dhis.tracker.imports.domain.Relationship.builder()
+            .relationship(REL_A_UID)
+            .relationshipType(MetadataIdentifier.ofUid(UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID))
+            .from(RelationshipItem.builder().trackedEntity(TEIA_UID).build())
+            .to(RelationshipItem.builder().trackedEntity(TEIB_UID).build())
             .build();
 
-        relationshipB = org.hisp.dhis.tracker.imports.domain.Relationship.builder()
-            .relationship( REL_B_UID )
-            .relationshipType( MetadataIdentifier.ofUid( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) )
-            .from( RelationshipItem.builder().trackedEntity( TEIB_UID ).build() )
-            .to( RelationshipItem.builder().trackedEntity( TEIC_UID ).build() )
+    relationshipB =
+        org.hisp.dhis.tracker.imports.domain.Relationship.builder()
+            .relationship(REL_B_UID)
+            .relationshipType(MetadataIdentifier.ofUid(BIDIRECTIONAL_RELATIONSHIP_TYPE_UID))
+            .from(RelationshipItem.builder().trackedEntity(TEIB_UID).build())
+            .to(RelationshipItem.builder().trackedEntity(TEIC_UID).build())
             .build();
 
-        relationshipC = org.hisp.dhis.tracker.imports.domain.Relationship.builder()
-            .relationship( REL_C_UID )
-            .relationshipType( MetadataIdentifier.ofUid( UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) )
-            .from( RelationshipItem.builder().trackedEntity( TEIC_UID ).build() )
-            .to( RelationshipItem.builder().trackedEntity( TEIA_UID ).build() )
+    relationshipC =
+        org.hisp.dhis.tracker.imports.domain.Relationship.builder()
+            .relationship(REL_C_UID)
+            .relationshipType(MetadataIdentifier.ofUid(UNIDIRECTIONAL_RELATIONSHIP_TYPE_UID))
+            .from(RelationshipItem.builder().trackedEntity(TEIC_UID).build())
+            .to(RelationshipItem.builder().trackedEntity(TEIA_UID).build())
             .build();
 
-        preheat = new TrackerPreheat();
-        preheat.put( TrackerIdSchemeParam.UID, unidirectionalRelationshipType );
-        preheat.put( TrackerIdSchemeParam.UID, bidirectionalRelationshipType );
-    }
+    preheat = new TrackerPreheat();
+    preheat.put(TrackerIdSchemeParam.UID, unidirectionalRelationshipType);
+    preheat.put(TrackerIdSchemeParam.UID, bidirectionalRelationshipType);
+  }
 
-    @Test
-    void verifySupplier()
-    {
-        when( relationshipStore.getUidsByRelationshipKeys( List.of( KEY_REL_A, KEY_REL_B, KEY_REL_C ) ) )
-            .thenReturn( List.of( REL_A_UID, REL_B_UID ) );
-        when( relationshipStore.getByUid( List.of( REL_A_UID, REL_B_UID ) ) )
-            .thenReturn( List.of( relationshipA(), relationshipB() ) );
+  @Test
+  void verifySupplier() {
+    when(relationshipStore.getUidsByRelationshipKeys(List.of(KEY_REL_A, KEY_REL_B, KEY_REL_C)))
+        .thenReturn(List.of(REL_A_UID, REL_B_UID));
+    when(relationshipStore.getByUid(List.of(REL_A_UID, REL_B_UID)))
+        .thenReturn(List.of(relationshipA(), relationshipB()));
 
-        TrackerImportParams trackerImportParams = TrackerImportParams.builder()
-            .relationships( List.of( relationshipA, relationshipB, relationshipC ) )
+    TrackerImportParams trackerImportParams =
+        TrackerImportParams.builder()
+            .relationships(List.of(relationshipA, relationshipB, relationshipC))
             .build();
 
-        supplier.preheatAdd( trackerImportParams, preheat );
+    supplier.preheatAdd(trackerImportParams, preheat);
 
-        assertTrue( preheat.isDuplicate( relationshipA ) );
-        assertFalse( preheat.isDuplicate( invertTeiToTeiRelationship( relationshipA ) ) );
-        assertTrue( preheat.isDuplicate( relationshipB ) );
-        assertTrue( preheat.isDuplicate( invertTeiToTeiRelationship( relationshipB ) ) );
-        assertFalse( preheat.isDuplicate( relationshipC ) );
-    }
+    assertTrue(preheat.isDuplicate(relationshipA));
+    assertFalse(preheat.isDuplicate(invertTeiToTeiRelationship(relationshipA)));
+    assertTrue(preheat.isDuplicate(relationshipB));
+    assertTrue(preheat.isDuplicate(invertTeiToTeiRelationship(relationshipB)));
+    assertFalse(preheat.isDuplicate(relationshipC));
+  }
 
-    private Relationship relationshipA()
-    {
-        return createTeiToTeiRelationship( teiA, teiB, unidirectionalRelationshipType );
-    }
+  private Relationship relationshipA() {
+    return createTeiToTeiRelationship(teiA, teiB, unidirectionalRelationshipType);
+  }
 
-    private Relationship relationshipB()
-    {
-        return createTeiToTeiRelationship( teiB, teiC, bidirectionalRelationshipType );
-    }
+  private Relationship relationshipB() {
+    return createTeiToTeiRelationship(teiB, teiC, bidirectionalRelationshipType);
+  }
 
-    private org.hisp.dhis.tracker.imports.domain.Relationship invertTeiToTeiRelationship(
-        org.hisp.dhis.tracker.imports.domain.Relationship relationship )
-    {
-        return org.hisp.dhis.tracker.imports.domain.Relationship.builder()
-            .relationship( relationship.getRelationship() )
-            .relationshipType( relationship.getRelationshipType() )
-            .from( RelationshipItem.builder().trackedEntity( relationship.getTo().getTrackedEntity() ).build() )
-            .to( RelationshipItem.builder().trackedEntity( relationship.getFrom().getTrackedEntity() ).build() )
-            .build();
-    }
+  private org.hisp.dhis.tracker.imports.domain.Relationship invertTeiToTeiRelationship(
+      org.hisp.dhis.tracker.imports.domain.Relationship relationship) {
+    return org.hisp.dhis.tracker.imports.domain.Relationship.builder()
+        .relationship(relationship.getRelationship())
+        .relationshipType(relationship.getRelationshipType())
+        .from(
+            RelationshipItem.builder()
+                .trackedEntity(relationship.getTo().getTrackedEntity())
+                .build())
+        .to(
+            RelationshipItem.builder()
+                .trackedEntity(relationship.getFrom().getTrackedEntity())
+                .build())
+        .build();
+  }
 }

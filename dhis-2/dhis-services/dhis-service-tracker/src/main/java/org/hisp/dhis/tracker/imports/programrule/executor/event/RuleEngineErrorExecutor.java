@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 import static org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue.warning;
 
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleIssue;
@@ -40,21 +38,17 @@ import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
- * This executor emits a warning for any error raised by the rule engine
- * execution.
- *
- * @Author Enrico Colasante
+ * This executor emits a warning for any error raised by the rule engine execution. @Author Enrico
+ * Colasante
  */
 @RequiredArgsConstructor
-public class RuleEngineErrorExecutor implements RuleActionExecutor<Event>
-{
-    private final String ruleUid;
+public class RuleEngineErrorExecutor implements RuleActionExecutor<Event> {
+  private final String ruleUid;
 
-    private final String error;
+  private final String error;
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
-    {
-        return Optional.of( warning( ruleUid, ValidationCode.E1300, error ) );
-    }
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    return Optional.of(warning(ruleUid, ValidationCode.E1300, error));
+  }
 }

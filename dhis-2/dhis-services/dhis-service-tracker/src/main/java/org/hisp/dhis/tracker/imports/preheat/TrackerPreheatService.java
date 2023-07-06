@@ -32,13 +32,12 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerPreheatService
-{
-    /**
-     * Preheat a set of pre-defined classes. If size == 0, then preheat all
-     * metadata classes automatically.
-     *
-     * @param params Params for preheating
-     */
-    TrackerPreheat preheat( TrackerImportParams params );
+public interface TrackerPreheatService {
+  /**
+   * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes
+   * automatically.
+   *
+   * @param params Params for preheating
+   */
+  TrackerPreheat preheat(TrackerImportParams params);
 }

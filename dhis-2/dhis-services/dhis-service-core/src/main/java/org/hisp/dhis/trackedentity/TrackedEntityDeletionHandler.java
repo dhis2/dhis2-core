@@ -28,7 +28,6 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.Map;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
@@ -38,24 +37,20 @@ import org.springframework.stereotype.Component;
  * @author Chau Thu Tran
  */
 @Component
-public class TrackedEntityDeletionHandler extends IdObjectDeletionHandler<TrackedEntity>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-        whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );
-    }
+public class TrackedEntityDeletionHandler extends IdObjectDeletionHandler<TrackedEntity> {
+  @Override
+  protected void registerHandler() {
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+    whenVetoing(TrackedEntityType.class, this::allowDeleteTrackedEntityType);
+  }
 
-    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
-    {
-        String sql = "select 1 from trackedentityinstance where organisationunitid = :id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", unit.getId() ) );
-    }
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    String sql = "select 1 from trackedentityinstance where organisationunitid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", unit.getId()));
+  }
 
-    private DeletionVeto allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        String sql = "select 1 from trackedentityinstance where trackedentitytypeid = :id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", trackedEntityType.getId() ) );
-    }
+  private DeletionVeto allowDeleteTrackedEntityType(TrackedEntityType trackedEntityType) {
+    String sql = "select 1 from trackedentityinstance where trackedentitytypeid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", trackedEntityType.getId()));
+  }
 }

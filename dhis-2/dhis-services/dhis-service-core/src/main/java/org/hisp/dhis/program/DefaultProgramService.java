@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.program;
 
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,158 +47,136 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Abyot Asalefew
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramService" )
-public class DefaultProgramService
-    implements ProgramService
-{
-    private final ProgramStore programStore;
+@Service("org.hisp.dhis.program.ProgramService")
+public class DefaultProgramService implements ProgramService {
+  private final ProgramStore programStore;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    @Qualifier( "jdbcProgramOrgUnitAssociationsStore" )
-    private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
+  @Qualifier("jdbcProgramOrgUnitAssociationsStore")
+  private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addProgram( Program program )
-    {
-        programStore.save( program );
-        return program.getId();
+  @Override
+  @Transactional
+  public long addProgram(Program program) {
+    programStore.save(program);
+    return program.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateProgram(Program program) {
+    programStore.update(program);
+  }
+
+  @Override
+  @Transactional
+  public void deleteProgram(Program program) {
+    programStore.delete(program);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Program> getAllPrograms() {
+    return programStore.getAll();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Program getProgram(long id) {
+    return programStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Collection<Program> getPrograms(@Nonnull Collection<String> uids) {
+    return programStore.getByUid(uids);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Program> getPrograms(OrganisationUnit organisationUnit) {
+    return programStore.get(organisationUnit);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Program getProgram(String uid) {
+    return programStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Program> getProgramsByTrackedEntityType(TrackedEntityType trackedEntityType) {
+    return programStore.getByTrackedEntityType(trackedEntityType);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Program> getProgramsByDataEntryForm(DataEntryForm dataEntryForm) {
+    return programStore.getByDataEntryForm(dataEntryForm);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<Program> getCurrentUserPrograms() {
+    User user = currentUserService.getCurrentUser();
+    if (user == null || user.isSuper()) {
+      return getAllPrograms();
     }
 
-    @Override
-    @Transactional
-    public void updateProgram( Program program )
-    {
-        programStore.update( program );
+    return programStore.getDataReadAll(user);
+  }
+
+  // -------------------------------------------------------------------------
+  // ProgramDataElement
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<ProgramDataElementDimensionItem> getGeneratedProgramDataElements(String programUid) {
+    Program program = getProgram(programUid);
+
+    List<ProgramDataElementDimensionItem> programDataElements = Lists.newArrayList();
+
+    if (program == null) {
+      return programDataElements;
     }
 
-    @Override
-    @Transactional
-    public void deleteProgram( Program program )
-    {
-        programStore.delete( program );
+    for (DataElement element : program.getDataElements()) {
+      programDataElements.add(new ProgramDataElementDimensionItem(program, element));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<Program> getAllPrograms()
-    {
-        return programStore.getAll();
-    }
+    Collections.sort(programDataElements);
 
-    @Override
-    @Transactional( readOnly = true )
-    public Program getProgram( long id )
-    {
-        return programStore.get( id );
-    }
+    return programDataElements;
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Collection<Program> getPrograms( @Nonnull Collection<String> uids )
-    {
-        return programStore.getByUid( uids );
-    }
+  @Override
+  public boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit) {
+    return this.programStore.hasOrgUnit(program, organisationUnit);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<Program> getPrograms( OrganisationUnit organisationUnit )
-    {
-        return programStore.get( organisationUnit );
-    }
+  @Override
+  public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser(
+      Set<String> programUids) {
+    idObjectManager.loadByUid(Program.class, programUids);
 
-    @Override
-    @Transactional( readOnly = true )
-    public Program getProgram( String uid )
-    {
-        return programStore.getByUid( uid );
-    }
+    return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser(programUids);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<Program> getProgramsByTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        return programStore.getByTrackedEntityType( trackedEntityType );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Program> getProgramsByDataEntryForm( DataEntryForm dataEntryForm )
-    {
-        return programStore.getByDataEntryForm( dataEntryForm );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Program> getCurrentUserPrograms()
-    {
-        User user = currentUserService.getCurrentUser();
-        if ( user == null || user.isSuper() )
-        {
-            return getAllPrograms();
-        }
-
-        return programStore.getDataReadAll( user );
-    }
-
-    // -------------------------------------------------------------------------
-    // ProgramDataElement
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramDataElementDimensionItem> getGeneratedProgramDataElements( String programUid )
-    {
-        Program program = getProgram( programUid );
-
-        List<ProgramDataElementDimensionItem> programDataElements = Lists.newArrayList();
-
-        if ( program == null )
-        {
-            return programDataElements;
-        }
-
-        for ( DataElement element : program.getDataElements() )
-        {
-            programDataElements.add( new ProgramDataElementDimensionItem( program, element ) );
-        }
-
-        Collections.sort( programDataElements );
-
-        return programDataElements;
-    }
-
-    @Override
-    public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
-    {
-        return this.programStore.hasOrgUnit( program, organisationUnit );
-    }
-
-    @Override
-    public SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
-    {
-        idObjectManager.loadByUid( Program.class, programUids );
-
-        return jdbcOrgUnitAssociationsStore.getOrganisationUnitsAssociationsForCurrentUser( programUids );
-    }
-
-    @Override
-    public boolean checkProgramOrganisationUnitsAssociations( String program, String orgUnit )
-    {
-        return jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations( program, orgUnit );
-    }
-
+  @Override
+  public boolean checkProgramOrganisationUnitsAssociations(String program, String orgUnit) {
+    return jdbcOrgUnitAssociationsStore.checkOrganisationUnitsAssociations(program, orgUnit);
+  }
 }

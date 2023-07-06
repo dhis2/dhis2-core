@@ -29,9 +29,10 @@ package org.hisp.dhis.metadata.orgunits;
 
 import static org.hamcrest.Matchers.*;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.List;
-
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
@@ -46,117 +47,118 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class OrgUnitProfileTests
-    extends ApiTest
-{
-    private LoginActions loginActions;
+public class OrgUnitProfileTests extends ApiTest {
+  private LoginActions loginActions;
 
-    private AttributeActions attributeActions;
+  private AttributeActions attributeActions;
 
-    private RestApiActions orgUnitProfileActions;
+  private RestApiActions orgUnitProfileActions;
 
-    private String orgUnitId;
+  private String orgUnitId;
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions = new LoginActions();
-        attributeActions = new AttributeActions();
-        orgUnitProfileActions = new RestApiActions( "/organisationUnitProfile" );
+  @BeforeAll
+  public void beforeAll() {
+    loginActions = new LoginActions();
+    attributeActions = new AttributeActions();
+    orgUnitProfileActions = new RestApiActions("/organisationUnitProfile");
 
-        loginActions.loginAsSuperUser();
+    loginActions.loginAsSuperUser();
 
-        orgUnitId = new OrgUnitActions().createOrgUnit();
-    }
+    orgUnitId = new OrgUnitActions().createOrgUnit();
+  }
 
-    @Test
-    public void shouldApplyProfileAttributes()
-    {
-        // arrange
-        String attributeId = attributeActions.createAttribute( "TEXT", false, "organisationUnit" );
-        String attributeValue = DataGenerator.randomString();
+  @Test
+  public void shouldApplyProfileAttributes() {
+    // arrange
+    String attributeId = attributeActions.createAttribute("TEXT", false, "organisationUnit");
+    String attributeValue = DataGenerator.randomString();
 
-        new OrgUnitActions().addAttributeValue( orgUnitId, attributeId, attributeValue );
+    new OrgUnitActions().addAttributeValue(orgUnitId, attributeId, attributeValue);
 
-        JsonArray array = new JsonArray();
-        array.add( attributeId );
+    JsonArray array = new JsonArray();
+    array.add(attributeId);
 
-        JsonObject profileBody = orgUnitProfileActions.get().getBody();
+    JsonObject profileBody = orgUnitProfileActions.get().getBody();
 
-        // act
-        orgUnitProfileActions.post(
-            new JsonObjectBuilder( profileBody ).addArray( "attributes", array ).build() ).validate().statusCode( 200 );
+    // act
+    orgUnitProfileActions
+        .post(new JsonObjectBuilder(profileBody).addArray("attributes", array).build())
+        .validate()
+        .statusCode(200);
 
-        // assert
-        orgUnitProfileActions.get().validate().body( "attributes", hasSize( greaterThanOrEqualTo( 1 ) ) );
+    // assert
+    orgUnitProfileActions.get().validate().body("attributes", hasSize(greaterThanOrEqualTo(1)));
 
-        orgUnitProfileActions.get( "/" + orgUnitId + "/data" )
-            .validate()
-            .statusCode( 200 )
-            .body( "attributes", hasSize( 1 ) )
-            .rootPath( "attributes[0]" )
-            .body( "value", equalTo( attributeValue ) )
-            .body( "id", equalTo( attributeId ) )
-            .body( "label", notNullValue() );
-    }
+    orgUnitProfileActions
+        .get("/" + orgUnitId + "/data")
+        .validate()
+        .statusCode(200)
+        .body("attributes", hasSize(1))
+        .rootPath("attributes[0]")
+        .body("value", equalTo(attributeValue))
+        .body("id", equalTo(attributeId))
+        .body("label", notNullValue());
+  }
 
-    @Test
-    public void shouldApplyGroupSets()
-    {
-        // arrange
+  @Test
+  public void shouldApplyGroupSets() {
+    // arrange
 
-        MetadataApiResponse response = new MetadataActions()
-            .importAndValidateMetadata( new File( "src/test/resources/metadata/orgunits/ou_with_group_and_set.json" ) );
+    MetadataApiResponse response =
+        new MetadataActions()
+            .importAndValidateMetadata(
+                new File("src/test/resources/metadata/orgunits/ou_with_group_and_set.json"));
 
-        String groupSet = response.extractObjectUid( "OrganisationUnitGroupSet" ).get( 0 );
-        String ou = response.extractObjectUid( "OrganisationUnit" ).get( 0 );
+    String groupSet = response.extractObjectUid("OrganisationUnitGroupSet").get(0);
+    String ou = response.extractObjectUid("OrganisationUnit").get(0);
 
-        JsonArray array = new JsonArray();
-        array.add( groupSet );
+    JsonArray array = new JsonArray();
+    array.add(groupSet);
 
-        JsonObject profileBody = new JsonObjectBuilder().addArray( "groupSets", array ).build();
+    JsonObject profileBody = new JsonObjectBuilder().addArray("groupSets", array).build();
 
-        // act
-        orgUnitProfileActions.post(
-            profileBody ).validate().statusCode( 200 );
+    // act
+    orgUnitProfileActions.post(profileBody).validate().statusCode(200);
 
-        // assert
-        orgUnitProfileActions.get().validate().body( "groupSets", hasSize( greaterThanOrEqualTo( 1 ) ) );
+    // assert
+    orgUnitProfileActions.get().validate().body("groupSets", hasSize(greaterThanOrEqualTo(1)));
 
-        orgUnitProfileActions.get( "/" + ou + "/data" )
-            .validate()
-            .statusCode( 200 )
-            .body( "groupSets", hasSize( 1 ) )
-            .rootPath( "groupSets[0]" )
-            .body( "id", equalTo( groupSet ) )
-            .body( "label", notNullValue() )
-            .body( "value", notNullValue() );
-    }
+    orgUnitProfileActions
+        .get("/" + ou + "/data")
+        .validate()
+        .statusCode(200)
+        .body("groupSets", hasSize(1))
+        .rootPath("groupSets[0]")
+        .body("id", equalTo(groupSet))
+        .body("label", notNullValue())
+        .body("value", notNullValue());
+  }
 
-    @Test
-    public void shouldApplyDataItems()
-    {
-        List<String> datItems = new DataItemActions()
-            .get( "", new QueryParamsBuilder().add( "filter=dimensionItemType:in:[DATA_ELEMENT,PROGRAM_INDICATOR]" ) )
-            .extractList( "dataItems.id" );
+  @Test
+  public void shouldApplyDataItems() {
+    List<String> datItems =
+        new DataItemActions()
+            .get(
+                "",
+                new QueryParamsBuilder()
+                    .add("filter=dimensionItemType:in:[DATA_ELEMENT,PROGRAM_INDICATOR]"))
+            .extractList("dataItems.id");
 
-        JsonArray array = new JsonArray();
+    JsonArray array = new JsonArray();
 
-        datItems.forEach( p -> array.add( p ) );
+    datItems.forEach(p -> array.add(p));
 
-        orgUnitProfileActions.post(
-            new JsonObjectBuilder().addArray( "dataItems", array ).build() ).validate().statusCode( 200 );
+    orgUnitProfileActions
+        .post(new JsonObjectBuilder().addArray("dataItems", array).build())
+        .validate()
+        .statusCode(200);
 
-        orgUnitProfileActions.get().validate().body( "dataItems", hasSize( greaterThanOrEqualTo( 1 ) ) );
+    orgUnitProfileActions.get().validate().body("dataItems", hasSize(greaterThanOrEqualTo(1)));
 
-        // todo add validation for organisationUnitProfile/id/data
+    // todo add validation for organisationUnitProfile/id/data
 
-    }
-
+  }
 }

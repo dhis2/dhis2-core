@@ -33,12 +33,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitWithCoordinatesFilter
-    implements Filter<OrganisationUnit>
-{
-    @Override
-    public boolean retain( OrganisationUnit object )
-    {
-        return object != null && object.hasCoordinates();
-    }
+public class OrganisationUnitWithCoordinatesFilter implements Filter<OrganisationUnit> {
+  @Override
+  public boolean retain(OrganisationUnit object) {
+    return object != null && object.hasCoordinates();
+  }
 }
