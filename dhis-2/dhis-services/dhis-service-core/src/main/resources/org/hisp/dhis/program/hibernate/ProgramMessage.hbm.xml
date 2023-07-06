@@ -63,7 +63,7 @@
                  column="programinstanceid" foreign-key="fk_programmessage_programinstanceid" not-null="false" />
 
     <many-to-one name="event" class="org.hisp.dhis.program.Event"
-                 column="programstageinstanceid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
+                 column="eventid" foreign-key="fk_programmessage_programstageinstanceid" not-null="false" />
 
   </class>
 

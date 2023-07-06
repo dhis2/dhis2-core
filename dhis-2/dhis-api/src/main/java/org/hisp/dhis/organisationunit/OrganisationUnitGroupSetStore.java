@@ -33,6 +33,4 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface OrganisationUnitGroupSetStore
-    extends GenericDimensionalObjectStore<OrganisationUnitGroupSet>
-{
-}
+    extends GenericDimensionalObjectStore<OrganisationUnitGroupSet> {}

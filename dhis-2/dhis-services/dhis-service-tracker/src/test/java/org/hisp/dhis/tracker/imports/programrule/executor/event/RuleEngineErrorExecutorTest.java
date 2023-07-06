@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -43,39 +42,34 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class RuleEngineErrorExecutorTest extends DhisConvenienceTest
-{
-    private final static String RULE_ID = "Rule_id";
+@ExtendWith(MockitoExtension.class)
+class RuleEngineErrorExecutorTest extends DhisConvenienceTest {
+  private static final String RULE_ID = "Rule_id";
 
-    private final static String ERROR_MESSAGE = "Error message";
+  private static final String ERROR_MESSAGE = "Error message";
 
-    private final static String EVENT_ID = "EventUid";
+  private static final String EVENT_ID = "EventUid";
 
-    private final RuleEngineErrorExecutor ruleEngineErrorExecutor = new RuleEngineErrorExecutor( RULE_ID,
-        ERROR_MESSAGE );
+  private final RuleEngineErrorExecutor ruleEngineErrorExecutor =
+      new RuleEngineErrorExecutor(RULE_ID, ERROR_MESSAGE);
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    void setUpTest()
-    {
-        bundle = TrackerBundle.builder().build();
-    }
+  @BeforeEach
+  void setUpTest() {
+    bundle = TrackerBundle.builder().build();
+  }
 
-    @Test
-    void shouldReturnAWarningWhenRuleWithSyntaxErrorIsTriggeredOnEvent()
-    {
-        Optional<ProgramRuleIssue> warning = ruleEngineErrorExecutor.executeRuleAction( bundle, getEvent() );
+  @Test
+  void shouldReturnAWarningWhenRuleWithSyntaxErrorIsTriggeredOnEvent() {
+    Optional<ProgramRuleIssue> warning =
+        ruleEngineErrorExecutor.executeRuleAction(bundle, getEvent());
 
-        assertTrue( warning.isPresent() );
-        assertEquals( warning( RULE_ID, E1300, ERROR_MESSAGE ), warning.get() );
-    }
+    assertTrue(warning.isPresent());
+    assertEquals(warning(RULE_ID, E1300, ERROR_MESSAGE), warning.get());
+  }
 
-    private Event getEvent()
-    {
-        return Event.builder()
-            .event( EVENT_ID )
-            .build();
-    }
+  private Event getEvent() {
+    return Event.builder().event(EVENT_ID).build();
+  }
 }

@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.stream.Stream;
-
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -40,32 +39,29 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class EventFieldsMapperTest extends DhisControllerConvenienceTest
-{
-    @Autowired
-    EventFieldsParamMapper mapper;
+class EventFieldsMapperTest extends DhisControllerConvenienceTest {
+  @Autowired EventFieldsParamMapper mapper;
 
-    static Stream<Arguments> getEventParamsMultipleCases()
-    {
-        return Stream.of(
-            // This value does not make sense as it means exclude all.
-            // We initially assumed field filtering would exclude all fields but is does not. Keeping this test as a reminder of its behavior.
-            arguments( "!*", true ), // expected value is false on master
-            arguments( "*", true ),
-            arguments( "relationships", true ),
-            arguments( "*,!relationships", false ),
-            arguments( "relationships[*]", true ),
-            arguments( "relationships[*],!relationships[*]", false ),
-            arguments( "!relationships[*],relationships[*]", false ),
-            arguments( "relationships,relationships[!from]", true ) );
-    }
+  static Stream<Arguments> getEventParamsMultipleCases() {
+    return Stream.of(
+        // This value does not make sense as it means exclude all.
+        // We initially assumed field filtering would exclude all fields but is does not. Keeping
+        // this test as a reminder of its behavior.
+        arguments("!*", true), // expected value is false on master
+        arguments("*", true),
+        arguments("relationships", true),
+        arguments("*,!relationships", false),
+        arguments("relationships[*]", true),
+        arguments("relationships[*],!relationships[*]", false),
+        arguments("!relationships[*],relationships[*]", false),
+        arguments("relationships,relationships[!from]", true));
+  }
 
-    @MethodSource
-    @ParameterizedTest
-    void getEventParamsMultipleCases( String fields, boolean expectRelationships )
-    {
-        EventParams params = mapper.map( FieldFilterParser.parse( fields ) );
+  @MethodSource
+  @ParameterizedTest
+  void getEventParamsMultipleCases(String fields, boolean expectRelationships) {
+    EventParams params = mapper.map(FieldFilterParser.parse(fields));
 
-        assertEquals( expectRelationships, params.isIncludeRelationships() );
-    }
+    assertEquals(expectRelationships, params.isIncludeRelationships());
+  }
 }

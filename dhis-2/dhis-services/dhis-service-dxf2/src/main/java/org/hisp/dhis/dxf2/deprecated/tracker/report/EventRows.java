@@ -27,85 +27,70 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.report;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Pager;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Pager;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
+@JacksonXmlRootElement(localName = "eventRows", namespace = DxfNamespaces.DXF_2_0)
+public class EventRows {
+  private List<EventRow> eventRows = new ArrayList<>();
 
-@JacksonXmlRootElement( localName = "eventRows", namespace = DxfNamespaces.DXF_2_0 )
-public class EventRows
-{
-    private List<EventRow> eventRows = new ArrayList<>();
+  private Pager pager;
 
-    private Pager pager;
+  public EventRows() {}
 
-    public EventRows()
-    {
-    }
+  @JsonProperty("eventRows")
+  @JacksonXmlElementWrapper(
+      localName = "eventRows",
+      useWrapping = false,
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "eventRows", namespace = DxfNamespaces.DXF_2_0)
+  public List<EventRow> getEventRows() {
+    return eventRows;
+  }
 
-    @JsonProperty( "eventRows" )
-    @JacksonXmlElementWrapper( localName = "eventRows", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "eventRows", namespace = DxfNamespaces.DXF_2_0 )
-    public List<EventRow> getEventRows()
-    {
-        return eventRows;
-    }
+  public void setEventRows(List<EventRow> eventRows) {
+    this.eventRows = eventRows;
+  }
 
-    public void setEventRows( List<EventRow> eventRows )
-    {
-        this.eventRows = eventRows;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Pager getPager() {
+    return pager;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Pager getPager()
-    {
-        return pager;
-    }
+  public void setPager(Pager pager) {
+    this.pager = pager;
+  }
 
-    public void setPager( Pager pager )
-    {
-        this.pager = pager;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
+    EventRows that = (EventRows) o;
 
-        EventRows that = (EventRows) o;
+    if (eventRows != null ? !eventRows.equals(that.eventRows) : that.eventRows != null)
+      return false;
 
-        if ( eventRows != null ? !eventRows.equals( that.eventRows ) : that.eventRows != null )
-            return false;
+    return true;
+  }
 
-        return true;
-    }
+  @Override
+  public int hashCode() {
+    return eventRows != null ? eventRows.hashCode() : 0;
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return eventRows != null ? eventRows.hashCode() : 0;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "EventRows{" +
-            "eventRows=" + eventRows +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "EventRows{" + "eventRows=" + eventRows + '}';
+  }
 }

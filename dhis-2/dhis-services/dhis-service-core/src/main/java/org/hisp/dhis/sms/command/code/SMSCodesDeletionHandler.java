@@ -28,7 +28,6 @@
 package org.hisp.dhis.sms.command.code;
 
 import java.util.Map;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
@@ -36,19 +35,16 @@ import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SMSCodesDeletionHandler extends JdbcDeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( SMSCode.class );
+public class SMSCodesDeletionHandler extends JdbcDeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(SMSCode.class);
 
-    @Override
-    protected void register()
-    {
-        whenVetoing( DataElement.class, this::allowDeleteDataElement );
-    }
+  @Override
+  protected void register() {
+    whenVetoing(DataElement.class, this::allowDeleteDataElement);
+  }
 
-    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
-    {
-        String sql = "select 1 from smscodes where dataelementid=:id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", dataElement.getId() ) );
-    }
+  private DeletionVeto allowDeleteDataElement(DataElement dataElement) {
+    String sql = "select 1 from smscodes where dataelementid=:id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", dataElement.getId()));
+  }
 }

@@ -28,44 +28,40 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.event.persistence;
 
 import java.util.List;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 
 /**
- * Wrapper service for Event-related operations. This service acts as a
- * transactional wrapper for insert/update/delete operations on Events.
+ * Wrapper service for Event-related operations. This service acts as a transactional wrapper for
+ * insert/update/delete operations on Events.
  *
  * @author Luciano Fiandesio
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public interface EventPersistenceService
-{
-    /**
-     * Add the list of given events.
-     *
-     * @param context a {@see WorkContext}
-     * @param events a List of {@see Event}
-     */
-    void save( WorkContext context, List<Event> events );
+@Deprecated(since = "2.41")
+public interface EventPersistenceService {
+  /**
+   * Add the list of given events.
+   *
+   * @param context a {@see WorkContext}
+   * @param events a List of {@see Event}
+   */
+  void save(WorkContext context, List<Event> events);
 
-    /**
-     * Updates the list of given events.
-     *
-     * @param context a {@see WorkContext}
-     * @param events a List of {@see Event}
-     */
-    void update( WorkContext context, List<Event> events );
+  /**
+   * Updates the list of given events.
+   *
+   * @param context a {@see WorkContext}
+   * @param events a List of {@see Event}
+   */
+  void update(WorkContext context, List<Event> events);
 
-    /**
-     * Deletes the provided list of events.
-     *
-     * @param context a {@see WorkContext}
-     * @param events a List of {@see Event}
-     */
-    void delete( WorkContext context, List<Event> events );
+  /**
+   * Deletes the provided list of events.
+   *
+   * @param context a {@see WorkContext}
+   * @param events a List of {@see Event}
+   */
+  void delete(WorkContext context, List<Event> events);
 }

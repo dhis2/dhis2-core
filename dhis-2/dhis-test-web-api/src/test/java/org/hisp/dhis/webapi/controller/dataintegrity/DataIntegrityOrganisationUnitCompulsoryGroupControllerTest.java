@@ -33,80 +33,95 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for organisation units which are not part of a compulsory organisation
- * unit group set.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/compulsory_orgunit_groups.yaml}
+ * Test for organisation units which are not part of a compulsory organisation unit group set. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/compulsory_orgunit_groups.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOrganisationUnitCompulsoryGroupControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private String inGroup;
+  private String inGroup;
 
-    private String testOrgUnitGroup;
+  private String testOrgUnitGroup;
 
-    private static final String check = "orgunits_compulsory_group_count";
+  private static final String check = "orgunits_compulsory_group_count";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrgUnitNotInCompulsoryGroup()
-    {
+  @Test
+  void testOrgUnitNotInCompulsoryGroup() {
 
-        String outOfGroup = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}" ) );
+    String outOfGroup =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Fish District', 'shortName': 'Fish District', 'openingDate' : '2022-01-01'}"));
 
-        inGroup = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
+    inGroup =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
-        //Create an orgunit group
-        testOrgUnitGroup = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + inGroup
-                    + "'}]}" ) );
+    // Create an orgunit group
+    testOrgUnitGroup =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups",
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
+                    + inGroup
+                    + "'}]}"));
 
-        //Add it to a group set
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroupSets",
-                "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
-                    + testOrgUnitGroup + "'}]}" ) );
+    // Add it to a group set
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnitGroupSets",
+            "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
+                + testOrgUnitGroup
+                + "'}]}"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check,
-            50, outOfGroup, "Fish District", "", true );
-    }
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, outOfGroup, "Fish District", "", true);
+  }
 
-    @Test
-    void testOrgunitInCompulsoryGroupSet()
-    {
+  @Test
+  void testOrgunitInCompulsoryGroupSet() {
 
-        inGroup = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}" ) );
+    inGroup =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Pizza District', 'shortName': 'Pizza District', 'openingDate' : '2022-01-01'}"));
 
-        //Create an orgunit group
-        testOrgUnitGroup = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '" + inGroup
-                    + "'}]}" ) );
+    // Create an orgunit group
+    testOrgUnitGroup =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnitGroups",
+                "{'name': 'Type A', 'shortName': 'Type A', 'organisationUnits' : [{'id' : '"
+                    + inGroup
+                    + "'}]}"));
 
-        //Add it to a group set
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroupSets",
-                "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
-                    + testOrgUnitGroup + "'}]}" ) );
+    // Add it to a group set
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnitGroupSets",
+            "{'name': 'Type', 'shortName': 'Type', 'compulsory' : 'true' , 'organisationUnitGroups' :[{'id' : '"
+                + testOrgUnitGroup
+                + "'}]}"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    }
-
-    @Test
-    void testOrgUnitsCompulsoryGroupsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
+  @Test
+  void testOrgUnitsCompulsoryGroupsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

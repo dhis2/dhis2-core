@@ -38,16 +38,15 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-class MandatoryFieldsValidator
-    implements Validator<Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        reporter.addErrorIf( () -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, "orgUnit" );
-        reporter.addErrorIf( () -> enrollment.getProgram().isBlank(), enrollment, E1122, "program" );
-        reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), enrollment, E1122,
-            "trackedEntity" );
-    }
-
+class MandatoryFieldsValidator implements Validator<Enrollment> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    reporter.addErrorIf(() -> enrollment.getOrgUnit().isBlank(), enrollment, E1122, "orgUnit");
+    reporter.addErrorIf(() -> enrollment.getProgram().isBlank(), enrollment, E1122, "program");
+    reporter.addErrorIf(
+        () -> StringUtils.isEmpty(enrollment.getTrackedEntity()),
+        enrollment,
+        E1122,
+        "trackedEntity");
+  }
 }

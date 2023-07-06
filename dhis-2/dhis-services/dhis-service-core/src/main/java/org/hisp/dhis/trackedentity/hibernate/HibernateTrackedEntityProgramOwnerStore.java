@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
+import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -41,76 +41,75 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Iterables;
-
 /**
  * @author Ameen Mohamed
  */
-@Repository( "org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore" )
+@Repository("org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore")
 public class HibernateTrackedEntityProgramOwnerStore
     extends HibernateGenericStore<TrackedEntityProgramOwner>
-    implements TrackedEntityProgramOwnerStore
-{
-    public HibernateTrackedEntityProgramOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityProgramOwner.class, false );
+    implements TrackedEntityProgramOwnerStore {
+  public HibernateTrackedEntityProgramOwnerStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher) {
+    super(sessionFactory, jdbcTemplate, publisher, TrackedEntityProgramOwner.class, false);
+  }
+
+  @Override
+  public TrackedEntityProgramOwner getTrackedEntityProgramOwner(long teiId, long programId) {
+    Query<TrackedEntityProgramOwner> query =
+        getQuery(
+            "from TrackedEntityProgramOwner tepo where "
+                + "tepo.trackedEntity.id= :teiId and "
+                + "tepo.program.id= :programId");
+
+    query.setParameter("teiId", teiId);
+    query.setParameter("programId", programId);
+    return query.uniqueResult();
+  }
+
+  @Override
+  public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(List<Long> teiIds) {
+    String hql = "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds)";
+    Query<TrackedEntityProgramOwner> q = getQuery(hql);
+    q.setParameterList("teiIds", teiIds);
+    return q.list();
+  }
+
+  @Override
+  public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners(
+      List<Long> teiIds, long programId) {
+    String hql =
+        "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds) and tepo.program.id=(:programId) ";
+    Query<TrackedEntityProgramOwner> q = getQuery(hql);
+    q.setParameterList("teiIds", teiIds);
+    q.setParameter("programId", programId);
+    return q.list();
+  }
+
+  @Override
+  public List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(
+      Set<Long> teiIds) {
+    List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();
+
+    if (teiIds == null || teiIds.size() == 0) {
+      return trackedEntityProgramOwnerOrgUnits;
     }
 
-    @Override
-    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId )
-    {
-        Query<TrackedEntityProgramOwner> query = getQuery(
-            "from TrackedEntityProgramOwner tepo where " +
-                "tepo.trackedEntity.id= :teiId and " +
-                "tepo.program.id= :programId" );
+    Iterable<List<Long>> teiIdsPartitions = Iterables.partition(teiIds, 20000);
 
-        query.setParameter( "teiId", teiId );
-        query.setParameter( "programId", programId );
-        return query.uniqueResult();
-    }
+    String hql =
+        "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit( tepo.trackedEntity.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds)";
 
-    @Override
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds )
-    {
-        String hql = "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds)";
-        Query<TrackedEntityProgramOwner> q = getQuery( hql );
-        q.setParameterList( "teiIds", teiIds );
-        return q.list();
-    }
+    Query<TrackedEntityProgramOwnerOrgUnit> q =
+        getQuery(hql, TrackedEntityProgramOwnerOrgUnit.class);
 
-    @Override
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds, long programId )
-    {
-        String hql = "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds) and tepo.program.id=(:programId) ";
-        Query<TrackedEntityProgramOwner> q = getQuery( hql );
-        q.setParameterList( "teiIds", teiIds );
-        q.setParameter( "programId", programId );
-        return q.list();
-    }
+    teiIdsPartitions.forEach(
+        partition -> {
+          q.setParameterList("teiIds", partition);
+          trackedEntityProgramOwnerOrgUnits.addAll(q.list());
+        });
 
-    @Override
-    public List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits( Set<Long> teiIds )
-    {
-        List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();
-
-        if ( teiIds == null || teiIds.size() == 0 )
-        {
-            return trackedEntityProgramOwnerOrgUnits;
-        }
-
-        Iterable<List<Long>> teiIdsPartitions = Iterables.partition( teiIds, 20000 );
-
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit( tepo.trackedEntity.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds)";
-
-        Query<TrackedEntityProgramOwnerOrgUnit> q = getQuery( hql, TrackedEntityProgramOwnerOrgUnit.class );
-
-        teiIdsPartitions.forEach( partition -> {
-            q.setParameterList( "teiIds", partition );
-            trackedEntityProgramOwnerOrgUnits.addAll( q.list() );
-        } );
-
-        return trackedEntityProgramOwnerOrgUnits;
-    }
-
+    return trackedEntityProgramOwnerOrgUnits;
+  }
 }

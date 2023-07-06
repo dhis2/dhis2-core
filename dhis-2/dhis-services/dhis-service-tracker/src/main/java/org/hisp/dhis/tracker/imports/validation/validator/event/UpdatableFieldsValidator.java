@@ -39,26 +39,26 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-class UpdatableFieldsValidator
-    implements Validator<org.hisp.dhis.tracker.imports.domain.Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event )
-    {
-        Event preheatEvent = bundle.getPreheat().getEvent( event.getEvent() );
-        ProgramStage programStage = preheatEvent.getProgramStage();
+class UpdatableFieldsValidator implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
+  @Override
+  public void validate(
+      Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event) {
+    Event preheatEvent = bundle.getPreheat().getEvent(event.getEvent());
+    ProgramStage programStage = preheatEvent.getProgramStage();
 
-        reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
-            "programStage" );
-        reporter.addErrorIf(
-            () -> event.getEnrollment() != null
-                && !event.getEnrollment().equals( preheatEvent.getEnrollment().getUid() ),
-            event, E1128, "enrollment" );
-    }
+    reporter.addErrorIf(
+        () -> !event.getProgramStage().isEqualTo(programStage), event, E1128, "programStage");
+    reporter.addErrorIf(
+        () ->
+            event.getEnrollment() != null
+                && !event.getEnrollment().equals(preheatEvent.getEnrollment().getUid()),
+        event,
+        E1128,
+        "enrollment");
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy == TrackerImportStrategy.UPDATE;
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == TrackerImportStrategy.UPDATE;
+  }
 }

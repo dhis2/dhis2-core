@@ -27,31 +27,23 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * Profile item DTO object.
- */
+/** Profile item DTO object. */
 @Getter
 @NoArgsConstructor
-public class ProfileItem
-{
-    @JsonProperty
-    private String id;
+public class ProfileItem {
+  @JsonProperty private String id;
 
-    @JsonProperty
-    private String label;
+  @JsonProperty private String label;
 
-    @JsonProperty
-    private Object value;
+  @JsonProperty private Object value;
 
-    public ProfileItem( String id, String label, Object value )
-    {
-        this.id = id;
-        this.label = label;
-        this.value = value;
-    }
+  public ProfileItem(String id, String label, Object value) {
+    this.id = id;
+    this.label = label;
+    this.value = value;
+  }
 }

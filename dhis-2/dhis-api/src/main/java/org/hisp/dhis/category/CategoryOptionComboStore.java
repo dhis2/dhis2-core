@@ -29,34 +29,31 @@ package org.hisp.dhis.category;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
-{
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
+public interface CategoryOptionComboStore extends IdentifiableObjectStore<CategoryOptionCombo> {
+  CategoryOptionCombo getCategoryOptionCombo(
+      CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions);
 
-    void updateNames();
+  void updateNames();
 
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+  void deleteNoRollBack(CategoryOptionCombo categoryOptionCombo);
 
-    /**
-     * Fetch all {@link CategoryOptionCombo} from a given
-     * {@link CategoryOptionGroup} uid, that are also contained in the
-     * {@link CategoryCombo} of the {@link DataElement}.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
-     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
-     * members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @param dataElementId a {@link DataElement} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
-     */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId, String dataElementId );
+  /**
+   * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid, that are
+   * also contained in the {@link CategoryCombo} of the {@link DataElement}.
+   *
+   * <p>A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this
+   * method finds all {@link CategoryOptionCombo} for all the members of the given {@link
+   * CategoryOptionGroup}
+   *
+   * @param groupId a {@link CategoryOptionGroup} uid
+   * @param dataElementId a {@link DataElement} uid
+   * @return a List of {@link CategoryOptionCombo} or empty List
+   */
+  List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid(String groupId, String dataElementId);
 }

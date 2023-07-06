@@ -27,51 +27,42 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-@JacksonXmlRootElement( localName = "trackedEntityInstances", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityInstances
-{
-    private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+@Deprecated(since = "2.41")
+@JacksonXmlRootElement(localName = "trackedEntityInstances", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityInstances {
+  private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
-    public TrackedEntityInstances()
-    {
-    }
+  public TrackedEntityInstances() {}
 
-    @JsonProperty( "trackedEntityInstances" )
-    @JacksonXmlElementWrapper( localName = "trackedEntityInstances", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntityInstance> getTrackedEntityInstances()
-    {
-        return trackedEntityInstances;
-    }
+  @JsonProperty("trackedEntityInstances")
+  @JacksonXmlElementWrapper(
+      localName = "trackedEntityInstances",
+      useWrapping = false,
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0)
+  public List<TrackedEntityInstance> getTrackedEntityInstances() {
+    return trackedEntityInstances;
+  }
 
-    public void setTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances )
-    {
-        this.trackedEntityInstances = trackedEntityInstances;
-    }
+  public void setTrackedEntityInstances(List<TrackedEntityInstance> trackedEntityInstances) {
+    this.trackedEntityInstances = trackedEntityInstances;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "TrackedEntityInstances{" +
-            "trackedEntityInstances=" + trackedEntityInstances +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "TrackedEntityInstances{" + "trackedEntityInstances=" + trackedEntityInstances + '}';
+  }
 }

@@ -32,12 +32,10 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
-{
-    protected final NamedParameterJdbcTemplate jdbcTemplate;
+public abstract class AbstractSupplier<T> implements WorkContextSupplier<T> {
+  protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public AbstractSupplier( NamedParameterJdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
+  public AbstractSupplier(NamedParameterJdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = jdbcTemplate;
+  }
 }

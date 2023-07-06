@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -43,113 +42,96 @@ import org.hisp.dhis.util.ContextUtils;
 /**
  * @author Lars Helge Overland
  */
-public class GetDataSetsAction
-    extends ActionPagingSupport<DataSet>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetDataSetsAction extends ActionPagingSupport<DataSet> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private DataSetService dataSetService;
+  private DataSetService dataSetService;
 
-    public void setDataSetService( DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
+  public void setDataSetService(DataSetService dataSetService) {
+    this.dataSetService = dataSetService;
+  }
+
+  private PeriodService periodService;
+
+  public void setPeriodService(PeriodService periodService) {
+    this.periodService = periodService;
+  }
+
+  private CurrentUserService currentUserService;
+
+  public void setCurrentUserService(CurrentUserService currentUserService) {
+    this.currentUserService = currentUserService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  private String name;
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private List<DataSet> dataSets;
+
+  public List<DataSet> getDataSets() {
+    return dataSets;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    canReadType(DataSet.class);
+
+    if (id != null) {
+      dataSets =
+          new ArrayList<>(dataSetService.getDataSetsByPeriodType(periodService.getPeriodType(id)));
+    } else if (name != null) {
+      dataSets =
+          new ArrayList<>(
+              dataSetService.getDataSetsByPeriodType(periodService.getPeriodTypeByName(name)));
+    } else {
+      dataSets = new ArrayList<>(dataSetService.getAllDataSets());
+
+      ContextUtils.clearIfNotModified(
+          ServletActionContext.getRequest(), ServletActionContext.getResponse(), dataSets);
     }
 
-    private PeriodService periodService;
+    if (!currentUserService.currentUserIsSuper()) {
+      User user = currentUserService.getCurrentUser();
 
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
+      if (user != null) {
+        dataSets.retainAll(dataSetService.getUserDataWrite(user));
+      }
     }
 
-    private CurrentUserService currentUserService;
+    User currentUser = currentUserService.getCurrentUser();
+    dataSets.forEach(instance -> canReadInstance(instance, currentUser));
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
+    Collections.sort(dataSets);
+
+    if (usePaging) {
+      this.paging = createPaging(dataSets.size());
+
+      dataSets = dataSets.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    private String name;
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private List<DataSet> dataSets;
-
-    public List<DataSet> getDataSets()
-    {
-        return dataSets;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        canReadType( DataSet.class );
-
-        if ( id != null )
-        {
-            dataSets = new ArrayList<>(
-                dataSetService.getDataSetsByPeriodType( periodService.getPeriodType( id ) ) );
-        }
-        else if ( name != null )
-        {
-            dataSets = new ArrayList<>( dataSetService.getDataSetsByPeriodType( periodService
-                .getPeriodTypeByName( name ) ) );
-        }
-        else
-        {
-            dataSets = new ArrayList<>( dataSetService.getAllDataSets() );
-
-            ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
-                dataSets );
-        }
-
-        if ( !currentUserService.currentUserIsSuper() )
-        {
-            User user = currentUserService.getCurrentUser();
-
-            if ( user != null )
-            {
-                dataSets.retainAll( dataSetService.getUserDataWrite( user ) );
-            }
-        }
-
-        User currentUser = currentUserService.getCurrentUser();
-        dataSets.forEach( instance -> canReadInstance( instance, currentUser ) );
-
-        Collections.sort( dataSets );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( dataSets.size() );
-
-            dataSets = dataSets.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

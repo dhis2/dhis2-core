@@ -39,14 +39,11 @@ import org.springframework.stereotype.Component;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 @Component
-public class SharedEventStatusPreProcessor implements Processor
-{
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        if ( event.getStatus().equals( EventStatus.VISITED ) )
-        {
-            event.setStatus( EventStatus.ACTIVE );
-        }
+public class SharedEventStatusPreProcessor implements Processor {
+  @Override
+  public void process(Event event, WorkContext ctx) {
+    if (event.getStatus().equals(EventStatus.VISITED)) {
+      event.setStatus(EventStatus.ACTIVE);
     }
+  }
 }

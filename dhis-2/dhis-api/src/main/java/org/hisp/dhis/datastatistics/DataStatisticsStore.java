@@ -29,25 +29,21 @@ package org.hisp.dhis.datastatistics;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public interface DataStatisticsStore
-    extends GenericStore<DataStatistics>
-{
-    /**
-     * Retrieves data from database and maps aggregated data to
-     * AggregatedStatistic object.
-     *
-     * @param eventInterval interval of DAY, MONTH, WEEK, YEAR.
-     * @param startDate the start date.
-     * @param endDate the end date.
-     *
-     * @return a list of AggregatedStatistics instances.
-     */
-    List<AggregatedStatistics> getSnapshotsInInterval( EventInterval eventInterval, Date startDate, Date endDate );
+public interface DataStatisticsStore extends GenericStore<DataStatistics> {
+  /**
+   * Retrieves data from database and maps aggregated data to AggregatedStatistic object.
+   *
+   * @param eventInterval interval of DAY, MONTH, WEEK, YEAR.
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @return a list of AggregatedStatistics instances.
+   */
+  List<AggregatedStatistics> getSnapshotsInInterval(
+      EventInterval eventInterval, Date startDate, Date endDate);
 }

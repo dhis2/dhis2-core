@@ -28,64 +28,60 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import java.beans.PropertyEditorSupport;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.springframework.util.StringUtils;
 
-public class IdSchemeParamEditor extends PropertyEditorSupport
-{
-    private static final String VALID_VALUES = "Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]";
+public class IdSchemeParamEditor extends PropertyEditorSupport {
+  private static final String VALID_VALUES =
+      "Valid values are: [UID, CODE, NAME, ATTRIBUTE:attributeUid]";
 
-    @Override
-    public void setAsText( String source )
-    {
-        if ( !StringUtils.hasText( source ) )
-        {
-            throw new IllegalArgumentException( VALID_VALUES );
-        }
-
-        String[] splitParam = source.split( ":" );
-        String attributeUid = splitParam.length > 1 ? splitParam[1] : null;
-
-        TrackerIdScheme idScheme;
-        try
-        {
-            idScheme = TrackerIdScheme.valueOf( splitParam[0] );
-        }
-        catch ( IllegalArgumentException ex )
-        {
-            throw new IllegalArgumentException( VALID_VALUES );
-        }
-
-        boolean isInvalidAttribute = attributeUid != null && !CodeGenerator.isValidUid( attributeUid );
-        boolean isInvalidFormat = splitParam.length > 2;
-
-        boolean attributeIdSchemeHasNoAttributeId = idScheme == TrackerIdScheme.ATTRIBUTE && attributeUid == null;
-        boolean notAttributeIdSchemeHasAttributeId = idScheme != TrackerIdScheme.ATTRIBUTE && attributeUid != null;
-        if ( isInvalidAttribute || isInvalidFormat ||
-            attributeIdSchemeHasNoAttributeId || notAttributeIdSchemeHasAttributeId )
-        {
-            throw new IllegalArgumentException( VALID_VALUES );
-        }
-
-        switch ( idScheme )
-        {
-        case UID:
-            setValue( TrackerIdSchemeParam.UID );
-            break;
-        case NAME:
-            setValue( TrackerIdSchemeParam.NAME );
-            break;
-        case CODE:
-            setValue( TrackerIdSchemeParam.CODE );
-            break;
-        case ATTRIBUTE:
-            setValue( TrackerIdSchemeParam.ofAttribute( attributeUid ) );
-            break;
-        default:
-            throw new IllegalArgumentException( VALID_VALUES );
-        }
+  @Override
+  public void setAsText(String source) {
+    if (!StringUtils.hasText(source)) {
+      throw new IllegalArgumentException(VALID_VALUES);
     }
+
+    String[] splitParam = source.split(":");
+    String attributeUid = splitParam.length > 1 ? splitParam[1] : null;
+
+    TrackerIdScheme idScheme;
+    try {
+      idScheme = TrackerIdScheme.valueOf(splitParam[0]);
+    } catch (IllegalArgumentException ex) {
+      throw new IllegalArgumentException(VALID_VALUES);
+    }
+
+    boolean isInvalidAttribute = attributeUid != null && !CodeGenerator.isValidUid(attributeUid);
+    boolean isInvalidFormat = splitParam.length > 2;
+
+    boolean attributeIdSchemeHasNoAttributeId =
+        idScheme == TrackerIdScheme.ATTRIBUTE && attributeUid == null;
+    boolean notAttributeIdSchemeHasAttributeId =
+        idScheme != TrackerIdScheme.ATTRIBUTE && attributeUid != null;
+    if (isInvalidAttribute
+        || isInvalidFormat
+        || attributeIdSchemeHasNoAttributeId
+        || notAttributeIdSchemeHasAttributeId) {
+      throw new IllegalArgumentException(VALID_VALUES);
+    }
+
+    switch (idScheme) {
+      case UID:
+        setValue(TrackerIdSchemeParam.UID);
+        break;
+      case NAME:
+        setValue(TrackerIdSchemeParam.NAME);
+        break;
+      case CODE:
+        setValue(TrackerIdSchemeParam.CODE);
+        break;
+      case ATTRIBUTE:
+        setValue(TrackerIdSchemeParam.ofAttribute(attributeUid));
+        break;
+      default:
+        throw new IllegalArgumentException(VALID_VALUES);
+    }
+  }
 }

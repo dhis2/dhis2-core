@@ -38,132 +38,110 @@ import org.hisp.dhis.schema.annotation.Gist.Transform;
 import org.hisp.dhis.security.acl.Access;
 
 /**
- * Contains the "business logic" aspects of building and running a
- * {@link GistQuery}.
+ * Contains the "business logic" aspects of building and running a {@link GistQuery}.
  *
  * @author Jan Bernitt
  */
-final class GistLogic
-{
+final class GistLogic {
 
-    static boolean isIncludedField( Property p, GistAutoType all )
-    {
-        Include included = p.getGistPreferences().getIncluded();
-        if ( included == Include.TRUE )
-        {
-            return true;
-        }
-        if ( included == Include.FALSE )
-        {
-            return false;
-        }
-        // AUTO:
-        return all.isIncluded( p ) && isAutoIncludedField( p );
+  static boolean isIncludedField(Property p, GistAutoType all) {
+    Include included = p.getGistPreferences().getIncluded();
+    if (included == Include.TRUE) {
+      return true;
     }
-
-    private static boolean isAutoIncludedField( Property p )
-    {
-        return p.isPersisted()
-            && p.isReadable()
-            && p.getFieldName() != null;
+    if (included == Include.FALSE) {
+      return false;
     }
+    // AUTO:
+    return all.isIncluded(p) && isAutoIncludedField(p);
+  }
 
-    static boolean isPersistentCollectionField( Property p )
-    {
-        return p.isPersisted() && p.isCollection() && (p.isOneToMany() || p.isManyToMany());
-    }
+  private static boolean isAutoIncludedField(Property p) {
+    return p.isPersisted() && p.isReadable() && p.getFieldName() != null;
+  }
 
-    static boolean isPersistentReferenceField( Property p )
-    {
-        return p.isPersisted() && (p.isOneToOne() || p.isManyToOne()
+  static boolean isPersistentCollectionField(Property p) {
+    return p.isPersisted() && p.isCollection() && (p.isOneToMany() || p.isManyToMany());
+  }
+
+  static boolean isPersistentReferenceField(Property p) {
+    return p.isPersisted()
+        && (p.isOneToOne()
+            || p.isManyToOne()
             || p.getPropertyType() == PropertyType.REFERENCE && p.isIdentifiableObject());
-    }
+  }
 
-    static Class<?> getBaseType( Property p )
-    {
-        return p.isCollection() ? p.getItemKlass() : p.getKlass();
-    }
+  static Class<?> getBaseType(Property p) {
+    return p.isCollection() ? p.getItemKlass() : p.getKlass();
+  }
 
-    static boolean isNonNestedPath( String path )
-    {
-        return path.indexOf( '.' ) < 0;
-    }
+  static boolean isNonNestedPath(String path) {
+    return path.indexOf('.') < 0;
+  }
 
-    static boolean isAttributePath( String path )
-    {
-        return path.length() == 11
-            && CodeGenerator.isValidUid( path );
-    }
+  static boolean isAttributePath(String path) {
+    return path.length() == 11 && CodeGenerator.isValidUid(path);
+  }
 
-    static String parentPath( String path )
-    {
-        return isNonNestedPath( path ) ? "" : path.substring( 0, path.lastIndexOf( '.' ) );
-    }
+  static String parentPath(String path) {
+    return isNonNestedPath(path) ? "" : path.substring(0, path.lastIndexOf('.'));
+  }
 
-    static String pathOnSameParent( String path, String property )
-    {
-        return isNonNestedPath( path ) ? property : parentPath( path ) + '.' + property;
-    }
+  static String pathOnSameParent(String path, String property) {
+    return isNonNestedPath(path) ? property : parentPath(path) + '.' + property;
+  }
 
-    static boolean isHrefProperty( Property p )
-    {
-        return "href".equals( p.key() ) && p.getKlass() == String.class;
-    }
+  static boolean isHrefProperty(Property p) {
+    return "href".equals(p.key()) && p.getKlass() == String.class;
+  }
 
-    static boolean isAccessProperty( Property p )
-    {
-        return "access".equals( p.key() ) && p.getKlass() == Access.class;
-    }
+  static boolean isAccessProperty(Property p) {
+    return "access".equals(p.key()) && p.getKlass() == Access.class;
+  }
 
-    static boolean isAttributeValuesProperty( Property p )
-    {
-        return "attributeValues".equals( p.key() ) && p.getItemKlass() == AttributeValue.class;
-    }
+  static boolean isAttributeValuesProperty(Property p) {
+    return "attributeValues".equals(p.key()) && p.getItemKlass() == AttributeValue.class;
+  }
 
-    static boolean isAttributeFlagProperty( Property p )
-    {
-        return p.getName().endsWith( "Attribute" ) && p.getKlass() == boolean.class || p.getKlass() == Boolean.class;
-    }
+  static boolean isAttributeFlagProperty(Property p) {
+    return p.getName().endsWith("Attribute") && p.getKlass() == boolean.class
+        || p.getKlass() == Boolean.class;
+  }
 
-    static boolean isCollectionSizeFilter( Filter filter, Property property )
-    {
-        return filter.getOperator().isEmptinessCompare() ||
-            (filter.getOperator().isNumericCompare() && property.isCollection());
-    }
+  static boolean isCollectionSizeFilter(Filter filter, Property property) {
+    return filter.getOperator().isEmptinessCompare()
+        || (filter.getOperator().isNumericCompare() && property.isCollection());
+  }
 
-    static boolean isStringLengthFilter( Filter filter, Property property )
-    {
-        Comparison op = filter.getOperator();
-        return property.isSimple() && property.getKlass() == String.class &&
-            (op.isEmptinessCompare()
-                || (op.isOrderCompare() && filter.getValue().length == 1
-                    && filter.getValue()[0].matches( "[0-9]+" )));
-    }
+  static boolean isStringLengthFilter(Filter filter, Property property) {
+    Comparison op = filter.getOperator();
+    return property.isSimple()
+        && property.getKlass() == String.class
+        && (op.isEmptinessCompare()
+            || (op.isOrderCompare()
+                && filter.getValue().length == 1
+                && filter.getValue()[0].matches("[0-9]+")));
+  }
 
-    static Transform effectiveTransform( Property property, Transform fallback, Transform target )
-    {
-        if ( target == Transform.AUTO )
-        {
-            target = fallback;
-        }
-        if ( target == Transform.AUTO )
-        {
-            target = property.getGistPreferences().getTransformation();
-        }
-        if ( (target == Transform.IDS || target == Transform.ID_OBJECTS) && property.isEmbeddedObject()
-            && isPersistentCollectionField( property ) )
-        {
-            return Transform.SIZE;
-        }
-        if ( target == Transform.NONE && property.isCollection() )
-        {
-            return Transform.SIZE;
-        }
-        return target == Transform.AUTO ? Transform.NONE : target;
+  static Transform effectiveTransform(Property property, Transform fallback, Transform target) {
+    if (target == Transform.AUTO) {
+      target = fallback;
     }
+    if (target == Transform.AUTO) {
+      target = property.getGistPreferences().getTransformation();
+    }
+    if ((target == Transform.IDS || target == Transform.ID_OBJECTS)
+        && property.isEmbeddedObject()
+        && isPersistentCollectionField(property)) {
+      return Transform.SIZE;
+    }
+    if (target == Transform.NONE && property.isCollection()) {
+      return Transform.SIZE;
+    }
+    return target == Transform.AUTO ? Transform.NONE : target;
+  }
 
-    private GistLogic()
-    {
-        throw new UnsupportedOperationException( "utility" );
-    }
+  private GistLogic() {
+    throw new UnsupportedOperationException("utility");
+  }
 }

@@ -53,7 +53,6 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.ilikeOrFiltering
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.inFiltering;
 
 import lombok.NoArgsConstructor;
-
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -61,359 +60,349 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-@NoArgsConstructor( access = PRIVATE )
-public class FilteringStatement
-{
-    private static final String REGEX_FOR_WORDS_FILTERING = "[\\s@&.?$+-]+";
+@NoArgsConstructor(access = PRIVATE)
+public class FilteringStatement {
+  private static final String REGEX_FOR_WORDS_FILTERING = "[\\s@&.?$+-]+";
 
-    /**
-     * Returns a SQL string related to UID equality to be reused as part of data
-     * items UID filtering.
-     *
-     * @param column the uid column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String uidFiltering( String column, MapSqlParameterSource paramsMap )
-    {
-        if ( hasNonBlankStringPresence( paramsMap, UID ) )
-        {
-            return equalsFiltering( column, UID );
-        }
-
-        return EMPTY;
+  /**
+   * Returns a SQL string related to UID equality to be reused as part of data items UID filtering.
+   *
+   * @param column the uid column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String uidFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasNonBlankStringPresence(paramsMap, UID)) {
+      return equalsFiltering(column, UID);
     }
 
-    /**
-     * Returns a SQL string related to programId equality to be reused as part
-     * of data items programId filtering.
-     *
-     * @param column the uid column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String programIdFiltering( String column, MapSqlParameterSource paramsMap )
-    {
-        if ( hasNonBlankStringPresence( paramsMap, PROGRAM_ID ) )
-        {
-            return equalsFiltering( column, PROGRAM_ID );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to programId equality to be reused as part of data items programId
+   * filtering.
+   *
+   * @param column the uid column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String programIdFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasNonBlankStringPresence(paramsMap, PROGRAM_ID)) {
+      return equalsFiltering(column, PROGRAM_ID);
     }
 
-    /**
-     * Returns a SQL string related to 'name' "ilike" comparison to be reused as
-     * part of data items 'name' filtering.
-     *
-     * @param column the name column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String nameFiltering( String column, MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, NAME ) )
-        {
-            return ilikeFiltering( column, NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'name' "ilike" comparison to be reused as part of data items
+   * 'name' filtering.
+   *
+   * @param column the name column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String nameFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, NAME)) {
+      return ilikeFiltering(column, NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'name' "ilike" comparison to be reused as
-     * part of data items 'name' filtering. It required two columns so it can
-     * compare two different names. It will always use 'or' condition, which
-     * translates to "columnOne ilike :name OR columnTwo ilike :name".
-     *
-     * @param columnOne the name's first column
-     * @param columnTwo the name's second column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String nameFiltering( String columnOne, String columnTwo, MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, NAME ) )
-        {
-            return ilikeOrFiltering( columnOne, columnTwo, NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'name' "ilike" comparison to be reused as part of data items
+   * 'name' filtering. It required two columns so it can compare two different names. It will always
+   * use 'or' condition, which translates to "columnOne ilike :name OR columnTwo ilike :name".
+   *
+   * @param columnOne the name's first column
+   * @param columnTwo the name's second column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String nameFiltering(
+      String columnOne, String columnTwo, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, NAME)) {
+      return ilikeOrFiltering(columnOne, columnTwo, NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'shortName' "ilike" comparison to be
-     * reused as part of data items 'shortName' filtering.
-     *
-     * @param column the shortName column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String shortNameFiltering( String column, MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, SHORT_NAME ) )
-        {
-            return ilikeFiltering( column, SHORT_NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'shortName' "ilike" comparison to be reused as part of data
+   * items 'shortName' filtering.
+   *
+   * @param column the shortName column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String shortNameFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, SHORT_NAME)) {
+      return ilikeFiltering(column, SHORT_NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'shortName' "ilike" comparison to be
-     * reused as part of data items 'shortName' filtering. It required two
-     * columns so it can compare two different shortNames. It will always use
-     * 'or' condition, which translates to "columnOne ilike :shortName OR
-     * columnTwo ilike :shortName".
-     *
-     * @param columnOne the shortname's first column
-     * @param columnTwo the shortname's second column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String shortNameFiltering( String columnOne, String columnTwo, MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, SHORT_NAME ) )
-        {
-            return ilikeOrFiltering( columnOne, columnTwo, SHORT_NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'shortName' "ilike" comparison to be reused as part of data
+   * items 'shortName' filtering. It required two columns so it can compare two different
+   * shortNames. It will always use 'or' condition, which translates to "columnOne ilike :shortName
+   * OR columnTwo ilike :shortName".
+   *
+   * @param columnOne the shortname's first column
+   * @param columnTwo the shortname's second column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String shortNameFiltering(
+      String columnOne, String columnTwo, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, SHORT_NAME)) {
+      return ilikeOrFiltering(columnOne, columnTwo, SHORT_NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'displayname' "ilike" comparison to be
-     * reused as part of data items 'displayname' filtering.
-     *
-     * @param column the displayname column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String displayNameFiltering( String column, MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-        {
-            return ilikeFiltering( column, DISPLAY_NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'displayname' "ilike" comparison to be reused as part of data
+   * items 'displayname' filtering.
+   *
+   * @param column the displayname column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String displayNameFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, DISPLAY_NAME)) {
+      return ilikeFiltering(column, DISPLAY_NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'displayName' "ilike" comparison to be
-     * reused as part of data items 'displayName' filtering. It required two
-     * columns so it can compare two different displayNames. It will always use
-     * 'or' condition, which translates to "columnOne ilike :displayName OR
-     * columnTwo ilike :displayName".
-     *
-     * @param columnOne the displayName's first column
-     * @param columnTwo the displayName's second column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String displayNameFiltering( String columnOne, String columnTwo, MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
-        {
-            return ilikeOrFiltering( columnOne, columnTwo, DISPLAY_NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'displayName' "ilike" comparison to be reused as part of data
+   * items 'displayName' filtering. It required two columns so it can compare two different
+   * displayNames. It will always use 'or' condition, which translates to "columnOne ilike
+   * :displayName OR columnTwo ilike :displayName".
+   *
+   * @param columnOne the displayName's first column
+   * @param columnTwo the displayName's second column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String displayNameFiltering(
+      String columnOne, String columnTwo, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, DISPLAY_NAME)) {
+      return ilikeOrFiltering(columnOne, columnTwo, DISPLAY_NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'displayShortName' "ilike" comparison to
-     * be reused as part of data items 'displayShortName' filtering.
-     *
-     * @param column the displayShortName column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String displayShortNameFiltering( String column, MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, DISPLAY_SHORT_NAME ) )
-        {
-            return ilikeFiltering( column, DISPLAY_SHORT_NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'displayShortName' "ilike" comparison to be reused as part of
+   * data items 'displayShortName' filtering.
+   *
+   * @param column the displayShortName column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String displayShortNameFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, DISPLAY_SHORT_NAME)) {
+      return ilikeFiltering(column, DISPLAY_SHORT_NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'displayShortName' "ilike" comparison to
-     * be reused as part of data items 'displayShortName' filtering. It required
-     * two columns so it can compare two different displayShortNames. It will
-     * always use 'or' condition, which translates to "columnOne ilike
-     * :displayShortName OR columnTwo ilike :displayShortName".
-     *
-     * @param columnOne the displayShortName's first column
-     * @param columnTwo the displayShortName's second column
-     * @param paramsMap
-     * @return the uid SQL comparison
-     */
-    public static String displayShortNameFiltering( String columnOne, String columnTwo,
-        MapSqlParameterSource paramsMap )
-    {
-        if ( hasStringPresence( paramsMap, DISPLAY_SHORT_NAME ) )
-        {
-            return ilikeOrFiltering( columnOne, columnTwo, DISPLAY_SHORT_NAME );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'displayShortName' "ilike" comparison to be reused as part of
+   * data items 'displayShortName' filtering. It required two columns so it can compare two
+   * different displayShortNames. It will always use 'or' condition, which translates to "columnOne
+   * ilike :displayShortName OR columnTwo ilike :displayShortName".
+   *
+   * @param columnOne the displayShortName's first column
+   * @param columnTwo the displayShortName's second column
+   * @param paramsMap
+   * @return the uid SQL comparison
+   */
+  public static String displayShortNameFiltering(
+      String columnOne, String columnTwo, MapSqlParameterSource paramsMap) {
+    if (hasStringPresence(paramsMap, DISPLAY_SHORT_NAME)) {
+      return ilikeOrFiltering(columnOne, columnTwo, DISPLAY_SHORT_NAME);
     }
 
-    /**
-     * Returns a SQL string related to 'valueType' "in" filtering to be reused
-     * as part of data items 'valueType' filtering.
-     *
-     * @param column the valueType column
-     * @param paramsMap
-     * @return the "in" SQL statement
-     */
-    public static String valueTypeFiltering( String column, MapSqlParameterSource paramsMap )
-    {
-        if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
-        {
-            return inFiltering( column, VALUE_TYPES );
-        }
+    return EMPTY;
+  }
 
-        return EMPTY;
+  /**
+   * Returns a SQL string related to 'valueType' "in" filtering to be reused as part of data items
+   * 'valueType' filtering.
+   *
+   * @param column the valueType column
+   * @param paramsMap
+   * @return the "in" SQL statement
+   */
+  public static String valueTypeFiltering(String column, MapSqlParameterSource paramsMap) {
+    if (hasSetPresence(paramsMap, VALUE_TYPES)) {
+      return inFiltering(column, VALUE_TYPES);
     }
 
-    /**
-     * Builds a valid SQL string based on a given identifiable token, so it can
-     * be used as part of a SQL query.
-     *
-     * @param idColumn
-     * @param codeColumn
-     * @param displayNameColumn
-     * @param programNameColumn
-     * @param paramsMap
-     * @return the SQL string
-     */
-    public static String identifiableTokenFiltering( String idColumn, String codeColumn, String displayNameColumn,
-        String programNameColumn, MapSqlParameterSource paramsMap )
-    {
-        if ( hasNonBlankStringPresence( paramsMap, IDENTIFIABLE_TOKEN_COMPARISON ) )
-        {
-            String[] filteringWords = defaultIfNull(
-                (String) paramsMap.getValue( IDENTIFIABLE_TOKEN_COMPARISON ), EMPTY ).split( "," );
+    return EMPTY;
+  }
 
-            OptionalFilterBuilder optionalFilterBuilder = new OptionalFilterBuilder( paramsMap );
+  /**
+   * Builds a valid SQL string based on a given identifiable token, so it can be used as part of a
+   * SQL query.
+   *
+   * @param idColumn
+   * @param codeColumn
+   * @param displayNameColumn
+   * @param programNameColumn
+   * @param paramsMap
+   * @return the SQL string
+   */
+  public static String identifiableTokenFiltering(
+      String idColumn,
+      String codeColumn,
+      String displayNameColumn,
+      String programNameColumn,
+      MapSqlParameterSource paramsMap) {
+    if (hasNonBlankStringPresence(paramsMap, IDENTIFIABLE_TOKEN_COMPARISON)) {
+      String[] filteringWords =
+          defaultIfNull((String) paramsMap.getValue(IDENTIFIABLE_TOKEN_COMPARISON), EMPTY)
+              .split(",");
 
-            optionalFilterBuilder
-                .append( ifAny( createRegexConditionForIdentifier( idColumn, filteringWords, SPACED_OR, ".*" ) ),
-                    SPACED_OR )
-                .append( ifAny( createRegexConditionForPhrase( codeColumn, filteringWords, SPACED_AND, ".*" ) ),
-                    SPACED_OR )
-                .append( ifAny( createRegexConditionForPhrase( displayNameColumn, filteringWords, SPACED_AND, ".*" ) ),
-                    SPACED_OR )
-                .append( ifAny( createRegexConditionForPhrase( programNameColumn, filteringWords, SPACED_AND, ".*" ) ),
-                    SPACED_OR );
+      OptionalFilterBuilder optionalFilterBuilder = new OptionalFilterBuilder(paramsMap);
 
-            return optionalFilterBuilder.toString().replaceFirst( SPACED_OR, EMPTY );
-        }
+      optionalFilterBuilder
+          .append(
+              ifAny(createRegexConditionForIdentifier(idColumn, filteringWords, SPACED_OR, ".*")),
+              SPACED_OR)
+          .append(
+              ifAny(createRegexConditionForPhrase(codeColumn, filteringWords, SPACED_AND, ".*")),
+              SPACED_OR)
+          .append(
+              ifAny(
+                  createRegexConditionForPhrase(
+                      displayNameColumn, filteringWords, SPACED_AND, ".*")),
+              SPACED_OR)
+          .append(
+              ifAny(
+                  createRegexConditionForPhrase(
+                      programNameColumn, filteringWords, SPACED_AND, ".*")),
+              SPACED_OR);
 
-        return EMPTY;
+      return optionalFilterBuilder.toString().replaceFirst(SPACED_OR, EMPTY);
     }
 
-    private static String createRegexConditionForPhrase( String column, String[] filteringWords,
-        String spacedAndOr, String regexMatch )
-    {
-        if ( filteringWords != null && filteringWords.length > 0 && isNotBlank( column ) )
-        {
-            StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+    return EMPTY;
+  }
 
-            for ( String word : filteringWords )
-            {
-                orConditions
-                    .append(
-                        "regexp_replace(" + column + ", '" + REGEX_FOR_WORDS_FILTERING + "', ' ', 'g') ~* '"
-                            + regexMatch + word + "'"
-                            + spacedAndOr );
-            }
+  private static String createRegexConditionForPhrase(
+      String column, String[] filteringWords, String spacedAndOr, String regexMatch) {
+    if (filteringWords != null && filteringWords.length > 0 && isNotBlank(column)) {
+      StringBuilder orConditions = new StringBuilder(SPACED_LEFT_PARENTHESIS);
 
-            orConditions.append( SPACED_RIGHT_PARENTHESIS );
+      for (String word : filteringWords) {
+        orConditions.append(
+            "regexp_replace("
+                + column
+                + ", '"
+                + REGEX_FOR_WORDS_FILTERING
+                + "', ' ', 'g') ~* '"
+                + regexMatch
+                + word
+                + "'"
+                + spacedAndOr);
+      }
 
-            // Remove last unused AND/OR condition and returns.
-            return orConditions.toString().replace( spacedAndOr + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS );
-        }
+      orConditions.append(SPACED_RIGHT_PARENTHESIS);
 
-        return EMPTY;
+      // Remove last unused AND/OR condition and returns.
+      return orConditions
+          .toString()
+          .replace(spacedAndOr + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS);
     }
 
-    private static String createRegexConditionForIdentifier( String column, String[] filteringWords,
-        String spacedAndOr, String regexMatch )
-    {
-        // Should only trigger when there is no more than one word in the
-        // filtering.
-        if ( filteringWords != null && filteringWords.length == 1 && isNotBlank( column ) )
-        {
-            StringBuilder condition = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+    return EMPTY;
+  }
 
-            condition
-                .append(
-                    "regexp_replace(" + column + ", '" + REGEX_FOR_WORDS_FILTERING + "', ' ', 'g') ~* '" + regexMatch
-                        + filteringWords[0] + "'" + spacedAndOr );
+  private static String createRegexConditionForIdentifier(
+      String column, String[] filteringWords, String spacedAndOr, String regexMatch) {
+    // Should only trigger when there is no more than one word in the
+    // filtering.
+    if (filteringWords != null && filteringWords.length == 1 && isNotBlank(column)) {
+      StringBuilder condition = new StringBuilder(SPACED_LEFT_PARENTHESIS);
 
-            condition.append( SPACED_RIGHT_PARENTHESIS );
+      condition.append(
+          "regexp_replace("
+              + column
+              + ", '"
+              + REGEX_FOR_WORDS_FILTERING
+              + "', ' ', 'g') ~* '"
+              + regexMatch
+              + filteringWords[0]
+              + "'"
+              + spacedAndOr);
 
-            // Remove last unused AND/OR condition and returns.
-            return condition.toString().replace( spacedAndOr + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS );
-        }
+      condition.append(SPACED_RIGHT_PARENTHESIS);
 
-        return EMPTY;
+      // Remove last unused AND/OR condition and returns.
+      return condition
+          .toString()
+          .replace(spacedAndOr + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS);
     }
 
-    /**
-     * Simple decoration used ONLY to provide better readability.
-     *
-     * @param anyString
-     * @return the exact same value provided as argument.
-     */
-    public static String ifAny( String anyString )
-    {
-        return anyString;
+    return EMPTY;
+  }
+
+  /**
+   * Simple decoration used ONLY to provide better readability.
+   *
+   * @param anyString
+   * @return the exact same value provided as argument.
+   */
+  public static String ifAny(String anyString) {
+    return anyString;
+  }
+
+  /**
+   * Simple decoration used ONLY to provide better readability.
+   *
+   * @param anyString
+   * @return the exact same value provided as argument.
+   */
+  public static String ifSet(String anyString) {
+    return anyString;
+  }
+
+  /**
+   * Simple decoration used ONLY to provide better readability.
+   *
+   * @param anyString
+   * @return the exact same value provided as argument.
+   */
+  public static String always(String anyString) {
+    return anyString;
+  }
+
+  /**
+   * Simply returns the "root junction" set in the paramsMap to be used for filtering purposes.
+   *
+   * @param paramsMap
+   * @return the "root junction" ('and' OR 'or')
+   */
+  public static String rootJunction(MapSqlParameterSource paramsMap) {
+    String defaultRootJunction = "and";
+
+    if (hasNonBlankStringPresence(paramsMap, ROOT_JUNCTION)) {
+      return (String) paramsMap.getValue(ROOT_JUNCTION);
     }
 
-    /**
-     * Simple decoration used ONLY to provide better readability.
-     *
-     * @param anyString
-     * @return the exact same value provided as argument.
-     */
-    public static String ifSet( String anyString )
-    {
-        return anyString;
-    }
-
-    /**
-     * Simple decoration used ONLY to provide better readability.
-     *
-     * @param anyString
-     * @return the exact same value provided as argument.
-     */
-    public static String always( String anyString )
-    {
-        return anyString;
-    }
-
-    /**
-     * Simply returns the "root junction" set in the paramsMap to be used for
-     * filtering purposes.
-     *
-     * @param paramsMap
-     * @return the "root junction" ('and' OR 'or')
-     */
-    public static String rootJunction( MapSqlParameterSource paramsMap )
-    {
-        String defaultRootJunction = "and";
-
-        if ( hasNonBlankStringPresence( paramsMap, ROOT_JUNCTION ) )
-        {
-            return (String) paramsMap.getValue( ROOT_JUNCTION );
-        }
-
-        return defaultRootJunction;
-    }
+    return defaultRootJunction;
+  }
 }

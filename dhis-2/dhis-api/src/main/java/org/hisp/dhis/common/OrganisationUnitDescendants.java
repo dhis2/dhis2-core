@@ -31,15 +31,13 @@ package org.hisp.dhis.common;
  * Defines the selection of organisation unit descendants.
  *
  * <ul>
- * <li>SELECTED: specified units only.</li>
- * <li>DESCENDANTS: all units in sub-hierarchy of specified units, including
- * specified units.</li>
+ *   <li>SELECTED: specified units only.
+ *   <li>DESCENDANTS: all units in sub-hierarchy of specified units, including specified units.
  * </ul>
  *
  * @author Jim Grace
  */
-public enum OrganisationUnitDescendants
-{
-    SELECTED,
-    DESCENDANTS
+public enum OrganisationUnitDescendants {
+  SELECTED,
+  DESCENDANTS
 }

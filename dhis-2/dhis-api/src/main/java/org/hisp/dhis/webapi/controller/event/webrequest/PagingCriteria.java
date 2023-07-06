@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.Optional;
-
 import org.hisp.dhis.common.OpenApi;
 
 /**
@@ -36,45 +35,30 @@ import org.hisp.dhis.common.OpenApi;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface PagingCriteria
-{
-    Integer DEFAULT_PAGE = 1;
+public interface PagingCriteria {
+  Integer DEFAULT_PAGE = 1;
 
-    Integer DEFAULT_PAGE_SIZE = 50;
+  Integer DEFAULT_PAGE_SIZE = 50;
 
-    /**
-     * Page number to return.
-     */
-    Integer getPage();
+  /** Page number to return. */
+  Integer getPage();
 
-    /**
-     * Page size.
-     */
-    Integer getPageSize();
+  /** Page size. */
+  Integer getPageSize();
 
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    boolean isTotalPages();
+  /** Indicates whether to include the total number of pages in the paging response. */
+  boolean isTotalPages();
 
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    Boolean isSkipPaging();
+  /** Indicates whether paging should be skipped. */
+  Boolean isSkipPaging();
 
-    @OpenApi.Ignore
-    default Integer getFirstResult()
-    {
-        Integer page = Optional.ofNullable( getPage() )
-            .filter( p -> p > 0 )
-            .orElse( DEFAULT_PAGE );
+  @OpenApi.Ignore
+  default Integer getFirstResult() {
+    Integer page = Optional.ofNullable(getPage()).filter(p -> p > 0).orElse(DEFAULT_PAGE);
 
-        Integer pageSize = Optional.ofNullable( getPageSize() )
-            .filter( ps -> ps > 0 )
-            .orElse( DEFAULT_PAGE_SIZE );
+    Integer pageSize =
+        Optional.ofNullable(getPageSize()).filter(ps -> ps > 0).orElse(DEFAULT_PAGE_SIZE);
 
-        return (page - 1) * pageSize;
-    }
-
+    return (page - 1) * pageSize;
+  }
 }

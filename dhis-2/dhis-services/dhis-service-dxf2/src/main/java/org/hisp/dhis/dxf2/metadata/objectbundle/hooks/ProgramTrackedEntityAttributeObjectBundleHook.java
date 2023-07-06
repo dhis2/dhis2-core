@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -41,45 +40,45 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProgramTrackedEntityAttributeObjectBundleHook
-    extends AbstractObjectBundleHook<ProgramTrackedEntityAttribute>
-{
-    /**
-     * Validate that the RenderType (if any) conforms to the constraints of
-     * ValueType or OptionSet.
-     */
-    @Override
-    public void validate( ProgramTrackedEntityAttribute object, ObjectBundle bundle, Consumer<ErrorReport> addReports )
-    {
-        renderTypeConformsToConstrains( object, addReports );
+    extends AbstractObjectBundleHook<ProgramTrackedEntityAttribute> {
+  /**
+   * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
+   */
+  @Override
+  public void validate(
+      ProgramTrackedEntityAttribute object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    renderTypeConformsToConstrains(object, addReports);
+  }
+
+  private void renderTypeConformsToConstrains(
+      ProgramTrackedEntityAttribute ptea, Consumer<ErrorReport> addReports) {
+    DeviceRenderTypeMap<ValueTypeRenderingObject> map = ptea.getRenderType();
+
+    TrackedEntityAttribute attr = ptea.getAttribute();
+
+    if (map == null) {
+      return;
     }
 
-    private void renderTypeConformsToConstrains( ProgramTrackedEntityAttribute ptea, Consumer<ErrorReport> addReports )
-    {
-        DeviceRenderTypeMap<ValueTypeRenderingObject> map = ptea.getRenderType();
+    for (ValueTypeRenderingObject renderingObject : map.values()) {
+      if (renderingObject.getType() == null) {
+        addReports.accept(
+            new ErrorReport(
+                ProgramTrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type"));
+      }
 
-        TrackedEntityAttribute attr = ptea.getAttribute();
-
-        if ( map == null )
-        {
-            return;
-        }
-
-        for ( ValueTypeRenderingObject renderingObject : map.values() )
-        {
-            if ( renderingObject.getType() == null )
-            {
-                addReports
-                    .accept(
-                        new ErrorReport( ProgramTrackedEntityAttribute.class, ErrorCode.E4011, "renderType.type" ) );
-            }
-
-            if ( !ValidationUtils
-                .validateRenderingType( ProgramTrackedEntityAttribute.class, attr.getValueType(), attr.hasOptionSet(),
-                    renderingObject.getType() ) )
-            {
-                addReports.accept( new ErrorReport( ProgramTrackedEntityAttribute.class, ErrorCode.E4020,
-                    renderingObject.getType(), attr.getValueType() ) );
-            }
-        }
+      if (!ValidationUtils.validateRenderingType(
+          ProgramTrackedEntityAttribute.class,
+          attr.getValueType(),
+          attr.hasOptionSet(),
+          renderingObject.getType())) {
+        addReports.accept(
+            new ErrorReport(
+                ProgramTrackedEntityAttribute.class,
+                ErrorCode.E4020,
+                renderingObject.getType(),
+                attr.getValueType()));
+      }
     }
+  }
 }

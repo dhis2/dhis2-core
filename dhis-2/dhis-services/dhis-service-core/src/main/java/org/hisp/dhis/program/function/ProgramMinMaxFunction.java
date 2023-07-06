@@ -30,7 +30,6 @@ package org.hisp.dhis.program.function;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.Date;
-
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
@@ -41,63 +40,71 @@ import org.hisp.dhis.program.ProgramIndicator;
 /**
  * @Author Zubair Asghar.
  */
-public abstract class ProgramMinMaxFunction
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
+public abstract class ProgramMinMaxFunction extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return getProgramArgType(ctx).getDescription(ctx, visitor);
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    StatementBuilder sb = visitor.getStatementBuilder();
+
+    ProgramExpressionParams params = visitor.getProgParams();
+
+    ProgramIndicator pi = params.getProgramIndicator();
+
+    String columnName = "";
+
+    if (ctx.uid1 == null) // arg: PS_EVENTDATE:programStageUid
     {
-        return getProgramArgType( ctx ).getDescription( ctx, visitor );
+      columnName = "\"executiondate\"";
+    } else // arg: #{programStageUid.dataElementUid}
+    {
+      String dataElement = ctx.uid1.getText();
+      columnName = "\"" + dataElement + "\"";
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        StatementBuilder sb = visitor.getStatementBuilder();
-
-        ProgramExpressionParams params = visitor.getProgParams();
-
-        ProgramIndicator pi = params.getProgramIndicator();
-
-        String columnName = "";
-
-        if ( ctx.uid1 == null ) // arg: PS_EVENTDATE:programStageUid
-        {
-            columnName = "\"executiondate\"";
-        }
-        else // arg: #{programStageUid.dataElementUid}
-        {
-            String dataElement = ctx.uid1.getText();
-            columnName = "\"" + dataElement + "\"";
-        }
-
-        if ( AnalyticsType.EVENT == pi.getAnalyticsType() )
-        {
-            return columnName;
-        }
-
-        Date startDate = params.getReportingStartDate();
-        Date endDate = params.getReportingEndDate();
-
-        String eventTableName = "analytics_event_" + pi.getProgram().getUid();
-        String programStage = ctx.uid0.getText();
-
-        return "(select " + getAggregationOperator() + "(" + columnName + ") from " + eventTableName +
-            " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
-            (pi.getEndEventBoundary() != null
-                ? ("and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " ")
-                : "")
-            +
-            (pi.getStartEventBoundary() != null
-                ? ("and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " ")
-                : "")
-            + "and ps = '" + programStage + "')";
+    if (AnalyticsType.EVENT == pi.getAnalyticsType()) {
+      return columnName;
     }
 
-    /***
-     * Generate the function part of the SQL
-     *
-     * @return string sql min/max functions
-     */
-    public abstract String getAggregationOperator();
+    Date startDate = params.getReportingStartDate();
+    Date endDate = params.getReportingEndDate();
+
+    String eventTableName = "analytics_event_" + pi.getProgram().getUid();
+    String programStage = ctx.uid0.getText();
+
+    return "(select "
+        + getAggregationOperator()
+        + "("
+        + columnName
+        + ") from "
+        + eventTableName
+        + " where "
+        + eventTableName
+        + ".pi = "
+        + StatementBuilder.ANALYTICS_TBL_ALIAS
+        + ".pi "
+        + (pi.getEndEventBoundary() != null
+            ? ("and "
+                + sb.getBoundaryCondition(pi.getEndEventBoundary(), pi, startDate, endDate)
+                + " ")
+            : "")
+        + (pi.getStartEventBoundary() != null
+            ? ("and "
+                + sb.getBoundaryCondition(pi.getStartEventBoundary(), pi, startDate, endDate)
+                + " ")
+            : "")
+        + "and ps = '"
+        + programStage
+        + "')";
+  }
+
+  /***
+   * Generate the function part of the SQL
+   *
+   * @return string sql min/max functions
+   */
+  public abstract String getAggregationOperator();
 }

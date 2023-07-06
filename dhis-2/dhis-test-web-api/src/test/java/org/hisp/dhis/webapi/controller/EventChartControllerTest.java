@@ -42,54 +42,48 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Controller tests for
- * {@link org.hisp.dhis.webapi.controller.event.EventChartController}.
+ * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventChartController}.
  *
  * @author maikel arabori
  */
-class EventChartControllerTest extends DhisControllerConvenienceTest
-{
+class EventChartControllerTest extends DhisControllerConvenienceTest {
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private Program mockProgram;
+  private Program mockProgram;
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        mockProgram = createProgram( 'A' );
-        manager.save( mockProgram );
-    }
+  @BeforeEach
+  public void beforeEach() {
+    mockProgram = createProgram('A');
+    manager.save(mockProgram);
+  }
 
-    @Test
-    void testThatGetEventVisualizationsContainsLegacyEventCharts()
-    {
-        // Given
-        final String body = "{'name': 'Name Test', 'type':'GAUGE', 'program':{'id':'" + mockProgram.getUid()
-            + "'}}";
+  @Test
+  void testThatGetEventVisualizationsContainsLegacyEventCharts() {
+    // Given
+    final String body =
+        "{'name': 'Name Test', 'type':'GAUGE', 'program':{'id':'" + mockProgram.getUid() + "'}}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventCharts/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventCharts/", body));
 
-        // Then
-        final JsonObject response = GET( "/eventVisualizations/" + uid ).content();
+    // Then
+    final JsonObject response = GET("/eventVisualizations/" + uid).content();
 
-        assertThat( response.get( "name" ).toString(), containsString( "Name Test" ) );
-        assertThat( response.get( "type" ).toString(), containsString( "GAUGE" ) );
-    }
+    assertThat(response.get("name").toString(), containsString("Name Test"));
+    assertThat(response.get("type").toString(), containsString("GAUGE"));
+  }
 
-    @Test
-    void testThatGetEventChartsDoesNotContainNewEventVisualizations()
-    {
-        // Given
-        final String body = "{'name': 'Name Test', 'type':'GAUGE', 'program':{'id':'" + mockProgram.getUid()
-            + "'}}";
+  @Test
+  void testThatGetEventChartsDoesNotContainNewEventVisualizations() {
+    // Given
+    final String body =
+        "{'name': 'Name Test', 'type':'GAUGE', 'program':{'id':'" + mockProgram.getUid() + "'}}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    final String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        assertTrue( GET( "/eventCharts/" + uid ).content().isEmpty() );
-    }
+    // Then
+    assertTrue(GET("/eventCharts/" + uid).content().isEmpty());
+  }
 }

@@ -32,7 +32,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Chau Thu Tran
  */
-public interface ProgramStageSectionStore
-    extends IdentifiableObjectStore<ProgramStageSection>
-{
-}
+public interface ProgramStageSectionStore extends IdentifiableObjectStore<ProgramStageSection> {}

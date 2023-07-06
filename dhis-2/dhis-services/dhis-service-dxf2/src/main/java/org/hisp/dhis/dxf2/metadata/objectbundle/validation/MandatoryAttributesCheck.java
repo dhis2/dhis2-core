@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -51,54 +50,58 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class MandatoryAttributesCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
-    {
-        Schema schema = ctx.getSchemaService().getDynamicSchema( klass );
-        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+public class MandatoryAttributesCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    Schema schema = ctx.getSchemaService().getDynamicSchema(klass);
+    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
 
-        if ( objects.isEmpty() || !schema.hasPersistedProperty( "attributeValues" ) )
-        {
-            return;
-        }
-
-        for ( T object : objects )
-        {
-            List<ErrorReport> errorReports = checkMandatoryAttributes( klass, object, bundle.getPreheat() );
-
-            if ( !errorReports.isEmpty() )
-            {
-                addReports.accept( createObjectReport( errorReports, object, bundle ) );
-                ctx.markForRemoval( object );
-            }
-        }
+    if (objects.isEmpty() || !schema.hasPersistedProperty("attributeValues")) {
+      return;
     }
 
-    private List<ErrorReport> checkMandatoryAttributes( Class<? extends IdentifiableObject> klass,
-        IdentifiableObject object, Preheat preheat )
-    {
-        if ( object == null || preheat.isDefault( object ) || !preheat.getMandatoryAttributes().containsKey( klass ) )
-        {
-            return emptyList();
-        }
+    for (T object : objects) {
+      List<ErrorReport> errorReports = checkMandatoryAttributes(klass, object, bundle.getPreheat());
 
-        Set<String> mandatoryAttributes = preheat.getMandatoryAttributes().get( klass );
-        if ( mandatoryAttributes.isEmpty() )
-        {
-            return emptyList();
-        }
-        Set<String> missingMandatoryAttributes = new HashSet<>( mandatoryAttributes );
-        object.getAttributeValues()
-            .forEach( attributeValue -> missingMandatoryAttributes.remove( attributeValue.getAttribute().getUid() ) );
-
-        return missingMandatoryAttributes.stream()
-            .map( att -> new ErrorReport( Attribute.class, ErrorCode.E4011, att )
-                .setMainId( att )
-                .setErrorProperty( "value" ) )
-            .collect( Collectors.toList() );
+      if (!errorReports.isEmpty()) {
+        addReports.accept(createObjectReport(errorReports, object, bundle));
+        ctx.markForRemoval(object);
+      }
     }
+  }
+
+  private List<ErrorReport> checkMandatoryAttributes(
+      Class<? extends IdentifiableObject> klass, IdentifiableObject object, Preheat preheat) {
+    if (object == null
+        || preheat.isDefault(object)
+        || !preheat.getMandatoryAttributes().containsKey(klass)) {
+      return emptyList();
+    }
+
+    Set<String> mandatoryAttributes = preheat.getMandatoryAttributes().get(klass);
+    if (mandatoryAttributes.isEmpty()) {
+      return emptyList();
+    }
+    Set<String> missingMandatoryAttributes = new HashSet<>(mandatoryAttributes);
+    object
+        .getAttributeValues()
+        .forEach(
+            attributeValue ->
+                missingMandatoryAttributes.remove(attributeValue.getAttribute().getUid()));
+
+    return missingMandatoryAttributes.stream()
+        .map(
+            att ->
+                new ErrorReport(Attribute.class, ErrorCode.E4011, att)
+                    .setMainId(att)
+                    .setErrorProperty("value"))
+        .collect(Collectors.toList());
+  }
 }

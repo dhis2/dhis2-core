@@ -35,9 +35,7 @@ import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import lombok.Getter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.params.AnalyticsSortingParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -54,80 +52,76 @@ import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
-/**
- * Query builder for data elements.
- */
+/** Query builder for data elements. */
 @Service
-@org.springframework.core.annotation.Order( 999 )
-public class DataElementQueryBuilder implements SqlQueryBuilder
-{
-    @Getter
-    private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List.of(
-        DataElementQueryBuilder::isDataElement );
+@org.springframework.core.annotation.Order(999)
+public class DataElementQueryBuilder implements SqlQueryBuilder {
+  @Getter
+  private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
+      List.of(DataElementQueryBuilder::isDataElement);
 
-    @Getter
-    private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of(
-        DataElementQueryBuilder::isDataElementOrder );
+  @Getter
+  private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
+      List.of(DataElementQueryBuilder::isDataElementOrder);
 
-    @Override
-    public RenderableSqlQuery buildSqlQuery(
-        QueryContext queryContext,
-        List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
-        List<AnalyticsSortingParams> acceptedSortingParams )
-    {
-        RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
+  @Override
+  public RenderableSqlQuery buildSqlQuery(
+      QueryContext queryContext,
+      List<DimensionIdentifier<DimensionParam>> acceptedDimensions,
+      List<AnalyticsSortingParams> acceptedSortingParams) {
+    RenderableSqlQuery.RenderableSqlQueryBuilder builder = RenderableSqlQuery.builder();
 
-        Stream.concat( acceptedDimensions.stream(), acceptedSortingParams.stream()
-            .map( AnalyticsSortingParams::getOrderBy ) )
-            .map( dimensionIdentifier -> Field.ofUnquoted(
-                StringUtils.EMPTY,
-                RenderableDataValue.of(
-                    doubleQuote( dimensionIdentifier.getPrefix() ),
-                    dimensionIdentifier.getDimension().getUid(),
-                    fromValueType( dimensionIdentifier.getDimension().getValueType() ) ),
-                dimensionIdentifier.toString() ) )
-            .forEach( builder::selectField );
+    Stream.concat(
+            acceptedDimensions.stream(),
+            acceptedSortingParams.stream().map(AnalyticsSortingParams::getOrderBy))
+        .map(
+            dimensionIdentifier ->
+                Field.ofUnquoted(
+                    StringUtils.EMPTY,
+                    RenderableDataValue.of(
+                        doubleQuote(dimensionIdentifier.getPrefix()),
+                        dimensionIdentifier.getDimension().getUid(),
+                        fromValueType(dimensionIdentifier.getDimension().getValueType())),
+                    dimensionIdentifier.toString()))
+        .forEach(builder::selectField);
 
-        acceptedDimensions
-            .stream()
-            .filter( SqlQueryBuilders::hasRestrictions )
-            .map( dimId -> GroupableCondition.of(
-                dimId.getGroupId(),
-                DataElementCondition.of( queryContext, dimId ) ) )
-            .forEach( builder::groupableCondition );
+    acceptedDimensions.stream()
+        .filter(SqlQueryBuilders::hasRestrictions)
+        .map(
+            dimId ->
+                GroupableCondition.of(
+                    dimId.getGroupId(), DataElementCondition.of(queryContext, dimId)))
+        .forEach(builder::groupableCondition);
 
-        acceptedSortingParams
-            .forEach( analyticsSortingParams -> builder.orderClause(
+    acceptedSortingParams.forEach(
+        analyticsSortingParams ->
+            builder.orderClause(
                 IndexedOrder.of(
                     analyticsSortingParams.getIndex(),
                     Order.of(
-                        Field.of( analyticsSortingParams.getOrderBy().toString() ),
-                        analyticsSortingParams.getSortDirection() ) ) ) );
+                        Field.of(analyticsSortingParams.getOrderBy().toString()),
+                        analyticsSortingParams.getSortDirection()))));
 
-        return builder.build();
-    }
+    return builder.build();
+  }
 
-    /**
-     * Checks if the given sorting parameter is of type data element.
-     *
-     * @param analyticsSortingParams the sorting parameter to check.
-     * @return true if the sorting parameter is of type data element, false
-     *         otherwise.
-     */
-    private static boolean isDataElementOrder( AnalyticsSortingParams analyticsSortingParams )
-    {
-        return isDataElement( analyticsSortingParams.getOrderBy() );
-    }
+  /**
+   * Checks if the given sorting parameter is of type data element.
+   *
+   * @param analyticsSortingParams the sorting parameter to check.
+   * @return true if the sorting parameter is of type data element, false otherwise.
+   */
+  private static boolean isDataElementOrder(AnalyticsSortingParams analyticsSortingParams) {
+    return isDataElement(analyticsSortingParams.getOrderBy());
+  }
 
-    /**
-     * Checks if the given dimension identifier is of type data element.
-     *
-     * @param dimensionIdentifier the dimension identifier to check.
-     * @return true if the dimension identifier is of type data element, false
-     *         otherwise.
-     */
-    private static boolean isDataElement( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return isOfType( dimensionIdentifier, DATA_ELEMENT ) && dimensionIdentifier.isEventDimension();
-    }
+  /**
+   * Checks if the given dimension identifier is of type data element.
+   *
+   * @param dimensionIdentifier the dimension identifier to check.
+   * @return true if the dimension identifier is of type data element, false otherwise.
+   */
+  private static boolean isDataElement(DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return isOfType(dimensionIdentifier, DATA_ELEMENT) && dimensionIdentifier.isEventDimension();
+  }
 }

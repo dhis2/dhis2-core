@@ -33,7 +33,5 @@ import org.hisp.dhis.audit.Auditable;
 /**
  * @author Luciano Fiandesio
  */
-@Auditable( scope = AuditScope.METADATA )
-public interface TestInterface
-{
-}
+@Auditable(scope = AuditScope.METADATA)
+public interface TestInterface {}

@@ -30,10 +30,9 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public enum RegressionType
-{
-    NONE,
-    LINEAR,
-    POLYNOMIAL,
-    LOESS
+public enum RegressionType {
+  NONE,
+  LINEAR,
+  POLYNOMIAL,
+  LOESS
 }

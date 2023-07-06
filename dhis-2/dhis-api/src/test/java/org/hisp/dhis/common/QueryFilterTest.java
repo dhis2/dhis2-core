@@ -33,70 +33,62 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class QueryFilterTest
-{
+class QueryFilterTest {
 
-    @Test
-    void testUnderscoreIsEscaped()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.LIKE );
-        assertThat( queryFilter.getSqlFilter( "_" ), is( "'%\\_%'" ) );
-    }
+  @Test
+  void testUnderscoreIsEscaped() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.LIKE);
+    assertThat(queryFilter.getSqlFilter("_"), is("'%\\_%'"));
+  }
 
-    @Test
-    void testPercentageSignIsEscaped()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.LIKE );
-        assertThat( queryFilter.getSqlFilter( "%" ), is( "'%\\%%'" ) );
-    }
+  @Test
+  void testPercentageSignIsEscaped() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.LIKE);
+    assertThat(queryFilter.getSqlFilter("%"), is("'%\\%%'"));
+  }
 
-    @Test
-    @DisplayName( "When value substitution allowed and NV provided, equals operator returns null" )
-    void testEqualsAndNullValueReturnNullStringWhenAllowed()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.EQ );
-        assertThat( queryFilter.getSqlFilter( "NV", true ), is( "null" ) );
-    }
+  @Test
+  @DisplayName("When value substitution allowed and NV provided, equals operator returns null")
+  void testEqualsAndNullValueReturnNullStringWhenAllowed() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.EQ);
+    assertThat(queryFilter.getSqlFilter("NV", true), is("null"));
+  }
 
-    @Test
-    @DisplayName( "When value substitution not allowed and NV provided, equals operator returns NV" )
-    void testNullValueReturnedIfSubstitutionNotAllowed()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.EQ );
-        assertThat( queryFilter.getSqlFilter( "NV", false ), is( "'NV'" ) );
-    }
+  @Test
+  @DisplayName("When value substitution not allowed and NV provided, equals operator returns NV")
+  void testNullValueReturnedIfSubstitutionNotAllowed() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.EQ);
+    assertThat(queryFilter.getSqlFilter("NV", false), is("'NV'"));
+  }
 
-    @Test
-    @DisplayName( "When value substitution allowed and any random text provided, equals operator returns text" )
-    void testRandomTextReturnedIfSubstitutionAllowed()
-    {
-        QueryFilter queryFilter = new QueryFilter();
-        queryFilter.setOperator( QueryOperator.EQ );
-        assertThat( queryFilter.getSqlFilter( "NVA", true ), is( "'NVA'" ) );
-    }
+  @Test
+  @DisplayName(
+      "When value substitution allowed and any random text provided, equals operator returns text")
+  void testRandomTextReturnedIfSubstitutionAllowed() {
+    QueryFilter queryFilter = new QueryFilter();
+    queryFilter.setOperator(QueryOperator.EQ);
+    assertThat(queryFilter.getSqlFilter("NVA", true), is("'NVA'"));
+  }
 
-    @Test
-    void testOperatorIsNotReplacedWhenNotAllowed()
-    {
-        QueryFilter queryFilter = new QueryFilter( QueryOperator.EQ, "NV" );
-        assertThat( queryFilter.getSqlOperator(), is( "=" ) );
-    }
+  @Test
+  void testOperatorIsNotReplacedWhenNotAllowed() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "NV");
+    assertThat(queryFilter.getSqlOperator(), is("="));
+  }
 
-    @Test
-    void testOperatorIsReplacedWhenAllowed()
-    {
-        QueryFilter queryFilter = new QueryFilter( QueryOperator.EQ, "NV" );
-        assertThat( queryFilter.getSqlOperator( true ), is( "is" ) );
-    }
+  @Test
+  void testOperatorIsReplacedWhenAllowed() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "NV");
+    assertThat(queryFilter.getSqlOperator(true), is("is"));
+  }
 
-    @Test
-    void testOperatorIsNotReplacedWhenAllowedButRandomTextProvided()
-    {
-        QueryFilter queryFilter = new QueryFilter( QueryOperator.EQ, "NVA" );
-        assertThat( queryFilter.getSqlOperator( true ), is( "=" ) );
-    }
+  @Test
+  void testOperatorIsNotReplacedWhenAllowedButRandomTextProvided() {
+    QueryFilter queryFilter = new QueryFilter(QueryOperator.EQ, "NVA");
+    assertThat(queryFilter.getSqlOperator(true), is("="));
+  }
 }

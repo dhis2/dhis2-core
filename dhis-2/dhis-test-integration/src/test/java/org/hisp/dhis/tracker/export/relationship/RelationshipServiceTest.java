@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
@@ -61,312 +60,295 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RelationshipServiceTest extends SingleSetupIntegrationTestBase
-{
+class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    protected UserService _userService;
+  @Autowired protected UserService _userService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private RelationshipService relationshipService;
+  @Autowired private RelationshipService relationshipService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private TrackedEntity teiA;
+  private TrackedEntity teiA;
 
-    private TrackedEntity teiB;
+  private TrackedEntity teiB;
 
-    private TrackedEntity inaccessibleTei;
+  private TrackedEntity inaccessibleTei;
 
-    private Event eventA;
+  private Event eventA;
 
-    private Event inaccessiblePsi;
+  private Event inaccessiblePsi;
 
-    private final RelationshipType teiToTeiType = createRelationshipType( 'A' );
+  private final RelationshipType teiToTeiType = createRelationshipType('A');
 
-    private final RelationshipType teiToPiType = createRelationshipType( 'B' );
+  private final RelationshipType teiToPiType = createRelationshipType('B');
 
-    private final RelationshipType teiToPsiType = createRelationshipType( 'C' );
+  private final RelationshipType teiToPsiType = createRelationshipType('C');
 
-    private final RelationshipType teiToInaccessibleTeiType = createRelationshipType( 'D' );
+  private final RelationshipType teiToInaccessibleTeiType = createRelationshipType('D');
 
-    private final RelationshipType teiToPiInaccessibleType = createRelationshipType( 'E' );
+  private final RelationshipType teiToPiInaccessibleType = createRelationshipType('E');
 
-    private final RelationshipType eventToEventType = createRelationshipType( 'F' );
+  private final RelationshipType eventToEventType = createRelationshipType('F');
 
-    private Enrollment enrollmentA;
+  private Enrollment enrollmentA;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
-        User admin = preCreateInjectAdminUser();
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
+    User admin = preCreateInjectAdminUser();
 
-        OrganisationUnit orgUnit = createOrganisationUnit( 'A' );
-        manager.save( orgUnit, false );
+    OrganisationUnit orgUnit = createOrganisationUnit('A');
+    manager.save(orgUnit, false);
 
-        User user = createAndAddUser( false, "user", Set.of( orgUnit ), Set.of( orgUnit ),
-            "F_EXPORT_DATA" );
+    User user = createAndAddUser(false, "user", Set.of(orgUnit), Set.of(orgUnit), "F_EXPORT_DATA");
 
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityType.getSharing().setOwner( user );
-        manager.save( trackedEntityType, false );
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
+    trackedEntityType.getSharing().setOwner(user);
+    manager.save(trackedEntityType, false);
 
-        TrackedEntityType inaccessibleTrackedEntityType = createTrackedEntityType( 'B' );
-        inaccessibleTrackedEntityType.getSharing().setOwner( admin );
-        inaccessibleTrackedEntityType.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        manager.save( inaccessibleTrackedEntityType, false );
+    TrackedEntityType inaccessibleTrackedEntityType = createTrackedEntityType('B');
+    inaccessibleTrackedEntityType.getSharing().setOwner(admin);
+    inaccessibleTrackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(inaccessibleTrackedEntityType, false);
 
-        teiA = createTrackedEntity( orgUnit );
-        teiA.setTrackedEntityType( trackedEntityType );
-        manager.save( teiA, false );
+    teiA = createTrackedEntity(orgUnit);
+    teiA.setTrackedEntityType(trackedEntityType);
+    manager.save(teiA, false);
 
-        teiB = createTrackedEntity( orgUnit );
-        teiB.setTrackedEntityType( trackedEntityType );
-        manager.save( teiB, false );
+    teiB = createTrackedEntity(orgUnit);
+    teiB.setTrackedEntityType(trackedEntityType);
+    manager.save(teiB, false);
 
-        inaccessibleTei = createTrackedEntity( orgUnit );
-        inaccessibleTei.setTrackedEntityType( inaccessibleTrackedEntityType );
-        manager.save( inaccessibleTei, false );
+    inaccessibleTei = createTrackedEntity(orgUnit);
+    inaccessibleTei.setTrackedEntityType(inaccessibleTrackedEntityType);
+    manager.save(inaccessibleTei, false);
 
-        Program program = createProgram( 'A', new HashSet<>(), orgUnit );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        program.getSharing().setOwner( user );
-        manager.save( program, false );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        manager.save( programStage, false );
-        ProgramStage inaccessibleProgramStage = createProgramStage( 'B', program );
-        inaccessibleProgramStage.getSharing().setOwner( admin );
-        inaccessibleProgramStage.setPublicAccess( AccessStringHelper.DEFAULT );
-        manager.save( inaccessibleProgramStage, false );
-        program.setProgramStages( Set.of( programStage, inaccessibleProgramStage ) );
-        manager.save( program, false );
+    Program program = createProgram('A', new HashSet<>(), orgUnit);
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.getSharing().setOwner(user);
+    manager.save(program, false);
+    ProgramStage programStage = createProgramStage('A', program);
+    manager.save(programStage, false);
+    ProgramStage inaccessibleProgramStage = createProgramStage('B', program);
+    inaccessibleProgramStage.getSharing().setOwner(admin);
+    inaccessibleProgramStage.setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(inaccessibleProgramStage, false);
+    program.setProgramStages(Set.of(programStage, inaccessibleProgramStage));
+    manager.save(program, false);
 
-        enrollmentA = enrollmentService.enrollTrackedEntity( teiA, program, new Date(), new Date(),
-            orgUnit );
-        eventA = new Event();
-        eventA.setEnrollment( enrollmentA );
-        eventA.setProgramStage( programStage );
-        eventA.setOrganisationUnit( orgUnit );
-        manager.save( eventA, false );
+    enrollmentA =
+        enrollmentService.enrollTrackedEntity(teiA, program, new Date(), new Date(), orgUnit);
+    eventA = new Event();
+    eventA.setEnrollment(enrollmentA);
+    eventA.setProgramStage(programStage);
+    eventA.setOrganisationUnit(orgUnit);
+    manager.save(eventA, false);
 
-        Enrollment enrollmentB = enrollmentService.enrollTrackedEntity( teiB, program, new Date(),
-            new Date(),
-            orgUnit );
-        inaccessiblePsi = new Event();
-        inaccessiblePsi.setEnrollment( enrollmentB );
-        inaccessiblePsi.setProgramStage( inaccessibleProgramStage );
-        inaccessiblePsi.setOrganisationUnit( orgUnit );
-        manager.save( inaccessiblePsi, false );
+    Enrollment enrollmentB =
+        enrollmentService.enrollTrackedEntity(teiB, program, new Date(), new Date(), orgUnit);
+    inaccessiblePsi = new Event();
+    inaccessiblePsi.setEnrollment(enrollmentB);
+    inaccessiblePsi.setProgramStage(inaccessibleProgramStage);
+    inaccessiblePsi.setOrganisationUnit(orgUnit);
+    manager.save(inaccessiblePsi, false);
 
-        teiToTeiType.getFromConstraint()
-            .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        teiToTeiType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        teiToTeiType.getToConstraint()
-            .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        teiToTeiType.getToConstraint().setTrackedEntityType( trackedEntityType );
-        teiToTeiType.getSharing().setOwner( user );
-        manager.save( teiToTeiType, false );
+    teiToTeiType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    teiToTeiType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    teiToTeiType
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    teiToTeiType.getToConstraint().setTrackedEntityType(trackedEntityType);
+    teiToTeiType.getSharing().setOwner(user);
+    manager.save(teiToTeiType, false);
 
-        teiToInaccessibleTeiType.getFromConstraint()
-            .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        teiToInaccessibleTeiType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        teiToInaccessibleTeiType.getToConstraint()
-            .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        teiToInaccessibleTeiType.getToConstraint().setTrackedEntityType( inaccessibleTrackedEntityType );
-        teiToInaccessibleTeiType.getSharing().setOwner( user );
-        manager.save( teiToInaccessibleTeiType, false );
+    teiToInaccessibleTeiType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    teiToInaccessibleTeiType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    teiToInaccessibleTeiType
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    teiToInaccessibleTeiType.getToConstraint().setTrackedEntityType(inaccessibleTrackedEntityType);
+    teiToInaccessibleTeiType.getSharing().setOwner(user);
+    manager.save(teiToInaccessibleTeiType, false);
 
-        teiToPiType.getFromConstraint()
-            .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        teiToPiType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        teiToPiType.getToConstraint()
-            .setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
-        teiToPiType.getToConstraint().setProgram( program );
-        teiToPiType.getSharing().setOwner( user );
-        manager.save( teiToPiType, false );
+    teiToPiType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    teiToPiType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    teiToPiType.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    teiToPiType.getToConstraint().setProgram(program);
+    teiToPiType.getSharing().setOwner(user);
+    manager.save(teiToPiType, false);
 
-        teiToPiInaccessibleType.getFromConstraint()
-            .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        teiToPiInaccessibleType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        teiToPiInaccessibleType.getToConstraint()
-            .setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
-        teiToPiInaccessibleType.getToConstraint().setProgram( program );
-        teiToPiInaccessibleType.getSharing().setOwner( admin );
-        teiToPiInaccessibleType.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        manager.save( teiToPiInaccessibleType, false );
+    teiToPiInaccessibleType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    teiToPiInaccessibleType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    teiToPiInaccessibleType
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.PROGRAM_INSTANCE);
+    teiToPiInaccessibleType.getToConstraint().setProgram(program);
+    teiToPiInaccessibleType.getSharing().setOwner(admin);
+    teiToPiInaccessibleType.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
+    manager.save(teiToPiInaccessibleType, false);
 
-        teiToPsiType.getFromConstraint()
-            .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        teiToPsiType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        teiToPsiType.getToConstraint()
-            .setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
-        teiToPsiType.getToConstraint().setProgramStage( programStage );
-        teiToPsiType.getSharing().setOwner( user );
-        manager.save( teiToPsiType, false );
+    teiToPsiType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+    teiToPsiType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    teiToPsiType.getToConstraint().setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    teiToPsiType.getToConstraint().setProgramStage(programStage);
+    teiToPsiType.getSharing().setOwner(user);
+    manager.save(teiToPsiType, false);
 
-        eventToEventType.getFromConstraint()
-            .setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
-        eventToEventType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        eventToEventType.getToConstraint()
-            .setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
-        eventToEventType.getToConstraint().setProgramStage( programStage );
-        eventToEventType.getSharing().setOwner( user );
-        manager.save( eventToEventType, false );
+    eventToEventType
+        .getFromConstraint()
+        .setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    eventToEventType.getFromConstraint().setTrackedEntityType(trackedEntityType);
+    eventToEventType
+        .getToConstraint()
+        .setRelationshipEntity(RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+    eventToEventType.getToConstraint().setProgramStage(programStage);
+    eventToEventType.getSharing().setOwner(user);
+    manager.save(eventToEventType, false);
 
-        injectSecurityContext( user );
-    }
+    injectSecurityContext(user);
+  }
 
-    @Test
-    void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
-        throws ForbiddenException,
-        NotFoundException
-    {
-        Relationship accessible = relationship( teiA, teiB );
-        relationship( teiA, inaccessibleTei, teiToInaccessibleTeiType );
+  @Test
+  void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
+      throws ForbiddenException, NotFoundException {
+    Relationship accessible = relationship(teiA, teiB);
+    relationship(teiA, inaccessibleTei, teiToInaccessibleTeiType);
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByTrackedEntity( teiA,
-            new Paging() );
+    List<Relationship> relationships =
+        relationshipService.getRelationshipsByTrackedEntity(teiA, new Paging());
 
-        assertContainsOnly( List.of( accessible.getUid() ),
-            relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );
-    }
+    assertContainsOnly(
+        List.of(accessible.getUid()),
+        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+  }
 
-    @Test
-    void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
-        throws ForbiddenException,
-        NotFoundException
-    {
-        Relationship accessible = relationship( teiA, enrollmentA );
-        relationship( teiB, enrollmentA, teiToPiInaccessibleType );
+  @Test
+  void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
+      throws ForbiddenException, NotFoundException {
+    Relationship accessible = relationship(teiA, enrollmentA);
+    relationship(teiB, enrollmentA, teiToPiInaccessibleType);
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByEnrollment( enrollmentA,
-            new Paging() );
+    List<Relationship> relationships =
+        relationshipService.getRelationshipsByEnrollment(enrollmentA, new Paging());
 
-        assertContainsOnly( List.of( accessible.getUid() ),
-            relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );
-    }
+    assertContainsOnly(
+        List.of(accessible.getUid()),
+        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+  }
 
-    @Test
-    void shouldNotReturnRelationshipByEventIfUserHasNoAccessToProgramStage()
-        throws ForbiddenException,
-        NotFoundException
-    {
-        Relationship accessible = relationship( teiA, eventA );
-        relationship( eventA, inaccessiblePsi );
+  @Test
+  void shouldNotReturnRelationshipByEventIfUserHasNoAccessToProgramStage()
+      throws ForbiddenException, NotFoundException {
+    Relationship accessible = relationship(teiA, eventA);
+    relationship(eventA, inaccessiblePsi);
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByEvent( eventA,
-            new Paging() );
+    List<Relationship> relationships =
+        relationshipService.getRelationshipsByEvent(eventA, new Paging());
 
-        assertContainsOnly( List.of( accessible.getUid() ),
-            relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );
-    }
+    assertContainsOnly(
+        List.of(accessible.getUid()),
+        relationships.stream().map(Relationship::getUid).collect(Collectors.toList()));
+  }
 
-    private Relationship relationship( TrackedEntity from, TrackedEntity to )
-    {
-        return relationship( from, to, teiToTeiType );
-    }
+  private Relationship relationship(TrackedEntity from, TrackedEntity to) {
+    return relationship(from, to, teiToTeiType);
+  }
 
-    private Relationship relationship( TrackedEntity from, TrackedEntity to, RelationshipType type )
-    {
-        Relationship relationship = new Relationship();
-        relationship.setUid( CodeGenerator.generateUid() );
-        relationship.setRelationshipType( type );
-        relationship.setFrom( item( from ) );
-        relationship.setTo( item( to ) );
-        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
-        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+  private Relationship relationship(TrackedEntity from, TrackedEntity to, RelationshipType type) {
+    Relationship relationship = new Relationship();
+    relationship.setUid(CodeGenerator.generateUid());
+    relationship.setRelationshipType(type);
+    relationship.setFrom(item(from));
+    relationship.setTo(item(to));
+    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
+    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
 
-        manager.save( relationship );
+    manager.save(relationship);
 
-        return relationship;
-    }
+    return relationship;
+  }
 
-    private Relationship relationship( TrackedEntity from, Enrollment to )
-    {
-        return relationship( from, to, teiToPsiType );
-    }
+  private Relationship relationship(TrackedEntity from, Enrollment to) {
+    return relationship(from, to, teiToPsiType);
+  }
 
-    private Relationship relationship( TrackedEntity from, Enrollment to, RelationshipType type )
-    {
-        Relationship relationship = new Relationship();
-        relationship.setUid( CodeGenerator.generateUid() );
-        relationship.setRelationshipType( type );
-        relationship.setFrom( item( from ) );
-        relationship.setTo( item( to ) );
-        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
-        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+  private Relationship relationship(TrackedEntity from, Enrollment to, RelationshipType type) {
+    Relationship relationship = new Relationship();
+    relationship.setUid(CodeGenerator.generateUid());
+    relationship.setRelationshipType(type);
+    relationship.setFrom(item(from));
+    relationship.setTo(item(to));
+    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
+    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
 
-        manager.save( relationship );
+    manager.save(relationship);
 
-        return relationship;
-    }
+    return relationship;
+  }
 
-    private Relationship relationship( TrackedEntity from, Event to )
-    {
-        return relationship( from, to, teiToPsiType );
-    }
+  private Relationship relationship(TrackedEntity from, Event to) {
+    return relationship(from, to, teiToPsiType);
+  }
 
-    private Relationship relationship( TrackedEntity from, Event to, RelationshipType type )
-    {
-        Relationship relationship = new Relationship();
-        relationship.setUid( CodeGenerator.generateUid() );
-        relationship.setRelationshipType( type );
-        relationship.setFrom( item( from ) );
-        relationship.setTo( item( to ) );
-        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
-        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+  private Relationship relationship(TrackedEntity from, Event to, RelationshipType type) {
+    Relationship relationship = new Relationship();
+    relationship.setUid(CodeGenerator.generateUid());
+    relationship.setRelationshipType(type);
+    relationship.setFrom(item(from));
+    relationship.setTo(item(to));
+    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
+    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
 
-        manager.save( relationship );
+    manager.save(relationship);
 
-        return relationship;
-    }
+    return relationship;
+  }
 
-    private void relationship( Event from, Event to )
-    {
-        relationship( from, to, eventToEventType );
-    }
+  private void relationship(Event from, Event to) {
+    relationship(from, to, eventToEventType);
+  }
 
-    private void relationship( Event from, Event to, RelationshipType type )
-    {
-        Relationship relationship = new Relationship();
-        relationship.setUid( CodeGenerator.generateUid() );
-        relationship.setRelationshipType( type );
-        relationship.setFrom( item( from ) );
-        relationship.setTo( item( to ) );
-        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
-        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
+  private void relationship(Event from, Event to, RelationshipType type) {
+    Relationship relationship = new Relationship();
+    relationship.setUid(CodeGenerator.generateUid());
+    relationship.setRelationshipType(type);
+    relationship.setFrom(item(from));
+    relationship.setTo(item(to));
+    relationship.setKey(RelationshipUtils.generateRelationshipKey(relationship));
+    relationship.setInvertedKey(RelationshipUtils.generateRelationshipInvertedKey(relationship));
 
-        manager.save( relationship );
-    }
+    manager.save(relationship);
+  }
 
-    private RelationshipItem item( TrackedEntity from )
-    {
-        RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setTrackedEntity( from );
-        return relationshipItem;
-    }
+  private RelationshipItem item(TrackedEntity from) {
+    RelationshipItem relationshipItem = new RelationshipItem();
+    relationshipItem.setTrackedEntity(from);
+    return relationshipItem;
+  }
 
-    private RelationshipItem item( Enrollment from )
-    {
-        RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from );
-        return relationshipItem;
-    }
+  private RelationshipItem item(Enrollment from) {
+    RelationshipItem relationshipItem = new RelationshipItem();
+    relationshipItem.setEnrollment(from);
+    return relationshipItem;
+  }
 
-    private RelationshipItem item( Event from )
-    {
-        RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEvent( from );
-        return relationshipItem;
-    }
+  private RelationshipItem item(Event from) {
+    RelationshipItem relationshipItem = new RelationshipItem();
+    relationshipItem.setEvent(from);
+    return relationshipItem;
+  }
 
-    private static class Paging extends PagingAndSortingCriteriaAdapter
-    {
-    }
+  private static class Paging extends PagingAndSortingCriteriaAdapter {}
 }

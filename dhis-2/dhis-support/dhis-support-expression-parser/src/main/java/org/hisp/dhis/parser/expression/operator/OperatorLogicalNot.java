@@ -49,13 +49,9 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorLogicalNot
-    extends AntlrOperatorLogicalNot
-    implements ExpressionItem
-{
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "not " + visitor.castStringVisit( ctx.expr( 0 ) );
-    }
+public class OperatorLogicalNot extends AntlrOperatorLogicalNot implements ExpressionItem {
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "not " + visitor.castStringVisit(ctx.expr(0));
+  }
 }

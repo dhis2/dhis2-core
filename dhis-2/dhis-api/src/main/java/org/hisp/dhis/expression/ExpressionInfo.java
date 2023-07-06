@@ -27,66 +27,48 @@
  */
 package org.hisp.dhis.expression;
 
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.common.DimensionalItemId;
-
-import com.google.common.collect.Sets;
 
 /**
  * Information parsed from an expression
- * <p>
- * This is only information that is gathered from parsing the expression, and
- * contains no information from any other source such as the database (either
- * data or metadata). In other words, the same expression string will always
- * result in the same information here.
+ *
+ * <p>This is only information that is gathered from parsing the expression, and contains no
+ * information from any other source such as the database (either data or metadata). In other words,
+ * the same expression string will always result in the same information here.
  *
  * @author Jim Grace
  */
 @Getter
 @Setter
-public class ExpressionInfo
-{
-    /**
-     * The dimensional item ids found.
-     */
-    private Set<DimensionalItemId> itemIds = new HashSet<>();
+public class ExpressionInfo {
+  /** The dimensional item ids found. */
+  private Set<DimensionalItemId> itemIds = new HashSet<>();
 
-    /**
-     * The sampled dimensional item ids found (for predictors).
-     */
-    private Set<DimensionalItemId> sampleItemIds = new HashSet<>();
+  /** The sampled dimensional item ids found (for predictors). */
+  private Set<DimensionalItemId> sampleItemIds = new HashSet<>();
 
-    /**
-     * Ids of org unit groups that will need org unit group member counts.
-     */
-    private Set<String> orgUnitGroupCountIds = new HashSet<>();
+  /** Ids of org unit groups that will need org unit group member counts. */
+  private Set<String> orgUnitGroupCountIds = new HashSet<>();
 
-    /**
-     * Ids of org unit groups found in orgUnits.groups function.
-     */
-    private Set<String> orgUnitGroupIds = new HashSet<>();
+  /** Ids of org unit groups found in orgUnits.groups function. */
+  private Set<String> orgUnitGroupIds = new HashSet<>();
 
-    /**
-     * Ids of data sets found in orgUnits.dataSet function.
-     */
-    private Set<String> orgUnitDataSetIds = new HashSet<>();
+  /** Ids of data sets found in orgUnits.dataSet function. */
+  private Set<String> orgUnitDataSetIds = new HashSet<>();
 
-    /**
-     * Ids of programs found in orgUnits.program function.
-     */
-    private Set<String> orgUnitProgramIds = new HashSet<>();
+  /** Ids of programs found in orgUnits.program function. */
+  private Set<String> orgUnitProgramIds = new HashSet<>();
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public Set<DimensionalItemId> getAllItemIds()
-    {
-        return Sets.union( itemIds, sampleItemIds );
-    }
+  public Set<DimensionalItemId> getAllItemIds() {
+    return Sets.union(itemIds, sampleItemIds);
+  }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.programrule.executor;
 
 import java.util.Objects;
 import java.util.Optional;
-
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.ProgramStage;
@@ -42,55 +41,48 @@ import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.report.Warning;
 
 /**
- * A {@link RuleActionExecutor} execute a rule action for an event or an
- * enrollment. The execution can produce a {@link ProgramRuleIssue} that will be
- * converted into an {@link org.hisp.dhis.tracker.imports.report.Error} or a
- * {@link Warning} and presented to the client in the {@link ValidationReport}.
+ * A {@link RuleActionExecutor} execute a rule action for an event or an enrollment. The execution
+ * can produce a {@link ProgramRuleIssue} that will be converted into an {@link
+ * org.hisp.dhis.tracker.imports.report.Error} or a {@link Warning} and presented to the client in
+ * the {@link ValidationReport}.
  *
- * {@link AssignAttributeExecutor} can also mutate the Bundle, as it can add or
- * change the value of an attribute. {@link AssignDataValueExecutor} can do the
- * same for a data element.
+ * <p>{@link AssignAttributeExecutor} can also mutate the Bundle, as it can add or change the value
+ * of an attribute. {@link AssignDataValueExecutor} can do the same for a data element.
  */
-public interface RuleActionExecutor<T>
-{
+public interface RuleActionExecutor<T> {
 
-    /**
-     * Tests whether the given values are equal. If the given value type is
-     * numeric, the values are converted to doubles before being checked for
-     * equality.
-     *
-     * @param value1 the first value.
-     * @param value2 the second value.
-     * @param valueType the value type.
-     * @return true if the values are equal, false if not.
-     */
-    static boolean isEqual( String value1, String value2, ValueType valueType )
-    {
-        if ( Objects.equals( value1, value2 ) )
-        {
-            return true;
-        }
-
-        if ( valueType.isNumeric() )
-        {
-            return NumberUtils.isParsable( value1 ) && NumberUtils.isParsable( value2 ) &&
-                MathUtils.isEqual( Double.parseDouble( value1 ), Double.parseDouble( value2 ) );
-        }
-        return false;
+  /**
+   * Tests whether the given values are equal. If the given value type is numeric, the values are
+   * converted to doubles before being checked for equality.
+   *
+   * @param value1 the first value.
+   * @param value2 the second value.
+   * @param valueType the value type.
+   * @return true if the values are equal, false if not.
+   */
+  static boolean isEqual(String value1, String value2, ValueType valueType) {
+    if (Objects.equals(value1, value2)) {
+      return true;
     }
 
-    /**
-     * A rule action can be associated with an attribute or a data element. When
-     * it is associated with a data element we need to make sure the data
-     * element is part of the {@link ProgramStage} of the event otherwise we do
-     * not need to execute the action.
-     *
-     * @return the dataElement Uid the rule action is associated with.
-     */
-    default String getDataElementUid()
-    {
-        return null;
+    if (valueType.isNumeric()) {
+      return NumberUtils.isParsable(value1)
+          && NumberUtils.isParsable(value2)
+          && MathUtils.isEqual(Double.parseDouble(value1), Double.parseDouble(value2));
     }
+    return false;
+  }
 
-    Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, T entity );
+  /**
+   * A rule action can be associated with an attribute or a data element. When it is associated with
+   * a data element we need to make sure the data element is part of the {@link ProgramStage} of the
+   * event otherwise we do not need to execute the action.
+   *
+   * @return the dataElement Uid the rule action is associated with.
+   */
+  default String getDataElementUid() {
+    return null;
+  }
+
+  Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, T entity);
 }

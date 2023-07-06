@@ -30,20 +30,13 @@ package org.hisp.dhis.tracker.imports;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ValidationMode
-{
-    /**
-     * Fully validate object, building a list of all validation errors.
-     */
-    FULL,
+public enum ValidationMode {
+  /** Fully validate object, building a list of all validation errors. */
+  FULL,
 
-    /**
-     * Return back after first found validation error.
-     */
-    FAIL_FAST,
+  /** Return back after first found validation error. */
+  FAIL_FAST,
 
-    /**
-     * Not recommended, will bypass all validation (superuser auth required).
-     */
-    SKIP
+  /** Not recommended, will bypass all validation (superuser auth required). */
+  SKIP
 }

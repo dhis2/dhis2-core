@@ -28,11 +28,9 @@
 package org.hisp.dhis.web.embeddedjetty;
 
 import java.io.IOException;
-
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
@@ -40,31 +38,23 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class LogoutServlet
-    extends HttpServlet
-{
-    @Override
-    protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws IOException
-    {
-        Object springSecurityContext = req.getSession().getAttribute( "SPRING_SECURITY_CONTEXT" );
-        if ( springSecurityContext != null )
-        {
-            SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
+public class LogoutServlet extends HttpServlet {
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    Object springSecurityContext = req.getSession().getAttribute("SPRING_SECURITY_CONTEXT");
+    if (springSecurityContext != null) {
+      SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
 
-            Authentication authentication = context.getAuthentication();
-            if ( authentication != null )
-            {
-                new SecurityContextLogoutHandler().logout( req, resp, authentication );
-            }
+      Authentication authentication = context.getAuthentication();
+      if (authentication != null) {
+        new SecurityContextLogoutHandler().logout(req, resp, authentication);
+      }
 
-            String referer = (String) req.getAttribute( "origin" );
-            req.setAttribute( "origin", referer );
-            resp.sendRedirect( "/index.html" );
-        }
-        else
-        {
-            resp.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-        }
+      String referer = (String) req.getAttribute("origin");
+      req.setAttribute("origin", referer);
+      resp.sendRedirect("/index.html");
+    } else {
+      resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
     }
+  }
 }

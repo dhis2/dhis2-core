@@ -32,27 +32,23 @@ import org.hisp.dhis.notification.NotificationRecipient;
 /**
  * @author Halvdan Hoem Grelland
  */
-public enum ProgramNotificationRecipient
-    implements NotificationRecipient
-{
-    TRACKED_ENTITY_INSTANCE( true ),
-    ORGANISATION_UNIT_CONTACT( true ),
-    USERS_AT_ORGANISATION_UNIT( false ),
-    USER_GROUP( false ),
-    PROGRAM_ATTRIBUTE( true ),
-    DATA_ELEMENT( true ),
-    WEB_HOOK( true );
+public enum ProgramNotificationRecipient implements NotificationRecipient {
+  TRACKED_ENTITY_INSTANCE(true),
+  ORGANISATION_UNIT_CONTACT(true),
+  USERS_AT_ORGANISATION_UNIT(false),
+  USER_GROUP(false),
+  PROGRAM_ATTRIBUTE(true),
+  DATA_ELEMENT(true),
+  WEB_HOOK(true);
 
-    private boolean external;
+  private boolean external;
 
-    ProgramNotificationRecipient( boolean external )
-    {
-        this.external = external;
-    }
+  ProgramNotificationRecipient(boolean external) {
+    this.external = external;
+  }
 
-    @Override
-    public boolean isExternalRecipient()
-    {
-        return external;
-    }
+  @Override
+  public boolean isExternalRecipient() {
+    return external;
+  }
 }

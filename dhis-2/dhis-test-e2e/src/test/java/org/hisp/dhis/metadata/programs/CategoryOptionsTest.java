@@ -36,32 +36,27 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class CategoryOptionsTest
-    extends AbstractOrgUnitAssociationTestSupport
-{
-    private static final String CATEGORY_OPTION_UID = "fjvZIRlTBrp";
+public class CategoryOptionsTest extends AbstractOrgUnitAssociationTestSupport {
+  private static final String CATEGORY_OPTION_UID = "fjvZIRlTBrp";
 
-    private LoginActions loginActions;
+  private LoginActions loginActions;
 
-    private CategoryOptionActions categoryOptionActions;
+  private CategoryOptionActions categoryOptionActions;
 
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions = new LoginActions();
-        categoryOptionActions = new CategoryOptionActions();
-    }
+  @BeforeAll
+  public void beforeAll() {
+    loginActions = new LoginActions();
+    categoryOptionActions = new CategoryOptionActions();
+  }
 
-    @BeforeEach
-    public void before()
-    {
-        loginActions.loginAsSuperUser();
-    }
+  @BeforeEach
+  public void before() {
+    loginActions.loginAsSuperUser();
+  }
 
-    @Test
-    public void testCategoryOptionOrgUnitsConnections()
-    {
-        super.testOrgUnitsConnections( categoryOptionActions::getOrgUnitsAssociations, CATEGORY_OPTION_UID );
-    }
-
+  @Test
+  public void testCategoryOptionOrgUnitsConnections() {
+    super.testOrgUnitsConnections(
+        categoryOptionActions::getOrgUnitsAssociations, CATEGORY_OPTION_UID);
+  }
 }

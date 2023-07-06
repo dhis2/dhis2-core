@@ -31,6 +31,8 @@ import static java.lang.Character.isUpperCase;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Arrays.stream;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -43,154 +45,130 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
-
 import org.hisp.dhis.common.OpenApi;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Extracts the properties of "record" like objects.
- * <p>
- * This is based on annotations and some heuristics.
+ *
+ * <p>This is based on annotations and some heuristics.
  *
  * @author Jan Bernitt
  */
 @Value
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-class Property
-{
-    private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+class Property {
+  private static final Map<Class<?>, Collection<Property>> PROPERTIES = new ConcurrentHashMap<>();
 
-    String name;
+  String name;
 
-    Type type;
+  Type type;
 
-    Member source;
+  Member source;
 
-    Boolean required;
+  Boolean required;
 
-    private Property( Field f )
-    {
-        this( getName( f ), getType( f, f.getGenericType() ), f, isRequired( f, f.getType() ) );
+  private Property(Field f) {
+    this(getName(f), getType(f, f.getGenericType()), f, isRequired(f, f.getType()));
+  }
+
+  private Property(Method m) {
+    this(getName(m), getType(m, m.getGenericReturnType()), m, isRequired(m, m.getReturnType()));
+  }
+
+  static Collection<Property> getProperties(Class<?> in) {
+    return PROPERTIES.computeIfAbsent(in, Property::propertiesIn);
+  }
+
+  private static Collection<Property> propertiesIn(Class<?> object) {
+    // map for order by name and avoiding duplicates
+    Map<String, Property> properties = new TreeMap<>();
+    Consumer<Property> add = property -> properties.putIfAbsent(property.name, property);
+    Consumer<Field> addField = field -> add.accept(new Property(field));
+    Consumer<Method> addMethod = method -> add.accept(new Property(method));
+
+    fieldsIn(object).filter(Property::isProperty).filter(Property::isIncluded).forEach(addField);
+    methodsIn(object).filter(Property::isProperty).filter(Property::isIncluded).forEach(addMethod);
+    if (properties.isEmpty() || object.isAnnotationPresent(OpenApi.Property.class)) {
+      methodsIn(object).filter(Property::isProperty).forEach(addMethod);
     }
+    return List.copyOf(properties.values());
+  }
 
-    private Property( Method m )
-    {
-        this( getName( m ), getType( m, m.getGenericReturnType() ), m, isRequired( m, m.getReturnType() ) );
+  private static boolean isProperty(Field source) {
+    return !isExcluded(source);
+  }
+
+  private static boolean isProperty(Method source) {
+    String name = source.getName();
+    return !isExcluded(source)
+        && source.getParameterCount() == 0
+        && source.getReturnType() != void.class
+        && Stream.of("is", "has", "get")
+            .anyMatch(
+                prefix ->
+                    name.startsWith(prefix)
+                        && name.length() > prefix.length()
+                        && isUpperCase(name.charAt(prefix.length())));
+  }
+
+  private static <T extends Member & AnnotatedElement> boolean isExcluded(T source) {
+    return source.isSynthetic()
+        || isStatic(source.getModifiers())
+        || source.isAnnotationPresent(OpenApi.Ignore.class)
+        || source.isAnnotationPresent(JsonIgnore.class);
+  }
+
+  private static boolean isIncluded(AnnotatedElement source) {
+    return source.isAnnotationPresent(JsonProperty.class)
+        || source.isAnnotationPresent(OpenApi.Property.class);
+  }
+
+  private static Type getType(AnnotatedElement source, Type type) {
+    if (source.isAnnotationPresent(OpenApi.Property.class)) {
+      OpenApi.Property a = source.getAnnotation(OpenApi.Property.class);
+      return a.value().length > 0 ? a.value()[0] : type;
     }
+    return type;
+  }
 
-    static Collection<Property> getProperties( Class<?> in )
-    {
-        return PROPERTIES.computeIfAbsent( in, Property::propertiesIn );
+  private static <T extends Member & AnnotatedElement> String getName(T member) {
+    String name = member.getName();
+    if (member instanceof Method) {
+      String prop = name.substring(name.startsWith("is") ? 2 : 3);
+      name = Character.toLowerCase(prop.charAt(0)) + prop.substring(1);
     }
-
-    private static Collection<Property> propertiesIn( Class<?> object )
-    {
-        // map for order by name and avoiding duplicates
-        Map<String, Property> properties = new TreeMap<>();
-        Consumer<Property> add = property -> properties.putIfAbsent( property.name, property );
-        Consumer<Field> addField = field -> add.accept( new Property( field ) );
-        Consumer<Method> addMethod = method -> add.accept( new Property( method ) );
-
-        fieldsIn( object ).filter( Property::isProperty ).filter( Property::isIncluded ).forEach( addField );
-        methodsIn( object ).filter( Property::isProperty ).filter( Property::isIncluded ).forEach( addMethod );
-        if ( properties.isEmpty() || object.isAnnotationPresent( OpenApi.Property.class ) )
-        {
-            methodsIn( object ).filter( Property::isProperty ).forEach( addMethod );
-        }
-        return List.copyOf( properties.values() );
+    OpenApi.Property oap = member.getAnnotation(OpenApi.Property.class);
+    String nameOverride = oap == null ? "" : oap.name();
+    if (!nameOverride.isEmpty()) {
+      return nameOverride;
     }
+    JsonProperty property = member.getAnnotation(JsonProperty.class);
+    nameOverride = property == null ? "" : property.value();
+    return nameOverride.isEmpty() ? name : nameOverride;
+  }
 
-    private static boolean isProperty( Field source )
-    {
-        return !isExcluded( source );
-    }
+  private static <T extends Member & AnnotatedElement> Boolean isRequired(T source, Class<?> type) {
+    JsonProperty a = source.getAnnotation(JsonProperty.class);
+    if (a != null && a.required()) return true;
+    if (a != null && !a.defaultValue().isEmpty()) return false;
+    return type.isPrimitive() && type != boolean.class || type.isEnum() ? true : null;
+  }
 
-    private static boolean isProperty( Method source )
-    {
-        String name = source.getName();
-        return !isExcluded( source )
-            && source.getParameterCount() == 0
-            && source.getReturnType() != void.class
-            && Stream.of( "is", "has", "get" )
-                .anyMatch( prefix -> name.startsWith( prefix )
-                    && name.length() > prefix.length()
-                    && isUpperCase( name.charAt( prefix.length() ) ) );
+  private static Stream<Field> fieldsIn(Class<?> type) {
+    if (type.isInterface() || type.isArray() || type.isEnum() || type.isPrimitive()) {
+      return Stream.empty();
     }
+    Stream<Field> fields = stream(type.getDeclaredFields());
+    Class<?> parent = type.getSuperclass();
+    return parent == null || parent == Object.class
+        ? fields
+        : Stream.concat(fields, fieldsIn(parent));
+  }
 
-    private static <T extends Member & AnnotatedElement> boolean isExcluded( T source )
-    {
-        return source.isSynthetic()
-            || isStatic( source.getModifiers() )
-            || source.isAnnotationPresent( OpenApi.Ignore.class )
-            || source.isAnnotationPresent( JsonIgnore.class );
-    }
-
-    private static boolean isIncluded( AnnotatedElement source )
-    {
-        return source.isAnnotationPresent( JsonProperty.class )
-            || source.isAnnotationPresent( OpenApi.Property.class );
-    }
-
-    private static Type getType( AnnotatedElement source, Type type )
-    {
-        if ( source.isAnnotationPresent( OpenApi.Property.class ) )
-        {
-            OpenApi.Property a = source.getAnnotation( OpenApi.Property.class );
-            return a.value().length > 0 ? a.value()[0] : type;
-        }
-        return type;
-    }
-
-    private static <T extends Member & AnnotatedElement> String getName( T member )
-    {
-        String name = member.getName();
-        if ( member instanceof Method )
-        {
-            String prop = name.substring( name.startsWith( "is" ) ? 2 : 3 );
-            name = Character.toLowerCase( prop.charAt( 0 ) ) + prop.substring( 1 );
-        }
-        OpenApi.Property oap = member.getAnnotation( OpenApi.Property.class );
-        String nameOverride = oap == null ? "" : oap.name();
-        if ( !nameOverride.isEmpty() )
-        {
-            return nameOverride;
-        }
-        JsonProperty property = member.getAnnotation( JsonProperty.class );
-        nameOverride = property == null ? "" : property.value();
-        return nameOverride.isEmpty() ? name : nameOverride;
-    }
-
-    private static <T extends Member & AnnotatedElement> Boolean isRequired( T source, Class<?> type )
-    {
-        JsonProperty a = source.getAnnotation( JsonProperty.class );
-        if ( a != null && a.required() )
-            return true;
-        if ( a != null && !a.defaultValue().isEmpty() )
-            return false;
-        return type.isPrimitive() && type != boolean.class || type.isEnum() ? true : null;
-    }
-
-    private static Stream<Field> fieldsIn( Class<?> type )
-    {
-        if ( type.isInterface() || type.isArray() || type.isEnum() || type.isPrimitive() )
-        {
-            return Stream.empty();
-        }
-        Stream<Field> fields = stream( type.getDeclaredFields() );
-        Class<?> parent = type.getSuperclass();
-        return parent == null || parent == Object.class
-            ? fields
-            : Stream.concat( fields, fieldsIn( parent ) );
-    }
-
-    private static Stream<Method> methodsIn( Class<?> type )
-    {
-        return stream( type.getMethods() ).filter( m -> m.getDeclaringClass() != Object.class );
-    }
+  private static Stream<Method> methodsIn(Class<?> type) {
+    return stream(type.getMethods()).filter(m -> m.getDeclaringClass() != Object.class);
+  }
 }

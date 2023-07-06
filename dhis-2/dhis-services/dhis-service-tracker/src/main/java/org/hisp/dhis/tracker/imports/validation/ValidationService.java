@@ -32,19 +32,18 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface ValidationService
-{
-    /**
-     * Validate tracker bundle
-     *
-     * @param bundle Bundle to validate
-     */
-    ValidationResult validate( TrackerBundle bundle );
+public interface ValidationService {
+  /**
+   * Validate tracker bundle
+   *
+   * @param bundle Bundle to validate
+   */
+  ValidationResult validate(TrackerBundle bundle);
 
-    /**
-     * Validate tracker bundle with validations created by rule engine
-     *
-     * @param bundle Bundle to validate
-     */
-    ValidationResult validateRuleEngine( TrackerBundle bundle );
+  /**
+   * Validate tracker bundle with validations created by rule engine
+   *
+   * @param bundle Bundle to validate
+   */
+  ValidationResult validateRuleEngine(TrackerBundle bundle);
 }

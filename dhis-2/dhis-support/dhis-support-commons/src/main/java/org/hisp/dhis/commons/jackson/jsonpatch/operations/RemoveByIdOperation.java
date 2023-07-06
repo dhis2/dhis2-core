@@ -27,81 +27,68 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch.operations;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.MissingNode;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 
-public class RemoveByIdOperation extends JsonPatchOperation
-{
-    protected final String id;
+public class RemoveByIdOperation extends JsonPatchOperation {
+  protected final String id;
 
-    @JsonCreator
-    public RemoveByIdOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "id" ) String id )
-    {
-        super( "remove-by-id", path );
-        this.id = id;
+  @JsonCreator
+  public RemoveByIdOperation(
+      @JsonProperty("path") JsonPointer path, @JsonProperty("id") String id) {
+    super("remove-by-id", path);
+    this.id = id;
+  }
+
+  @Override
+  public JsonNode apply(JsonNode node) throws JsonPatchException {
+    if (path == JsonPointer.empty()) {
+      return MissingNode.getInstance();
     }
 
-    @Override
-    public JsonNode apply( JsonNode node )
-        throws JsonPatchException
-    {
-        if ( path == JsonPointer.empty() )
-        {
-            return MissingNode.getInstance();
-        }
-
-        if ( StringUtils.isEmpty( id ) || !CodeGenerator.isValidUid( id ) )
-        {
-            throw new JsonPatchException( String.format( "Invalid id %s", id ) );
-        }
-
-        if ( !nodePathExists( node ) )
-        {
-            throw new JsonPatchException( String.format( "Invalid path %s", path ) );
-        }
-
-        final JsonNode parentNode = node.at( path );
-
-        if ( parentNode.isObject() )
-        {
-            return node;
-        }
-
-        if ( parentNode.isArray() )
-        {
-            ArrayNode arrayNode = ((ArrayNode) parentNode);
-            int removeIndex = -1;
-            for ( int i = 0; i < arrayNode.size(); i++ )
-            {
-                JsonNode item = arrayNode.get( i );
-                if ( item.has( "id" ) && id.equals( item.get( "id" ).asText() ) )
-                {
-                    removeIndex = i;
-                    break;
-                }
-            }
-
-            if ( removeIndex > -1 )
-            {
-                arrayNode.remove( removeIndex );
-            }
-        }
-
-        return node;
+    if (StringUtils.isEmpty(id) || !CodeGenerator.isValidUid(id)) {
+      throw new JsonPatchException(String.format("Invalid id %s", id));
     }
 
-    private boolean nodePathExists( JsonNode node )
-    {
-        final JsonNode found = node.at( path );
-        return !found.isMissingNode();
+    if (!nodePathExists(node)) {
+      throw new JsonPatchException(String.format("Invalid path %s", path));
     }
+
+    final JsonNode parentNode = node.at(path);
+
+    if (parentNode.isObject()) {
+      return node;
+    }
+
+    if (parentNode.isArray()) {
+      ArrayNode arrayNode = ((ArrayNode) parentNode);
+      int removeIndex = -1;
+      for (int i = 0; i < arrayNode.size(); i++) {
+        JsonNode item = arrayNode.get(i);
+        if (item.has("id") && id.equals(item.get("id").asText())) {
+          removeIndex = i;
+          break;
+        }
+      }
+
+      if (removeIndex > -1) {
+        arrayNode.remove(removeIndex);
+      }
+    }
+
+    return node;
+  }
+
+  private boolean nodePathExists(JsonNode node) {
+    final JsonNode found = node.at(path);
+    return !found.isMissingNode();
+  }
 }

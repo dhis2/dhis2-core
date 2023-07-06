@@ -28,9 +28,7 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.Collections;
-
 import javax.annotation.Nonnull;
-
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -47,81 +45,81 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TrackedEntityPersister
-    extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
-{
-    @Nonnull
-    private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> teConverter;
+    extends AbstractTrackerPersister<
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
+  @Nonnull
+  private final TrackerConverterService<
+          org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
+      teConverter;
 
-    public TrackedEntityPersister( ReservedValueService reservedValueService,
-        TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> teConverter,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
-    {
-        super( reservedValueService, trackedEntityAttributeValueAuditService );
-        this.teConverter = teConverter;
-    }
+  public TrackedEntityPersister(
+      ReservedValueService reservedValueService,
+      TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
+          teConverter,
+      TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService) {
+    super(reservedValueService, trackedEntityAttributeValueAuditService);
+    this.teConverter = teConverter;
+  }
 
-    @Override
-    protected void updateAttributes( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto, TrackedEntity tei )
-    {
-        handleTrackedEntityAttributeValues( session, preheat, trackerDto.getAttributes(), tei );
-    }
+  @Override
+  protected void updateAttributes(
+      Session session,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
+      TrackedEntity tei) {
+    handleTrackedEntityAttributeValues(session, preheat, trackerDto.getAttributes(), tei);
+  }
 
-    @Override
-    protected void updateDataValues( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto, TrackedEntity tei )
-    {
-        // DO NOTHING - TEI HAVE NO DATA VALUES
-    }
+  @Override
+  protected void updateDataValues(
+      Session session,
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
+      TrackedEntity tei) {
+    // DO NOTHING - TEI HAVE NO DATA VALUES
+  }
 
-    @Override
-    protected void persistComments( TrackerPreheat preheat, TrackedEntity trackedEntity )
-    {
-        // DO NOTHING - TEI HAVE NO COMMENTS
-    }
+  @Override
+  protected void persistComments(TrackerPreheat preheat, TrackedEntity trackedEntity) {
+    // DO NOTHING - TEI HAVE NO COMMENTS
+  }
 
-    @Override
-    protected void updatePreheat( TrackerPreheat preheat, TrackedEntity dto )
-    {
-        preheat.putTrackedEntities( Collections.singletonList( dto ) );
-    }
+  @Override
+  protected void updatePreheat(TrackerPreheat preheat, TrackedEntity dto) {
+    preheat.putTrackedEntities(Collections.singletonList(dto));
+  }
 
-    @Override
-    protected TrackedEntity convert( TrackerBundle bundle,
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto )
-    {
-        return teConverter.from( bundle.getPreheat(), trackerDto );
-    }
+  @Override
+  protected TrackedEntity convert(
+      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto) {
+    return teConverter.from(bundle.getPreheat(), trackerDto);
+  }
 
-    @Override
-    protected TrackerType getType()
-    {
-        return TrackerType.TRACKED_ENTITY;
-    }
+  @Override
+  protected TrackerType getType() {
+    return TrackerType.TRACKED_ENTITY;
+  }
 
-    @Override
-    protected boolean isNew( TrackerPreheat preheat, String uid )
-    {
-        return preheat.getTrackedEntity( uid ) == null;
-    }
+  @Override
+  protected boolean isNew(TrackerPreheat preheat, String uid) {
+    return preheat.getTrackedEntity(uid) == null;
+  }
 
-    @Override
-    protected TrackerSideEffectDataBundle handleSideEffects( TrackerBundle bundle, TrackedEntity entity )
-    {
-        return TrackerSideEffectDataBundle.builder().build();
-    }
+  @Override
+  protected TrackerSideEffectDataBundle handleSideEffects(
+      TrackerBundle bundle, TrackedEntity entity) {
+    return TrackerSideEffectDataBundle.builder().build();
+  }
 
-    @Override
-    protected void persistOwnership( TrackerPreheat preheat, TrackedEntity entity )
-    {
-        // DO NOTHING, Tei alone does not have ownership records
+  @Override
+  protected void persistOwnership(TrackerPreheat preheat, TrackedEntity entity) {
+    // DO NOTHING, Tei alone does not have ownership records
 
-    }
+  }
 
-    @Override
-    protected String getUpdatedTrackedEntity( TrackedEntity entity )
-    {
-        return null; // We don't need to keep track, Tei has already been
-                    // updated
-    }
+  @Override
+  protected String getUpdatedTrackedEntity(TrackedEntity entity) {
+    return null; // We don't need to keep track, Tei has already been
+    // updated
+  }
 }

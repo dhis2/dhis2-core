@@ -31,7 +31,6 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Set;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -46,89 +45,83 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class DataValueSetServiceGetFromUrlTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private CategoryService categoryService;
+class DataValueSetServiceGetFromUrlTest extends SingleSetupIntegrationTestBase {
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private DataValueSetService dataValueSetService;
+  @Autowired private DataValueSetService dataValueSetService;
 
-    private CategoryOption categoryOptionA;
+  private CategoryOption categoryOptionA;
 
-    private CategoryOption categoryOptionB;
+  private CategoryOption categoryOptionB;
 
-    private CategoryOption categoryOptionC;
+  private CategoryOption categoryOptionC;
 
-    private CategoryOption categoryOptionD;
+  private CategoryOption categoryOptionD;
 
-    private CategoryOption categoryOptionE;
+  private CategoryOption categoryOptionE;
 
-    private Category categoryA;
+  private Category categoryA;
 
-    private Category categoryB;
+  private Category categoryB;
 
-    private CategoryCombo categoryComboA;
+  private CategoryCombo categoryComboA;
 
-    private CategoryOptionCombo optionComboA;
+  private CategoryOptionCombo optionComboA;
 
-    private CategoryOptionCombo optionComboB;
+  private CategoryOptionCombo optionComboB;
 
-    private CategoryOptionCombo optionComboC;
+  private CategoryOptionCombo optionComboC;
 
-    private CategoryOptionCombo optionComboD;
+  private CategoryOptionCombo optionComboD;
 
-    @Override
-    public void setUpTest()
-    {
-        categoryOptionA = createCategoryOption( 'A' );
-        categoryOptionB = createCategoryOption( 'B' );
-        categoryOptionC = createCategoryOption( 'C' );
-        categoryOptionD = createCategoryOption( 'D' );
-        categoryOptionE = createCategoryOption( 'E' );
-        categoryService.addCategoryOption( categoryOptionA );
-        categoryService.addCategoryOption( categoryOptionB );
-        categoryService.addCategoryOption( categoryOptionC );
-        categoryService.addCategoryOption( categoryOptionD );
-        categoryService.addCategoryOption( categoryOptionE );
+  @Override
+  public void setUpTest() {
+    categoryOptionA = createCategoryOption('A');
+    categoryOptionB = createCategoryOption('B');
+    categoryOptionC = createCategoryOption('C');
+    categoryOptionD = createCategoryOption('D');
+    categoryOptionE = createCategoryOption('E');
+    categoryService.addCategoryOption(categoryOptionA);
+    categoryService.addCategoryOption(categoryOptionB);
+    categoryService.addCategoryOption(categoryOptionC);
+    categoryService.addCategoryOption(categoryOptionD);
+    categoryService.addCategoryOption(categoryOptionE);
 
-        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
-        categoryB = createCategory( 'B', categoryOptionC, categoryOptionD );
-        categoryService.addCategory( categoryA );
-        categoryService.addCategory( categoryB );
+    categoryA = createCategory('A', categoryOptionA, categoryOptionB);
+    categoryB = createCategory('B', categoryOptionC, categoryOptionD);
+    categoryService.addCategory(categoryA);
+    categoryService.addCategory(categoryB);
 
-        categoryComboA = createCategoryCombo( 'A', categoryA, categoryB );
-        categoryService.addCategoryCombo( categoryComboA );
+    categoryComboA = createCategoryCombo('A', categoryA, categoryB);
+    categoryService.addCategoryCombo(categoryComboA);
 
-        optionComboA = createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC );
-        optionComboB = createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD );
-        optionComboC = createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC );
-        optionComboD = createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD );
-        categoryService.addCategoryOptionCombo( optionComboA );
-        categoryService.addCategoryOptionCombo( optionComboB );
-        categoryService.addCategoryOptionCombo( optionComboC );
-        categoryService.addCategoryOptionCombo( optionComboD );
-    }
+    optionComboA = createCategoryOptionCombo(categoryComboA, categoryOptionA, categoryOptionC);
+    optionComboB = createCategoryOptionCombo(categoryComboA, categoryOptionA, categoryOptionD);
+    optionComboC = createCategoryOptionCombo(categoryComboA, categoryOptionB, categoryOptionC);
+    optionComboD = createCategoryOptionCombo(categoryComboA, categoryOptionB, categoryOptionD);
+    categoryService.addCategoryOptionCombo(optionComboA);
+    categoryService.addCategoryOptionCombo(optionComboB);
+    categoryService.addCategoryOptionCombo(optionComboC);
+    categoryService.addCategoryOptionCombo(optionComboD);
+  }
 
-    @Test
-    void testGetFromUrlWithAttributes()
-    {
-        DataValueSetQueryParams params = new DataValueSetQueryParams();
-        params.setAttributeCombo( categoryComboA.getUid() );
-        params.setAttributeOptions( Set.of( categoryOptionA.getUid(), categoryOptionC.getUid() ) );
+  @Test
+  void testGetFromUrlWithAttributes() {
+    DataValueSetQueryParams params = new DataValueSetQueryParams();
+    params.setAttributeCombo(categoryComboA.getUid());
+    params.setAttributeOptions(Set.of(categoryOptionA.getUid(), categoryOptionC.getUid()));
 
-        DataExportParams exportParams = dataValueSetService.getFromUrl( params );
+    DataExportParams exportParams = dataValueSetService.getFromUrl(params);
 
-        assertContainsOnly( Set.of( optionComboA ), exportParams.getAttributeOptionCombos() );
-    }
+    assertContainsOnly(Set.of(optionComboA), exportParams.getAttributeOptionCombos());
+  }
 
-    @Test
-    void testGetFromUrlWithAttributesException()
-    {
-        DataValueSetQueryParams params = new DataValueSetQueryParams();
-        params.setAttributeCombo( categoryComboA.getUid() );
-        params.setAttributeOptions( Set.of( categoryOptionA.getUid(), categoryOptionE.getUid() ) );
+  @Test
+  void testGetFromUrlWithAttributesException() {
+    DataValueSetQueryParams params = new DataValueSetQueryParams();
+    params.setAttributeCombo(categoryComboA.getUid());
+    params.setAttributeOptions(Set.of(categoryOptionA.getUid(), categoryOptionE.getUid()));
 
-        assertThrows( IllegalQueryException.class, () -> dataValueSetService.getFromUrl( params ) );
-    }
+    assertThrows(IllegalQueryException.class, () -> dataValueSetService.getFromUrl(params));
+  }
 }

@@ -31,7 +31,6 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Processor;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
@@ -44,81 +43,77 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * The goal of this Pre-processor is to assign a Enrollment (Enrollment) to the
- * Event getting processed. If the Enrollment can not be assigned, the Event
- * will not pass validation.
+ * The goal of this Pre-processor is to assign a Enrollment (Enrollment) to the Event getting
+ * processed. If the Enrollment can not be assigned, the Event will not pass validation.
  *
  * @author Luciano Fiandesio
  */
 @Component
-public class EnrollmentPreProcessor implements Processor
-{
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        EnrollmentStore enrollmentStore = ctx.getServiceDelegator().getEnrollmentStore();
+public class EnrollmentPreProcessor implements Processor {
+  @Override
+  public void process(Event event, WorkContext ctx) {
+    EnrollmentStore enrollmentStore = ctx.getServiceDelegator().getEnrollmentStore();
 
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
+    Program program = ctx.getProgramsMap().get(event.getProgram());
 
-        if ( program == null )
-        {
-            return; // Program is a mandatory value, it will be caught by the
-                   // validation
-        }
-
-        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
-        final Optional<TrackedEntity> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
-
-        if ( program.isRegistration() && enrollment == null )
-        {
-            List<Enrollment> enrollments = new ArrayList<>(
-                enrollmentStore.get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
-
-            if ( enrollments.size() == 1 )
-            {
-                event.setEnrollment( enrollments.get( 0 ).getUid() );
-                ctx.getProgramInstanceMap().put( event.getUid(), enrollments.get( 0 ) );
-            }
-        }
-        else if ( program.isWithoutRegistration() && enrollment == null )
-        {
-            List<Enrollment> enrollments = getProgramInstances( ctx.getServiceDelegator().getJdbcTemplate(),
-                program, ProgramStatus.ACTIVE );
-
-            // the "original" event import code creates a Enrollment, if
-            // none is found
-            // but this is no longer needed, since a Program POST-CREATION hook
-            // takes care of that
-            if ( enrollments.size() == 1 )
-            {
-                event.setEnrollment( enrollments.get( 0 ).getUid() );
-                ctx.getProgramInstanceMap().put( event.getUid(), enrollments.get( 0 ) );
-            }
-            // If more than one Enrollment is present, the validation will
-            // detect it later
-        }
+    if (program == null) {
+      return; // Program is a mandatory value, it will be caught by the
+      // validation
     }
 
-    private List<Enrollment> getProgramInstances( JdbcTemplate jdbcTemplate, Program program,
-        ProgramStatus status )
-    {
-        final String sql = "select pi.programinstanceid, pi.programid, pi.uid "
+    Enrollment enrollment = ctx.getProgramInstanceMap().get(event.getUid());
+    final Optional<TrackedEntity> trackedEntityInstance =
+        ctx.getTrackedEntityInstance(event.getUid());
+
+    if (program.isRegistration() && enrollment == null) {
+      List<Enrollment> enrollments =
+          new ArrayList<>(
+              enrollmentStore.get(
+                  trackedEntityInstance.orElse(null), program, ProgramStatus.ACTIVE));
+
+      if (enrollments.size() == 1) {
+        event.setEnrollment(enrollments.get(0).getUid());
+        ctx.getProgramInstanceMap().put(event.getUid(), enrollments.get(0));
+      }
+    } else if (program.isWithoutRegistration() && enrollment == null) {
+      List<Enrollment> enrollments =
+          getProgramInstances(
+              ctx.getServiceDelegator().getJdbcTemplate(), program, ProgramStatus.ACTIVE);
+
+      // the "original" event import code creates a Enrollment, if
+      // none is found
+      // but this is no longer needed, since a Program POST-CREATION hook
+      // takes care of that
+      if (enrollments.size() == 1) {
+        event.setEnrollment(enrollments.get(0).getUid());
+        ctx.getProgramInstanceMap().put(event.getUid(), enrollments.get(0));
+      }
+      // If more than one Enrollment is present, the validation will
+      // detect it later
+    }
+  }
+
+  private List<Enrollment> getProgramInstances(
+      JdbcTemplate jdbcTemplate, Program program, ProgramStatus status) {
+    final String sql =
+        "select pi.programinstanceid, pi.programid, pi.uid "
             + "from programinstance pi "
             + "where pi.programid = ? and pi.status = ?";
 
-        return jdbcTemplate.query( sql, new Object[] { program.getId(), status.name() }, ( ResultSet rs ) -> {
-            List<Enrollment> results = new ArrayList<>();
+    return jdbcTemplate.query(
+        sql,
+        new Object[] {program.getId(), status.name()},
+        (ResultSet rs) -> {
+          List<Enrollment> results = new ArrayList<>();
 
-            while ( rs.next() )
-            {
-                Enrollment pi = new Enrollment();
-                pi.setId( rs.getLong( "programinstanceid" ) );
-                pi.setUid( rs.getString( "uid" ) );
-                pi.setProgram( program );
-                results.add( pi );
-
-            }
-            return results;
-        } );
-    }
+          while (rs.next()) {
+            Enrollment pi = new Enrollment();
+            pi.setId(rs.getLong("programinstanceid"));
+            pi.setUid(rs.getString("uid"));
+            pi.setProgram(program);
+            results.add(pi);
+          }
+          return results;
+        });
+  }
 }

@@ -35,13 +35,11 @@ import org.hisp.dhis.util.DateUtils;
  *
  * @author Jim Grace
  */
-public class vAnalyticsPeriodStart
-    extends ProgramDateVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        return visitor.getStatementBuilder().encode( DateUtils.getSqlDateString(
-            visitor.getProgParams().getReportingStartDate() ) );
-    }
+public class vAnalyticsPeriodStart extends ProgramDateVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    return visitor
+        .getStatementBuilder()
+        .encode(DateUtils.getSqlDateString(visitor.getProgParams().getReportingStartDate()));
+  }
 }

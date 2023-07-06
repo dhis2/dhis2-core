@@ -30,14 +30,12 @@ package org.hisp.dhis.hibernate.jsonb.type;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 
-public class SharingJsonBinaryType extends JsonBinaryType
-{
-    @Override
-    protected Object convertJsonToObject( String content )
-    {
-        Sharing sharing = (Sharing) super.convertJsonToObject( content );
-        sharing.setUsers( CollectionUtils.emptyIfNull( sharing.getUsers() ) );
-        sharing.setUserGroups( CollectionUtils.emptyIfNull( sharing.getUserGroups() ) );
-        return sharing;
-    }
+public class SharingJsonBinaryType extends JsonBinaryType {
+  @Override
+  protected Object convertJsonToObject(String content) {
+    Sharing sharing = (Sharing) super.convertJsonToObject(content);
+    sharing.setUsers(CollectionUtils.emptyIfNull(sharing.getUsers()));
+    sharing.setUserGroups(CollectionUtils.emptyIfNull(sharing.getUserGroups()));
+    return sharing;
+  }
 }

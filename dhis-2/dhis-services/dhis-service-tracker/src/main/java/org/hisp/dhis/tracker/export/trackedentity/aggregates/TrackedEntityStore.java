@@ -27,63 +27,57 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
-public interface TrackedEntityStore
-{
-    /**
-     * Get a Map of {@see TrackedEntity} by Primary Keys
-     *
-     * @param ids a list of Tracked Entity Primary Keys
-     * @return a Map where key is a {@see TrackedEntity} uid and the key is the
-     *         corresponding {@see TrackedEntity}
-     */
-    Map<String, TrackedEntity> getTrackedEntities( List<Long> ids, Context ctx );
+public interface TrackedEntityStore {
+  /**
+   * Get a Map of {@see TrackedEntity} by Primary Keys
+   *
+   * @param ids a list of Tracked Entity Primary Keys
+   * @return a Map where key is a {@see TrackedEntity} uid and the key is the corresponding {@see
+   *     TrackedEntity}
+   */
+  Map<String, TrackedEntity> getTrackedEntities(List<Long> ids, Context ctx);
 
-    /**
-     * Fetches all the relationships having the TEI id specified in the arg as
-     * "left" or "right" relationship
-     *
-     * @param ids a list of Tracked Entity Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
-     *         List of {@see Relationship} objects
-     */
-    Multimap<String, RelationshipItem> getRelationships( List<Long> ids, Context ctx );
+  /**
+   * Fetches all the relationships having the TEI id specified in the arg as "left" or "right"
+   * relationship
+   *
+   * @param ids a list of Tracked Entity Primary Keys
+   * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
+   *     Relationship} objects
+   */
+  Multimap<String, RelationshipItem> getRelationships(List<Long> ids, Context ctx);
 
-    /**
-     *
-     * @param ids @param ids a list of Tracked Entity Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
-     *         List of {@see Attribute} objects
-     */
-    Multimap<String, TrackedEntityAttributeValue> getAttributes( List<Long> ids );
+  /**
+   * @param ids @param ids a list of Tracked Entity Primary Keys
+   * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
+   *     Attribute} objects
+   */
+  Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids);
 
-    /**
-     *
-     * @param ids a list of Tracked Entity Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntity} uid and the * key
-     *         a List of {@see ProgramOwner} objects
-     */
-    Multimap<String, TrackedEntityProgramOwner> getProgramOwners( List<Long> ids );
+  /**
+   * @param ids a list of Tracked Entity Primary Keys
+   * @return a MultiMap where key is a {@see TrackedEntity} uid and the * key a List of {@see
+   *     ProgramOwner} objects
+   */
+  Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids);
 
-    /**
-     * For each tei, get the list of programs for which the user has ownership.
-     *
-     * @param ids a list of Tracked Entity primary keys
-     * @param ctx aggregate context
-     * @return Tei uids mapped to a list of program uids to which user has
-     *         ownership
-     */
-    Multimap<String, String> getOwnedTeis( List<Long> ids, Context ctx );
+  /**
+   * For each tei, get the list of programs for which the user has ownership.
+   *
+   * @param ids a list of Tracked Entity primary keys
+   * @param ctx aggregate context
+   * @return Tei uids mapped to a list of program uids to which user has ownership
+   */
+  Multimap<String, String> getOwnedTeis(List<Long> ids, Context ctx);
 }

@@ -29,10 +29,10 @@ package org.hisp.dhis.metadata.metadata_import;
 
 import static org.hamcrest.Matchers.equalTo;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -46,63 +46,51 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataImportImportStrategyTests
-    extends ApiTest
-{
-    private MetadataActions metadataActions;
+public class MetadataImportImportStrategyTests extends ApiTest {
+  private MetadataActions metadataActions;
 
-    @BeforeAll
-    public void before()
-    {
-        metadataActions = new MetadataActions();
+  @BeforeAll
+  public void before() {
+    metadataActions = new MetadataActions();
 
-        new LoginActions().loginAsAdmin();
-    }
+    new LoginActions().loginAsAdmin();
+  }
 
-    @ValueSource( strings = {
-        "CODE",
-        "UID",
-        "NAME"
-    } )
-    @ParameterizedTest
-    public void shouldUpdateMetadataByIdentifier( String identifier )
-        throws IOException
-    {
-        JsonObject ob = new JsonFileReader( new File( "src/test/resources/setup/metadata.json" ) )
-            .get( JsonObject.class );
+  @ValueSource(strings = {"CODE", "UID", "NAME"})
+  @ParameterizedTest
+  public void shouldUpdateMetadataByIdentifier(String identifier) throws IOException {
+    JsonObject ob =
+        new JsonFileReader(new File("src/test/resources/setup/metadata.json"))
+            .get(JsonObject.class);
 
-        ApiResponse response = metadataActions.importMetadata( ob, "identifier=" + identifier );
+    ApiResponse response = metadataActions.importMetadata(ob, "identifier=" + identifier);
 
-        response
-            .validate().statusCode( 200 )
-            .body( "stats.updated", equalTo( response.extract( "stats.total" ) ) );
-    }
+    response
+        .validate()
+        .statusCode(200)
+        .body("stats.updated", equalTo(response.extract("stats.total")));
+  }
 
-    @Test
-    public void shouldCreateMetadataWithCodeIdentifier()
-    {
-        JsonObject object = JsonObjectBuilder
-            .jsonObject( DataGenerator.generateObjectForEndpoint( "/dataElementGroup" ) )
-            .addProperty( "code", "TA_CODE_DATAELEMENT_GROUP" )
-            .addObject( "sharing",
-                SharingUtils.createSharingObject( null, null, null, Map.of( "OPVIvvXzNTw", "rw------" ) ) )
-            .wrapIntoArray( "dataElementGroups" );
+  @Test
+  public void shouldCreateMetadataWithCodeIdentifier() {
+    JsonObject object =
+        JsonObjectBuilder.jsonObject(DataGenerator.generateObjectForEndpoint("/dataElementGroup"))
+            .addProperty("code", "TA_CODE_DATAELEMENT_GROUP")
+            .addObject(
+                "sharing",
+                SharingUtils.createSharingObject(
+                    null, null, null, Map.of("OPVIvvXzNTw", "rw------")))
+            .wrapIntoArray("dataElementGroups");
 
-        ApiResponse response = metadataActions.importMetadata( object, "identifier=CODE" );
+    ApiResponse response = metadataActions.importMetadata(object, "identifier=CODE");
 
-        response
-            .validate().statusCode( 200 )
-            .body( "response.stats.created", equalTo( 1 ) );
+    response.validate().statusCode(200).body("response.stats.created", equalTo(1));
 
-        response = metadataActions.importMetadata( object, "identifier=CODE" );
+    response = metadataActions.importMetadata(object, "identifier=CODE");
 
-        response
-            .validate().statusCode( 200 )
-            .body( "response.stats.updated", equalTo( 1 ) );
-    }
+    response.validate().statusCode(200).body("response.stats.updated", equalTo(1));
+  }
 }

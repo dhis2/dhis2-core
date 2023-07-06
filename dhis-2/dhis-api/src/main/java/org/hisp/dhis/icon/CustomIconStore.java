@@ -29,62 +29,60 @@ package org.hisp.dhis.icon;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
-public interface CustomIconStore
-{
-    /**
-     * Returns a custom icon that contains a given key
-     *
-     * @param key of the icon
-     * @return the custom icon matching the key, or null instead
-     */
-    CustomIcon getIconByKey( String key );
+public interface CustomIconStore {
+  /**
+   * Returns a custom icon that contains a given key
+   *
+   * @param key of the icon
+   * @return the custom icon matching the key, or null instead
+   */
+  CustomIcon getIconByKey(String key);
 
-    /**
-     * Returns a list of custom icons that contain all the specified keywords
-     *
-     * @param keywords the icon needs to contain
-     * @return the list of custom icons that contain all the keywords
-     */
-    List<CustomIcon> getIconsByKeywords( String[] keywords );
+  /**
+   * Returns a list of custom icons that contain all the specified keywords
+   *
+   * @param keywords the icon needs to contain
+   * @return the list of custom icons that contain all the keywords
+   */
+  List<CustomIcon> getIconsByKeywords(String[] keywords);
 
-    /**
-     * Gets all custom icons present in the database
-     *
-     * @return a list containing all icons
-     */
-    List<CustomIcon> getAllIcons();
+  /**
+   * Gets all custom icons present in the database
+   *
+   * @return a list containing all icons
+   */
+  List<CustomIcon> getAllIcons();
 
-    /**
-     * Returns a list with all the custom icon keywords
-     *
-     * @return a list with all the custom icon keywords
-     */
-    Set<String> getKeywords();
+  /**
+   * Returns a list with all the custom icon keywords
+   *
+   * @return a list with all the custom icon keywords
+   */
+  Set<String> getKeywords();
 
-    /**
-     * Persists a custom icon to the database
-     *
-     * @param customIcon Icon to be saved
-     * @param fileResource file resource linked to the custom icon
-     * @param createdByUser user that created the custom icon
-     */
-    void save( CustomIcon customIcon, FileResource fileResource, User createdByUser );
+  /**
+   * Persists a custom icon to the database
+   *
+   * @param customIcon Icon to be saved
+   * @param fileResource file resource linked to the custom icon
+   * @param createdByUser user that created the custom icon
+   */
+  void save(CustomIcon customIcon, FileResource fileResource, User createdByUser);
 
-    /**
-     * Deletes a custom icon from the database
-     *
-     * @param customIconKey Key of the icon to be deleted
-     */
-    void delete( String customIconKey );
+  /**
+   * Deletes a custom icon from the database
+   *
+   * @param customIconKey Key of the icon to be deleted
+   */
+  void delete(String customIconKey);
 
-    /**
-     * Updates a custom icon from the database
-     *
-     * @param customIcon Icon to be updated
-     */
-    void update( CustomIcon customIcon );
+  /**
+   * Updates a custom icon from the database
+   *
+   * @param customIcon Icon to be updated
+   */
+  void update(CustomIcon customIcon);
 }

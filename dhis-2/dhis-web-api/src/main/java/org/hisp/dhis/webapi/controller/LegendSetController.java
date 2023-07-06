@@ -28,10 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
@@ -50,46 +48,46 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "ui" )
+@OpenApi.Tags("ui")
 @Controller
-@RequestMapping( value = LegendSetSchemaDescriptor.API_ENDPOINT )
-public class LegendSetController
-    extends AbstractCrudController<LegendSet>
-{
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')" )
-    public WebMessage postJsonObject( HttpServletRequest request )
-        throws ForbiddenException,
-        ConflictException,
-        IOException,
-        HttpRequestMethodNotSupportedException,
-        NotFoundException
-    {
-        return super.postJsonObject( request );
-    }
+@RequestMapping(value = LegendSetSchemaDescriptor.API_ENDPOINT)
+public class LegendSetController extends AbstractCrudController<LegendSet> {
+  @Override
+  @PreAuthorize(
+      "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD') or hasRole('ALL')")
+  public WebMessage postJsonObject(HttpServletRequest request)
+      throws ForbiddenException,
+          ConflictException,
+          IOException,
+          HttpRequestMethodNotSupportedException,
+          NotFoundException {
+    return super.postJsonObject(request);
+  }
 
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
-    public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser,
-        HttpServletRequest request )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        IOException,
-        HttpRequestMethodNotSupportedException
-    {
-        return super.putJsonObject( uid, currentUser, request );
-    }
+  @Override
+  @PreAuthorize(
+      "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')")
+  public WebMessage putJsonObject(
+      @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request)
+      throws ForbiddenException,
+          ConflictException,
+          NotFoundException,
+          IOException,
+          HttpRequestMethodNotSupportedException {
+    return super.putJsonObject(uid, currentUser, request);
+  }
 
-    @Override
-    @PreAuthorize( "hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
-    public WebMessage deleteObject( @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request,
-        HttpServletResponse response )
-        throws ForbiddenException,
-        ConflictException,
-        NotFoundException,
-        HttpRequestMethodNotSupportedException
-    {
-        return super.deleteObject( uid, currentUser, request, response );
-    }
+  @Override
+  @PreAuthorize("hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')")
+  public WebMessage deleteObject(
+      @PathVariable String uid,
+      @CurrentUser User currentUser,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws ForbiddenException,
+          ConflictException,
+          NotFoundException,
+          HttpRequestMethodNotSupportedException {
+    return super.deleteObject(uid, currentUser, request, response);
+  }
 }

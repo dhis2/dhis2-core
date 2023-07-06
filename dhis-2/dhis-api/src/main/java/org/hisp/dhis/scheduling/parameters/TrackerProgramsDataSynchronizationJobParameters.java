@@ -27,46 +27,39 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Getter
 @Setter
-public class TrackerProgramsDataSynchronizationJobParameters implements JobParameters
-{
-    static final int PAGE_SIZE_MIN = 5;
+public class TrackerProgramsDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
 
-    static final int PAGE_SIZE_MAX = 100;
+  static final int PAGE_SIZE_MAX = 100;
 
-    @JsonProperty
-    private int pageSize = 20;
+  @JsonProperty private int pageSize = 20;
 
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX )
-        {
-            return Optional.of(
-                new ErrorReport(
-                    this.getClass(),
-                    ErrorCode.E4008,
-                    "pageSize",
-                    PAGE_SIZE_MIN,
-                    PAGE_SIZE_MAX,
-                    pageSize ) );
-        }
-
-        return Optional.empty();
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
     }
+
+    return Optional.empty();
+  }
 }

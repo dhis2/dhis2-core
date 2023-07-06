@@ -29,32 +29,25 @@ package org.hisp.dhis.eventvisualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.analytics.SortOrder;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
-/**
- * This class is responsible for the encapsulation of objects and attributes
- * related to sorting.
- */
+/** This class is responsible for the encapsulation of objects and attributes related to sorting. */
 @Data
-@EqualsAndHashCode( onlyExplicitlyIncluded = true )
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
-public class Sorting implements Serializable
-{
-    @EqualsAndHashCode.Include
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String dimension;
+public class Sorting implements Serializable {
+  @EqualsAndHashCode.Include
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String dimension;
 
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private SortOrder direction;
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private SortOrder direction;
 }

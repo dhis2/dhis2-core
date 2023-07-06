@@ -27,50 +27,43 @@
  */
 package org.hisp.dhis.webapi.webdomain.form;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@OpenApi.Shared( value = false )
-@JacksonXmlRootElement( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-public class CategoryCombo
-{
-    private String id;
+@OpenApi.Shared(value = false)
+@JacksonXmlRootElement(localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0)
+public class CategoryCombo {
+  private String id;
 
-    private List<Category> categories = new ArrayList<>();
+  private List<Category> categories = new ArrayList<>();
 
-    @JsonProperty( value = "categories" )
-    @JacksonXmlElementWrapper( localName = "categories", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Category> getCategories()
-    {
-        return categories;
-    }
+  @JsonProperty(value = "categories")
+  @JacksonXmlElementWrapper(localName = "categories", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "category", namespace = DxfNamespaces.DXF_2_0)
+  public List<Category> getCategories() {
+    return categories;
+  }
 
-    public void setCategories( List<Category> categories )
-    {
-        this.categories = categories;
-    }
+  public void setCategories(List<Category> categories) {
+    this.categories = categories;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getId() {
+    return id;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 }

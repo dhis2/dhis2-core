@@ -34,15 +34,13 @@ import org.hisp.dhis.user.sharing.Sharing;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SharingSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "sharing";
+public class SharingSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "sharing";
 
-    public static final String PLURAL = "sharings";
+  public static final String PLURAL = "sharings";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( Sharing.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(Sharing.class, SINGULAR, PLURAL);
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -39,87 +38,81 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 /**
  * @author Abyot Asalefew
  */
-public interface EventStore
-    extends IdentifiableObjectStore<Event>
-{
-    /**
-     * Retrieve an event list on enrollment list with a certain status
-     *
-     * @param enrollments Enrollment list
-     * @param status EventStatus
-     * @return Event list
-     */
-    List<Event> get( Collection<Enrollment> enrollments, EventStatus status );
+public interface EventStore extends IdentifiableObjectStore<Event> {
+  /**
+   * Retrieve an event list on enrollment list with a certain status
+   *
+   * @param enrollments Enrollment list
+   * @param status EventStatus
+   * @return Event list
+   */
+  List<Event> get(Collection<Enrollment> enrollments, EventStatus status);
 
-    /**
-     * Get all events by TrackedEntity, optionally filtering by completed.
-     *
-     * @param entityInstance TrackedEntity
-     * @param status EventStatus
-     * @return Event list
-     */
-    List<Event> get( TrackedEntity entityInstance, EventStatus status );
+  /**
+   * Get all events by TrackedEntity, optionally filtering by completed.
+   *
+   * @param entityInstance TrackedEntity
+   * @param status EventStatus
+   * @return Event list
+   */
+  List<Event> get(TrackedEntity entityInstance, EventStatus status);
 
-    /**
-     * Get the number of events updates since the given Date.
-     *
-     * @param time the time.
-     * @return the number of events.
-     */
-    long getEventCountLastUpdatedAfter( Date time );
+  /**
+   * Get the number of events updates since the given Date.
+   *
+   * @param time the time.
+   * @return the number of events.
+   */
+  long getEventCountLastUpdatedAfter(Date time);
 
-    /**
-     * Checks for the existence of an event by UID. The deleted events are not
-     * taken into account.
-     *
-     * @param uid event UID to check for
-     * @return true/false depending on result
-     */
-    boolean exists( String uid );
+  /**
+   * Checks for the existence of an event by UID. The deleted events are not taken into account.
+   *
+   * @param uid event UID to check for
+   * @return true/false depending on result
+   */
+  boolean exists(String uid);
 
-    /**
-     * Checks for the existence of an event by UID. It takes into account also
-     * the deleted events.
-     *
-     * @param uid event UID to check for
-     * @return true/false depending on result
-     */
-    boolean existsIncludingDeleted( String uid );
+  /**
+   * Checks for the existence of an event by UID. It takes into account also the deleted events.
+   *
+   * @param uid event UID to check for
+   * @return true/false depending on result
+   */
+  boolean existsIncludingDeleted(String uid);
 
-    /**
-     * Returns UIDs of existing events (including deleted) from the provided
-     * UIDs.
-     *
-     * @param uids event UIDs to check
-     * @return List containing UIDs of existing events (including deleted)
-     */
-    List<String> getUidsIncludingDeleted( List<String> uids );
+  /**
+   * Returns UIDs of existing events (including deleted) from the provided UIDs.
+   *
+   * @param uids event UIDs to check
+   * @return List containing UIDs of existing events (including deleted)
+   */
+  List<String> getUidsIncludingDeleted(List<String> uids);
 
-    /**
-     * Fetches Event matching the given list of UIDs
-     *
-     * @param uids a List of UID
-     * @return a List containing the Event matching the given parameters list
-     */
-    List<Event> getIncludingDeleted( List<String> uids );
+  /**
+   * Fetches Event matching the given list of UIDs
+   *
+   * @param uids a List of UID
+   * @return a List containing the Event matching the given parameters list
+   */
+  List<Event> getIncludingDeleted(List<String> uids);
 
-    /**
-     * Get all events which have notifications with the given.
-     * ProgramNotificationTemplate scheduled on the given date.
-     *
-     * @param template the template.
-     * @param notificationDate the Date for which the notification is scheduled.
-     * @return a list of Event.
-     */
-    List<Event> getWithScheduledNotifications( ProgramNotificationTemplate template,
-        Date notificationDate );
+  /**
+   * Get all events which have notifications with the given. ProgramNotificationTemplate scheduled
+   * on the given date.
+   *
+   * @param template the template.
+   * @param notificationDate the Date for which the notification is scheduled.
+   * @return a list of Event.
+   */
+  List<Event> getWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate);
 
-    /**
-     * Set lastSynchronized timestamp to provided timestamp for provided events.
-     *
-     * @param eventUids UIDs of events where the lastSynchronized flag should be
-     *        updated
-     * @param lastSynchronized The date of last successful sync
-     */
-    void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized );
+  /**
+   * Set lastSynchronized timestamp to provided timestamp for provided events.
+   *
+   * @param eventUids UIDs of events where the lastSynchronized flag should be updated
+   * @param lastSynchronized The date of last successful sync
+   */
+  void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized);
 }

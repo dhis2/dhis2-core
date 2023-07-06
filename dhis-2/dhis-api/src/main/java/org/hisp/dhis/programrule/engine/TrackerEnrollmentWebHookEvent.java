@@ -32,18 +32,15 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @author Zubair Asghar
  */
-public class TrackerEnrollmentWebHookEvent extends ApplicationEvent
-{
-    private final String enrollment;
+public class TrackerEnrollmentWebHookEvent extends ApplicationEvent {
+  private final String enrollment;
 
-    public TrackerEnrollmentWebHookEvent( Object source, String enrollment )
-    {
-        super( source );
-        this.enrollment = enrollment;
-    }
+  public TrackerEnrollmentWebHookEvent(Object source, String enrollment) {
+    super(source);
+    this.enrollment = enrollment;
+  }
 
-    public String getEnrollment()
-    {
-        return enrollment;
-    }
+  public String getEnrollment() {
+    return enrollment;
+  }
 }

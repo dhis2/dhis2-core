@@ -30,9 +30,7 @@ package org.hisp.dhis.trackedentityattributevalue;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -44,33 +42,31 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityAttributeValue.class,
-        "Some values are still assigned to this attribute" );
+public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO =
+      new DeletionVeto(
+          TrackedEntityAttributeValue.class, "Some values are still assigned to this attribute");
 
-    private final TrackedEntityAttributeValueService attributeValueService;
+  private final TrackedEntityAttributeValueService attributeValueService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntity.class, this::deleteTrackedEntity );
-        whenVetoing( TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute );
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntity.class, this::deleteTrackedEntity);
+    whenVetoing(TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute);
+  }
+
+  private void deleteTrackedEntity(TrackedEntity instance) {
+    Collection<TrackedEntityAttributeValue> attributeValues =
+        attributeValueService.getTrackedEntityAttributeValues(instance);
+
+    for (TrackedEntityAttributeValue attributeValue : attributeValues) {
+      attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
     }
+  }
 
-    private void deleteTrackedEntity( TrackedEntity instance )
-    {
-        Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
-            .getTrackedEntityAttributeValues( instance );
-
-        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
-        {
-            attributeValueService.deleteTrackedEntityAttributeValue( attributeValue );
-        }
-    }
-
-    private DeletionVeto allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
-    {
-        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? ACCEPT : VETO;
-    }
+  private DeletionVeto allowDeleteTrackedEntityAttribute(TrackedEntityAttribute attribute) {
+    return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues(attribute) == 0
+        ? ACCEPT
+        : VETO;
+  }
 }

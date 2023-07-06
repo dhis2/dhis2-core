@@ -27,307 +27,291 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Lars Helge Overland
  */
-public class GridHeader
-    implements Serializable
-{
-    private static final Set<String> NUMERIC_TYPES = Set.of(
-        Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
+public class GridHeader implements Serializable {
+  private static final Set<String> NUMERIC_TYPES =
+      Set.of(
+          Float.class.getName(),
+          Double.class.getName(),
+          Long.class.getName(),
+          Integer.class.getName());
 
-    /**
-     * Format header key name.
-     */
-    private String name;
+  /** Format header key name. */
+  private String name;
 
-    /**
-     * Readable pretty header title.
-     */
-    private String column;
+  /** Readable pretty header title. */
+  private String column;
 
-    private ValueType valueType;
+  private ValueType valueType;
 
-    private String type;
+  private String type;
 
-    private boolean hidden;
+  private boolean hidden;
 
-    private boolean meta;
+  private boolean meta;
 
-    private OptionSet optionSet;
+  private OptionSet optionSet;
 
-    private LegendSet legendSet;
+  private LegendSet legendSet;
 
-    private String programStage;
+  private String programStage;
 
-    private transient RepeatableStageParams repeatableStageParams;
+  private transient RepeatableStageParams repeatableStageParams;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public GridHeader()
-    {
+  public GridHeader() {}
+
+  /**
+   * @param name formal header name.
+   */
+  public GridHeader(String name) {
+    this.name = name;
+    this.column = name;
+    this.type = String.class.getName();
+    this.hidden = false;
+    this.meta = false;
+  }
+
+  /**
+   * @param name formal header name.
+   * @param column readable header title.
+   */
+  public GridHeader(String name, String column) {
+    this(name);
+    this.column = column;
+  }
+
+  /**
+   * @param name formal header name.
+   * @param valueType the header value type.
+   */
+  public GridHeader(String name, ValueType valueType) {
+    this(name);
+    this.valueType = valueType;
+    this.type = valueType.getJavaClass().getName();
+  }
+
+  /**
+   * Sets the column property to the name value. Sets the type property to String.
+   *
+   * @param name formal header name.
+   * @param hidden indicates whether header is hidden.
+   * @param meta indicates whether header is meta data.
+   */
+  public GridHeader(String name, boolean hidden, boolean meta) {
+    this(name);
+    this.column = name;
+    this.hidden = hidden;
+    this.meta = meta;
+  }
+
+  /**
+   * @param name formal header name.
+   * @param column readable header title.
+   * @param valueType header value type.
+   * @param hidden indicates whether header is hidden.
+   * @param meta indicates whether header is metadata.
+   */
+  public GridHeader(String name, String column, ValueType valueType, boolean hidden, boolean meta) {
+    this(name, column);
+    this.valueType = valueType;
+    this.type = valueType.getJavaClass().getName();
+    this.hidden = hidden;
+    this.meta = meta;
+  }
+
+  /**
+   * @param name formal header name.
+   * @param column readable header title.
+   * @param valueType header value type.
+   * @param hidden indicates whether header is hidden.
+   * @param meta indicates whether header is metadata.
+   * @param optionSet option set.
+   * @param legendSet legend set.
+   */
+  public GridHeader(
+      String name,
+      String column,
+      ValueType valueType,
+      boolean hidden,
+      boolean meta,
+      OptionSet optionSet,
+      LegendSet legendSet) {
+    this(name, column, valueType, hidden, meta);
+    this.optionSet = optionSet;
+    this.legendSet = legendSet;
+  }
+
+  /**
+   * @param name formal header name.
+   * @param column readable header title.
+   * @param valueType header value type.
+   * @param hidden indicates whether header is hidden.
+   * @param meta indicates whether header is metadata.
+   * @param optionSet option set.
+   * @param legendSet legend set.
+   * @param programStage program stage.
+   * @param repeatableStageParams params for repeatable program stage.
+   */
+  public GridHeader(
+      String name,
+      String column,
+      ValueType valueType,
+      boolean hidden,
+      boolean meta,
+      OptionSet optionSet,
+      LegendSet legendSet,
+      String programStage,
+      RepeatableStageParams repeatableStageParams) {
+    this(name, column, valueType, hidden, meta, optionSet, legendSet);
+    this.programStage = programStage;
+    this.repeatableStageParams = repeatableStageParams;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public boolean isNumeric() {
+    return type != null && NUMERIC_TYPES.contains(type);
+  }
+
+  public boolean hasLegendSet() {
+    return legendSet != null;
+  }
+
+  public boolean hasOptionSet() {
+    return optionSet != null;
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @JsonProperty
+  public String getColumn() {
+    return column;
+  }
+
+  @JsonProperty
+  public ValueType getValueType() {
+    return valueType;
+  }
+
+  @JsonProperty
+  public String getType() {
+    return type;
+  }
+
+  @JsonProperty
+  public boolean isHidden() {
+    return hidden;
+  }
+
+  @JsonProperty
+  public boolean isMeta() {
+    return meta;
+  }
+
+  @JsonProperty
+  public String getOptionSet() {
+    return optionSet != null ? optionSet.getUid() : null;
+  }
+
+  @JsonIgnore
+  public OptionSet getOptionSetObject() {
+    return optionSet;
+  }
+
+  @JsonProperty
+  public String getLegendSet() {
+    return legendSet != null ? legendSet.getUid() : null;
+  }
+
+  @JsonIgnore
+  public LegendSet getLegendSetObject() {
+    return legendSet;
+  }
+
+  @JsonProperty
+  public String getProgramStage() {
+    return StringUtils.trimToNull(programStage);
+  }
+
+  @JsonProperty
+  public String getRepeatableStageParams() {
+    return repeatableStageParams != null ? repeatableStageParams.toString() : null;
+  }
+
+  @JsonProperty
+  public Integer getStageOffset() {
+    if (repeatableStageParams == null) {
+      return null;
     }
 
-    /**
-     * @param name formal header name.
-     */
-    public GridHeader( String name )
-    {
-        this.name = name;
-        this.column = name;
-        this.type = String.class.getName();
-        this.hidden = false;
-        this.meta = false;
+    return repeatableStageParams.getStartIndex();
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode, equals, toString
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
     }
 
-    /**
-     * @param name formal header name.
-     * @param column readable header title.
-     */
-    public GridHeader( String name, String column )
-    {
-        this( name );
-        this.column = column;
+    if (object == null) {
+      return false;
     }
 
-    /**
-     * @param name formal header name.
-     * @param valueType the header value type.
-     */
-    public GridHeader( String name, ValueType valueType )
-    {
-        this( name );
-        this.valueType = valueType;
-        this.type = valueType.getJavaClass().getName();
+    if (getClass() != object.getClass()) {
+      return false;
     }
 
-    /**
-     * Sets the column property to the name value. Sets the type property to
-     * String.
-     *
-     * @param name formal header name.
-     * @param hidden indicates whether header is hidden.
-     * @param meta indicates whether header is meta data.
-     */
-    public GridHeader( String name, boolean hidden, boolean meta )
-    {
-        this( name );
-        this.column = name;
-        this.hidden = hidden;
-        this.meta = meta;
-    }
+    final GridHeader other = (GridHeader) object;
 
-    /**
-     * @param name formal header name.
-     * @param column readable header title.
-     * @param valueType header value type.
-     * @param hidden indicates whether header is hidden.
-     * @param meta indicates whether header is metadata.
-     */
-    public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta )
-    {
-        this( name, column );
-        this.valueType = valueType;
-        this.type = valueType.getJavaClass().getName();
-        this.hidden = hidden;
-        this.meta = meta;
-    }
+    return name.equals(other.name);
+  }
 
-    /**
-     * @param name formal header name.
-     * @param column readable header title.
-     * @param valueType header value type.
-     * @param hidden indicates whether header is hidden.
-     * @param meta indicates whether header is metadata.
-     * @param optionSet option set.
-     * @param legendSet legend set.
-     */
-    public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta,
-        OptionSet optionSet, LegendSet legendSet )
-    {
-        this( name, column, valueType, hidden, meta );
-        this.optionSet = optionSet;
-        this.legendSet = legendSet;
-    }
-
-    /**
-     * @param name formal header name.
-     * @param column readable header title.
-     * @param valueType header value type.
-     * @param hidden indicates whether header is hidden.
-     * @param meta indicates whether header is metadata.
-     * @param optionSet option set.
-     * @param legendSet legend set.
-     * @param programStage program stage.
-     * @param repeatableStageParams params for repeatable program stage.
-     */
-    public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta,
-        OptionSet optionSet, LegendSet legendSet, String programStage, RepeatableStageParams repeatableStageParams )
-    {
-        this( name, column, valueType, hidden, meta, optionSet, legendSet );
-        this.programStage = programStage;
-        this.repeatableStageParams = repeatableStageParams;
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public boolean isNumeric()
-    {
-        return type != null && NUMERIC_TYPES.contains( type );
-    }
-
-    public boolean hasLegendSet()
-    {
-        return legendSet != null;
-    }
-
-    public boolean hasOptionSet()
-    {
-        return optionSet != null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
-
-    public void setName( String name )
-    {
-        this.name = name;
-    }
-
-    @JsonProperty
-    public String getColumn()
-    {
-        return column;
-    }
-
-    @JsonProperty
-    public ValueType getValueType()
-    {
-        return valueType;
-    }
-
-    @JsonProperty
-    public String getType()
-    {
-        return type;
-    }
-
-    @JsonProperty
-    public boolean isHidden()
-    {
-        return hidden;
-    }
-
-    @JsonProperty
-    public boolean isMeta()
-    {
-        return meta;
-    }
-
-    @JsonProperty
-    public String getOptionSet()
-    {
-        return optionSet != null ? optionSet.getUid() : null;
-    }
-
-    @JsonIgnore
-    public OptionSet getOptionSetObject()
-    {
-        return optionSet;
-    }
-
-    @JsonProperty
-    public String getLegendSet()
-    {
-        return legendSet != null ? legendSet.getUid() : null;
-    }
-
-    @JsonIgnore
-    public LegendSet getLegendSetObject()
-    {
-        return legendSet;
-    }
-
-    @JsonProperty
-    public String getProgramStage()
-    {
-        return StringUtils.trimToNull( programStage );
-    }
-
-    @JsonProperty
-    public String getRepeatableStageParams()
-    {
-        return repeatableStageParams != null ? repeatableStageParams.toString() : null;
-    }
-
-    @JsonProperty
-    public Integer getStageOffset()
-    {
-        if ( repeatableStageParams == null )
-        {
-            return null;
-        }
-
-        return repeatableStageParams.getStartIndex();
-    }
-
-    // -------------------------------------------------------------------------
-    // hashCode, equals, toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return name.hashCode();
-    }
-
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        final GridHeader other = (GridHeader) object;
-
-        return name.equals( other.name );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[Name: " + name + ", column: " + column + ", value type: " + valueType + ", type: " + type + "]";
-    }
+  @Override
+  public String toString() {
+    return "[Name: "
+        + name
+        + ", column: "
+        + column
+        + ", value type: "
+        + valueType
+        + ", type: "
+        + type
+        + "]";
+  }
 }

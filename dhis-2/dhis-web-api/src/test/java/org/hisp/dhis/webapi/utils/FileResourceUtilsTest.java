@@ -34,9 +34,7 @@ import static org.mockito.Mockito.when;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.imageio.ImageIO;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -46,54 +44,52 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-@ExtendWith( MockitoExtension.class )
-class FileResourceUtilsTest
-{
+@ExtendWith(MockitoExtension.class)
+class FileResourceUtilsTest {
 
-    @Mock
-    private MultipartFile multipartFile;
+  @Mock private MultipartFile multipartFile;
 
-    @Test
-    void shouldWorkWhenCustomIconIsValid()
-    {
-        when( multipartFile.getOriginalFilename() ).thenReturn( "OU_profile_image.png" );
-        when( multipartFile.getSize() ).thenReturn( 10L );
+  @Test
+  void shouldWorkWhenCustomIconIsValid() {
+    when(multipartFile.getOriginalFilename()).thenReturn("OU_profile_image.png");
+    when(multipartFile.getSize()).thenReturn(10L);
 
-        Assertions.assertDoesNotThrow( () -> FileResourceUtils.validateCustomIconFile( multipartFile ) );
-    }
+    Assertions.assertDoesNotThrow(() -> FileResourceUtils.validateCustomIconFile(multipartFile));
+  }
 
-    @Test
-    void shouldFailWhenCustomIconHasInvalidFormat()
-    {
-        MockMultipartFile jpgImage = new MockMultipartFile( "file", "OU_profile_image.jpg", "image/jpg",
-            "<<jpg data>>".getBytes() );
+  @Test
+  void shouldFailWhenCustomIconHasInvalidFormat() {
+    MockMultipartFile jpgImage =
+        new MockMultipartFile(
+            "file", "OU_profile_image.jpg", "image/jpg", "<<jpg data>>".getBytes());
 
-        Exception ex = assertThrows( IllegalQueryException.class,
-            () -> FileResourceUtils.validateCustomIconFile( jpgImage ) );
-        assertContains( "Wrong file extension", ex.getMessage() );
-    }
+    Exception ex =
+        assertThrows(
+            IllegalQueryException.class, () -> FileResourceUtils.validateCustomIconFile(jpgImage));
+    assertContains("Wrong file extension", ex.getMessage());
+  }
 
-    @Test
-    void shouldFailWhenCustomIconIsTooLarge()
-    {
-        when( multipartFile.getOriginalFilename() ).thenReturn( "OU_profile_image.png" );
-        when( multipartFile.getSize() ).thenReturn( 100000000L );
+  @Test
+  void shouldFailWhenCustomIconIsTooLarge() {
+    when(multipartFile.getOriginalFilename()).thenReturn("OU_profile_image.png");
+    when(multipartFile.getSize()).thenReturn(100000000L);
 
-        Exception ex = assertThrows( IllegalQueryException.class,
-            () -> FileResourceUtils.validateCustomIconFile( multipartFile ) );
-        assertContains( "File size can't be bigger than", ex.getMessage() );
-    }
+    Exception ex =
+        assertThrows(
+            IllegalQueryException.class,
+            () -> FileResourceUtils.validateCustomIconFile(multipartFile));
+    assertContains("File size can't be bigger than", ex.getMessage());
+  }
 
-    @Test
-    void shouldResizeImageTo48x48WhenCustomIconIsValid()
-        throws IOException
-    {
-        InputStream in = getClass().getResourceAsStream( "/icon/test-image.png" );
-        MockMultipartFile mockMultipartFile = new MockMultipartFile( "file", "test-image.png", "image/png", in );
-        MultipartFile file = FileResourceUtils.resizeToDefaultIconSize( mockMultipartFile );
-        BufferedImage bufferedImage = ImageIO.read( file.getInputStream() );
+  @Test
+  void shouldResizeImageTo48x48WhenCustomIconIsValid() throws IOException {
+    InputStream in = getClass().getResourceAsStream("/icon/test-image.png");
+    MockMultipartFile mockMultipartFile =
+        new MockMultipartFile("file", "test-image.png", "image/png", in);
+    MultipartFile file = FileResourceUtils.resizeToDefaultIconSize(mockMultipartFile);
+    BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
 
-        Assertions.assertEquals( 48, bufferedImage.getWidth() );
-        Assertions.assertEquals( 48, bufferedImage.getHeight() );
-    }
+    Assertions.assertEquals(48, bufferedImage.getWidth());
+    Assertions.assertEquals(48, bufferedImage.getHeight());
+  }
 }

@@ -27,23 +27,20 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Henning Håkonsen
@@ -53,37 +50,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PredictorJobParameters implements JobParameters
-{
-    /**
-     * Today plus n days (n can be negative)
-     */
-    @JsonProperty
-    private int relativeStart;
+public class PredictorJobParameters implements JobParameters {
+  /** Today plus n days (n can be negative) */
+  @JsonProperty private int relativeStart;
 
-    /**
-     * Today plus n days (n can be negative)
-     */
-    @JsonProperty
-    private int relativeEnd;
+  /** Today plus n days (n can be negative) */
+  @JsonProperty private int relativeEnd;
 
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, Predictor.class } )
-    private List<String> predictors = new ArrayList<>();
+  @JsonProperty
+  @OpenApi.Property({UID[].class, Predictor.class})
+  private List<String> predictors = new ArrayList<>();
 
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, PredictorGroup.class } )
-    private List<String> predictorGroups = new ArrayList<>();
+  @JsonProperty
+  @OpenApi.Property({UID[].class, PredictorGroup.class})
+  private List<String> predictorGroups = new ArrayList<>();
 
-    // programmatically used only
+  // programmatically used only
 
-    /**
-     * When set overrides the {@link #relativeStart}
-     */
-    private Date startDate;
+  /** When set overrides the {@link #relativeStart} */
+  private Date startDate;
 
-    /**
-     * When set overrides the {@link #relativeEnd}
-     */
-    private Date endDate;
+  /** When set overrides the {@link #relativeEnd} */
+  private Date endDate;
 }

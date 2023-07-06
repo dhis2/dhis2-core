@@ -27,39 +27,32 @@
  */
 package org.hisp.dhis.eventhook;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class EventHook
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    @JsonProperty( required = true )
-    private boolean disabled;
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class EventHook extends BaseIdentifiableObject implements MetadataObject {
+  @JsonProperty(required = true)
+  private boolean disabled;
 
-    @JsonProperty
-    private String description;
+  @JsonProperty private String description;
 
-    @JsonProperty( required = true )
-    private Source source;
+  @JsonProperty(required = true)
+  private Source source;
 
-    @JsonProperty( required = true )
-    private List<Target> targets = new ArrayList<>();
+  @JsonProperty(required = true)
+  private List<Target> targets = new ArrayList<>();
 }

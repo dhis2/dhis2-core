@@ -27,21 +27,17 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Jan Bernitt
  */
 @Getter
 @AllArgsConstructor
-public final class GridResponse
-{
-    @JsonProperty
-    private final Pager pager;
+public final class GridResponse {
+  @JsonProperty private final Pager pager;
 
-    @JsonProperty
-    private final Grid listGrid;
+  @JsonProperty private final Grid listGrid;
 }

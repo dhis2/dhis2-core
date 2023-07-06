@@ -36,48 +36,55 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class ObjectReportTest
-{
+class ObjectReportTest {
 
-    @Test
-    void init()
-    {
-        final Attribute attribute = new Attribute();
-        attribute.setUid( "sdkjjJHSH843" );
-        final ObjectReport objectReport = new ObjectReport( attribute, a -> {
-            Assertions.assertSame( attribute, a );
-            return 7;
-        } );
-        Assertions.assertEquals( Attribute.class, objectReport.getKlass() );
-        Assertions.assertEquals( (Integer) 7, objectReport.getIndex() );
-        Assertions.assertEquals( "sdkjjJHSH843", objectReport.getUid() );
-    }
+  @Test
+  void init() {
+    final Attribute attribute = new Attribute();
+    attribute.setUid("sdkjjJHSH843");
+    final ObjectReport objectReport =
+        new ObjectReport(
+            attribute,
+            a -> {
+              Assertions.assertSame(attribute, a);
+              return 7;
+            });
+    Assertions.assertEquals(Attribute.class, objectReport.getKlass());
+    Assertions.assertEquals((Integer) 7, objectReport.getIndex());
+    Assertions.assertEquals("sdkjjJHSH843", objectReport.getUid());
+  }
 
-    @Test
-    void initWithUid()
-    {
-        final Attribute attribute = new Attribute();
-        attribute.setUid( "sdkjjJHSH843" );
-        final ObjectReport objectReport = new ObjectReport( attribute, a -> {
-            Assertions.assertSame( attribute, a );
-            return 9;
-        }, "kshdgh283" );
-        Assertions.assertEquals( Attribute.class, objectReport.getKlass() );
-        Assertions.assertEquals( (Integer) 9, objectReport.getIndex() );
-        Assertions.assertEquals( "kshdgh283", objectReport.getUid() );
-    }
+  @Test
+  void initWithUid() {
+    final Attribute attribute = new Attribute();
+    attribute.setUid("sdkjjJHSH843");
+    final ObjectReport objectReport =
+        new ObjectReport(
+            attribute,
+            a -> {
+              Assertions.assertSame(attribute, a);
+              return 9;
+            },
+            "kshdgh283");
+    Assertions.assertEquals(Attribute.class, objectReport.getKlass());
+    Assertions.assertEquals((Integer) 9, objectReport.getIndex());
+    Assertions.assertEquals("kshdgh283", objectReport.getUid());
+  }
 
-    @Test
-    void initWithNullUid()
-    {
-        final Attribute attribute = new Attribute();
-        attribute.setUid( "sdkjjJHSH843" );
-        final ObjectReport objectReport = new ObjectReport( attribute, a -> {
-            Assertions.assertSame( attribute, a );
-            return 9;
-        }, null );
-        Assertions.assertEquals( Attribute.class, objectReport.getKlass() );
-        Assertions.assertEquals( (Integer) 9, objectReport.getIndex() );
-        Assertions.assertEquals( "sdkjjJHSH843", objectReport.getUid() );
-    }
+  @Test
+  void initWithNullUid() {
+    final Attribute attribute = new Attribute();
+    attribute.setUid("sdkjjJHSH843");
+    final ObjectReport objectReport =
+        new ObjectReport(
+            attribute,
+            a -> {
+              Assertions.assertSame(attribute, a);
+              return 9;
+            },
+            null);
+    Assertions.assertEquals(Attribute.class, objectReport.getKlass());
+    Assertions.assertEquals((Integer) 9, objectReport.getIndex());
+    Assertions.assertEquals("sdkjjJHSH843", objectReport.getUid());
+  }
 }

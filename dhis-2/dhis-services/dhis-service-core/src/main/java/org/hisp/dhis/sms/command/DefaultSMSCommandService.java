@@ -29,9 +29,7 @@ package org.hisp.dhis.sms.command;
 
 import java.util.List;
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
@@ -40,119 +38,102 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.sms.command.SMSCommandService" )
-public class DefaultSMSCommandService
-    implements SMSCommandService
-{
-    private final SMSCommandStore smsCommandStore;
+@Service("org.hisp.dhis.sms.command.SMSCommandService")
+public class DefaultSMSCommandService implements SMSCommandService {
+  private final SMSCommandStore smsCommandStore;
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<SMSCommand> getSMSCommands()
-    {
-        return smsCommandStore.getAll();
+  @Override
+  @Transactional(readOnly = true)
+  public List<SMSCommand> getSMSCommands() {
+    return smsCommandStore.getAll();
+  }
+
+  @Override
+  @Transactional
+  public void save(SMSCommand cmd) {
+    smsCommandStore.save(cmd);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public SMSCommand getSMSCommand(long id) {
+    return smsCommandStore.get(id);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public SMSCommand getSMSCommand(String name) {
+    return smsCommandStore.getByName(name);
+  }
+
+  @Override
+  @Transactional
+  public void addSmsCodes(Set<SMSCode> codes, long commandId) {
+    SMSCommand command = smsCommandStore.get(commandId);
+
+    if (command != null) {
+      command.getCodes().addAll(codes);
+
+      smsCommandStore.update(command);
     }
+  }
 
-    @Override
-    @Transactional
-    public void save( SMSCommand cmd )
-    {
-        smsCommandStore.save( cmd );
+  @Override
+  @Transactional
+  public void delete(SMSCommand cmd) {
+    smsCommandStore.delete(cmd);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<SMSCommand> getJ2MESMSCommands() {
+    return smsCommandStore.getJ2MESMSCommands();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public SMSCommand getSMSCommand(String commandName, ParserType parserType) {
+    return smsCommandStore.getSMSCommand(commandName, parserType);
+  }
+
+  @Override
+  @Transactional
+  public void addSpecialCharacterSet(Set<SMSSpecialCharacter> specialCharacters, long commandId) {
+    SMSCommand command = smsCommandStore.get(commandId);
+
+    if (command != null) {
+      command.getSpecialCharacters().addAll(specialCharacters);
+
+      smsCommandStore.update(command);
     }
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public SMSCommand getSMSCommand( long id )
-    {
-        return smsCommandStore.get( id );
+  @Override
+  @Transactional
+  public void deleteCodeSet(Set<SMSCode> codes, long commandId) {
+    SMSCommand command = smsCommandStore.get(commandId);
+    if (command != null) {
+      command.getCodes().removeAll(codes);
+
+      smsCommandStore.update(command);
     }
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public SMSCommand getSMSCommand( String name )
-    {
-        return smsCommandStore.getByName( name );
+  @Override
+  @Transactional(readOnly = true)
+  public int countDataSetSmsCommands(DataSet dataSet) {
+    return smsCommandStore.countDataSetSmsCommands(dataSet);
+  }
+
+  @Override
+  @Transactional
+  public void deleteSpecialCharacterSet(
+      Set<SMSSpecialCharacter> specialCharacters, long commandId) {
+    SMSCommand command = smsCommandStore.get(commandId);
+    if (command != null) {
+      command.getSpecialCharacters().removeAll(specialCharacters);
+
+      smsCommandStore.update(command);
     }
-
-    @Override
-    @Transactional
-    public void addSmsCodes( Set<SMSCode> codes, long commandId )
-    {
-        SMSCommand command = smsCommandStore.get( commandId );
-
-        if ( command != null )
-        {
-            command.getCodes().addAll( codes );
-
-            smsCommandStore.update( command );
-        }
-    }
-
-    @Override
-    @Transactional
-    public void delete( SMSCommand cmd )
-    {
-        smsCommandStore.delete( cmd );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<SMSCommand> getJ2MESMSCommands()
-    {
-        return smsCommandStore.getJ2MESMSCommands();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public SMSCommand getSMSCommand( String commandName, ParserType parserType )
-    {
-        return smsCommandStore.getSMSCommand( commandName, parserType );
-    }
-
-    @Override
-    @Transactional
-    public void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
-    {
-        SMSCommand command = smsCommandStore.get( commandId );
-
-        if ( command != null )
-        {
-            command.getSpecialCharacters().addAll( specialCharacters );
-
-            smsCommandStore.update( command );
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteCodeSet( Set<SMSCode> codes, long commandId )
-    {
-        SMSCommand command = smsCommandStore.get( commandId );
-        if ( command != null )
-        {
-            command.getCodes().removeAll( codes );
-
-            smsCommandStore.update( command );
-        }
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public int countDataSetSmsCommands( DataSet dataSet )
-    {
-        return smsCommandStore.countDataSetSmsCommands( dataSet );
-    }
-
-    @Override
-    @Transactional
-    public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
-    {
-        SMSCommand command = smsCommandStore.get( commandId );
-        if ( command != null )
-        {
-            command.getSpecialCharacters().removeAll( specialCharacters );
-
-            smsCommandStore.update( command );
-        }
-    }
+  }
 }

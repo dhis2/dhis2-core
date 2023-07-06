@@ -32,20 +32,16 @@ import org.hisp.dhis.util.SessionUtils;
 /**
  * @author Torgeir Lorange Ostby
  */
-public class SessionMenuStateManager
-    implements MenuStateManager
-{
-    private static final String SESSION_KEY_MENU_STATE = "dhis-web-commons-menu-state";
+public class SessionMenuStateManager implements MenuStateManager {
+  private static final String SESSION_KEY_MENU_STATE = "dhis-web-commons-menu-state";
 
-    @Override
-    public MenuState getMenuState()
-    {
-        return (MenuState) SessionUtils.getSessionVar( SESSION_KEY_MENU_STATE );
-    }
+  @Override
+  public MenuState getMenuState() {
+    return (MenuState) SessionUtils.getSessionVar(SESSION_KEY_MENU_STATE);
+  }
 
-    @Override
-    public void setMenuState( MenuState menuState )
-    {
-        SessionUtils.setSessionVar( SESSION_KEY_MENU_STATE, menuState );
-    }
+  @Override
+  public void setMenuState(MenuState menuState) {
+    SessionUtils.setSessionVar(SESSION_KEY_MENU_STATE, menuState);
+  }
 }

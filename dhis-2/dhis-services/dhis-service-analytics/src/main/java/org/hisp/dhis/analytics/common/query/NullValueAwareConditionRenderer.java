@@ -32,38 +32,29 @@ import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasNul
 
 import java.util.List;
 import java.util.function.BiFunction;
-
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class NullValueAwareConditionRenderer extends BaseRenderable
-{
-    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
+@RequiredArgsConstructor(staticName = "of")
+public class NullValueAwareConditionRenderer extends BaseRenderable {
+  private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
 
-    private final Renderable field;
+  private final Renderable field;
 
-    private final Renderable values;
+  private final Renderable values;
 
-    @Override
-    public String render()
-    {
-        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
-        Renderable realCondition = realConditionBuilder.apply( field, values );
+  @Override
+  public String render() {
+    Renderable fieldIsNullCondition = IsNullConditionRenderer.of(field, true);
+    Renderable realCondition = realConditionBuilder.apply(field, values);
 
-        if ( !hasNullValue( values ) )
-        {
-            return realCondition.render();
-        }
-
-        if ( !hasMultipleValues( values ) )
-        {
-            return fieldIsNullCondition.render();
-        }
-
-        return OrCondition.of(
-            List.of(
-                fieldIsNullCondition,
-                realCondition ) )
-            .render();
+    if (!hasNullValue(values)) {
+      return realCondition.render();
     }
+
+    if (!hasMultipleValues(values)) {
+      return fieldIsNullCondition.render();
+    }
+
+    return OrCondition.of(List.of(fieldIsNullCondition, realCondition)).render();
+  }
 }

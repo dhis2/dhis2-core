@@ -30,25 +30,23 @@ package org.hisp.dhis.program.notification;
 import org.hisp.dhis.program.Enrollment;
 
 /**
- * Defines methods for handling of tracker web hook notifications associated
- * with {@link Enrollment} and {@link org.hisp.dhis.program.Event}
+ * Defines methods for handling of tracker web hook notifications associated with {@link Enrollment}
+ * and {@link org.hisp.dhis.program.Event}
  *
  * @author Zubair Asghar
  */
-public interface TrackerNotificationWebHookService
-{
-    /**
-     * Sends web hook notifications linked to {@link Enrollment}
-     *
-     * @param enrollment to handle
-     */
-    void handleEnrollment( String enrollment );
+public interface TrackerNotificationWebHookService {
+  /**
+   * Sends web hook notifications linked to {@link Enrollment}
+   *
+   * @param enrollment to handle
+   */
+  void handleEnrollment(String enrollment);
 
-    /**
-     * Sends web hook notifications linked to
-     * {@link org.hisp.dhis.program.Event}
-     *
-     * @param event to handle
-     */
-    void handleEvent( String event );
+  /**
+   * Sends web hook notifications linked to {@link org.hisp.dhis.program.Event}
+   *
+   * @param event to handle
+   */
+  void handleEvent(String event);
 }

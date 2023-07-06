@@ -27,37 +27,37 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class IndicatorGroupSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "indicatorGroup";
+public class IndicatorGroupSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "indicatorGroup";
 
-    public static final String PLURAL = "indicatorGroups";
+  public static final String PLURAL = "indicatorGroups";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( IndicatorGroup.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1260 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(IndicatorGroup.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1260);
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_INDICATORGROUP_PUBLIC_ADD" ) ) );
-        schema
-            .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_INDICATORGROUP_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_INDICATORGROUP_DELETE" ) ) );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_INDICATORGROUP_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_INDICATORGROUP_PRIVATE_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_INDICATORGROUP_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

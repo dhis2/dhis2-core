@@ -34,25 +34,21 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-@Repository( "org.hisp.dhis.program.ProgramOwnershipHistoryStore" )
-public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore
-{
-    private SessionFactory sessionFactory;
+@Repository("org.hisp.dhis.program.ProgramOwnershipHistoryStore")
+public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore {
+  private SessionFactory sessionFactory;
 
-    public HibernateProgramOwnershipHistoryStore( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
+  public HibernateProgramOwnershipHistoryStore(SessionFactory sessionFactory) {
+    this.sessionFactory = sessionFactory;
+  }
 
-    // -------------------------------------------------------------------------
-    // ProgramOwnershipHistoryStore implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramOwnershipHistoryStore implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory )
-    {
-        sessionFactory.getCurrentSession().save( programOwnershipHistory );
-    }
+  @Override
+  public void addProgramOwnershipHistory(ProgramOwnershipHistory programOwnershipHistory) {
+    sessionFactory.getCurrentSession().save(programOwnershipHistory);
+  }
 }

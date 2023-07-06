@@ -28,33 +28,26 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 /**
- * This exception should only be thrown when the Import process is unable to
- * recover from an error situation.
+ * This exception should only be thrown when the Import process is unable to recover from an error
+ * situation.
  *
  * @author Luciano Fiandesio
  */
-public class UnrecoverableImportException
-    extends
-    RuntimeException
-{
+public class UnrecoverableImportException extends RuntimeException {
 
-    public UnrecoverableImportException()
-    {
-        super();
-    }
+  public UnrecoverableImportException() {
+    super();
+  }
 
-    public UnrecoverableImportException( String message )
-    {
-        super( message );
-    }
+  public UnrecoverableImportException(String message) {
+    super(message);
+  }
 
-    public UnrecoverableImportException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public UnrecoverableImportException(String message, Throwable cause) {
+    super(message, cause);
+  }
 
-    public UnrecoverableImportException( Throwable cause )
-    {
-        super( cause );
-    }
+  public UnrecoverableImportException(Throwable cause) {
+    super(cause);
+  }
 }

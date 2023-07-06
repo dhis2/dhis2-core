@@ -29,49 +29,43 @@ package org.hisp.dhis.trackedentity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+class TrackedEntityTypeAttributeStoreTest extends SingleSetupIntegrationTestBase {
 
-class TrackedEntityTypeAttributeStoreTest extends SingleSetupIntegrationTestBase
-{
+  @Autowired private TrackedEntityTypeStore entityTypeStore;
 
-    @Autowired
-    private TrackedEntityTypeStore entityTypeStore;
+  @Autowired private TrackedEntityAttributeStore attributeStore;
 
-    @Autowired
-    private TrackedEntityAttributeStore attributeStore;
+  @Autowired private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
 
-    @Autowired
-    private TrackedEntityTypeAttributeStore entityTypeAttributeStore;
-
-    @Test
-    void testGetAttributesByTrackedEntityTypes()
-    {
-        TrackedEntityType entityTypeA = createTrackedEntityType( 'A' );
-        TrackedEntityType entityTypeB = createTrackedEntityType( 'B' );
-        TrackedEntityType entityTypeC = createTrackedEntityType( 'C' );
-        entityTypeStore.save( entityTypeA );
-        entityTypeStore.save( entityTypeB );
-        entityTypeStore.save( entityTypeC );
-        TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
-        attributeStore.save( attributeA );
-        TrackedEntityTypeAttribute typeAttributeA = new TrackedEntityTypeAttribute();
-        typeAttributeA.setTrackedEntityType( entityTypeA );
-        typeAttributeA.setTrackedEntityAttribute( attributeA );
-        TrackedEntityTypeAttribute typeAttributeB = new TrackedEntityTypeAttribute();
-        typeAttributeB.setTrackedEntityType( entityTypeB );
-        typeAttributeB.setTrackedEntityAttribute( attributeA );
-        TrackedEntityTypeAttribute typeAttributeC = new TrackedEntityTypeAttribute();
-        typeAttributeC.setTrackedEntityType( entityTypeA );
-        typeAttributeC.setTrackedEntityAttribute( attributeA );
-        entityTypeAttributeStore.save( typeAttributeA );
-        entityTypeAttributeStore.save( typeAttributeB );
-        entityTypeAttributeStore.save( typeAttributeC );
-        assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeA ) ).size() );
-        assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeB ) ).size() );
-        assertEquals( 0, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeC ) ).size() );
-    }
+  @Test
+  void testGetAttributesByTrackedEntityTypes() {
+    TrackedEntityType entityTypeA = createTrackedEntityType('A');
+    TrackedEntityType entityTypeB = createTrackedEntityType('B');
+    TrackedEntityType entityTypeC = createTrackedEntityType('C');
+    entityTypeStore.save(entityTypeA);
+    entityTypeStore.save(entityTypeB);
+    entityTypeStore.save(entityTypeC);
+    TrackedEntityAttribute attributeA = createTrackedEntityAttribute('A');
+    attributeStore.save(attributeA);
+    TrackedEntityTypeAttribute typeAttributeA = new TrackedEntityTypeAttribute();
+    typeAttributeA.setTrackedEntityType(entityTypeA);
+    typeAttributeA.setTrackedEntityAttribute(attributeA);
+    TrackedEntityTypeAttribute typeAttributeB = new TrackedEntityTypeAttribute();
+    typeAttributeB.setTrackedEntityType(entityTypeB);
+    typeAttributeB.setTrackedEntityAttribute(attributeA);
+    TrackedEntityTypeAttribute typeAttributeC = new TrackedEntityTypeAttribute();
+    typeAttributeC.setTrackedEntityType(entityTypeA);
+    typeAttributeC.setTrackedEntityAttribute(attributeA);
+    entityTypeAttributeStore.save(typeAttributeA);
+    entityTypeAttributeStore.save(typeAttributeB);
+    entityTypeAttributeStore.save(typeAttributeC);
+    assertEquals(1, entityTypeAttributeStore.getAttributes(Lists.newArrayList(entityTypeA)).size());
+    assertEquals(1, entityTypeAttributeStore.getAttributes(Lists.newArrayList(entityTypeB)).size());
+    assertEquals(0, entityTypeAttributeStore.getAttributes(Lists.newArrayList(entityTypeC)).size());
+  }
 }

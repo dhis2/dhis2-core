@@ -34,54 +34,51 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DataElementStoreIntegrationTest extends TransactionalIntegrationTest
-{
+class DataElementStoreIntegrationTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private DataElementStore dataElementStore;
+  @Autowired private DataElementStore dataElementStore;
 
-    @Test
-    void testDeleteAndGetDataElement()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-        dataElementStore.save( dataElementA );
-        long idA = dataElementA.getId();
-        dataElementStore.save( dataElementB );
-        long idB = dataElementB.getId();
-        dataElementStore.save( dataElementC );
-        long idC = dataElementC.getId();
-        dataElementStore.save( dataElementD );
-        long idD = dataElementD.getId();
-        assertNotNull( dataElementStore.get( idA ) );
-        assertNotNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-        dataElementA = dataElementStore.get( idA );
-        dataElementB = dataElementStore.get( idB );
-        dataElementC = dataElementStore.get( idC );
-        dataElementD = dataElementStore.get( idD );
-        dataElementStore.delete( dataElementA );
-        assertNull( dataElementStore.get( idA ) );
-        assertNotNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-        dataElementStore.delete( dataElementB );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNotNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-        dataElementStore.delete( dataElementC );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNull( dataElementStore.get( idC ) );
-        assertNotNull( dataElementStore.get( idD ) );
-        dataElementStore.delete( dataElementD );
-        assertNull( dataElementStore.get( idA ) );
-        assertNull( dataElementStore.get( idB ) );
-        assertNull( dataElementStore.get( idC ) );
-        assertNull( dataElementStore.get( idD ) );
-    }
+  @Test
+  void testDeleteAndGetDataElement() {
+    DataElement dataElementA = createDataElement('A');
+    DataElement dataElementB = createDataElement('B');
+    DataElement dataElementC = createDataElement('C');
+    DataElement dataElementD = createDataElement('D');
+    dataElementStore.save(dataElementA);
+    long idA = dataElementA.getId();
+    dataElementStore.save(dataElementB);
+    long idB = dataElementB.getId();
+    dataElementStore.save(dataElementC);
+    long idC = dataElementC.getId();
+    dataElementStore.save(dataElementD);
+    long idD = dataElementD.getId();
+    assertNotNull(dataElementStore.get(idA));
+    assertNotNull(dataElementStore.get(idB));
+    assertNotNull(dataElementStore.get(idC));
+    assertNotNull(dataElementStore.get(idD));
+    dataElementA = dataElementStore.get(idA);
+    dataElementB = dataElementStore.get(idB);
+    dataElementC = dataElementStore.get(idC);
+    dataElementD = dataElementStore.get(idD);
+    dataElementStore.delete(dataElementA);
+    assertNull(dataElementStore.get(idA));
+    assertNotNull(dataElementStore.get(idB));
+    assertNotNull(dataElementStore.get(idC));
+    assertNotNull(dataElementStore.get(idD));
+    dataElementStore.delete(dataElementB);
+    assertNull(dataElementStore.get(idA));
+    assertNull(dataElementStore.get(idB));
+    assertNotNull(dataElementStore.get(idC));
+    assertNotNull(dataElementStore.get(idD));
+    dataElementStore.delete(dataElementC);
+    assertNull(dataElementStore.get(idA));
+    assertNull(dataElementStore.get(idB));
+    assertNull(dataElementStore.get(idC));
+    assertNotNull(dataElementStore.get(idD));
+    dataElementStore.delete(dataElementD);
+    assertNull(dataElementStore.get(idA));
+    assertNull(dataElementStore.get(idB));
+    assertNull(dataElementStore.get(idC));
+    assertNull(dataElementStore.get(idD));
+  }
 }

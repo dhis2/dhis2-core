@@ -38,32 +38,24 @@ import lombok.ToString;
  * @author Luciano Fiandesio
  */
 @ToString
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class Pagination
-{
-    @Getter
-    private final int firstResult;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class Pagination {
+  @Getter private final int firstResult;
 
-    @Getter
-    private final int size;
+  @Getter private final int size;
 
-    private final boolean hasPagination;
+  private final boolean hasPagination;
 
-    public Pagination( int firstResult, int size )
-    {
-        this( firstResult, size, true );
-    }
+  public Pagination(int firstResult, int size) {
+    this(firstResult, size, true);
+  }
 
-    /**
-     * This constructor can be used to signal that there is no pagination data
-     */
-    public Pagination()
-    {
-        this( 0, 0, false );
-    }
+  /** This constructor can be used to signal that there is no pagination data */
+  public Pagination() {
+    this(0, 0, false);
+  }
 
-    public boolean hasPagination()
-    {
-        return hasPagination;
-    }
+  public boolean hasPagination() {
+    return hasPagination;
+  }
 }

@@ -35,12 +35,9 @@ import org.hisp.dhis.util.DateUtils;
  *
  * @author Jim Grace
  */
-public class vCurrentDate
-    extends ProgramDateVariable
-{
-    @Override
-    public Object getSql( CommonExpressionVisitor visitor )
-    {
-        return visitor.getStatementBuilder().encode( DateUtils.getLongDateString() );
-    }
+public class vCurrentDate extends ProgramDateVariable {
+  @Override
+  public Object getSql(CommonExpressionVisitor visitor) {
+    return visitor.getStatementBuilder().encode(DateUtils.getLongDateString());
+  }
 }

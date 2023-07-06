@@ -30,7 +30,6 @@ package org.hisp.dhis.analytics.tei.query;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -39,31 +38,27 @@ import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.BinaryConditionRenderer;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class DataElementCondition extends BaseRenderable
-{
-    private final QueryContext queryContext;
+@RequiredArgsConstructor(staticName = "of")
+public class DataElementCondition extends BaseRenderable {
+  private final QueryContext queryContext;
 
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    @Override
-    public String render()
-    {
-        ValueTypeMapping valueTypeMapping = ValueTypeMapping
-            .fromValueType( dimensionIdentifier.getDimension().getValueType() );
+  @Override
+  public String render() {
+    ValueTypeMapping valueTypeMapping =
+        ValueTypeMapping.fromValueType(dimensionIdentifier.getDimension().getValueType());
 
-        DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get( 0 );
+    DimensionParamItem item = dimensionIdentifier.getDimension().getItems().get(0);
 
-        RenderableDataValue dataValue = RenderableDataValue.of(
-            doubleQuote( dimensionIdentifier.getPrefix() ),
+    RenderableDataValue dataValue =
+        RenderableDataValue.of(
+            doubleQuote(dimensionIdentifier.getPrefix()),
             dimensionIdentifier.getDimension().getUid(),
-            valueTypeMapping );
+            valueTypeMapping);
 
-        return BinaryConditionRenderer.of(
-            dataValue,
-            item.getOperator(),
-            item.getValues(),
-            valueTypeMapping,
-            queryContext ).render();
-    }
+    return BinaryConditionRenderer.of(
+            dataValue, item.getOperator(), item.getValues(), valueTypeMapping, queryContext)
+        .render();
+  }
 }

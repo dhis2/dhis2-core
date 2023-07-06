@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
@@ -44,43 +43,44 @@ import org.hisp.dhis.user.User;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class BaseEventAclCheck implements Checker
-{
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        ImportOptions importOptions = ctx.getImportOptions();
+public abstract class BaseEventAclCheck implements Checker {
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    ImportOptions importOptions = ctx.getImportOptions();
 
-        Event programStageInstance = prepareForAclValidation( ctx, event );
+    Event programStageInstance = prepareForAclValidation(ctx, event);
 
-        List<String> errors = checkAcl( ctx.getServiceDelegator().getTrackerAccessManager(), importOptions.getUser(),
-            programStageInstance );
+    List<String> errors =
+        checkAcl(
+            ctx.getServiceDelegator().getTrackerAccessManager(),
+            importOptions.getUser(),
+            programStageInstance);
 
-        final ImportSummary importSummary = new ImportSummary();
+    final ImportSummary importSummary = new ImportSummary();
 
-        if ( !errors.isEmpty() )
-        {
-            errors.forEach( error -> importSummary.addConflict( event.getUid(), error ) );
-            importSummary.incrementIgnored();
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.setReference( event.getEvent() );
-        }
-        return importSummary;
+    if (!errors.isEmpty()) {
+      errors.forEach(error -> importSummary.addConflict(event.getUid(), error));
+      importSummary.incrementIgnored();
+      importSummary.setStatus(ImportStatus.ERROR);
+      importSummary.setReference(event.getEvent());
     }
+    return importSummary;
+  }
 
-    private Event prepareForAclValidation( WorkContext ctx, ImmutableEvent event )
-    {
-        final IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
+  private Event prepareForAclValidation(WorkContext ctx, ImmutableEvent event) {
+    final IdScheme programStageIdScheme =
+        ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
 
-        Event programStageInstance = new Event();
-        programStageInstance.setProgramStage( ctx.getProgramStage( programStageIdScheme, event.getProgramStage() ) );
-        programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
-        programStageInstance.setStatus( event.getStatus() );
-        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
-        programStageInstance.setEnrollment( enrollment );
+    Event programStageInstance = new Event();
+    programStageInstance.setProgramStage(
+        ctx.getProgramStage(programStageIdScheme, event.getProgramStage()));
+    programStageInstance.setOrganisationUnit(ctx.getOrganisationUnitMap().get(event.getUid()));
+    programStageInstance.setStatus(event.getStatus());
+    Enrollment enrollment = ctx.getProgramInstanceMap().get(event.getUid());
+    programStageInstance.setEnrollment(enrollment);
 
-        return programStageInstance;
-    }
+    return programStageInstance;
+  }
 
-    public abstract List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-        Event event );
+  public abstract List<String> checkAcl(
+      TrackerAccessManager trackerAccessManager, User user, Event event);
 }

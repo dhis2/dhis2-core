@@ -29,6 +29,7 @@ package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Sets;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
@@ -45,118 +46,109 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
-{
+class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private TrackedEntityService teiService;
+  @Autowired private TrackedEntityService teiService;
 
-    @Autowired
-    private EnrollmentService piService;
+  @Autowired private EnrollmentService piService;
 
-    @Autowired
-    private EventService eventService;
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private TrackerOrgUnitMergeHandler mergeHandler;
+  @Autowired private TrackerOrgUnitMergeHandler mergeHandler;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    private ProgramStage psA;
+  private ProgramStage psA;
 
-    private Program prA;
+  private Program prA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    private TrackedEntity teiA;
+  private TrackedEntity teiA;
 
-    private TrackedEntity teiB;
+  private TrackedEntity teiB;
 
-    private TrackedEntity teiC;
+  private TrackedEntity teiC;
 
-    private Enrollment enrollmentA;
+  private Enrollment enrollmentA;
 
-    private Enrollment enrollmentB;
+  private Enrollment enrollmentB;
 
-    private Enrollment enrollmentC;
+  private Enrollment enrollmentC;
 
-    private Event eventA;
+  private Event eventA;
 
-    private Event eventB;
+  private Event eventB;
 
-    private Event eventC;
+  private Event eventC;
 
-    @Override
-    public void setUpTest()
-    {
-        prA = createProgram( 'A', Sets.newHashSet(), ouA );
-        idObjectManager.save( prA );
-        psA = createProgramStage( 'A', prA );
-        idObjectManager.save( psA );
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-        teiA = createTrackedEntity( 'A', ouA );
-        teiB = createTrackedEntity( 'B', ouB );
-        teiC = createTrackedEntity( 'C', ouC );
-        teiService.addTrackedEntity( teiA );
-        teiService.addTrackedEntity( teiB );
-        teiService.addTrackedEntity( teiC );
-        enrollmentA = createEnrollment( prA, teiA, ouA );
-        enrollmentB = createEnrollment( prA, teiB, ouB );
-        enrollmentC = createEnrollment( prA, teiC, ouA );
-        piService.addEnrollment( enrollmentA );
-        piService.addEnrollment( enrollmentB );
-        piService.addEnrollment( enrollmentC );
-        eventA = new Event( enrollmentA, psA, ouA );
-        eventB = new Event( enrollmentB, psA, ouB );
-        eventC = new Event( enrollmentC, psA, ouA );
-        eventService.addEvent( eventA );
-        eventService.addEvent( eventB );
-        eventService.addEvent( eventC );
-    }
+  @Override
+  public void setUpTest() {
+    prA = createProgram('A', Sets.newHashSet(), ouA);
+    idObjectManager.save(prA);
+    psA = createProgramStage('A', prA);
+    idObjectManager.save(psA);
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+    idObjectManager.save(ouC);
+    teiA = createTrackedEntity('A', ouA);
+    teiB = createTrackedEntity('B', ouB);
+    teiC = createTrackedEntity('C', ouC);
+    teiService.addTrackedEntity(teiA);
+    teiService.addTrackedEntity(teiB);
+    teiService.addTrackedEntity(teiC);
+    enrollmentA = createEnrollment(prA, teiA, ouA);
+    enrollmentB = createEnrollment(prA, teiB, ouB);
+    enrollmentC = createEnrollment(prA, teiC, ouA);
+    piService.addEnrollment(enrollmentA);
+    piService.addEnrollment(enrollmentB);
+    piService.addEnrollment(enrollmentC);
+    eventA = new Event(enrollmentA, psA, ouA);
+    eventB = new Event(enrollmentB, psA, ouB);
+    eventC = new Event(enrollmentC, psA, ouA);
+    eventService.addEvent(eventA);
+    eventService.addEvent(eventB);
+    eventService.addEvent(eventC);
+  }
 
-    @Test
-    void testMigrateEnrollments()
-    {
-        assertEquals( 2, getEnrollmentCount( ouA ) );
-        assertEquals( 1, getEnrollmentCount( ouB ) );
-        assertEquals( 0, getEnrollmentCount( ouC ) );
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
-            .withTarget( ouC ).build();
-        mergeHandler.mergeEnrollments( request );
-        assertEquals( 0, getEnrollmentCount( ouA ) );
-        assertEquals( 0, getEnrollmentCount( ouB ) );
-        assertEquals( 3, getEnrollmentCount( ouC ) );
-    }
+  @Test
+  void testMigrateEnrollments() {
+    assertEquals(2, getEnrollmentCount(ouA));
+    assertEquals(1, getEnrollmentCount(ouB));
+    assertEquals(0, getEnrollmentCount(ouC));
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    mergeHandler.mergeEnrollments(request);
+    assertEquals(0, getEnrollmentCount(ouA));
+    assertEquals(0, getEnrollmentCount(ouB));
+    assertEquals(3, getEnrollmentCount(ouC));
+  }
 
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getEnrollmentCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from Enrollment pi where pi.organisationUnit = :target" )
-            .setParameter( "target", target ).uniqueResult();
-    }
+  /**
+   * Test migrate HQL update statement with an HQL select statement to ensure the updated rows are
+   * visible by the current transaction.
+   *
+   * @param target the {@link OrganisationUnit}
+   * @return the count of interpretations.
+   */
+  private long getEnrollmentCount(OrganisationUnit target) {
+    return (Long)
+        sessionFactory
+            .getCurrentSession()
+            .createQuery("select count(*) from Enrollment pi where pi.organisationUnit = :target")
+            .setParameter("target", target)
+            .uniqueResult();
+  }
 }

@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
 import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -55,181 +55,181 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Abyot Asalefew
  */
-@Repository( "org.hisp.dhis.program.EventStore" )
-public class HibernateEventStore
-    extends SoftDeleteHibernateObjectStore<Event>
-    implements EventStore
-{
-    private final static String EVENT_HQL_BY_UIDS = "from Event as psi where psi.uid in (:uids)";
+@Repository("org.hisp.dhis.program.EventStore")
+public class HibernateEventStore extends SoftDeleteHibernateObjectStore<Event>
+    implements EventStore {
+  private static final String EVENT_HQL_BY_UIDS = "from Event as psi where psi.uid in (:uids)";
 
-    private final static Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS = Sets.intersection(
-        NotificationTrigger.getAllApplicableToEvent(),
-        NotificationTrigger.getAllScheduledTriggers() );
+  private static final Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS =
+      Sets.intersection(
+          NotificationTrigger.getAllApplicableToEvent(),
+          NotificationTrigger.getAllScheduledTriggers());
 
-    public HibernateEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Event.class, currentUserService,
-            aclService, false );
-    }
+  public HibernateEventStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Event.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public List<Event> get( Collection<Enrollment> enrollments, EventStatus status )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<Event> get(Collection<Enrollment> enrollments, EventStatus status) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
-            .addPredicate( root -> root.get( "enrollment" ).in( enrollments ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("status"), status))
+            .addPredicate(root -> root.get("enrollment").in(enrollments)));
+  }
 
-    @Override
-    public List<Event> get( TrackedEntity trackedEntity, EventStatus status )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<Event> get(TrackedEntity trackedEntity, EventStatus status) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("status"), status))
             .addPredicate(
-                root -> builder.equal( root.join( "enrollment" ).get( "trackedEntity" ), trackedEntity ) ) );
+                root ->
+                    builder.equal(root.join("enrollment").get("trackedEntity"), trackedEntity)));
+  }
+
+  @Override
+  public long getEventCountLastUpdatedAfter(Date time) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    return getCount(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.greaterThanOrEqualTo(root.get("lastUpdated"), time))
+            .count(builder::countDistinct));
+  }
+
+  @Override
+  public boolean exists(String uid) {
+    if (uid == null) {
+      return false;
     }
 
-    @Override
-    public long getEventCountLastUpdatedAfter( Date time )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    Query<?> query =
+        getSession()
+            .createNativeQuery(
+                "select exists(select 1 from event where uid=:uid and deleted is false)");
+    query.setParameter("uid", uid);
 
-        return getCount( builder, newJpaParameters()
-            .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), time ) )
-            .count( builder::countDistinct ) );
+    return ((Boolean) query.getSingleResult()).booleanValue();
+  }
+
+  @Override
+  public boolean existsIncludingDeleted(String uid) {
+    if (uid == null) {
+      return false;
     }
 
-    @Override
-    public boolean exists( String uid )
-    {
-        if ( uid == null )
-        {
-            return false;
-        }
+    Query<?> query =
+        getSession().createNativeQuery("select exists(select 1 from event where uid=:uid)");
+    query.setParameter("uid", uid);
 
-        Query<?> query = getSession().createNativeQuery(
-            "select exists(select 1 from programstageinstance where uid=:uid and deleted is false)" );
-        query.setParameter( "uid", uid );
+    return ((Boolean) query.getSingleResult()).booleanValue();
+  }
 
-        return ((Boolean) query.getSingleResult()).booleanValue();
+  @Override
+  public List<String> getUidsIncludingDeleted(List<String> uids) {
+    final String hql = "select psi.uid " + EVENT_HQL_BY_UIDS;
+    List<String> resultUids = new ArrayList<>();
+    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
+
+    for (List<String> uidsPartition : uidsPartitions) {
+      if (!uidsPartition.isEmpty()) {
+        resultUids.addAll(
+            getSession().createQuery(hql, String.class).setParameter("uids", uidsPartition).list());
+      }
     }
 
-    @Override
-    public boolean existsIncludingDeleted( String uid )
-    {
-        if ( uid == null )
-        {
-            return false;
-        }
+    return resultUids;
+  }
 
-        Query<?> query = getSession().createNativeQuery(
-            "select exists(select 1 from programstageinstance where uid=:uid)" );
-        query.setParameter( "uid", uid );
+  @Override
+  public List<Event> getIncludingDeleted(List<String> uids) {
+    List<Event> events = new ArrayList<>();
+    List<List<String>> uidsPartitions = Lists.partition(Lists.newArrayList(uids), 20000);
 
-        return ((Boolean) query.getSingleResult()).booleanValue();
+    for (List<String> uidsPartition : uidsPartitions) {
+      if (!uidsPartition.isEmpty()) {
+        events.addAll(
+            getSession()
+                .createQuery(EVENT_HQL_BY_UIDS, Event.class)
+                .setParameter("uids", uidsPartition)
+                .list());
+      }
     }
 
-    @Override
-    public List<String> getUidsIncludingDeleted( List<String> uids )
-    {
-        final String hql = "select psi.uid " + EVENT_HQL_BY_UIDS;
-        List<String> resultUids = new ArrayList<>();
-        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+    return events;
+  }
 
-        for ( List<String> uidsPartition : uidsPartitions )
-        {
-            if ( !uidsPartition.isEmpty() )
-            {
-                resultUids.addAll(
-                    getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
-            }
-        }
+  @Override
+  public void updateEventsSyncTimestamp(List<String> eventUids, Date lastSynchronized) {
+    String hql = "update Event set lastSynchronized = :lastSynchronized WHERE uid in :events";
 
-        return resultUids;
+    getQuery(hql)
+        .setParameter("lastSynchronized", lastSynchronized)
+        .setParameter("events", eventUids)
+        .executeUpdate();
+  }
+
+  @Override
+  public List<Event> getWithScheduledNotifications(
+      ProgramNotificationTemplate template, Date notificationDate) {
+    if (notificationDate == null
+        || !SCHEDULED_EVENT_TRIGGERS.contains(template.getNotificationTrigger())) {
+      return Lists.newArrayList();
     }
 
-    @Override
-    public List<Event> getIncludingDeleted( List<String> uids )
-    {
-        List<Event> events = new ArrayList<>();
-        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
-
-        for ( List<String> uidsPartition : uidsPartitions )
-        {
-            if ( !uidsPartition.isEmpty() )
-            {
-                events.addAll( getSession().createQuery( EVENT_HQL_BY_UIDS, Event.class )
-                    .setParameter( "uids", uidsPartition ).list() );
-            }
-        }
-
-        return events;
+    if (template.getRelativeScheduledDays() == null) {
+      return Lists.newArrayList();
     }
 
-    @Override
-    public void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized )
-    {
-        String hql = "update Event set lastSynchronized = :lastSynchronized WHERE uid in :events";
+    Date targetDate = DateUtils.addDays(notificationDate, template.getRelativeScheduledDays() * -1);
 
-        getQuery( hql )
-            .setParameter( "lastSynchronized", lastSynchronized )
-            .setParameter( "events", eventUids )
-            .executeUpdate();
-    }
+    String hql =
+        "select distinct psi from Event as psi "
+            + "inner join psi.programStage as ps "
+            + "where :notificationTemplate in elements(ps.notificationTemplates) "
+            + "and psi.dueDate is not null "
+            + "and psi.executionDate is null "
+            + "and psi.status != :skippedEventStatus "
+            + "and cast(:targetDate as date) = psi.dueDate "
+            + "and psi.deleted is false";
 
-    @Override
-    public List<Event> getWithScheduledNotifications( ProgramNotificationTemplate template,
-        Date notificationDate )
-    {
-        if ( notificationDate == null
-            || !SCHEDULED_EVENT_TRIGGERS.contains( template.getNotificationTrigger() ) )
-        {
-            return Lists.newArrayList();
-        }
+    return getQuery(hql)
+        .setParameter("notificationTemplate", template)
+        .setParameter("skippedEventStatus", EventStatus.SKIPPED)
+        .setParameter("targetDate", targetDate)
+        .list();
+  }
 
-        if ( template.getRelativeScheduledDays() == null )
-        {
-            return Lists.newArrayList();
-        }
+  @Override
+  protected void preProcessPredicates(
+      CriteriaBuilder builder, List<Function<Root<Event>, Predicate>> predicates) {
+    predicates.add(root -> builder.equal(root.get("deleted"), false));
+  }
 
-        Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
-
-        String hql = "select distinct psi from Event as psi " +
-            "inner join psi.programStage as ps " +
-            "where :notificationTemplate in elements(ps.notificationTemplates) " +
-            "and psi.dueDate is not null " +
-            "and psi.executionDate is null " +
-            "and psi.status != :skippedEventStatus " +
-            "and cast(:targetDate as date) = psi.dueDate " +
-            "and psi.deleted is false";
-
-        return getQuery( hql )
-            .setParameter( "notificationTemplate", template )
-            .setParameter( "skippedEventStatus", EventStatus.SKIPPED )
-            .setParameter( "targetDate", targetDate ).list();
-    }
-
-    @Override
-    protected void preProcessPredicates( CriteriaBuilder builder,
-        List<Function<Root<Event>, Predicate>> predicates )
-    {
-        predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
-    }
-
-    @Override
-    protected Event postProcessObject( Event event )
-    {
-        return (event == null || event.isDeleted()) ? null : event;
-    }
+  @Override
+  protected Event postProcessObject(Event event) {
+    return (event == null || event.isDeleted()) ? null : event;
+  }
 }

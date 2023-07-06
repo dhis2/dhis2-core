@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation.attribute;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -43,17 +42,17 @@ import org.hisp.dhis.util.DateUtils;
  * @author viet
  */
 @FunctionalInterface
-public interface DateCheck extends Function<String, List<ErrorReport>>
-{
-    DateCheck empty = str -> List.of();
+public interface DateCheck extends Function<String, List<ErrorReport>> {
+  DateCheck empty = str -> List.of();
 
-    DateCheck isDate = check( DateUtils::dateIsValid, ErrorCode.E6014 );
+  DateCheck isDate = check(DateUtils::dateIsValid, ErrorCode.E6014);
 
-    DateCheck isDateTime = check( DateUtils::dateTimeIsValid, ErrorCode.E6015 );
+  DateCheck isDateTime = check(DateUtils::dateTimeIsValid, ErrorCode.E6015);
 
-    static DateCheck check( final Predicate<String> predicate, ErrorCode errorCode )
-    {
-        return str -> !predicate.test( str ) ? List.of( new ErrorReport( AttributeValue.class, errorCode, str ) )
+  static DateCheck check(final Predicate<String> predicate, ErrorCode errorCode) {
+    return str ->
+        !predicate.test(str)
+            ? List.of(new ErrorReport(AttributeValue.class, errorCode, str))
             : List.of();
-    }
+  }
 }

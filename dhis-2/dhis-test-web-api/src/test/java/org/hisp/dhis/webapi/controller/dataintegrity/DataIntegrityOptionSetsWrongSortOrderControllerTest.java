@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -47,101 +46,103 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Test for option sets which are not used.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/option_sets_wrong_sort_order.yaml}
+ * Test for option sets which are not used. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/option_sets/option_sets_wrong_sort_order.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOptionSetsWrongSortOrderControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOptionSetsWrongSortOrderControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    @Autowired
-    private OptionService myOptionService;
+  @Autowired private OptionService myOptionService;
 
-    private String goodOptionSet;
+  private String goodOptionSet;
 
-    private static final String check = "option_sets_wrong_sort_order";
+  private static final String check = "option_sets_wrong_sort_order";
 
-    private static final String detailsIdType = "optionSets";
+  private static final String detailsIdType = "optionSets";
 
-    @Test
-    @Disabled( "Cannot directly set the sort order of option sets" )
-    void testOptionSetWrongSortOrder()
-        throws ConflictException
-    {
+  @Test
+  @Disabled("Cannot directly set the sort order of option sets")
+  void testOptionSetWrongSortOrder() throws ConflictException {
 
-        Option optionA = new Option( "Sweet", "SWEET", 1 );
-        Option optionB = new Option( "Sour", "SOUR", 2 );
-        Option optionC = new Option( "Salty", "SALTY", 3 );
-        OptionSet optionSetA = new OptionSet( "Taste", ValueType.TEXT );
-        optionSetA.addOption( optionA );
-        optionSetA.addOption( optionB );
-        optionSetA.addOption( optionC );
-        myOptionService.saveOptionSet( optionSetA );
-        optionSetA.removeOption( optionB );
-        myOptionService.saveOptionSet( optionSetA );
-        dbmsManager.clearSession();
+    Option optionA = new Option("Sweet", "SWEET", 1);
+    Option optionB = new Option("Sour", "SOUR", 2);
+    Option optionC = new Option("Salty", "SALTY", 3);
+    OptionSet optionSetA = new OptionSet("Taste", ValueType.TEXT);
+    optionSetA.addOption(optionA);
+    optionSetA.addOption(optionB);
+    optionSetA.addOption(optionC);
+    myOptionService.saveOptionSet(optionSetA);
+    optionSetA.removeOption(optionB);
+    myOptionService.saveOptionSet(optionSetA);
+    dbmsManager.clearSession();
 
-        goodOptionSet = optionSetA.getUid();
+    goodOptionSet = optionSetA.getUid();
 
-        JsonObject content = GET( "/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder" )
-            .content();
-        JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
-        assertEquals( myOptionSet.getId(), goodOptionSet );
+    JsonObject content =
+        GET("/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder").content();
+    JsonOptionSet myOptionSet = content.asObject(JsonOptionSet.class);
+    assertEquals(myOptionSet.getId(), goodOptionSet);
 
-        Set<Number> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
-            .collect( Collectors.toSet() );
-        Set<Integer> expectedSortOrders = Set.of( 1, 4 );
-        assertEquals( expectedSortOrders, sortOrders );
+    Set<Number> sortOrders =
+        myOptionSet.getOptions().stream().map(JsonOption::getSortOrder).collect(Collectors.toSet());
+    Set<Integer> expectedSortOrders = Set.of(1, 4);
+    assertEquals(expectedSortOrders, sortOrders);
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 100, goodOptionSet, "Taste", "4 != 2", true );
-    }
+    assertHasDataIntegrityIssues(detailsIdType, check, 100, goodOptionSet, "Taste", "4 != 2", true);
+  }
 
-    @Test
-    void testOptionSetRightSortOrder()
-    {
+  @Test
+  void testOptionSetRightSortOrder() {
 
-        goodOptionSet = assertStatus( HttpStatus.CREATED,
-            POST( "/optionSets",
-                "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }" ) );
+    goodOptionSet =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/optionSets", "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SWEET'," +
-                    "  'sortOrder': 1," +
-                    "  'name': 'Sweet'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options",
+            "{ 'code': 'SWEET',"
+                + "  'sortOrder': 1,"
+                + "  'name': 'Sweet',"
+                + "  'optionSet': { "
+                + "    'id': '"
+                + goodOptionSet
+                + "'"
+                + "  }}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/options",
-                "{ 'code': 'SOUR'," +
-                    "  'sortOrder': 2," +
-                    "  'name': 'Sour'," +
-                    "  'optionSet': { " +
-                    "    'id': '" + goodOptionSet + "'" +
-                    "  }}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/options",
+            "{ 'code': 'SOUR',"
+                + "  'sortOrder': 2,"
+                + "  'name': 'Sour',"
+                + "  'optionSet': { "
+                + "    'id': '"
+                + goodOptionSet
+                + "'"
+                + "  }}"));
 
-        JsonObject content = GET( "/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder" )
-            .content();
-        JsonOptionSet myOptionSet = content.asObject( JsonOptionSet.class );
-        assertEquals( myOptionSet.getId(), goodOptionSet );
+    JsonObject content =
+        GET("/optionSets/" + goodOptionSet + "?fields=id,name,options[id,name,sortOrder").content();
+    JsonOptionSet myOptionSet = content.asObject(JsonOptionSet.class);
+    assertEquals(myOptionSet.getId(), goodOptionSet);
 
-        Set<Number> sortOrders = myOptionSet.getOptions().stream().map( JsonOption::getSortOrder )
-            .collect( Collectors.toSet() );
-        Set<Number> expectedSortOrders = Set.of( 1, 2 );
-        assertEquals( expectedSortOrders, sortOrders );
+    Set<Number> sortOrders =
+        myOptionSet.getOptions().stream().map(JsonOption::getSortOrder).collect(Collectors.toSet());
+    Set<Number> expectedSortOrders = Set.of(1, 2);
+    assertEquals(expectedSortOrders, sortOrders);
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testInvalidCategoriesDivideByZero()
-    {
+  @Test
+  void testInvalidCategoriesDivideByZero() {
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

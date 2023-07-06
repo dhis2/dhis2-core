@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
@@ -60,100 +59,96 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Zubair Asghar
  */
-@ExtendWith( MockitoExtension.class )
-class TrackerImporterServiceTest
-{
+@ExtendWith(MockitoExtension.class)
+class TrackerImporterServiceTest {
 
-    @Mock
-    private TrackerBundleService trackerBundleService;
+  @Mock private TrackerBundleService trackerBundleService;
 
-    @Mock
-    private ValidationService validationService;
+  @Mock private ValidationService validationService;
 
-    @Mock
-    private TrackerPreprocessService trackerPreprocessService;
+  @Mock private TrackerPreprocessService trackerPreprocessService;
 
-    @Mock
-    private TrackerUserService trackerUserService;
+  @Mock private TrackerUserService trackerUserService;
 
-    @Mock
-    private Notifier notifier;
+  @Mock private Notifier notifier;
 
-    @Mock
-    private ValidationResult validationResult;
+  @Mock private ValidationResult validationResult;
 
-    private DefaultTrackerImportService subject;
+  private DefaultTrackerImportService subject;
 
-    private TrackerImportParams params = null;
+  private TrackerImportParams params = null;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new DefaultTrackerImportService( trackerBundleService, validationService,
+  @BeforeEach
+  public void setUp() {
+    subject =
+        new DefaultTrackerImportService(
+            trackerBundleService,
+            validationService,
             trackerPreprocessService,
-            trackerUserService, notifier );
+            trackerUserService,
+            notifier);
 
-        final List<Event> events = rnd.objects( Event.class, 3 ).collect( Collectors.toList() );
+    final List<Event> events = rnd.objects(Event.class, 3).collect(Collectors.toList());
 
-        params = TrackerImportParams.builder()
-            .events( events )
-            .enrollments( new ArrayList<>() )
-            .relationships( new ArrayList<>() )
-            .trackedEntities( new ArrayList<>() )
-            .userId( "123" )
+    params =
+        TrackerImportParams.builder()
+            .events(events)
+            .enrollments(new ArrayList<>())
+            .relationships(new ArrayList<>())
+            .trackedEntities(new ArrayList<>())
+            .userId("123")
             .build();
 
-        PersistenceReport persistenceReport = PersistenceReport.emptyReport();
-        when( trackerUserService.getUser( anyString() ) ).thenReturn( getUser() );
+    PersistenceReport persistenceReport = PersistenceReport.emptyReport();
+    when(trackerUserService.getUser(anyString())).thenReturn(getUser());
 
-        when( trackerBundleService.commit( any( TrackerBundle.class ) ) ).thenReturn( persistenceReport );
+    when(trackerBundleService.commit(any(TrackerBundle.class))).thenReturn(persistenceReport);
 
-        when( validationService.validate( any( TrackerBundle.class ) ) )
-            .thenReturn( validationResult );
-        when( validationService.validateRuleEngine( any( TrackerBundle.class ) ) )
-            .thenReturn( validationResult );
-        when( trackerPreprocessService.preprocess( any( TrackerBundle.class ) ) )
-            .thenReturn( ParamsConverter.convert( params ) );
-    }
+    when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
+    when(validationService.validateRuleEngine(any(TrackerBundle.class)))
+        .thenReturn(validationResult);
+    when(trackerPreprocessService.preprocess(any(TrackerBundle.class)))
+        .thenReturn(ParamsConverter.convert(params));
+  }
 
-    @Test
-    void testSkipSideEffect()
-    {
-        TrackerImportParams parameters = TrackerImportParams.builder()
-            .events( params.getEvents() )
-            .enrollments( new ArrayList<>() )
-            .relationships( new ArrayList<>() )
-            .trackedEntities( new ArrayList<>() )
-            .skipSideEffects( true )
-            .userId( "123" )
+  @Test
+  void testSkipSideEffect() {
+    TrackerImportParams parameters =
+        TrackerImportParams.builder()
+            .events(params.getEvents())
+            .enrollments(new ArrayList<>())
+            .relationships(new ArrayList<>())
+            .trackedEntities(new ArrayList<>())
+            .skipSideEffects(true)
+            .userId("123")
             .build();
 
-        when( trackerBundleService.create( any( TrackerImportParams.class ) ) )
-            .thenReturn( ParamsConverter.convert( parameters ) );
+    when(trackerBundleService.create(any(TrackerImportParams.class)))
+        .thenReturn(ParamsConverter.convert(parameters));
 
-        subject.importTracker( parameters );
+    subject.importTracker(parameters);
 
-        verify( trackerBundleService, times( 0 ) ).handleTrackerSideEffects( anyList() );
-    }
+    verify(trackerBundleService, times(0)).handleTrackerSideEffects(anyList());
+  }
 
-    @Test
-    void testWithSideEffects()
-    {
-        doAnswer( invocationOnMock -> null ).when( trackerBundleService ).handleTrackerSideEffects( anyList() );
-        when( trackerBundleService.create( any( TrackerImportParams.class ) ) )
-            .thenReturn( ParamsConverter.convert( params ) );
+  @Test
+  void testWithSideEffects() {
+    doAnswer(invocationOnMock -> null)
+        .when(trackerBundleService)
+        .handleTrackerSideEffects(anyList());
+    when(trackerBundleService.create(any(TrackerImportParams.class)))
+        .thenReturn(ParamsConverter.convert(params));
 
-        subject.importTracker( params );
+    subject.importTracker(params);
 
-        verify( trackerBundleService, times( 1 ) ).handleTrackerSideEffects( anyList() );
-    }
+    verify(trackerBundleService, times(1)).handleTrackerSideEffects(anyList());
+  }
 
-    private User getUser()
-    {
-        User user = new User();
-        user.setUid( "user1234" );
-        return user;
-    }
+  private User getUser() {
+    User user = new User();
+    user.setUid("user1234");
+    return user;
+  }
 }

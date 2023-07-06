@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -59,108 +58,96 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
-{
+class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
 
-    private Program program;
+  private Program program;
 
-    private ProgramRule programRule;
+  private ProgramRule programRule;
 
-    private ProgramRuleAction programRuleAction;
+  private ProgramRuleAction programRuleAction;
 
-    private ProgramNotificationTemplate programNotificationTemplate;
+  private ProgramNotificationTemplate programNotificationTemplate;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private TrackedEntity trackedEntity;
+  private TrackedEntity trackedEntity;
 
-    private Enrollment enrollment;
+  private Enrollment enrollment;
 
-    private Enrollment enrollmentB;
+  private Enrollment enrollmentB;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private TrackedEntityService trackedEntityService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
-    @Autowired
-    private ProgramNotificationTemplateService programNotificationTemplateService;
+  @Autowired private ProgramNotificationTemplateService programNotificationTemplateService;
 
-    @Autowired
-    private ProgramNotificationInstanceService programNotificationInstanceService;
+  @Autowired private ProgramNotificationInstanceService programNotificationInstanceService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
+  @Autowired private ProgramRuleEngineService programRuleEngineService;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        organisationUnit = createOrganisationUnit( 'O' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-        program = createProgram( 'P' );
-        programService.addProgram( program );
-        trackedEntity = createTrackedEntity( 'T', organisationUnit );
-        trackedEntityService.addTrackedEntity( trackedEntity );
-        programRule = createProgramRule( 'R', program );
-        programRule.setCondition( "true" );
-        manager.save( programRule );
-        programNotificationTemplate = createProgramNotificationTemplate( "test", 1, NotificationTrigger.PROGRAM_RULE,
-            ProgramNotificationRecipient.USER_GROUP );
-        programNotificationTemplate.setAutoFields();
-        programNotificationTemplateService.save( programNotificationTemplate );
-        programRuleAction = createProgramRuleAction( 'A' );
-        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SCHEDULEMESSAGE );
-        programRuleAction.setTemplateUid( programNotificationTemplate.getUid() );
-        programRuleAction.setData( "'2020-12-12'" );
-        manager.save( programRuleAction );
-        programRule.getProgramRuleActions().add( programRuleAction );
-        manager.update( programRule );
-        enrollment = createEnrollment( program, trackedEntity, organisationUnit );
-        enrollmentService.addEnrollment( enrollment );
-        enrollmentB = createEnrollment( program, trackedEntity, organisationUnit );
-        enrollmentService.addEnrollment( enrollmentB );
-    }
+  @Override
+  protected void setUpTest() throws Exception {
+    organisationUnit = createOrganisationUnit('O');
+    organisationUnitService.addOrganisationUnit(organisationUnit);
+    program = createProgram('P');
+    programService.addProgram(program);
+    trackedEntity = createTrackedEntity('T', organisationUnit);
+    trackedEntityService.addTrackedEntity(trackedEntity);
+    programRule = createProgramRule('R', program);
+    programRule.setCondition("true");
+    manager.save(programRule);
+    programNotificationTemplate =
+        createProgramNotificationTemplate(
+            "test", 1, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.USER_GROUP);
+    programNotificationTemplate.setAutoFields();
+    programNotificationTemplateService.save(programNotificationTemplate);
+    programRuleAction = createProgramRuleAction('A');
+    programRuleAction.setProgramRuleActionType(ProgramRuleActionType.SCHEDULEMESSAGE);
+    programRuleAction.setTemplateUid(programNotificationTemplate.getUid());
+    programRuleAction.setData("'2020-12-12'");
+    manager.save(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    manager.update(programRule);
+    enrollment = createEnrollment(program, trackedEntity, organisationUnit);
+    enrollmentService.addEnrollment(enrollment);
+    enrollmentB = createEnrollment(program, trackedEntity, organisationUnit);
+    enrollmentService.addEnrollment(enrollmentB);
+  }
 
-    @Test
-    void testGetProgramNotificationInstance()
-    {
-        programRuleEngineService.evaluateEnrollmentAndRunEffects( enrollment.getId() );
-        List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() );
-        assertFalse( programNotificationInstances.isEmpty() );
-        assertSame( enrollment, programNotificationInstances.get( 0 ).getEnrollment() );
-        ProgramNotificationInstanceParam param = ProgramNotificationInstanceParam.builder()
-            .enrollment( enrollment ).build();
-        List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( param );
-        assertFalse( instances.isEmpty() );
-    }
+  @Test
+  void testGetProgramNotificationInstance() {
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
+    List<ProgramNotificationInstance> programNotificationInstances =
+        programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().enrollment(enrollment).build());
+    assertFalse(programNotificationInstances.isEmpty());
+    assertSame(enrollment, programNotificationInstances.get(0).getEnrollment());
+    ProgramNotificationInstanceParam param =
+        ProgramNotificationInstanceParam.builder().enrollment(enrollment).build();
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(param);
+    assertFalse(instances.isEmpty());
+  }
 
-    @Test
-    void testDeleteProgramNotificationInstance()
-    {
-        programRuleEngineService.evaluateEnrollmentAndRunEffects( enrollmentB.getId() );
-        List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().enrollment( enrollmentB ).build() );
-        assertFalse( programNotificationInstances.isEmpty() );
-        assertSame( enrollmentB, programNotificationInstances.get( 0 ).getEnrollment() );
-        programNotificationInstanceService.delete( programNotificationInstances.get( 0 ) );
-        List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().enrollment( enrollmentB ).build() );
-        assertTrue( instances.isEmpty() );
-    }
+  @Test
+  void testDeleteProgramNotificationInstance() {
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollmentB.getId());
+    List<ProgramNotificationInstance> programNotificationInstances =
+        programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().enrollment(enrollmentB).build());
+    assertFalse(programNotificationInstances.isEmpty());
+    assertSame(enrollmentB, programNotificationInstances.get(0).getEnrollment());
+    programNotificationInstanceService.delete(programNotificationInstances.get(0));
+    List<ProgramNotificationInstance> instances =
+        programNotificationInstanceService.getProgramNotificationInstances(
+            ProgramNotificationInstanceParam.builder().enrollment(enrollmentB).build());
+    assertTrue(instances.isEmpty());
+  }
 }

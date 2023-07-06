@@ -35,16 +35,10 @@ import org.hisp.dhis.program.Event;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface EventService
-{
-    Event getEvent( String uid, EventParams eventParams )
-        throws NotFoundException,
-        ForbiddenException;
+public interface EventService {
+  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
-    Event getEvent( Event event, EventParams eventParams )
-        throws ForbiddenException;
+  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
 
-    Events getEvents( EventOperationParams params )
-        throws BadRequestException,
-        ForbiddenException;
+  Events getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
 }

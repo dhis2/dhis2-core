@@ -28,7 +28,6 @@
 package org.hisp.dhis.user.hibernate;
 
 import javax.annotation.Nonnull;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -40,30 +39,38 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.user.UserGroupStore" )
+@Repository("org.hisp.dhis.user.UserGroupStore")
 public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<UserGroup>
-    implements UserGroupStore
-{
-    public HibernateUserGroupStore( SessionFactory sessionFactory,
-        JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService,
-        AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true );
-    }
+    implements UserGroupStore {
+  public HibernateUserGroupStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        UserGroup.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public void save( @Nonnull UserGroup object, boolean clearSharing )
-    {
-        super.save( object, clearSharing );
-        object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
-    }
+  @Override
+  public void save(@Nonnull UserGroup object, boolean clearSharing) {
+    super.save(object, clearSharing);
+    object
+        .getMembers()
+        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+  }
 
-    @Override
-    public void update( @Nonnull UserGroup object, User user )
-    {
-        super.update( object, user );
-        object.getMembers().forEach( member -> currentUserService.invalidateUserGroupCache( member.getUid() ) );
-    }
+  @Override
+  public void update(@Nonnull UserGroup object, User user) {
+    super.update(object, user);
+    object
+        .getMembers()
+        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+  }
 }

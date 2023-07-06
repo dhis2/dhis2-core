@@ -30,12 +30,9 @@ package org.hisp.dhis.program.function;
 /**
  * @Author Zubair Asghar.
  */
-public class D2MaxValue
-    extends ProgramMinMaxFunction
-{
-    @Override
-    public String getAggregationOperator()
-    {
-        return "max";
-    }
+public class D2MaxValue extends ProgramMinMaxFunction {
+  @Override
+  public String getAggregationOperator() {
+    return "max";
+  }
 }

@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.dimension.mappers;
 
 import java.util.Set;
-
 import lombok.Getter;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
@@ -43,38 +41,35 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
-{
+public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper {
 
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        ProgramIndicator.class,
-        TrackedEntityAttribute.class );
+  @Getter
+  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+      Set.of(ProgramIndicator.class, TrackedEntityAttribute.class);
 
-    /**
-     * adds dimensionType on top of base mapper and, if the dimension is
-     * ValueTyped it also adds valueType and OptionSet (if present)
-     */
-    @Override
-    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
-    {
-        DimensionItemType dimensionItemType = ((BaseDimensionalItemObject) prefixedDimension.getItem())
-            .getDimensionItemType();
+  /**
+   * adds dimensionType on top of base mapper and, if the dimension is ValueTyped it also adds
+   * valueType and OptionSet (if present)
+   */
+  @Override
+  public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
+    DimensionItemType dimensionItemType =
+        ((BaseDimensionalItemObject) prefixedDimension.getItem()).getDimensionItemType();
 
-        DimensionResponse responseWithDimensionType = super.map( prefixedDimension, prefix )
-            .withDimensionType( dimensionTypeOrElse( prefixedDimension, dimensionItemType.name() ) );
-        if ( prefixedDimension.getItem() instanceof ValueTypedDimensionalItemObject )
-        {
-            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) prefixedDimension
-                .getItem();
-            return responseWithDimensionType
-                .withValueType( valueTypedDimensionalItemObject.getValueType().name() )
-                .withOptionSet( valueTypedDimensionalItemObject.getOptionSet() != null
-                    ? valueTypedDimensionalItemObject.getOptionSet().getUid()
-                    : null );
-        }
-
-        return responseWithDimensionType;
+    DimensionResponse responseWithDimensionType =
+        super.map(prefixedDimension, prefix)
+            .withDimensionType(dimensionTypeOrElse(prefixedDimension, dimensionItemType.name()));
+    if (prefixedDimension.getItem() instanceof ValueTypedDimensionalItemObject) {
+      ValueTypedDimensionalItemObject valueTypedDimensionalItemObject =
+          (ValueTypedDimensionalItemObject) prefixedDimension.getItem();
+      return responseWithDimensionType
+          .withValueType(valueTypedDimensionalItemObject.getValueType().name())
+          .withOptionSet(
+              valueTypedDimensionalItemObject.getOptionSet() != null
+                  ? valueTypedDimensionalItemObject.getOptionSet().getUid()
+                  : null);
     }
 
+    return responseWithDimensionType;
+  }
 }

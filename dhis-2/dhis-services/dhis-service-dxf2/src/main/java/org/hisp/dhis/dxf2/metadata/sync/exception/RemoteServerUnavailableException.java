@@ -30,21 +30,16 @@ package org.hisp.dhis.dxf2.metadata.sync.exception;
 /**
  * @author aamerm.
  */
-public class RemoteServerUnavailableException
-    extends RuntimeException
-{
-    public RemoteServerUnavailableException( String message )
-    {
-        super( message );
-    }
+public class RemoteServerUnavailableException extends RuntimeException {
+  public RemoteServerUnavailableException(String message) {
+    super(message);
+  }
 
-    public RemoteServerUnavailableException( Throwable cause )
-    {
-        super( cause );
-    }
+  public RemoteServerUnavailableException(Throwable cause) {
+    super(cause);
+  }
 
-    public RemoteServerUnavailableException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public RemoteServerUnavailableException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

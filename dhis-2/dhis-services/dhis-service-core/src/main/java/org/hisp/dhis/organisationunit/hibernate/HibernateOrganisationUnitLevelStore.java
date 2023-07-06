@@ -28,7 +28,6 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -42,32 +41,38 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" )
+@Repository("org.hisp.dhis.organisationunit.OrganisationUnitLevelStore")
 public class HibernateOrganisationUnitLevelStore
     extends HibernateIdentifiableObjectStore<OrganisationUnitLevel>
-    implements OrganisationUnitLevelStore
-{
-    public HibernateOrganisationUnitLevelStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitLevel.class, currentUserService, aclService,
-            true );
-    }
+    implements OrganisationUnitLevelStore {
+  public HibernateOrganisationUnitLevelStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        OrganisationUnitLevel.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public void deleteAll()
-    {
-        String hql = "delete from OrganisationUnitLevel";
+  @Override
+  public void deleteAll() {
+    String hql = "delete from OrganisationUnitLevel";
 
-        getQuery( hql ).executeUpdate();
-    }
+    getQuery(hql).executeUpdate();
+  }
 
-    @Override
-    public OrganisationUnitLevel getByLevel( int level )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public OrganisationUnitLevel getByLevel(int level) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "level" ), level ) ) );
-    }
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("level"), level)));
+  }
 }

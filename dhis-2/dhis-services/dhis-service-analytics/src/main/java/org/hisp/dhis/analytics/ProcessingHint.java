@@ -32,8 +32,7 @@ package org.hisp.dhis.analytics;
  *
  * @author Lars Helge Overland
  */
-public enum ProcessingHint
-{
-    SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM,
-    SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM
+public enum ProcessingHint {
+  SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM,
+  SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM
 }

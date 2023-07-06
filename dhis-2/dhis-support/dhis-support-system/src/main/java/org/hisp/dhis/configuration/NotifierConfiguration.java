@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.system.notification.InMemoryNotifier;
@@ -38,32 +39,27 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * This class deals with the configuring an appropriate notifier depending on
- * whether redis is enabled or not.
+ * This class deals with the configuring an appropriate notifier depending on whether redis is
+ * enabled or not.
  *
  * @author Ameen Mohamed
  */
 @Configuration
-public class NotifierConfiguration
-{
-    @Autowired( required = false )
-    private RedisTemplate<?, ?> redisTemplate;
+public class NotifierConfiguration {
+  @Autowired(required = false)
+  private RedisTemplate<?, ?> redisTemplate;
 
-    @SuppressWarnings( "unchecked" )
-    @Bean( "notifier" )
-    @Conditional( RedisEnabledCondition.class )
-    public Notifier redisNotifier( ObjectMapper objectMapper )
-    {
-        return new RedisNotifier( (RedisTemplate<String, String>) redisTemplate, objectMapper );
-    }
+  @SuppressWarnings("unchecked")
+  @Bean("notifier")
+  @Conditional(RedisEnabledCondition.class)
+  public Notifier redisNotifier(ObjectMapper objectMapper) {
+    return new RedisNotifier((RedisTemplate<String, String>) redisTemplate, objectMapper);
+  }
 
-    @Bean( "notifier" )
-    @Conditional( RedisDisabledCondition.class )
-    public Notifier inMemoryNotifier()
-    {
-        return new InMemoryNotifier();
-    }
+  @Bean("notifier")
+  @Conditional(RedisDisabledCondition.class)
+  public Notifier inMemoryNotifier() {
+    return new InMemoryNotifier();
+  }
 }

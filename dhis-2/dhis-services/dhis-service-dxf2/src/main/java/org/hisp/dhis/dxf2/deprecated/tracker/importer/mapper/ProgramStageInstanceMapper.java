@@ -39,7 +39,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
@@ -52,220 +51,200 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceMapper extends AbstractMapper<org.hisp.dhis.dxf2.deprecated.tracker.event.Event, Event>
-{
-    private final ProgramStageInstanceNoteMapper noteMapper;
+public class ProgramStageInstanceMapper
+    extends AbstractMapper<org.hisp.dhis.dxf2.deprecated.tracker.event.Event, Event> {
+  private final ProgramStageInstanceNoteMapper noteMapper;
 
-    public ProgramStageInstanceMapper( WorkContext ctx )
-    {
-        super( ctx );
-        noteMapper = new ProgramStageInstanceNoteMapper( ctx );
+  public ProgramStageInstanceMapper(WorkContext ctx) {
+    super(ctx);
+    noteMapper = new ProgramStageInstanceNoteMapper(ctx);
+  }
+
+  @Override
+  public Event map(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
+    Event psi = workContext.getProgramStageInstanceMap().get(event.getUid());
+
+    if (psi == null) {
+      psi = mapForInsert(event);
+    } else {
+      mapForUpdate(event, psi);
     }
 
-    @Override
-    public Event map( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
-    {
-        Event psi = workContext.getProgramStageInstanceMap().get( event.getUid() );
+    return mapDataValueIdentifier(psi, super.workContext.getDataElementMap());
+  }
 
-        if ( psi == null )
-        {
-            psi = mapForInsert( event );
-        }
-        else
-        {
-            mapForUpdate( event, psi );
-        }
+  /**
+   * Set data element identifier to uid. We run the psi through this method to make sure data value
+   * identifiers are UID. Otherwise, we would store data values with whatever identifier is used for
+   * import, for example CODE or ATTRIBUTE.
+   *
+   * @param psi the psi with the datavalues to normalize to uid identifiers
+   * @param dataElementMap a map of persisted data elements.
+   * @return a program stage instance with normalized data values.
+   */
+  private Event mapDataValueIdentifier(Event psi, Map<String, DataElement> dataElementMap) {
+    for (EventDataValue dv : psi.getEventDataValues()) {
+      DataElement de = dataElementMap.get(dv.getDataElement());
+      if (de != null) {
+        dv.setDataElement(de.getUid());
+      }
+    }
+    return psi;
+  }
 
-        return mapDataValueIdentifier( psi, super.workContext.getDataElementMap() );
+  private Event mapForUpdate(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi) {
+    // Enrollment
+    workContext.getProgramInstance(event.getUid()).ifPresent(psi::setEnrollment);
+
+    // Program Stage
+    getProgramStage(event).ifPresent(psi::setProgramStage);
+
+    // Org Unit
+    getOrganisationUnit(event).ifPresent(psi::setOrganisationUnit);
+
+    // Status and completed date are set in the Update Preprocessor //
+
+    // Attribute Option Combo
+    psi.setAttributeOptionCombo(this.workContext.getCategoryOptionComboMap().get(event.getUid()));
+
+    // Geometry
+    psi.setGeometry(event.getGeometry());
+
+    // Notes
+    if (!event.getNotes().isEmpty()) {
+      psi.setComments(convertNotes(event, this.workContext));
     }
 
-    /**
-     * Set data element identifier to uid. We run the psi through this method to
-     * make sure data value identifiers are UID. Otherwise, we would store data
-     * values with whatever identifier is used for import, for example CODE or
-     * ATTRIBUTE.
-     *
-     * @param psi the psi with the datavalues to normalize to uid identifiers
-     * @param dataElementMap a map of persisted data elements.
-     * @return a program stage instance with normalized data values.
-     */
-    private Event mapDataValueIdentifier( Event psi,
-        Map<String, DataElement> dataElementMap )
-    {
-        for ( EventDataValue dv : psi.getEventDataValues() )
-        {
-            DataElement de = dataElementMap.get( dv.getDataElement() );
-            if ( de != null )
-            {
-                dv.setDataElement( de.getUid() );
-            }
-        }
-        return psi;
+    // Data Values
+    psi.setEventDataValues(workContext.getEventDataValueMap().get(event.getUid()));
+
+    if (event.getDueDate() != null) {
+      psi.setDueDate(parseDate(event.getDueDate()));
     }
 
-    private Event mapForUpdate( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi )
-    {
-        // Enrollment
-        workContext.getProgramInstance( event.getUid() ).ifPresent( psi::setEnrollment );
+    setExecutionDate(event, psi);
 
-        // Program Stage
-        getProgramStage( event ).ifPresent( psi::setProgramStage );
-
-        // Org Unit
-        getOrganisationUnit( event ).ifPresent( psi::setOrganisationUnit );
-
-        // Status and completed date are set in the Update Preprocessor //
-
-        // Attribute Option Combo
-        psi.setAttributeOptionCombo( this.workContext.getCategoryOptionComboMap().get( event.getUid() ) );
-
-        // Geometry
-        psi.setGeometry( event.getGeometry() );
-
-        // Notes
-        if ( !event.getNotes().isEmpty() )
-        {
-            psi.setComments( convertNotes( event, this.workContext ) );
-        }
-
-        // Data Values
-        psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ) );
-
-        if ( event.getDueDate() != null )
-        {
-            psi.setDueDate( parseDate( event.getDueDate() ) );
-        }
-
-        setExecutionDate( event, psi );
-
-        if ( psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment() )
-        {
-            psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
-        }
-
-        // UPDATED AT CLIENT
-        psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
-
-        psi.setStoredBy( event.getStoredBy() );
-        psi.setCompletedBy( event.getCompletedBy() );
-
-        psi.setLastUpdatedByUserInfo( event.getLastUpdatedByUserInfo() );
-
-        return psi;
+    if (psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment()) {
+      psi.setAssignedUser(this.workContext.getAssignedUserMap().get(event.getUid()));
     }
 
-    public Event mapForInsert( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
-    {
-        ImportOptions importOptions = workContext.getImportOptions();
+    // UPDATED AT CLIENT
+    psi.setLastUpdatedAtClient(parseDate(event.getLastUpdatedAtClient()));
 
-        Event psi = new Event();
+    psi.setStoredBy(event.getStoredBy());
+    psi.setCompletedBy(event.getCompletedBy());
 
-        if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( CODE ) )
-        {
-            psi.setCode( event.getEvent() );
-        }
-        else if ( importOptions.getIdSchemes().getProgramStageIdScheme().equals( UID ) )
-        {
-            psi.setUid( event.getUid() );
-        }
+    psi.setLastUpdatedByUserInfo(event.getLastUpdatedByUserInfo());
 
-        // Enrollment
-        psi.setEnrollment( this.workContext.getProgramInstanceMap().get( event.getUid() ) );
+    return psi;
+  }
 
-        // Program Stage
-        psi.setProgramStage( this.workContext.getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(),
-            event.getProgramStage() ) );
+  public Event mapForInsert(org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
+    ImportOptions importOptions = workContext.getImportOptions();
 
-        // Org Unit
-        psi.setOrganisationUnit( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
+    Event psi = new Event();
 
-        // Status
-        psi.setStatus( fromInt( event.getStatus().getValue() ) );
-
-        // Attribute Option Combo
-        psi.setAttributeOptionCombo( this.workContext.getCategoryOptionComboMap().get( event.getUid() ) );
-
-        // Geometry
-        psi.setGeometry( event.getGeometry() );
-
-        // Notes
-        psi.setComments( convertNotes( event, this.workContext ) );
-
-        // Data Values
-        psi.setEventDataValues( workContext.getEventDataValueMap().get( event.getUid() ) );
-
-        Date dueDate = new Date();
-
-        if ( event.getDueDate() != null )
-        {
-            dueDate = parseDate( event.getDueDate() );
-        }
-
-        psi.setDueDate( dueDate );
-        setCompletedDate( event, psi );
-        // Note that execution date can be null
-        setExecutionDate( event, psi );
-
-        if ( psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment() )
-        {
-            psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
-        }
-
-        // CREATED AT CLIENT + UPDATED AT CLIENT
-        psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
-        psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
-
-        psi.setStoredBy( event.getStoredBy() );
-        psi.setCompletedBy( event.getCompletedBy() );
-
-        psi.setCreatedByUserInfo( event.getCreatedByUserInfo() );
-        psi.setLastUpdatedByUserInfo( event.getLastUpdatedByUserInfo() );
-
-        return psi;
+    if (importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals(CODE)) {
+      psi.setCode(event.getEvent());
+    } else if (importOptions.getIdSchemes().getProgramStageIdScheme().equals(UID)) {
+      psi.setUid(event.getUid());
     }
 
-    private List<TrackedEntityComment> convertNotes( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event,
-        WorkContext ctx )
-    {
-        if ( isNotEmpty( event.getNotes() ) )
-        {
-            return event.getNotes().stream().filter( note -> ctx.getNotesMap().containsKey( note.getNote() ) )
-                .map( noteMapper::map ).collect( toList() );
-        }
+    // Enrollment
+    psi.setEnrollment(this.workContext.getProgramInstanceMap().get(event.getUid()));
 
-        return emptyList();
+    // Program Stage
+    psi.setProgramStage(
+        this.workContext.getProgramStage(
+            importOptions.getIdSchemes().getProgramStageIdScheme(), event.getProgramStage()));
+
+    // Org Unit
+    psi.setOrganisationUnit(this.workContext.getOrganisationUnitMap().get(event.getUid()));
+
+    // Status
+    psi.setStatus(fromInt(event.getStatus().getValue()));
+
+    // Attribute Option Combo
+    psi.setAttributeOptionCombo(this.workContext.getCategoryOptionComboMap().get(event.getUid()));
+
+    // Geometry
+    psi.setGeometry(event.getGeometry());
+
+    // Notes
+    psi.setComments(convertNotes(event, this.workContext));
+
+    // Data Values
+    psi.setEventDataValues(workContext.getEventDataValueMap().get(event.getUid()));
+
+    Date dueDate = new Date();
+
+    if (event.getDueDate() != null) {
+      dueDate = parseDate(event.getDueDate());
     }
 
-    private Optional<ProgramStage> getProgramStage( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
-    {
-        return Optional.ofNullable( this.workContext.getProgramStage(
-            this.workContext.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() ) );
+    psi.setDueDate(dueDate);
+    setCompletedDate(event, psi);
+    // Note that execution date can be null
+    setExecutionDate(event, psi);
+
+    if (psi.getProgramStage() != null && psi.getProgramStage().isEnableUserAssignment()) {
+      psi.setAssignedUser(this.workContext.getAssignedUserMap().get(event.getUid()));
     }
 
-    private Optional<OrganisationUnit> getOrganisationUnit( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
-    {
-        return Optional.ofNullable( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
+    // CREATED AT CLIENT + UPDATED AT CLIENT
+    psi.setCreatedAtClient(parseDate(event.getCreatedAtClient()));
+    psi.setLastUpdatedAtClient(parseDate(event.getLastUpdatedAtClient()));
+
+    psi.setStoredBy(event.getStoredBy());
+    psi.setCompletedBy(event.getCompletedBy());
+
+    psi.setCreatedByUserInfo(event.getCreatedByUserInfo());
+    psi.setLastUpdatedByUserInfo(event.getLastUpdatedByUserInfo());
+
+    return psi;
+  }
+
+  private List<TrackedEntityComment> convertNotes(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, WorkContext ctx) {
+    if (isNotEmpty(event.getNotes())) {
+      return event.getNotes().stream()
+          .filter(note -> ctx.getNotesMap().containsKey(note.getNote()))
+          .map(noteMapper::map)
+          .collect(toList());
     }
 
-    private void setExecutionDate( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi )
-    {
-        if ( event.getEventDate() != null )
-        {
-            psi.setExecutionDate( parseDate( event.getEventDate() ) );
-        }
-    }
+    return emptyList();
+  }
 
-    private void setCompletedDate( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi )
-    {
-        // Completed Date // FIXME this logic should be moved to a preprocessor
-        if ( psi.isCompleted() )
-        {
-            Date completedDate = new Date();
-            if ( event.getCompletedDate() != null )
-            {
-                completedDate = parseDate( event.getCompletedDate() );
-            }
-            psi.setCompletedDate( completedDate );
-        }
+  private Optional<ProgramStage> getProgramStage(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
+    return Optional.ofNullable(
+        this.workContext.getProgramStage(
+            this.workContext.getImportOptions().getIdSchemes().getProgramStageIdScheme(),
+            event.getProgramStage()));
+  }
+
+  private Optional<OrganisationUnit> getOrganisationUnit(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event) {
+    return Optional.ofNullable(this.workContext.getOrganisationUnitMap().get(event.getUid()));
+  }
+
+  private void setExecutionDate(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi) {
+    if (event.getEventDate() != null) {
+      psi.setExecutionDate(parseDate(event.getEventDate()));
     }
+  }
+
+  private void setCompletedDate(
+      org.hisp.dhis.dxf2.deprecated.tracker.event.Event event, Event psi) {
+    // Completed Date // FIXME this logic should be moved to a preprocessor
+    if (psi.isCompleted()) {
+      Date completedDate = new Date();
+      if (event.getCompletedDate() != null) {
+        completedDate = parseDate(event.getCompletedDate());
+      }
+      psi.setCompletedDate(completedDate);
+    }
+  }
 }

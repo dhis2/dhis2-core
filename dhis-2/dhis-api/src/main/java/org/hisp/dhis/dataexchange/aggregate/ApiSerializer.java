@@ -27,40 +27,34 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
-import java.io.IOException;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * Jackson JSON serializer for {@link Api}. Does not write sensitive properties
- * including {@code accessToken} and {@link password}.
- * <p>
- * This serializer exists because {@link Api} is persisted as a JSONB data type
- * which relies on creating a deep copy by writing and reading the class to
- * JSON, in which case the use of {@link JsonProperty.Access.WRITE_ONLY} at the
- * property level leads to the property value being lost in the copy process.
+ * Jackson JSON serializer for {@link Api}. Does not write sensitive properties including {@code
+ * accessToken} and {@link password}.
+ *
+ * <p>This serializer exists because {@link Api} is persisted as a JSONB data type which relies on
+ * creating a deep copy by writing and reading the class to JSON, in which case the use of {@link
+ * JsonProperty.Access.WRITE_ONLY} at the property level leads to the property value being lost in
+ * the copy process.
  *
  * @author Lars Helge Overland
  */
-public class ApiSerializer
-    extends JsonSerializer<Api>
-{
-    @Override
-    public void serialize( Api api, JsonGenerator json, SerializerProvider serializers )
-        throws IOException
-    {
-        json.writeStartObject();
-        json.writeStringField( "url", api.getUrl() );
+public class ApiSerializer extends JsonSerializer<Api> {
+  @Override
+  public void serialize(Api api, JsonGenerator json, SerializerProvider serializers)
+      throws IOException {
+    json.writeStartObject();
+    json.writeStringField("url", api.getUrl());
 
-        if ( StringUtils.isNotBlank( api.getUsername() ) )
-        {
-            json.writeStringField( "username", api.getUsername() );
-        }
-
-        json.writeEndObject();
+    if (StringUtils.isNotBlank(api.getUsername())) {
+      json.writeStringField("username", api.getUsername());
     }
+
+    json.writeEndObject();
+  }
 }
