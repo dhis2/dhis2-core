@@ -38,6 +38,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -122,12 +123,16 @@ public class JdbcOwnershipWriter
     // -------------------------------------------------------------------------
 
     /**
-     * Process the first row for a TEI. For now just save it as the previous row
-     * and set the start date for far in the past.
+     * Process the first row for a TEI. Save it as the previous row and set the
+     * start date for far in the past. If the previous row does not have an
+     * "enddate", we enforce a default one.
      */
     private void startNewTei()
     {
         prevRow = newRow;
+
+        // Ensure a default "enddate" value.
+        prevRow.putIfAbsent( ENDDATE, FAR_FUTURE_DATE );
 
         prevRow.put( STARTDATE, FAR_PAST_DATE );
     }
@@ -206,6 +211,6 @@ public class JdbcOwnershipWriter
      */
     private boolean sameValue( String colName )
     {
-        return prevRow.get( colName ).equals( newRow.get( colName ) );
+        return Objects.equals( prevRow.get( colName ), newRow.get( colName ) );
     }
 }

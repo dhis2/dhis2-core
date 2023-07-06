@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.annotation.Property;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -42,6 +43,7 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared( name = "LegacyUserAccess" )
 @JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
 public class UserAccess
     implements Serializable

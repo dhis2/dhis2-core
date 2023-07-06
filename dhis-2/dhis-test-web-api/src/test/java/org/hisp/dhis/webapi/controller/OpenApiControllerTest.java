@@ -29,11 +29,17 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
+
+import io.swagger.parser.OpenAPIParser;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.openapi.OpenApiController} with Mock
@@ -47,15 +53,20 @@ import org.junit.jupiter.api.Test;
 class OpenApiControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    void testGetOpenApiDocument()
+    void testGetOpenApiDocumentJson()
     {
-        JsonObject doc = GET( "/openapi/openapi.json" ).content();
+        JsonObject doc = GET( "/openapi/openapi.json?failOnNameClash=true" ).content();
         assertTrue( doc.isObject() );
+        assertTrue( doc.getObject( "components.schemas.PropertyNames_OrganisationUnit" ).isObject() );
         assertGreaterOrEqual( 150, doc.getObject( "paths" ).size() );
         assertGreaterOrEqual( 0, doc.getObject( "security[0].basicAuth" ).size() );
         assertGreaterOrEqual( 1, doc.getObject( "components.securitySchemes" ).size() );
         assertGreaterOrEqual( 200, doc.getObject( "components.schemas" ).size() );
         assertGreaterOrEqual( 200, doc.getObject( "components.schemas" ).size() );
+
+        SwaggerParseResult result = new OpenAPIParser().readContents( doc.node().getDeclaration(), null,
+            null );
+        assertEquals( List.of(), result.getMessages(), "There should not be any errors" );
     }
 
     @Test

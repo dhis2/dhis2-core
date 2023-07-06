@@ -31,6 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +47,7 @@ import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -148,11 +150,22 @@ public class TrackerRelationshipsExportController
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
         if ( criteria.isPagingRequest() )
         {
+            long count = 0L;
+
+            if ( criteria.isTotalPages() )
+            {
+                count = tryGetRelationshipFrom(
+                    identifier,
+                    criteria.getIdentifierClass(),
+                    () -> notFound( "No " + identifierName + " '" + identifier + "' found." ),
+                    null ).size();
+            }
+
+            Pager pager = new Pager( criteria.getPageWithDefault(), count,
+                criteria.getPageSizeWithDefault() );
+
             pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.builder()
-                    .page( criteria.getPage() )
-                    .pageSize( criteria.getPageSize() )
-                    .build() );
+                PagingWrapper.Pager.fromLegacy( criteria, pager ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, fields );
@@ -195,7 +208,7 @@ public class TrackerRelationshipsExportController
                 throw new WebMessageException( notFoundMessageSupplier.get() );
             }
         }
-        return null;
+        return Collections.emptyList();
     }
 
     private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipRetriever(

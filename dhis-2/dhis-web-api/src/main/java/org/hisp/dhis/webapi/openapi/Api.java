@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -60,10 +61,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 
 /**
  * Captures the result of the controller analysis process in a data model.
- *
+ * <p>
  * Simple fields in the model are "immutable" while collections are used
  * "mutable" to aggregate the results during the analysis process.
- *
+ * <p>
  * Descriptions that are added later use a {@link Maybe} box, so they can be
  * used "mutable" too.
  *
@@ -75,7 +76,7 @@ public class Api
     /**
      * Can be used in {@link OpenApi.Param#value()} to point not to the type to
      * use but the generator to use.
-     *
+     * <p>
      * All generators must provide an accessible no args constructor and be
      * stateless.
      */
@@ -96,7 +97,23 @@ public class Api
     {
     }
 
+    /**
+     * "Global" tag descriptions
+     */
+    Map<String, Tag> tags = new TreeMap<>();
+
+    /**
+     * The controllers as collected by the analysis phase
+     */
     List<Controller> controllers = new ArrayList<>();
+
+    /**
+     * The merged endpoints grouped by path and request method computed by the
+     * finalisation phase. This is the basis of the OpenAPI document generation.
+     */
+    Map<String, Map<RequestMethod, Endpoint>> endpoints = new TreeMap<>();
+
+    Components components = new Components();
 
     /**
      * Note that this needs to use the {@link ConcurrentSkipListMap} as most
@@ -106,18 +123,6 @@ public class Api
      * added.
      */
     Map<Class<?>, Schema> schemas = new ConcurrentSkipListMap<>( Comparator.comparing( Class::getName ) );
-
-    /**
-     * "Global" or shared parameters originating from parameter object classes.
-     * These are reused purely for sake of removing duplication from the
-     * resulting OpenAPI document.
-     */
-    Map<String, Parameter> parameters = new TreeMap<>();
-
-    /**
-     * "Global" tag descriptions
-     */
-    Map<String, Tag> tags = new TreeMap<>();
 
     /**
      * @return all tags used in the {@link Api}
@@ -156,6 +161,31 @@ public class Api
         {
             return value != null ? value : defaultValue;
         }
+    }
+
+    /**
+     * Shared {@code components} in an OpenAPi document.
+     */
+    @Value
+    static class Components
+    {
+        /**
+         * Only the shared schemas of the API by their unique name
+         */
+        Map<String, Schema> schemas = new TreeMap<>();
+
+        /**
+         * Schemas for types that do not directly reflect domain object types
+         * but types such as references or UID types.
+         */
+        Map<String, Schema> additionalSchemas = new TreeMap<>();
+
+        /**
+         * Shared parameters originating from parameter object classes. These
+         * are reused purely for sake of removing duplication from the resulting
+         * OpenAPI document.
+         */
+        Map<Class<?>, List<Parameter>> parameters = new ConcurrentHashMap<>();
     }
 
     @Value
@@ -226,6 +256,9 @@ public class Api
 
         Maybe<RequestBody> requestBody = new Maybe<>();
 
+        /**
+         * Endpoint parameter by simple name (endpoint local name)
+         */
         Map<String, Parameter> parameters = new TreeMap<>();
 
         Map<HttpStatus, Response> responses = new EnumMap<>( HttpStatus.class );
@@ -272,10 +305,15 @@ public class Api
             BODY
         }
 
+        /**
+         * The annotated {@link Method} when originating from a
+         * {@link OpenApi.Param}, a {@link java.lang.reflect.Field} or
+         * {@link Method} when originating from a property in a
+         * {@link OpenApi.Params} type, a {@link java.lang.reflect.Parameter}
+         * when originating from a usual endpoint method parameter.
+         */
         @ToString.Exclude
         AnnotatedElement source;
-
-        String globalName;
 
         @EqualsAndHashCode.Include
         String name;
@@ -285,9 +323,18 @@ public class Api
 
         boolean required;
 
+        Schema type;
+
         Maybe<String> description = new Maybe<>();
 
-        Schema type;
+        /**
+         * In case of a parameter this also refers to the class name containing
+         * the parameter, not the name of the field the parameter originates
+         * from. If not explicitly given using @{@link OpenApi.Shared} this
+         * value is {@code null} during analysis and first decided in the
+         * synthesis step.
+         */
+        Maybe<String> sharedName = new Maybe<>();
 
         /**
          * @return true, if this parameter is one or many in a complex parameter
@@ -296,7 +343,17 @@ public class Api
          */
         boolean isShared()
         {
-            return globalName != null;
+            return sharedName.isPresent();
+        }
+
+        /**
+         * @return either the simple parameter name if it is not shared (unique
+         *         only in the context of the endpoint) or the globally unique
+         *         name when shared.
+         */
+        String getFullName()
+        {
+            return isShared() ? sharedName.getValue() + "." + name : name;
         }
     }
 
@@ -348,7 +405,15 @@ public class Api
 
         Boolean required;
 
+        /**
+         * OBS! This cannot be included in {@link #toString()} because it might
+         * be a circular with the {@link Schema} containing the
+         * {@link Property}.
+         */
+        @ToString.Exclude
         Schema type;
+
+        Maybe<String> description = new Maybe<>();
     }
 
     @Value
@@ -390,16 +455,6 @@ public class Api
             return schema;
         }
 
-        static boolean isNamed( Class<?> source )
-        {
-            String name = source.getName();
-            return !source.isPrimitive()
-                && !source.isEnum()
-                && !source.isArray()
-                && !name.startsWith( "java.lang" )
-                && !name.startsWith( "java.util" );
-        }
-
         public enum Type
         {
             SIMPLE,
@@ -409,7 +464,12 @@ public class Api
             REF,
             UNKNOWN,
             ONE_OF,
-            ENUM
+            ENUM;
+
+            boolean isSharedAsAdditionalSchema()
+            {
+                return this == Type.REF || this == Type.UID || this == Type.ENUM;
+            }
         }
 
         @EqualsAndHashCode.Include
@@ -420,7 +480,7 @@ public class Api
          * as a named schema in the generated OpenAPI document.
          */
         @EqualsAndHashCode.Include
-        boolean named;
+        boolean shared;
 
         @ToString.Exclude
         java.lang.reflect.Type source;
@@ -440,10 +500,11 @@ public class Api
          */
         List<String> values = new ArrayList<>();
 
-        public Schema( Type type, java.lang.reflect.Type source, Class<?> rawType )
-        {
-            this( type, isNamed( rawType ), source, rawType );
-        }
+        /**
+         * The globally unique name of this is a shared schema. This name is
+         * decided first during the finalisation phase.
+         */
+        Maybe<String> sharedName = new Maybe<>();
 
         Set<String> getRequiredProperties()
         {

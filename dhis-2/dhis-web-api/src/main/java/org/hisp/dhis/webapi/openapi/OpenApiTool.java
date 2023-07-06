@@ -133,7 +133,7 @@ public class OpenApiTool implements ToolProvider
         ApiAnalyse.Scope scope = new ApiAnalyse.Scope( classes, paths, tags );
         if ( !group )
         {
-            BiFunction<Api, OpenApiGenerator.Configuration, String> generator = filename.endsWith( ".json" )
+            BiFunction<Api, OpenApiGenerator.Info, String> generator = filename.endsWith( ".json" )
                 ? ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config )
                 : ( api, config ) -> OpenApiGenerator.generateYaml( api, JsonGenerator.Format.PRETTY_PRINT, config );
             return generateDocument( filename, out, err, scope, generator );
@@ -155,7 +155,7 @@ public class OpenApiTool implements ToolProvider
             .filter( cls -> !cls.isAnnotationPresent( OpenApi.Ignore.class ) )
             .forEach( cls -> byTag.computeIfAbsent( getMainTag( cls ), key -> new HashSet<>() )
                 .add( cls ) );
-        BiFunction<Api, OpenApiGenerator.Configuration, String> generator = to.endsWith( ".yaml" )
+        BiFunction<Api, OpenApiGenerator.Info, String> generator = to.endsWith( ".yaml" )
             ? ( api, config ) -> OpenApiGenerator.generateYaml( api, JsonGenerator.Format.PRETTY_PRINT, config )
             : ( api, config ) -> OpenApiGenerator.generateJson( api, JsonGenerator.Format.PRETTY_PRINT, config );
         byTag.forEach( ( tag, classes ) -> {
@@ -168,21 +168,25 @@ public class OpenApiTool implements ToolProvider
     }
 
     private Integer generateDocument( String filename, PrintWriter out, PrintWriter err, ApiAnalyse.Scope scope,
-        BiFunction<Api, OpenApiGenerator.Configuration, String> generator )
+        BiFunction<Api, OpenApiGenerator.Info, String> generator )
     {
         try
         {
             Api api = ApiAnalyse.analyseApi( scope );
-            ApiDescribe.describeApi( api );
+
+            ApiFinalise.finaliseApi( api, ApiFinalise.Configuration.builder()
+                .failOnNameClash( true )
+                .namePartDelimiter( "_" )
+                .build() );
             Path file = Path.of( filename );
             String title = file.getFileName().toString()
                 .replace( "openapi-", "" )
                 .replace( '_', ' ' )
                 .replace( ".json", "" );
-            OpenApiGenerator.Configuration config = OpenApiGenerator.Configuration.DEFAULT.toBuilder()
+            OpenApiGenerator.Info info = OpenApiGenerator.Info.DEFAULT.toBuilder()
                 .title( "DHIS2 API - " + title )
                 .build();
-            String doc = generator.apply( api, config );
+            String doc = generator.apply( api, info );
             Path output = Files.writeString( file, doc );
             out.printf( "  %-30s [%3d controllers, %3d schemas]%n",
                 output.getFileName(), api.getControllers().size(), api.getSchemas().size() );

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -40,6 +41,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@OpenApi.Shared( value = false )
 @JacksonXmlRootElement( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
 public class Category
 {

@@ -290,14 +290,14 @@ class JdbcOwnershipAnalyticsTableManagerTest
         assertEquals( "select tei.uid,a.startdate,a.enddate,ou.uid from (" +
             "select h.trackedentityinstanceid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid " +
             "from programownershiphistory h " +
-            "where h.programid=0 " +
+            "where h.programid=0 and h.organisationunitid is not null " +
             "union " +
             "select o.trackedentityinstanceid, '2002-02-02' as startdate, null as enddate, o.organisationunitid " +
             "from trackedentityprogramowner o " +
             "where o.programid=0 " +
-            "and exists (select programid from programownershiphistory p " +
+            "and exists (select 1 from programownershiphistory p " +
             "where o.trackedentityinstanceid = p.trackedentityinstanceid " +
-            "and p.programid=0)" +
+            "and p.programid=0 and p.organisationunitid is not null)" +
             ") a " +
             "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid " +
             "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid " +
