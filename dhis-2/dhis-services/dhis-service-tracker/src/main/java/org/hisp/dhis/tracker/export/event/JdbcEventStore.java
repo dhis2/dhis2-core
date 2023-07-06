@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -73,6 +75,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -925,7 +928,7 @@ public class JdbcEventStore implements EventStore {
           .append(" ");
     }
 
-    String orgUnitSql = getOrgUnitSql(user, params, getOuTableName(params));
+    String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
 
     if (orgUnitSql != null) {
       fromBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
@@ -1023,6 +1026,28 @@ public class JdbcEventStore implements EventStore {
     }
 
     return fromBuilder;
+  }
+
+  private String getOrgUnitSql(EventSearchParams params, String ouTable) {
+    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
+
+    if (orgUnitSelectionMode == null) {
+      if (params.getOrgUnit() != null) {
+        return getSelectedOrgUnitPath(params.getOrgUnit(), ouTable);
+      }
+
+      return getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+    }
+
+    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
+      return getSelectedOrgUnitPath(params.getOrgUnit(), ouTable);
+    } else if (params.isOrganisationUnitMode(CHILDREN)) {
+      return getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+    } else if (!params.isOrganisationUnitMode(ALL)) {
+      return getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+    }
+
+    return null;
   }
 
   /**
@@ -1191,9 +1216,10 @@ public class JdbcEventStore implements EventStore {
           "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid ");
     }
 
-    sqlBuilder.append(dataElementAndFiltersSql);
-
-    String orgUnitSql = getOrgUnitSql(user, params, getOuTableName(params));
+    String orgUnitSql = getOrgUnitSql(params, getOuTableName(params));
+    if (orgUnitSql != null) {
+      sqlBuilder.append(hlp.whereAnd()).append(" (").append(orgUnitSql).append(") ");
+    }
 
     if (orgUnitSql != null) {
       sqlBuilder.append(hlp.whereAnd()).append(orgUnitSql + " ");
@@ -1570,87 +1596,38 @@ public class JdbcEventStore implements EventStore {
     }
   }
 
-  private String getOrgUnitSql(User user, EventSearchParams params, String ouTable) {
-    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
+  private String getChildrenOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
+    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
 
-    if (orgUnitSelectionMode == null) {
-      if (params.getOrgUnit() != null) {
-        return getSelectedOrgUnitsPath(params, ouTable);
-      }
-
-      return getAccessibleOrgUnitsPath(params, user, ouTable);
+    for (OrganisationUnit orgUnit : orgUnits) {
+      orgUnitSqlJoiner.add(
+          ouTable
+              + "."
+              + PATH_LIKE
+              + " '"
+              + orgUnit.getPath()
+              + "%' "
+              + " and "
+              + ouTable
+              + "."
+              + "hierarchylevel = "
+              + orgUnit.getLevel());
     }
 
-    return switch (orgUnitSelectionMode) {
-      case ALL -> null;
-      case CHILDREN -> getChildrenOrgUnitsPath(params, ouTable);
-      case DESCENDANTS -> getDescendantOrgUnitsPath(params, ouTable);
-      case CAPTURE -> getCaptureOrgUnitsPath(user, ouTable);
-      case SELECTED -> getSelectedOrgUnitsPath(params, ouTable);
-      default -> getAccessibleOrgUnitsPath(params, user, ouTable);
-    };
+    return orgUnitSqlJoiner.toString();
   }
 
-  private String getChildrenOrgUnitsPath(EventSearchParams params, String ouTable) {
-    return ouTable
-        + "."
-        + PATH_LIKE
-        + " '"
-        + params.getOrgUnit().getPath()
-        + "%' "
-        + " and "
-        + ouTable
-        + "."
-        + "hierarchylevel = "
-        + (params.getOrgUnit().getLevel() + 1);
+  private String getSelectedOrgUnitPath(OrganisationUnit orgUnit, String ouTable) {
+    return ouTable + "." + PATH_EQ + " '" + orgUnit.getPath() + "' ";
   }
 
-  private String getSelectedOrgUnitsPath(EventSearchParams params, String ouTable) {
-    return ouTable + "." + PATH_EQ + " '" + params.getOrgUnit().getPath() + "' ";
-  }
+  private String getOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {
+    StringJoiner orgUnitSqlJoiner = new StringJoiner(" or ");
 
-  private String getDescendantOrgUnitsPath(EventSearchParams params, String ouTable) {
-    return ouTable + "." + PATH_LIKE + " '" + params.getOrgUnit().getPath() + "%' ";
-  }
-
-  private String getCaptureOrgUnitsPath(User user, String ouTable) {
-    if (user == null) {
-      return null;
+    for (OrganisationUnit orgUnit : orgUnits) {
+      orgUnitSqlJoiner.add(ouTable + "." + PATH_LIKE + " '" + orgUnit.getPath() + "%' ");
     }
 
-    List<String> orgUnitPaths = new ArrayList<>();
-
-    for (OrganisationUnit organisationUnit : user.getOrganisationUnits().stream().toList()) {
-      orgUnitPaths.add(ouTable + "." + PATH_LIKE + " '" + organisationUnit.getPath() + "%' ");
-    }
-
-    return String.join(" OR ", orgUnitPaths);
-  }
-
-  private String getAccessibleOrgUnitsPath(EventSearchParams params, User user, String ouTable) {
-    if (user == null) {
-      return null;
-    }
-
-    List<String> orgUnitPaths = new ArrayList<>();
-
-    List<OrganisationUnit> organisationUnits =
-        new ArrayList<>(user.getTeiSearchOrganisationUnitsWithFallback());
-
-    if (params.getProgram() == null
-        || params.getProgram().isClosed()
-        || params.getProgram().isProtected()) {
-      organisationUnits = new ArrayList<>(user.getOrganisationUnits());
-    }
-
-    if (organisationUnits.isEmpty()) {
-      return null;
-    }
-
-    for (OrganisationUnit organisationUnit : organisationUnits) {
-      orgUnitPaths.add(ouTable + "." + PATH_LIKE + " '" + organisationUnit.getPath() + "%' ");
-    }
-
-    return String.join(" OR ", orgUnitPaths);
+    return orgUnitSqlJoiner.toString();
   }
 }

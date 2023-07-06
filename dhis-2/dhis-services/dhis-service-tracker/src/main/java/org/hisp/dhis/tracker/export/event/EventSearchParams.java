@@ -112,6 +112,8 @@ public class EventSearchParams {
 
   private OrganisationUnit orgUnit;
 
+  private List<OrganisationUnit> accessibleOrgUnits = new ArrayList<>();
+
   private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
   private TrackedEntity trackedEntity;
@@ -327,6 +329,15 @@ public class EventSearchParams {
 
   public EventSearchParams setOrgUnit(OrganisationUnit orgUnit) {
     this.orgUnit = orgUnit;
+    return this;
+  }
+
+  public List<OrganisationUnit> getAccessibleOrgUnits() {
+    return accessibleOrgUnits;
+  }
+
+  public EventSearchParams setAccessibleOrgUnits(List<OrganisationUnit> accessibleOrgUnits) {
+    this.accessibleOrgUnits = accessibleOrgUnits;
     return this;
   }
 

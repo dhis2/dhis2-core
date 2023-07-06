@@ -1117,6 +1117,132 @@
         }
       ],
       "programStageSections": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.426",
+      "id": "SKNvpoLioON",
+      "created": "2020-05-31T09:02:52.687",
+      "name": "test-program-stage2",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rwrw----",
+      "description": "test-program-stage2",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "shPjYNifvMK"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "notificationTemplates": [
+        {
+          "id": "FdIeUL4gyoB"
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": [],
+      "programStageDataElements": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.426",
+      "id": "ebGXHEqqEMF",
+      "created": "2020-05-31T09:02:52.687",
+      "name": "test-program-stage-closed",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rwrw----",
+      "description": "test-program-stage-closed",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "shPjYNifvMK"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "notificationTemplates": [
+        {
+          "id": "FdIeUL4gyoB"
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": [],
+      "programStageDataElements": []
+    },
+    {
+      "lastUpdated": "2020-05-31T11:41:22.426",
+      "id": "ZfzckZBvDkA",
+      "created": "2020-05-31T09:02:52.687",
+      "name": "test-program-stage-low-level-org-unit",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rwrw----",
+      "description": "test-program-stage-low-level-org-unit",
+      "openAfterEnrollment": false,
+      "repeatable": true,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "UWRnoyBjvqi"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "notificationTemplates": [
+        {
+          "id": "FdIeUL4gyoB"
+        }
+      ],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": [],
+      "programStageDataElements": []
     }
   ],
   "users": [
@@ -1324,6 +1450,61 @@
           "id": "DiszpKrYNg8"
         }
       ]
+    },
+    {
+      "id": "FIgVWzUCkpw",
+      "created": "2020-05-31T08:57:59.048",
+      "surname": "child level 2",
+      "email": "aaaa@dhis2.org",
+      "firstName": "child level 2",
+      "password": "Test123###...",
+      "phoneNumber": "+4740332255",
+      "name": "child level 2",
+      "displayName": "child level 2",
+      "externalAuth": false,
+      "externalAccess": false,
+      "disabled": false,
+      "twoFA": false,
+      "passwordLastUpdated": "2020-05-31T08:57:59.060",
+      "invitation": false,
+      "selfRegistered": false,
+      "favorite": false,
+      "username": "childlevel2",
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "favorites": [],
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userRoles": [
+        {
+          "id": "UbhT3bXWUyb"
+        }
+      ],
+      "userAccesses": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "h4w96yEMlzO"
+        }
+      ],
+      "organisationUnits": [
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ]
     }
   ],
   "organisationUnits": [
@@ -1359,6 +1540,28 @@
       "openingDate": "2020-05-31T00:00:00.000",
       "parent": {
         "id": "h4w96yEMlzO"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "attributeValues": [],
+      "translations": []
+    },
+    {
+      "id": "tSsGrtfRzjY",
+      "name": "test-orgunit-3",
+      "level": 3,
+      "created": "2020-05-31T09:05:34.570",
+      "lastUpdated": "2020-05-31T11:41:22.385",
+      "shortName": "test-program-rule",
+      "path": "/h4w96yEMlzO/uoNW0E3xXUy/tSsGrtfRzjY",
+      "closedDate": "2020-12-27T00:00:00.000",
+      "openingDate": "2020-05-31T00:00:00.000",
+      "parent": {
+        "id": "uoNW0E3xXUy"
       },
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
@@ -1550,6 +1753,162 @@
           "id": "qLZC0lvvxQH"
         }
       ]
+    },
+    {
+      "id": "shPjYNifvMK",
+      "name": "test-program",
+      "shortName": "test-program",
+      "lastUpdated": "2020-05-31T11:41:22.438",
+      "created": "2020-05-31T09:02:52.718",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 2,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "trackedEntityType": {
+        "id": "ja8NY4PW7Xm"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "SKNvpoLioON"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "pcxIanBWlSY",
+      "name": "test-program-closed",
+      "shortName": "test-program-closed",
+      "lastUpdated": "2020-05-31T11:41:22.438",
+      "created": "2020-05-31T09:02:52.718",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "CLOSED",
+      "version": 2,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "trackedEntityType": {
+        "id": "ja8NY4PW7Xm"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "uoNW0E3xXUy"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "ebGXHEqqEMF"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "id": "UWRnoyBjvqi",
+      "name": "test-program-low-level-org-unit",
+      "shortName": "test-program-low-level-org-unit",
+      "lastUpdated": "2020-05-31T11:41:22.438",
+      "created": "2020-05-31T09:02:52.718",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITH_REGISTRATION",
+      "accessLevel": "CLOSED",
+      "version": 2,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "lastUpdatedBy": {
+        "id": "FIgVWzUCkpw"
+      },
+      "trackedEntityType": {
+        "id": "ja8NY4PW7Xm"
+      },
+      "user": {
+        "id": "FIgVWzUCkpw"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "tSsGrtfRzjY"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "ZfzckZBvDkA"
+        }
+      ],
+      "userAccesses": []
     }
   ],
   "userRoles": [

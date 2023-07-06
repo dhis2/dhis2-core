@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
@@ -115,7 +116,7 @@ public class EventOperationParamsMapper {
     Program program = validateProgram(operationParams.getProgramUid());
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
     OrganisationUnit orgUnit = validateOrgUnit(operationParams.getOrgUnitUid());
-    validateUser(user, program, programStage, operationParams.getOrgUnitUid(), orgUnit);
+    validateUser(user, program, programStage, orgUnit, operationParams.getOrgUnitSelectionMode());
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
     CategoryOptionCombo attributeOptionCombo =
@@ -157,6 +158,13 @@ public class EventOperationParamsMapper {
         .setProgram(program)
         .setProgramStage(programStage)
         .setOrgUnit(orgUnit)
+        .setAccessibleOrgUnits(
+            getUserAccessibleOrgUnits(
+                program,
+                user,
+                orgUnit,
+                operationParams.getOrgUnitSelectionMode(),
+                organisationUnitService::getOrganisationUnitWithChildren))
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
@@ -237,19 +245,118 @@ public class EventOperationParamsMapper {
   }
 
   private void validateUser(
-      User user, Program pr, ProgramStage ps, String orgUnitUid, OrganisationUnit orgUnit)
+      User user,
+      Program program,
+      ProgramStage programStage,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode ouMode)
       throws ForbiddenException {
-    if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
-      throw new ForbiddenException("User has no access to program: " + pr.getUid());
+    if (user.isSuper()) {
+      return;
+    }
+    if (program != null && !aclService.canDataRead(user, program)) {
+      throw new ForbiddenException("User has no access to program: " + program.getUid());
     }
 
-    if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
-      throw new ForbiddenException("User has no access to program stage: " + ps.getUid());
+    if (programStage != null && !aclService.canDataRead(user, programStage)) {
+      throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
     }
 
-    if (orgUnitUid != null && !trackerAccessManager.canAccess(user, pr, orgUnit)) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit);
+    if (orgUnit != null
+        && getUserAccessibleOrgUnits(
+                program,
+                user,
+                orgUnit,
+                ouMode,
+                organisationUnitService::getOrganisationUnitWithChildren)
+            .isEmpty()) {
+      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
     }
+  }
+
+  /**
+   * Returns a list of all the org units the user has access to
+   *
+   * @param program the program the user wants to access to
+   * @param user the user to check the access of
+   * @param orgUnit parent org unit to get descendants/children of
+   * @param orgUnitDescendants function to retrieve org units, in case ou mode is descendants
+   * @return a list containing the user accessible organisation units
+   */
+  private List<OrganisationUnit> getUserAccessibleOrgUnits(
+      Program program,
+      User user,
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Function<String, List<OrganisationUnit>> orgUnitDescendants) {
+    if (orgUnitMode == null) {
+      if (orgUnit != null) {
+        return trackerAccessManager.canAccess(user, program, orgUnit)
+            ? List.of(orgUnit)
+            : Collections.emptyList();
+      }
+      return isProgramAccessRestricted(program)
+          ? user.getOrganisationUnits().stream().toList().stream().toList()
+          : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
+    }
+
+    return switch (orgUnitMode) {
+      case DESCENDANTS -> orgUnit != null
+          ? getAccessibleDescendants(orgUnitDescendants.apply(orgUnit.getUid()), program, user)
+          : Collections.emptyList();
+      case CHILDREN -> orgUnit != null
+          ? getAccessibleDescendants(orgUnit.getChildren().stream().toList(), program, user)
+          : Collections.emptyList();
+      case CAPTURE -> user.getOrganisationUnits().stream().toList();
+      case ACCESSIBLE -> isProgramAccessRestricted(program)
+          ? user.getOrganisationUnits().stream().toList().stream().toList()
+          : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
+      case SELECTED -> trackerAccessManager.canAccess(user, program, orgUnit)
+          ? List.of(orgUnit)
+          : Collections.emptyList();
+      default -> Collections.emptyList();
+    };
+  }
+
+  /**
+   * Returns the org units whose path is contained in the user search or capture scope org unit. If
+   * there's a match, it means the user org unit is at the same level or above the supplied org
+   * unit.
+   *
+   * @param availableOrgUnits the org units to check if the user has access to
+   * @param program the program the user wants to access to
+   * @param user the user to check the access of
+   * @return a list with the org units the user has access to
+   */
+  private List<OrganisationUnit> getAccessibleDescendants(
+      List<OrganisationUnit> availableOrgUnits, Program program, User user) {
+    if (availableOrgUnits.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    if (isProgramAccessRestricted(program)) {
+      return availableOrgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getOrganisationUnits().stream()
+                      .anyMatch(
+                          captureScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(captureScopeOrgUnit.getPath())))
+          .toList();
+    } else {
+      return availableOrgUnits.stream()
+          .filter(
+              availableOrgUnit ->
+                  user.getTeiSearchOrganisationUnits().stream()
+                      .anyMatch(
+                          searchScopeOrgUnit ->
+                              availableOrgUnit.getPath().contains(searchScopeOrgUnit.getPath())))
+          .toList();
+    }
+  }
+
+  private boolean isProgramAccessRestricted(Program program) {
+    return program != null && (program.isClosed() || program.isProtected());
   }
 
   private TrackedEntity validateTrackedEntity(String trackedEntityUid) throws BadRequestException {

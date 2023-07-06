@@ -148,7 +148,7 @@ public class TrackedEntityQueryParams {
   /** Tracked entity types to fetch. */
   private List<TrackedEntityType> trackedEntityTypes = Lists.newArrayList();
 
-  /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
+  /** Selection mode for the specified organisation units, default is DESCENDANTS. */
   private OrganisationUnitSelectionMode organisationUnitMode =
       OrganisationUnitSelectionMode.DESCENDANTS;
 
@@ -280,9 +280,11 @@ public class TrackedEntityQueryParams {
 
   /**
    * Prepares the organisation units of the given parameters to simplify querying. Mode ACCESSIBLE
-   * is converted to DESCENDANTS for organisation units linked to the given user, and mode CHILDREN
-   * is converted to CHILDREN for organisation units including all their children. Mode can be
-   * DESCENDANTS, SELECTED, ALL only after invoking this method.
+   * is converted to DESCENDANTS for organisation units linked to the search scope of the given
+   * user. Mode CAPTURE is converted to DESCENDANTS too, but using organisation units linked to the
+   * user's capture scope, and mode CHILDREN is converted to SELECTED for organisation units
+   * including all their children. Mode can be DESCENDANTS, SELECTED, ALL only after invoking this
+   * method.
    */
   public void handleOrganisationUnits() {
     if (user != null && isOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE)) {
