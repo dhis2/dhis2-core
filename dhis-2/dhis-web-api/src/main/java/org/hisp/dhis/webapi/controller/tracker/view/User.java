@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.common.OpenApi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Enrico Colasante
  */
+@OpenApi.Shared( pattern = TRACKER )
 @Data
 @Builder
 @NoArgsConstructor

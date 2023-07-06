@@ -371,7 +371,8 @@ public class JsonGenerator
         if ( Character.isDigit( unescaped.charAt( 0 ) )
             || "true".equals( unescaped )
             || "false".equals( unescaped )
-            || unescaped.contains( "#" ) )
+            || unescaped.contains( "#" )
+            || unescaped.startsWith( "*" ) )
             return "\"" + unescaped + "\"";
         return unescaped;
     }

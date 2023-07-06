@@ -36,6 +36,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared( pattern = Pattern.INFO )
 @Data
 @Builder
 @NoArgsConstructor

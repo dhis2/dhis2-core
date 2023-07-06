@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity;
 
+import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
+
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.ValueType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,6 +41,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared( pattern = TRACKER )
 @JacksonXmlRootElement( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
 public class Attribute
 {

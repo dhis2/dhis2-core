@@ -147,6 +147,7 @@ public class DatastoreController
     }
 
     @Value
+    @OpenApi.Shared( value = false )
     private static class Pager
     {
         int page;

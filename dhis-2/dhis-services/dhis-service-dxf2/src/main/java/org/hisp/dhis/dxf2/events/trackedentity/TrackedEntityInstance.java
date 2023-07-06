@@ -33,6 +33,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -48,6 +49,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared( name = "TrackedEntity" )
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstance
 {
