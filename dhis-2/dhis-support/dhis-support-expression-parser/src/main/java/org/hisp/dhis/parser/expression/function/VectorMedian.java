@@ -35,14 +35,11 @@ import java.util.List;
  *
  * @author Jim Grace
  */
-public class VectorMedian
-    extends VectorFunction
-{
-    private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
+public class VectorMedian extends VectorFunction {
+  private static VectorPercentileCont percentileContinuous = new VectorPercentileCont();
 
-    @Override
-    public Object aggregate( List<Double> values, List<Double> args )
-    {
-        return percentileContinuous.aggregate( values, Arrays.asList( .5 ) );
-    }
+  @Override
+  public Object aggregate(List<Double> values, List<Double> args) {
+    return percentileContinuous.aggregate(values, Arrays.asList(.5));
+  }
 }

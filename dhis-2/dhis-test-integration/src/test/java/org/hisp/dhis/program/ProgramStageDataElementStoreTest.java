@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,113 +45,101 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageDataElementStoreTest extends TransactionalIntegrationTest
-{
+class ProgramStageDataElementStoreTest extends TransactionalIntegrationTest {
 
-    @Autowired
-    private ProgramStageDataElementStore programStageDataElementStore;
+  @Autowired private ProgramStageDataElementStore programStageDataElementStore;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+  @Autowired private ProgramStageService programStageService;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private ProgramStage stageA;
+  private ProgramStage stageA;
 
-    private ProgramStage stageB;
+  private ProgramStage stageB;
 
-    private DataElement dataElementA;
+  private DataElement dataElementA;
 
-    private DataElement dataElementB;
+  private DataElement dataElementB;
 
-    private ProgramStageDataElement stageDataElementA;
+  private ProgramStageDataElement stageDataElementA;
 
-    private ProgramStageDataElement stageDataElementB;
+  private ProgramStageDataElement stageDataElementB;
 
-    @Override
-    public void setUpTest()
-    {
-        organisationUnit = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( organisationUnit );
-        Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
-        programService.addProgram( program );
-        stageA = new ProgramStage( "A", program );
-        stageA.setUid( "StageA" );
-        stageA.setSortOrder( 1 );
-        programStageService.saveProgramStage( stageA );
-        stageB = new ProgramStage( "B", program );
-        stageB.setSortOrder( 2 );
-        programStageService.saveProgramStage( stageB );
-        Set<ProgramStage> programStages = new HashSet<>();
-        programStages.add( stageA );
-        programStages.add( stageB );
-        program.setProgramStages( programStages );
-        programService.updateProgram( program );
-        dataElementA = createDataElement( 'A' );
-        dataElementB = createDataElement( 'B' );
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        stageDataElementA = new ProgramStageDataElement( stageA, dataElementA, false, 1 );
-        stageDataElementB = new ProgramStageDataElement( stageA, dataElementB, false, 2 );
-    }
+  @Override
+  public void setUpTest() {
+    organisationUnit = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(organisationUnit);
+    Program program = createProgram('A', new HashSet<>(), organisationUnit);
+    programService.addProgram(program);
+    stageA = new ProgramStage("A", program);
+    stageA.setUid("StageA");
+    stageA.setSortOrder(1);
+    programStageService.saveProgramStage(stageA);
+    stageB = new ProgramStage("B", program);
+    stageB.setSortOrder(2);
+    programStageService.saveProgramStage(stageB);
+    Set<ProgramStage> programStages = new HashSet<>();
+    programStages.add(stageA);
+    programStages.add(stageB);
+    program.setProgramStages(programStages);
+    programService.updateProgram(program);
+    dataElementA = createDataElement('A');
+    dataElementB = createDataElement('B');
+    dataElementService.addDataElement(dataElementA);
+    dataElementService.addDataElement(dataElementB);
+    stageDataElementA = new ProgramStageDataElement(stageA, dataElementA, false, 1);
+    stageDataElementB = new ProgramStageDataElement(stageA, dataElementB, false, 2);
+  }
 
-    @Test
-    void testAddProgramStageDataElement()
-    {
-        programStageDataElementStore.save( stageDataElementA );
-        programStageDataElementStore.save( stageDataElementB );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementB ) );
-    }
+  @Test
+  void testAddProgramStageDataElement() {
+    programStageDataElementStore.save(stageDataElementA);
+    programStageDataElementStore.save(stageDataElementB);
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementB));
+  }
 
-    @Test
-    void testUpdateProgramStageDataElement()
-    {
-        programStageDataElementStore.save( stageDataElementA );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementA ) );
-        stageDataElementA.setCompulsory( true );
-        programStageDataElementStore.update( stageDataElementA );
-        assertEquals( true, programStageDataElementStore.get( stageA, dataElementA ).isCompulsory() );
-    }
+  @Test
+  void testUpdateProgramStageDataElement() {
+    programStageDataElementStore.save(stageDataElementA);
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementA));
+    stageDataElementA.setCompulsory(true);
+    programStageDataElementStore.update(stageDataElementA);
+    assertEquals(true, programStageDataElementStore.get(stageA, dataElementA).isCompulsory());
+  }
 
-    @Test
-    void testDeleteProgramStageDataElement()
-    {
-        programStageDataElementStore.save( stageDataElementA );
-        programStageDataElementStore.save( stageDataElementB );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementB ) );
-        programStageDataElementStore.delete( stageDataElementA );
-        assertNull( programStageDataElementStore.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementB ) );
-        programStageDataElementStore.delete( stageDataElementB );
-        assertNull( programStageDataElementStore.get( stageA, dataElementA ) );
-        assertNull( programStageDataElementStore.get( stageA, dataElementB ) );
-    }
+  @Test
+  void testDeleteProgramStageDataElement() {
+    programStageDataElementStore.save(stageDataElementA);
+    programStageDataElementStore.save(stageDataElementB);
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementB));
+    programStageDataElementStore.delete(stageDataElementA);
+    assertNull(programStageDataElementStore.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementB));
+    programStageDataElementStore.delete(stageDataElementB);
+    assertNull(programStageDataElementStore.get(stageA, dataElementA));
+    assertNull(programStageDataElementStore.get(stageA, dataElementB));
+  }
 
-    @Test
-    void testGetByStageElement()
-    {
-        programStageDataElementStore.save( stageDataElementA );
-        programStageDataElementStore.save( stageDataElementB );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementA ) );
-        assertNotNull( programStageDataElementStore.get( stageA, dataElementB ) );
-    }
+  @Test
+  void testGetByStageElement() {
+    programStageDataElementStore.save(stageDataElementA);
+    programStageDataElementStore.save(stageDataElementB);
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementA));
+    assertNotNull(programStageDataElementStore.get(stageA, dataElementB));
+  }
 
-    @Test
-    void testGetAllProgramStageDataElements()
-    {
-        programStageDataElementStore.save( stageDataElementA );
-        programStageDataElementStore.save( stageDataElementB );
-        assertTrue( equals( programStageDataElementStore.getAll(), stageDataElementA, stageDataElementB ) );
-    }
+  @Test
+  void testGetAllProgramStageDataElements() {
+    programStageDataElementStore.save(stageDataElementA);
+    programStageDataElementStore.save(stageDataElementB);
+    assertTrue(equals(programStageDataElementStore.getAll(), stageDataElementA, stageDataElementB));
+  }
 }

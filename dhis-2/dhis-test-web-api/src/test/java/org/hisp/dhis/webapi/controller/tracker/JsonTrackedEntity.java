@@ -30,44 +30,33 @@ package org.hisp.dhis.webapi.controller.tracker;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
-/**
- * Representation of
- * {@link org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity}.
- */
-public interface JsonTrackedEntity extends JsonObject
-{
-    default String getTrackedEntity()
-    {
-        return getString( "trackedEntity" ).string();
-    }
+/** Representation of {@link org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity}. */
+public interface JsonTrackedEntity extends JsonObject {
+  default String getTrackedEntity() {
+    return getString("trackedEntity").string();
+  }
 
-    default String getTrackedEntityType()
-    {
-        return getString( "trackedEntityType" ).string();
-    }
+  default String getTrackedEntityType() {
+    return getString("trackedEntityType").string();
+  }
 
-    default String getOrgUnit()
-    {
-        return getString( "orgUnit" ).string();
-    }
+  default String getOrgUnit() {
+    return getString("orgUnit").string();
+  }
 
-    default JsonList<JsonRelationship> getRelationships()
-    {
-        return get( "relationships" ).asList( JsonRelationship.class );
-    }
+  default JsonList<JsonRelationship> getRelationships() {
+    return get("relationships").asList(JsonRelationship.class);
+  }
 
-    default JsonList<JsonAttribute> getAttributes()
-    {
-        return get( "attributes" ).asList( JsonAttribute.class );
-    }
+  default JsonList<JsonAttribute> getAttributes() {
+    return get("attributes").asList(JsonAttribute.class);
+  }
 
-    default JsonList<JsonEnrollment> getEnrollments()
-    {
-        return get( "enrollments" ).asList( JsonEnrollment.class );
-    }
+  default JsonList<JsonEnrollment> getEnrollments() {
+    return get("enrollments").asList(JsonEnrollment.class);
+  }
 
-    default JsonList<JsonProgramOwner> getProgramOwners()
-    {
-        return get( "programOwners" ).asList( JsonProgramOwner.class );
-    }
+  default JsonList<JsonProgramOwner> getProgramOwners() {
+    return get("programOwners").asList(JsonProgramOwner.class);
+  }
 }

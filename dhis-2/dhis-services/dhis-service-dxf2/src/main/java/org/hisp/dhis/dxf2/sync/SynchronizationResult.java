@@ -33,20 +33,17 @@ import lombok.AllArgsConstructor;
 /**
  * @author David Katuscak
  */
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class SynchronizationResult
-{
-    public final SynchronizationStatus status;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class SynchronizationResult {
+  public final SynchronizationStatus status;
 
-    public final String message;
+  public final String message;
 
-    public static SynchronizationResult success( String message )
-    {
-        return new SynchronizationResult( SynchronizationStatus.SUCCESS, message );
-    }
+  public static SynchronizationResult success(String message) {
+    return new SynchronizationResult(SynchronizationStatus.SUCCESS, message);
+  }
 
-    public static SynchronizationResult failure( String message )
-    {
-        return new SynchronizationResult( SynchronizationStatus.FAILURE, message );
-    }
+  public static SynchronizationResult failure(String message) {
+    return new SynchronizationResult(SynchronizationStatus.FAILURE, message);
+  }
 }

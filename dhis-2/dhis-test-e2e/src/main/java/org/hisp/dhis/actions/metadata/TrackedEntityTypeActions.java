@@ -27,45 +27,44 @@
  */
 package org.hisp.dhis.actions.metadata;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackedEntityTypeActions
-    extends RestApiActions
-{
-    public TrackedEntityTypeActions()
-    {
-        super( "/trackedEntityTypes" );
-    }
+public class TrackedEntityTypeActions extends RestApiActions {
+  public TrackedEntityTypeActions() {
+    super("/trackedEntityTypes");
+  }
 
-    public String create()
-    {
-        JsonObject payload = JsonObjectBuilder.jsonObject()
-            .addProperty( "name", DataGenerator.randomEntityName() )
-            .addProperty( "shortName", DataGenerator.randomEntityName() )
+  public String create() {
+    JsonObject payload =
+        JsonObjectBuilder.jsonObject()
+            .addProperty("name", DataGenerator.randomEntityName())
+            .addProperty("shortName", DataGenerator.randomEntityName())
             .addUserGroupAccess()
             .build();
 
-        return this.create( payload );
-    }
+    return this.create(payload);
+  }
 
-    public void addAttribute( String tet, String attribute, boolean mandatory )
-    {
-        JsonObject object = this.get( tet ).getBodyAsJsonBuilder()
-            .addOrAppendToArray( "trackedEntityTypeAttributes",
+  public void addAttribute(String tet, String attribute, boolean mandatory) {
+    JsonObject object =
+        this.get(tet)
+            .getBodyAsJsonBuilder()
+            .addOrAppendToArray(
+                "trackedEntityTypeAttributes",
                 new JsonObjectBuilder()
-                    .addProperty( "mandatory", String.valueOf( mandatory ) )
-                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
-                        .addProperty( "id", attribute ) )
-                    .build() )
+                    .addProperty("mandatory", String.valueOf(mandatory))
+                    .addObject(
+                        "trackedEntityAttribute",
+                        new JsonObjectBuilder().addProperty("id", attribute))
+                    .build())
             .build();
 
-        this.update( tet, object ).validateStatus( 200 );
-    }
+    this.update(tet, object).validateStatus(200);
+  }
 }

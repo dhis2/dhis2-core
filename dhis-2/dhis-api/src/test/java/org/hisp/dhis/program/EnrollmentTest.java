@@ -38,7 +38,6 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -48,115 +47,108 @@ import org.junit.jupiter.api.Test;
 /**
  * @author David Mackessy
  */
-class EnrollmentTest
-{
-    @Test
-    void testCopyOfWithPropertyValuesSet()
-    {
-        Enrollment original = getNewEnrollmentWithNoNulls();
-        Program copiedProgram = getNewProgram();
-        Enrollment copy = Enrollment.copyOf.apply( original, copiedProgram );
+class EnrollmentTest {
+  @Test
+  void testCopyOfWithPropertyValuesSet() {
+    Enrollment original = getNewEnrollmentWithNoNulls();
+    Program copiedProgram = getNewProgram();
+    Enrollment copy = Enrollment.copyOf.apply(original, copiedProgram);
 
-        assertNotSame( original, copy );
-        assertNotEquals( original, copy );
-        assertNotEquals( original.getUid(), copy.getUid() );
-        assertNotEquals( original.getProgram(), copy.getProgram() );
+    assertNotSame(original, copy);
+    assertNotEquals(original, copy);
+    assertNotEquals(original.getUid(), copy.getUid());
+    assertNotEquals(original.getProgram(), copy.getProgram());
 
-        assertEquals( original.getEvents(), copy.getEvents() );
-        assertEquals( original.getStatus(), copy.getStatus() );
-        assertEquals( original.getComments(), copy.getComments() );
-        assertEquals( original.getName(), copy.getName() );
-        assertEquals( original.getIncidentDate(), copy.getIncidentDate() );
-        assertEquals( original.getEnrollmentDate(), copy.getEnrollmentDate() );
-        assertEquals( original.getFollowup(), copy.getFollowup() );
-        assertEquals( original.getGeometry(), copy.getGeometry() );
-        assertEquals( original.getOrganisationUnit(), copy.getOrganisationUnit() );
-        assertEquals( original.getEndDate(), copy.getEndDate() );
-        assertEquals( original.getRelationshipItems(), copy.getRelationshipItems() );
-        assertEquals( original.getCreatedByUserInfo(), copy.getCreatedByUserInfo() );
-        assertEquals( original.getMessageConversations(), copy.getMessageConversations() );
-    }
+    assertEquals(original.getEvents(), copy.getEvents());
+    assertEquals(original.getStatus(), copy.getStatus());
+    assertEquals(original.getComments(), copy.getComments());
+    assertEquals(original.getName(), copy.getName());
+    assertEquals(original.getIncidentDate(), copy.getIncidentDate());
+    assertEquals(original.getEnrollmentDate(), copy.getEnrollmentDate());
+    assertEquals(original.getFollowup(), copy.getFollowup());
+    assertEquals(original.getGeometry(), copy.getGeometry());
+    assertEquals(original.getOrganisationUnit(), copy.getOrganisationUnit());
+    assertEquals(original.getEndDate(), copy.getEndDate());
+    assertEquals(original.getRelationshipItems(), copy.getRelationshipItems());
+    assertEquals(original.getCreatedByUserInfo(), copy.getCreatedByUserInfo());
+    assertEquals(original.getMessageConversations(), copy.getMessageConversations());
+  }
 
-    @Test
-    void testCopyOfWithNullPropertyValues()
-    {
-        Enrollment original = getNewEnrollmentWithNulls();
-        Program copiedProgram = getNewProgram();
-        Enrollment copy = Enrollment.copyOf.apply( original, copiedProgram );
+  @Test
+  void testCopyOfWithNullPropertyValues() {
+    Enrollment original = getNewEnrollmentWithNulls();
+    Program copiedProgram = getNewProgram();
+    Enrollment copy = Enrollment.copyOf.apply(original, copiedProgram);
 
-        assertNotSame( original, copy );
-        assertNotEquals( original, copy );
-        assertNotEquals( original.getUid(), copy.getUid() );
-        assertNotEquals( original.getProgram(), copy.getProgram() );
+    assertNotSame(original, copy);
+    assertNotEquals(original, copy);
+    assertNotEquals(original.getUid(), copy.getUid());
+    assertNotEquals(original.getProgram(), copy.getProgram());
 
-        assertEquals( original.getCreatedByUserInfo(), copy.getCreatedByUserInfo() );
-        assertEquals( original.getEndDate(), copy.getEndDate() );
-        assertEquals( original.getEnrollmentDate(), copy.getEnrollmentDate() );
-        assertEquals( original.getFollowup(), copy.getFollowup() );
-        assertEquals( original.getGeometry(), copy.getGeometry() );
-        assertEquals( original.getIncidentDate(), copy.getIncidentDate() );
-        assertEquals( original.getName(), copy.getName() );
-        assertEquals( original.getOrganisationUnit(), copy.getOrganisationUnit() );
-        assertEquals( original.getStatus(), copy.getStatus() );
-        assertTrue( copy.getComments().isEmpty() );
-        assertTrue( copy.getMessageConversations().isEmpty() );
-        assertTrue( copy.getEvents().isEmpty() );
-        assertTrue( copy.getRelationshipItems().isEmpty() );
-    }
+    assertEquals(original.getCreatedByUserInfo(), copy.getCreatedByUserInfo());
+    assertEquals(original.getEndDate(), copy.getEndDate());
+    assertEquals(original.getEnrollmentDate(), copy.getEnrollmentDate());
+    assertEquals(original.getFollowup(), copy.getFollowup());
+    assertEquals(original.getGeometry(), copy.getGeometry());
+    assertEquals(original.getIncidentDate(), copy.getIncidentDate());
+    assertEquals(original.getName(), copy.getName());
+    assertEquals(original.getOrganisationUnit(), copy.getOrganisationUnit());
+    assertEquals(original.getStatus(), copy.getStatus());
+    assertTrue(copy.getComments().isEmpty());
+    assertTrue(copy.getMessageConversations().isEmpty());
+    assertTrue(copy.getEvents().isEmpty());
+    assertTrue(copy.getRelationshipItems().isEmpty());
+  }
 
-    /**
-     * This test checks the expected field count for {@link Enrollment}. This is
-     * important due to {@link Enrollment#copyOf} functionality. If a new field
-     * is added then {@link Enrollment#copyOf} should be updated with the
-     * appropriate copying approach.
-     */
-    @Test
-    void testExpectedFieldCount()
-    {
-        Field[] allClassFieldsIncludingInherited = getAllFields( Enrollment.class );
-        assertEquals( 37, allClassFieldsIncludingInherited.length );
-    }
+  /**
+   * This test checks the expected field count for {@link Enrollment}. This is important due to
+   * {@link Enrollment#copyOf} functionality. If a new field is added then {@link Enrollment#copyOf}
+   * should be updated with the appropriate copying approach.
+   */
+  @Test
+  void testExpectedFieldCount() {
+    Field[] allClassFieldsIncludingInherited = getAllFields(Enrollment.class);
+    assertEquals(37, allClassFieldsIncludingInherited.length);
+  }
 
-    private Enrollment getNewEnrollmentWithNoNulls()
-    {
-        Enrollment e = new Enrollment();
-        Program program = getNewProgram();
-        e.setAutoFields();
-        e.setComments( List.of( new TrackedEntityComment( "comment1", "amin" ) ) );
-        e.setCompletedBy( "admin" );
-        e.setEndDate( new Date() );
-        e.setEnrollmentDate( new Date() );
-        e.setEvents( Set.of() );
-        e.setFollowup( true );
-        e.setIncidentDate( new Date() );
-        e.setMessageConversations( List.of( new MessageConversation() ) );
-        e.setName( "Enrollment 1" );
-        e.setOrganisationUnit( new OrganisationUnit( "org1" ) );
-        e.setProgram( program );
-        e.setRelationshipItems( Set.of() );
-        e.setStoredBy( "admin" );
-        e.setTrackedEntity( new TrackedEntity() );
-        e.setPublicAccess( "rw------" );
-        return e;
-    }
+  private Enrollment getNewEnrollmentWithNoNulls() {
+    Enrollment e = new Enrollment();
+    Program program = getNewProgram();
+    e.setAutoFields();
+    e.setComments(List.of(new TrackedEntityComment("comment1", "amin")));
+    e.setCompletedBy("admin");
+    e.setEndDate(new Date());
+    e.setEnrollmentDate(new Date());
+    e.setEvents(Set.of());
+    e.setFollowup(true);
+    e.setIncidentDate(new Date());
+    e.setMessageConversations(List.of(new MessageConversation()));
+    e.setName("Enrollment 1");
+    e.setOrganisationUnit(new OrganisationUnit("org1"));
+    e.setProgram(program);
+    e.setRelationshipItems(Set.of());
+    e.setStoredBy("admin");
+    e.setTrackedEntity(new TrackedEntity());
+    e.setPublicAccess("rw------");
+    return e;
+  }
 
-    private Enrollment getNewEnrollmentWithNulls()
-    {
-        Enrollment e = new Enrollment();
-        e.setName( null );
-        e.setComments( null );
-        e.setCompletedBy( null );
-        e.setEndDate( null );
-        e.setEnrollmentDate( null );
-        e.setEvents( null );
-        e.setIncidentDate( null );
-        e.setMessageConversations( null );
-        e.setOrganisationUnit( null );
-        e.setProgram( null );
-        e.setPublicAccess( null );
-        e.setRelationshipItems( null );
-        e.setStoredBy( null );
-        e.setTrackedEntity( null );
-        return e;
-    }
+  private Enrollment getNewEnrollmentWithNulls() {
+    Enrollment e = new Enrollment();
+    e.setName(null);
+    e.setComments(null);
+    e.setCompletedBy(null);
+    e.setEndDate(null);
+    e.setEnrollmentDate(null);
+    e.setEvents(null);
+    e.setIncidentDate(null);
+    e.setMessageConversations(null);
+    e.setOrganisationUnit(null);
+    e.setProgram(null);
+    e.setPublicAccess(null);
+    e.setRelationshipItems(null);
+    e.setStoredBy(null);
+    e.setTrackedEntity(null);
+    return e;
+  }
 }

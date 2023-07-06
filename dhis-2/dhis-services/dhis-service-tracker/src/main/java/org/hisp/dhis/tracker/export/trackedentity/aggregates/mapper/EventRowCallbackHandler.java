@@ -31,7 +31,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -51,108 +50,102 @@ import org.hisp.dhis.user.User;
 /**
  * @author Luciano Fiandesio
  */
-public class EventRowCallbackHandler
-    extends
-    AbstractMapper<Event>
-{
+public class EventRowCallbackHandler extends AbstractMapper<Event> {
 
-    @Override
-    Event getItem( ResultSet rs )
-        throws SQLException
-    {
-        return getEvent( rs );
-    }
+  @Override
+  Event getItem(ResultSet rs) throws SQLException {
+    return getEvent(rs);
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return "enruid";
-    }
+  @Override
+  String getKeyColumn() {
+    return "enruid";
+  }
 
-    private Event getEvent( ResultSet rs )
-        throws SQLException
-    {
-        Event event = new Event();
-        event.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.UID ) ) );
-        event.setId( rs.getLong( EventQuery.getColumnName( COLUMNS.ID ) ) );
+  private Event getEvent(ResultSet rs) throws SQLException {
+    Event event = new Event();
+    event.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.UID)));
+    event.setId(rs.getLong(EventQuery.getColumnName(COLUMNS.ID)));
 
-        event.setStatus( EventStatus.valueOf( rs.getString( EventQuery.getColumnName( COLUMNS.STATUS ) ) ) );
-        event.setExecutionDate( rs.getTimestamp( EventQuery.getColumnName( COLUMNS.EXECUTION_DATE ) ) );
-        event.setDueDate( rs.getTimestamp( EventQuery.getColumnName( COLUMNS.DUE_DATE ) ) );
-        event.setStoredBy( rs.getString( EventQuery.getColumnName( COLUMNS.STOREDBY ) ) );
-        event.setCompletedBy( rs.getString( EventQuery.getColumnName( COLUMNS.COMPLETEDBY ) ) );
-        event.setCompletedDate( rs.getTimestamp( EventQuery.getColumnName( COLUMNS.COMPLETEDDATE ) ) );
-        event.setCreated( rs.getTimestamp( EventQuery.getColumnName( COLUMNS.CREATED ) ) );
-        event.setCreatedAtClient( rs.getTimestamp( EventQuery.getColumnName( COLUMNS.CREATEDCLIENT ) ) );
-        JsonbToObjectHelper.setUserInfoSnapshot( rs, EventQuery.getColumnName( COLUMNS.CREATED_BY ),
-            event::setCreatedByUserInfo );
-        event.setLastUpdated( rs.getTimestamp( EventQuery.getColumnName( COLUMNS.UPDATED ) ) );
-        event.setLastUpdatedAtClient( rs.getTimestamp( EventQuery.getColumnName( COLUMNS.UPDATEDCLIENT ) ) );
-        JsonbToObjectHelper.setUserInfoSnapshot( rs, EventQuery.getColumnName( COLUMNS.LAST_UPDATED_BY ),
-            event::setLastUpdatedByUserInfo );
-        MapperGeoUtils.resolveGeometry( rs.getBytes( EventQuery.getColumnName( COLUMNS.GEOMETRY ) ) )
-            .ifPresent( event::setGeometry );
-        event.setDeleted( rs.getBoolean( EventQuery.getColumnName( COLUMNS.DELETED ) ) );
+    event.setStatus(EventStatus.valueOf(rs.getString(EventQuery.getColumnName(COLUMNS.STATUS))));
+    event.setExecutionDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.EXECUTION_DATE)));
+    event.setDueDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.DUE_DATE)));
+    event.setStoredBy(rs.getString(EventQuery.getColumnName(COLUMNS.STOREDBY)));
+    event.setCompletedBy(rs.getString(EventQuery.getColumnName(COLUMNS.COMPLETEDBY)));
+    event.setCompletedDate(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.COMPLETEDDATE)));
+    event.setCreated(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.CREATED)));
+    event.setCreatedAtClient(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.CREATEDCLIENT)));
+    JsonbToObjectHelper.setUserInfoSnapshot(
+        rs, EventQuery.getColumnName(COLUMNS.CREATED_BY), event::setCreatedByUserInfo);
+    event.setLastUpdated(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.UPDATED)));
+    event.setLastUpdatedAtClient(rs.getTimestamp(EventQuery.getColumnName(COLUMNS.UPDATEDCLIENT)));
+    JsonbToObjectHelper.setUserInfoSnapshot(
+        rs, EventQuery.getColumnName(COLUMNS.LAST_UPDATED_BY), event::setLastUpdatedByUserInfo);
+    MapperGeoUtils.resolveGeometry(rs.getBytes(EventQuery.getColumnName(COLUMNS.GEOMETRY)))
+        .ifPresent(event::setGeometry);
+    event.setDeleted(rs.getBoolean(EventQuery.getColumnName(COLUMNS.DELETED)));
 
-        OrganisationUnit orgUnit = new OrganisationUnit();
-        orgUnit.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.ORGUNIT_UID ) ) );
-        orgUnit.setName( rs.getString( EventQuery.getColumnName( COLUMNS.ORGUNIT_NAME ) ) );
-        event.setOrganisationUnit( orgUnit );
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.ORGUNIT_UID)));
+    orgUnit.setName(rs.getString(EventQuery.getColumnName(COLUMNS.ORGUNIT_NAME)));
+    event.setOrganisationUnit(orgUnit);
 
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.ENROLLMENT_UID ) ) );
-        Program program = new Program();
-        program.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.PROGRAM_UID ) ) );
-        enrollment.setProgram( program );
-        final boolean followup = rs.getBoolean( EventQuery.getColumnName( COLUMNS.ENROLLMENT_FOLLOWUP ) );
-        enrollment.setFollowup( rs.wasNull() ? null : followup );
-        enrollment.setStatus(
-            ProgramStatus.valueOf( rs.getString( EventQuery.getColumnName( COLUMNS.ENROLLMENT_STATUS ) ) ) );
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.TEI_UID ) ) );
-        enrollment.setTrackedEntity( trackedEntity );
-        event.setEnrollment( enrollment );
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.ENROLLMENT_UID)));
+    Program program = new Program();
+    program.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.PROGRAM_UID)));
+    enrollment.setProgram(program);
+    final boolean followup = rs.getBoolean(EventQuery.getColumnName(COLUMNS.ENROLLMENT_FOLLOWUP));
+    enrollment.setFollowup(rs.wasNull() ? null : followup);
+    enrollment.setStatus(
+        ProgramStatus.valueOf(rs.getString(EventQuery.getColumnName(COLUMNS.ENROLLMENT_STATUS))));
+    TrackedEntity trackedEntity = new TrackedEntity();
+    trackedEntity.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.TEI_UID)));
+    enrollment.setTrackedEntity(trackedEntity);
+    event.setEnrollment(enrollment);
 
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.PROGRAM_STAGE_UID ) ) );
-        event.setProgramStage( programStage );
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.PROGRAM_STAGE_UID)));
+    event.setProgramStage(programStage);
 
-        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-        categoryOptionCombo.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.COC_UID ) ) );
-        Set<CategoryOption> categoryOptions = TextUtils
-            .splitToSet( rs.getString( EventQuery.getColumnName( COLUMNS.CAT_OPTIONS ) ),
-                TextUtils.SEMICOLON )
+    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+    categoryOptionCombo.setUid(rs.getString(EventQuery.getColumnName(COLUMNS.COC_UID)));
+    Set<CategoryOption> categoryOptions =
+        TextUtils.splitToSet(
+                rs.getString(EventQuery.getColumnName(COLUMNS.CAT_OPTIONS)), TextUtils.SEMICOLON)
             .stream()
-            .map( o -> {
-                CategoryOption co = new CategoryOption();
-                co.setUid( o );
-                return co;
-            } ).collect( Collectors.toSet() );
-        categoryOptionCombo.setCategoryOptions( categoryOptions );
-        event.setAttributeOptionCombo( categoryOptionCombo );
+            .map(
+                o -> {
+                  CategoryOption co = new CategoryOption();
+                  co.setUid(o);
+                  return co;
+                })
+            .collect(Collectors.toSet());
+    categoryOptionCombo.setCategoryOptions(categoryOptions);
+    event.setAttributeOptionCombo(categoryOptionCombo);
 
-        String assignedUserUid = rs.getString( EventQuery.getColumnName( COLUMNS.ASSIGNED_USER ) );
-        String assignedUserUsername = rs
-            .getString( EventQuery.getColumnName( COLUMNS.ASSIGNED_USER_USERNAME ) );
-        String assignedUserFirstName = rs
-            .getString( EventQuery.getColumnName( COLUMNS.ASSIGNED_USER_FIRST_NAME ) );
-        String assignedUserSurname = rs
-            .getString( EventQuery.getColumnName( COLUMNS.ASSIGNED_USER_SURNAME ) );
-        if ( StringUtils.isNotEmpty( assignedUserUid ) || StringUtils.isNotEmpty( assignedUserUsername )
-            || StringUtils.isNotEmpty( assignedUserFirstName ) || StringUtils.isNotEmpty( assignedUserSurname ) )
-        {
-            User assignedUser = new User();
-            assignedUser.setUid( assignedUserUid );
-            assignedUser.setUsername( assignedUserUsername );
-            assignedUser.setFirstName( assignedUserFirstName );
-            assignedUser.setSurname( assignedUserSurname );
-            if ( assignedUser.getFirstName() != null && assignedUser.getSurname() != null )
-            {
-                assignedUser.setName( assignedUser.getFirstName() + " " + assignedUser.getSurname() );
-            }
-            event.setAssignedUser( assignedUser );
-        }
-
-        return event;
+    String assignedUserUid = rs.getString(EventQuery.getColumnName(COLUMNS.ASSIGNED_USER));
+    String assignedUserUsername =
+        rs.getString(EventQuery.getColumnName(COLUMNS.ASSIGNED_USER_USERNAME));
+    String assignedUserFirstName =
+        rs.getString(EventQuery.getColumnName(COLUMNS.ASSIGNED_USER_FIRST_NAME));
+    String assignedUserSurname =
+        rs.getString(EventQuery.getColumnName(COLUMNS.ASSIGNED_USER_SURNAME));
+    if (StringUtils.isNotEmpty(assignedUserUid)
+        || StringUtils.isNotEmpty(assignedUserUsername)
+        || StringUtils.isNotEmpty(assignedUserFirstName)
+        || StringUtils.isNotEmpty(assignedUserSurname)) {
+      User assignedUser = new User();
+      assignedUser.setUid(assignedUserUid);
+      assignedUser.setUsername(assignedUserUsername);
+      assignedUser.setFirstName(assignedUserFirstName);
+      assignedUser.setSurname(assignedUserSurname);
+      if (assignedUser.getFirstName() != null && assignedUser.getSurname() != null) {
+        assignedUser.setName(assignedUser.getFirstName() + " " + assignedUser.getSurname());
+      }
+      event.setAssignedUser(assignedUser);
     }
+
+    return event;
+  }
 }

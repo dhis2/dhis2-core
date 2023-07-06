@@ -34,13 +34,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdScheme;
@@ -72,294 +70,287 @@ import org.hisp.quick.BatchHandler;
  */
 @Getter
 @Builder
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class ImportContext
-{
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ImportContext {
 
-    /*
-     * Read-only state
-     */
+  /*
+   * Read-only state
+   */
 
-    private final ImportOptions importOptions;
+  private final ImportOptions importOptions;
 
-    private final User currentUser;
+  private final User currentUser;
 
-    private final Set<OrganisationUnit> currentOrgUnits;
+  private final Set<OrganisationUnit> currentOrgUnits;
 
-    private final I18n i18n;
+  private final I18n i18n;
 
-    private final IdScheme idScheme;
+  private final IdScheme idScheme;
 
-    private final IdScheme dataElementIdScheme;
+  private final IdScheme dataElementIdScheme;
 
-    private final IdScheme orgUnitIdScheme;
+  private final IdScheme orgUnitIdScheme;
 
-    private final IdScheme categoryOptComboIdScheme;
+  private final IdScheme categoryOptComboIdScheme;
 
-    private final IdScheme dataSetIdScheme;
+  private final IdScheme dataSetIdScheme;
 
-    private final ImportStrategy strategy;
+  private final ImportStrategy strategy;
 
-    private final boolean isIso8601;
+  private final boolean isIso8601;
 
-    private final boolean skipLockExceptionCheck;
+  private final boolean skipLockExceptionCheck;
 
-    private final boolean skipAudit;
+  private final boolean skipAudit;
 
-    private final boolean hasSkipAuditAuth;
+  private final boolean hasSkipAuditAuth;
 
-    private final boolean dryRun;
+  private final boolean dryRun;
 
-    private final boolean skipExistingCheck;
+  private final boolean skipExistingCheck;
 
-    private final boolean strictPeriods;
+  private final boolean strictPeriods;
 
-    private final boolean strictDataElements;
+  private final boolean strictDataElements;
 
-    private final boolean strictCategoryOptionCombos;
+  private final boolean strictCategoryOptionCombos;
 
-    private final boolean strictAttrOptionCombos;
+  private final boolean strictAttrOptionCombos;
 
-    private final boolean strictOrgUnits;
+  private final boolean strictOrgUnits;
 
-    private final boolean strictDataSetApproval;
+  private final boolean strictDataSetApproval;
 
-    private final boolean strictDataSetLocking;
+  private final boolean strictDataSetLocking;
 
-    private final boolean strictDataSetInputPeriods;
+  private final boolean strictDataSetInputPeriods;
 
-    private final boolean requireCategoryOptionCombo;
+  private final boolean requireCategoryOptionCombo;
 
-    private final boolean requireAttrOptionCombo;
+  private final boolean requireAttrOptionCombo;
 
-    private final boolean forceDataInput;
+  private final boolean forceDataInput;
 
-    private final Date now = new Date();
+  private final Date now = new Date();
 
-    /*
-     * Read-write state...
-     */
+  /*
+   * Read-write state...
+   */
 
-    private final ImportSummary summary;
+  private final ImportSummary summary;
 
-    private boolean stageConflicts = false;
+  private boolean stageConflicts = false;
 
-    private final List<ImportConflict> stagedConflicts = new ArrayList<>();
+  private final List<ImportConflict> stagedConflicts = new ArrayList<>();
 
-    private final CachingMap<String, DataElement> dataElementMap = new CachingMap<>();
+  private final CachingMap<String, DataElement> dataElementMap = new CachingMap<>();
 
-    private final CachingMap<String, OrganisationUnit> orgUnitMap = new CachingMap<>();
+  private final CachingMap<String, OrganisationUnit> orgUnitMap = new CachingMap<>();
 
-    private final CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
+  private final CachingMap<String, CategoryOptionCombo> optionComboMap = new CachingMap<>();
 
-    private final CachingMap<String, List<DataSet>> valueContextDataSets = new CachingMap<>();
+  private final CachingMap<String, List<DataSet>> valueContextDataSets = new CachingMap<>();
 
-    private final CachingMap<String, Period> periodMap = new CachingMap<>();
+  private final CachingMap<String, Period> periodMap = new CachingMap<>();
 
-    private final CachingMap<String, Set<PeriodType>> dataElementPeriodTypesMap = new CachingMap<>();
+  private final CachingMap<String, Set<PeriodType>> dataElementPeriodTypesMap = new CachingMap<>();
 
-    private final CachingMap<String, Set<CategoryOptionCombo>> dataElementCategoryOptionComboMap = new CachingMap<>();
+  private final CachingMap<String, Set<CategoryOptionCombo>> dataElementCategoryOptionComboMap =
+      new CachingMap<>();
 
-    private final CachingMap<String, Set<CategoryOptionCombo>> dataElementAttrOptionComboMap = new CachingMap<>();
+  private final CachingMap<String, Set<CategoryOptionCombo>> dataElementAttrOptionComboMap =
+      new CachingMap<>();
 
-    private final CachingMap<String, Boolean> dataElementOrgUnitMap = new CachingMap<>();
+  private final CachingMap<String, Boolean> dataElementOrgUnitMap = new CachingMap<>();
 
-    private final CachingMap<String, Boolean> dataSetLockedMap = new CachingMap<>();
+  private final CachingMap<String, Boolean> dataSetLockedMap = new CachingMap<>();
 
-    private final CachingMap<String, Period> dataSetLatestFuturePeriodMap = new CachingMap<>();
+  private final CachingMap<String, Period> dataSetLatestFuturePeriodMap = new CachingMap<>();
 
-    private final CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
+  private final CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
 
-    private final CachingMap<String, DateRange> attrOptionComboDateRangeMap = new CachingMap<>();
+  private final CachingMap<String, DateRange> attrOptionComboDateRangeMap = new CachingMap<>();
 
-    private final CachingMap<String, Boolean> attrOptionComboOrgUnitMap = new CachingMap<>();
+  private final CachingMap<String, Boolean> attrOptionComboOrgUnitMap = new CachingMap<>();
 
-    private final CachingMap<String, Set<String>> dataElementOptionsMap = new CachingMap<>();
+  private final CachingMap<String, Set<String>> dataElementOptionsMap = new CachingMap<>();
 
-    private final CachingMap<String, Boolean> approvalMap = new CachingMap<>();
+  private final CachingMap<String, Boolean> approvalMap = new CachingMap<>();
 
-    private final CachingMap<String, Boolean> lowestApprovalLevelMap = new CachingMap<>();
+  private final CachingMap<String, Boolean> lowestApprovalLevelMap = new CachingMap<>();
 
-    private final CachingMap<String, Boolean> periodOpenForDataElement = new CachingMap<>();
+  private final CachingMap<String, Boolean> periodOpenForDataElement = new CachingMap<>();
 
-    /*
-     * Data fetching and processing
-     */
+  /*
+   * Data fetching and processing
+   */
 
-    private final IdentifiableObjectCallable<DataElement> dataElementCallable;
+  private final IdentifiableObjectCallable<DataElement> dataElementCallable;
 
-    private final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
+  private final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
 
-    private final IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable;
+  private final IdentifiableObjectCallable<CategoryOptionCombo> categoryOptionComboCallable;
 
-    private final IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable;
+  private final IdentifiableObjectCallable<CategoryOptionCombo> attributeOptionComboCallable;
 
-    private final IdentifiableObjectCallable<Period> periodCallable;
+  private final IdentifiableObjectCallable<Period> periodCallable;
 
-    private final BatchHandler<org.hisp.dhis.datavalue.DataValue> dataValueBatchHandler;
+  private final BatchHandler<org.hisp.dhis.datavalue.DataValue> dataValueBatchHandler;
 
-    private final BatchHandler<DataValueAudit> auditBatchHandler;
+  private final BatchHandler<DataValueAudit> auditBatchHandler;
 
-    private final Function<Class<? extends IdentifiableObject>, String> singularNameForType;
+  private final Function<Class<? extends IdentifiableObject>, String> singularNameForType;
 
-    public String getCurrentUserName()
-    {
-        return currentUser.getUsername();
+  public String getCurrentUserName() {
+    return currentUser.getUsername();
+  }
+
+  public ImportContext error() {
+    summary.setStatus(ImportStatus.ERROR);
+    return this;
+  }
+
+  public void addRejected(int index) {
+    summary.addRejected(index);
+  }
+
+  public void addConflict(String object, String value) {
+    summary.addConflict(object, value);
+  }
+
+  public void addConflict(ImportConflictDescriptor descriptor, String... objects) {
+    addConflict(-1, descriptor, objects);
+  }
+
+  public void addConflict(int index, ImportConflictDescriptor descriptor, String... objects) {
+    ImportConflict c = createConflict(index, descriptor, objects);
+    if (stageConflicts) {
+      stagedConflicts.add(c);
+    } else {
+      summary.addConflict(c);
     }
+  }
 
-    public ImportContext error()
-    {
-        summary.setStatus( ImportStatus.ERROR );
-        return this;
+  private ImportConflict createConflict(
+      int index, ImportConflictDescriptor descriptor, String[] objects) {
+    return ImportConflict.createConflict(i18n, singularNameForType, index, descriptor, objects);
+  }
+
+  public void stageConflicts() {
+    stageConflicts = true;
+  }
+
+  public void discardConflicts() {
+    stagedConflicts.clear();
+    stageConflicts = false;
+  }
+
+  public void commitConflicts() {
+    stagedConflicts.forEach(summary::addConflict);
+    discardConflicts();
+  }
+
+  public int getStagedConflictsCount() {
+    return stagedConflicts.size();
+  }
+
+  public String getStoredBy(DataValueEntry dataValue) {
+    return dataValue.getStoredBy() == null || dataValue.getStoredBy().trim().isEmpty()
+        ? getCurrentUserName()
+        : dataValue.getStoredBy();
+  }
+
+  /**
+   * The set of {@link DataSet} that needs to be considered contains all {@link DataSet}s whose
+   * values intersect with the checked value's dimensions.
+   *
+   * <p>These have
+   *
+   * <ul>
+   *   <li>the same {@link DataElement} as the value
+   *   <li>include the same {@link OrganisationUnit} as the value
+   *   <li>the same {@link org.hisp.dhis.category.CategoryCombo} as the category combo for the
+   *       value's attribute option combo
+   * </ul>
+   *
+   * @param dataSetContext current data set context
+   * @param valueContext current value context for the value that is imported
+   * @return list of {@link DataSet}s that needs to be considered when checking if the value can be
+   *     imported
+   */
+  public List<DataSet> getTargetDataSets(
+      DataSetContext dataSetContext, DataValueContext valueContext) {
+    if (dataSetContext.getDataSet() != null) {
+      return List.of(dataSetContext.getDataSet());
     }
+    OrganisationUnit orgUnit = valueContext.getOrgUnit();
+    String key =
+        String.format(
+            "%s-%s-%s",
+            valueContext.getDataElement().getUid(),
+            orgUnit.getUid(),
+            valueContext.getAttrOptionCombo().getUid());
+    return getValueContextDataSets()
+        .get(
+            key,
+            () ->
+                valueContext.getDataElement().getDataSets().stream()
+                    .filter(ds -> ds.getSources().contains(orgUnit))
+                    .filter(
+                        ds ->
+                            ds.getCategoryCombo()
+                                .equals(valueContext.attrOptionCombo.getCategoryCombo()))
+                    .collect(toUnmodifiableList()));
+  }
 
-    public void addRejected( int index )
-    {
-        summary.addRejected( index );
+  /**
+   * The existing persisted objects in the context of a {@link DataValueSet} import.
+   *
+   * @author Jan Bernitt
+   */
+  @Getter
+  @Builder
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  public static final class DataSetContext {
+    private final DataSet dataSet;
+
+    private final Period outerPeriod;
+
+    private final OrganisationUnit outerOrgUnit;
+
+    private final CategoryOptionCombo outerAttrOptionCombo;
+
+    private final CategoryOptionCombo fallbackCategoryOptionCombo;
+  }
+
+  /**
+   * Context for a single {@link DataValue} of a {@link DataValueSet} during the import.
+   *
+   * @author Jan Bernitt
+   */
+  @Getter
+  @Builder
+  @AllArgsConstructor(access = AccessLevel.PRIVATE)
+  public static final class DataValueContext {
+    private final int index;
+
+    private final DataElement dataElement;
+
+    private final Period period;
+
+    private final OrganisationUnit orgUnit;
+
+    @Setter private CategoryOptionCombo categoryOptionCombo;
+
+    @Setter private CategoryOptionCombo attrOptionCombo;
+
+    public org.hisp.dhis.datavalue.DataValue getActualDataValue(DataValueService dataValueService) {
+      return dataValueService.getDataValue(
+          getDataElement(),
+          getPeriod(),
+          getOrgUnit(),
+          getCategoryOptionCombo(),
+          getAttrOptionCombo());
     }
-
-    public void addConflict( String object, String value )
-    {
-        summary.addConflict( object, value );
-    }
-
-    public void addConflict( ImportConflictDescriptor descriptor, String... objects )
-    {
-        addConflict( -1, descriptor, objects );
-    }
-
-    public void addConflict( int index, ImportConflictDescriptor descriptor, String... objects )
-    {
-        ImportConflict c = createConflict( index, descriptor, objects );
-        if ( stageConflicts )
-        {
-            stagedConflicts.add( c );
-        }
-        else
-        {
-            summary.addConflict( c );
-        }
-    }
-
-    private ImportConflict createConflict( int index, ImportConflictDescriptor descriptor, String[] objects )
-    {
-        return ImportConflict.createConflict( i18n, singularNameForType, index, descriptor, objects );
-    }
-
-    public void stageConflicts()
-    {
-        stageConflicts = true;
-    }
-
-    public void discardConflicts()
-    {
-        stagedConflicts.clear();
-        stageConflicts = false;
-    }
-
-    public void commitConflicts()
-    {
-        stagedConflicts.forEach( summary::addConflict );
-        discardConflicts();
-    }
-
-    public int getStagedConflictsCount()
-    {
-        return stagedConflicts.size();
-    }
-
-    public String getStoredBy( DataValueEntry dataValue )
-    {
-        return dataValue.getStoredBy() == null || dataValue.getStoredBy().trim().isEmpty()
-            ? getCurrentUserName()
-            : dataValue.getStoredBy();
-    }
-
-    /**
-     * The set of {@link DataSet} that needs to be considered contains all
-     * {@link DataSet}s whose values intersect with the checked value's
-     * dimensions.
-     *
-     * These have
-     * <ul>
-     * <li>the same {@link DataElement} as the value</li>
-     * <li>include the same {@link OrganisationUnit} as the value</li>
-     * <li>the same {@link org.hisp.dhis.category.CategoryCombo} as the category
-     * combo for the value's attribute option combo</li>
-     * </ul>
-     *
-     * @param dataSetContext current data set context
-     * @param valueContext current value context for the value that is imported
-     * @return list of {@link DataSet}s that needs to be considered when
-     *         checking if the value can be imported
-     */
-    public List<DataSet> getTargetDataSets( DataSetContext dataSetContext, DataValueContext valueContext )
-    {
-        if ( dataSetContext.getDataSet() != null )
-        {
-            return List.of( dataSetContext.getDataSet() );
-        }
-        OrganisationUnit orgUnit = valueContext.getOrgUnit();
-        String key = String.format( "%s-%s-%s", valueContext.getDataElement().getUid(), orgUnit.getUid(),
-            valueContext.getAttrOptionCombo().getUid() );
-        return getValueContextDataSets().get( key,
-            () -> valueContext.getDataElement().getDataSets().stream()
-                .filter( ds -> ds.getSources().contains( orgUnit ) )
-                .filter( ds -> ds.getCategoryCombo().equals( valueContext.attrOptionCombo.getCategoryCombo() ) )
-                .collect( toUnmodifiableList() ) );
-    }
-
-    /**
-     * The existing persisted objects in the context of a {@link DataValueSet}
-     * import.
-     *
-     * @author Jan Bernitt
-     */
-    @Getter
-    @Builder
-    @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    public static final class DataSetContext
-    {
-        private final DataSet dataSet;
-
-        private final Period outerPeriod;
-
-        private final OrganisationUnit outerOrgUnit;
-
-        private final CategoryOptionCombo outerAttrOptionCombo;
-
-        private final CategoryOptionCombo fallbackCategoryOptionCombo;
-    }
-
-    /**
-     * Context for a single {@link DataValue} of a {@link DataValueSet} during
-     * the import.
-     *
-     * @author Jan Bernitt
-     */
-    @Getter
-    @Builder
-    @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    public static final class DataValueContext
-    {
-        private final int index;
-
-        private final DataElement dataElement;
-
-        private final Period period;
-
-        private final OrganisationUnit orgUnit;
-
-        @Setter
-        private CategoryOptionCombo categoryOptionCombo;
-
-        @Setter
-        private CategoryOptionCombo attrOptionCombo;
-
-        public org.hisp.dhis.datavalue.DataValue getActualDataValue( DataValueService dataValueService )
-        {
-            return dataValueService.getDataValue( getDataElement(), getPeriod(), getOrgUnit(), getCategoryOptionCombo(),
-                getAttrOptionCombo() );
-        }
-    }
+  }
 }

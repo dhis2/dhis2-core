@@ -33,12 +33,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class } )
-public interface AttributeMapper extends PreheatMapper<Attribute>
-{
-    AttributeMapper INSTANCE = Mappers.getMapper( AttributeMapper.class );
+@Mapper(uses = {DebugMapper.class})
+public interface AttributeMapper extends PreheatMapper<Attribute> {
+  AttributeMapper INSTANCE = Mappers.getMapper(AttributeMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "uid" )
-    Attribute map( Attribute attribute );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "uid")
+  Attribute map(Attribute attribute);
 }

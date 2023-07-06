@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.RelationshipParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
@@ -45,77 +44,78 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 /**
  * @author Stian Sandvold
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public interface RelationshipService
-{
+@Deprecated(since = "2.41")
+public interface RelationshipService {
 
-    int FLUSH_FREQUENCY = 100;
+  int FLUSH_FREQUENCY = 100;
 
-    // -------------------------------------------------------------------------
-    // READ
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // READ
+  // -------------------------------------------------------------------------
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
-        PagingAndSortingCriteriaAdapter criteria,
-        boolean skipAccessValidation );
+  List<Relationship> getRelationshipsByTrackedEntityInstance(
+      TrackedEntity tei, PagingAndSortingCriteriaAdapter criteria, boolean skipAccessValidation);
 
-    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
-        PagingAndSortingCriteriaAdapter criteria,
-        boolean skipAccessValidation );
+  List<Relationship> getRelationshipsByEnrollment(
+      Enrollment enrollment,
+      PagingAndSortingCriteriaAdapter criteria,
+      boolean skipAccessValidation);
 
-    List<Relationship> getRelationshipsByEvent( Event psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
-        boolean skipAccessValidation );
+  List<Relationship> getRelationshipsByEvent(
+      Event psi,
+      PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+      boolean skipAccessValidation);
 
-    // -------------------------------------------------------------------------
-    // CREATE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // CREATE
+  // -------------------------------------------------------------------------
 
-    ImportSummaries addRelationshipsJson( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
+  ImportSummaries addRelationshipsJson(InputStream inputStream, ImportOptions importOptions)
+      throws IOException;
 
-    ImportSummaries addRelationshipsXml( InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
+  ImportSummaries addRelationshipsXml(InputStream inputStream, ImportOptions importOptions)
+      throws IOException;
 
-    ImportSummaries addRelationships( List<Relationship> relationships, ImportOptions importOptions );
+  ImportSummaries addRelationships(List<Relationship> relationships, ImportOptions importOptions);
 
-    ImportSummary addRelationship( Relationship relationships, ImportOptions importOptions );
+  ImportSummary addRelationship(Relationship relationships, ImportOptions importOptions);
 
-    // -------------------------------------------------------------------------
-    // UPDATE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // UPDATE
+  // -------------------------------------------------------------------------
 
-    ImportSummary updateRelationshipXml( String id, InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
+  ImportSummary updateRelationshipXml(
+      String id, InputStream inputStream, ImportOptions importOptions) throws IOException;
 
-    ImportSummary updateRelationshipJson( String id, InputStream inputStream, ImportOptions importOptions )
-        throws IOException;
+  ImportSummary updateRelationshipJson(
+      String id, InputStream inputStream, ImportOptions importOptions) throws IOException;
 
-    ImportSummaries updateRelationships( List<Relationship> relationships, ImportOptions importOptions );
+  ImportSummaries updateRelationships(
+      List<Relationship> relationships, ImportOptions importOptions);
 
-    ImportSummary updateRelationship( Relationship relationship, ImportOptions importOptions );
+  ImportSummary updateRelationship(Relationship relationship, ImportOptions importOptions);
 
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
 
-    ImportSummary deleteRelationship( String uid );
+  ImportSummary deleteRelationship(String uid);
 
-    ImportSummaries deleteRelationships( List<Relationship> relationships, ImportOptions importOptions );
+  ImportSummaries deleteRelationships(
+      List<Relationship> relationships, ImportOptions importOptions);
 
-    Optional<Relationship> findRelationshipByUid( String id );
+  Optional<Relationship> findRelationshipByUid(String id);
 
-    // -------------------------------------------------------------------------
-    // HELPER METHODS
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // HELPER METHODS
+  // -------------------------------------------------------------------------
 
-    Optional<Relationship> findRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
-        User user );
+  Optional<Relationship> findRelationship(
+      org.hisp.dhis.relationship.Relationship dao, RelationshipParams params, User user);
 
-    ImportSummaries processRelationshipList( List<Relationship> relationships, ImportOptions importOptions );
+  ImportSummaries processRelationshipList(
+      List<Relationship> relationships, ImportOptions importOptions);
 }

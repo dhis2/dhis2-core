@@ -27,38 +27,37 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OrganisationUnitGroupSetSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "organisationUnitGroupSet";
+public class OrganisationUnitGroupSetSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "organisationUnitGroupSet";
 
-    public static final String PLURAL = "organisationUnitGroupSets";
+  public static final String PLURAL = "organisationUnitGroupSets";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( OrganisationUnitGroupSet.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1130 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(OrganisationUnitGroupSet.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1130);
 
-        schema
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_ORGUNITGROUPSET_PUBLIC_ADD" ) ) );
-        schema.add(
-            new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_ORGUNITGROUPSET_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ORGUNITGROUPSET_DELETE" ) ) );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_ORGUNITGROUPSET_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE, Lists.newArrayList("F_ORGUNITGROUPSET_PRIVATE_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, Lists.newArrayList("F_ORGUNITGROUPSET_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

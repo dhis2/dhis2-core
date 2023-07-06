@@ -31,12 +31,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeService;
@@ -51,247 +57,215 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class UserPropertyTransformerTest extends SingleSetupIntegrationTestBase
-{
+class UserPropertyTransformerTest extends SingleSetupIntegrationTestBase {
 
-    private static final UUID uuid = UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" );
+  private static final UUID uuid = UUID.fromString("6507f586-f154-4ec1-a25e-d7aa51de5216");
 
-    @Autowired
-    @Qualifier( "jsonMapper" )
-    private ObjectMapper jsonMapper;
+  @Autowired
+  @Qualifier("jsonMapper")
+  private ObjectMapper jsonMapper;
 
-    @Autowired
-    @Qualifier( "xmlMapper" )
-    private ObjectMapper xmlMapper;
+  @Autowired
+  @Qualifier("xmlMapper")
+  private ObjectMapper xmlMapper;
 
-    @Autowired
-    private NodeService nodeService;
+  @Autowired private NodeService nodeService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+  @Autowired private FieldFilterService fieldFilterService;
 
-    @Test
-    void testNodeServiceSerializer()
-        throws JsonProcessingException
-    {
-        Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( makeUser( "a" ) );
-        simple.getUser().setUuid( uuid );
-        ComplexNode complexNode = nodeService.toNode( simple );
-        RootNode rootNode = NodeUtils.createRootNode( complexNode );
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        nodeService.serialize( rootNode, "application/json", outputStream );
-        String jsonSource = outputStream.toString();
-        verifyJsonSource( jsonSource );
-        Simple simpleFromJson = jsonMapper.readValue( jsonSource, Simple.class );
-        assertEquals( 1, simpleFromJson.getId() );
-        assertEquals( "Simple1", simpleFromJson.getName() );
-        assertNotNull( simple.getUser() );
+  @Test
+  void testNodeServiceSerializer() throws JsonProcessingException {
+    Simple simple = new Simple(1, "Simple1");
+    simple.setUser(makeUser("a"));
+    simple.getUser().setUuid(uuid);
+    ComplexNode complexNode = nodeService.toNode(simple);
+    RootNode rootNode = NodeUtils.createRootNode(complexNode);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    nodeService.serialize(rootNode, "application/json", outputStream);
+    String jsonSource = outputStream.toString();
+    verifyJsonSource(jsonSource);
+    Simple simpleFromJson = jsonMapper.readValue(jsonSource, Simple.class);
+    assertEquals(1, simpleFromJson.getId());
+    assertEquals("Simple1", simpleFromJson.getName());
+    assertNotNull(simple.getUser());
 
-        assertEquals( "usernamea", simple.getUser().getUsername() );
-        assertEquals( uuid, simple.getUser().getUuid() );
+    assertEquals("usernamea", simple.getUser().getUsername());
+    assertEquals(uuid, simple.getUser().getUuid());
+  }
+
+  @Test
+  void testFieldNodeServiceSerializer() throws JsonProcessingException {
+    Simple simple = new Simple(1, "Simple1");
+    simple.setUser(makeUser("a"));
+    simple.getUser().setUuid(uuid);
+    simple.getUsers().add(makeUser("A"));
+    simple.getUsers().add(makeUser("B"));
+    simple.getUsers().add(makeUser("C"));
+    simple.getUsers().add(makeUser("D"));
+    ComplexNode complexNode = nodeService.toNode(simple);
+    RootNode rootNode = NodeUtils.createRootNode(complexNode);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    nodeService.serialize(rootNode, "application/json", outputStream);
+    String jsonSource = outputStream.toString();
+    verifyJsonSource(jsonSource);
+    Simple simpleFromJson = jsonMapper.readValue(jsonSource, Simple.class);
+    assertEquals(1, simpleFromJson.getId());
+    assertEquals("Simple1", simpleFromJson.getName());
+    assertNotNull(simple.getUser());
+
+    assertEquals("usernamea", simple.getUser().getUsername());
+    assertEquals(uuid, simple.getUser().getUuid());
+    assertNotNull(simple.getUsers());
+    assertEquals(4, simple.getUsers().size());
+    FieldFilterParams params =
+        new FieldFilterParams(
+            Collections.singletonList(simple),
+            Collections.singletonList("id,name,user[id,code],users[id,code]"));
+    fieldFilterService.toComplexNode(params);
+  }
+
+  @Test
+  void testFieldNodeServiceSerializerPresetStar() throws JsonProcessingException {
+    Simple simple = new Simple(1, "Simple1");
+    simple.setUser(makeUser("a"));
+    simple.getUser().setUuid(uuid);
+    simple.getUsers().add(makeUser("A"));
+    simple.getUsers().add(makeUser("B"));
+    simple.getUsers().add(makeUser("C"));
+    simple.getUsers().add(makeUser("D"));
+    ComplexNode complexNode = nodeService.toNode(simple);
+    RootNode rootNode = NodeUtils.createRootNode(complexNode);
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    nodeService.serialize(rootNode, "application/json", outputStream);
+    String jsonSource = outputStream.toString();
+    verifyJsonSource(jsonSource);
+    Simple simpleFromJson = jsonMapper.readValue(jsonSource, Simple.class);
+    assertEquals(1, simpleFromJson.getId());
+    assertEquals("Simple1", simpleFromJson.getName());
+    assertNotNull(simple.getUser());
+
+    assertEquals("usernamea", simple.getUser().getUsername());
+    assertEquals(uuid, simple.getUser().getUuid());
+    assertNotNull(simple.getUsers());
+    assertEquals(4, simple.getUsers().size());
+    FieldFilterParams params =
+        new FieldFilterParams(
+            Collections.singletonList(simple),
+            Collections.singletonList("id,name,user[*],users[*]"));
+    fieldFilterService.toComplexNode(params);
+  }
+
+  @Test
+  void testJsonSerializer() throws JsonProcessingException {
+    Simple simple = new Simple(1, "Simple1");
+    User user = makeUser("a");
+    simple.setUser(user);
+    simple.getUser().setUuid(uuid);
+    String jsonSource = jsonMapper.writeValueAsString(simple);
+    verifyJsonSource(jsonSource);
+    Simple simpleFromJson = jsonMapper.readValue(jsonSource, Simple.class);
+    assertEquals(1, simpleFromJson.getId());
+    assertEquals("Simple1", simpleFromJson.getName());
+    assertNotNull(simple.getUser());
+
+    assertEquals("usernamea", simple.getUser().getUsername());
+    assertEquals(user.getUid(), simple.getUser().getUid());
+    assertEquals(uuid, simple.getUser().getUuid());
+  }
+
+  @Test
+  void testXmlSerializer() throws JsonProcessingException {
+    Simple simple = new Simple(1, "Simple1");
+    User user = makeUser("a");
+    simple.setUser(user);
+    simple.getUser().setUuid(uuid);
+    String xmlSource = xmlMapper.writeValueAsString(simple);
+    verifyXmlSource(xmlSource);
+    Simple simpleFromJson = xmlMapper.readValue(xmlSource, Simple.class);
+    assertEquals(1, simpleFromJson.getId());
+    assertEquals("Simple1", simpleFromJson.getName());
+    assertNotNull(simple.getUser());
+
+    assertEquals("usernamea", simple.getUser().getUsername());
+    assertEquals(user.getUid(), simple.getUser().getUid());
+    assertEquals(uuid, simple.getUser().getUuid());
+  }
+
+  private void verifyJsonSource(String jsonSource) throws JsonProcessingException {
+    JsonNode root = jsonMapper.readTree(jsonSource);
+    verifyJsonNode(root);
+  }
+
+  private void verifyXmlSource(String xmlSource) throws JsonProcessingException {
+    JsonNode root = xmlMapper.readTree(xmlSource);
+    verifyJsonNode(root);
+  }
+
+  private void verifyJsonNode(JsonNode root) {
+    assertTrue(root.has("id"));
+    assertTrue(root.has("name"));
+    assertTrue(root.has("user"));
+    JsonNode userNode = root.get("user");
+    assertTrue(userNode.has("id"));
+    assertTrue(userNode.has("username"));
+    // assertEquals( userNode.get( "id" ).textValue(), uuid.toString() );
+    assertEquals(userNode.get("id").textValue(), "userabcdefa");
+    assertEquals(userNode.get("username").textValue(), "usernamea");
+  }
+
+  @JacksonXmlRootElement(localName = "simple")
+  public static class Simple {
+
+    private int id;
+
+    private String name;
+
+    private User user;
+
+    private List<User> users = new ArrayList<>();
+
+    public Simple() {}
+
+    public Simple(int id, String name) {
+      this.id = id;
+      this.name = name;
     }
 
-    @Test
-    void testFieldNodeServiceSerializer()
-        throws JsonProcessingException
-    {
-        Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( makeUser( "a" ) );
-        simple.getUser().setUuid( uuid );
-        simple.getUsers().add( makeUser( "A" ) );
-        simple.getUsers().add( makeUser( "B" ) );
-        simple.getUsers().add( makeUser( "C" ) );
-        simple.getUsers().add( makeUser( "D" ) );
-        ComplexNode complexNode = nodeService.toNode( simple );
-        RootNode rootNode = NodeUtils.createRootNode( complexNode );
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        nodeService.serialize( rootNode, "application/json", outputStream );
-        String jsonSource = outputStream.toString();
-        verifyJsonSource( jsonSource );
-        Simple simpleFromJson = jsonMapper.readValue( jsonSource, Simple.class );
-        assertEquals( 1, simpleFromJson.getId() );
-        assertEquals( "Simple1", simpleFromJson.getName() );
-        assertNotNull( simple.getUser() );
-
-        assertEquals( "usernamea", simple.getUser().getUsername() );
-        assertEquals( uuid, simple.getUser().getUuid() );
-        assertNotNull( simple.getUsers() );
-        assertEquals( 4, simple.getUsers().size() );
-        FieldFilterParams params = new FieldFilterParams( Collections.singletonList( simple ),
-            Collections.singletonList( "id,name,user[id,code],users[id,code]" ) );
-        fieldFilterService.toComplexNode( params );
+    @JsonProperty
+    public int getId() {
+      return id;
     }
 
-    @Test
-    void testFieldNodeServiceSerializerPresetStar()
-        throws JsonProcessingException
-    {
-        Simple simple = new Simple( 1, "Simple1" );
-        simple.setUser( makeUser( "a" ) );
-        simple.getUser().setUuid( uuid );
-        simple.getUsers().add( makeUser( "A" ) );
-        simple.getUsers().add( makeUser( "B" ) );
-        simple.getUsers().add( makeUser( "C" ) );
-        simple.getUsers().add( makeUser( "D" ) );
-        ComplexNode complexNode = nodeService.toNode( simple );
-        RootNode rootNode = NodeUtils.createRootNode( complexNode );
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        nodeService.serialize( rootNode, "application/json", outputStream );
-        String jsonSource = outputStream.toString();
-        verifyJsonSource( jsonSource );
-        Simple simpleFromJson = jsonMapper.readValue( jsonSource, Simple.class );
-        assertEquals( 1, simpleFromJson.getId() );
-        assertEquals( "Simple1", simpleFromJson.getName() );
-        assertNotNull( simple.getUser() );
-
-        assertEquals( "usernamea", simple.getUser().getUsername() );
-        assertEquals( uuid, simple.getUser().getUuid() );
-        assertNotNull( simple.getUsers() );
-        assertEquals( 4, simple.getUsers().size() );
-        FieldFilterParams params = new FieldFilterParams( Collections.singletonList( simple ),
-            Collections.singletonList( "id,name,user[*],users[*]" ) );
-        fieldFilterService.toComplexNode( params );
+    @JsonProperty
+    public String getName() {
+      return name;
     }
 
-    @Test
-    void testJsonSerializer()
-        throws JsonProcessingException
-    {
-        Simple simple = new Simple( 1, "Simple1" );
-        User user = makeUser( "a" );
-        simple.setUser( user );
-        simple.getUser().setUuid( uuid );
-        String jsonSource = jsonMapper.writeValueAsString( simple );
-        verifyJsonSource( jsonSource );
-        Simple simpleFromJson = jsonMapper.readValue( jsonSource, Simple.class );
-        assertEquals( 1, simpleFromJson.getId() );
-        assertEquals( "Simple1", simpleFromJson.getName() );
-        assertNotNull( simple.getUser() );
-
-        assertEquals( "usernamea", simple.getUser().getUsername() );
-        assertEquals( user.getUid(), simple.getUser().getUid() );
-        assertEquals( uuid, simple.getUser().getUuid() );
+    @JsonProperty
+    @JsonSerialize(using = UserPropertyTransformer.JacksonSerialize.class)
+    @JsonDeserialize(using = UserPropertyTransformer.JacksonDeserialize.class)
+    @PropertyTransformer(UserPropertyTransformer.class)
+    public User getUser() {
+      return user;
     }
 
-    @Test
-    void testXmlSerializer()
-        throws JsonProcessingException
-    {
-        Simple simple = new Simple( 1, "Simple1" );
-        User user = makeUser( "a" );
-        simple.setUser( user );
-        simple.getUser().setUuid( uuid );
-        String xmlSource = xmlMapper.writeValueAsString( simple );
-        verifyXmlSource( xmlSource );
-        Simple simpleFromJson = xmlMapper.readValue( xmlSource, Simple.class );
-        assertEquals( 1, simpleFromJson.getId() );
-        assertEquals( "Simple1", simpleFromJson.getName() );
-        assertNotNull( simple.getUser() );
-
-        assertEquals( "usernamea", simple.getUser().getUsername() );
-        assertEquals( user.getUid(), simple.getUser().getUid() );
-        assertEquals( uuid, simple.getUser().getUuid() );
+    public void setUser(User user) {
+      this.user = user;
     }
 
-    private void verifyJsonSource( String jsonSource )
-        throws JsonProcessingException
-    {
-        JsonNode root = jsonMapper.readTree( jsonSource );
-        verifyJsonNode( root );
+    @JsonProperty
+    @JsonSerialize(contentUsing = UserPropertyTransformer.JacksonSerialize.class)
+    @JsonDeserialize(contentUsing = UserPropertyTransformer.JacksonDeserialize.class)
+    @PropertyTransformer(UserPropertyTransformer.class)
+    public List<User> getUsers() {
+      return users;
     }
 
-    private void verifyXmlSource( String xmlSource )
-        throws JsonProcessingException
-    {
-        JsonNode root = xmlMapper.readTree( xmlSource );
-        verifyJsonNode( root );
+    public void setUsers(List<User> users) {
+      this.users = users;
     }
-
-    private void verifyJsonNode( JsonNode root )
-    {
-        assertTrue( root.has( "id" ) );
-        assertTrue( root.has( "name" ) );
-        assertTrue( root.has( "user" ) );
-        JsonNode userNode = root.get( "user" );
-        assertTrue( userNode.has( "id" ) );
-        assertTrue( userNode.has( "username" ) );
-        // assertEquals( userNode.get( "id" ).textValue(), uuid.toString() );
-        assertEquals( userNode.get( "id" ).textValue(), "userabcdefa" );
-        assertEquals( userNode.get( "username" ).textValue(), "usernamea" );
-    }
-
-    @JacksonXmlRootElement( localName = "simple" )
-    public static class Simple
-    {
-
-        private int id;
-
-        private String name;
-
-        private User user;
-
-        private List<User> users = new ArrayList<>();
-
-        public Simple()
-        {
-        }
-
-        public Simple( int id, String name )
-        {
-            this.id = id;
-            this.name = name;
-        }
-
-        @JsonProperty
-        public int getId()
-        {
-            return id;
-        }
-
-        @JsonProperty
-        public String getName()
-        {
-            return name;
-        }
-
-        @JsonProperty
-        @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
-        @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
-        @PropertyTransformer( UserPropertyTransformer.class )
-        public User getUser()
-        {
-            return user;
-        }
-
-        public void setUser( User user )
-        {
-            this.user = user;
-        }
-
-        @JsonProperty
-        @JsonSerialize( contentUsing = UserPropertyTransformer.JacksonSerialize.class )
-        @JsonDeserialize( contentUsing = UserPropertyTransformer.JacksonDeserialize.class )
-        @PropertyTransformer( UserPropertyTransformer.class )
-        public List<User> getUsers()
-        {
-            return users;
-        }
-
-        public void setUsers( List<User> users )
-        {
-            this.users = users;
-        }
-    }
+  }
 }

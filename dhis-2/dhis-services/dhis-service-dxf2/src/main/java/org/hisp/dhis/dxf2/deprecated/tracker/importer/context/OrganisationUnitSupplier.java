@@ -30,6 +30,8 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.context;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -37,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
@@ -47,138 +48,131 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
-@Component( "workContextOrgUnitsSupplier" )
-public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, OrganisationUnit>>
-{
-    private final static String ATTRIBUTESCHEME_COL = "attributevalues";
+@Component("workContextOrgUnitsSupplier")
+public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, OrganisationUnit>> {
+  private static final String ATTRIBUTESCHEME_COL = "attributevalues";
 
-    public OrganisationUnitSupplier( NamedParameterJdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
+  public OrganisationUnitSupplier(NamedParameterJdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
+
+  @Override
+  public Map<String, OrganisationUnit> get(ImportOptions importOptions, List<Event> events) {
+    //
+    // Get the IdScheme for Org Units. Org Units should support also the
+    // Attribute
+    // Scheme, based on JSONB
+    //
+    IdScheme idScheme = importOptions.getIdSchemes().getOrgUnitIdScheme();
+
+    if (events == null) {
+      return new HashMap<>();
     }
 
-    @Override
-    public Map<String, OrganisationUnit> get( ImportOptions importOptions, List<Event> events )
-    {
-        //
-        // Get the IdScheme for Org Units. Org Units should support also the
-        // Attribute
-        // Scheme, based on JSONB
-        //
-        IdScheme idScheme = importOptions.getIdSchemes().getOrgUnitIdScheme();
+    //
+    // Collect all the org unit IDs (based on the IdScheme) to pass as SQL
+    // query
+    // argument
+    //
+    // @formatter:off
+    final Set<String> orgUnitUids =
+        events.stream()
+            .filter(e -> e.getOrgUnit() != null)
+            .map(Event::getOrgUnit)
+            .collect(Collectors.toSet());
+    // @formatter:on
 
-        if ( events == null )
-        {
-            return new HashMap<>();
-        }
-
-        //
-        // Collect all the org unit IDs (based on the IdScheme) to pass as SQL
-        // query
-        // argument
-        //
-        // @formatter:off
-        final Set<String> orgUnitUids = events.stream()
-            .filter( e -> e.getOrgUnit() != null ).map( Event::getOrgUnit )
-            .collect( Collectors.toSet() );
-        // @formatter:on
-
-        if ( isEmpty( orgUnitUids ) )
-        {
-            return new HashMap<>();
-        }
-
-        // Create a map: org unit uid -> List [event uid]
-        Multimap<String, String> orgUnitToEvent = HashMultimap.create();
-        for ( Event event : events )
-        {
-            orgUnitToEvent.put( event.getOrgUnit(), event.getUid() );
-        }
-
-        return fetchOu( idScheme, orgUnitUids, orgUnitToEvent );
-
+    if (isEmpty(orgUnitUids)) {
+      return new HashMap<>();
     }
 
-    private Map<String, OrganisationUnit> fetchOu( IdScheme idScheme, Set<String> orgUnitUids,
-        Multimap<String, String> orgUnitToEvent )
-    {
-        String sql = "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ";
+    // Create a map: org unit uid -> List [event uid]
+    Multimap<String, String> orgUnitToEvent = HashMultimap.create();
+    for (Event event : events) {
+      orgUnitToEvent.put(event.getOrgUnit(), event.getUid());
+    }
 
-        if ( idScheme.isAttribute() )
-        {
-            //
-            // Attribute IdScheme handling: use Postgres JSONB custom clauses to
-            // query the
-            // "attributvalues" column
-            //
-            // The column is expected to contain a JSON structure like so:
-            //
-            // {"ie9wfkGw8GX": {"value": "Some value", "attribute": {"id":
-            // "ie9wfkGw8GX"}}}
-            //
-            // The 'ie9wfkGw8GX' uid is the attribute identifier
-            //
+    return fetchOu(idScheme, orgUnitUids, orgUnitToEvent);
+  }
 
-            final String attribute = idScheme.getAttribute();
+  private Map<String, OrganisationUnit> fetchOu(
+      IdScheme idScheme, Set<String> orgUnitUids, Multimap<String, String> orgUnitToEvent) {
+    String sql =
+        "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ";
 
-            sql += ",attributevalues->'" + attribute
-                + "'->>'value' as " + ATTRIBUTESCHEME_COL + " from organisationunit ou where ou.attributevalues#>>'{"
-                + attribute
-                + ",value}' in (:ids)";
-        }
-        else
-        {
-            sql += "from organisationunit ou where ou."
-                + IdSchemeUtils.getColumnNameByScheme( idScheme, "organisationunitid" ) + " in (:ids)";
-        }
+    if (idScheme.isAttribute()) {
+      //
+      // Attribute IdScheme handling: use Postgres JSONB custom clauses to
+      // query the
+      // "attributvalues" column
+      //
+      // The column is expected to contain a JSON structure like so:
+      //
+      // {"ie9wfkGw8GX": {"value": "Some value", "attribute": {"id":
+      // "ie9wfkGw8GX"}}}
+      //
+      // The 'ie9wfkGw8GX' uid is the attribute identifier
+      //
 
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "ids", orgUnitUids );
+      final String attribute = idScheme.getAttribute();
 
-        return jdbcTemplate.query( sql, parameters, rs -> {
-            Map<String, OrganisationUnit> results = new HashMap<>();
+      sql +=
+          ",attributevalues->'"
+              + attribute
+              + "'->>'value' as "
+              + ATTRIBUTESCHEME_COL
+              + " from organisationunit ou where ou.attributevalues#>>'{"
+              + attribute
+              + ",value}' in (:ids)";
+    } else {
+      sql +=
+          "from organisationunit ou where ou."
+              + IdSchemeUtils.getColumnNameByScheme(idScheme, "organisationunitid")
+              + " in (:ids)";
+    }
 
-            while ( rs.next() )
-            {
-                OrganisationUnit ou = mapFromResultSet( rs );
+    MapSqlParameterSource parameters = new MapSqlParameterSource();
+    parameters.addValue("ids", orgUnitUids);
 
-                try
-                {
-                    for ( String event : orgUnitToEvent
-                        .get( idScheme.isAttribute() ? rs.getString( ATTRIBUTESCHEME_COL )
-                            : getIdentifierBasedOnIdScheme( ou, idScheme ) ) )
-                    {
-                        results.put( event, ou );
-                    }
-                }
-                catch ( Exception e )
-                {
-                    throw new UnrecoverableImportException( e );
-                }
+    return jdbcTemplate.query(
+        sql,
+        parameters,
+        rs -> {
+          Map<String, OrganisationUnit> results = new HashMap<>();
+
+          while (rs.next()) {
+            OrganisationUnit ou = mapFromResultSet(rs);
+
+            try {
+              for (String event :
+                  orgUnitToEvent.get(
+                      idScheme.isAttribute()
+                          ? rs.getString(ATTRIBUTESCHEME_COL)
+                          : getIdentifierBasedOnIdScheme(ou, idScheme))) {
+                results.put(event, ou);
+              }
+            } catch (Exception e) {
+              throw new UnrecoverableImportException(e);
             }
-            return results;
-        } );
-    }
+          }
+          return results;
+        });
+  }
 
-    private OrganisationUnit mapFromResultSet( ResultSet rs )
-        throws SQLException
-    {
-        OrganisationUnit ou = new OrganisationUnit();
-        ou.setId( rs.getLong( "organisationunitid" ) );
-        ou.setUid( rs.getString( "uid" ) );
-        ou.setCode( rs.getString( "code" ) );
-        ou.setName( rs.getString( "name" ) );
-        String path = rs.getString( "path" );
-        ou.setPath( path );
-        ou.setHierarchyLevel( rs.getInt( "hierarchylevel" ) );
-        ou.setParent( SupplierUtils.getParentHierarchy( ou, path ) );
+  private OrganisationUnit mapFromResultSet(ResultSet rs) throws SQLException {
+    OrganisationUnit ou = new OrganisationUnit();
+    ou.setId(rs.getLong("organisationunitid"));
+    ou.setUid(rs.getString("uid"));
+    ou.setCode(rs.getString("code"));
+    ou.setName(rs.getString("name"));
+    String path = rs.getString("path");
+    ou.setPath(path);
+    ou.setHierarchyLevel(rs.getInt("hierarchylevel"));
+    ou.setParent(SupplierUtils.getParentHierarchy(ou, path));
 
-        return ou;
-    }
+    return ou;
+  }
 }

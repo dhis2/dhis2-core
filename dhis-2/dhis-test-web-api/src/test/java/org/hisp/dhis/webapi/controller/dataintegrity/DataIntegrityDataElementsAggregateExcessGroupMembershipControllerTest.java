@@ -33,92 +33,123 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for metadata check which identifies data element group sets which have
- * duplicative data elements within one or more of their constituent groups.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_excess_groupset_membership.yaml}
+ * Test for metadata check which identifies data element group sets which have duplicative data
+ * elements within one or more of their constituent groups. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_excess_groupset_membership.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private final String check = "data_elements_excess_groupset_membership";
+class DataIntegrityDataElementsAggregateExcessGroupMembershipControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private final String check = "data_elements_excess_groupset_membership";
 
-    private String dataElementA;
+  private String dataElementA;
 
-    private String dataElementB;
+  private String dataElementB;
 
-    private String dataElementGroupB;
+  private String dataElementGroupB;
 
-    private String dataElementGroupA;
+  private String dataElementGroupA;
 
-    @Test
-    void testDataElementNotInGroup()
-    {
+  @Test
+  void testDataElementNotInGroup() {
 
-        setUpDataElements();
+    setUpDataElements();
 
-        dataElementGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroups",
-                "{ 'name' : 'MCH', 'shortName': 'MCH' , " +
-                    "'dataElements':[{'id':'" + dataElementA + "'},{'id': '" + dataElementB + "'}]}" ) );
+    dataElementGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElementGroups",
+                "{ 'name' : 'MCH', 'shortName': 'MCH' , "
+                    + "'dataElements':[{'id':'"
+                    + dataElementA
+                    + "'},{'id': '"
+                    + dataElementB
+                    + "'}]}"));
 
-        dataElementGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroups",
-                "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '" + dataElementB + "'}]}" ) );
+    dataElementGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElementGroups",
+                "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '"
+                    + dataElementB
+                    + "'}]}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroupSets",
-                "{'name' : 'Maternal Health' , 'shortName': 'Maternal Health', 'dataDimension' : true, " +
-                    "'dataElementGroups': [{'id': '" + dataElementGroupA + "'},{'id': '" +
-                    dataElementGroupB + "'}]}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElementGroupSets",
+            "{'name' : 'Maternal Health' , 'shortName': 'Maternal Health', 'dataDimension' : true, "
+                + "'dataElementGroups': [{'id': '"
+                + dataElementGroupA
+                + "'},{'id': '"
+                + dataElementGroupB
+                + "'}]}"));
 
-        assertHasDataIntegrityIssues( "data_elements_aggregate", check, 50, dataElementB, "ANC2", null,
-            true );
+    assertHasDataIntegrityIssues(
+        "data_elements_aggregate", check, 50, dataElementB, "ANC2", null, true);
+  }
 
-    }
+  @Test
+  void testDataElementsInGroup() {
+    setUpDataElements();
 
-    @Test
-    void testDataElementsInGroup()
-    {
-        setUpDataElements();
+    dataElementGroupA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElementGroups",
+                "{ 'name' : 'MCH', 'shortName': 'MCH' , "
+                    + "'dataElements':[{'id':'"
+                    + dataElementA
+                    + "'}]}"));
 
-        dataElementGroupA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroups",
-                "{ 'name' : 'MCH', 'shortName': 'MCH' , " +
-                    "'dataElements':[{'id':'" + dataElementA + "'}]}" ) );
+    dataElementGroupB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElementGroups",
+                "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '"
+                    + dataElementB
+                    + "'}]}"));
 
-        dataElementGroupB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroups",
-                "{ 'name': 'ANC', 'shortName': 'ANC' , 'dataElements' : [{'id' : '" + dataElementB + "'}]}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataElementGroupSets",
+            "{'name' : 'Maternal Health' , 'shortName': 'Maternal Health', 'dataDimension' : true, "
+                + "'dataElementGroups': [{'id': '"
+                + dataElementGroupA
+                + "'},{'id': '"
+                + dataElementGroupB
+                + "'}]}"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementGroupSets",
-                "{'name' : 'Maternal Health' , 'shortName': 'Maternal Health', 'dataDimension' : true, " +
-                    "'dataElementGroups': [{'id': '" + dataElementGroupA + "'},{'id': '" +
-                    dataElementGroupB + "'}]}" ) );
+    assertHasNoDataIntegrityIssues("data_elements_aggregate", check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, true );
+  @Test
+  void testDataElementsInGroupDivideByZero() {
 
-    }
+    assertHasNoDataIntegrityIssues("data_elements_aggregate", check, false);
+  }
 
-    @Test
-    void testDataElementsInGroupDivideByZero()
-    {
+  void setUpDataElements() {
+    dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        assertHasNoDataIntegrityIssues( "data_elements_aggregate", check, false );
-
-    }
-
-    void setUpDataElements()
-    {
-        dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-
-        dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-    }
+    dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+  }
 }

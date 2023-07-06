@@ -31,10 +31,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -60,129 +58,121 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@OpenApi.Shared( name = "EventRequestParams" )
+@OpenApi.Shared(name = "EventRequestParams")
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-class RequestParams extends PagingAndSortingCriteriaAdapter
-{
-    static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
+class RequestParams extends PagingAndSortingCriteriaAdapter {
+  static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
 
-    @OpenApi.Property( { UID.class, Program.class } )
-    private UID program;
+  @OpenApi.Property({UID.class, Program.class})
+  private UID program;
 
-    @OpenApi.Property( { UID.class, ProgramStage.class } )
-    private UID programStage;
+  @OpenApi.Property({UID.class, ProgramStage.class})
+  private UID programStage;
 
-    private ProgramStatus programStatus;
+  private ProgramStatus programStatus;
 
-    private Boolean followUp;
+  private Boolean followUp;
 
-    @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    private UID trackedEntity;
+  @OpenApi.Property({UID.class, TrackedEntity.class})
+  private UID trackedEntity;
 
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private UID orgUnit;
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private UID orgUnit;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+  private AssignedUserSelectionMode assignedUserMode;
 
-    /**
-     * Semicolon-delimited list of user UIDs to filter based on events assigned
-     * to the users.
-     *
-     * @deprecated use {@link #assignedUsers} instead which is comma instead of
-     *             semicolon separated.
-     */
-    @Deprecated( since = "2.41" )
-    @OpenApi.Property( { UID[].class, User.class } )
-    private String assignedUser;
+  /**
+   * Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
+   *
+   * @deprecated use {@link #assignedUsers} instead which is comma instead of semicolon separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, User.class})
+  private String assignedUser;
 
-    @OpenApi.Property( { UID[].class, User.class } )
-    private Set<UID> assignedUsers = new HashSet<>();
+  @OpenApi.Property({UID[].class, User.class})
+  private Set<UID> assignedUsers = new HashSet<>();
 
-    private Date occurredAfter;
+  private Date occurredAfter;
 
-    private Date occurredBefore;
+  private Date occurredBefore;
 
-    private Date scheduledAfter;
+  private Date scheduledAfter;
 
-    private Date scheduledBefore;
+  private Date scheduledBefore;
 
-    private Date updatedAfter;
+  private Date updatedAfter;
 
-    private Date updatedBefore;
+  private Date updatedBefore;
 
-    private String updatedWithin;
+  private String updatedWithin;
 
-    private Date enrollmentEnrolledBefore;
+  private Date enrollmentEnrolledBefore;
 
-    private Date enrollmentEnrolledAfter;
+  private Date enrollmentEnrolledAfter;
 
-    private Date enrollmentOccurredBefore;
+  private Date enrollmentOccurredBefore;
 
-    private Date enrollmentOccurredAfter;
+  private Date enrollmentOccurredAfter;
 
-    private EventStatus status;
+  private EventStatus status;
 
-    /**
-     * @deprecated use {@link #attributeCategoryCombo}
-     */
-    @Deprecated( since = "2.41" )
-    @OpenApi.Property( { UID.class, CategoryCombo.class } )
-    private UID attributeCc;
+  /**
+   * @deprecated use {@link #attributeCategoryCombo}
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID.class, CategoryCombo.class})
+  private UID attributeCc;
 
-    @OpenApi.Property( { UID.class, CategoryCombo.class } )
-    private UID attributeCategoryCombo;
+  @OpenApi.Property({UID.class, CategoryCombo.class})
+  private UID attributeCategoryCombo;
 
-    /**
-     * Semicolon-delimited list of category option UIDs.
-     *
-     * @deprecated use {@link #attributeCategoryOptions} instead which is comma
-     *             instead of semicolon separated.
-     */
-    @Deprecated( since = "2.41" )
-    @OpenApi.Property( { UID[].class, CategoryOption.class } )
-    private String attributeCos;
+  /**
+   * Semicolon-delimited list of category option UIDs.
+   *
+   * @deprecated use {@link #attributeCategoryOptions} instead which is comma instead of semicolon
+   *     separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, CategoryOption.class})
+  private String attributeCos;
 
-    @OpenApi.Property( { UID[].class, CategoryOption.class } )
-    private Set<UID> attributeCategoryOptions = new HashSet<>();
+  @OpenApi.Property({UID[].class, CategoryOption.class})
+  private Set<UID> attributeCategoryOptions = new HashSet<>();
 
-    private boolean skipMeta;
+  private boolean skipMeta;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    /**
-     * Semicolon-delimited list of event UIDs.
-     *
-     * @deprecated use {@link #events} instead which is comma instead of
-     *             semicolon separated.
-     */
-    @Deprecated( since = "2.41" )
-    @OpenApi.Property( { UID[].class, Event.class } )
-    private String event;
+  /**
+   * Semicolon-delimited list of event UIDs.
+   *
+   * @deprecated use {@link #events} instead which is comma instead of semicolon separated.
+   */
+  @Deprecated(since = "2.41")
+  @OpenApi.Property({UID[].class, Event.class})
+  private String event;
 
-    @OpenApi.Property( { UID[].class, Event.class } )
-    private Set<UID> events = new HashSet<>();
+  @OpenApi.Property({UID[].class, Event.class})
+  private Set<UID> events = new HashSet<>();
 
-    private Boolean skipEventId;
+  private Boolean skipEventId;
 
-    /**
-     * Comma separated list of data element filters
-     */
-    private String filter;
+  /** Comma separated list of data element filters */
+  private String filter;
 
-    /**
-     * Comma separated list of attribute filters
-     */
-    private String filterAttributes;
+  /** Comma separated list of attribute filters */
+  private String filterAttributes;
 
-    @OpenApi.Property( { UID[].class, Enrollment.class } )
-    private Set<UID> enrollments = new HashSet<>();
+  @OpenApi.Property({UID[].class, Enrollment.class})
+  private Set<UID> enrollments = new HashSet<>();
 
-    private IdSchemes idSchemes = new IdSchemes();
+  private IdSchemes idSchemes = new IdSchemes();
 
-    @OpenApi.Property( value = String[].class )
-    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
+  @OpenApi.Property(value = String[].class)
+  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }

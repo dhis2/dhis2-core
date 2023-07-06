@@ -37,22 +37,19 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class StatementBuilderTest
-{
+class StatementBuilderTest {
 
-    @Test
-    void testStatementBuilder()
-    {
-        StatementBuilder builder = new PostgreSQLStatementBuilder();
-        String autoIncrement = builder.getAutoIncrementValue();
-        assertEquals( "nextval('hibernate_sequence')", autoIncrement );
-    }
+  @Test
+  void testStatementBuilder() {
+    StatementBuilder builder = new PostgreSQLStatementBuilder();
+    String autoIncrement = builder.getAutoIncrementValue();
+    assertEquals("nextval('hibernate_sequence')", autoIncrement);
+  }
 
-    @Test
-    void encodeTest()
-    {
-        StatementBuilder builder = new PostgreSQLStatementBuilder();
-        String encoded = builder.encode( "contains'character" );
-        assertThat( encoded, CoreMatchers.containsString( "''" ) );
-    }
+  @Test
+  void encodeTest() {
+    StatementBuilder builder = new PostgreSQLStatementBuilder();
+    String encoded = builder.encode("contains'character");
+    assertThat(encoded, CoreMatchers.containsString("''"));
+  }
 }

@@ -31,76 +31,69 @@ import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_COMPL
 import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.ON_DATA_ENTRY;
 import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.getAll;
 
+import com.google.common.collect.Sets;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Markus Bekken
  */
-public enum ProgramRuleActionType
-{
-    DISPLAYTEXT( "displaytext" ),
-    DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
-    HIDEFIELD( "hidefield" ),
-    HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage" ),
-    ASSIGN( "assign", ON_DATA_ENTRY, ON_COMPLETE ),
-    SHOWWARNING( "showwarning" ),
-    WARNINGONCOMPLETE( "warningoncomplete" ),
-    SHOWERROR( "showerror" ),
-    ERRORONCOMPLETE( "erroroncomplete" ),
-    CREATEEVENT( "createevent" ),
-    SETMANDATORYFIELD( "setmandatoryfield", ON_DATA_ENTRY ),
-    SENDMESSAGE( "sendmessage", ON_DATA_ENTRY, ON_COMPLETE ),
-    SCHEDULEMESSAGE( "schedulemessage", ON_DATA_ENTRY, ON_COMPLETE ),
-    HIDEOPTION( "hideoption" ),
-    SHOWOPTIONGROUP( "showoptiongroup" ),
-    HIDEOPTIONGROUP( "hideoptiongroup" );
+public enum ProgramRuleActionType {
+  DISPLAYTEXT("displaytext"),
+  DISPLAYKEYVALUEPAIR("displaykeyvaluepair"),
+  HIDEFIELD("hidefield"),
+  HIDESECTION("hidesection"),
+  HIDEPROGRAMSTAGE("hideprogramstage"),
+  ASSIGN("assign", ON_DATA_ENTRY, ON_COMPLETE),
+  SHOWWARNING("showwarning"),
+  WARNINGONCOMPLETE("warningoncomplete"),
+  SHOWERROR("showerror"),
+  ERRORONCOMPLETE("erroroncomplete"),
+  CREATEEVENT("createevent"),
+  SETMANDATORYFIELD("setmandatoryfield", ON_DATA_ENTRY),
+  SENDMESSAGE("sendmessage", ON_DATA_ENTRY, ON_COMPLETE),
+  SCHEDULEMESSAGE("schedulemessage", ON_DATA_ENTRY, ON_COMPLETE),
+  HIDEOPTION("hideoption"),
+  SHOWOPTIONGROUP("showoptiongroup"),
+  HIDEOPTIONGROUP("hideoptiongroup");
 
-    final String value;
+  final String value;
 
-    final Set<ProgramRuleActionEvaluationTime> whenToRun;
+  final Set<ProgramRuleActionEvaluationTime> whenToRun;
 
-    /**
-     * Actions which require server-side execution.
-     */
-    public static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS = Set.of(
-        SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN );
+  /** Actions which require server-side execution. */
+  public static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
+      Set.of(SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN);
 
-    /**
-     * Actions associated with {@link DataElement} or
-     * {@link TrackedEntityAttribute}.
-     */
-    public static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = Set.of(
-        HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION, HIDEOPTIONGROUP, SHOWOPTIONGROUP );
+  /** Actions associated with {@link DataElement} or {@link TrackedEntityAttribute}. */
+  public static final Set<ProgramRuleActionType> DATA_LINKED_TYPES =
+      Set.of(HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION, HIDEOPTIONGROUP, SHOWOPTIONGROUP);
 
-    /**
-     * Actions associated with {@link NotificationTemplate}.
-     */
-    public static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = Set.of(
-        SENDMESSAGE, SCHEDULEMESSAGE );
+  /** Actions associated with {@link NotificationTemplate}. */
+  public static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES =
+      Set.of(SENDMESSAGE, SCHEDULEMESSAGE);
 
-    /**
-     * Complete set of actions which require server-side execution.
-     */
-    public static final Set<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = Set
-        .of( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING, ERRORONCOMPLETE,
-            WARNINGONCOMPLETE, ASSIGN, SETMANDATORYFIELD );
+  /** Complete set of actions which require server-side execution. */
+  public static final Set<ProgramRuleActionType> SERVER_SUPPORTED_TYPES =
+      Set.of(
+          SENDMESSAGE,
+          SCHEDULEMESSAGE,
+          SHOWERROR,
+          SHOWWARNING,
+          ERRORONCOMPLETE,
+          WARNINGONCOMPLETE,
+          ASSIGN,
+          SETMANDATORYFIELD);
 
-    ProgramRuleActionType( String value )
-    {
-        this.value = value;
-        this.whenToRun = getAll();
-    }
+  ProgramRuleActionType(String value) {
+    this.value = value;
+    this.whenToRun = getAll();
+  }
 
-    ProgramRuleActionType( String value, ProgramRuleActionEvaluationTime... whenToRun )
-    {
-        this.value = value;
-        this.whenToRun = Sets.newHashSet( whenToRun );
-    }
+  ProgramRuleActionType(String value, ProgramRuleActionEvaluationTime... whenToRun) {
+    this.value = value;
+    this.whenToRun = Sets.newHashSet(whenToRun);
+  }
 }

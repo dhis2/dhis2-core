@@ -27,91 +27,74 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import java.util.Date;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import org.hisp.dhis.common.DxfNamespaces;
 
-/**
- * Represents a data approval state request
- */
-@JacksonXmlRootElement( localName = "dataApprovalStateRequest", namespace = DxfNamespaces.DXF_2_0 )
-public class DataApprovalStateRequest
-{
-    private String ds;
+/** Represents a data approval state request */
+@JacksonXmlRootElement(localName = "dataApprovalStateRequest", namespace = DxfNamespaces.DXF_2_0)
+public class DataApprovalStateRequest {
+  private String ds;
 
-    private String pe;
+  private String pe;
 
-    private String ou;
+  private String ou;
 
-    private String ab;
+  private String ab;
 
-    private Date ad;
+  private Date ad;
 
-    public DataApprovalStateRequest()
-    {
-    }
+  public DataApprovalStateRequest() {}
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDs()
-    {
-        return ds;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDs() {
+    return ds;
+  }
 
-    public void setDs( String ds )
-    {
-        this.ds = ds;
-    }
+  public void setDs(String ds) {
+    this.ds = ds;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPe()
-    {
-        return pe;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getPe() {
+    return pe;
+  }
 
-    public void setPe( String pe )
-    {
-        this.pe = pe;
-    }
+  public void setPe(String pe) {
+    this.pe = pe;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOu()
-    {
-        return ou;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getOu() {
+    return ou;
+  }
 
-    public void setOu( String ou )
-    {
-        this.ou = ou;
-    }
+  public void setOu(String ou) {
+    this.ou = ou;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAb()
-    {
-        return ab;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAb() {
+    return ab;
+  }
 
-    public void setAb( String ab )
-    {
-        this.ab = ab;
-    }
+  public void setAb(String ab) {
+    this.ab = ab;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getAd()
-    {
-        return ad;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getAd() {
+    return ad;
+  }
 
-    public void setAd( Date ad )
-    {
-        this.ad = ad;
-    }
+  public void setAd(Date ad) {
+    this.ad = ad;
+  }
 }

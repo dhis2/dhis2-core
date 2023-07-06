@@ -28,7 +28,6 @@
 package org.hisp.dhis.user;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.feedback.NotFoundException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
@@ -37,29 +36,24 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class DefaultAuthenticationService implements AuthenticationService
-{
-    private final UserService userService;
+public class DefaultAuthenticationService implements AuthenticationService {
+  private final UserService userService;
 
-    @Override
-    public void obtainAuthentication( String userId )
-        throws NotFoundException
-    {
-        if ( userId == null )
-        {
-            clearAuthentication();
-            return;
-        }
-        CurrentUserDetails user = userService.createUserDetails( userId );
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(
-            new UsernamePasswordAuthenticationToken( user, null, user.getAuthorities() ) );
-        SecurityContextHolder.setContext( context );
+  @Override
+  public void obtainAuthentication(String userId) throws NotFoundException {
+    if (userId == null) {
+      clearAuthentication();
+      return;
     }
+    CurrentUserDetails user = userService.createUserDetails(userId);
+    SecurityContext context = SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(
+        new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities()));
+    SecurityContextHolder.setContext(context);
+  }
 
-    @Override
-    public void clearAuthentication()
-    {
-        SecurityContextHolder.clearContext();
-    }
+  @Override
+  public void clearAuthentication() {
+    SecurityContextHolder.clearContext();
+  }
 }

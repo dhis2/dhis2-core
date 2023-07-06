@@ -30,55 +30,62 @@ package org.hisp.dhis.audit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AuditTest
-{
+class AuditTest {
 
-    @Test
-    void testStaticConstructor()
-    {
-        String uid = CodeGenerator.generateUid();
-        String code = CodeGenerator.generateUid();
-        Audit audit = Audit.builder().auditType( AuditType.CREATE ).auditScope( AuditScope.AGGREGATE )
-            .createdAt( LocalDateTime.of( 2019, 5, 5, 12, 30 ) ).createdBy( "test-user" )
-            .klass( DataElement.class.getName() ).uid( uid ).code( code ).data( "{}" ).build();
-        assertEquals( AuditType.CREATE, audit.getAuditType() );
-        assertEquals( AuditScope.AGGREGATE, audit.getAuditScope() );
-        assertEquals( LocalDateTime.of( 2019, 5, 5, 12, 30 ), audit.getCreatedAt() );
-        assertEquals( "test-user", audit.getCreatedBy() );
-        assertEquals( DataElement.class.getName(), audit.getKlass() );
-        assertEquals( uid, audit.getUid() );
-        assertEquals( code, audit.getCode() );
-        assertEquals( "{}", audit.getData() );
-    }
-
-    @Test
-    void testAuditQueryBuilder()
-    {
-        String uid = CodeGenerator.generateUid();
-        String code = CodeGenerator.generateUid();
-        LocalDateTime dateFrom = LocalDateTime.of( 2010, 4, 6, 12, 0, 0 );
-        LocalDateTime dateTo = dateFrom.plusYears( 4 );
-        // TODO should we add bean validation in AuditQuery so we know the from
-        // is before to
-        assertTrue( dateFrom.isBefore( dateTo ) );
-        AuditQuery query = AuditQuery.builder().klass( Sets.newHashSet( DataElement.class.getName() ) )
-            .uid( Sets.newHashSet( uid ) ).code( Sets.newHashSet( code ) ).range( AuditQuery.range( dateFrom, dateTo ) )
+  @Test
+  void testStaticConstructor() {
+    String uid = CodeGenerator.generateUid();
+    String code = CodeGenerator.generateUid();
+    Audit audit =
+        Audit.builder()
+            .auditType(AuditType.CREATE)
+            .auditScope(AuditScope.AGGREGATE)
+            .createdAt(LocalDateTime.of(2019, 5, 5, 12, 30))
+            .createdBy("test-user")
+            .klass(DataElement.class.getName())
+            .uid(uid)
+            .code(code)
+            .data("{}")
             .build();
-        assertEquals( Sets.newHashSet( DataElement.class.getName() ), query.getKlass() );
-        assertEquals( Sets.newHashSet( uid ), query.getUid() );
-        assertEquals( Sets.newHashSet( code ), query.getCode() );
-        assertEquals( dateFrom, query.getRange().getFrom() );
-        assertEquals( dateTo, query.getRange().getTo() );
-    }
+    assertEquals(AuditType.CREATE, audit.getAuditType());
+    assertEquals(AuditScope.AGGREGATE, audit.getAuditScope());
+    assertEquals(LocalDateTime.of(2019, 5, 5, 12, 30), audit.getCreatedAt());
+    assertEquals("test-user", audit.getCreatedBy());
+    assertEquals(DataElement.class.getName(), audit.getKlass());
+    assertEquals(uid, audit.getUid());
+    assertEquals(code, audit.getCode());
+    assertEquals("{}", audit.getData());
+  }
+
+  @Test
+  void testAuditQueryBuilder() {
+    String uid = CodeGenerator.generateUid();
+    String code = CodeGenerator.generateUid();
+    LocalDateTime dateFrom = LocalDateTime.of(2010, 4, 6, 12, 0, 0);
+    LocalDateTime dateTo = dateFrom.plusYears(4);
+    // TODO should we add bean validation in AuditQuery so we know the from
+    // is before to
+    assertTrue(dateFrom.isBefore(dateTo));
+    AuditQuery query =
+        AuditQuery.builder()
+            .klass(Sets.newHashSet(DataElement.class.getName()))
+            .uid(Sets.newHashSet(uid))
+            .code(Sets.newHashSet(code))
+            .range(AuditQuery.range(dateFrom, dateTo))
+            .build();
+    assertEquals(Sets.newHashSet(DataElement.class.getName()), query.getKlass());
+    assertEquals(Sets.newHashSet(uid), query.getUid());
+    assertEquals(Sets.newHashSet(code), query.getCode());
+    assertEquals(dateFrom, query.getRange().getFrom());
+    assertEquals(dateTo, query.getRange().getTo());
+  }
 }

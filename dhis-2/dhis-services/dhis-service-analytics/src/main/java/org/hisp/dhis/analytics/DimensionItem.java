@@ -32,7 +32,6 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -40,199 +39,161 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 /**
  * @author Lars Helge Overland
  */
-public class DimensionItem
-    implements Serializable
-{
-    private String dimension;
+public class DimensionItem implements Serializable {
+  private String dimension;
 
-    private DimensionalItemObject item;
+  private DimensionalItemObject item;
 
-    // -------------------------------------------------------------------------
-    // Constructor
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructor
+  // -------------------------------------------------------------------------
 
-    public DimensionItem( String dimension, DimensionalItemObject item )
-    {
-        this.dimension = dimension;
-        this.item = item;
+  public DimensionItem(String dimension, DimensionalItemObject item) {
+    this.dimension = dimension;
+    this.item = item;
+  }
+
+  // -------------------------------------------------------------------------
+  // Get and set methods
+  // -------------------------------------------------------------------------
+
+  public String getDimension() {
+    return dimension;
+  }
+
+  public void setDimension(String dimension) {
+    this.dimension = dimension;
+  }
+
+  public DimensionalItemObject getItem() {
+    return item;
+  }
+
+  public void setItem(DimensionalItemObject item) {
+    this.item = item;
+  }
+
+  // -------------------------------------------------------------------------
+  // Static methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a string key for dimension items in the given list. The key is a concatenation of the
+   * dimension items separated by the dimension separator. If no items are given or items is null,
+   * an empty string is returned.
+   */
+  public static String asItemKey(List<DimensionItem> items) {
+    StringBuilder builder = new StringBuilder();
+
+    if (items != null && !items.isEmpty()) {
+      for (DimensionItem item : items) {
+        builder.append(item.getItem().getDimensionItem()).append(DIMENSION_SEP);
+      }
+
+      builder.deleteCharAt(builder.length() - 1);
     }
 
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
+    return builder.toString();
+  }
 
-    public String getDimension()
-    {
-        return dimension;
+  /**
+   * Returns an array of identifiers of the dimension items in the given list. If no items are given
+   * or items are null, an empty array is returned.
+   */
+  public static String[] getItemIdentifiers(List<DimensionItem> items) {
+    List<String> itemUids = new ArrayList<>();
+
+    if (items != null && !items.isEmpty()) {
+      for (DimensionItem item : items) {
+        itemUids.add(item != null ? item.getItem().getDimensionItem() : null);
+      }
     }
 
-    public void setDimension( String dimension )
-    {
-        this.dimension = dimension;
-    }
+    return itemUids.toArray(CollectionUtils.STRING_ARR);
+  }
 
-    public DimensionalItemObject getItem()
-    {
-        return item;
-    }
-
-    public void setItem( DimensionalItemObject item )
-    {
-        this.item = item;
-    }
-
-    // -------------------------------------------------------------------------
-    // Static methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns a string key for dimension items in the given list. The key is a
-     * concatenation of the dimension items separated by the dimension
-     * separator. If no items are given or items is null, an empty string is
-     * returned.
-     */
-    public static String asItemKey( List<DimensionItem> items )
-    {
-        StringBuilder builder = new StringBuilder();
-
-        if ( items != null && !items.isEmpty() )
-        {
-            for ( DimensionItem item : items )
-            {
-                builder.append( item.getItem().getDimensionItem() ).append( DIMENSION_SEP );
-            }
-
-            builder.deleteCharAt( builder.length() - 1 );
+  /**
+   * Returns the period dimension item object from the given list of dimension items. If no items
+   * are given, items are null or there are no period dimension, null is returned.
+   */
+  public static DimensionalItemObject getPeriodItem(List<DimensionItem> items) {
+    if (items != null && !items.isEmpty()) {
+      for (DimensionItem item : items) {
+        if (DimensionalObject.PERIOD_DIM_ID.equals(item.getDimension())) {
+          return item.getItem();
         }
-
-        return builder.toString();
+      }
     }
 
-    /**
-     * Returns an array of identifiers of the dimension items in the given list.
-     * If no items are given or items are null, an empty array is returned.
-     */
-    public static String[] getItemIdentifiers( List<DimensionItem> items )
-    {
-        List<String> itemUids = new ArrayList<>();
+    return null;
+  }
 
-        if ( items != null && !items.isEmpty() )
-        {
-            for ( DimensionItem item : items )
-            {
-                itemUids.add( item != null ? item.getItem().getDimensionItem() : null );
-            }
+  /**
+   * Returns the organisation unit dimension item object from the given list of dimension items. If
+   * no items are given, items are null or there are no period dimension, null is returned.
+   */
+  public static DimensionalItemObject getOrganisationUnitItem(List<DimensionItem> items) {
+    if (items != null && !items.isEmpty()) {
+      for (DimensionItem item : items) {
+        if (DimensionalObject.ORGUNIT_DIM_ID.equals(item.getDimension())) {
+          return item.getItem();
         }
-
-        return itemUids.toArray( CollectionUtils.STRING_ARR );
+      }
     }
 
-    /**
-     * Returns the period dimension item object from the given list of dimension
-     * items. If no items are given, items are null or there are no period
-     * dimension, null is returned.
-     */
-    public static DimensionalItemObject getPeriodItem( List<DimensionItem> items )
-    {
-        if ( items != null && !items.isEmpty() )
-        {
-            for ( DimensionItem item : items )
-            {
-                if ( DimensionalObject.PERIOD_DIM_ID.equals( item.getDimension() ) )
-                {
-                    return item.getItem();
-                }
-            }
-        }
+    return null;
+  }
 
-        return null;
+  // -------------------------------------------------------------------------
+  // hashCode, equals and toString
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int prime = 31;
+    int result = 1;
+    result = prime * result + ((dimension == null) ? 0 : dimension.hashCode());
+    result = prime * result + ((item == null) ? 0 : item.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
     }
 
-    /**
-     * Returns the organisation unit dimension item object from the given list
-     * of dimension items. If no items are given, items are null or there are no
-     * period dimension, null is returned.
-     */
-    public static DimensionalItemObject getOrganisationUnitItem( List<DimensionItem> items )
-    {
-        if ( items != null && !items.isEmpty() )
-        {
-            for ( DimensionItem item : items )
-            {
-                if ( DimensionalObject.ORGUNIT_DIM_ID.equals( item.getDimension() ) )
-                {
-                    return item.getItem();
-                }
-            }
-        }
-
-        return null;
+    if (object == null) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        int prime = 31;
-        int result = 1;
-        result = prime * result + ((dimension == null) ? 0 : dimension.hashCode());
-        result = prime * result + ((item == null) ? 0 : item.hashCode());
-        return result;
+    if (getClass() != object.getClass()) {
+      return false;
     }
 
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
+    DimensionItem other = (DimensionItem) object;
 
-        if ( object == null )
-        {
-            return false;
-        }
-
-        if ( getClass() != object.getClass() )
-        {
-            return false;
-        }
-
-        DimensionItem other = (DimensionItem) object;
-
-        if ( dimension == null )
-        {
-            if ( other.dimension != null )
-            {
-                return false;
-            }
-        }
-        else if ( !dimension.equals( other.dimension ) )
-        {
-            return false;
-        }
-
-        if ( item == null )
-        {
-            if ( other.item != null )
-            {
-                return false;
-            }
-        }
-        else if ( !item.equals( other.item ) )
-        {
-            return false;
-        }
-
-        return true;
+    if (dimension == null) {
+      if (other.dimension != null) {
+        return false;
+      }
+    } else if (!dimension.equals(other.dimension)) {
+      return false;
     }
 
-    @Override
-    public String toString()
-    {
-        return "[" + dimension + ", " + item + "]";
+    if (item == null) {
+      if (other.item != null) {
+        return false;
+      }
+    } else if (!item.equals(other.item)) {
+      return false;
     }
+
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "[" + dimension + ", " + item + "]";
+  }
 }

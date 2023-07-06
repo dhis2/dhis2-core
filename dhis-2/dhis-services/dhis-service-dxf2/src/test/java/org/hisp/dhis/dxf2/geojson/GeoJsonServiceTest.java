@@ -31,34 +31,31 @@ import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.jso
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 /**
- * For now just make sure that a {@link GeoJsonImportReport} can be stored in
- * redis.
+ * For now just make sure that a {@link GeoJsonImportReport} can be stored in redis.
  *
  * @author Jan Bernitt
  */
-class GeoJsonServiceTest
-{
+class GeoJsonServiceTest {
 
-    @Test
-    void testReportSerialisation()
-        throws JsonProcessingException
-    {
-        GeoJsonImportReport report = new GeoJsonImportReport();
-        report.getImportCount().incrementIgnored();
-        report.addConflict( new ImportConflict( "a", "b" ) );
+  @Test
+  void testReportSerialisation() throws JsonProcessingException {
+    GeoJsonImportReport report = new GeoJsonImportReport();
+    report.getImportCount().incrementIgnored();
+    report.addConflict(new ImportConflict("a", "b"));
 
-        String json = jsonMapper.writeValueAsString( report );
-        GeoJsonImportReport reportFromJson = jsonMapper.readValue( json, GeoJsonImportReport.class );
+    String json = jsonMapper.writeValueAsString(report);
+    GeoJsonImportReport reportFromJson = jsonMapper.readValue(json, GeoJsonImportReport.class);
 
-        assertEquals( report.getConflictCount(), reportFromJson.getConflictCount() );
-        assertEquals( report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored() );
-        assertEquals( report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount() );
-        assertIterableEquals( report.getConflicts(), reportFromJson.getConflicts() );
-    }
+    assertEquals(report.getConflictCount(), reportFromJson.getConflictCount());
+    assertEquals(
+        report.getImportCount().getIgnored(), reportFromJson.getImportCount().getIgnored());
+    assertEquals(
+        report.getTotalConflictOccurrenceCount(), reportFromJson.getTotalConflictOccurrenceCount());
+    assertIterableEquals(report.getConflicts(), reportFromJson.getConflicts());
+  }
 }

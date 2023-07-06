@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -52,50 +51,47 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
-{
+class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest {
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private FileResourceService fileResourceService;
+  @Autowired private FileResourceService fileResourceService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/te_program_with_tea_fileresource_metadata.json" );
-        injectAdminUser();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/te_program_with_tea_fileresource_metadata.json");
+    injectAdminUser();
+  }
 
-    @Test
-    void testTrackedEntityProgramAttributeFileResourceValue()
-        throws IOException
-    {
-        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 0,
-            "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
-        fileResource.setUid( "Jzf6hHNP7jx" );
-        File file = File.createTempFile( "file-resource", "test" );
-        fileResourceService.saveFileResource( fileResource, file );
-        assertFalse( fileResource.isAssigned() );
-        ImportReport importReport = trackerImportService
-            .importTracker( fromJson( "tracker/te_program_with_tea_fileresource_data.json" ) );
-        assertNoErrors( importReport );
+  @Test
+  void testTrackedEntityProgramAttributeFileResourceValue() throws IOException {
+    FileResource fileResource =
+        new FileResource(
+            "test.pdf",
+            "application/pdf",
+            0,
+            "d41d8cd98f00b204e9800998ecf8427e",
+            FileResourceDomain.DOCUMENT);
+    fileResource.setUid("Jzf6hHNP7jx");
+    File file = File.createTempFile("file-resource", "test");
+    fileResourceService.saveFileResource(fileResource, file);
+    assertFalse(fileResource.isAssigned());
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            fromJson("tracker/te_program_with_tea_fileresource_data.json"));
+    assertNoErrors(importReport);
 
-        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
-        assertEquals( 1, trackedEntities.size() );
-        TrackedEntity trackedEntity = trackedEntities.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntity );
-        assertEquals( 5, attributeValues.size() );
-        fileResource = fileResourceService.getFileResource( fileResource.getUid() );
-        assertTrue( fileResource.isAssigned() );
-    }
+    List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
+    assertEquals(1, trackedEntities.size());
+    TrackedEntity trackedEntity = trackedEntities.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    assertEquals(5, attributeValues.size());
+    fileResource = fileResourceService.getFileResource(fileResource.getUid());
+    assertTrue(fileResource.isAssigned());
+  }
 }

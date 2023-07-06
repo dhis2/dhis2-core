@@ -37,32 +37,26 @@ import org.springframework.stereotype.Component;
  * Provides cache builder to build instances.
  *
  * @author Ameen Mohamed
- *
  */
-@Component( "cacheProvider" )
-public class DefaultCacheBuilderProvider implements CacheBuilderProvider
-{
-    private DhisConfigurationProvider configurationProvider;
+@Component("cacheProvider")
+public class DefaultCacheBuilderProvider implements CacheBuilderProvider {
+  private DhisConfigurationProvider configurationProvider;
 
-    private RedisTemplate<String, ?> redisTemplate;
+  private RedisTemplate<String, ?> redisTemplate;
 
-    @Override
-    public <V> CacheBuilder<V> newCacheBuilder()
-    {
-        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider );
-    }
+  @Override
+  public <V> CacheBuilder<V> newCacheBuilder() {
+    return new ExtendedCacheBuilder<>(redisTemplate, configurationProvider);
+  }
 
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
+  @Autowired
+  public void setConfigurationProvider(DhisConfigurationProvider configurationProvider) {
+    this.configurationProvider = configurationProvider;
+  }
 
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
-
+  @Autowired(required = false)
+  @Qualifier("redisTemplate")
+  public void setRedisTemplate(RedisTemplate<String, ?> redisTemplate) {
+    this.redisTemplate = redisTemplate;
+  }
 }

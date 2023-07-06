@@ -27,37 +27,36 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DashboardSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dashboard";
+public class DashboardSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dashboard";
 
-    public static final String PLURAL = "dashboards";
+  public static final String PLURAL = "dashboards";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( Dashboard.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 3501 );
-        schema.setDefaultPrivate( true );
-        schema.setImplicitPrivateAuthority( true );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(Dashboard.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(3501);
+    schema.setDefaultPrivate(true);
+    schema.setImplicitPrivateAuthority(true);
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_DASHBOARD_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_DASHBOARD_PUBLIC_ADD" ) ) );
+    schema.add(
+        new Authority(AuthorityType.CREATE_PUBLIC, Lists.newArrayList("F_DASHBOARD_PUBLIC_ADD")));
+    schema.add(
+        new Authority(AuthorityType.EXTERNALIZE, Lists.newArrayList("F_DASHBOARD_PUBLIC_ADD")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

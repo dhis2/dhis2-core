@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -38,41 +37,33 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramOwnerRowCallbackHandler
-    extends
-    AbstractMapper<TrackedEntityProgramOwner>
-{
+public class ProgramOwnerRowCallbackHandler extends AbstractMapper<TrackedEntityProgramOwner> {
 
-    @Override
-    TrackedEntityProgramOwner getItem( ResultSet rs )
-        throws SQLException
-    {
-        return getProgramOwner( rs );
-    }
+  @Override
+  TrackedEntityProgramOwner getItem(ResultSet rs) throws SQLException {
+    return getProgramOwner(rs);
+  }
 
-    @Override
-    String getKeyColumn()
-    {
-        return "key";
-    }
+  @Override
+  String getKeyColumn() {
+    return "key";
+  }
 
-    private TrackedEntityProgramOwner getProgramOwner( ResultSet rs )
-        throws SQLException
-    {
-        TrackedEntityProgramOwner programOwner = new TrackedEntityProgramOwner();
+  private TrackedEntityProgramOwner getProgramOwner(ResultSet rs) throws SQLException {
+    TrackedEntityProgramOwner programOwner = new TrackedEntityProgramOwner();
 
-        OrganisationUnit orgUnit = new OrganisationUnit();
-        orgUnit.setUid( rs.getString( "ouuid" ) );
-        programOwner.setOrganisationUnit( orgUnit );
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(rs.getString("ouuid"));
+    programOwner.setOrganisationUnit(orgUnit);
 
-        Program program = new Program();
-        program.setUid( rs.getString( "prguid" ) );
-        programOwner.setProgram( program );
+    Program program = new Program();
+    program.setUid(rs.getString("prguid"));
+    programOwner.setProgram(program);
 
-        TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( rs.getString( "key" ) );
-        programOwner.setTrackedEntity( trackedEntity );
+    TrackedEntity trackedEntity = new TrackedEntity();
+    trackedEntity.setUid(rs.getString("key"));
+    programOwner.setTrackedEntity(trackedEntity);
 
-        return programOwner;
-    }
+    return programOwner;
+  }
 }

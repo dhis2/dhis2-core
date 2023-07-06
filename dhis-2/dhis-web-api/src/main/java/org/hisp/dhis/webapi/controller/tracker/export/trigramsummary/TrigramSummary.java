@@ -27,63 +27,51 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trigramsummary;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.NoArgsConstructor;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.NoArgsConstructor;
 
 /**
  * TrigramSummary object to store trigram indexing status
  *
  * @author Ameen Mohamed
  */
-
 @JacksonXmlRootElement
 @NoArgsConstructor
-public class TrigramSummary
-{
-    private List<ObjectNode> indexedAttributes = new ArrayList<>();
+public class TrigramSummary {
+  private List<ObjectNode> indexedAttributes = new ArrayList<>();
 
-    private List<ObjectNode> indexableAttributes = new ArrayList<>();
+  private List<ObjectNode> indexableAttributes = new ArrayList<>();
 
-    private List<ObjectNode> obsoleteIndexedAttributes = new ArrayList<>();
+  private List<ObjectNode> obsoleteIndexedAttributes = new ArrayList<>();
 
-    @JsonProperty
-    public List<ObjectNode> getIndexedAttributes()
-    {
-        return indexedAttributes;
-    }
+  @JsonProperty
+  public List<ObjectNode> getIndexedAttributes() {
+    return indexedAttributes;
+  }
 
-    public void setIndexedAttributes( List<ObjectNode> indexedAttributes )
-    {
-        this.indexedAttributes = indexedAttributes;
-    }
+  public void setIndexedAttributes(List<ObjectNode> indexedAttributes) {
+    this.indexedAttributes = indexedAttributes;
+  }
 
-    @JsonProperty
-    public List<ObjectNode> getIndexableAttributes()
-    {
-        return indexableAttributes;
-    }
+  @JsonProperty
+  public List<ObjectNode> getIndexableAttributes() {
+    return indexableAttributes;
+  }
 
-    public void setIndexableAttributes(
-        List<ObjectNode> indexableAttributes )
-    {
-        this.indexableAttributes = indexableAttributes;
-    }
+  public void setIndexableAttributes(List<ObjectNode> indexableAttributes) {
+    this.indexableAttributes = indexableAttributes;
+  }
 
-    @JsonProperty
-    public List<ObjectNode> getObsoleteIndexedAttributes()
-    {
-        return obsoleteIndexedAttributes;
-    }
+  @JsonProperty
+  public List<ObjectNode> getObsoleteIndexedAttributes() {
+    return obsoleteIndexedAttributes;
+  }
 
-    public void setObsoleteIndexedAttributes(
-        List<ObjectNode> obsoleteIndexedAttributes )
-    {
-        this.obsoleteIndexedAttributes = obsoleteIndexedAttributes;
-    }
+  public void setObsoleteIndexedAttributes(List<ObjectNode> obsoleteIndexedAttributes) {
+    this.obsoleteIndexedAttributes = obsoleteIndexedAttributes;
+  }
 }

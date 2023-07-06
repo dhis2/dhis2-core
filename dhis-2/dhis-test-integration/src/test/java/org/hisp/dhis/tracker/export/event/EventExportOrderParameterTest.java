@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -55,130 +54,106 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author rajazubair
  */
-class EventExportOrderParameterTest extends TrackerTest
-{
-    @Autowired
-    private EventService eventService;
+class EventExportOrderParameterTest extends TrackerTest {
+  @Autowired private EventService eventService;
 
-    @Autowired
-    private TrackerImportService trackerImportService;
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private OrganisationUnit orgUnit;
+  private OrganisationUnit orgUnit;
 
-    private ProgramStage programStage;
+  private ProgramStage programStage;
 
-    private Program program;
+  private Program program;
 
-    private final List<String> asc = List.of( "D9PbzJY8bJM", "pTzf9KYMk72" );
+  private final List<String> asc = List.of("D9PbzJY8bJM", "pTzf9KYMk72");
 
-    private final List<String> desc = List.of( "pTzf9KYMk72", "D9PbzJY8bJM" );
+  private final List<String> desc = List.of("pTzf9KYMk72", "D9PbzJY8bJM");
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/simple_metadata.json" );
-        User userA = userService.getUser( "M5zQapPyTZI" );
-        assertNoErrors(
-            trackerImportService
-                .importTracker( fromJson( "tracker/event_and_enrollment_with_notes.json", userA.getUid() ) ) );
-        orgUnit = get( OrganisationUnit.class, "h4w96yEMlzO" );
-        programStage = get( ProgramStage.class, "NpsdDv6kKSO" );
-        program = programStage.getProgram();
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
+    User userA = userService.getUser("M5zQapPyTZI");
+    assertNoErrors(
+        trackerImportService.importTracker(
+            fromJson("tracker/event_and_enrollment_with_notes.json", userA.getUid())));
+    orgUnit = get(OrganisationUnit.class, "h4w96yEMlzO");
+    programStage = get(ProgramStage.class, "NpsdDv6kKSO");
+    program = programStage.getProgram();
 
-        manager.flush();
-    }
+    manager.flush();
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        // needed as some tests are run using another user (injectSecurityContext) while most tests expect to be run by admin
-        injectAdminUser();
-    }
+  @BeforeEach
+  void setUp() {
+    // needed as some tests are run using another user (injectSecurityContext) while most tests
+    // expect to be run by admin
+    injectAdminUser();
+  }
 
-    @Test
-    void shouldExportEventWithOrderOccurredAtDESC()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        OrderCriteria orderCriteria = OrderCriteria.of( "occurredAt", SortDirection.DESC );
+  @Test
+  void shouldExportEventWithOrderOccurredAtDESC() throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of("occurredAt", SortDirection.DESC);
 
-        assertEquals( desc, getEvents( getParams( orderCriteria ) ) );
-    }
+    assertEquals(desc, getEvents(getParams(orderCriteria)));
+  }
 
-    @Test
-    void shouldExportEventWithOrderOccurredAtASC()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        OrderCriteria orderCriteria = OrderCriteria.of( "occurredAt", SortDirection.ASC );
+  @Test
+  void shouldExportEventWithOrderOccurredAtASC() throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of("occurredAt", SortDirection.ASC);
 
-        assertEquals( asc, getEvents( getParams( orderCriteria ) ) );
-    }
+    assertEquals(asc, getEvents(getParams(orderCriteria)));
+  }
 
-    @Test
-    void shouldExportEventWithOrderScheduledAtDESC()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        OrderCriteria orderCriteria = OrderCriteria.of( "scheduleAt", SortDirection.DESC );
+  @Test
+  void shouldExportEventWithOrderScheduledAtDESC() throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of("scheduleAt", SortDirection.DESC);
 
-        assertEquals( desc, getEvents( getParams( orderCriteria ) ) );
-    }
+    assertEquals(desc, getEvents(getParams(orderCriteria)));
+  }
 
-    @Test
-    void shouldExportEventWithOrderScheduledAtASC()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        OrderCriteria orderCriteria = OrderCriteria.of( "scheduleAt", SortDirection.ASC );
+  @Test
+  void shouldExportEventWithOrderScheduledAtASC() throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of("scheduleAt", SortDirection.ASC);
 
-        assertEquals( asc, getEvents( getParams( orderCriteria ) ) );
-    }
+    assertEquals(asc, getEvents(getParams(orderCriteria)));
+  }
 
-    @Test
-    void shouldExportEventWithOrderEventIdDESC()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        OrderCriteria orderCriteria = OrderCriteria.of( "event", SortDirection.DESC );
+  @Test
+  void shouldExportEventWithOrderEventIdDESC() throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of("event", SortDirection.DESC);
 
-        assertEquals( desc, getEvents( getParams( orderCriteria ) ) );
-    }
+    assertEquals(desc, getEvents(getParams(orderCriteria)));
+  }
 
-    @Test
-    void shouldExportEventWithOrderEventIdASC()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        OrderCriteria orderCriteria = OrderCriteria.of( "event", SortDirection.ASC );
+  @Test
+  void shouldExportEventWithOrderEventIdASC() throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of("event", SortDirection.ASC);
 
-        assertEquals( asc, getEvents( getParams( orderCriteria ) ) );
-    }
+    assertEquals(asc, getEvents(getParams(orderCriteria)));
+  }
 
-    private EventOperationParams getParams( OrderCriteria orderCriteria )
-    {
-        return EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .programUid( program.getUid() ).programStageUid( programStage.getUid() )
-            .orders( List.of( orderCriteria.toOrderParam() ) ).attributeOrders( List.of( orderCriteria ) )
-            .build();
-    }
+  private EventOperationParams getParams(OrderCriteria orderCriteria) {
+    return EventOperationParams.builder()
+        .orgUnitUid(orgUnit.getUid())
+        .programUid(program.getUid())
+        .programStageUid(programStage.getUid())
+        .orders(List.of(orderCriteria.toOrderParam()))
+        .attributeOrders(List.of(orderCriteria))
+        .build();
+  }
 
-    private <T extends IdentifiableObject> T get( Class<T> type, String uid )
-    {
-        T t = manager.get( type, uid );
-        assertNotNull( t, () -> String.format( "metadata with uid '%s' should have been created", uid ) );
-        return t;
-    }
+  private <T extends IdentifiableObject> T get(Class<T> type, String uid) {
+    T t = manager.get(type, uid);
+    assertNotNull(t, () -> String.format("metadata with uid '%s' should have been created", uid));
+    return t;
+  }
 
-    private List<String> getEvents( EventOperationParams params )
-        throws ForbiddenException,
-        BadRequestException
-    {
-        return eventService.getEvents( params )
-            .getEvents().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
-    }
+  private List<String> getEvents(EventOperationParams params)
+      throws ForbiddenException, BadRequestException {
+    return eventService.getEvents(params).getEvents().stream()
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toList());
+  }
 }

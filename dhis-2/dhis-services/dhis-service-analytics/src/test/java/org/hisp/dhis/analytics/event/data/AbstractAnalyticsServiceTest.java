@@ -37,7 +37,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
@@ -64,112 +63,112 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengis.geometry.primitive.Point;
 
 /**
- * This class only tests the "shared" code of AbstractAnalyticsService, which
- * includes Grid header generation and Grid Metadata
+ * This class only tests the "shared" code of AbstractAnalyticsService, which includes Grid header
+ * generation and Grid Metadata
  *
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class AbstractAnalyticsServiceTest
-{
-    private Period peA;
+@ExtendWith(MockitoExtension.class)
+class AbstractAnalyticsServiceTest {
+  private Period peA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private DataElement deB;
+  private DataElement deB;
 
-    private DataElement deC;
+  private DataElement deC;
 
-    private DummyAnalyticsService dummyAnalyticsService;
+  private DummyAnalyticsService dummyAnalyticsService;
 
-    @Mock
-    private AnalyticsSecurityManager securityManager;
+  @Mock private AnalyticsSecurityManager securityManager;
 
-    @Mock
-    private EventQueryValidator eventQueryValidator;
+  @Mock private EventQueryValidator eventQueryValidator;
 
-    @Mock
-    private SchemeIdResponseMapper schemeIdResponseMapper;
+  @Mock private SchemeIdResponseMapper schemeIdResponseMapper;
 
-    @BeforeEach
-    public void setUp()
-    {
-        dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator,
-            schemeIdResponseMapper );
+  @BeforeEach
+  public void setUp() {
+    dummyAnalyticsService =
+        new DummyAnalyticsService(securityManager, eventQueryValidator, schemeIdResponseMapper);
 
-        peA = MonthlyPeriodType.getPeriodFromIsoString( "201701" );
-        ouA = createOrganisationUnit( 'A' );
-        deA = createDataElement( 'A', ValueType.TEXT, AggregationType.NONE );
+    peA = MonthlyPeriodType.getPeriodFromIsoString("201701");
+    ouA = createOrganisationUnit('A');
+    deA = createDataElement('A', ValueType.TEXT, AggregationType.NONE);
 
-        deB = createDataElement( 'B', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
-        deC = createDataElement( 'C', ValueType.NUMBER, AggregationType.COUNT );
-    }
+    deB = createDataElement('B', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    deC = createDataElement('C', ValueType.NUMBER, AggregationType.COUNT);
+  }
 
-    @Test
-    void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
-    {
-        DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            List.of( peA ) );
+  @Test
+  void verifyHeaderCreationBasedOnQueryItemsAndDimensions() {
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
 
-        DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", List.of( ouA ) );
+    DimensionalObject orgUnits =
+        new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
 
-        QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
-        QueryItem qiB = new QueryItem( deB, null, deB.getValueType(), deB.getAggregationType(), null );
-        QueryItem qiC = new QueryItem( deC, null, deC.getValueType(), deC.getAggregationType(), null );
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+    QueryItem qiB = new QueryItem(deB, null, deB.getValueType(), deB.getAggregationType(), null);
+    QueryItem qiC = new QueryItem(deC, null, deC.getValueType(), deC.getAggregationType(), null);
 
-        EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( periods )
-            .addDimension( orgUnits )
-            .addItem( qiA ).addItem( qiB ).addItem( qiC )
-            .withCoordinateFields( List.of( deB.getUid() ) )
-            .withSkipData( true )
-            .withSkipMeta( false )
-            .withApiVersion( DhisApiVersion.V33 )
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(orgUnits)
+            .addItem(qiA)
+            .addItem(qiB)
+            .addItem(qiC)
+            .withCoordinateFields(List.of(deB.getUid()))
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .withApiVersion(DhisApiVersion.V33)
             .build();
 
-        when( securityManager.withUserConstraints( any( EventQueryParams.class ) ) ).thenReturn( params );
+    when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
 
-        Grid grid = dummyAnalyticsService.getGrid( params );
+    Grid grid = dummyAnalyticsService.getGrid(params);
 
-        List<GridHeader> headers = grid.getHeaders();
-        assertThat( headers, is( notNullValue() ) );
-        assertThat( headers, hasSize( 4 ) );
+    List<GridHeader> headers = grid.getHeaders();
+    assertThat(headers, is(notNullValue()));
+    assertThat(headers, hasSize(4));
 
-        assertHeader( headers.get( 0 ), "ou", "ouA", ValueType.TEXT, String.class.getName() );
-        assertHeader( headers.get( 1 ), deA.getUid(), deA.getName(), ValueType.TEXT, String.class.getName() );
-        assertHeader( headers.get( 2 ), deB.getUid(), deB.getName(), ValueType.COORDINATE, Point.class.getName() );
-        assertHeader( headers.get( 3 ), deC.getUid(), deC.getName(), ValueType.NUMBER, Double.class.getName() );
-    }
+    assertHeader(headers.get(0), "ou", "ouA", ValueType.TEXT, String.class.getName());
+    assertHeader(
+        headers.get(1), deA.getUid(), deA.getName(), ValueType.TEXT, String.class.getName());
+    assertHeader(
+        headers.get(2), deB.getUid(), deB.getName(), ValueType.COORDINATE, Point.class.getName());
+    assertHeader(
+        headers.get(3), deC.getUid(), deC.getName(), ValueType.NUMBER, Double.class.getName());
+  }
 
-    private void assertHeader( GridHeader expected, String name, String column, ValueType valueType, String type )
-    {
-        assertThat( "Header name does not match", expected.getName(), is( name ) );
-        assertThat( "Header column name does not match", expected.getColumn(), is( column ) );
-        assertThat( "Header value type does not match", expected.getValueType(), is( valueType ) );
-        assertThat( "Header type does not match", expected.getType(), is( type ) );
-    }
+  private void assertHeader(
+      GridHeader expected, String name, String column, ValueType valueType, String type) {
+    assertThat("Header name does not match", expected.getName(), is(name));
+    assertThat("Header column name does not match", expected.getColumn(), is(column));
+    assertThat("Header value type does not match", expected.getValueType(), is(valueType));
+    assertThat("Header type does not match", expected.getType(), is(type));
+  }
 }
 
-class DummyAnalyticsService extends AbstractAnalyticsService
-{
-    public DummyAnalyticsService( AnalyticsSecurityManager securityManager, EventQueryValidator queryValidator,
-        SchemeIdResponseMapper schemeIdResponseMapper )
-    {
-        super( securityManager, queryValidator, schemeIdResponseMapper );
-    }
+class DummyAnalyticsService extends AbstractAnalyticsService {
+  public DummyAnalyticsService(
+      AnalyticsSecurityManager securityManager,
+      EventQueryValidator queryValidator,
+      SchemeIdResponseMapper schemeIdResponseMapper) {
+    super(securityManager, queryValidator, schemeIdResponseMapper);
+  }
 
-    @Override
-    protected Grid createGridWithHeaders( EventQueryParams params )
-    {
-        return new ListGrid();
-    }
+  @Override
+  protected Grid createGridWithHeaders(EventQueryParams params) {
+    return new ListGrid();
+  }
 
-    @Override
-    protected long addEventData( Grid grid, EventQueryParams params )
-    {
-        return 0;
-    }
+  @Override
+  protected long addEventData(Grid grid, EventQueryParams params) {
+    return 0;
+  }
 }

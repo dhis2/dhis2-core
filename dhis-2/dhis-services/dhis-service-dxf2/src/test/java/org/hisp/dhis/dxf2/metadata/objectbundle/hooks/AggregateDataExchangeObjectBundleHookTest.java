@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
@@ -52,139 +51,129 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Lars Helge Overland
  */
-@ExtendWith( MockitoExtension.class )
-public class AggregateDataExchangeObjectBundleHookTest
-{
-    @Mock
-    private ObjectBundle objectBundle;
+@ExtendWith(MockitoExtension.class)
+public class AggregateDataExchangeObjectBundleHookTest {
+  @Mock private ObjectBundle objectBundle;
 
-    @InjectMocks
-    private AggregateDataExchangeObjectBundleHook objectBundleHook;
+  @InjectMocks private AggregateDataExchangeObjectBundleHook objectBundleHook;
 
-    @Test
-    void testValidateSuccessA()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
+  @Test
+  void testValidateSuccessA() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
 
-        assertIsEmpty( objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertIsEmpty(objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testValidateSuccessB()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.getTarget().getApi().setAccessToken( "d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn1162422595" );
-        exchange.getTarget().getApi().setUsername( null );
-        exchange.getTarget().getApi().setPassword( null );
+  @Test
+  void testValidateSuccessB() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange
+        .getTarget()
+        .getApi()
+        .setAccessToken("d2pat_fjx18dy0iB6nJybPxGSVsoagGtrXMAVn1162422595");
+    exchange.getTarget().getApi().setUsername(null);
+    exchange.getTarget().getApi().setPassword(null);
 
-        assertIsEmpty( objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertIsEmpty(objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testMissingSourceRequests()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.setSource( new Source() );
+  @Test
+  void testMissingSourceRequests() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.setSource(new Source());
 
-        assertErrorCode( ErrorCode.E6302, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E6302, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testMissingSourceRequestName()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.getSource().getRequests().get( 0 ).setName( null );
+  @Test
+  void testMissingSourceRequestName() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setName(null);
 
-        assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E4000, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testSourceRequestNameTooLong()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.getSource().getRequests().get( 0 ).setName( CodeGenerator.generateCode( 60 ) );
+  @Test
+  void testSourceRequestNameTooLong() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setName(CodeGenerator.generateCode(60));
 
-        assertErrorCode( ErrorCode.E4001, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E4001, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testSourceRequestVisualizationInvalidUid()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.getSource().getRequests().get( 0 ).setVisualization( "1nvalidUid" );
+  @Test
+  void testSourceRequestVisualizationInvalidUid() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setVisualization("1nvalidUid");
 
-        assertErrorCode( ErrorCode.E4014, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E4014, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testMissingSourceDxItems()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.getSource().getRequests().get( 0 ).setDx( new ArrayList<>() );
+  @Test
+  void testMissingSourceDxItems() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setDx(new ArrayList<>());
 
-        assertErrorCode( ErrorCode.E6303, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E6303, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testMissingTargetType()
-    {
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.setTarget( new Target() );
+  @Test
+  void testMissingTargetType() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.setTarget(new Target());
 
-        assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E4000, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testMissingTargetApi()
-    {
-        Target target = new Target();
-        target.setType( TargetType.EXTERNAL );
+  @Test
+  void testMissingTargetApi() {
+    Target target = new Target();
+    target.setType(TargetType.EXTERNAL);
 
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.setTarget( target );
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.setTarget(target);
 
-        assertErrorCode( ErrorCode.E6304, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E6304, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testMissingTargetApiUrl()
-    {
-        Target target = new Target();
-        target.setType( TargetType.EXTERNAL );
-        target.setApi( new Api() );
+  @Test
+  void testMissingTargetApiUrl() {
+    Target target = new Target();
+    target.setType(TargetType.EXTERNAL);
+    target.setApi(new Api());
 
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.setTarget( target );
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.setTarget(target);
 
-        assertErrorCode( ErrorCode.E4000, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E4000, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    @Test
-    void testMissingTargetApiAuthentication()
-    {
-        Api api = new Api();
-        api.setUrl( "https://play.dhis2.org/demo" );
-        api.setUsername( "admin" );
+  @Test
+  void testMissingTargetApiAuthentication() {
+    Api api = new Api();
+    api.setUrl("https://play.dhis2.org/demo");
+    api.setUsername("admin");
 
-        Target target = new Target();
-        target.setType( TargetType.EXTERNAL );
-        target.setApi( api );
+    Target target = new Target();
+    target.setType(TargetType.EXTERNAL);
+    target.setApi(api);
 
-        AggregateDataExchange exchange = getAggregateDataExchange( 'A' );
-        exchange.setTarget( target );
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.setTarget(target);
 
-        assertErrorCode( ErrorCode.E6305, objectBundleHook.validate( exchange, objectBundle ) );
-    }
+    assertErrorCode(ErrorCode.E6305, objectBundleHook.validate(exchange, objectBundle));
+  }
 
-    /**
-     * Asserts that the error code is present in the list of error reports.
-     *
-     * @param errorCode the {@link ErrorCode}.
-     * @param errorReports the list of {@link ErrorReport}.
-     */
-    private void assertErrorCode( ErrorCode errorCode, List<ErrorReport> errorReports )
-    {
-        assertTrue( errorReports.stream().anyMatch( r -> errorCode.equals( r.getErrorCode() ) ),
-            String.format( "Error reports expected to contain error code: '%s', %s", errorCode, errorReports ) );
-    }
+  /**
+   * Asserts that the error code is present in the list of error reports.
+   *
+   * @param errorCode the {@link ErrorCode}.
+   * @param errorReports the list of {@link ErrorReport}.
+   */
+  private void assertErrorCode(ErrorCode errorCode, List<ErrorReport> errorReports) {
+    assertTrue(
+        errorReports.stream().anyMatch(r -> errorCode.equals(r.getErrorCode())),
+        String.format(
+            "Error reports expected to contain error code: '%s', %s", errorCode, errorReports));
+  }
 }

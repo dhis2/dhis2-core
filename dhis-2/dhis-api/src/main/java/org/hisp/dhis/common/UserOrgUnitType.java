@@ -34,15 +34,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Luciano Fiandesio
  */
-@JacksonXmlRootElement( localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0 )
-public enum UserOrgUnitType
-{
-    DATA_CAPTURE,
-    DATA_OUTPUT,
-    TEI_SEARCH;
+@JacksonXmlRootElement(localName = "userOrgUnitType", namespace = DxfNamespaces.DXF_2_0)
+public enum UserOrgUnitType {
+  DATA_CAPTURE,
+  DATA_OUTPUT,
+  TEI_SEARCH;
 
-    public static UserOrgUnitType fromValue( String name )
-    {
-        return stream( values() ).filter( t -> t.name().equalsIgnoreCase( name ) ).findFirst().orElse( null );
-    }
+  public static UserOrgUnitType fromValue(String name) {
+    return stream(values()).filter(t -> t.name().equalsIgnoreCase(name)).findFirst().orElse(null);
+  }
 }

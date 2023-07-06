@@ -27,230 +27,203 @@
  */
 package org.hisp.dhis.eventdatavalue;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.program.UserInfoSnapshot;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 /**
  * @author David Katuscak
  */
-@JacksonXmlRootElement( localName = "eventDataValue", namespace = DxfNamespaces.DXF_2_0 )
-public class EventDataValue implements Serializable
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 2738519623273453182L;
+@JacksonXmlRootElement(localName = "eventDataValue", namespace = DxfNamespaces.DXF_2_0)
+public class EventDataValue implements Serializable {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 2738519623273453182L;
 
-    private String dataElement = "";
+  private String dataElement = "";
 
-    private Date created = new Date();
+  private Date created = new Date();
 
-    private UserInfoSnapshot createdByUserInfo;
+  private UserInfoSnapshot createdByUserInfo;
 
-    private Date lastUpdated = new Date();
+  private Date lastUpdated = new Date();
 
-    private UserInfoSnapshot lastUpdatedByUserInfo;
+  private UserInfoSnapshot lastUpdatedByUserInfo;
 
-    private String value;
+  private String value;
 
-    private Boolean providedElsewhere = false;
+  private Boolean providedElsewhere = false;
 
-    private String storedBy;
+  private String storedBy;
 
-    // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Transient properties
+  // -------------------------------------------------------------------------
 
-    private transient boolean auditValueIsSet = false;
+  private transient boolean auditValueIsSet = false;
 
-    private transient boolean valueIsSet = false;
+  private transient boolean valueIsSet = false;
 
-    private transient String auditValue;
+  private transient String auditValue;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public EventDataValue()
-    {
+  public EventDataValue() {}
 
+  public EventDataValue(String dataElement, String value) {
+    this.dataElement = dataElement;
+    setValue(value);
+  }
+
+  public EventDataValue(String dataElement, String value, UserInfoSnapshot userInfo) {
+    this.dataElement = dataElement;
+    this.storedBy = userInfo.getUsername();
+    this.createdByUserInfo = userInfo;
+    this.lastUpdatedByUserInfo = userInfo;
+    setValue(value);
+  }
+
+  public void setAutoFields() {
+    Date date = new Date();
+
+    if (created == null) {
+      created = date;
     }
 
-    public EventDataValue( String dataElement, String value )
-    {
-        this.dataElement = dataElement;
-        setValue( value );
+    setLastUpdated(date);
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode, equals and toString
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(dataElement);
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (object == null || getClass() != object.getClass()) {
+      return false;
     }
 
-    public EventDataValue( String dataElement, String value, UserInfoSnapshot userInfo )
-    {
-        this.dataElement = dataElement;
-        this.storedBy = userInfo.getUsername();
-        this.createdByUserInfo = userInfo;
-        this.lastUpdatedByUserInfo = userInfo;
-        setValue( value );
+    return dataElement.equals(((EventDataValue) object).dataElement);
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+  @JsonProperty
+  public Boolean getProvidedElsewhere() {
+    return providedElsewhere;
+  }
+
+  public void setProvidedElsewhere(Boolean providedElsewhere) {
+    this.providedElsewhere = providedElsewhere;
+  }
+
+  public void setDataElement(String dataElement) {
+    this.dataElement = dataElement;
+  }
+
+  @JsonIgnore
+  public String getDataElement() {
+    return dataElement;
+  }
+
+  @JsonProperty
+  public Date getCreated() {
+    return created;
+  }
+
+  public void setCreated(Date created) {
+    this.created = created;
+  }
+
+  @JsonProperty
+  public UserInfoSnapshot getCreatedByUserInfo() {
+    return createdByUserInfo;
+  }
+
+  public void setCreatedByUserInfo(UserInfoSnapshot createdByUserInfo) {
+    this.createdByUserInfo = createdByUserInfo;
+  }
+
+  @JsonProperty
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
+
+  @JsonProperty
+  public UserInfoSnapshot getLastUpdatedByUserInfo() {
+    return lastUpdatedByUserInfo;
+  }
+
+  public void setLastUpdatedByUserInfo(UserInfoSnapshot lastUpdatedByUserInfo) {
+    this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
+  }
+
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
+
+  public void setValue(String value) {
+    if (!auditValueIsSet) {
+      auditValue = valueIsSet ? this.value : value;
+      auditValueIsSet = true;
     }
 
-    public void setAutoFields()
-    {
-        Date date = new Date();
+    valueIsSet = true;
 
-        if ( created == null )
-        {
-            created = date;
-        }
+    this.value = value;
+  }
 
-        setLastUpdated( date );
-    }
+  @JsonProperty
+  public String getValue() {
+    return value;
+  }
 
-    // -------------------------------------------------------------------------
-    // hashCode, equals and toString
-    // -------------------------------------------------------------------------
+  @JsonProperty
+  public String getStoredBy() {
+    return storedBy;
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( dataElement );
-    }
+  public void setStoredBy(String storedBy) {
+    this.storedBy = storedBy;
+  }
 
-    @Override
-    public boolean equals( Object object )
-    {
-        if ( this == object )
-        {
-            return true;
-        }
-        if ( object == null || getClass() != object.getClass() )
-        {
-            return false;
-        }
+  @JsonIgnore
+  public String getAuditValue() {
+    return auditValue;
+  }
 
-        return dataElement.equals( ((EventDataValue) object).dataElement );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-    @JsonProperty
-    public Boolean getProvidedElsewhere()
-    {
-        return providedElsewhere;
-    }
-
-    public void setProvidedElsewhere( Boolean providedElsewhere )
-    {
-        this.providedElsewhere = providedElsewhere;
-    }
-
-    public void setDataElement( String dataElement )
-    {
-        this.dataElement = dataElement;
-    }
-
-    @JsonIgnore
-    public String getDataElement()
-    {
-        return dataElement;
-    }
-
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    public UserInfoSnapshot getCreatedByUserInfo()
-    {
-        return createdByUserInfo;
-    }
-
-    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
-    {
-        this.createdByUserInfo = createdByUserInfo;
-    }
-
-    @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    @JsonProperty
-    public UserInfoSnapshot getLastUpdatedByUserInfo()
-    {
-        return lastUpdatedByUserInfo;
-    }
-
-    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
-    {
-        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    public void setValue( String value )
-    {
-        if ( !auditValueIsSet )
-        {
-            auditValue = valueIsSet ? this.value : value;
-            auditValueIsSet = true;
-        }
-
-        valueIsSet = true;
-
-        this.value = value;
-    }
-
-    @JsonProperty
-    public String getValue()
-    {
-        return value;
-    }
-
-    @JsonProperty
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    @JsonIgnore
-    public String getAuditValue()
-    {
-        return auditValue;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "EventDataValue{" +
-            "dataElement=" + dataElement +
-            ", created=" + created +
-            ", lastUpdated=" + lastUpdated +
-            ", value='" + value + '\'' +
-            ", providedElsewhere=" + providedElsewhere +
-            ", storedBy='" + storedBy + '\'' +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "EventDataValue{"
+        + "dataElement="
+        + dataElement
+        + ", created="
+        + created
+        + ", lastUpdated="
+        + lastUpdated
+        + ", value='"
+        + value
+        + '\''
+        + ", providedElsewhere="
+        + providedElsewhere
+        + ", storedBy='"
+        + storedBy
+        + '\''
+        + '}';
+  }
 }

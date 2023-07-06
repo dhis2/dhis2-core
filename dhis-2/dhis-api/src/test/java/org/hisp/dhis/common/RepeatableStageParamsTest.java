@@ -33,65 +33,62 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 
-class RepeatableStageParamsTest
-{
-    @Test
-    void equalityTest()
-    {
-        // arrange
-        RepeatableStageParams repeatableStageParams_1 = new RepeatableStageParams();
-        RepeatableStageParams repeatableStageParams_2 = new RepeatableStageParams();
-        RepeatableStageParams repeatableStageParams_3 = new RepeatableStageParams();
-        RepeatableStageParams repeatableStageParams_4 = new RepeatableStageParams();
-        RepeatableStageParams repeatableStageParams_5 = new RepeatableStageParams();
-        RepeatableStageParams repeatableStageParams_6 = new RepeatableStageParams();
+class RepeatableStageParamsTest {
+  @Test
+  void equalityTest() {
+    // arrange
+    RepeatableStageParams repeatableStageParams_1 = new RepeatableStageParams();
+    RepeatableStageParams repeatableStageParams_2 = new RepeatableStageParams();
+    RepeatableStageParams repeatableStageParams_3 = new RepeatableStageParams();
+    RepeatableStageParams repeatableStageParams_4 = new RepeatableStageParams();
+    RepeatableStageParams repeatableStageParams_5 = new RepeatableStageParams();
+    RepeatableStageParams repeatableStageParams_6 = new RepeatableStageParams();
 
-        repeatableStageParams_1.setStartIndex( 0 );
-        repeatableStageParams_1.setCount( 100 );
-        repeatableStageParams_1.setStartDate( DateUtils.parseDate( "2022-01-01" ) );
-        repeatableStageParams_1.setEndDate( DateUtils.parseDate( "2022-01-31" ) );
+    repeatableStageParams_1.setStartIndex(0);
+    repeatableStageParams_1.setCount(100);
+    repeatableStageParams_1.setStartDate(DateUtils.parseDate("2022-01-01"));
+    repeatableStageParams_1.setEndDate(DateUtils.parseDate("2022-01-31"));
 
-        repeatableStageParams_2.setStartIndex( 0 );
-        repeatableStageParams_2.setCount( 100 );
-        repeatableStageParams_2.setStartDate( DateUtils.parseDate( "2022-01-01" ) );
-        repeatableStageParams_2.setEndDate( DateUtils.parseDate( "2022-01-31" ) );
+    repeatableStageParams_2.setStartIndex(0);
+    repeatableStageParams_2.setCount(100);
+    repeatableStageParams_2.setStartDate(DateUtils.parseDate("2022-01-01"));
+    repeatableStageParams_2.setEndDate(DateUtils.parseDate("2022-01-31"));
 
-        repeatableStageParams_3.setStartIndex( 10 );
-        repeatableStageParams_3.setCount( 10 );
-        repeatableStageParams_3.setStartDate( DateUtils.parseDate( "2022-03-01" ) );
-        repeatableStageParams_3.setEndDate( DateUtils.parseDate( "2022-03-31" ) );
+    repeatableStageParams_3.setStartIndex(10);
+    repeatableStageParams_3.setCount(10);
+    repeatableStageParams_3.setStartDate(DateUtils.parseDate("2022-03-01"));
+    repeatableStageParams_3.setEndDate(DateUtils.parseDate("2022-03-31"));
 
-        repeatableStageParams_4.setStartIndex( 0 );
-        repeatableStageParams_4.setCount( 2 );
+    repeatableStageParams_4.setStartIndex(0);
+    repeatableStageParams_4.setCount(2);
 
-        repeatableStageParams_5.setStartIndex( 0 );
-        repeatableStageParams_5.setCount( 3 );
+    repeatableStageParams_5.setStartIndex(0);
+    repeatableStageParams_5.setCount(3);
 
-        repeatableStageParams_6.setStartIndex( 0 );
-        repeatableStageParams_6.setCount( 1 );
+    repeatableStageParams_6.setStartIndex(0);
+    repeatableStageParams_6.setCount(1);
 
-        // act
-        Set<RepeatableStageParams> repeatableStageParamsSet = new HashSet<>();
+    // act
+    Set<RepeatableStageParams> repeatableStageParamsSet = new HashSet<>();
 
-        repeatableStageParamsSet.add( repeatableStageParams_1 );
+    repeatableStageParamsSet.add(repeatableStageParams_1);
 
-        // assert
-        assertTrue( repeatableStageParamsSet.add( repeatableStageParams_3 ) );
-        assertFalse( repeatableStageParamsSet.add( repeatableStageParams_2 ) );
-        assertTrue( repeatableStageParamsSet.add( repeatableStageParams_4 ) );
-        assertTrue( repeatableStageParamsSet.add( repeatableStageParams_5 ) );
+    // assert
+    assertTrue(repeatableStageParamsSet.add(repeatableStageParams_3));
+    assertFalse(repeatableStageParamsSet.add(repeatableStageParams_2));
+    assertTrue(repeatableStageParamsSet.add(repeatableStageParams_4));
+    assertTrue(repeatableStageParamsSet.add(repeatableStageParams_5));
 
-        assertEquals( 0, repeatableStageParams_1.getStartIndex() );
-        assertEquals( 100, repeatableStageParams_1.getCount() );
-        assertEquals( DateUtils.parseDate( "2022-01-01" ), repeatableStageParams_1.getStartDate() );
-        assertEquals( DateUtils.parseDate( "2022-01-31" ), repeatableStageParams_1.getEndDate() );
+    assertEquals(0, repeatableStageParams_1.getStartIndex());
+    assertEquals(100, repeatableStageParams_1.getCount());
+    assertEquals(DateUtils.parseDate("2022-01-01"), repeatableStageParams_1.getStartDate());
+    assertEquals(DateUtils.parseDate("2022-01-31"), repeatableStageParams_1.getEndDate());
 
-        assertEquals( repeatableStageParams_1, repeatableStageParams_2 );
-        assertFalse( repeatableStageParams_1.simpleStageValueExpected() );
-        assertTrue( repeatableStageParams_6.simpleStageValueExpected() );
-    }
+    assertEquals(repeatableStageParams_1, repeatableStageParams_2);
+    assertFalse(repeatableStageParams_1.simpleStageValueExpected());
+    assertTrue(repeatableStageParams_6.simpleStageValueExpected());
+  }
 }

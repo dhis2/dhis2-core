@@ -31,7 +31,6 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -40,73 +39,69 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Tests for organisation units with trailing spaces. Currently, the API should
- * trim trailing spaces from organisation units but this may still be an issue
- * with legacy databases.*
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_trailing_spaces.yaml}
+ * Tests for organisation units with trailing spaces. Currently, the API should trim trailing spaces
+ * from organisation units but this may still be an issue with legacy databases.* {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_trailing_spaces.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    @Autowired
-    private OrganisationUnitService orgUnitService;
+class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  @Autowired private OrganisationUnitService orgUnitService;
 
-    private static final String unitAName = "Space District   ";
+  private static final String unitAName = "Space District   ";
 
-    private static final String unitBName = "Spaced Out District";
+  private static final String unitBName = "Spaced Out District";
 
-    private static final String check = "orgunits_trailing_spaces";
+  private static final String check = "orgunits_trailing_spaces";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void DataIntegrityOrganisationUnitsTrailingSpacesTest()
-    {
+  @Test
+  void DataIntegrityOrganisationUnitsTrailingSpacesTest() {
 
-        OrganisationUnit unitA = createOrganisationUnit( 'A' );
-        unitA.setName( unitAName );
-        unitA.setShortName( unitAName );
-        unitA.setOpeningDate( getDate( "2022-01-01" ) );
-        orgUnitService.addOrganisationUnit( unitA );
+    OrganisationUnit unitA = createOrganisationUnit('A');
+    unitA.setName(unitAName);
+    unitA.setShortName(unitAName);
+    unitA.setOpeningDate(getDate("2022-01-01"));
+    orgUnitService.addOrganisationUnit(unitA);
 
-        OrganisationUnit unitB = createOrganisationUnit( 'B' );
-        unitB.setName( unitBName );
-        unitB.setShortName( unitBName + "    " );
-        unitB.setOpeningDate( getDate( "2022-01-01" ) );
-        orgUnitService.addOrganisationUnit( unitB );
+    OrganisationUnit unitB = createOrganisationUnit('B');
+    unitB.setName(unitBName);
+    unitB.setShortName(unitBName + "    ");
+    unitB.setOpeningDate(getDate("2022-01-01"));
+    orgUnitService.addOrganisationUnit(unitB);
 
-        OrganisationUnit unitC = createOrganisationUnit( 'C' );
-        unitC.setName( "NoSpaceDistrict" );
-        unitC.setShortName( "NoSpaceDistrict" );
-        unitC.setOpeningDate( getDate( "2022-01-01" ) );
-        orgUnitService.addOrganisationUnit( unitC );
-        dbmsManager.clearSession();
+    OrganisationUnit unitC = createOrganisationUnit('C');
+    unitC.setName("NoSpaceDistrict");
+    unitC.setShortName("NoSpaceDistrict");
+    unitC.setOpeningDate(getDate("2022-01-01"));
+    orgUnitService.addOrganisationUnit(unitC);
+    dbmsManager.clearSession();
 
-        JsonObject json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content();
-        assertEquals( unitAName, json_unitA.getString( "name" ).string() );
+    JsonObject json_unitA = GET("/organisationUnits/" + unitA.getUid()).content();
+    assertEquals(unitAName, json_unitA.getString("name").string());
 
-        Set<String> orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );
-        Set<String> orgunitNames = Set.of( unitA.getName(), unitB.getName() );
+    Set<String> orgUnitUIDs = Set.of(unitA.getUid(), unitB.getUid());
+    Set<String> orgunitNames = Set.of(unitA.getName(), unitB.getName());
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66, orgUnitUIDs, orgunitNames, Set.of(), true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 66, orgUnitUIDs, orgunitNames, Set.of(), true);
+  }
 
-    @Test
-    void orgunitsNoTrailingSpaces()
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
+  @Test
+  void orgunitsNoTrailingSpaces() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testOrgunitsTrailingSpacesZeroCase()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
+  @Test
+  void testOrgunitsTrailingSpacesZeroCase() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

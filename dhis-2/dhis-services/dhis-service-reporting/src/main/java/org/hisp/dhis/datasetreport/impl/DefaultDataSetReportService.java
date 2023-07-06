@@ -41,9 +41,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -79,341 +77,335 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.datasetreport.DataSetReportService" )
-public class DefaultDataSetReportService
-    implements DataSetReportService
-{
-    private static final String DEFAULT_HEADER = "Value";
+@Component("org.hisp.dhis.datasetreport.DataSetReportService")
+public class DefaultDataSetReportService implements DataSetReportService {
+  private static final String DEFAULT_HEADER = "Value";
 
-    private static final String TOTAL_HEADER = "Total";
+  private static final String TOTAL_HEADER = "Total";
 
-    private static final String SPACE = " ";
+  private static final String SPACE = " ";
 
-    private static final String ATTR_DE = "de";
+  private static final String ATTR_DE = "de";
 
-    private static final String ATTR_CO = "co";
+  private static final String ATTR_CO = "co";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final DataSetReportStore dataSetReportStore;
+  private final DataSetReportStore dataSetReportStore;
 
-    private final I18nManager i18nManager;
+  private final I18nManager i18nManager;
 
-    // -------------------------------------------------------------------------
-    // DataSetReportService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataSetReportService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String getCustomDataSetReport( DataSet dataSet, List<Period> periods, OrganisationUnit orgUnit,
-        Set<String> filters, boolean selectedUnitOnly )
-    {
-        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, periods, orgUnit, filters );
+  @Override
+  public String getCustomDataSetReport(
+      DataSet dataSet,
+      List<Period> periods,
+      OrganisationUnit orgUnit,
+      Set<String> filters,
+      boolean selectedUnitOnly) {
+    Map<String, Object> valueMap =
+        dataSetReportStore.getAggregatedValues(dataSet, periods, orgUnit, filters);
 
-        valueMap.putAll( dataSetReportStore.getAggregatedTotals( dataSet, periods, orgUnit, filters ) );
+    valueMap.putAll(dataSetReportStore.getAggregatedTotals(dataSet, periods, orgUnit, filters));
 
-        Map<String, Object> indicatorValueMap = dataSetReportStore.getAggregatedIndicatorValues( dataSet, periods,
-            orgUnit, filters );
+    Map<String, Object> indicatorValueMap =
+        dataSetReportStore.getAggregatedIndicatorValues(dataSet, periods, orgUnit, filters);
 
-        return prepareReportContent( dataSet.getDataEntryForm(), valueMap, indicatorValueMap );
+    return prepareReportContent(dataSet.getDataEntryForm(), valueMap, indicatorValueMap);
+  }
+
+  @Override
+  public List<Grid> getDataSetReportAsGrid(
+      DataSet dataSet,
+      List<Period> periods,
+      OrganisationUnit orgUnit,
+      Set<String> filters,
+      boolean selectedUnitOnly) {
+    List<Grid> grids;
+
+    FormType formType = dataSet.getFormType();
+
+    if (formType.isCustom()) {
+      grids = getCustomDataSetReportAsGrid(dataSet, periods, orgUnit, filters, selectedUnitOnly);
+    } else if (formType.isSection()) {
+      grids = getSectionDataSetReport(dataSet, periods, orgUnit, filters, selectedUnitOnly);
+    } else {
+      grids = getDefaultDataSetReport(dataSet, periods, orgUnit, filters, selectedUnitOnly);
     }
 
-    @Override
-    public List<Grid> getDataSetReportAsGrid( DataSet dataSet, List<Period> periods, OrganisationUnit orgUnit,
-        Set<String> filters, boolean selectedUnitOnly )
-    {
-        List<Grid> grids;
+    return grids;
+  }
 
-        FormType formType = dataSet.getFormType();
+  // -------------------------------------------------------------------------
+  // Data set report as grid for the various form types
+  // -------------------------------------------------------------------------
 
-        if ( formType.isCustom() )
-        {
-            grids = getCustomDataSetReportAsGrid( dataSet, periods, orgUnit, filters, selectedUnitOnly );
-        }
-        else if ( formType.isSection() )
-        {
-            grids = getSectionDataSetReport( dataSet, periods, orgUnit, filters, selectedUnitOnly );
-        }
-        else
-        {
-            grids = getDefaultDataSetReport( dataSet, periods, orgUnit, filters, selectedUnitOnly );
-        }
+  private List<Grid> getCustomDataSetReportAsGrid(
+      DataSet dataSet,
+      List<Period> periods,
+      OrganisationUnit unit,
+      Set<String> filters,
+      boolean selectedUnitOnly) {
+    String html = getCustomDataSetReport(dataSet, periods, unit, filters, selectedUnitOnly);
 
-        return grids;
+    try {
+      return GridUtils.fromHtml(html, dataSet.getName());
+    } catch (Exception ex) {
+      throw new RuntimeException("Failed to render custom data set report as grid", ex);
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Data set report as grid for the various form types
-    // -------------------------------------------------------------------------
+  private List<Grid> getSectionDataSetReport(
+      DataSet dataSet,
+      List<Period> periods,
+      OrganisationUnit unit,
+      Set<String> filters,
+      boolean selectedUnitOnly) {
+    I18nFormat format = i18nManager.getI18nFormat();
+    I18n i18n = i18nManager.getI18n();
 
-    private List<Grid> getCustomDataSetReportAsGrid( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
-        Set<String> filters, boolean selectedUnitOnly )
-    {
-        String html = getCustomDataSetReport( dataSet, periods, unit, filters, selectedUnitOnly );
+    List<Section> sections = new ArrayList<>(dataSet.getSections());
+    sections.sort(new SectionOrderComparator());
 
-        try
-        {
-            return GridUtils.fromHtml( html, dataSet.getName() );
+    Map<String, Object> valueMap =
+        dataSetReportStore.getAggregatedValues(dataSet, periods, unit, filters);
+    Map<String, Object> subTotalMap =
+        dataSetReportStore.getAggregatedSubTotals(dataSet, periods, unit, filters);
+    Map<String, Object> totalMap =
+        dataSetReportStore.getAggregatedTotals(dataSet, periods, unit, filters);
+
+    List<Grid> grids = new ArrayList<>();
+
+    // ---------------------------------------------------------------------
+    // Create a grid for each section
+    // ---------------------------------------------------------------------
+
+    for (Section section : sections) {
+      for (CategoryCombo categoryCombo : section.getCategoryCombos()) {
+        Grid grid =
+            new ListGrid()
+                .setTitle(section.getName() + SPACE + categoryCombo.getName())
+                .setSubtitle(unit.getName() + SPACE + formatPeriods(periods, format));
+
+        // -----------------------------------------------------------------
+        // Grid headers
+        // -----------------------------------------------------------------
+
+        grid.addHeader(new GridHeader(i18n.getString("dataelement"), false, true));
+
+        List<CategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
+
+        for (CategoryOptionCombo optionCombo : optionCombos) {
+          grid.addHeader(
+              new GridHeader(
+                  optionCombo.isDefault() ? DEFAULT_HEADER : optionCombo.getName(), false, false));
         }
-        catch ( Exception ex )
+
+        if (categoryCombo.doSubTotals() && !selectedUnitOnly) // Sub-total
         {
-            throw new RuntimeException( "Failed to render custom data set report as grid", ex );
+          for (CategoryOption categoryOption : categoryCombo.getCategoryOptions()) {
+            grid.addHeader(new GridHeader(categoryOption.getName(), false, false));
+          }
         }
-    }
 
-    private List<Grid> getSectionDataSetReport( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
-        Set<String> filters, boolean selectedUnitOnly )
-    {
-        I18nFormat format = i18nManager.getI18nFormat();
-        I18n i18n = i18nManager.getI18n();
-
-        List<Section> sections = new ArrayList<>( dataSet.getSections() );
-        sections.sort( new SectionOrderComparator() );
-
-        Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, periods, unit, filters );
-        Map<String, Object> subTotalMap = dataSetReportStore.getAggregatedSubTotals( dataSet, periods, unit, filters );
-        Map<String, Object> totalMap = dataSetReportStore.getAggregatedTotals( dataSet, periods, unit, filters );
-
-        List<Grid> grids = new ArrayList<>();
-
-        // ---------------------------------------------------------------------
-        // Create a grid for each section
-        // ---------------------------------------------------------------------
-
-        for ( Section section : sections )
+        if (categoryCombo.doTotal() && !selectedUnitOnly) // Total
         {
-            for ( CategoryCombo categoryCombo : section.getCategoryCombos() )
-            {
-                Grid grid = new ListGrid().setTitle( section.getName() + SPACE + categoryCombo.getName() )
-                    .setSubtitle( unit.getName() + SPACE + formatPeriods( periods, format ) );
+          grid.addHeader(new GridHeader(TOTAL_HEADER, false, false));
+        }
 
-                // -----------------------------------------------------------------
-                // Grid headers
-                // -----------------------------------------------------------------
+        // -----------------------------------------------------------------
+        // Grid values
+        // -----------------------------------------------------------------
 
-                grid.addHeader( new GridHeader( i18n.getString( "dataelement" ), false, true ) );
+        List<DataElement> dataElements =
+            new ArrayList<>(section.getDataElementsByCategoryCombo(categoryCombo));
 
-                List<CategoryOptionCombo> optionCombos = categoryCombo.getSortedOptionCombos();
+        FilterUtils.filter(dataElements, AggregatableDataElementFilter.INSTANCE);
 
-                for ( CategoryOptionCombo optionCombo : optionCombos )
-                {
-                    grid.addHeader( new GridHeader( optionCombo.isDefault() ? DEFAULT_HEADER : optionCombo.getName(),
-                        false, false ) );
-                }
+        for (DataElement dataElement : dataElements) {
+          grid.addRow();
+          grid.addValue(new GridValue(dataElement.getFormNameFallback())); // Data
+          // element
+          // name
 
-                if ( categoryCombo.doSubTotals() && !selectedUnitOnly ) // Sub-total
-                {
-                    for ( CategoryOption categoryOption : categoryCombo.getCategoryOptions() )
-                    {
-                        grid.addHeader( new GridHeader( categoryOption.getName(), false, false ) );
-                    }
-                }
+          for (CategoryOptionCombo optionCombo : optionCombos) // Values
+          {
+            Map<Object, Object> attributes = new HashMap<>();
+            attributes.put(ATTR_DE, dataElement.getUid());
+            attributes.put(ATTR_CO, optionCombo.getUid());
 
-                if ( categoryCombo.doTotal() && !selectedUnitOnly ) // Total
-                {
-                    grid.addHeader( new GridHeader( TOTAL_HEADER, false, false ) );
-                }
+            Object value;
 
-                // -----------------------------------------------------------------
-                // Grid values
-                // -----------------------------------------------------------------
-
-                List<DataElement> dataElements = new ArrayList<>(
-                    section.getDataElementsByCategoryCombo( categoryCombo ) );
-
-                FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
-
-                for ( DataElement dataElement : dataElements )
-                {
-                    grid.addRow();
-                    grid.addValue( new GridValue( dataElement.getFormNameFallback() ) ); // Data
-                                                                                        // element
-                                                                                        // name
-
-                    for ( CategoryOptionCombo optionCombo : optionCombos ) // Values
-                    {
-                        Map<Object, Object> attributes = new HashMap<>();
-                        attributes.put( ATTR_DE, dataElement.getUid() );
-                        attributes.put( ATTR_CO, optionCombo.getUid() );
-
-                        Object value;
-
-                        if ( selectedUnitOnly )
-                        {
-                            value = getSelectedUnitValue( dataElement, periods, unit, optionCombo );
-                        }
-                        else
-                        {
-                            value = valueMap.get( dataElement.getUid() + SEPARATOR + optionCombo.getUid() );
-                        }
-
-                        grid.addValue( new GridValue( value, attributes ) );
-                    }
-
-                    if ( categoryCombo.doSubTotals() && !selectedUnitOnly ) // Sub-total
-                    {
-                        for ( CategoryOption categoryOption : categoryCombo.getCategoryOptions() )
-                        {
-                            Object value = subTotalMap
-                                .get( dataElement.getUid() + SEPARATOR + categoryOption.getUid() );
-
-                            grid.addValue( new GridValue( value ) );
-                        }
-                    }
-
-                    if ( categoryCombo.doTotal() && !selectedUnitOnly ) // Total
-                    {
-                        Object value = totalMap.get( String.valueOf( dataElement.getUid() ) );
-
-                        grid.addValue( new GridValue( value ) );
-                    }
-                }
-
-                grids.add( grid );
-
+            if (selectedUnitOnly) {
+              value = getSelectedUnitValue(dataElement, periods, unit, optionCombo);
+            } else {
+              value = valueMap.get(dataElement.getUid() + SEPARATOR + optionCombo.getUid());
             }
-        }
 
-        return grids;
-    }
+            grid.addValue(new GridValue(value, attributes));
+          }
 
-    private List<Grid> getDefaultDataSetReport( DataSet dataSet, List<Period> periods, OrganisationUnit unit,
-        Set<String> filters, boolean selectedUnitOnly )
-    {
-        ListMap<CategoryCombo, DataElement> map = new ListMap<>();
+          if (categoryCombo.doSubTotals() && !selectedUnitOnly) // Sub-total
+          {
+            for (CategoryOption categoryOption : categoryCombo.getCategoryOptions()) {
+              Object value =
+                  subTotalMap.get(dataElement.getUid() + SEPARATOR + categoryOption.getUid());
 
-        for ( DataSetElement element : dataSet.getDataSetElements() )
-        {
-            map.putValue( element.getResolvedCategoryCombo(), element.getDataElement() );
-        }
-
-        DataSet tmpDataSet = new DataSet( dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType() );
-        tmpDataSet.setDataSetElements( dataSet.getDataSetElements() );
-
-        for ( CategoryCombo categoryCombo : map.keySet() )
-        {
-            List<DataElement> dataElements = map.get( categoryCombo );
-
-            String name = categoryCombo.isDefault() ? dataSet.getName() : categoryCombo.getName();
-
-            Section section = new Section( name, dataSet, dataElements, null );
-
-            tmpDataSet.getSections().add( section );
-        }
-
-        return getSectionDataSetReport( tmpDataSet, periods, unit, filters, selectedUnitOnly );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private String formatPeriods( List<Period> periods, I18nFormat format )
-    {
-        return periods.stream()
-            .sorted()
-            .map( format::formatPeriod )
-            .collect( Collectors.joining( ", " ) );
-    }
-
-    /**
-     * Returns the sum of values for the list of periods, but returns null if
-     * all the values are null.
-     */
-    private Double getSelectedUnitValue( DataElement dataElement, List<Period> periods, OrganisationUnit unit,
-        CategoryOptionCombo optionCombo )
-    {
-        List<Double> values = periods.stream()
-            .map( p -> dataValueService.getDataValue( dataElement, p, unit, optionCombo ) )
-            .filter( Objects::nonNull )
-            .map( DataValue::getValue )
-            .filter( Objects::nonNull )
-            .map( MathUtils::parseDouble )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-
-        return (values.isEmpty())
-            ? null
-            : values.stream()
-                .mapToDouble( Double::doubleValue )
-                .sum();
-    }
-
-    /**
-     * Puts in aggregated datavalues in the custom dataentry form and returns
-     * whole report text.
-     *
-     * @param dataEntryForm the data entry form.
-     * @param dataValues map with aggregated data values mapped to data element
-     *        operands.
-     * @return data entry form HTML code populated with aggregated data in the
-     *         input fields.
-     */
-    private String prepareReportContent( DataEntryForm dataEntryForm, Map<String, Object> dataValues,
-        Map<String, Object> indicatorValues )
-    {
-        I18nFormat format = i18nManager.getI18nFormat();
-
-        StringBuffer buffer = new StringBuffer();
-
-        Matcher inputMatcher = INPUT_PATTERN.matcher( dataEntryForm.getHtmlCode() );
-
-        // ---------------------------------------------------------------------
-        // Iterate through all matching data element fields.
-        // ---------------------------------------------------------------------
-
-        while ( inputMatcher.find() )
-        {
-            // -----------------------------------------------------------------
-            // Get input HTML code
-            // -----------------------------------------------------------------
-
-            String inputHtml = inputMatcher.group( 1 );
-
-            Matcher identifierMatcher = IDENTIFIER_PATTERN.matcher( inputHtml );
-            Matcher dataElementTotalMatcher = DATAELEMENT_TOTAL_PATTERN.matcher( inputHtml );
-            Matcher indicatorMatcher = INDICATOR_PATTERN.matcher( inputHtml );
-
-            // -----------------------------------------------------------------
-            // Find existing data or indicator value and replace input tag
-            // -----------------------------------------------------------------
-
-            if ( identifierMatcher.find() && identifierMatcher.groupCount() > 0 )
-            {
-                String dataElementId = identifierMatcher.group( 1 );
-                String optionComboId = identifierMatcher.group( 2 );
-
-                Object dataValue = dataValues.get( dataElementId + SEPARATOR + optionComboId );
-
-                String value = "<span class=\"val\" data-de=\"" + dataElementId + "\" data-co=\"" + optionComboId
-                    + "\">" + format.formatValue( dataValue ) + "</span>";
-
-                inputMatcher.appendReplacement( buffer, Matcher.quoteReplacement( value ) );
+              grid.addValue(new GridValue(value));
             }
-            else if ( dataElementTotalMatcher.find() && dataElementTotalMatcher.groupCount() > 0 )
-            {
-                String dataElementId = dataElementTotalMatcher.group( 1 );
+          }
 
-                Object dataValue = dataValues.get( dataElementId );
+          if (categoryCombo.doTotal() && !selectedUnitOnly) // Total
+          {
+            Object value = totalMap.get(String.valueOf(dataElement.getUid()));
 
-                inputMatcher.appendReplacement( buffer, Matcher.quoteReplacement( format.formatValue( dataValue ) ) );
-            }
-            else if ( indicatorMatcher.find() && indicatorMatcher.groupCount() > 0 )
-            {
-                String indicatorId = indicatorMatcher.group( 1 );
-
-                Object indicatorValue = indicatorValues.get( indicatorId );
-
-                inputMatcher.appendReplacement( buffer,
-                    Matcher.quoteReplacement( format.formatValue( indicatorValue ) ) );
-            }
+            grid.addValue(new GridValue(value));
+          }
         }
 
-        inputMatcher.appendTail( buffer );
-
-        return buffer.toString();
+        grids.add(grid);
+      }
     }
+
+    return grids;
+  }
+
+  private List<Grid> getDefaultDataSetReport(
+      DataSet dataSet,
+      List<Period> periods,
+      OrganisationUnit unit,
+      Set<String> filters,
+      boolean selectedUnitOnly) {
+    ListMap<CategoryCombo, DataElement> map = new ListMap<>();
+
+    for (DataSetElement element : dataSet.getDataSetElements()) {
+      map.putValue(element.getResolvedCategoryCombo(), element.getDataElement());
+    }
+
+    DataSet tmpDataSet =
+        new DataSet(dataSet.getName(), dataSet.getShortName(), dataSet.getPeriodType());
+    tmpDataSet.setDataSetElements(dataSet.getDataSetElements());
+
+    for (CategoryCombo categoryCombo : map.keySet()) {
+      List<DataElement> dataElements = map.get(categoryCombo);
+
+      String name = categoryCombo.isDefault() ? dataSet.getName() : categoryCombo.getName();
+
+      Section section = new Section(name, dataSet, dataElements, null);
+
+      tmpDataSet.getSections().add(section);
+    }
+
+    return getSectionDataSetReport(tmpDataSet, periods, unit, filters, selectedUnitOnly);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private String formatPeriods(List<Period> periods, I18nFormat format) {
+    return periods.stream().sorted().map(format::formatPeriod).collect(Collectors.joining(", "));
+  }
+
+  /**
+   * Returns the sum of values for the list of periods, but returns null if all the values are null.
+   */
+  private Double getSelectedUnitValue(
+      DataElement dataElement,
+      List<Period> periods,
+      OrganisationUnit unit,
+      CategoryOptionCombo optionCombo) {
+    List<Double> values =
+        periods.stream()
+            .map(p -> dataValueService.getDataValue(dataElement, p, unit, optionCombo))
+            .filter(Objects::nonNull)
+            .map(DataValue::getValue)
+            .filter(Objects::nonNull)
+            .map(MathUtils::parseDouble)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+    return (values.isEmpty()) ? null : values.stream().mapToDouble(Double::doubleValue).sum();
+  }
+
+  /**
+   * Puts in aggregated datavalues in the custom dataentry form and returns whole report text.
+   *
+   * @param dataEntryForm the data entry form.
+   * @param dataValues map with aggregated data values mapped to data element operands.
+   * @return data entry form HTML code populated with aggregated data in the input fields.
+   */
+  private String prepareReportContent(
+      DataEntryForm dataEntryForm,
+      Map<String, Object> dataValues,
+      Map<String, Object> indicatorValues) {
+    I18nFormat format = i18nManager.getI18nFormat();
+
+    StringBuffer buffer = new StringBuffer();
+
+    Matcher inputMatcher = INPUT_PATTERN.matcher(dataEntryForm.getHtmlCode());
+
+    // ---------------------------------------------------------------------
+    // Iterate through all matching data element fields.
+    // ---------------------------------------------------------------------
+
+    while (inputMatcher.find()) {
+      // -----------------------------------------------------------------
+      // Get input HTML code
+      // -----------------------------------------------------------------
+
+      String inputHtml = inputMatcher.group(1);
+
+      Matcher identifierMatcher = IDENTIFIER_PATTERN.matcher(inputHtml);
+      Matcher dataElementTotalMatcher = DATAELEMENT_TOTAL_PATTERN.matcher(inputHtml);
+      Matcher indicatorMatcher = INDICATOR_PATTERN.matcher(inputHtml);
+
+      // -----------------------------------------------------------------
+      // Find existing data or indicator value and replace input tag
+      // -----------------------------------------------------------------
+
+      if (identifierMatcher.find() && identifierMatcher.groupCount() > 0) {
+        String dataElementId = identifierMatcher.group(1);
+        String optionComboId = identifierMatcher.group(2);
+
+        Object dataValue = dataValues.get(dataElementId + SEPARATOR + optionComboId);
+
+        String value =
+            "<span class=\"val\" data-de=\""
+                + dataElementId
+                + "\" data-co=\""
+                + optionComboId
+                + "\">"
+                + format.formatValue(dataValue)
+                + "</span>";
+
+        inputMatcher.appendReplacement(buffer, Matcher.quoteReplacement(value));
+      } else if (dataElementTotalMatcher.find() && dataElementTotalMatcher.groupCount() > 0) {
+        String dataElementId = dataElementTotalMatcher.group(1);
+
+        Object dataValue = dataValues.get(dataElementId);
+
+        inputMatcher.appendReplacement(
+            buffer, Matcher.quoteReplacement(format.formatValue(dataValue)));
+      } else if (indicatorMatcher.find() && indicatorMatcher.groupCount() > 0) {
+        String indicatorId = indicatorMatcher.group(1);
+
+        Object indicatorValue = indicatorValues.get(indicatorId);
+
+        inputMatcher.appendReplacement(
+            buffer, Matcher.quoteReplacement(format.formatValue(indicatorValue)));
+      }
+    }
+
+    inputMatcher.appendTail(buffer);
+
+    return buffer.toString();
+  }
 }

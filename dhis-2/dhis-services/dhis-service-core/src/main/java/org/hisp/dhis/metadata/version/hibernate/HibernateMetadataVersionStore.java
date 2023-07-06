@@ -29,9 +29,7 @@ package org.hisp.dhis.metadata.version.hibernate;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -47,63 +45,73 @@ import org.springframework.stereotype.Repository;
  *
  * @author aamerm
  */
-@Repository( "org.hisp.dhis.metadata.version.MetadataVersionStore" )
-public class HibernateMetadataVersionStore
-    extends HibernateIdentifiableObjectStore<MetadataVersion>
-    implements MetadataVersionStore
-{
-    public HibernateMetadataVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, MetadataVersion.class, currentUserService, aclService, false );
-    }
+@Repository("org.hisp.dhis.metadata.version.MetadataVersionStore")
+public class HibernateMetadataVersionStore extends HibernateIdentifiableObjectStore<MetadataVersion>
+    implements MetadataVersionStore {
+  public HibernateMetadataVersionStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        MetadataVersion.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public MetadataVersion getVersionByKey( long key )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public MetadataVersion getVersionByKey(long key) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "id" ), key ) ) );
-    }
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("id"), key)));
+  }
 
-    @Override
-    public MetadataVersion getVersionByName( String versionName )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public MetadataVersion getVersionByName(String versionName) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "name" ), versionName ) ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("name"), versionName)));
+  }
 
-    @Override
-    public MetadataVersion getCurrentVersion()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public MetadataVersion getCurrentVersion() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addOrder( root -> builder.desc( root.get( "created" ) ) )
-            .setMaxResults( 1 )
-            .setCacheable( false ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addOrder(root -> builder.desc(root.get("created")))
+            .setMaxResults(1)
+            .setCacheable(false));
+  }
 
-    @Override
-    public List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<MetadataVersion> getAllVersionsInBetween(Date startDate, Date endDate) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.between( root.get( "created" ), startDate, endDate ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.between(root.get("created"), startDate, endDate)));
+  }
 
-    @Override
-    public MetadataVersion getInitialVersion()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public MetadataVersion getInitialVersion() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder, newJpaParameters()
-            .addOrder( root -> builder.asc( root.get( "created" ) ) )
-            .setMaxResults( 1 )
-            .setCacheable( false ) );
-    }
+    return getSingleResult(
+        builder,
+        newJpaParameters()
+            .addOrder(root -> builder.asc(root.get("created")))
+            .setMaxResults(1)
+            .setCacheable(false));
+  }
 }

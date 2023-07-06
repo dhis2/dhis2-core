@@ -28,17 +28,12 @@
 package org.hisp.dhis.dxf2.deprecated.tracker.importer.update.postprocess;
 
 import lombok.Getter;
-
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.audit.AbstractEventAuditPostProcessor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class EventUpdateAuditPostProcessor
-    extends AbstractEventAuditPostProcessor
-{
+public class EventUpdateAuditPostProcessor extends AbstractEventAuditPostProcessor {
 
-    @Getter
-    private final AuditType auditType = AuditType.UPDATE;
-
+  @Getter private final AuditType auditType = AuditType.UPDATE;
 }

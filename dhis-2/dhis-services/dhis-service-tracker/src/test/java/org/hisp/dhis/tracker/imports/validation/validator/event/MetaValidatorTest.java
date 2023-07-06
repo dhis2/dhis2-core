@@ -53,103 +53,94 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class MetaValidatorTest
-{
+@ExtendWith(MockitoExtension.class)
+class MetaValidatorTest {
 
-    private static final String ORG_UNIT_UID = "OrgUnitUid";
+  private static final String ORG_UNIT_UID = "OrgUnitUid";
 
-    private static final String PROGRAM_UID = "ProgramUid";
+  private static final String PROGRAM_UID = "ProgramUid";
 
-    private static final String PROGRAM_STAGE_UID = "ProgramStageUid";
+  private static final String PROGRAM_STAGE_UID = "ProgramStageUid";
 
-    private MetaValidator validator;
+  private MetaValidator validator;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new MetaValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new MetaValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        Event event = validEvent();
+  @Test
+  void verifyEventValidationSuccess() {
+    Event event = validEvent();
 
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
-            .thenReturn( new ProgramStage() );
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
+        .thenReturn(new ProgramStage());
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenProgramIsNotPresentInDb()
-    {
-        Event event = validEvent();
+  @Test
+  void verifyEventValidationFailsWhenProgramIsNotPresentInDb() {
+    Event event = validEvent();
 
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
-            .thenReturn( new ProgramStage() );
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
+        .thenReturn(new ProgramStage());
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1010 );
-    }
+    assertHasError(reporter, event, E1010);
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenProgramStageIsNotPresentInDb()
-    {
-        Event event = validEvent();
+  @Test
+  void verifyEventValidationFailsWhenProgramStageIsNotPresentInDb() {
+    Event event = validEvent();
 
-        when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
-            .thenReturn( new OrganisationUnit() );
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID)))
+        .thenReturn(new OrganisationUnit());
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1013 );
-    }
+    assertHasError(reporter, event, E1013);
+  }
 
-    @Test
-    void verifyEventValidationFailsWhenOrgUnitIsNotPresentInDb()
-    {
-        Event event = validEvent();
+  @Test
+  void verifyEventValidationFailsWhenOrgUnitIsNotPresentInDb() {
+    Event event = validEvent();
 
-        when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) ) )
-            .thenReturn( new ProgramStage() );
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_UID))).thenReturn(new Program());
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
+        .thenReturn(new ProgramStage());
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1011 );
-    }
+    assertHasError(reporter, event, E1011);
+  }
 
-    private Event validEvent()
-    {
-        return Event.builder()
-            .event( CodeGenerator.generateUid() )
-            .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) )
-            .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) )
-            .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
-            .build();
-    }
+  private Event validEvent() {
+    return Event.builder()
+        .event(CodeGenerator.generateUid())
+        .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
+        .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_UID))
+        .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+        .build();
+  }
 }

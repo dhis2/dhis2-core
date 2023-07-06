@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
@@ -46,36 +45,34 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class DataValueAclCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        final TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
-        final Event programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
+public class DataValueAclCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    final TrackerAccessManager trackerAccessManager =
+        ctx.getServiceDelegator().getTrackerAccessManager();
+    final Event programStageInstance = ctx.getProgramStageInstanceMap().get(event.getUid());
 
-        Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
+    Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
 
-        final User user = ctx.getImportOptions().getUser();
-        final ImportSummary importSummary = new ImportSummary();
+    final User user = ctx.getImportOptions().getUser();
+    final ImportSummary importSummary = new ImportSummary();
 
-        // Note that here we are passing a Event, which during a
-        // INSERT
-        // operation
-        // is going to be null, so the ACL method will not be able to check that
-        final Set<EventDataValue> dataValues = eventDataValueMap.get( event.getUid() );
+    // Note that here we are passing a Event, which during a
+    // INSERT
+    // operation
+    // is going to be null, so the ACL method will not be able to check that
+    final Set<EventDataValue> dataValues = eventDataValueMap.get(event.getUid());
 
-        for ( EventDataValue dataValue : dataValues )
-        {
-            DataElement dataElement = ctx.getDataElementMap().get( dataValue.getDataElement() );
-            List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );
+    for (EventDataValue dataValue : dataValues) {
+      DataElement dataElement = ctx.getDataElementMap().get(dataValue.getDataElement());
+      List<String> errors =
+          trackerAccessManager.canWrite(user, programStageInstance, dataElement, true);
 
-            if ( !errors.isEmpty() )
-            {
-                errors.forEach( error -> importSummary.addConflict( dataElement.getUid(), error ) );
-            }
-        }
-
-        return importSummary;
+      if (!errors.isEmpty()) {
+        errors.forEach(error -> importSummary.addConflict(dataElement.getUid(), error));
+      }
     }
+
+    return importSummary;
+  }
 }

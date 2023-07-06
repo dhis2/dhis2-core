@@ -37,72 +37,59 @@ import org.springframework.mock.web.MockHttpSession;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class ApiVersionTypeTest extends DhisWebSpringTest
-{
+class ApiVersionTypeTest extends DhisWebSpringTest {
 
-    @Test
-    void testTypeAnnotationDefault()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testDefault";
-        mvc.perform( get( endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/31" + endpoint ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( get( "/32" + endpoint ).session( session ) ).andExpect( status().isNotFound() );
-    }
+  @Test
+  void testTypeAnnotationDefault() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    String endpoint = "/type/testDefault";
+    mvc.perform(get(endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isNotFound());
+    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isNotFound());
+  }
 
-    @Test
-    void testTypeAnnotationDefaultV31()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testDefaultV31";
-        mvc.perform( get( endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/31" + endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/32" + endpoint ).session( session ) ).andExpect( status().isNotFound() );
-    }
+  @Test
+  void testTypeAnnotationDefaultV31() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    String endpoint = "/type/testDefaultV31";
+    mvc.perform(get(endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isNotFound());
+  }
 
-    @Test
-    void testTypeAnnotationV31V32()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testV31V32";
-        mvc.perform( get( endpoint ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( get( "/31" + endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/32" + endpoint ).session( session ) ).andExpect( status().isOk() );
-    }
+  @Test
+  void testTypeAnnotationV31V32() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    String endpoint = "/type/testV31V32";
+    mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
+    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isOk());
+  }
 
-    @Test
-    void testTypeAnnotationAll()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testAll";
-        mvc.perform( get( endpoint ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( get( "/31" + endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/32" + endpoint ).session( session ) ).andExpect( status().isOk() );
-    }
+  @Test
+  void testTypeAnnotationAll() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    String endpoint = "/type/testAll";
+    mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
+    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isOk());
+  }
 
-    @Test
-    void testTypeAnnotationAllExcludeV32()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testAllExcludeV32";
-        mvc.perform( get( endpoint ).session( session ) ).andExpect( status().isNotFound() );
-        mvc.perform( get( "/31" + endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/32" + endpoint ).session( session ) ).andExpect( status().isNotFound() );
-    }
+  @Test
+  void testTypeAnnotationAllExcludeV32() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    String endpoint = "/type/testAllExcludeV32";
+    mvc.perform(get(endpoint).session(session)).andExpect(status().isNotFound());
+    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isNotFound());
+  }
 
-    @Test
-    void testTypeAnnotationDefaultAll()
-        throws Exception
-    {
-        MockHttpSession session = getSession( "ALL" );
-        String endpoint = "/type/testDefaultAll";
-        mvc.perform( get( endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/31" + endpoint ).session( session ) ).andExpect( status().isOk() );
-        mvc.perform( get( "/32" + endpoint ).session( session ) ).andExpect( status().isOk() );
-    }
+  @Test
+  void testTypeAnnotationDefaultAll() throws Exception {
+    MockHttpSession session = getSession("ALL");
+    String endpoint = "/type/testDefaultAll";
+    mvc.perform(get(endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/31" + endpoint).session(session)).andExpect(status().isOk());
+    mvc.perform(get("/32" + endpoint).session(session)).andExpect(status().isOk());
+  }
 }

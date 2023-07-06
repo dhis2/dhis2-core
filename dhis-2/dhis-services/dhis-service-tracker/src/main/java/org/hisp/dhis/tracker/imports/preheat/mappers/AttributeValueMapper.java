@@ -28,22 +28,20 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import java.util.Set;
-
 import org.hisp.dhis.attribute.AttributeValue;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, AttributeMapper.class } )
-public interface AttributeValueMapper extends PreheatMapper<AttributeValue>
-{
-    AttributeValueMapper INSTANCE = Mappers.getMapper( AttributeValueMapper.class );
+@Mapper(uses = {DebugMapper.class, AttributeMapper.class})
+public interface AttributeValueMapper extends PreheatMapper<AttributeValue> {
+  AttributeValueMapper INSTANCE = Mappers.getMapper(AttributeValueMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "attribute" )
-    @Mapping( target = "value" )
-    AttributeValue map( AttributeValue attributeValue );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "attribute")
+  @Mapping(target = "value")
+  AttributeValue map(AttributeValue attributeValue);
 
-    Set<AttributeValue> mapAttributeValues( Set<AttributeValue> attributeValues );
+  Set<AttributeValue> mapAttributeValues(Set<AttributeValue> attributeValues);
 }

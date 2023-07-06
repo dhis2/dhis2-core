@@ -43,110 +43,95 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-class UIDBindingTest
-{
+class UIDBindingTest {
 
-    private static final String VALID_UID = "bRNvL6NMQXb";
+  private static final String VALID_UID = "bRNvL6NMQXb";
 
-    private static final String INVALID_UID = "invalidUid";
+  private static final String INVALID_UID = "invalidUid";
 
-    private static final String ERROR_MESSAGE = "Value 'invalidUid' is not valid for parameter uid. UID must be an alphanumeric string of 11 characters";
+  private static final String ERROR_MESSAGE =
+      "Value 'invalidUid' is not valid for parameter uid. UID must be an alphanumeric string of 11 characters";
 
-    private static final String ERROR_MESSAGE_FOR_PATH_PARAM = "Value 'invalidUid' is not valid for path parameter uid. UID must be an alphanumeric string of 11 characters";
+  private static final String ERROR_MESSAGE_FOR_PATH_PARAM =
+      "Value 'invalidUid' is not valid for path parameter uid. UID must be an alphanumeric string of 11 characters";
 
-    private static final String BINDING_OBJECT_ERROR_MESSAGE = "Value 'invalidUid' is not valid for parameter uidInRequestParams. UID must be an alphanumeric string of 11 characters";
+  private static final String BINDING_OBJECT_ERROR_MESSAGE =
+      "Value 'invalidUid' is not valid for parameter uidInRequestParams. UID must be an alphanumeric string of 11 characters";
 
-    private final static String ENDPOINT = "/uid";
+  private static final String ENDPOINT = "/uid";
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @BeforeEach
-    public void setUp()
-    {
-        mockMvc = MockMvcBuilders
-            .standaloneSetup( new UIDController() )
-            .setControllerAdvice( new CrudControllerAdvice() )
+  @BeforeEach
+  public void setUp() {
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(new UIDController())
+            .setControllerAdvice(new CrudControllerAdvice())
             .build();
+  }
+
+  @Test
+  void shouldReturnUIDValueWhenPassingValidUidAsPathVariable() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/" + VALID_UID))
+        .andExpect(status().isOk())
+        .andExpect(content().string(VALID_UID));
+  }
+
+  @Test
+  void shouldReturnUIDValueWhenPassingValidUidAsRequestParam() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT).param("uid", VALID_UID))
+        .andExpect(status().isOk())
+        .andExpect(content().string(VALID_UID));
+  }
+
+  @Test
+  void shouldReturnUIDValueWhenPassingValidUidAsRequestParamObject() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/params").param("uidInRequestParams", VALID_UID))
+        .andExpect(status().isOk())
+        .andExpect(content().string(VALID_UID));
+  }
+
+  @Test
+  void shouldReturnBadRequestResponseWhenPassingInvalidUidAsPathVariable() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/" + INVALID_UID))
+        .andExpect(content().string(containsString(ERROR_MESSAGE_FOR_PATH_PARAM)));
+  }
+
+  @Test
+  void shouldReturnBadRequestResponseWhenPassingInvalidUidAsRequestParam() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT).param("uid", INVALID_UID))
+        .andExpect(content().string(containsString(ERROR_MESSAGE)));
+  }
+
+  @Test
+  void shouldReturnBadRequestResponseWhenPassingInvalidUidAsRequestParamObject() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/params").param("uidInRequestParams", INVALID_UID))
+        .andExpect(content().string(containsString(BINDING_OBJECT_ERROR_MESSAGE)));
+  }
+
+  @Controller
+  private static class UIDController extends CrudControllerAdvice {
+    @GetMapping(value = ENDPOINT + "/{uid}")
+    public @ResponseBody String getUIDValueFromPath(@PathVariable UID uid) {
+      return uid.getValue();
     }
 
-    @Test
-    void shouldReturnUIDValueWhenPassingValidUidAsPathVariable()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/" + VALID_UID ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().string( VALID_UID ) );
+    @GetMapping(value = ENDPOINT)
+    public @ResponseBody String getUIDValueFromRequestParam(@RequestParam UID uid) {
+      return uid.getValue();
     }
 
-    @Test
-    void shouldReturnUIDValueWhenPassingValidUidAsRequestParam()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT )
-            .param( "uid", VALID_UID ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().string( VALID_UID ) );
+    @GetMapping(value = ENDPOINT + "/params")
+    public @ResponseBody String getUIDValueFromRequestObject(UIDRequestParams uidRequestParams) {
+      return uidRequestParams.uidInRequestParams().getValue();
     }
+  }
 
-    @Test
-    void shouldReturnUIDValueWhenPassingValidUidAsRequestParamObject()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/params" )
-            .param( "uidInRequestParams", VALID_UID ) )
-            .andExpect( status().isOk() )
-            .andExpect( content().string( VALID_UID ) );
-    }
-
-    @Test
-    void shouldReturnBadRequestResponseWhenPassingInvalidUidAsPathVariable()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/" + INVALID_UID ) )
-            .andExpect( content().string( containsString( ERROR_MESSAGE_FOR_PATH_PARAM ) ) );
-    }
-
-    @Test
-    void shouldReturnBadRequestResponseWhenPassingInvalidUidAsRequestParam()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT )
-            .param( "uid", INVALID_UID ) )
-            .andExpect( content().string( containsString( ERROR_MESSAGE ) ) );
-    }
-
-    @Test
-    void shouldReturnBadRequestResponseWhenPassingInvalidUidAsRequestParamObject()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/params" )
-            .param( "uidInRequestParams", INVALID_UID ) )
-            .andExpect( content().string( containsString( BINDING_OBJECT_ERROR_MESSAGE ) ) );
-    }
-
-    @Controller
-    private static class UIDController extends CrudControllerAdvice
-    {
-        @GetMapping( value = ENDPOINT + "/{uid}" )
-        public @ResponseBody String getUIDValueFromPath( @PathVariable UID uid )
-        {
-            return uid.getValue();
-        }
-
-        @GetMapping( value = ENDPOINT )
-        public @ResponseBody String getUIDValueFromRequestParam( @RequestParam UID uid )
-        {
-            return uid.getValue();
-        }
-
-        @GetMapping( value = ENDPOINT + "/params" )
-        public @ResponseBody String getUIDValueFromRequestObject( UIDRequestParams uidRequestParams )
-        {
-            return uidRequestParams.uidInRequestParams().getValue();
-        }
-    }
-
-    private record UIDRequestParams( UID uidInRequestParams )
-    {
-    }
+  private record UIDRequestParams(UID uidInRequestParams) {}
 }

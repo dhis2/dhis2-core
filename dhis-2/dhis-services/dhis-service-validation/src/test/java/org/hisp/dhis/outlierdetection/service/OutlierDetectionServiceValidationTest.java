@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -49,137 +50,133 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-@ExtendWith( MockitoExtension.class )
-class OutlierDetectionServiceValidationTest
-{
+@ExtendWith(MockitoExtension.class)
+class OutlierDetectionServiceValidationTest {
 
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private ZScoreOutlierDetectionManager zScoreOutlierManager;
+  @Mock private ZScoreOutlierDetectionManager zScoreOutlierManager;
 
-    @Mock
-    private MinMaxOutlierDetectionManager minMaxOutlierManager;
+  @Mock private MinMaxOutlierDetectionManager minMaxOutlierManager;
 
-    private OutlierDetectionService subject;
+  private OutlierDetectionService subject;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private DataElement deB;
+  private DataElement deB;
 
-    private DataElement deC;
+  private DataElement deC;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new DefaultOutlierDetectionService( idObjectManager, zScoreOutlierManager, minMaxOutlierManager );
+  @BeforeEach
+  public void setUp() {
+    subject =
+        new DefaultOutlierDetectionService(
+            idObjectManager, zScoreOutlierManager, minMaxOutlierManager);
 
-        deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
-        deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
-        deC = createDataElement( 'C', ValueType.NUMBER, AggregationType.SUM );
+    deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
+    deB = createDataElement('B', ValueType.INTEGER, AggregationType.SUM);
+    deC = createDataElement('C', ValueType.NUMBER, AggregationType.SUM);
 
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-    }
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+  }
 
-    @Test
-    void testSuccessfulValidation()
-    {
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 3, 1 ) )
-            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+  @Test
+  void testSuccessfulValidation() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
 
-        assertNull( subject.validateForErrorMessage( request ) );
-    }
+    assertNull(subject.validateForErrorMessage(request));
+  }
 
-    @Test
-    void testErrorValidation()
-    {
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 3, 1 ) )
+  @Test
+  void testErrorValidation() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
             .build();
 
-        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> subject.validate( request ) );
-        assertEquals( ErrorCode.E2203, ex.getErrorCode() );
-    }
+    IllegalQueryException ex =
+        assertThrows(IllegalQueryException.class, () -> subject.validate(request));
+    assertEquals(ErrorCode.E2203, ex.getErrorCode());
+  }
 
-    @Test
-    void testErrorNoDataElements()
-    {
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 7, 1 ) )
-            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+  @Test
+  void testErrorNoDataElements() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 7, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
 
-        assertEquals( ErrorCode.E2200, subject.validateForErrorMessage( request ).getErrorCode() );
-    }
+    assertEquals(ErrorCode.E2200, subject.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void testErrorStartAfterEndDates()
-    {
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 6, 1 ), getDate( 2020, 3, 1 ) )
-            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
+  @Test
+  void testErrorStartAfterEndDates() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 6, 1), getDate(2020, 3, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
             .build();
 
-        assertEquals( ErrorCode.E2202, subject.validateForErrorMessage( request ).getErrorCode() );
-    }
+    assertEquals(ErrorCode.E2202, subject.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void testErrorNegativeThreshold()
-    {
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 6, 1 ) )
-            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
-            .withThreshold( -23.4 )
+  @Test
+  void testErrorNegativeThreshold() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 6, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
+            .withThreshold(-23.4)
             .build();
 
-        assertEquals( ErrorCode.E2204, subject.validateForErrorMessage( request ).getErrorCode() );
-    }
+    assertEquals(ErrorCode.E2204, subject.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void testErrorNegativeMaxResults()
-    {
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 3, 1 ) )
-            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
-            .withMaxResults( -100 )
+  @Test
+  void testErrorNegativeMaxResults() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 3, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
+            .withMaxResults(-100)
             .build();
 
-        assertEquals( ErrorCode.E2205, subject.validateForErrorMessage( request ).getErrorCode() );
-    }
+    assertEquals(ErrorCode.E2205, subject.validateForErrorMessage(request).getErrorCode());
+  }
 
-    @Test
-    void testErrorDataStartDateAfterDataEndDate()
-    {
-        OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
-            .withDataElements( Lists.newArrayList( deA, deB, deC ) )
-            .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 6, 1 ) )
-            .withOrgUnits( Lists.newArrayList( ouA, ouB ) )
-            .withDataStartDate( getDate( 2020, 6, 1 ) )
-            .withDataEndDate( getDate( 2020, 5, 1 ) )
+  @Test
+  void testErrorDataStartDateAfterDataEndDate() {
+    OutlierDetectionRequest request =
+        new OutlierDetectionRequest.Builder()
+            .withDataElements(Lists.newArrayList(deA, deB, deC))
+            .withStartEndDate(getDate(2020, 1, 1), getDate(2020, 6, 1))
+            .withOrgUnits(Lists.newArrayList(ouA, ouB))
+            .withDataStartDate(getDate(2020, 6, 1))
+            .withDataEndDate(getDate(2020, 5, 1))
             .build();
 
-        assertEquals( ErrorCode.E2207, subject.validateForErrorMessage( request ).getErrorCode() );
-    }
+    assertEquals(ErrorCode.E2207, subject.validateForErrorMessage(request).getErrorCode());
+  }
 }

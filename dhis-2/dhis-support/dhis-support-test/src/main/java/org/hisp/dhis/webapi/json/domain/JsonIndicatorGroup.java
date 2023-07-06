@@ -29,11 +29,9 @@ package org.hisp.dhis.webapi.json.domain;
 
 import org.hisp.dhis.jsontree.JsonList;
 
-public interface JsonIndicatorGroup extends JsonIdentifiableObject
-{
+public interface JsonIndicatorGroup extends JsonIdentifiableObject {
 
-    default JsonList<JsonIndicator> getIndicators()
-    {
-        return getList( "indicators", JsonIndicator.class );
-    }
+  default JsonList<JsonIndicator> getIndicators() {
+    return getList("indicators", JsonIndicator.class);
+  }
 }

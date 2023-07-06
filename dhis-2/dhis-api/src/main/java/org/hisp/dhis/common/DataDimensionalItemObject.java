@@ -30,14 +30,12 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public interface DataDimensionalItemObject
-    extends DimensionalItemObject
-{
-    String getAggregateExportCategoryOptionCombo();
+public interface DataDimensionalItemObject extends DimensionalItemObject {
+  String getAggregateExportCategoryOptionCombo();
 
-    boolean hasAggregateExportCategoryOptionCombo();
+  boolean hasAggregateExportCategoryOptionCombo();
 
-    String getAggregateExportAttributeOptionCombo();
+  String getAggregateExportAttributeOptionCombo();
 
-    boolean hasAggregateExportAttributeOptionCombo();
+  boolean hasAggregateExportAttributeOptionCombo();
 }

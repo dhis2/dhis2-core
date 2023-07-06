@@ -27,52 +27,41 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.webapi.common.UID;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared( pattern = Pattern.INFO )
+@OpenApi.Shared(pattern = Pattern.INFO)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attribute
-{
-    @OpenApi.Property( { UID.class, Attribute.class } )
-    @JsonProperty
-    private String attribute;
+public class Attribute {
+  @OpenApi.Property({UID.class, Attribute.class})
+  @JsonProperty
+  private String attribute;
 
-    @JsonProperty
-    private String code;
+  @JsonProperty private String code;
 
-    @JsonProperty
-    private String displayName;
+  @JsonProperty private String displayName;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private ValueType valueType;
+  @JsonProperty private ValueType valueType;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 }

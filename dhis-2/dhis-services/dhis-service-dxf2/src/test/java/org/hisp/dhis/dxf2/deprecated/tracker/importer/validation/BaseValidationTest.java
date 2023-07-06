@@ -34,12 +34,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -58,91 +58,78 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-public abstract class BaseValidationTest
-{
-    protected final IdScheme programStageIdScheme = ImportOptions.getDefaultImportOptions().getIdSchemes()
-        .getProgramStageIdScheme();
+@ExtendWith(MockitoExtension.class)
+public abstract class BaseValidationTest {
+  protected final IdScheme programStageIdScheme =
+      ImportOptions.getDefaultImportOptions().getIdSchemes().getProgramStageIdScheme();
 
-    @Mock
-    protected WorkContext workContext;
+  @Mock protected WorkContext workContext;
 
-    @Mock
-    protected ServiceDelegator serviceDelegator;
+  @Mock protected ServiceDelegator serviceDelegator;
 
-    protected Event event;
+  protected Event event;
 
-    protected Map<String, DataElement> dataElementMap = new HashMap<>();
+  protected Map<String, DataElement> dataElementMap = new HashMap<>();
 
-    protected Map<String, Set<EventDataValue>> eventDataValueMap = new HashMap<>();
+  protected Map<String, Set<EventDataValue>> eventDataValueMap = new HashMap<>();
 
-    protected ObjectMapper objectMapper = new ObjectMapper();
+  protected ObjectMapper objectMapper = new ObjectMapper();
 
-    @Mock
-    protected EnrollmentStore enrollmentStore;
+  @Mock protected EnrollmentStore enrollmentStore;
 
-    @BeforeEach
-    public void superSetUp()
-    {
-        event = EventTestUtils.createBaseEvent();
-        when( workContext.getImportOptions() ).thenReturn( ImportOptions.getDefaultImportOptions() );
-        when( workContext.getDataElementMap() ).thenReturn( dataElementMap );
-        when( workContext.getEventDataValueMap() ).thenReturn( eventDataValueMap );
-        when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
+  @BeforeEach
+  public void superSetUp() {
+    event = EventTestUtils.createBaseEvent();
+    when(workContext.getImportOptions()).thenReturn(ImportOptions.getDefaultImportOptions());
+    when(workContext.getDataElementMap()).thenReturn(dataElementMap);
+    when(workContext.getEventDataValueMap()).thenReturn(eventDataValueMap);
+    when(workContext.getServiceDelegator()).thenReturn(serviceDelegator);
 
-        // Service delegator
-        when( serviceDelegator.getJsonMapper() ).thenReturn( objectMapper );
-        when( serviceDelegator.getEnrollmentStore() ).thenReturn( enrollmentStore );
+    // Service delegator
+    when(serviceDelegator.getJsonMapper()).thenReturn(objectMapper);
+    when(serviceDelegator.getEnrollmentStore()).thenReturn(enrollmentStore);
+  }
 
+  protected void assertNoError(ImportSummary summary) {
+    assertThat(summary.getStatus(), is(ImportStatus.SUCCESS));
+    assertThat(summary, is(notNullValue()));
+    assertThat(
+        "Expecting 0 events ignored, but got " + summary.getImportCount().getIgnored(),
+        summary.getImportCount().getIgnored(),
+        is(0));
+  }
+
+  protected void assertHasError(ImportSummary summary, Event event, String description) {
+    assertThat(summary.getStatus(), is(ImportStatus.ERROR));
+    assertThat(summary, is(notNullValue()));
+    assertThat(summary.getImportCount().getIgnored(), is(1));
+    assertThat(summary.getReference(), is(event.getUid()));
+    assertThat(summary.getDescription(), is(description));
+  }
+
+  protected static void assertHasConflict(
+      ImportSummary summary, String expectedValue, String expectedObject) {
+    assertEquals(1, summary.getConflictCount());
+    ImportConflict conflict = summary.getConflicts().iterator().next();
+    assertEquals(expectedValue, conflict.getValue());
+    assertEquals(expectedObject, conflict.getObject());
+  }
+
+  protected static void assertHasConflict(ImportConflicts summary, Event event, String conflict) {
+    if (!summary.hasConflict(c -> c.getValue().equals(conflict))) {
+      fail("Conflict string [" + conflict + "] not found");
     }
+  }
 
-    protected void assertNoError( ImportSummary summary )
-    {
-        assertThat( summary.getStatus(), is( ImportStatus.SUCCESS ) );
-        assertThat( summary, is( notNullValue() ) );
-        assertThat( "Expecting 0 events ignored, but got " + summary.getImportCount().getIgnored(),
-            summary.getImportCount().getIgnored(), is( 0 ) );
-    }
+  protected DataElement addToDataElementMap(DataElement de) {
+    this.dataElementMap.put(de.getUid(), de);
+    return de;
+  }
 
-    protected void assertHasError( ImportSummary summary, Event event, String description )
-    {
-        assertThat( summary.getStatus(), is( ImportStatus.ERROR ) );
-        assertThat( summary, is( notNullValue() ) );
-        assertThat( summary.getImportCount().getIgnored(), is( 1 ) );
-        assertThat( summary.getReference(), is( event.getUid() ) );
-        assertThat( summary.getDescription(), is( description ) );
-    }
-
-    protected static void assertHasConflict( ImportSummary summary, String expectedValue, String expectedObject )
-    {
-        assertEquals( 1, summary.getConflictCount() );
-        ImportConflict conflict = summary.getConflicts().iterator().next();
-        assertEquals( expectedValue, conflict.getValue() );
-        assertEquals( expectedObject, conflict.getObject() );
-    }
-
-    protected static void assertHasConflict( ImportConflicts summary, Event event, String conflict )
-    {
-        if ( !summary.hasConflict( c -> c.getValue().equals( conflict ) ) )
-        {
-            fail( "Conflict string [" + conflict + "] not found" );
-        }
-    }
-
-    protected DataElement addToDataElementMap( DataElement de )
-    {
-        this.dataElementMap.put( de.getUid(), de );
-        return de;
-    }
-
-    protected void addToDataValueMap( String eventUid, EventDataValue... eventDataValue )
-    {
-        this.eventDataValueMap.put( eventUid, new HashSet<>( Arrays.asList( eventDataValue ) ) );
-    }
-
+  protected void addToDataValueMap(String eventUid, EventDataValue... eventDataValue) {
+    this.eventDataValueMap.put(eventUid, new HashSet<>(Arrays.asList(eventDataValue)));
+  }
 }

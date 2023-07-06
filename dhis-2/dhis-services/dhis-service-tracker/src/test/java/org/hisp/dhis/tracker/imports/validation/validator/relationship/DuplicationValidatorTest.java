@@ -49,86 +49,78 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class DuplicationValidatorTest
-{
+@ExtendWith(MockitoExtension.class)
+class DuplicationValidatorTest {
 
-    private DuplicationValidator validator;
+  private DuplicationValidator validator;
 
-    @Mock
-    private TrackerBundle bundle;
+  @Mock private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    public void setUp()
-    {
-        validator = new DuplicationValidator();
+  @BeforeEach
+  public void setUp() {
+    validator = new DuplicationValidator();
 
-        when( bundle.getPreheat() ).thenReturn( preheat );
+    when(bundle.getPreheat()).thenReturn(preheat);
 
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        reporter = new Reporter( idSchemes );
-    }
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+  }
 
-    @Test
-    void shouldFailWhenRelationshipIsDuplicated()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( createRelTypeConstraint().getUid() ) )
-            .from( trackedEntityRelationshipItem() )
-            .to( trackedEntityRelationshipItem() )
+  @Test
+  void shouldFailWhenRelationshipIsDuplicated() {
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
+            .from(trackedEntityRelationshipItem())
+            .to(trackedEntityRelationshipItem())
             .build();
 
-        when( preheat.isDuplicate( relationship ) ).thenReturn( true );
+    when(preheat.isDuplicate(relationship)).thenReturn(true);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertHasError( reporter, relationship, E4018 );
-    }
+    assertHasError(reporter, relationship, E4018);
+  }
 
-    @Test
-    void shouldBeValidWhenRelationshipIsNotDuplicated()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( createRelTypeConstraint().getUid() ) )
-            .from( trackedEntityRelationshipItem() )
-            .to( trackedEntityRelationshipItem() )
+  @Test
+  void shouldBeValidWhenRelationshipIsNotDuplicated() {
+    Relationship relationship =
+        Relationship.builder()
+            .relationship(CodeGenerator.generateUid())
+            .relationshipType(MetadataIdentifier.ofUid(createRelTypeConstraint().getUid()))
+            .from(trackedEntityRelationshipItem())
+            .to(trackedEntityRelationshipItem())
             .build();
 
-        when( preheat.isDuplicate( relationship ) ).thenReturn( false );
+    when(preheat.isDuplicate(relationship)).thenReturn(false);
 
-        validator.validate( reporter, bundle, relationship );
+    validator.validate(reporter, bundle, relationship);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    private RelationshipType createRelTypeConstraint()
-    {
-        RelationshipType relType = new RelationshipType();
-        relType.setUid( CodeGenerator.generateUid() );
+  private RelationshipType createRelTypeConstraint() {
+    RelationshipType relType = new RelationshipType();
+    relType.setUid(CodeGenerator.generateUid());
 
-        RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
-        relationshipConstraintFrom.setRelationshipEntity( TRACKED_ENTITY_INSTANCE );
+    RelationshipConstraint relationshipConstraintFrom = new RelationshipConstraint();
+    relationshipConstraintFrom.setRelationshipEntity(TRACKED_ENTITY_INSTANCE);
 
-        RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
-        relationshipConstraintTo.setRelationshipEntity( TRACKED_ENTITY_INSTANCE );
+    RelationshipConstraint relationshipConstraintTo = new RelationshipConstraint();
+    relationshipConstraintTo.setRelationshipEntity(TRACKED_ENTITY_INSTANCE);
 
-        relType.setFromConstraint( relationshipConstraintFrom );
-        relType.setToConstraint( relationshipConstraintTo );
+    relType.setFromConstraint(relationshipConstraintFrom);
+    relType.setToConstraint(relationshipConstraintTo);
 
-        return relType;
-    }
+    return relType;
+  }
 
-    private RelationshipItem trackedEntityRelationshipItem()
-    {
-        return RelationshipItem.builder()
-            .trackedEntity( CodeGenerator.generateUid() )
-            .build();
-    }
+  private RelationshipItem trackedEntityRelationshipItem() {
+    return RelationshipItem.builder().trackedEntity(CodeGenerator.generateUid()).build();
+  }
 }

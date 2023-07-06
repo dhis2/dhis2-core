@@ -31,12 +31,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.beans.Introspector;
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.preheat.PreheatException;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -54,68 +51,63 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 @Service
-public class DefaultTrackerPreheatService implements TrackerPreheatService, ApplicationContextAware
-{
-    @Nonnull
-    private final IdentifiableObjectManager manager;
+public class DefaultTrackerPreheatService
+    implements TrackerPreheatService, ApplicationContextAware {
+  @Nonnull private final IdentifiableObjectManager manager;
 
-    private ApplicationContext ctx;
+  private ApplicationContext ctx;
 
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-        throws BeansException
-    {
-        this.ctx = applicationContext;
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.ctx = applicationContext;
+  }
+
+  @Qualifier("preheatOrder")
+  private final List<String> preheatSuppliers;
+
+  // TODO this flag should be configurable
+  private static final boolean FAIL_FAST_ON_PREHEAT_ERROR = false;
+
+  @Override
+  @Transactional(readOnly = true)
+  public TrackerPreheat preheat(TrackerImportParams params) {
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.setIdSchemes(params.getIdSchemes());
+    preheat.setUser(params.getUser());
+
+    checkNotNull(preheat.getUser(), "TrackerPreheat is missing the user object.");
+
+    for (String supplier : preheatSuppliers) {
+      final String beanName = Introspector.decapitalize(supplier);
+      try {
+        ctx.getBean(beanName, PreheatSupplier.class).add(params, preheat);
+      } catch (BeansException beanException) {
+        processException(
+            "Unable to find a preheat supplier with name "
+                + beanName
+                + " in the Spring context. Skipping supplier.",
+            beanException,
+            supplier);
+      } catch (Exception e) {
+        processException(
+            "An error occurred while executing a preheat supplier with name " + supplier,
+            e,
+            supplier);
+      }
     }
 
-    @Qualifier( "preheatOrder" )
-    private final List<String> preheatSuppliers;
+    return preheat;
+  }
 
-    // TODO this flag should be configurable
-    private final static boolean FAIL_FAST_ON_PREHEAT_ERROR = false;
-
-    @Override
-    @Transactional( readOnly = true )
-    public TrackerPreheat preheat( TrackerImportParams params )
-    {
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.setIdSchemes( params.getIdSchemes() );
-        preheat.setUser( params.getUser() );
-
-        checkNotNull( preheat.getUser(), "TrackerPreheat is missing the user object." );
-
-        for ( String supplier : preheatSuppliers )
-        {
-            final String beanName = Introspector.decapitalize( supplier );
-            try
-            {
-                ctx.getBean( beanName, PreheatSupplier.class ).add( params, preheat );
-            }
-            catch ( BeansException beanException )
-            {
-                processException( "Unable to find a preheat supplier with name " + beanName
-                    + " in the Spring context. Skipping supplier.", beanException, supplier );
-            }
-            catch ( Exception e )
-            {
-                processException( "An error occurred while executing a preheat supplier with name "
-                    + supplier, e, supplier );
-            }
-        }
-
-        return preheat;
+  private void processException(String message, Exception e, String supplier) {
+    if (FAIL_FAST_ON_PREHEAT_ERROR) {
+      throw new PreheatException(
+          "An error occurred during the preheat process. Preheater with name "
+              + Introspector.decapitalize(supplier)
+              + "failed",
+          e);
+    } else {
+      log.warn(message, e);
     }
-
-    private void processException( String message, Exception e, String supplier )
-    {
-        if ( FAIL_FAST_ON_PREHEAT_ERROR )
-        {
-            throw new PreheatException( "An error occurred during the preheat process. Preheater with name "
-                + Introspector.decapitalize( supplier ) + "failed", e );
-        }
-        else
-        {
-            log.warn( message, e );
-        }
-    }
+  }
 }

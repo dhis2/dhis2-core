@@ -28,9 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.EventHookSecretManager;
@@ -43,28 +41,24 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class EventHookObjectBundleHook
-    extends AbstractObjectBundleHook<EventHook>
-{
-    private final ApplicationEventPublisher publisher;
+public class EventHookObjectBundleHook extends AbstractObjectBundleHook<EventHook> {
+  private final ApplicationEventPublisher publisher;
 
-    private final EventHookSecretManager secretManager;
+  private final EventHookSecretManager secretManager;
 
-    @Override
-    public void preCreate( EventHook eventHook, ObjectBundle bundle )
-    {
-        secretManager.encrypt( eventHook );
-    }
+  @Override
+  public void preCreate(EventHook eventHook, ObjectBundle bundle) {
+    secretManager.encrypt(eventHook);
+  }
 
-    @Override
-    public void preUpdate( EventHook eventHook, EventHook persistedObject, ObjectBundle bundle )
-    {
-        secretManager.encrypt( eventHook );
-    }
+  @Override
+  public void preUpdate(EventHook eventHook, EventHook persistedObject, ObjectBundle bundle) {
+    secretManager.encrypt(eventHook);
+  }
 
-    @Override
-    public <E extends EventHook> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )
-    {
-        publisher.publishEvent( new ReloadEventHookListeners() );
-    }
+  @Override
+  public <E extends EventHook> void postTypeImport(
+      Class<E> klass, List<E> objects, ObjectBundle bundle) {
+    publisher.publishEvent(new ReloadEventHookListeners());
+  }
 }

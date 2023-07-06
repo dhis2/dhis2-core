@@ -33,31 +33,29 @@ import static org.hisp.dhis.common.ValueType.TEXT;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.ValueType;
 
 /**
- * This enum represents the TEI static fields. It is used to generate the query
- * and to provide the header information.
+ * This enum represents the TEI static fields. It is used to generate the query and to provide the
+ * header information.
  */
 @Getter
 @RequiredArgsConstructor
-public enum TeiStaticField implements TeiHeaderProvider
-{
-    TRACKED_ENTITY_INSTANCE( "trackedentityinstanceuid", "Tracked entity instance", TEXT ),
-    LAST_UPDATED( "lastupdated", "Last updated", DATETIME ),
-    CREATED_BY_DISPLAY_NAME( "createdbydisplayname", "Created by", TEXT ),
-    LAST_UPDATED_BY_DISPLAY_NAME( "lastupdatedbydisplayname", "Last updated by", TEXT ),
-    GEOMETRY( "geometry", "Geometry", TEXT ),
-    LONGITUDE( "longitude", "Longitude", NUMBER ),
-    LATITUDE( "latitude", "Latitude", NUMBER ),
-    ORG_UNIT_NAME( "ouname", "Organisation unit name", TEXT ),
-    ORG_UNIT_CODE( "oucode", "Organisation unit code", TEXT ),
-    ORG_UNIT_NAME_HIERARCHY( "ounamehierarchy", "Organisation unit hierarchy", TEXT );
+public enum TeiStaticField implements TeiHeaderProvider {
+  TRACKED_ENTITY_INSTANCE("trackedentityinstanceuid", "Tracked entity instance", TEXT),
+  LAST_UPDATED("lastupdated", "Last updated", DATETIME),
+  CREATED_BY_DISPLAY_NAME("createdbydisplayname", "Created by", TEXT),
+  LAST_UPDATED_BY_DISPLAY_NAME("lastupdatedbydisplayname", "Last updated by", TEXT),
+  GEOMETRY("geometry", "Geometry", TEXT),
+  LONGITUDE("longitude", "Longitude", NUMBER),
+  LATITUDE("latitude", "Latitude", NUMBER),
+  ORG_UNIT_NAME("ouname", "Organisation unit name", TEXT),
+  ORG_UNIT_CODE("oucode", "Organisation unit code", TEXT),
+  ORG_UNIT_NAME_HIERARCHY("ounamehierarchy", "Organisation unit hierarchy", TEXT);
 
-    private final String alias;
+  private final String alias;
 
-    private final String fullName;
+  private final String fullName;
 
-    private final ValueType type;
+  private final ValueType type;
 }

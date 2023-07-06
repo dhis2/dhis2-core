@@ -37,71 +37,57 @@ import java.util.Map;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TestRunStorage
-{
-    private static LinkedHashMap<String, String> createdEntities;
+public class TestRunStorage {
+  private static LinkedHashMap<String, String> createdEntities;
 
-    public static void addCreatedEntity( final String resource, final String id )
-    {
-        if ( createdEntities == null )
-        {
-            createdEntities = new LinkedHashMap<>();
-        }
-
-        createdEntities.put( id, resource );
+  public static void addCreatedEntity(final String resource, final String id) {
+    if (createdEntities == null) {
+      createdEntities = new LinkedHashMap<>();
     }
 
-    public static Map<String, String> getCreatedEntities()
-    {
-        if ( createdEntities == null )
-        {
-            return new LinkedHashMap<>();
-        }
+    createdEntities.put(id, resource);
+  }
 
-        return new LinkedHashMap<>( createdEntities );
+  public static Map<String, String> getCreatedEntities() {
+    if (createdEntities == null) {
+      return new LinkedHashMap<>();
     }
 
-    public static List<String> getCreatedEntities( String resource )
-    {
-        if ( createdEntities == null )
-        {
-            return new ArrayList<>();
-        }
+    return new LinkedHashMap<>(createdEntities);
+  }
 
-        return getCreatedEntities()
-            .entrySet().stream()
-            .filter( entrySet -> resource.equals( entrySet.getValue() ) )
-            .map( entry -> entry.getKey() )
-            .collect( toList() );
+  public static List<String> getCreatedEntities(String resource) {
+    if (createdEntities == null) {
+      return new ArrayList<>();
     }
 
-    public static void removeEntity( final String resource, final String id )
-    {
-        if ( createdEntities == null )
-        {
-            return;
-        }
+    return getCreatedEntities().entrySet().stream()
+        .filter(entrySet -> resource.equals(entrySet.getValue()))
+        .map(entry -> entry.getKey())
+        .collect(toList());
+  }
 
-        createdEntities.remove( id, resource );
+  public static void removeEntity(final String resource, final String id) {
+    if (createdEntities == null) {
+      return;
     }
 
-    public static void removeEntities( final String resource )
-    {
-        if ( createdEntities == null )
-        {
-            return;
-        }
+    createdEntities.remove(id, resource);
+  }
 
-        createdEntities.entrySet().removeIf( p -> p.getValue().equalsIgnoreCase( resource ) );
+  public static void removeEntities(final String resource) {
+    if (createdEntities == null) {
+      return;
     }
 
-    public static void removeAllEntities()
-    {
-        if ( createdEntities == null )
-        {
-            return;
-        }
+    createdEntities.entrySet().removeIf(p -> p.getValue().equalsIgnoreCase(resource));
+  }
 
-        createdEntities.clear();
+  public static void removeAllEntities() {
+    if (createdEntities == null) {
+      return;
     }
+
+    createdEntities.clear();
+  }
 }

@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,124 +50,121 @@ import org.junit.jupiter.api.Test;
 /**
  * @author David Mackessy
  */
-class ProgramStageSectionTest
-{
-    @Test
-    void testCopyOfWithPropertyValuesSet()
-    {
-        Map<String, String> copyOptions = Map.of( "prefix", "copy of" );
-        Program originalProgram = new Program( "Program 1" );
-        Program copyProgram = Program.shallowCopy( originalProgram, copyOptions );
-        ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
-        ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
-        ProgramStageSection original = getNewProgramStageSection( originalStage, originalProgram );
-        ProgramStageSection copy = ProgramStageSection.copyOf.apply( original, copyStage );
+class ProgramStageSectionTest {
+  @Test
+  void testCopyOfWithPropertyValuesSet() {
+    Map<String, String> copyOptions = Map.of("prefix", "copy of");
+    Program originalProgram = new Program("Program 1");
+    Program copyProgram = Program.shallowCopy(originalProgram, copyOptions);
+    ProgramStage originalStage = new ProgramStage("program stage 1", originalProgram);
+    ProgramStage copyStage = ProgramStage.shallowCopy(originalStage, copyProgram);
+    ProgramStageSection original = getNewProgramStageSection(originalStage, originalProgram);
+    ProgramStageSection copy = ProgramStageSection.copyOf.apply(original, copyStage);
 
-        assertNotSame( original, copy );
-        assertNotEquals( original, copy );
-        assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
-        assertNotSame( original.getProgramStage(), copy.getProgramStage() );
-        assertNotEquals( original.getUid(), copy.getUid() );
-        Set<String> originalIndicators = original.getProgramIndicators().stream().map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
-        Set<String> copyIndicators = copy.getProgramIndicators().stream().map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
-        assertEquals( 1, originalIndicators.size() );
-        assertEquals( 0, copyIndicators.size() );
-        assertNotEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
+    assertNotSame(original, copy);
+    assertNotEquals(original, copy);
+    assertNotEquals(original.getProgramStage(), copy.getProgramStage());
+    assertNotSame(original.getProgramStage(), copy.getProgramStage());
+    assertNotEquals(original.getUid(), copy.getUid());
+    Set<String> originalIndicators =
+        original.getProgramIndicators().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
+    Set<String> copyIndicators =
+        copy.getProgramIndicators().stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toSet());
+    assertEquals(1, originalIndicators.size());
+    assertEquals(0, copyIndicators.size());
+    assertNotEquals(original.getProgramIndicators(), copy.getProgramIndicators());
 
-        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+    assertTrue(notEqualsOrBothNull(original.getCode(), copy.getCode()));
 
-        assertEquals( original.getDataElements(), copy.getDataElements() );
-        assertEquals( original.getDescription(), copy.getDescription() );
-        assertEquals( original.getFormName(), copy.getFormName() );
-        assertEquals( original.getName(), copy.getName() );
-        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
-        assertEquals( original.getRenderType(), copy.getRenderType() );
-        assertEquals( original.getSharing(), copy.getSharing() );
-        assertEquals( original.getShortName(), copy.getShortName() );
-        assertEquals( original.getSortOrder(), copy.getSortOrder() );
-        assertEquals( original.getStyle(), copy.getStyle() );
-    }
+    assertEquals(original.getDataElements(), copy.getDataElements());
+    assertEquals(original.getDescription(), copy.getDescription());
+    assertEquals(original.getFormName(), copy.getFormName());
+    assertEquals(original.getName(), copy.getName());
+    assertEquals(original.getPublicAccess(), copy.getPublicAccess());
+    assertEquals(original.getRenderType(), copy.getRenderType());
+    assertEquals(original.getSharing(), copy.getSharing());
+    assertEquals(original.getShortName(), copy.getShortName());
+    assertEquals(original.getSortOrder(), copy.getSortOrder());
+    assertEquals(original.getStyle(), copy.getStyle());
+  }
 
-    @Test
-    void testCopyOfWithNullValues()
-    {
-        Map<String, String> copyOptions = Map.of( "prefix", "copy of" );
-        Program originalProgram = new Program( "Program 1" );
-        Program copyProgram = Program.shallowCopy( originalProgram, copyOptions );
-        ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
-        ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
-        ProgramStageSection original = getNewProgramStageSectionWithNulls();
-        ProgramStageSection copy = ProgramStageSection.copyOf.apply( original, copyStage );
+  @Test
+  void testCopyOfWithNullValues() {
+    Map<String, String> copyOptions = Map.of("prefix", "copy of");
+    Program originalProgram = new Program("Program 1");
+    Program copyProgram = Program.shallowCopy(originalProgram, copyOptions);
+    ProgramStage originalStage = new ProgramStage("program stage 1", originalProgram);
+    ProgramStage copyStage = ProgramStage.shallowCopy(originalStage, copyProgram);
+    ProgramStageSection original = getNewProgramStageSectionWithNulls();
+    ProgramStageSection copy = ProgramStageSection.copyOf.apply(original, copyStage);
 
-        assertNotSame( original, copy );
-        assertNotEquals( original, copy );
-        assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
-        assertNotSame( original.getProgramStage(), copy.getProgramStage() );
-        assertNotEquals( original.getUid(), copy.getUid() );
+    assertNotSame(original, copy);
+    assertNotEquals(original, copy);
+    assertNotEquals(original.getProgramStage(), copy.getProgramStage());
+    assertNotSame(original.getProgramStage(), copy.getProgramStage());
+    assertNotEquals(original.getUid(), copy.getUid());
 
-        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+    assertTrue(notEqualsOrBothNull(original.getCode(), copy.getCode()));
 
-        assertTrue( copy.getDataElements().isEmpty() );
-        assertEquals( original.getDescription(), copy.getDescription() );
-        assertEquals( original.getFormName(), copy.getFormName() );
-        assertEquals( original.getName(), copy.getName() );
-        assertTrue( copy.getProgramIndicators().isEmpty() );
-        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
-        assertEquals( original.getRenderType(), copy.getRenderType() );
-        assertEquals( original.getSharing(), copy.getSharing() );
-        assertEquals( original.getShortName(), copy.getShortName() );
-        assertEquals( original.getSortOrder(), copy.getSortOrder() );
-        assertEquals( original.getStyle(), copy.getStyle() );
-    }
+    assertTrue(copy.getDataElements().isEmpty());
+    assertEquals(original.getDescription(), copy.getDescription());
+    assertEquals(original.getFormName(), copy.getFormName());
+    assertEquals(original.getName(), copy.getName());
+    assertTrue(copy.getProgramIndicators().isEmpty());
+    assertEquals(original.getPublicAccess(), copy.getPublicAccess());
+    assertEquals(original.getRenderType(), copy.getRenderType());
+    assertEquals(original.getSharing(), copy.getSharing());
+    assertEquals(original.getShortName(), copy.getShortName());
+    assertEquals(original.getSortOrder(), copy.getSortOrder());
+    assertEquals(original.getStyle(), copy.getStyle());
+  }
 
-    /**
-     * This test checks the expected field count for
-     * {@link ProgramStageSection}. This is important due to
-     * {@link ProgramStageSection#copyOf} functionality. If a new field is added
-     * then {@link ProgramStageSection#copyOf} should be updated with the
-     * appropriate copying approach.
-     */
-    @Test
-    void testExpectedFieldCount()
-    {
-        Field[] allClassFieldsIncludingInherited = getAllFields( ProgramStageSection.class );
-        assertEquals( 28, allClassFieldsIncludingInherited.length );
-    }
+  /**
+   * This test checks the expected field count for {@link ProgramStageSection}. This is important
+   * due to {@link ProgramStageSection#copyOf} functionality. If a new field is added then {@link
+   * ProgramStageSection#copyOf} should be updated with the appropriate copying approach.
+   */
+  @Test
+  void testExpectedFieldCount() {
+    Field[] allClassFieldsIncludingInherited = getAllFields(ProgramStageSection.class);
+    assertEquals(28, allClassFieldsIncludingInherited.length);
+  }
 
-    public static ProgramStageSection getNewProgramStageSection( ProgramStage original, Program program )
-    {
-        ProgramStageSection pss = new ProgramStageSection();
-        pss.setAutoFields();
-        pss.setDataElements( List.of( new DataElement( "DE1" ), new DataElement( "DE2" ) ) );
-        pss.setDescription( "PSS Description" );
-        pss.setFormName( "PSS form name" );
-        pss.setProgramIndicators( List.of( getNewProgramIndicator( program ) ) );
-        pss.setProgramStage( original );
-        pss.setPublicAccess( original.getPublicAccess() );
-        pss.setRenderType( new DeviceRenderTypeMap<>() );
-        pss.setSortOrder( 1 );
-        pss.setShortName( "PSS short name" );
-        pss.setSharing( new Sharing() );
-        pss.setStyle( new ObjectStyle() );
-        return pss;
-    }
+  public static ProgramStageSection getNewProgramStageSection(
+      ProgramStage original, Program program) {
+    ProgramStageSection pss = new ProgramStageSection();
+    pss.setAutoFields();
+    pss.setDataElements(List.of(new DataElement("DE1"), new DataElement("DE2")));
+    pss.setDescription("PSS Description");
+    pss.setFormName("PSS form name");
+    pss.setProgramIndicators(List.of(getNewProgramIndicator(program)));
+    pss.setProgramStage(original);
+    pss.setPublicAccess(original.getPublicAccess());
+    pss.setRenderType(new DeviceRenderTypeMap<>());
+    pss.setSortOrder(1);
+    pss.setShortName("PSS short name");
+    pss.setSharing(new Sharing());
+    pss.setStyle(new ObjectStyle());
+    return pss;
+  }
 
-    private ProgramStageSection getNewProgramStageSectionWithNulls()
-    {
-        ProgramStageSection pss = new ProgramStageSection();
-        pss.setDataElements( null );
-        pss.setDescription( null );
-        pss.setFormName( null );
-        pss.setProgramIndicators( null );
-        pss.setProgramStage( null );
-        pss.setPublicAccess( null );
-        pss.setRenderType( null );
-        pss.setSharing( null );
-        pss.setShortName( null );
-        pss.setSortOrder( null );
-        pss.setStyle( null );
-        return pss;
-    }
+  private ProgramStageSection getNewProgramStageSectionWithNulls() {
+    ProgramStageSection pss = new ProgramStageSection();
+    pss.setDataElements(null);
+    pss.setDescription(null);
+    pss.setFormName(null);
+    pss.setProgramIndicators(null);
+    pss.setProgramStage(null);
+    pss.setPublicAccess(null);
+    pss.setRenderType(null);
+    pss.setSharing(null);
+    pss.setShortName(null);
+    pss.setSortOrder(null);
+    pss.setStyle(null);
+    return pss;
+  }
 }

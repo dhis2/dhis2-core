@@ -27,204 +27,170 @@
  */
 package org.hisp.dhis.indicator;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 /**
- * An IndicatorGroupSet is a set of IndicatorGroups. It is by default exclusive,
- * in the sense that an Indicator can only be a member of one or zero of the
- * IndicatorGroups in a IndicatorGroupSet.
+ * An IndicatorGroupSet is a set of IndicatorGroups. It is by default exclusive, in the sense that
+ * an Indicator can only be a member of one or zero of the IndicatorGroups in a IndicatorGroupSet.
  *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-public class IndicatorGroupSet
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    private String shortName;
+@JacksonXmlRootElement(localName = "indicatorGroupSet", namespace = DxfNamespaces.DXF_2_0)
+public class IndicatorGroupSet extends BaseIdentifiableObject implements MetadataObject {
+  private String shortName;
 
-    private String description;
+  private String description;
 
-    private Boolean compulsory = false;
+  private Boolean compulsory = false;
 
-    private List<IndicatorGroup> members = new ArrayList<>();
+  private List<IndicatorGroup> members = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public IndicatorGroupSet()
-    {
+  public IndicatorGroupSet() {}
 
+  public IndicatorGroupSet(String name) {
+    this(name, false);
+  }
+
+  public IndicatorGroupSet(String name, Boolean compulsory) {
+    this(name, null, compulsory);
+  }
+
+  public IndicatorGroupSet(String name, String description, Boolean compulsory) {
+    this.name = name;
+    this.shortName = name;
+    this.compulsory = compulsory;
+    this.description = description;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public Collection<Indicator> getIndicators() {
+    List<Indicator> indicators = new ArrayList<>();
+
+    for (IndicatorGroup group : members) {
+      indicators.addAll(group.getMembers());
     }
 
-    public IndicatorGroupSet( String name )
-    {
-        this( name, false );
+    return indicators;
+  }
+
+  public IndicatorGroup getGroup(Indicator indicator) {
+    for (IndicatorGroup group : members) {
+      if (group.getMembers().contains(indicator)) {
+        return group;
+      }
     }
 
-    public IndicatorGroupSet( String name, Boolean compulsory )
-    {
-        this( name, null, compulsory );
+    return null;
+  }
+
+  public Boolean isMemberOfIndicatorGroups(Indicator indicator) {
+    for (IndicatorGroup group : members) {
+      if (group.getMembers().contains(indicator)) {
+        return true;
+      }
     }
 
-    public IndicatorGroupSet( String name, String description, Boolean compulsory )
-    {
-        this.name = name;
-        this.shortName = name;
-        this.compulsory = compulsory;
-        this.description = description;
+    return false;
+  }
+
+  public Boolean hasIndicatorGroups() {
+    return members != null && members.size() > 0;
+  }
+
+  public List<IndicatorGroup> getSortedGroups() {
+    List<IndicatorGroup> sortedGroups = new ArrayList<>(members);
+
+    Collections.sort(sortedGroups);
+
+    return sortedGroups;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void removeAllIndicatorGroups() {
+    members.clear();
+  }
+
+  public void addIndicatorGroup(IndicatorGroup indicatorGroup) {
+    members.add(indicatorGroup);
+    indicatorGroup.getGroupSets().add(this);
+  }
+
+  public void removeIndicatorGroup(IndicatorGroup indicatorGroup) {
+    members.remove(indicatorGroup);
+    indicatorGroup.getGroupSets().remove(this);
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1, max = 50)
+  public String getShortName() {
+    return shortName;
+  }
+
+  public void setShortName(String shortName) {
+    this.shortName = shortName;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Boolean isCompulsory() {
+    if (compulsory == null) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return compulsory;
+  }
 
-    public Collection<Indicator> getIndicators()
-    {
-        List<Indicator> indicators = new ArrayList<>();
+  public void setCompulsory(Boolean compulsory) {
+    this.compulsory = compulsory;
+  }
 
-        for ( IndicatorGroup group : members )
-        {
-            indicators.addAll( group.getMembers() );
-        }
+  @JsonProperty("indicatorGroups")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "indicatorGroups", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0)
+  public List<IndicatorGroup> getMembers() {
+    return members;
+  }
 
-        return indicators;
-    }
-
-    public IndicatorGroup getGroup( Indicator indicator )
-    {
-        for ( IndicatorGroup group : members )
-        {
-            if ( group.getMembers().contains( indicator ) )
-            {
-                return group;
-            }
-        }
-
-        return null;
-    }
-
-    public Boolean isMemberOfIndicatorGroups( Indicator indicator )
-    {
-        for ( IndicatorGroup group : members )
-        {
-            if ( group.getMembers().contains( indicator ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public Boolean hasIndicatorGroups()
-    {
-        return members != null && members.size() > 0;
-    }
-
-    public List<IndicatorGroup> getSortedGroups()
-    {
-        List<IndicatorGroup> sortedGroups = new ArrayList<>( members );
-
-        Collections.sort( sortedGroups );
-
-        return sortedGroups;
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public void removeAllIndicatorGroups()
-    {
-        members.clear();
-    }
-
-    public void addIndicatorGroup( IndicatorGroup indicatorGroup )
-    {
-        members.add( indicatorGroup );
-        indicatorGroup.getGroupSets().add( this );
-    }
-
-    public void removeIndicatorGroup( IndicatorGroup indicatorGroup )
-    {
-        members.remove( indicatorGroup );
-        indicatorGroup.getGroupSets().remove( this );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    @PropertyRange( min = 1, max = 50 )
-    public String getShortName()
-    {
-        return shortName;
-    }
-
-    public void setShortName( String shortName )
-    {
-        this.shortName = shortName;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean isCompulsory()
-    {
-        if ( compulsory == null )
-        {
-            return false;
-        }
-
-        return compulsory;
-    }
-
-    public void setCompulsory( Boolean compulsory )
-    {
-        this.compulsory = compulsory;
-    }
-
-    @JsonProperty( "indicatorGroups" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "indicatorGroups", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "indicatorGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public List<IndicatorGroup> getMembers()
-    {
-        return members;
-    }
-
-    public void setMembers( List<IndicatorGroup> members )
-    {
-        this.members = members;
-    }
+  public void setMembers(List<IndicatorGroup> members) {
+    this.members = members;
+  }
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.parser.expression.function;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 /**
@@ -38,22 +37,17 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class FunctionLeast
-    extends FunctionGreatestOrLeast
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return greatestOrLeast( ctx.expr(), visitor, -1.0 );
-    }
+public class FunctionLeast extends FunctionGreatestOrLeast {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return greatestOrLeast(ctx.expr(), visitor, -1.0);
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String args = ctx.expr().stream()
-            .map( c -> visitor.castStringVisit( c ) )
-            .collect( Collectors.joining( "," ) );
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String args =
+        ctx.expr().stream().map(c -> visitor.castStringVisit(c)).collect(Collectors.joining(","));
 
-        return "least(" + args + ")";
-    }
+    return "least(" + args + ")";
+  }
 }

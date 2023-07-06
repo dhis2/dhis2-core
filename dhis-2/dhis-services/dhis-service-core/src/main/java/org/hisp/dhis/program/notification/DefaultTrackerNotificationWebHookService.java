@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.program.notification;
 
+import com.google.common.collect.Lists;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.program.Enrollment;
@@ -55,126 +54,116 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Zubair Asghar
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.notification.TrackerNotificationWebHookService" )
-public class DefaultTrackerNotificationWebHookService implements TrackerNotificationWebHookService
-{
-    private final EnrollmentService enrollmentService;
+@Service("org.hisp.dhis.program.notification.TrackerNotificationWebHookService")
+public class DefaultTrackerNotificationWebHookService implements TrackerNotificationWebHookService {
+  private final EnrollmentService enrollmentService;
 
-    private final EventService eventService;
+  private final EventService eventService;
 
-    private final ProgramNotificationTemplateService templateService;
+  private final ProgramNotificationTemplateService templateService;
 
-    private final RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
-    private final RenderService renderService;
+  private final RenderService renderService;
 
-    @Override
-    @Transactional
-    public void handleEnrollment( String enrollment )
-    {
-        Enrollment instance = enrollmentService.getEnrollment( enrollment );
+  @Override
+  @Transactional
+  public void handleEnrollment(String enrollment) {
+    Enrollment instance = enrollmentService.getEnrollment(enrollment);
 
-        if ( instance == null
-            || !templateService.isProgramLinkedToWebHookNotification( instance.getProgram() ) )
-        {
-            return;
-        }
-
-        List<ProgramNotificationTemplate> templates = templateService
-            .getProgramLinkedToWebHookNotifications( instance.getProgram() );
-
-        Map<String, String> requestPayload = new HashMap<>();
-        ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS
-            .forEach( ( key, value ) -> requestPayload.put( key.name(), value.apply( instance ) ) );
-
-        // populate tracked entity attributes
-        instance.getTrackedEntity().getTrackedEntityAttributeValues()
-            .forEach( attr -> requestPayload.put( attr.getAttribute().getUid(), attr.getValue() ) );
-        sendPost( templates, renderService.toJsonAsString( requestPayload ) );
+    if (instance == null
+        || !templateService.isProgramLinkedToWebHookNotification(instance.getProgram())) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void handleEvent( String event )
-    {
-        Event instance = eventService.getEvent( event );
+    List<ProgramNotificationTemplate> templates =
+        templateService.getProgramLinkedToWebHookNotifications(instance.getProgram());
 
-        if ( instance == null
-            || !templateService.isProgramStageLinkedToWebHookNotification( instance.getProgramStage() ) )
-        {
-            return;
-        }
+    Map<String, String> requestPayload = new HashMap<>();
+    ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS.forEach(
+        (key, value) -> requestPayload.put(key.name(), value.apply(instance)));
 
-        List<ProgramNotificationTemplate> templates = templateService
-            .getProgramStageLinkedToWebHookNotifications( instance.getProgramStage() );
+    // populate tracked entity attributes
+    instance
+        .getTrackedEntity()
+        .getTrackedEntityAttributeValues()
+        .forEach(attr -> requestPayload.put(attr.getAttribute().getUid(), attr.getValue()));
+    sendPost(templates, renderService.toJsonAsString(requestPayload));
+  }
 
-        // populate environment variables
-        Map<String, String> requestPayload = new HashMap<>();
-        ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS
-            .forEach( ( key, value ) -> requestPayload.put( key.name(), value.apply( instance ) ) );
+  @Override
+  @Transactional
+  public void handleEvent(String event) {
+    Event instance = eventService.getEvent(event);
 
-        // populate data values
-        instance.getEventDataValues().forEach( dv -> requestPayload.put( dv.getDataElement(), dv.getValue() ) );
-
-        // populate tracked entity attributes
-        instance.getEnrollment().getTrackedEntity().getTrackedEntityAttributeValues()
-            .forEach( attr -> requestPayload.put( attr.getAttribute().getUid(), attr.getValue() ) );
-
-        sendPost( templates, renderService.toJsonAsString( requestPayload ) );
+    if (instance == null
+        || !templateService.isProgramStageLinkedToWebHookNotification(instance.getProgramStage())) {
+      return;
     }
 
-    private void sendPost( List<ProgramNotificationTemplate> templates, String payload )
-    {
-        ResponseEntity<String> responseEntity = null;
+    List<ProgramNotificationTemplate> templates =
+        templateService.getProgramStageLinkedToWebHookNotifications(instance.getProgramStage());
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.put( "Content-type", Lists.newArrayList( "application/json" ) );
+    // populate environment variables
+    Map<String, String> requestPayload = new HashMap<>();
+    ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS.forEach(
+        (key, value) -> requestPayload.put(key.name(), value.apply(instance)));
 
-        HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
+    // populate data values
+    instance
+        .getEventDataValues()
+        .forEach(dv -> requestPayload.put(dv.getDataElement(), dv.getValue()));
 
-        for ( ProgramNotificationTemplate t : templates )
-        {
-            if ( !ValidationUtils.urlIsValid( t.getMessageTemplate() ) )
-            {
-                log.error( String.format( "Webhook url: %s is invalid for template: %s", t.getMessageTemplate(),
-                    t.getUid() ) );
-                continue;
-            }
+    // populate tracked entity attributes
+    instance
+        .getEnrollment()
+        .getTrackedEntity()
+        .getTrackedEntityAttributeValues()
+        .forEach(attr -> requestPayload.put(attr.getAttribute().getUid(), attr.getValue()));
 
-            URI uri = UriComponentsBuilder.fromHttpUrl( t.getMessageTemplate() ).build().encode().toUri();
+    sendPost(templates, renderService.toJsonAsString(requestPayload));
+  }
 
-            try
-            {
-                responseEntity = restTemplate.exchange( uri, HttpMethod.POST, httpEntity, String.class );
-            }
-            catch ( HttpClientErrorException ex )
-            {
-                log.error( "Client error " + ex.getMessage() );
-            }
-            catch ( HttpServerErrorException ex )
-            {
-                log.error( "Server error " + ex.getMessage() );
-            }
-            catch ( Exception ex )
-            {
-                log.error( "Error " + ex.getMessage() );
-            }
+  private void sendPost(List<ProgramNotificationTemplate> templates, String payload) {
+    ResponseEntity<String> responseEntity = null;
 
-            if ( responseEntity != null && SmsGateway.OK_CODES.contains( responseEntity.getStatusCode() ) )
-            {
-                log.info( String.format( "Post request successful for url: %s and template: %s", uri, t.getUid() ) );
-            }
-            else
-            {
-                log.info( String.format( "Post request failed for url: %s and template: %s", uri, t.getUid() ) );
-            }
-        }
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.put("Content-type", Lists.newArrayList("application/json"));
+
+    HttpEntity<String> httpEntity = new HttpEntity<>(payload, httpHeaders);
+
+    for (ProgramNotificationTemplate t : templates) {
+      if (!ValidationUtils.urlIsValid(t.getMessageTemplate())) {
+        log.error(
+            String.format(
+                "Webhook url: %s is invalid for template: %s", t.getMessageTemplate(), t.getUid()));
+        continue;
+      }
+
+      URI uri = UriComponentsBuilder.fromHttpUrl(t.getMessageTemplate()).build().encode().toUri();
+
+      try {
+        responseEntity = restTemplate.exchange(uri, HttpMethod.POST, httpEntity, String.class);
+      } catch (HttpClientErrorException ex) {
+        log.error("Client error " + ex.getMessage());
+      } catch (HttpServerErrorException ex) {
+        log.error("Server error " + ex.getMessage());
+      } catch (Exception ex) {
+        log.error("Error " + ex.getMessage());
+      }
+
+      if (responseEntity != null && SmsGateway.OK_CODES.contains(responseEntity.getStatusCode())) {
+        log.info(
+            String.format("Post request successful for url: %s and template: %s", uri, t.getUid()));
+      } else {
+        log.info(
+            String.format("Post request failed for url: %s and template: %s", uri, t.getUid()));
+      }
     }
+  }
 }

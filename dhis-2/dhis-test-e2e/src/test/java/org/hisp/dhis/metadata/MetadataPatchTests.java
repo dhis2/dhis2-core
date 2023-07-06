@@ -29,9 +29,10 @@ package org.hisp.dhis.metadata;
 
 import static org.hamcrest.Matchers.*;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.util.Arrays;
 import java.util.List;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -47,177 +48,178 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataPatchTests
-    extends ApiTest
-{
-    private LoginActions loginActions;
+public class MetadataPatchTests extends ApiTest {
+  private LoginActions loginActions;
 
-    private DataElementActions dataElementActions;
+  private DataElementActions dataElementActions;
 
-    private RestApiActions dataElementGroupActions;
+  private RestApiActions dataElementGroupActions;
 
-    private SharingActions sharingActions;
+  private SharingActions sharingActions;
 
-    private String dataElementId;
+  private String dataElementId;
 
-    private String dataElementGroupId;
+  private String dataElementGroupId;
 
-    @BeforeAll
-    public void before()
-    {
-        dataElementActions = new DataElementActions();
-        loginActions = new LoginActions();
-        dataElementGroupActions = new RestApiActions( "/dataElementGroups" );
-        sharingActions = new SharingActions();
+  @BeforeAll
+  public void before() {
+    dataElementActions = new DataElementActions();
+    loginActions = new LoginActions();
+    dataElementGroupActions = new RestApiActions("/dataElementGroups");
+    sharingActions = new SharingActions();
 
-        loginActions.loginAsAdmin();
+    loginActions.loginAsAdmin();
 
-        dataElementId = dataElementActions.create( dataElementActions.body(
-            "SUM",
-            "AGGREGATE",
-            "TEXT" ) );
+    dataElementId = dataElementActions.create(dataElementActions.body("SUM", "AGGREGATE", "TEXT"));
 
-        String name = DataGenerator.randomString();
-        dataElementGroupId = dataElementGroupActions
-            .create( new JsonObjectBuilder()
-                .addProperty( "name", name )
-                .addProperty( "shortName", name )
-                .addArray( "dataElements", new JsonObjectBuilder().addProperty( "id", dataElementId ).build() )
-                .build() );
-    }
+    String name = DataGenerator.randomString();
+    dataElementGroupId =
+        dataElementGroupActions.create(
+            new JsonObjectBuilder()
+                .addProperty("name", name)
+                .addProperty("shortName", name)
+                .addArray(
+                    "dataElements",
+                    new JsonObjectBuilder().addProperty("id", dataElementId).build())
+                .build());
+  }
 
-    @Test
-    public void shouldReplaceArray()
-    {
-        sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
-            Constants.ADMIN_ID );
+  @Test
+  public void shouldReplaceArray() {
+    sharingActions.setupSharingForUsers(
+        "dataElement", dataElementId, Constants.SUPER_USER_ID, Constants.ADMIN_ID);
 
-        dataElementActions.get( dataElementId ).validate().body( "sharing.users", aMapWithSize( 2 ) );
+    dataElementActions.get(dataElementId).validate().body("sharing.users", aMapWithSize(2));
 
-        JsonObject userAccesses = JsonObjectBuilder.jsonObject()
-            .addObject( Constants.SUPER_USER_ID, JsonObjectBuilder.jsonObject()
-                .addProperty( "access", "rw------" )
-                .addProperty( "id", Constants.SUPER_USER_ID )
-                .build() )
+    JsonObject userAccesses =
+        JsonObjectBuilder.jsonObject()
+            .addObject(
+                Constants.SUPER_USER_ID,
+                JsonObjectBuilder.jsonObject()
+                    .addProperty("access", "rw------")
+                    .addProperty("id", Constants.SUPER_USER_ID)
+                    .build())
             .build();
 
-        dataElementActions
-            .patch( dataElementId, Arrays.asList( buildOperation( "replace", "/sharing/users", userAccesses ) ) )
-            .validate().statusCode( 200 );
+    dataElementActions
+        .patch(
+            dataElementId, Arrays.asList(buildOperation("replace", "/sharing/users", userAccesses)))
+        .validate()
+        .statusCode(200);
 
-        dataElementActions.get( dataElementId )
-            .validate().body( "sharing.users", aMapWithSize( 1 ) )
-            .rootPath( "sharing.users." + Constants.SUPER_USER_ID )
-            .body( "access", equalTo( "rw------" ) )
-            .body( "id", equalTo( Constants.SUPER_USER_ID ) );
-    }
+    dataElementActions
+        .get(dataElementId)
+        .validate()
+        .body("sharing.users", aMapWithSize(1))
+        .rootPath("sharing.users." + Constants.SUPER_USER_ID)
+        .body("access", equalTo("rw------"))
+        .body("id", equalTo(Constants.SUPER_USER_ID));
+  }
 
-    @Disabled( "DHIS2-11434" )
-    @Test
-    public void shouldReturnErrors()
-    {
-        JsonObject object = JsonObjectBuilder.jsonObject()
-            .addProperty( "op", "remove" )
-            .addProperty( "path", "/dataElementGroups" )
+  @Disabled("DHIS2-11434")
+  @Test
+  public void shouldReturnErrors() {
+    JsonObject object =
+        JsonObjectBuilder.jsonObject()
+            .addProperty("op", "remove")
+            .addProperty("path", "/dataElementGroups")
             .build();
 
-        dataElementActions
-            .patch( dataElementId, Arrays.asList( object ),
-                new QueryParamsBuilder().add( "importReportMode", "ERRORS_NOT_OWNER" ) )
-            .validate().statusCode( 200 )
-            .body( "response.errorReports", hasSize( 1 ) );
+    dataElementActions
+        .patch(
+            dataElementId,
+            Arrays.asList(object),
+            new QueryParamsBuilder().add("importReportMode", "ERRORS_NOT_OWNER"))
+        .validate()
+        .statusCode(200)
+        .body("response.errorReports", hasSize(1));
 
-        dataElementActions.get( dataElementId )
-            .validate()
-            .body( "dataElementGroups", hasSize( 0 ) );
+    dataElementActions.get(dataElementId).validate().body("dataElementGroups", hasSize(0));
+  }
 
-    }
+  @Test
+  @DisplayName("Send PATCH request to remove user from Sharing")
+  public void shouldRemoveArray() {
+    sharingActions.setupSharingForUsers(
+        "dataElement", dataElementId, Constants.SUPER_USER_ID, Constants.ADMIN_ID);
 
-    @Test
-    @DisplayName( "Send PATCH request to remove user from Sharing" )
-    public void shouldRemoveArray()
-    {
-        sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
-            Constants.ADMIN_ID );
+    dataElementActions.get(dataElementId).validate().body("sharing.users", aMapWithSize(2));
 
-        dataElementActions.get( dataElementId )
-            .validate()
-            .body( "sharing.users", aMapWithSize( 2 ) );
-
-        JsonObject object = JsonObjectBuilder.jsonObject()
-            .addProperty( "op", "remove" )
-            .addProperty( "path", "/sharing/users" )
+    JsonObject object =
+        JsonObjectBuilder.jsonObject()
+            .addProperty("op", "remove")
+            .addProperty("path", "/sharing/users")
             .build();
 
-        dataElementActions.patch( dataElementId, Arrays.asList( object ) )
-            .validateStatus( 200 ).prettyPrint();
+    dataElementActions
+        .patch(dataElementId, Arrays.asList(object))
+        .validateStatus(200)
+        .prettyPrint();
 
-        dataElementActions.get( dataElementId )
-            .validate()
-            .body( "sharing.users", anEmptyMap() );
-    }
+    dataElementActions.get(dataElementId).validate().body("sharing.users", anEmptyMap());
+  }
 
-    @Test
-    public void shouldAcceptAnArrayOfOperations()
-    {
-        String replacedProp = DataGenerator.randomString() + "-replaced";
+  @Test
+  public void shouldAcceptAnArrayOfOperations() {
+    String replacedProp = DataGenerator.randomString() + "-replaced";
 
-        List<JsonObject> object = Arrays
-            .asList(
-                buildOperation( "replace", "/shortName", replacedProp ),
-                buildOperation( "add", "/code", replacedProp ) );
+    List<JsonObject> object =
+        Arrays.asList(
+            buildOperation("replace", "/shortName", replacedProp),
+            buildOperation("add", "/code", replacedProp));
 
-        dataElementActions.patch( dataElementId, object ).validate().statusCode( 200 );
+    dataElementActions.patch(dataElementId, object).validate().statusCode(200);
 
-        dataElementActions.get( dataElementId )
-            .validate()
-            .body( "shortName", Matchers.equalTo( replacedProp ) )
-            .body( "code", Matchers.equalTo( replacedProp ) );
-    }
+    dataElementActions
+        .get(dataElementId)
+        .validate()
+        .body("shortName", Matchers.equalTo(replacedProp))
+        .body("code", Matchers.equalTo(replacedProp));
+  }
 
-    @Test
-    public void shouldAddToArrays()
-    {
-        JsonObject operation = buildOperation( "add", "/dataElements/-", new JsonObjectBuilder().addProperty(
-            "id", dataElementId ).build() );
+  @Test
+  public void shouldAddToArrays() {
+    JsonObject operation =
+        buildOperation(
+            "add",
+            "/dataElements/-",
+            new JsonObjectBuilder().addProperty("id", dataElementId).build());
 
-        dataElementGroupActions.patch( dataElementGroupId, Arrays.asList( operation ) ).validate()
-            .statusCode( 200 );
+    dataElementGroupActions
+        .patch(dataElementGroupId, Arrays.asList(operation))
+        .validate()
+        .statusCode(200);
 
-        dataElementActions.get( dataElementId ).validate()
-            .body( "dataElementGroups.id", Matchers.contains( dataElementGroupId ) );
-    }
+    dataElementActions
+        .get(dataElementId)
+        .validate()
+        .body("dataElementGroups.id", Matchers.contains(dataElementGroupId));
+  }
 
-    private JsonObject buildOperation( String op, String path, JsonObject object )
-    {
-        return JsonObjectBuilder.jsonObject()
-            .addProperty( "op", op )
-            .addProperty( "path", path )
-            .addObject( "value", object )
-            .build();
-    }
+  private JsonObject buildOperation(String op, String path, JsonObject object) {
+    return JsonObjectBuilder.jsonObject()
+        .addProperty("op", op)
+        .addProperty("path", path)
+        .addObject("value", object)
+        .build();
+  }
 
-    private JsonObject buildOperation( String op, String path, JsonArray object )
-    {
-        return JsonObjectBuilder.jsonObject()
-            .addProperty( "op", op )
-            .addProperty( "path", path )
-            .addArray( "value", object )
-            .build();
-    }
+  private JsonObject buildOperation(String op, String path, JsonArray object) {
+    return JsonObjectBuilder.jsonObject()
+        .addProperty("op", op)
+        .addProperty("path", path)
+        .addArray("value", object)
+        .build();
+  }
 
-    private JsonObject buildOperation( String op, String path, String value )
-    {
-        return JsonObjectBuilder.jsonObject()
-            .addProperty( "op", op )
-            .addProperty( "path", path )
-            .addProperty( "value", value )
-            .build();
-    }
+  private JsonObject buildOperation(String op, String path, String value) {
+    return JsonObjectBuilder.jsonObject()
+        .addProperty("op", op)
+        .addProperty("path", path)
+        .addProperty("value", value)
+        .build();
+  }
 }

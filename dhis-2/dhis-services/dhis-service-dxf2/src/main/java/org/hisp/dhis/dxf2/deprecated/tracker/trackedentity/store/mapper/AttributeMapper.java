@@ -40,28 +40,24 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query.Te
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 import org.hisp.dhis.util.DateUtils;
 
-public interface AttributeMapper
-{
-    default Attribute getAttribute( ResultSet rs )
-        throws SQLException
-    {
-        Attribute attribute = new Attribute();
+public interface AttributeMapper {
+  default Attribute getAttribute(ResultSet rs) throws SQLException {
+    Attribute attribute = new Attribute();
 
-        attribute.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
-        attribute.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
-        attribute.setDisplayName( rs.getString( getColumnName( ATTR_NAME ) ) );
-        attribute.setAttribute( rs.getString( getColumnName( ATTR_UID ) ) );
-        attribute.setValueType( ValueType.fromString( rs.getString( getColumnName( ATTR_VALUE_TYPE ) ) ) );
-        attribute.setCode( rs.getString( getColumnName( ATTR_CODE ) ) );
-        attribute.setValue( rs.getString( getColumnName( VALUE ) ) );
-        attribute.setStoredBy( rs.getString( getColumnName( STOREDBY ) ) );
-        attribute.setSkipSynchronization( rs.getBoolean( getColumnName( ATTR_SKIP_SYNC ) ) );
+    attribute.setCreated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATED))));
+    attribute.setLastUpdated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATED))));
+    attribute.setDisplayName(rs.getString(getColumnName(ATTR_NAME)));
+    attribute.setAttribute(rs.getString(getColumnName(ATTR_UID)));
+    attribute.setValueType(ValueType.fromString(rs.getString(getColumnName(ATTR_VALUE_TYPE))));
+    attribute.setCode(rs.getString(getColumnName(ATTR_CODE)));
+    attribute.setValue(rs.getString(getColumnName(VALUE)));
+    attribute.setStoredBy(rs.getString(getColumnName(STOREDBY)));
+    attribute.setSkipSynchronization(rs.getBoolean(getColumnName(ATTR_SKIP_SYNC)));
 
-        return attribute;
-    }
+    return attribute;
+  }
 }

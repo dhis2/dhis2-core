@@ -32,10 +32,8 @@ import java.util.List;
 /**
  * @author Stian Sandvold
  */
-public interface SequentialNumberCounterStore
-{
-    List<Integer> getNextValues( String uid, String key, int length );
+public interface SequentialNumberCounterStore {
+  List<Integer> getNextValues(String uid, String key, int length);
 
-    void deleteCounter( String uid );
-
+  void deleteCounter(String uid);
 }

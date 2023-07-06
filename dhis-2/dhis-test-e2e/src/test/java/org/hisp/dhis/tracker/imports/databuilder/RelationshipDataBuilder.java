@@ -27,101 +27,84 @@
  */
 package org.hisp.dhis.tracker.imports.databuilder;
 
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-
 import com.google.gson.JsonObject;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipDataBuilder implements TrackerImporterDataBuilder
-{
-    private JsonObjectBuilder jsonBuilder;
+public class RelationshipDataBuilder implements TrackerImporterDataBuilder {
+  private JsonObjectBuilder jsonBuilder;
 
-    public RelationshipDataBuilder()
-    {
-        this.jsonBuilder = new JsonObjectBuilder();
-    }
+  public RelationshipDataBuilder() {
+    this.jsonBuilder = new JsonObjectBuilder();
+  }
 
-    public RelationshipDataBuilder setRelationshipId( String id )
-    {
-        this.jsonBuilder.addProperty( "relationship", id );
-        return this;
-    }
+  public RelationshipDataBuilder setRelationshipId(String id) {
+    this.jsonBuilder.addProperty("relationship", id);
+    return this;
+  }
 
-    public RelationshipDataBuilder setRelationshipType( String relationshipType )
-    {
-        this.jsonBuilder.addProperty( "relationshipType", relationshipType );
-        return this;
-    }
+  public RelationshipDataBuilder setRelationshipType(String relationshipType) {
+    this.jsonBuilder.addProperty("relationshipType", relationshipType);
+    return this;
+  }
 
-    public RelationshipDataBuilder setFromEntity( String entityName, String entityId )
-    {
-        this.jsonBuilder.addObject( "from", relationshipItem( entityName, entityId ) );
-        return this;
-    }
+  public RelationshipDataBuilder setFromEntity(String entityName, String entityId) {
+    this.jsonBuilder.addObject("from", relationshipItem(entityName, entityId));
+    return this;
+  }
 
-    public RelationshipDataBuilder setFromTrackedEntity( String trackedEntityId )
-    {
-        return setFromEntity( "trackedEntity", trackedEntityId );
-    }
+  public RelationshipDataBuilder setFromTrackedEntity(String trackedEntityId) {
+    return setFromEntity("trackedEntity", trackedEntityId);
+  }
 
-    public RelationshipDataBuilder setToEntity( String entityName, String entityId )
-    {
-        this.jsonBuilder.addObject( "to", relationshipItem( entityName, entityId ) );
-        return this;
-    }
+  public RelationshipDataBuilder setToEntity(String entityName, String entityId) {
+    this.jsonBuilder.addObject("to", relationshipItem(entityName, entityId));
+    return this;
+  }
 
-    public RelationshipDataBuilder setToTrackedEntity( String trackedEntityId )
-    {
-        return setToEntity( "trackedEntity", trackedEntityId );
-    }
+  public RelationshipDataBuilder setToTrackedEntity(String trackedEntityId) {
+    return setToEntity("trackedEntity", trackedEntityId);
+  }
 
-    private JsonObjectBuilder relationshipItem( String type, String identifier )
-    {
-        return JsonObjectBuilder.jsonObject()
-            .addObject( type, JsonObjectBuilder.jsonObject()
-                .addProperty( type, identifier ) );
-    }
+  private JsonObjectBuilder relationshipItem(String type, String identifier) {
+    return JsonObjectBuilder.jsonObject()
+        .addObject(type, JsonObjectBuilder.jsonObject().addProperty(type, identifier));
+  }
 
-    public RelationshipDataBuilder buildUniDirectionalRelationship( String teiA, String teiB )
-    {
-        this.setRelationshipType( "TV9oB9LT3sh" ).setFromTrackedEntity( teiA ).setToTrackedEntity( teiB );
+  public RelationshipDataBuilder buildUniDirectionalRelationship(String teiA, String teiB) {
+    this.setRelationshipType("TV9oB9LT3sh").setFromTrackedEntity(teiA).setToTrackedEntity(teiB);
 
-        return this;
-    }
+    return this;
+  }
 
-    public RelationshipDataBuilder buildBidirectionalRelationship( String teiA, String teiB )
-    {
-        this.setRelationshipType( "xLmPUYJX8Ks" ).setFromTrackedEntity( teiA ).setToTrackedEntity( teiB );
+  public RelationshipDataBuilder buildBidirectionalRelationship(String teiA, String teiB) {
+    this.setRelationshipType("xLmPUYJX8Ks").setFromTrackedEntity(teiA).setToTrackedEntity(teiB);
 
-        return this;
-    }
+    return this;
+  }
 
-    public JsonObject buildTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2,
-        String relationshipType )
-    {
-        return new JsonObjectBuilder()
-            .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", relationshipItem( "trackedEntity", trackedEntity_1 ) )
-            .addObject( "to", relationshipItem( "trackedEntity", trackedEntity_2 ) )
-            .build();
-    }
+  public JsonObject buildTrackedEntityRelationship(
+      String trackedEntity_1, String trackedEntity_2, String relationshipType) {
+    return new JsonObjectBuilder()
+        .addProperty("relationshipType", relationshipType)
+        .addObject("from", relationshipItem("trackedEntity", trackedEntity_1))
+        .addObject("to", relationshipItem("trackedEntity", trackedEntity_2))
+        .build();
+  }
 
-    public JsonObject build()
-    {
-        return jsonBuilder.build();
-    }
+  public JsonObject build() {
+    return jsonBuilder.build();
+  }
 
-    @Override
-    public JsonObject array()
-    {
-        return jsonBuilder.wrapIntoArray( "relationships" );
-    }
+  @Override
+  public JsonObject array() {
+    return jsonBuilder.wrapIntoArray("relationships");
+  }
 
-    @Override
-    public JsonObject single()
-    {
-        return jsonBuilder.build();
-    }
+  @Override
+  public JsonObject single() {
+    return jsonBuilder.build();
+  }
 }

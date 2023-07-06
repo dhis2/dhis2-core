@@ -27,23 +27,18 @@
  */
 package org.hisp.dhis.dataset.notifications;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+/** Created by zubair@dhis2.org on 29.11.17. */
+public enum DataSetNotificationTrigger {
+  DATA_SET_COMPLETION,
+  SCHEDULED_DAYS;
 
-/**
- * Created by zubair@dhis2.org on 29.11.17.
- */
-public enum DataSetNotificationTrigger
-{
-    DATA_SET_COMPLETION,
-    SCHEDULED_DAYS;
+  private static final Set<DataSetNotificationTrigger> SCHEDULED_TRIGGERS =
+      new ImmutableSet.Builder<DataSetNotificationTrigger>().add(SCHEDULED_DAYS).build();
 
-    private static final Set<DataSetNotificationTrigger> SCHEDULED_TRIGGERS = new ImmutableSet.Builder<DataSetNotificationTrigger>()
-        .add( SCHEDULED_DAYS ).build();
-
-    public boolean isScheduled()
-    {
-        return SCHEDULED_TRIGGERS.contains( this );
-    }
+  public boolean isScheduled() {
+    return SCHEDULED_TRIGGERS.contains(this);
+  }
 }

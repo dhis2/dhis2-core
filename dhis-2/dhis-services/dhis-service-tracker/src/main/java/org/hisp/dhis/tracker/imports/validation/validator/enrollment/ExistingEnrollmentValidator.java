@@ -40,7 +40,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
@@ -54,106 +53,118 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ExistingEnrollmentValidator
-    implements Validator<org.hisp.dhis.tracker.imports.domain.Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
-    {
-        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+    implements Validator<org.hisp.dhis.tracker.imports.domain.Enrollment> {
+  @Override
+  public void validate(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
+    checkNotNull(enrollment, ENROLLMENT_CANT_BE_NULL);
 
-        if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
-        {
-            return;
-        }
-
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-
-        checkNotNull( program, PROGRAM_CANT_BE_NULL );
-
-        if ( (EnrollmentStatus.COMPLETED == enrollment.getStatus()
-            && Boolean.FALSE.equals( program.getOnlyEnrollOnce() )) )
-        {
-            return;
-        }
-
-        validateTeiNotEnrolledAlready( reporter, bundle, enrollment, program );
+    if (EnrollmentStatus.CANCELLED == enrollment.getStatus()) {
+      return;
     }
 
-    private void validateTeiNotEnrolledAlready( Reporter reporter, TrackerBundle bundle,
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Program program )
-    {
-        checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+    Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
 
-        TrackedEntity tei = getTrackedEntity( bundle, enrollment.getTrackedEntity() );
+    checkNotNull(program, PROGRAM_CANT_BE_NULL);
 
-        Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment = bundle.getEnrollments()
-            .stream().filter( Objects::nonNull )
-            .filter( e -> e.getProgram().isEqualTo( program ) )
-            .filter( e -> e.getTrackedEntity().equals( tei.getUid() )
-                && !e.getEnrollment().equals( enrollment.getEnrollment() ) )
-            .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
-            .collect( Collectors.toSet() );
+    if ((EnrollmentStatus.COMPLETED == enrollment.getStatus()
+        && Boolean.FALSE.equals(program.getOnlyEnrollOnce()))) {
+      return;
+    }
 
-        Set<org.hisp.dhis.tracker.imports.domain.Enrollment> dbEnrollment = bundle.getPreheat()
-            .getTrackedEntityToEnrollmentMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
+    validateTeiNotEnrolledAlready(reporter, bundle, enrollment, program);
+  }
+
+  private void validateTeiNotEnrolledAlready(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
+      Program program) {
+    checkNotNull(enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL);
+
+    TrackedEntity tei = getTrackedEntity(bundle, enrollment.getTrackedEntity());
+
+    Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment =
+        bundle.getEnrollments().stream()
+            .filter(Objects::nonNull)
+            .filter(e -> e.getProgram().isEqualTo(program))
+            .filter(
+                e ->
+                    e.getTrackedEntity().equals(tei.getUid())
+                        && !e.getEnrollment().equals(enrollment.getEnrollment()))
+            .filter(
+                e ->
+                    EnrollmentStatus.ACTIVE == e.getStatus()
+                        || EnrollmentStatus.COMPLETED == e.getStatus())
+            .collect(Collectors.toSet());
+
+    Set<org.hisp.dhis.tracker.imports.domain.Enrollment> dbEnrollment =
+        bundle
+            .getPreheat()
+            .getTrackedEntityToEnrollmentMap()
+            .getOrDefault(enrollment.getTrackedEntity(), new ArrayList<>())
             .stream()
-            .filter( Objects::nonNull )
-            .filter( e -> e.getProgram().getUid().equals( program.getUid() )
-                && !e.getUid().equals( enrollment.getEnrollment() ) )
-            .filter( e -> ProgramStatus.ACTIVE == e.getStatus() || ProgramStatus.COMPLETED == e.getStatus() )
-            .distinct().map( this::getEnrollmentFromDbEnrollment )
-            .collect( Collectors.toSet() );
+            .filter(Objects::nonNull)
+            .filter(
+                e ->
+                    e.getProgram().getUid().equals(program.getUid())
+                        && !e.getUid().equals(enrollment.getEnrollment()))
+            .filter(
+                e ->
+                    ProgramStatus.ACTIVE == e.getStatus()
+                        || ProgramStatus.COMPLETED == e.getStatus())
+            .distinct()
+            .map(this::getEnrollmentFromDbEnrollment)
+            .collect(Collectors.toSet());
 
-        // Priority to payload
-        Collection<org.hisp.dhis.tracker.imports.domain.Enrollment> mergedEnrollments = Stream
-            .of( payloadEnrollment, dbEnrollment )
-            .flatMap( Set::stream )
-            .filter( e -> !Objects.equals( e.getEnrollment(), enrollment.getEnrollment() ) )
-            .collect( Collectors.toMap( org.hisp.dhis.tracker.imports.domain.Enrollment::getEnrollment,
-                p -> p,
-                ( org.hisp.dhis.tracker.imports.domain.Enrollment x,
-                    org.hisp.dhis.tracker.imports.domain.Enrollment y ) -> x ) )
+    // Priority to payload
+    Collection<org.hisp.dhis.tracker.imports.domain.Enrollment> mergedEnrollments =
+        Stream.of(payloadEnrollment, dbEnrollment)
+            .flatMap(Set::stream)
+            .filter(e -> !Objects.equals(e.getEnrollment(), enrollment.getEnrollment()))
+            .collect(
+                Collectors.toMap(
+                    org.hisp.dhis.tracker.imports.domain.Enrollment::getEnrollment,
+                    p -> p,
+                    (org.hisp.dhis.tracker.imports.domain.Enrollment x,
+                        org.hisp.dhis.tracker.imports.domain.Enrollment y) -> x))
             .values();
 
-        if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
-        {
-            Set<org.hisp.dhis.tracker.imports.domain.Enrollment> activeOnly = mergedEnrollments.stream()
-                .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() )
-                .collect( Collectors.toSet() );
+    if (EnrollmentStatus.ACTIVE == enrollment.getStatus()) {
+      Set<org.hisp.dhis.tracker.imports.domain.Enrollment> activeOnly =
+          mergedEnrollments.stream()
+              .filter(e -> EnrollmentStatus.ACTIVE == e.getStatus())
+              .collect(Collectors.toSet());
 
-            if ( !activeOnly.isEmpty() )
-            {
-                reporter.addError( enrollment, E1015, tei, program );
-            }
-        }
-
-        if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !mergedEnrollments.isEmpty() )
-        {
-            reporter.addError( enrollment, E1016, tei, program );
-        }
+      if (!activeOnly.isEmpty()) {
+        reporter.addError(enrollment, E1015, tei, program);
+      }
     }
 
-    public org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollmentFromDbEnrollment(
-        Enrollment dbEnrollment )
-    {
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
-        enrollment.setEnrollment( dbEnrollment.getUid() );
-        enrollment.setStatus( EnrollmentStatus.fromProgramStatus( dbEnrollment.getStatus() ) );
-
-        return enrollment;
+    if (Boolean.TRUE.equals(program.getOnlyEnrollOnce()) && !mergedEnrollments.isEmpty()) {
+      reporter.addError(enrollment, E1016, tei, program);
     }
+  }
 
-    private TrackedEntity getTrackedEntity( TrackerBundle bundle, String uid )
-    {
-        TrackedEntity tei = bundle.getPreheat().getTrackedEntity( uid );
+  public org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollmentFromDbEnrollment(
+      Enrollment dbEnrollment) {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        new org.hisp.dhis.tracker.imports.domain.Enrollment();
+    enrollment.setEnrollment(dbEnrollment.getUid());
+    enrollment.setStatus(EnrollmentStatus.fromProgramStatus(dbEnrollment.getStatus()));
 
-        if ( tei == null && bundle.findTrackedEntityByUid( uid ).isPresent() )
-        {
-            tei = new TrackedEntity();
-            tei.setUid( uid );
+    return enrollment;
+  }
 
-        }
-        return tei;
+  private TrackedEntity getTrackedEntity(TrackerBundle bundle, String uid) {
+    TrackedEntity tei = bundle.getPreheat().getTrackedEntity(uid);
+
+    if (tei == null && bundle.findTrackedEntityByUid(uid).isPresent()) {
+      tei = new TrackedEntity();
+      tei.setUid(uid);
     }
+    return tei;
+  }
 }

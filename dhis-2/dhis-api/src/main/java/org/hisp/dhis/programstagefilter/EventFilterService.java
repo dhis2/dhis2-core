@@ -31,11 +31,9 @@ import java.util.List;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-public interface EventFilterService
-{
-    String ID = EventFilter.class.getName();
+public interface EventFilterService {
+  String ID = EventFilter.class.getName();
 
-    List<String> validate( EventFilter eventFilter );
+  List<String> validate(EventFilter eventFilter);
 }

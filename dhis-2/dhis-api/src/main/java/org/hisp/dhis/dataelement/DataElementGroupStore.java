@@ -29,7 +29,4 @@ package org.hisp.dhis.dataelement;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface DataElementGroupStore
-    extends IdentifiableObjectStore<DataElementGroup>
-{
-}
+public interface DataElementGroupStore extends IdentifiableObjectStore<DataElementGroup> {}

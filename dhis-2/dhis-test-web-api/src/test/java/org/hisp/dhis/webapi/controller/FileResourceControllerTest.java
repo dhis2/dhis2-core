@@ -37,57 +37,62 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 
-class FileResourceControllerTest extends DhisControllerConvenienceTest
-{
+class FileResourceControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testSaveOrgUnitImage()
-    {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+  @Test
+  void testSaveOrgUnitImage() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT", image);
+    JsonObject savedObject =
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    assertEquals("OU_profile_image.png", savedObject.getString("name").string());
 
-        String uid = savedObject.getString( "id" ).string();
-        JsonObject fr = GET( "/fileResources/{uid}", uid ).content();
-        assertEquals( "ORG_UNIT", fr.getString( "domain" ).string() );
+    String uid = savedObject.getString("id").string();
+    JsonObject fr = GET("/fileResources/{uid}", uid).content();
+    assertEquals("ORG_UNIT", fr.getString("domain").string());
 
-        JsonObject large = GET( "/fileResources/{uid}?dimension=LARGE", uid ).content();
-        assertEquals( "ORG_UNIT", large.getString( "domain" ).string() );
-    }
+    JsonObject large = GET("/fileResources/{uid}?dimension=LARGE", uid).content();
+    assertEquals("ORG_UNIT", large.getString("domain").string());
+  }
 
-    @Test
-    void testSaveOrgUnitImageWithUid()
-    {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789a", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-        assertEquals( "0123456789a", savedObject.getString( "id" ).string() );
-    }
+  @Test
+  void testSaveOrgUnitImageWithUid() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789a", image);
+    JsonObject savedObject =
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    assertEquals("OU_profile_image.png", savedObject.getString("name").string());
+    assertEquals("0123456789a", savedObject.getString("id").string());
+  }
 
-    @Test
-    void testSaveOrgUnitImageWithUid_Update()
-    {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789x", image );
-        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
-            .getObject( "fileResource" );
-        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
-        assertEquals( "0123456789x", savedObject.getString( "id" ).string() );
+  @Test
+  void testSaveOrgUnitImageWithUid_Update() {
+    MockMultipartFile image =
+        new MockMultipartFile(
+            "file", "OU_profile_image.png", "image/png", "<<png data>>".getBytes());
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789x", image);
+    JsonObject savedObject =
+        response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    assertEquals("OU_profile_image.png", savedObject.getString("name").string());
+    assertEquals("0123456789x", savedObject.getString("id").string());
 
-        // now update the resource with a different image but the same UID
-        MockMultipartFile image2 = new MockMultipartFile( "file", "OU_profile_image2.png", "image/png",
-            "<<png data>>".getBytes() );
+    // now update the resource with a different image but the same UID
+    MockMultipartFile image2 =
+        new MockMultipartFile(
+            "file", "OU_profile_image2.png", "image/png", "<<png data>>".getBytes());
 
-        JsonWebMessage message = assertWebMessage( "Conflict", 409, "ERROR",
+    JsonWebMessage message =
+        assertWebMessage(
+            "Conflict",
+            409,
+            "ERROR",
             "FileResource already exists: `0123456789x`",
-            POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789x", image2 ).content( HttpStatus.CONFLICT ) );
-        assertEquals( ErrorCode.E1119, message.getErrorCode() );
-    }
+            POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789x", image2)
+                .content(HttpStatus.CONFLICT));
+    assertEquals(ErrorCode.E1119, message.getErrorCode());
+  }
 }

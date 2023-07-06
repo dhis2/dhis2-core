@@ -32,8 +32,7 @@ package org.hisp.dhis.visualization;
  *
  * @author maikel arabori
  */
-public enum AxisType
-{
-    DOMAIN,
-    RANGE
+public enum AxisType {
+  DOMAIN,
+  RANGE
 }

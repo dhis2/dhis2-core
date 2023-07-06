@@ -32,44 +32,40 @@ import static java.util.stream.Collectors.mapping;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 
 /**
- * Class to render the root condition of the main query. It will group the
- * renderables by groupId and create an OR condition for each group. Then it
- * will create an AND condition joining all the OR conditions. Conditions
- * belonging to the {@link GroupableCondition#UNGROUPED_CONDITION} will be
+ * Class to render the root condition of the main query. It will group the renderables by groupId
+ * and create an OR condition for each group. Then it will create an AND condition joining all the
+ * OR conditions. Conditions belonging to the {@link GroupableCondition#UNGROUPED_CONDITION} will be
  * joined with an AND condition.
  */
-@RequiredArgsConstructor( staticName = "of" )
-public class RootConditionRenderer implements Renderable
-{
-    private final List<GroupableCondition> groupableConditions;
+@RequiredArgsConstructor(staticName = "of")
+public class RootConditionRenderer implements Renderable {
+  private final List<GroupableCondition> groupableConditions;
 
-    @Override
-    public String render()
-    {
-        return AndCondition.of(
+  @Override
+  public String render() {
+    return AndCondition.of(
             Stream.concat(
-                groupableConditions.stream()
-                    .filter( gc -> !gc.isGrouped() )
-                    .map( GroupableCondition::getRenderable ),
-                getOrCondition().stream() )
-                .collect( Collectors.toList() ) )
-            .render();
-    }
+                    groupableConditions.stream()
+                        .filter(gc -> !gc.isGrouped())
+                        .map(GroupableCondition::getRenderable),
+                    getOrCondition().stream())
+                .collect(Collectors.toList()))
+        .render();
+  }
 
-    private List<Renderable> getOrCondition()
-    {
-        return groupableConditions.stream()
-            .filter( GroupableCondition::isGrouped )
-            .collect( Collectors.groupingBy(
+  private List<Renderable> getOrCondition() {
+    return groupableConditions.stream()
+        .filter(GroupableCondition::isGrouped)
+        .collect(
+            Collectors.groupingBy(
                 GroupableCondition::getGroupId,
-                mapping( GroupableCondition::getRenderable,
-                    Collectors.toList() ) ) )
-            .values().stream()
-            .map( OrCondition::of )
-            .collect( Collectors.toList() );
-    }
+                mapping(GroupableCondition::getRenderable, Collectors.toList())))
+        .values()
+        .stream()
+        .map(OrCondition::of)
+        .collect(Collectors.toList());
+  }
 }

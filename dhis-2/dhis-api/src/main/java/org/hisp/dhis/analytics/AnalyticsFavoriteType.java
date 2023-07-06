@@ -27,20 +27,18 @@
  */
 package org.hisp.dhis.analytics;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "analyticsFavoriteType", namespace = DxfNamespaces.DXF_2_0 )
-public enum AnalyticsFavoriteType
-{
-    VISUALIZATION,
-    EVENT_VISUALIZATION,
-    MAP,
-    EVENT_REPORT,
-    EVENT_CHART,
-    DATASET_REPORT
+@JacksonXmlRootElement(localName = "analyticsFavoriteType", namespace = DxfNamespaces.DXF_2_0)
+public enum AnalyticsFavoriteType {
+  VISUALIZATION,
+  EVENT_VISUALIZATION,
+  MAP,
+  EVENT_REPORT,
+  EVENT_CHART,
+  DATASET_REPORT
 }

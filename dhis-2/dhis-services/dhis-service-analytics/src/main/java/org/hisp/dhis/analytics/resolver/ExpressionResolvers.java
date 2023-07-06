@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -39,32 +38,33 @@ import org.springframework.stereotype.Service;
  * @author Dusan Bernat
  */
 @Service
-public class ExpressionResolvers implements ExpressionResolverCollection
-{
-    private final List<ExpressionResolver> expressionResolvers;
+public class ExpressionResolvers implements ExpressionResolverCollection {
+  private final List<ExpressionResolver> expressionResolvers;
 
-    public ExpressionResolvers(
-        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" ) ExpressionResolver coExpressionResolver,
-        @Qualifier( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" ) ExpressionResolver degExpressionResolver,
-        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupTaglessResolver" ) ExpressionResolver cogTaglessExpressionResolver,
-        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" ) ExpressionResolver cogExpressionResolver )
-    {
-        checkNotNull( coExpressionResolver );
-        checkNotNull( degExpressionResolver );
-        checkNotNull( cogTaglessExpressionResolver );
-        checkNotNull( cogExpressionResolver );
+  public ExpressionResolvers(
+      @Qualifier("org.hisp.dhis.analytics.resolver.CategoryOptionResolver")
+          ExpressionResolver coExpressionResolver,
+      @Qualifier("org.hisp.dhis.analytics.resolver.DataElementGroupResolver")
+          ExpressionResolver degExpressionResolver,
+      @Qualifier("org.hisp.dhis.analytics.resolver.CategoryOptionGroupTaglessResolver")
+          ExpressionResolver cogTaglessExpressionResolver,
+      @Qualifier("org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver")
+          ExpressionResolver cogExpressionResolver) {
+    checkNotNull(coExpressionResolver);
+    checkNotNull(degExpressionResolver);
+    checkNotNull(cogTaglessExpressionResolver);
+    checkNotNull(cogExpressionResolver);
 
-        expressionResolvers = new ArrayList<>();
+    expressionResolvers = new ArrayList<>();
 
-        expressionResolvers.add( coExpressionResolver );
-        expressionResolvers.add( degExpressionResolver );
-        expressionResolvers.add( cogTaglessExpressionResolver );
-        expressionResolvers.add( cogExpressionResolver );
-    }
+    expressionResolvers.add(coExpressionResolver);
+    expressionResolvers.add(degExpressionResolver);
+    expressionResolvers.add(cogTaglessExpressionResolver);
+    expressionResolvers.add(cogExpressionResolver);
+  }
 
-    @Override
-    public List<ExpressionResolver> getExpressionResolvers()
-    {
-        return List.copyOf( expressionResolvers );
-    }
+  @Override
+  public List<ExpressionResolver> getExpressionResolvers() {
+    return List.copyOf(expressionResolvers);
+  }
 }

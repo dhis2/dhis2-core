@@ -27,65 +27,58 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author mortenoh
  */
-public class GetAttributesAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetAttributesAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private AttributeService attributeService;
+  private AttributeService attributeService;
 
-    public void setAttributeService( AttributeService attributeService )
-    {
-        this.attributeService = attributeService;
-    }
+  public void setAttributeService(AttributeService attributeService) {
+    this.attributeService = attributeService;
+  }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
 
-    private List<Attribute> attributes;
+  private List<Attribute> attributes;
 
-    public List<Attribute> getAttributes()
-    {
-        return attributes;
-    }
+  public List<Attribute> getAttributes() {
+    return attributes;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-    {
-        canReadType( Attribute.class );
+  @Override
+  public String execute() {
+    canReadType(Attribute.class);
 
-        attributes = new ArrayList<>( attributeService.getAllAttributes() );
+    attributes = new ArrayList<>(attributeService.getAllAttributes());
 
-        ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
-            attributes );
+    ContextUtils.clearIfNotModified(
+        ServletActionContext.getRequest(), ServletActionContext.getResponse(), attributes);
 
-        User currentUser = currentUserService.getCurrentUser();
-        attributes.forEach( instance -> canReadInstance( instance, currentUser ) );
+    User currentUser = currentUserService.getCurrentUser();
+    attributes.forEach(instance -> canReadInstance(instance, currentUser));
 
-        Collections.sort( attributes );
+    Collections.sort(attributes);
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

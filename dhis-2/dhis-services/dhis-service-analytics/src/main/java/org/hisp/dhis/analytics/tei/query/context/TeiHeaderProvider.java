@@ -29,11 +29,10 @@ package org.hisp.dhis.analytics.tei.query.context;
 
 import org.hisp.dhis.common.ValueType;
 
-public interface TeiHeaderProvider
-{
-    String getAlias();
+public interface TeiHeaderProvider {
+  String getAlias();
 
-    String getFullName();
+  String getFullName();
 
-    ValueType getType();
+  ValueType getType();
 }

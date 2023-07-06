@@ -28,63 +28,44 @@
 package org.hisp.dhis.security;
 
 import lombok.AllArgsConstructor;
-
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Implementation of a runnable that makes sure the thread is run in the same
- * security context as the creator, you must implement the call method.
+ * Implementation of a runnable that makes sure the thread is run in the same security context as
+ * the creator, you must implement the call method.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @AllArgsConstructor
-public abstract class SecurityContextRunnable implements Runnable
-{
-    private final SecurityContext securityContext;
+public abstract class SecurityContextRunnable implements Runnable {
+  private final SecurityContext securityContext;
 
-    public SecurityContextRunnable()
-    {
-        this( SecurityContextHolder.getContext() );
+  public SecurityContextRunnable() {
+    this(SecurityContextHolder.getContext());
+  }
+
+  @Override
+  public final void run() {
+    try {
+      SecurityContextHolder.setContext(securityContext);
+      before();
+      call();
+    } catch (Throwable ex) {
+      handleError(ex);
+    } finally {
+      after();
+      SecurityContextHolder.clearContext();
     }
+  }
 
-    @Override
-    final public void run()
-    {
-        try
-        {
-            SecurityContextHolder.setContext( securityContext );
-            before();
-            call();
-        }
-        catch ( Throwable ex )
-        {
-            handleError( ex );
-        }
-        finally
-        {
-            after();
-            SecurityContextHolder.clearContext();
-        }
-    }
+  public abstract void call();
 
-    public abstract void call();
+  /** Hook invoked before {@link #call()}. */
+  public void before() {}
 
-    /**
-     * Hook invoked before {@link #call()}.
-     */
-    public void before()
-    {
-    }
+  /** Hook invoked after {@link #call()}. */
+  public void after() {}
 
-    /**
-     * Hook invoked after {@link #call()}.
-     */
-    public void after()
-    {
-    }
-
-    public void handleError( Throwable ex )
-    {
-    }
+  public void handleError(Throwable ex) {}
 }

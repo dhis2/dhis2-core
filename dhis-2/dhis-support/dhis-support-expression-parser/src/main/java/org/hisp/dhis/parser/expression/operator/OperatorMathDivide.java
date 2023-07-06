@@ -38,14 +38,9 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorMathDivide
-    extends AntlrOperatorMathDivide
-    implements ExpressionItem
-{
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.castStringVisit( ctx.expr( 0 ) )
-            + " / " + visitor.castStringVisit( ctx.expr( 1 ) );
-    }
+public class OperatorMathDivide extends AntlrOperatorMathDivide implements ExpressionItem {
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitor.castStringVisit(ctx.expr(0)) + " / " + visitor.castStringVisit(ctx.expr(1));
+  }
 }

@@ -32,7 +32,6 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JS
 import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.JSON_ZIP_SUPPORTED_MEDIA_TYPES;
 
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,22 +39,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JsonMessageConverter extends AbstractRootNodeMessageConverter
-{
-    public JsonMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
-    {
-        super( nodeService, "application/json", "json", compression );
+public class JsonMessageConverter extends AbstractRootNodeMessageConverter {
+  public JsonMessageConverter(
+      @Autowired @Nonnull NodeService nodeService, Compression compression) {
+    super(nodeService, "application/json", "json", compression);
 
-        switch ( getCompression() )
-        {
-        case NONE:
-            setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
-        }
+    switch (getCompression()) {
+      case NONE:
+        setSupportedMediaTypes(JSON_SUPPORTED_MEDIA_TYPES);
+        break;
+      case GZIP:
+        setSupportedMediaTypes(JSON_GZIP_SUPPORTED_MEDIA_TYPES);
+        break;
+      case ZIP:
+        setSupportedMediaTypes(JSON_ZIP_SUPPORTED_MEDIA_TYPES);
     }
+  }
 }

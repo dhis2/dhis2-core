@@ -31,26 +31,20 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 
 import java.util.Collections;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class From implements Renderable
-{
-    private final Renderable mainTable;
+@RequiredArgsConstructor(staticName = "of")
+public class From implements Renderable {
+  private final Renderable mainTable;
 
-    private final LeftJoins joinsWithConditions;
+  private final LeftJoins joinsWithConditions;
 
-    @Override
-    public String render()
-    {
-        return RenderableHelper.join( List.of( mainTable, joinsWithConditions ), SPACE, "from " );
-    }
+  @Override
+  public String render() {
+    return RenderableHelper.join(List.of(mainTable, joinsWithConditions), SPACE, "from ");
+  }
 
-    public static From ofSingleTableAndAlias( String table, String alias )
-    {
-        return From.of(
-            Table.ofStrings( table, alias ),
-            LeftJoins.of( Collections.emptyList() ) );
-    }
+  public static From ofSingleTableAndAlias(String table, String alias) {
+    return From.of(Table.ofStrings(table, alias), LeftJoins.of(Collections.emptyList()));
+  }
 }

@@ -33,7 +33,6 @@ import static org.hisp.dhis.webapi.mvc.messageconverter.MessageConverterUtils.XM
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
@@ -43,45 +42,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class XmlMessageConverter extends AbstractRootNodeMessageConverter
-{
-    @Override
-    protected boolean supports( Class<?> clazz )
-    {
-        HttpServletRequest request = ContextUtils.getRequest();
+public class XmlMessageConverter extends AbstractRootNodeMessageConverter {
+  @Override
+  protected boolean supports(Class<?> clazz) {
+    HttpServletRequest request = ContextUtils.getRequest();
 
-        if ( request == null )
-        {
-            return super.supports( clazz );
-        }
-
-        String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
-
-        for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
-        {
-            if ( pathPattern.matcher( pathInfo ).matches() )
-            {
-                return super.supports( clazz );
-            }
-        }
-
-        return false;
+    if (request == null) {
+      return super.supports(clazz);
     }
 
-    public XmlMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
-    {
-        super( nodeService, "application/xml", "xml", compression );
+    String pathInfo = request.getPathInfo() == null ? "" : request.getPathInfo();
 
-        switch ( getCompression() )
-        {
-        case NONE:
-            setSupportedMediaTypes( XML_SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( XML_GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( XML_ZIP_SUPPORTED_MEDIA_TYPES );
-        }
+    for (var pathPattern : WebMvcConfig.XML_PATTERNS) {
+      if (pathPattern.matcher(pathInfo).matches()) {
+        return super.supports(clazz);
+      }
     }
+
+    return false;
+  }
+
+  public XmlMessageConverter(@Autowired @Nonnull NodeService nodeService, Compression compression) {
+    super(nodeService, "application/xml", "xml", compression);
+
+    switch (getCompression()) {
+      case NONE:
+        setSupportedMediaTypes(XML_SUPPORTED_MEDIA_TYPES);
+        break;
+      case GZIP:
+        setSupportedMediaTypes(XML_GZIP_SUPPORTED_MEDIA_TYPES);
+        break;
+      case ZIP:
+        setSupportedMediaTypes(XML_ZIP_SUPPORTED_MEDIA_TYPES);
+    }
+  }
 }

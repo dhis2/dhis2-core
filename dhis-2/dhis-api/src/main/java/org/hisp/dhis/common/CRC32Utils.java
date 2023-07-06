@@ -32,56 +32,51 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
-
 import javax.annotation.Nonnull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class CRC32Utils
-{
-    private CRC32Utils()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+public class CRC32Utils {
+  private CRC32Utils() {
+    throw new IllegalStateException("Utility class");
+  }
 
-    /**
-     * Calculates a checksum for the given input string.
-     *
-     * @param input the input char array.
-     * @return the checksum.
-     */
-    public static long generateCRC32Checksum( @Nonnull char[] input )
-    {
-        Charset charset = StandardCharsets.UTF_8;
-        CharBuffer charBuffer = CharBuffer.wrap( input );
-        ByteBuffer byteBuffer = charset.encode( charBuffer );
-        byte[] bytes = byteBuffer.array();
+  /**
+   * Calculates a checksum for the given input string.
+   *
+   * @param input the input char array.
+   * @return the checksum.
+   */
+  public static long generateCRC32Checksum(@Nonnull char[] input) {
+    Charset charset = StandardCharsets.UTF_8;
+    CharBuffer charBuffer = CharBuffer.wrap(input);
+    ByteBuffer byteBuffer = charset.encode(charBuffer);
+    byte[] bytes = byteBuffer.array();
 
-        CRC32 crc = new CRC32();
-        crc.update( bytes, 0, bytes.length );
-        return crc.getValue();
-    }
+    CRC32 crc = new CRC32();
+    crc.update(bytes, 0, bytes.length);
+    return crc.getValue();
+  }
 
-    /**
-     * Tests whether the given input string generates the same checksum.
-     *
-     * @param input the input string to checksum.
-     * @param checksum the checksum to compare against.
-     * @return true if they match.
-     */
-    public static boolean isMatchingCRC32Checksum( @Nonnull char[] input, @Nonnull char[] checksum )
-    {
-        long s1 = CRC32Utils.generateCRC32Checksum( input );
-        long s2 = Long.parseLong( new String( checksum ) );
+  /**
+   * Tests whether the given input string generates the same checksum.
+   *
+   * @param input the input string to checksum.
+   * @param checksum the checksum to compare against.
+   * @return true if they match.
+   */
+  public static boolean isMatchingCRC32Checksum(@Nonnull char[] input, @Nonnull char[] checksum) {
+    long s1 = CRC32Utils.generateCRC32Checksum(input);
+    long s2 = Long.parseLong(new String(checksum));
 
-        return s1 == s2;
-    }
+    return s1 == s2;
+  }
 
-    public static boolean isMatchingCRC32Base62Checksum( char[] input, char[] base62EncodedCRC32Checksum )
-    {
-        long crc32Checksum = generateCRC32Checksum( input );
-        String checksum = Base62.encodeUnsigned32bitToBase62( crc32Checksum );
-        return checksum.equals( new String( base62EncodedCRC32Checksum ) );
-    }
+  public static boolean isMatchingCRC32Base62Checksum(
+      char[] input, char[] base62EncodedCRC32Checksum) {
+    long crc32Checksum = generateCRC32Checksum(input);
+    String checksum = Base62.encodeUnsigned32bitToBase62(crc32Checksum);
+    return checksum.equals(new String(base62EncodedCRC32Checksum));
+  }
 }

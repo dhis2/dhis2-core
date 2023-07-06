@@ -39,27 +39,25 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider
-{
-    private final DhisConfigurationProvider configurationProvider;
+public class CustomLdapAuthenticationProvider extends LdapAuthenticationProvider {
+  private final DhisConfigurationProvider configurationProvider;
 
-    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator,
-        LdapAuthoritiesPopulator authoritiesPopular, DhisConfigurationProvider configurationProvider )
-    {
-        super( authenticator, authoritiesPopular );
+  public CustomLdapAuthenticationProvider(
+      LdapAuthenticator authenticator,
+      LdapAuthoritiesPopulator authoritiesPopular,
+      DhisConfigurationProvider configurationProvider) {
+    super(authenticator, authoritiesPopular);
 
-        checkNotNull( configurationProvider );
-        this.configurationProvider = configurationProvider;
+    checkNotNull(configurationProvider);
+    this.configurationProvider = configurationProvider;
+  }
+
+  @Override
+  public boolean supports(Class<?> authentication) {
+    if (!configurationProvider.isLdapConfigured()) {
+      return false;
     }
 
-    @Override
-    public boolean supports( Class<?> authentication )
-    {
-        if ( !configurationProvider.isLdapConfigured() )
-        {
-            return false;
-        }
-
-        return super.supports( authentication );
-    }
+    return super.supports(authentication);
+  }
 }

@@ -32,7 +32,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author Henning Håkonsen
  */
-public interface ProgramSectionStore
-    extends IdentifiableObjectStore<ProgramSection>
-{
-}
+public interface ProgramSectionStore extends IdentifiableObjectStore<ProgramSection> {}

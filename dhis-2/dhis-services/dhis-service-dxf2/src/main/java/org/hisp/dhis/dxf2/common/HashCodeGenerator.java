@@ -34,23 +34,18 @@ import java.security.NoSuchAlgorithmException;
 /**
  * @author by anilkumk.
  */
-public class HashCodeGenerator
-{
-    public static String getHashCode( String value )
-        throws NoSuchAlgorithmException
-    {
-        byte[] bytesOfMessage = value.getBytes( StandardCharsets.UTF_8 );
-        MessageDigest md = MessageDigest.getInstance( "MD5" );
-        byte[] digest = md.digest( bytesOfMessage );
+public class HashCodeGenerator {
+  public static String getHashCode(String value) throws NoSuchAlgorithmException {
+    byte[] bytesOfMessage = value.getBytes(StandardCharsets.UTF_8);
+    MessageDigest md = MessageDigest.getInstance("MD5");
+    byte[] digest = md.digest(bytesOfMessage);
 
-        StringBuilder hexString = new StringBuilder();
-        for ( byte aDigest : digest )
-        {
-            String hex = Integer.toHexString( 0xFF & aDigest );
-            if ( hex.length() == 1 )
-                hexString.append( '0' );
-            hexString.append( hex );
-        }
-        return hexString.toString();
+    StringBuilder hexString = new StringBuilder();
+    for (byte aDigest : digest) {
+      String hex = Integer.toHexString(0xFF & aDigest);
+      if (hex.length() == 1) hexString.append('0');
+      hexString.append(hex);
     }
+    return hexString.toString();
+  }
 }

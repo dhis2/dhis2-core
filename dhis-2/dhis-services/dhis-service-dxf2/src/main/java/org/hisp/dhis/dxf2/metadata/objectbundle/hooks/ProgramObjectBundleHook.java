@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Date;
 import java.util.Objects;
 import java.util.function.Consumer;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -54,111 +52,103 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program>
-{
-    private final EnrollmentService enrollmentService;
+public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program> {
+  private final EnrollmentService enrollmentService;
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    @Override
-    public void postCreate( Program object, ObjectBundle bundle )
-    {
-        syncSharingForEventProgram( object );
+  @Override
+  public void postCreate(Program object, ObjectBundle bundle) {
+    syncSharingForEventProgram(object);
 
-        addProgramInstance( object );
+    addProgramInstance(object);
 
-        updateProgramStage( object );
+    updateProgramStage(object);
+  }
+
+  @Override
+  public void postUpdate(Program object, ObjectBundle bundle) {
+    syncSharingForEventProgram(object);
+  }
+
+  @Override
+  public void validate(Program program, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    if (program.getId() != 0 && getProgramInstancesCount(program) > 1) {
+      addReports.accept(new ErrorReport(Program.class, ErrorCode.E6000, program.getName()));
+    }
+    validateAttributeSecurity(program, bundle, addReports);
+  }
+
+  private void syncSharingForEventProgram(Program program) {
+    if (ProgramType.WITHOUT_REGISTRATION != program.getProgramType()
+        || program.getProgramStages().isEmpty()) {
+      return;
     }
 
-    @Override
-    public void postUpdate( Program object, ObjectBundle bundle )
-    {
-        syncSharingForEventProgram( object );
+    ProgramStage programStage = program.getProgramStages().iterator().next();
+    AccessStringHelper.copySharing(program, programStage);
+
+    programStage.setCreatedBy(program.getCreatedBy());
+    programStageService.updateProgramStage(programStage);
+  }
+
+  private void updateProgramStage(Program program) {
+    if (program.getProgramStages().isEmpty()) {
+      return;
     }
 
-    @Override
-    public void validate( Program program, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        if ( program.getId() != 0 && getProgramInstancesCount( program ) > 1 )
-        {
-            addReports.accept( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
-        }
-        validateAttributeSecurity( program, bundle, addReports );
+    program
+        .getProgramStages()
+        .forEach(
+            ps -> {
+              if (Objects.isNull(ps.getProgram())) {
+                ps.setProgram(program);
+              }
+            });
+  }
+
+  private void addProgramInstance(Program program) {
+    if (getProgramInstancesCount(program) == 0 && program.isWithoutRegistration()) {
+      Enrollment pi = new Enrollment();
+      pi.setEnrollmentDate(new Date());
+      pi.setIncidentDate(new Date());
+      pi.setProgram(program);
+      pi.setStatus(ProgramStatus.ACTIVE);
+      pi.setStoredBy("system-process");
+
+      this.enrollmentService.addEnrollment(pi);
+    }
+  }
+
+  private int getProgramInstancesCount(Program program) {
+    return enrollmentService.getEnrollments(program, ProgramStatus.ACTIVE).size();
+  }
+
+  private void validateAttributeSecurity(
+      Program program, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    if (program.getProgramAttributes().isEmpty()) {
+      return;
     }
 
-    private void syncSharingForEventProgram( Program program )
-    {
-        if ( ProgramType.WITHOUT_REGISTRATION != program.getProgramType() || program.getProgramStages().isEmpty() )
-        {
-            return;
-        }
+    PreheatIdentifier identifier = bundle.getPreheatIdentifier();
 
-        ProgramStage programStage = program.getProgramStages().iterator().next();
-        AccessStringHelper.copySharing( program, programStage );
+    program
+        .getProgramAttributes()
+        .forEach(
+            programAttr -> {
+              TrackedEntityAttribute attribute =
+                  bundle.getPreheat().get(identifier, programAttr.getAttribute());
 
-        programStage.setCreatedBy( program.getCreatedBy() );
-        programStageService.updateProgramStage( programStage );
-    }
-
-    private void updateProgramStage( Program program )
-    {
-        if ( program.getProgramStages().isEmpty() )
-        {
-            return;
-        }
-
-        program.getProgramStages().forEach( ps -> {
-
-            if ( Objects.isNull( ps.getProgram() ) )
-            {
-                ps.setProgram( program );
-            }
-
-        } );
-    }
-
-    private void addProgramInstance( Program program )
-    {
-        if ( getProgramInstancesCount( program ) == 0 && program.isWithoutRegistration() )
-        {
-            Enrollment pi = new Enrollment();
-            pi.setEnrollmentDate( new Date() );
-            pi.setIncidentDate( new Date() );
-            pi.setProgram( program );
-            pi.setStatus( ProgramStatus.ACTIVE );
-            pi.setStoredBy( "system-process" );
-
-            this.enrollmentService.addEnrollment( pi );
-        }
-    }
-
-    private int getProgramInstancesCount( Program program )
-    {
-        return enrollmentService.getEnrollments( program, ProgramStatus.ACTIVE ).size();
-    }
-
-    private void validateAttributeSecurity( Program program, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        if ( program.getProgramAttributes().isEmpty() )
-        {
-            return;
-        }
-
-        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
-
-        program.getProgramAttributes().forEach( programAttr -> {
-            TrackedEntityAttribute attribute = bundle.getPreheat().get( identifier, programAttr.getAttribute() );
-
-            if ( attribute == null || !aclService.canRead( bundle.getUser(), attribute ) )
-            {
-                addReports.accept( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012,
-                    identifier.getIdentifiersWithName( bundle.getUser() ),
-                    identifier.getIdentifiersWithName( programAttr.getAttribute() ) ) );
-            }
-        } );
-    }
+              if (attribute == null || !aclService.canRead(bundle.getUser(), attribute)) {
+                addReports.accept(
+                    new ErrorReport(
+                        TrackedEntityAttribute.class,
+                        ErrorCode.E3012,
+                        identifier.getIdentifiersWithName(bundle.getUser()),
+                        identifier.getIdentifiersWithName(programAttr.getAttribute())));
+              }
+            });
+  }
 }
