@@ -29,15 +29,13 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -63,182 +61,168 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
-@RequestMapping( value = ApiTokenSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = ApiTokenSchemaDescriptor.API_ENDPOINT)
 @RequiredArgsConstructor
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ApiTokenController extends AbstractCrudController<ApiToken>
-{
-    public static final String OPERATION_NOT_SUPPORTED_ON_API_TOKEN = "Operation not supported on ApiToken";
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ApiTokenController extends AbstractCrudController<ApiToken> {
+  public static final String OPERATION_NOT_SUPPORTED_ON_API_TOKEN =
+      "Operation not supported on ApiToken";
 
-    private final ApiTokenService apiTokenService;
+  private final ApiTokenService apiTokenService;
 
-    // Overwritten to get full access control on GET single object
-    @Override
-    protected List<ApiToken> getEntity( String uid, WebOptions options )
-    {
-        ArrayList<ApiToken> list = new ArrayList<>();
-        java.util.Optional.ofNullable( manager.get( ApiToken.class, uid ) ).ifPresent( list::add );
-        return list;
+  // Overwritten to get full access control on GET single object
+  @Override
+  protected List<ApiToken> getEntity(String uid, WebOptions options) {
+    ArrayList<ApiToken> list = new ArrayList<>();
+    java.util.Optional.ofNullable(manager.get(ApiToken.class, uid)).ifPresent(list::add);
+    return list;
+  }
+
+  @Override
+  protected void postProcessResponseEntity(
+      ApiToken entity, WebOptions options, Map<String, String> parameters) throws Exception {
+    entity.setKey(null);
+  }
+
+  @Override
+  protected void postProcessResponseEntities(
+      List<ApiToken> entityList, WebOptions options, Map<String, String> parameters) {
+    entityList.forEach(t -> t.setKey(null));
+  }
+
+  @Override
+  public void partialUpdateObject(
+      String pvUid,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request) {
+    throw new IllegalStateException(OPERATION_NOT_SUPPORTED_ON_API_TOKEN);
+  }
+
+  @Override
+  public void updateObjectProperty(
+      String pvUid,
+      String pvProperty,
+      Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request) {
+    throw new IllegalStateException(OPERATION_NOT_SUPPORTED_ON_API_TOKEN);
+  }
+
+  @Override
+  @PostMapping(consumes = {"application/xml", "text/xml"})
+  @ResponseBody
+  public WebMessage postXmlObject(HttpServletRequest request) {
+    throw new IllegalStateException(OPERATION_NOT_SUPPORTED_ON_API_TOKEN);
+  }
+
+  @Override
+  @PostMapping(consumes = "application/json")
+  @ResponseBody
+  public WebMessage postJsonObject(HttpServletRequest request) throws Exception {
+    final ApiToken apiToken = deserializeJsonEntity(request);
+
+    User user = currentUserService.getCurrentUser();
+    if (!aclService.canCreate(user, getEntityClass())) {
+      throw new CreateAccessDeniedException(
+          "You don't have the proper permissions to create this object.");
     }
 
-    @Override
-    protected void postProcessResponseEntity( ApiToken entity, WebOptions options, Map<String, String> parameters )
-        throws Exception
-    {
-        entity.setKey( null );
+    apiToken.getTranslations().clear();
+
+    // Validate input values is ok
+    validateBeforeCreate(apiToken);
+
+    // We only make personal access tokens for now
+    apiToken.setType(ApiTokenType.PERSONAL_ACCESS_TOKEN);
+    // Generate key and set default values
+    apiTokenService.initToken(apiToken);
+
+    // Save raw key to send in response
+    final String rawKey = apiToken.getKey();
+
+    // Hash the raw token key and overwrite value in the entity to persist
+    final String hashedKey = apiTokenService.hashKey(apiToken.getKey());
+    apiToken.setKey(hashedKey);
+
+    // Continue POST import as usual
+    MetadataImportParams params =
+        importService
+            .getParamsFromMap(contextService.getParameterValuesMap())
+            .setImportReportMode(ImportReportMode.FULL)
+            .setUser(user)
+            .setImportStrategy(ImportStrategy.CREATE)
+            .addObject(apiToken);
+
+    final ObjectReport objectReport = importService.importMetadata(params).getFirstObjectReport();
+    final String uid = objectReport.getUid();
+
+    WebMessage webMessage = objectReport(objectReport);
+    if (webMessage.getStatus() == Status.OK) {
+      webMessage.setHttpStatus(HttpStatus.CREATED);
+      webMessage.setLocation(getSchema().getRelativeApiEndpoint() + "/" + uid);
+
+      // Set our custom web response object that includes the new
+      // generated key.
+      webMessage.setResponse(new ApiTokenCreationResponse(objectReport, rawKey));
+    } else {
+      webMessage.setStatus(Status.ERROR);
     }
 
-    @Override
-    protected void postProcessResponseEntities( List<ApiToken> entityList, WebOptions options,
-        Map<String, String> parameters )
-    {
-        entityList.forEach( t -> t.setKey( null ) );
+    return webMessage;
+  }
+
+  @Override
+  protected void prePatchEntity(ApiToken oldToken, ApiToken newToken) {
+    newToken.setKey(oldToken.getKey());
+    validateApiKeyAttributes(newToken);
+  }
+
+  @Override
+  protected void preUpdateEntity(ApiToken oldToken, ApiToken newToken) {
+    newToken.setKey(oldToken.getKey());
+    validateApiKeyAttributes(newToken);
+  }
+
+  protected void validateBeforeCreate(ApiToken token) {
+    validateApiKeyAttributes(token);
+  }
+
+  private void validateApiKeyAttributes(ApiToken token) {
+    if (token.getIpAllowedList() != null) {
+      token.getIpAllowedList().getAllowedIps().forEach(this::validateIp);
     }
-
-    @Override
-    public void partialUpdateObject( String pvUid, Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-    {
-        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
+    if (token.getMethodAllowedList() != null) {
+      token.getMethodAllowedList().getAllowedMethods().forEach(this::validateHttpMethod);
     }
-
-    @Override
-    public void updateObjectProperty( String pvUid, String pvProperty, Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-    {
-        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
+    if (token.getRefererAllowedList() != null) {
+      token.getRefererAllowedList().getAllowedReferrers().forEach(this::validateReferrer);
     }
+  }
 
-    @Override
-    @PostMapping( consumes = { "application/xml", "text/xml" } )
-    @ResponseBody
-    public WebMessage postXmlObject( HttpServletRequest request )
-    {
-        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
+  private void validateHttpMethod(String httpMethodName) {
+    final ImmutableList<String> validMethods =
+        ImmutableList.of("GET", "POST", "PATCH", "PUT", "DELETE");
+    if (!validMethods.contains(httpMethodName.toUpperCase(Locale.ROOT))) {
+      throw new IllegalArgumentException("Not a valid http method, value=" + httpMethodName);
     }
+  }
 
-    @Override
-    @PostMapping( consumes = "application/json" )
-    @ResponseBody
-    public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
-    {
-        final ApiToken apiToken = deserializeJsonEntity( request );
-
-        User user = currentUserService.getCurrentUser();
-        if ( !aclService.canCreate( user, getEntityClass() ) )
-        {
-            throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
-        }
-
-        apiToken.getTranslations().clear();
-
-        // Validate input values is ok
-        validateBeforeCreate( apiToken );
-
-        // We only make personal access tokens for now
-        apiToken.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
-        // Generate key and set default values
-        apiTokenService.initToken( apiToken );
-
-        // Save raw key to send in response
-        final String rawKey = apiToken.getKey();
-
-        // Hash the raw token key and overwrite value in the entity to persist
-        final String hashedKey = apiTokenService.hashKey( apiToken.getKey() );
-        apiToken.setKey( hashedKey );
-
-        // Continue POST import as usual
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
-            .setImportReportMode( ImportReportMode.FULL ).setUser( user ).setImportStrategy( ImportStrategy.CREATE )
-            .addObject( apiToken );
-
-        final ObjectReport objectReport = importService.importMetadata( params ).getFirstObjectReport();
-        final String uid = objectReport.getUid();
-
-        WebMessage webMessage = objectReport( objectReport );
-        if ( webMessage.getStatus() == Status.OK )
-        {
-            webMessage.setHttpStatus( HttpStatus.CREATED );
-            webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + uid );
-
-            // Set our custom web response object that includes the new
-            // generated key.
-            webMessage.setResponse( new ApiTokenCreationResponse( objectReport, rawKey ) );
-        }
-        else
-        {
-            webMessage.setStatus( Status.ERROR );
-        }
-
-        return webMessage;
+  private void validateIp(String ip) {
+    InetAddressValidator validator = new InetAddressValidator();
+    if (!validator.isValid(ip)) {
+      throw new IllegalArgumentException("Not a valid ip address, value=" + ip);
     }
+  }
 
-    @Override
-    protected void prePatchEntity( ApiToken oldToken, ApiToken newToken )
-    {
-        newToken.setKey( oldToken.getKey() );
-        validateApiKeyAttributes( newToken );
+  private void validateReferrer(String referrer) {
+    UrlValidator urlValidator = new UrlValidator();
+    if (!urlValidator.isValid(referrer)) {
+      throw new IllegalArgumentException("Not a valid referrer url, value=" + referrer);
     }
-
-    @Override
-    protected void preUpdateEntity( ApiToken oldToken, ApiToken newToken )
-    {
-        newToken.setKey( oldToken.getKey() );
-        validateApiKeyAttributes( newToken );
-    }
-
-    protected void validateBeforeCreate( ApiToken token )
-    {
-        validateApiKeyAttributes( token );
-    }
-
-    private void validateApiKeyAttributes( ApiToken token )
-    {
-        if ( token.getIpAllowedList() != null )
-        {
-            token.getIpAllowedList().getAllowedIps().forEach( this::validateIp );
-        }
-        if ( token.getMethodAllowedList() != null )
-        {
-            token.getMethodAllowedList().getAllowedMethods().forEach( this::validateHttpMethod );
-        }
-        if ( token.getRefererAllowedList() != null )
-        {
-            token.getRefererAllowedList().getAllowedReferrers().forEach( this::validateReferrer );
-        }
-    }
-
-    private void validateHttpMethod( String httpMethodName )
-    {
-        final ImmutableList<String> validMethods = ImmutableList.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
-        if ( !validMethods.contains( httpMethodName.toUpperCase( Locale.ROOT ) ) )
-        {
-            throw new IllegalArgumentException( "Not a valid http method, value=" + httpMethodName );
-        }
-    }
-
-    private void validateIp( String ip )
-    {
-        InetAddressValidator validator = new InetAddressValidator();
-        if ( !validator.isValid( ip ) )
-        {
-            throw new IllegalArgumentException( "Not a valid ip address, value=" + ip );
-        }
-    }
-
-    private void validateReferrer( String referrer )
-    {
-        UrlValidator urlValidator = new UrlValidator();
-        if ( !urlValidator.isValid( referrer ) )
-        {
-            throw new IllegalArgumentException( "Not a valid referrer url, value=" + referrer );
-        }
-    }
+  }
 }

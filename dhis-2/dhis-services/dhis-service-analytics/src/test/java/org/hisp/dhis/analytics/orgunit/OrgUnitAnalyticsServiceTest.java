@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.orgunit;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -40,32 +41,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-@ExtendWith( MockitoExtension.class )
-class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest
-{
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+@ExtendWith(MockitoExtension.class)
+class OrgUnitAnalyticsServiceTest extends DhisConvenienceTest {
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private OrgUnitAnalyticsManager analyticsManager;
+  @Mock private OrgUnitAnalyticsManager analyticsManager;
 
-    @Mock
-    private OrgUnitQueryPlanner queryPlanner;
+  @Mock private OrgUnitQueryPlanner queryPlanner;
 
-    @InjectMocks
-    private DefaultOrgUnitAnalyticsService subject;
+  @InjectMocks private DefaultOrgUnitAnalyticsService subject;
 
-    @Test
-    void testValidateNoOrgUnits()
-    {
-        OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
-            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) ).build();
-        assertIllegalQueryEx( assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
-            ErrorCode.E7300 );
-    }
+  @Test
+  void testValidateNoOrgUnits() {
+    OrgUnitQueryParams params =
+        new OrgUnitQueryParams.Builder()
+            .withOrgUnitGroupSets(Lists.newArrayList(createOrganisationUnitGroupSet('A')))
+            .build();
+    assertIllegalQueryEx(
+        assertThrows(IllegalQueryException.class, () -> subject.validate(params)), ErrorCode.E7300);
+  }
 }

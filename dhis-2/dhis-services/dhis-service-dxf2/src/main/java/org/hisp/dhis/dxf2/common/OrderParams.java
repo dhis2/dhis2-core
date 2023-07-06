@@ -27,77 +27,61 @@
  */
 package org.hisp.dhis.dxf2.common;
 
+import com.google.common.base.MoreObjects;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OrderParams
-{
-    private Set<String> order = new HashSet<>();
+public class OrderParams {
+  private Set<String> order = new HashSet<>();
 
-    public OrderParams()
-    {
+  public OrderParams() {}
+
+  public OrderParams(Set<String> order) {
+    this.order = order;
+  }
+
+  public void setOrder(Set<String> order) {
+    this.order = order;
+  }
+
+  public List<Order> getOrders(Schema schema) {
+    return QueryUtils.convertOrderStrings(order, schema);
+  }
+
+  public Set<String> getOrders() {
+    return order;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(order);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public OrderParams( Set<String> order )
-    {
-        this.order = order;
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
 
-    public void setOrder( Set<String> order )
-    {
-        this.order = order;
-    }
+    final OrderParams other = (OrderParams) obj;
 
-    public List<Order> getOrders( Schema schema )
-    {
-        return QueryUtils.convertOrderStrings( order, schema );
-    }
+    return Objects.equals(this.order, other.order);
+  }
 
-    public Set<String> getOrders()
-    {
-        return order;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( order );
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
-
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-
-        final OrderParams other = (OrderParams) obj;
-
-        return Objects.equals( this.order, other.order );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "order", order )
-            .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("order", order).toString();
+  }
 }

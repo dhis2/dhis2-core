@@ -29,31 +29,27 @@ package org.hisp.dhis.deduplication;
 
 import java.util.List;
 
-public interface DeduplicationService
-{
-    PotentialDuplicate getPotentialDuplicateById( long id );
+public interface DeduplicationService {
+  PotentialDuplicate getPotentialDuplicateById(long id);
 
-    PotentialDuplicate getPotentialDuplicateByUid( String uid );
+  PotentialDuplicate getPotentialDuplicateByUid(String uid);
 
-    List<PotentialDuplicate> getAllPotentialDuplicates();
+  List<PotentialDuplicate> getAllPotentialDuplicates();
 
-    int countPotentialDuplicates( PotentialDuplicateQuery query );
+  int countPotentialDuplicates(PotentialDuplicateQuery query);
 
-    boolean exists( PotentialDuplicate potentialDuplicate )
-        throws PotentialDuplicateConflictException;
+  boolean exists(PotentialDuplicate potentialDuplicate) throws PotentialDuplicateConflictException;
 
-    List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
+  List<PotentialDuplicate> getAllPotentialDuplicatesBy(PotentialDuplicateQuery query);
 
-    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
-        throws PotentialDuplicateConflictException;
+  void addPotentialDuplicate(PotentialDuplicate potentialDuplicate)
+      throws PotentialDuplicateConflictException;
 
-    void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+  void updatePotentialDuplicate(PotentialDuplicate potentialDuplicate);
 
-    void autoMerge( DeduplicationMergeParams deduplicationRequest )
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException;
+  void autoMerge(DeduplicationMergeParams deduplicationRequest)
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException;
 
-    void manualMerge( DeduplicationMergeParams deduplicationRequest )
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException;
+  void manualMerge(DeduplicationMergeParams deduplicationRequest)
+      throws PotentialDuplicateConflictException, PotentialDuplicateForbiddenException;
 }

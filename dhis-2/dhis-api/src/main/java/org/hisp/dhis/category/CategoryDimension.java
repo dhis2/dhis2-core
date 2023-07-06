@@ -27,80 +27,69 @@
  */
 package org.hisp.dhis.category;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalEmbeddedObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "categoryDimension", namespace = DxfNamespaces.DXF_2_0 )
-public class CategoryDimension
-    implements DimensionalEmbeddedObject
-{
-    private int id;
+@JacksonXmlRootElement(localName = "categoryDimension", namespace = DxfNamespaces.DXF_2_0)
+public class CategoryDimension implements DimensionalEmbeddedObject {
+  private int id;
 
-    private Category dimension;
+  private Category dimension;
 
-    private List<CategoryOption> items = new ArrayList<>();
+  private List<CategoryOption> items = new ArrayList<>();
 
-    public int getId()
-    {
-        return id;
-    }
+  public int getId() {
+    return id;
+  }
 
-    public void setId( int id )
-    {
-        this.id = id;
-    }
+  public void setId(int id) {
+    this.id = id;
+  }
 
-    @JsonProperty( "category" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
-    public Category getDimension()
-    {
-        return dimension;
-    }
+  @JsonProperty("category")
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(localName = "category", namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
+  public Category getDimension() {
+    return dimension;
+  }
 
-    public void setDimension( Category dimension )
-    {
-        this.dimension = dimension;
-    }
+  public void setDimension(Category dimension) {
+    this.dimension = dimension;
+  }
 
-    @JsonProperty( "categoryOptions" )
-    @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.REFERENCE, required = Property.Value.TRUE )
-    public List<CategoryOption> getItems()
-    {
-        return items;
-    }
+  @JsonProperty("categoryOptions")
+  @JacksonXmlElementWrapper(localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
+  public List<CategoryOption> getItems() {
+    return items;
+  }
 
-    public void setItems( List<CategoryOption> items )
-    {
-        this.items = items;
-    }
+  public void setItems(List<CategoryOption> items) {
+    this.items = items;
+  }
 
-    @Override
-    public String toString()
-    {
-        final StringBuilder sb = new StringBuilder( "CategoryDimension{" );
-        sb.append( "id=" ).append( id );
-        sb.append( ", dimension=" ).append( dimension );
-        sb.append( ", items=" ).append( items );
-        sb.append( '}' );
-        return sb.toString();
-    }
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("CategoryDimension{");
+    sb.append("id=").append(id);
+    sb.append(", dimension=").append(dimension);
+    sb.append(", items=").append(items);
+    sb.append('}');
+    return sb.toString();
+  }
 }

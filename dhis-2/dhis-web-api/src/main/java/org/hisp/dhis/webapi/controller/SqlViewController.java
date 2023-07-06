@@ -32,12 +32,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -58,227 +57,227 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = SqlViewSchemaDescriptor.API_ENDPOINT )
-public class SqlViewController
-    extends AbstractCrudController<SqlView>
-{
-    @Autowired
-    private SqlViewService sqlViewService;
+@RequestMapping(value = SqlViewSchemaDescriptor.API_ENDPOINT)
+public class SqlViewController extends AbstractCrudController<SqlView> {
+  @Autowired private SqlViewService sqlViewService;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    // -------------------------------------------------------------------------
-    // Get
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Get
+  // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/{uid}/data", produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody GridResponse getViewJson( @PathVariable( "uid" ) String uid,
-        SqlViewQuery query, HttpServletResponse response )
-        throws WebMessageException
-    {
-        SqlView sqlView = validateView( uid );
+  @GetMapping(value = "/{uid}/data", produces = ContextUtils.CONTENT_TYPE_JSON)
+  public @ResponseBody GridResponse getViewJson(
+      @PathVariable("uid") String uid, SqlViewQuery query, HttpServletResponse response)
+      throws WebMessageException {
+    SqlView sqlView = validateView(uid);
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy() );
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, sqlView.getCacheStrategy());
 
-        return buildResponse( sqlView, query );
+    return buildResponse(sqlView, query);
+  }
+
+  @GetMapping("/{uid}/data.xml")
+  public void getViewXml(
+      @PathVariable("uid") String uid, SqlViewQuery query, HttpServletResponse response)
+      throws WebMessageException, IOException {
+    SqlView sqlView = validateView(uid);
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_XML, sqlView.getCacheStrategy());
+
+    GridUtils.toXml(buildResponse(sqlView, query), response.getOutputStream());
+  }
+
+  @GetMapping("/{uid}/data.csv")
+  public void getViewCsv(
+      @PathVariable("uid") String uid,
+      @RequestParam(required = false) Set<String> criteria,
+      @RequestParam(required = false) Set<String> var,
+      HttpServletResponse response)
+      throws Exception {
+    SqlView sqlView = validateView(uid);
+
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+
+    Grid grid =
+        sqlViewService.getSqlViewGrid(
+            sqlView, SqlView.getCriteria(criteria), SqlView.getCriteria(var), filters, fields);
+
+    String filename = CodecUtils.filenameEncode(grid.getTitle()) + ".csv";
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_CSV, sqlView.getCacheStrategy(), filename, true);
+
+    GridUtils.toCsv(grid, response.getWriter());
+  }
+
+  @GetMapping("/{uid}/data.xls")
+  public void getViewXls(
+      @PathVariable("uid") String uid,
+      @RequestParam(required = false) Set<String> criteria,
+      @RequestParam(required = false) Set<String> var,
+      HttpServletResponse response)
+      throws Exception {
+    SqlView sqlView = validateView(uid);
+
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+
+    Grid grid =
+        sqlViewService.getSqlViewGrid(
+            sqlView, SqlView.getCriteria(criteria), SqlView.getCriteria(var), filters, fields);
+
+    String filename = CodecUtils.filenameEncode(grid.getTitle()) + ".xls";
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_EXCEL, sqlView.getCacheStrategy(), filename, true);
+
+    GridUtils.toXls(grid, response.getOutputStream());
+  }
+
+  @GetMapping("/{uid}/data.html")
+  public void getViewHtml(
+      @PathVariable("uid") String uid,
+      @RequestParam(required = false) Set<String> criteria,
+      @RequestParam(required = false) Set<String> var,
+      HttpServletResponse response)
+      throws Exception {
+    SqlView sqlView = validateView(uid);
+
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+
+    Grid grid =
+        sqlViewService.getSqlViewGrid(
+            sqlView, SqlView.getCriteria(criteria), SqlView.getCriteria(var), filters, fields);
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy());
+
+    GridUtils.toHtml(grid, response.getWriter());
+  }
+
+  @GetMapping("/{uid}/data.html+css")
+  public void getViewHtmlCss(
+      @PathVariable("uid") String uid,
+      @RequestParam(required = false) Set<String> criteria,
+      @RequestParam(required = false) Set<String> var,
+      HttpServletResponse response)
+      throws Exception {
+    SqlView sqlView = validateView(uid);
+
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+
+    Grid grid =
+        sqlViewService.getSqlViewGrid(
+            sqlView, SqlView.getCriteria(criteria), SqlView.getCriteria(var), filters, fields);
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy());
+
+    GridUtils.toHtmlCss(grid, response.getWriter());
+  }
+
+  @GetMapping("/{uid}/data.pdf")
+  public void getViewPdf(
+      @PathVariable("uid") String uid,
+      @RequestParam(required = false) Set<String> criteria,
+      @RequestParam(required = false) Set<String> var,
+      HttpServletResponse response)
+      throws Exception {
+    SqlView sqlView = validateView(uid);
+
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+
+    Grid grid =
+        sqlViewService.getSqlViewGrid(
+            sqlView, SqlView.getCriteria(criteria), SqlView.getCriteria(var), filters, fields);
+
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_PDF, sqlView.getCacheStrategy());
+
+    GridUtils.toPdf(grid, response.getOutputStream());
+  }
+
+  // -------------------------------------------------------------------------
+  // Post
+  // -------------------------------------------------------------------------
+
+  @PostMapping("/{uid}/execute")
+  @ResponseBody
+  public WebMessage executeView(
+      @PathVariable("uid") String uid, @RequestParam(required = false) Set<String> var) {
+    SqlView sqlView = sqlViewService.getSqlViewByUid(uid);
+
+    if (sqlView == null) {
+      return notFound("SQL view does not exist: " + uid);
     }
 
-    @GetMapping( "/{uid}/data.xml" )
-    public void getViewXml( @PathVariable( "uid" ) String uid,
-        SqlViewQuery query, HttpServletResponse response )
-        throws WebMessageException,
-        IOException
-    {
-        SqlView sqlView = validateView( uid );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, sqlView.getCacheStrategy() );
-
-        GridUtils.toXml( buildResponse( sqlView, query ), response.getOutputStream() );
+    if (sqlView.isQuery()) {
+      return conflict("SQL view is a query, no view to create");
     }
 
-    @GetMapping( "/{uid}/data.csv" )
-    public void getViewCsv( @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response )
-        throws Exception
-    {
-        SqlView sqlView = validateView( uid );
+    String result = sqlViewService.createViewTable(sqlView);
+    if (result != null) {
+      return conflict(result);
+    }
+    return created("SQL view created")
+        .setLocation(SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid());
+  }
 
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+  @PostMapping("/{uid}/refresh")
+  @ResponseBody
+  public WebMessage refreshMaterializedView(@PathVariable("uid") String uid) {
+    SqlView sqlView = sqlViewService.getSqlViewByUid(uid);
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ),
-            filters, fields );
-
-        String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".csv";
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, sqlView.getCacheStrategy(), filename,
-            true );
-
-        GridUtils.toCsv( grid, response.getWriter() );
+    if (sqlView == null) {
+      return notFound("SQL view does not exist: " + uid);
     }
 
-    @GetMapping( "/{uid}/data.xls" )
-    public void getViewXls( @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response )
-        throws Exception
-    {
-        SqlView sqlView = validateView( uid );
+    if (!sqlViewService.refreshMaterializedView(sqlView)) {
+      return conflict("View could not be refreshed");
+    }
+    return ok("Materialized view refreshed");
+  }
 
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+  private SqlView validateView(String uid) throws WebMessageException {
+    SqlView sqlView = sqlViewService.getSqlViewByUid(uid);
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ),
-            filters, fields );
-
-        String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".xls";
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, sqlView.getCacheStrategy(), filename,
-            true );
-
-        GridUtils.toXls( grid, response.getOutputStream() );
+    if (sqlView == null) {
+      throw new WebMessageException(notFound("SQL view does not exist: " + uid));
     }
 
-    @GetMapping( "/{uid}/data.html" )
-    public void getViewHtml( @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response )
-        throws Exception
-    {
-        SqlView sqlView = validateView( uid );
+    return sqlView;
+  }
 
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+  private GridResponse buildResponse(SqlView sqlView, SqlViewQuery query) {
+    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
 
-        Grid grid = sqlViewService
-            .getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
+    Grid grid =
+        sqlViewService.getSqlViewGrid(
+            sqlView,
+            SqlView.getCriteria(query.getCriteria()),
+            SqlView.getCriteria(query.getVar()),
+            filters,
+            fields);
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy() );
-
-        GridUtils.toHtml( grid, response.getWriter() );
+    if (!query.isSkipPaging()) {
+      query.setTotal(grid.getHeight());
+      grid.limitGrid(
+          (query.getPage() - 1) * query.getPageSize(),
+          Integer.min(query.getPage() * query.getPageSize(), grid.getHeight()));
     }
-
-    @GetMapping( "/{uid}/data.html+css" )
-    public void getViewHtmlCss( @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response )
-        throws Exception
-    {
-        SqlView sqlView = validateView( uid );
-
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        Grid grid = sqlViewService
-            .getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, sqlView.getCacheStrategy() );
-
-        GridUtils.toHtmlCss( grid, response.getWriter() );
-    }
-
-    @GetMapping( "/{uid}/data.pdf" )
-    public void getViewPdf( @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response )
-        throws Exception
-    {
-        SqlView sqlView = validateView( uid );
-
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ),
-            filters, fields );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, sqlView.getCacheStrategy() );
-
-        GridUtils.toPdf( grid, response.getOutputStream() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Post
-    // -------------------------------------------------------------------------
-
-    @PostMapping( "/{uid}/execute" )
-    @ResponseBody
-    public WebMessage executeView( @PathVariable( "uid" ) String uid,
-        @RequestParam( required = false ) Set<String> var )
-    {
-        SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
-
-        if ( sqlView == null )
-        {
-            return notFound( "SQL view does not exist: " + uid );
-        }
-
-        if ( sqlView.isQuery() )
-        {
-            return conflict( "SQL view is a query, no view to create" );
-        }
-
-        String result = sqlViewService.createViewTable( sqlView );
-        if ( result != null )
-        {
-            return conflict( result );
-        }
-        return created( "SQL view created" )
-            .setLocation( SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
-    }
-
-    @PostMapping( "/{uid}/refresh" )
-    @ResponseBody
-    public WebMessage refreshMaterializedView( @PathVariable( "uid" ) String uid )
-    {
-        SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
-
-        if ( sqlView == null )
-        {
-            return notFound( "SQL view does not exist: " + uid );
-        }
-
-        if ( !sqlViewService.refreshMaterializedView( sqlView ) )
-        {
-            return conflict( "View could not be refreshed" );
-        }
-        return ok( "Materialized view refreshed" );
-    }
-
-    private SqlView validateView( String uid )
-        throws WebMessageException
-    {
-        SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
-
-        if ( sqlView == null )
-        {
-            throw new WebMessageException( notFound( "SQL view does not exist: " + uid ) );
-        }
-
-        return sqlView;
-    }
-
-    private GridResponse buildResponse( SqlView sqlView, SqlViewQuery query )
-    {
-        List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( query.getCriteria() ),
-            SqlView.getCriteria( query.getVar() ), filters, fields );
-
-        if ( !query.isSkipPaging() )
-        {
-            query.setTotal( grid.getHeight() );
-            grid.limitGrid( (query.getPage() - 1) * query.getPageSize(),
-                Integer.min( query.getPage() * query.getPageSize(), grid.getHeight() ) );
-        }
-        return new GridResponse( query.isSkipPaging() ? null : query.getPager(), grid );
-    }
+    return new GridResponse(query.isSkipPaging() ? null : query.getPager(), grid);
+  }
 }

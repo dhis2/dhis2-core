@@ -32,19 +32,19 @@ import lombok.With;
 
 /**
  * @author Luca Camnbi
- *
- *         Class used to define inclusion in {@link EnrollmentParams} of
- *         {@link EventParams} properties
+ *     <p>Class used to define inclusion in {@link EnrollmentParams} of {@link EventParams}
+ *     properties
  */
 @With
 @Value
-public class EnrollmentEventsParams
-{
-    public static final EnrollmentEventsParams TRUE = new EnrollmentEventsParams( true, EventParams.TRUE );
+public class EnrollmentEventsParams {
+  public static final EnrollmentEventsParams TRUE =
+      new EnrollmentEventsParams(true, EventParams.TRUE);
 
-    public static final EnrollmentEventsParams FALSE = new EnrollmentEventsParams( false, EventParams.FALSE );
+  public static final EnrollmentEventsParams FALSE =
+      new EnrollmentEventsParams(false, EventParams.FALSE);
 
-    private boolean includeEvents;
+  private boolean includeEvents;
 
-    private EventParams eventParams;
+  private EventParams eventParams;
 }

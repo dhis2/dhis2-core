@@ -36,9 +36,7 @@ import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 
 import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -46,154 +44,146 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Component;
 
 /**
- * Class responsible for aggregating all necessary data, provided by the
- * handlers, into the Grid object
+ * Class responsible for aggregating all necessary data, provided by the handlers, into the Grid
+ * object
  */
 @Component
 @RequiredArgsConstructor
-public class DataAggregator
-{
-    private final HeaderHandler headerHandler;
+public class DataAggregator {
+  private final HeaderHandler headerHandler;
 
-    private final MetadataHandler metaDataHandler;
+  private final MetadataHandler metaDataHandler;
 
-    private final DataHandler dataHandler;
+  private final DataHandler dataHandler;
 
-    /**
-     * Returns a grid with aggregated data.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return a grid with aggregated data.
-     */
-    public Grid getAggregatedDataValueGrid( DataQueryParams params )
-    {
-        params = preHandleQuery( params );
+  /**
+   * Returns a grid with aggregated data.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @return a grid with aggregated data.
+   */
+  public Grid getAggregatedDataValueGrid(DataQueryParams params) {
+    params = preHandleQuery(params);
 
-        // ---------------------------------------------------------------------
-        // Headers
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Headers
+    // ---------------------------------------------------------------------
 
-        Grid grid = new ListGrid();
+    Grid grid = new ListGrid();
 
-        headerHandler.addHeaders( params, grid );
+    headerHandler.addHeaders(params, grid);
 
-        // ---------------------------------------------------------------------
-        // Data
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Data
+    // ---------------------------------------------------------------------
 
-        dataHandler.addIndicatorValues( params, grid );
+    dataHandler.addIndicatorValues(params, grid);
 
-        dataHandler.addDataElementValues( params, grid );
+    dataHandler.addDataElementValues(params, grid);
 
-        dataHandler.addDataElementOperandValues( params, grid );
+    dataHandler.addDataElementOperandValues(params, grid);
 
-        dataHandler.addReportingRates( params, grid );
+    dataHandler.addReportingRates(params, grid);
 
-        dataHandler.addProgramDataElementAttributeIndicatorValues( params, grid );
+    dataHandler.addProgramDataElementAttributeIndicatorValues(params, grid);
 
-        dataHandler.addDynamicDimensionValues( params, grid );
+    dataHandler.addDynamicDimensionValues(params, grid);
 
-        dataHandler.addValidationResultValues( params, grid );
+    dataHandler.addValidationResultValues(params, grid);
 
-        dataHandler.addPerformanceMetrics( params, grid );
+    dataHandler.addPerformanceMetrics(params, grid);
 
-        // ---------------------------------------------------------------------
-        // Meta-data
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Meta-data
+    // ---------------------------------------------------------------------
 
-        metaDataHandler.addMetaData( params, grid );
+    metaDataHandler.addMetaData(params, grid);
 
-        metaDataHandler.handleDataValueSet( params, grid );
+    metaDataHandler.handleDataValueSet(params, grid);
 
-        metaDataHandler.applyIdScheme( params, grid );
+    metaDataHandler.applyIdScheme(params, grid);
 
-        postHandleGrid( params, grid );
+    postHandleGrid(params, grid);
 
-        return grid;
+    return grid;
+  }
+
+  /**
+   * Returns headers, raw data and meta data as a grid.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @return a grid.
+   */
+  public Grid getRawDataGrid(DataQueryParams params) {
+    Grid grid = new ListGrid();
+
+    params = dataHandler.prepareForRawDataQuery(params);
+
+    headerHandler.addHeaders(params, grid);
+
+    dataHandler.addRawData(params, grid);
+
+    metaDataHandler.addMetaData(params, grid);
+
+    metaDataHandler.applyIdScheme(params, grid);
+
+    return grid;
+  }
+
+  /**
+   * Performs pre-handling of the given query and returns the immutable, handled query. If the query
+   * has a single indicator as item for the data filter, the filter is set as a dimension and
+   * removed as a filter.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @return a {@link DataQueryParams}.
+   */
+  private DataQueryParams preHandleQuery(DataQueryParams params) {
+    if (params.hasSingleIndicatorAsDataFilter()
+        || params.hasSingleProgramIndicatorAsDataFilter()
+        || params.hasSingleReportingRateAsDataFilter()) {
+      DimensionalObject dx = params.getFilter(DATA_X_DIM_ID);
+
+      params =
+          newBuilder(params)
+              .addDimension(dx)
+              .removeFilter(DATA_X_DIM_ID)
+              .addProcessingHint(
+                  params.hasSingleIndicatorAsDataFilter()
+                      ? SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM
+                      : SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM)
+              .build();
     }
 
-    /**
-     * Returns headers, raw data and meta data as a grid.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return a grid.
-     */
-    public Grid getRawDataGrid( DataQueryParams params )
-    {
-        Grid grid = new ListGrid();
+    return params;
+  }
 
-        params = dataHandler.prepareForRawDataQuery( params );
-
-        headerHandler.addHeaders( params, grid );
-
-        dataHandler.addRawData( params, grid );
-
-        metaDataHandler.addMetaData( params, grid );
-
-        metaDataHandler.applyIdScheme( params, grid );
-
-        return grid;
+  /**
+   * Performs post-handling of the given grid. If the query has the single indicator as data filter
+   * item, the column at the data dimension index is removed. If the query has sorting order, then
+   * the grid is ordered on the value column based on the sorting specified.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param the {@link Grid}.
+   */
+  private void postHandleGrid(DataQueryParams params, Grid grid) {
+    if (params.hasProcessingHint(SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM)
+        || params.hasProcessingHint(SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM)) {
+      grid.removeColumn(DX_INDEX);
     }
 
-    /**
-     * Performs pre-handling of the given query and returns the immutable,
-     * handled query. If the query has a single indicator as item for the data
-     * filter, the filter is set as a dimension and removed as a filter.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return a {@link DataQueryParams}.
-     */
-    private DataQueryParams preHandleQuery( DataQueryParams params )
-    {
-        if ( params.hasSingleIndicatorAsDataFilter() || params.hasSingleProgramIndicatorAsDataFilter()
-            || params.hasSingleReportingRateAsDataFilter() )
-        {
-            DimensionalObject dx = params.getFilter( DATA_X_DIM_ID );
-
-            params = newBuilder( params )
-                .addDimension( dx )
-                .removeFilter( DATA_X_DIM_ID )
-                .addProcessingHint(
-                    params.hasSingleIndicatorAsDataFilter() ? SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM
-                        : SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM )
-                .build();
-        }
-
-        return params;
+    if (params.hasOrder() && grid.getIndexOfHeader(VALUE_ID) >= 0) {
+      int orderInt = params.getOrder().equals(ASC) ? -1 : 1;
+      grid.sortGrid(grid.getIndexOfHeader(VALUE_ID) + 1, orderInt);
     }
+  }
 
-    /**
-     * Performs post-handling of the given grid. If the query has the single
-     * indicator as data filter item, the column at the data dimension index is
-     * removed. If the query has sorting order, then the grid is ordered on the
-     * value column based on the sorting specified.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param the {@link Grid}.
-     */
-    private void postHandleGrid( DataQueryParams params, Grid grid )
-    {
-        if ( params.hasProcessingHint( SINGLE_INDICATOR_REPORTING_RATE_FILTER_ITEM )
-            || params.hasProcessingHint( SINGLE_PROGRAM_INDICATOR_REPORTING_RATE_FILTER_ITEM ) )
-        {
-            grid.removeColumn( DX_INDEX );
-        }
+  @PostConstruct
+  void init() {
+    feedHandlers();
+  }
 
-        if ( params.hasOrder() && grid.getIndexOfHeader( VALUE_ID ) >= 0 )
-        {
-            int orderInt = params.getOrder().equals( ASC ) ? -1 : 1;
-            grid.sortGrid( grid.getIndexOfHeader( VALUE_ID ) + 1, orderInt );
-        }
-    }
-
-    @PostConstruct
-    void init()
-    {
-        feedHandlers();
-    }
-
-    public void feedHandlers()
-    {
-        dataHandler.require( this );
-    }
+  public void feedHandlers() {
+    dataHandler.require(this);
+  }
 }

@@ -27,88 +27,78 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
-
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * A {@link ValueTypeOptions} sub class implementing options for a corresponding
- * {@link ValueType}.FILE_RESOURCE or {@link ValueType}.IMAGE
+ * A {@link ValueTypeOptions} sub class implementing options for a corresponding {@link
+ * ValueType}.FILE_RESOURCE or {@link ValueType}.IMAGE
  *
- * <p>
- * This object is saved as a jsonb column and can be used to validate that a
- * FileResource has the wanted properties.
+ * <p>This object is saved as a jsonb column and can be used to validate that a FileResource has the
+ * wanted properties.
  *
- * <p>
- * This class is used in the
- * {@link org.hisp.dhis.system.util.ValidationUtils#validateFileResource }
- * method.
+ * <p>This class is used in the {@link
+ * org.hisp.dhis.system.util.ValidationUtils#validateFileResource } method.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  * @see ValueTypeOptions
  * @see ValueType
  */
-public class FileTypeValueOptions extends ValueTypeOptions implements Serializable
-{
-    private static final long serialVersionUID = 1L;
+public class FileTypeValueOptions extends ValueTypeOptions implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-    private long version = serialVersionUID;
+  private long version = serialVersionUID;
 
-    private long maxFileSize = 0;
+  private long maxFileSize = 0;
 
-    private Set<String> allowedContentTypes = Collections.emptySet();
+  private Set<String> allowedContentTypes = Collections.emptySet();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.NUMBER, required = Property.Value.FALSE )
-    public long getMaxFileSize()
-    {
-        return maxFileSize;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.NUMBER, required = Property.Value.FALSE)
+  public long getMaxFileSize() {
+    return maxFileSize;
+  }
 
-    public void setMaxFileSize( long maxFileSize )
-    {
-        this.maxFileSize = maxFileSize;
-    }
+  public void setMaxFileSize(long maxFileSize) {
+    this.maxFileSize = maxFileSize;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getAllowedContentTypes()
-    {
-        return allowedContentTypes;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Set<String> getAllowedContentTypes() {
+    return allowedContentTypes;
+  }
 
-    public void setAllowedContentTypes( Set<String> allowedContentTypes )
-    {
-        this.allowedContentTypes = allowedContentTypes;
-    }
+  public void setAllowedContentTypes(Set<String> allowedContentTypes) {
+    this.allowedContentTypes = allowedContentTypes;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.NUMBER, required = Property.Value.FALSE )
-    public long getVersion()
-    {
-        return version;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.NUMBER, required = Property.Value.FALSE)
+  public long getVersion() {
+    return version;
+  }
 
-    public void setVersion( long version )
-    {
-        this.version = version;
-    }
+  public void setVersion(long version) {
+    this.version = version;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "FileTypeValueOptions{" +
-            "version=" + version +
-            ", maxFileSize=" + maxFileSize +
-            ", allowedContentTypes=" + allowedContentTypes +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "FileTypeValueOptions{"
+        + "version="
+        + version
+        + ", maxFileSize="
+        + maxFileSize
+        + ", allowedContentTypes="
+        + allowedContentTypes
+        + '}';
+  }
 }

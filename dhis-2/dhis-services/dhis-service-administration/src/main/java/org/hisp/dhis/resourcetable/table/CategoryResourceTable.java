@@ -29,129 +29,142 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-public class CategoryResourceTable
-    extends ResourceTable<Category>
-{
-    private final List<CategoryOptionGroupSet> groupSets;
+public class CategoryResourceTable extends ResourceTable<Category> {
+  private final List<CategoryOptionGroupSet> groupSets;
 
-    private final String tableType;
+  private final String tableType;
 
-    public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets, String tableType )
-    {
-        super( objects );
-        this.groupSets = groupSets;
-        this.tableType = tableType;
+  public CategoryResourceTable(
+      List<Category> objects, List<CategoryOptionGroupSet> groupSets, String tableType) {
+    super(objects);
+    this.groupSets = groupSets;
+    this.tableType = tableType;
+  }
+
+  @Override
+  public ResourceTableType getTableType() {
+    return ResourceTableType.CATEGORY_STRUCTURE;
+  }
+
+  @Override
+  public String getCreateTempTableStatement() {
+    String statement =
+        "create "
+            + tableType
+            + " table "
+            + getTempTableName()
+            + " ("
+            + "categoryoptioncomboid bigint not null, "
+            + "categoryoptioncomboname varchar(255), ";
+
+    UniqueNameContext nameContext = new UniqueNameContext();
+
+    for (Category category : objects) {
+      statement += quote(nameContext.uniqueName(category.getShortName())) + " varchar(230), ";
+      statement += quote(category.getUid()) + " character(11), ";
     }
 
-    @Override
-    public ResourceTableType getTableType()
-    {
-        return ResourceTableType.CATEGORY_STRUCTURE;
+    for (CategoryOptionGroupSet groupSet : groupSets) {
+      statement += quote(nameContext.uniqueName(groupSet.getShortName())) + " varchar(230), ";
+      statement += quote(groupSet.getUid()) + " character(11), ";
     }
 
-    @Override
-    public String getCreateTempTableStatement()
-    {
-        String statement = "create " + tableType + " table " + getTempTableName() + " (" +
-            "categoryoptioncomboid bigint not null, " +
-            "categoryoptioncomboname varchar(255), ";
+    statement += "primary key (categoryoptioncomboid))";
 
-        UniqueNameContext nameContext = new UniqueNameContext();
+    return statement;
+  }
 
-        for ( Category category : objects )
-        {
-            statement += quote( nameContext.uniqueName( category.getShortName() ) ) + " varchar(230), ";
-            statement += quote( category.getUid() ) + " character(11), ";
-        }
+  @Override
+  public Optional<String> getPopulateTempTableStatement() {
+    String sql =
+        "insert into "
+            + getTempTableName()
+            + " "
+            + "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
 
-        for ( CategoryOptionGroupSet groupSet : groupSets )
-        {
-            statement += quote( nameContext.uniqueName( groupSet.getShortName() ) ) + " varchar(230), ";
-            statement += quote( groupSet.getUid() ) + " character(11), ";
-        }
+    for (Category category : objects) {
+      sql +=
+          "("
+              + "select co.name from categoryoptioncombos_categoryoptions cocco "
+              + "inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid "
+              + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
+              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
+              + "and cco.categoryid = "
+              + category.getId()
+              + " "
+              + "limit 1) as "
+              + quote(category.getName())
+              + ", ";
 
-        statement += "primary key (categoryoptioncomboid))";
-
-        return statement;
+      sql +=
+          "("
+              + "select co.uid from categoryoptioncombos_categoryoptions cocco "
+              + "inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid "
+              + "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid "
+              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
+              + "and cco.categoryid = "
+              + category.getId()
+              + " "
+              + "limit 1) as "
+              + quote(category.getUid())
+              + ", ";
     }
 
-    @Override
-    public Optional<String> getPopulateTempTableStatement()
-    {
-        String sql = "insert into " + getTempTableName() + " " +
-            "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
+    for (CategoryOptionGroupSet groupSet : groupSets) {
+      sql +=
+          "("
+              + "select cog.name from categoryoptioncombos_categoryoptions cocco "
+              + "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid "
+              + "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid "
+              + "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
+              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
+              + "and cogsm.categoryoptiongroupsetid = "
+              + groupSet.getId()
+              + " "
+              + "limit 1) as "
+              + quote(groupSet.getName())
+              + ", ";
 
-        for ( Category category : objects )
-        {
-            sql += "(" +
-                "select co.name from categoryoptioncombos_categoryoptions cocco " +
-                "inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid " +
-                "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid " +
-                "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
-                "and cco.categoryid = " + category.getId() + " " +
-                "limit 1) as " + quote( category.getName() ) + ", ";
-
-            sql += "(" +
-                "select co.uid from categoryoptioncombos_categoryoptions cocco " +
-                "inner join dataelementcategoryoption co on cocco.categoryoptionid = co.categoryoptionid " +
-                "inner join categories_categoryoptions cco on co.categoryoptionid = cco.categoryoptionid " +
-                "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
-                "and cco.categoryid = " + category.getId() + " " +
-                "limit 1) as " + quote( category.getUid() ) + ", ";
-        }
-
-        for ( CategoryOptionGroupSet groupSet : groupSets )
-        {
-            sql += "(" +
-                "select cog.name from categoryoptioncombos_categoryoptions cocco " +
-                "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
-                "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-                +
-                "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
-                "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
-                "limit 1) as " + quote( groupSet.getName() ) + ", ";
-
-            sql += "(" +
-                "select cog.uid from categoryoptioncombos_categoryoptions cocco " +
-                "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
-                "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-                "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
-                +
-                "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
-                "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
-                "limit 1) as " + quote( groupSet.getUid() ) + ", ";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + " ";
-        sql += "from categoryoptioncombo coc ";
-
-        return Optional.of( sql );
+      sql +=
+          "("
+              + "select cog.uid from categoryoptioncombos_categoryoptions cocco "
+              + "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid "
+              + "inner join categoryoptiongroup cog on cogm.categoryoptiongroupid = cog.categoryoptiongroupid "
+              + "inner join categoryoptiongroupsetmembers cogsm on cogm.categoryoptiongroupid = cogsm.categoryoptiongroupid "
+              + "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
+              + "and cogsm.categoryoptiongroupsetid = "
+              + groupSet.getId()
+              + " "
+              + "limit 1) as "
+              + quote(groupSet.getUid())
+              + ", ";
     }
 
-    @Override
-    public Optional<List<Object[]>> getPopulateTempTableContent()
-    {
-        return Optional.empty();
-    }
+    sql = TextUtils.removeLastComma(sql) + " ";
+    sql += "from categoryoptioncombo coc ";
 
-    @Override
-    public List<String> getCreateIndexStatements()
-    {
-        return Lists.newArrayList();
-    }
+    return Optional.of(sql);
+  }
+
+  @Override
+  public Optional<List<Object[]>> getPopulateTempTableContent() {
+    return Optional.empty();
+  }
+
+  @Override
+  public List<String> getCreateIndexStatements() {
+    return Lists.newArrayList();
+  }
 }

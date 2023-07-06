@@ -30,9 +30,7 @@ package org.hisp.dhis.relationship;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -45,68 +43,56 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class RelationshipDeletionHandler extends DeletionHandler
-{
-    private static final DeletionVeto VETO = new DeletionVeto( Relationship.class );
+public class RelationshipDeletionHandler extends DeletionHandler {
+  private static final DeletionVeto VETO = new DeletionVeto(Relationship.class);
 
-    private final RelationshipService relationshipService;
+  private final RelationshipService relationshipService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
+  @Override
+  protected void register() {
+    whenDeleting(TrackedEntityInstance.class, this::deleteTrackedEntityInstance);
+    whenDeleting(ProgramStageInstance.class, this::deleteProgramStageInstance);
+    whenDeleting(ProgramInstance.class, this::deleteProgramInstance);
+    whenVetoing(RelationshipType.class, this::allowDeleteRelationshipType);
+  }
+
+  private void deleteTrackedEntityInstance(TrackedEntityInstance entityInstance) {
+    Collection<Relationship> relationships =
+        relationshipService.getRelationshipsByTrackedEntityInstance(entityInstance, false);
+
+    if (relationships != null) {
+      for (Relationship relationship : relationships) {
+        relationshipService.deleteRelationship(relationship);
+      }
     }
+  }
 
-    private void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
-    {
-        Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByTrackedEntityInstance( entityInstance, false );
+  private void deleteProgramStageInstance(ProgramStageInstance programStageInstance) {
+    Collection<Relationship> relationships =
+        relationshipService.getRelationshipsByProgramStageInstance(programStageInstance, false);
 
-        if ( relationships != null )
-        {
-            for ( Relationship relationship : relationships )
-            {
-                relationshipService.deleteRelationship( relationship );
-            }
-        }
+    if (relationships != null) {
+      for (Relationship relationship : relationships) {
+        relationshipService.deleteRelationship(relationship);
+      }
     }
+  }
 
-    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
-    {
-        Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByProgramStageInstance( programStageInstance, false );
+  private void deleteProgramInstance(ProgramInstance programInstance) {
+    Collection<Relationship> relationships =
+        relationshipService.getRelationshipsByProgramInstance(programInstance, false);
 
-        if ( relationships != null )
-        {
-            for ( Relationship relationship : relationships )
-            {
-                relationshipService.deleteRelationship( relationship );
-            }
-        }
+    if (relationships != null) {
+      for (Relationship relationship : relationships) {
+        relationshipService.deleteRelationship(relationship);
+      }
     }
+  }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
-    {
-        Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByProgramInstance( programInstance, false );
+  private DeletionVeto allowDeleteRelationshipType(RelationshipType relationshipType) {
+    Collection<Relationship> relationships =
+        relationshipService.getRelationshipsByRelationshipType(relationshipType);
 
-        if ( relationships != null )
-        {
-            for ( Relationship relationship : relationships )
-            {
-                relationshipService.deleteRelationship( relationship );
-            }
-        }
-    }
-
-    private DeletionVeto allowDeleteRelationshipType( RelationshipType relationshipType )
-    {
-        Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByRelationshipType( relationshipType );
-
-        return relationships.isEmpty() ? ACCEPT : VETO;
-    }
+    return relationships.isEmpty() ? ACCEPT : VETO;
+  }
 }

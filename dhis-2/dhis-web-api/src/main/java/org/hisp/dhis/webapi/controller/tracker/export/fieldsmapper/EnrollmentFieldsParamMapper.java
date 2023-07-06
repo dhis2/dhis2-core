@@ -34,9 +34,7 @@ import static org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.Fields
 
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -46,34 +44,32 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class EnrollmentFieldsParamMapper
-{
-    private final FieldFilterService fieldFilterService;
+public class EnrollmentFieldsParamMapper {
+  private final FieldFilterService fieldFilterService;
 
-    public EnrollmentParams map( List<FieldPath> fields )
-    {
-        Map<String, FieldPath> roots = rootFields( fields );
-        EnrollmentParams params = initUsingAllOrNoFields( roots );
-        params = params.withIncludeRelationships(
-            fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_RELATIONSHIPS ) );
-        params = params
-            .withIncludeEvents( fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_EVENTS ) );
-        params = params
-            .withIncludeAttributes( fieldFilterService.filterIncludes( Enrollment.class, fields, FIELD_ATTRIBUTES ) );
-        return params;
-    }
+  public EnrollmentParams map(List<FieldPath> fields) {
+    Map<String, FieldPath> roots = rootFields(fields);
+    EnrollmentParams params = initUsingAllOrNoFields(roots);
+    params =
+        params.withIncludeRelationships(
+            fieldFilterService.filterIncludes(Enrollment.class, fields, FIELD_RELATIONSHIPS));
+    params =
+        params.withIncludeEvents(
+            fieldFilterService.filterIncludes(Enrollment.class, fields, FIELD_EVENTS));
+    params =
+        params.withIncludeAttributes(
+            fieldFilterService.filterIncludes(Enrollment.class, fields, FIELD_ATTRIBUTES));
+    return params;
+  }
 
-    private static EnrollmentParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
-    {
-        EnrollmentParams params = EnrollmentParams.FALSE;
-        if ( roots.containsKey( FieldPreset.ALL ) )
-        {
-            FieldPath p = roots.get( FieldPreset.ALL );
-            if ( p.isRoot() && !p.isExclude() )
-            {
-                params = EnrollmentParams.TRUE;
-            }
-        }
-        return params;
+  private static EnrollmentParams initUsingAllOrNoFields(Map<String, FieldPath> roots) {
+    EnrollmentParams params = EnrollmentParams.FALSE;
+    if (roots.containsKey(FieldPreset.ALL)) {
+      FieldPath p = roots.get(FieldPreset.ALL);
+      if (p.isRoot() && !p.isExclude()) {
+        params = EnrollmentParams.TRUE;
+      }
     }
+    return params;
+  }
 }

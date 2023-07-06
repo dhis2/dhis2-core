@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
@@ -49,119 +48,117 @@ import org.hisp.dhis.system.deletion.DeletionVeto;
 /**
  * @author Lars Helge Overland
  */
-public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnalyticalObject, S extends AnalyticalObjectService<T>>
-    extends DeletionHandler
-{
+public abstract class GenericAnalyticalObjectDeletionHandler<
+        T extends BaseAnalyticalObject, S extends AnalyticalObjectService<T>>
+    extends DeletionHandler {
 
-    protected final DeletionVeto veto;
+  protected final DeletionVeto veto;
 
-    protected final S service;
+  protected final S service;
 
-    protected GenericAnalyticalObjectDeletionHandler( DeletionVeto veto, S service )
-    {
-        this.veto = veto;
-        this.service = service;
+  protected GenericAnalyticalObjectDeletionHandler(DeletionVeto veto, S service) {
+    this.veto = veto;
+    this.service = service;
+  }
+
+  protected final void deleteIndicator(Indicator indicator) {
+    removeItem(
+        service.getAnalyticalObjects(indicator),
+        indicator,
+        AnalyticalObject::removeDataDimensionItem);
+  }
+
+  protected final void deleteDataElement(DataElement dataElement) {
+    removeItem(
+        service.getAnalyticalObjects(dataElement),
+        dataElement,
+        AnalyticalObject::removeDataDimensionItem);
+  }
+
+  protected final void deleteDataSet(DataSet dataSet) {
+    removeItem(
+        service.getAnalyticalObjects(dataSet), dataSet, AnalyticalObject::removeDataDimensionItem);
+  }
+
+  protected final void deleteProgramIndicator(ProgramIndicator programIndicator) {
+    removeItem(
+        service.getAnalyticalObjects(programIndicator),
+        programIndicator,
+        AnalyticalObject::removeDataDimensionItem);
+  }
+
+  protected final void deletePeriod(Period period) {
+    removeItem(
+        service.getAnalyticalObjects(period), period, (ao, di) -> ao.getPeriods().remove(di));
+  }
+
+  protected final DeletionVeto allowDeletePeriod(Period period) {
+    List<T> analyticalObjects = service.getAnalyticalObjects(period);
+
+    for (T analyticalObject : analyticalObjects) {
+      if (analyticalObject.getPeriods().contains(period)) {
+        return veto;
+      }
     }
 
-    protected final void deleteIndicator( Indicator indicator )
-    {
-        removeItem( service.getAnalyticalObjects( indicator ), indicator,
-            AnalyticalObject::removeDataDimensionItem );
+    return ACCEPT;
+  }
+
+  protected final void deleteOrganisationUnit(OrganisationUnit organisationUnit) {
+    removeItem(
+        service.getAnalyticalObjects(organisationUnit),
+        organisationUnit,
+        (ao, di) -> ao.getOrganisationUnits().remove(di));
+  }
+
+  protected final void deleteOrganisationUnitGroup(OrganisationUnitGroup organisationUnitGroup) {
+    removeItem(
+        service.getAnalyticalObjects(organisationUnitGroup),
+        organisationUnitGroup,
+        (ao, di) -> {
+          List<OrganisationUnitGroupSetDimension> dimensionsToDelete =
+              ao.getOrganisationUnitGroupSetDimensions().stream()
+                  .filter(Objects::nonNull)
+                  .filter(ogsd -> ogsd.getItems().contains(organisationUnitGroup))
+                  .collect(Collectors.toList());
+          ao.getOrganisationUnitGroupSetDimensions().removeAll(dimensionsToDelete);
+        });
+  }
+
+  protected final void deleteOrganisationUnitGroupSet(
+      OrganisationUnitGroupSet organisationUnitGroupSet) {
+    removeDimensionalItem(
+        service.getAnalyticalObjects(organisationUnitGroupSet),
+        organisationUnitGroupSet,
+        (ao, di) -> {
+          List<OrganisationUnitGroupSetDimension> dimensionsToDelete =
+              ao.getOrganisationUnitGroupSetDimensions().stream()
+                  .filter(Objects::nonNull)
+                  .filter(ogsd -> ogsd.getDimension().equals(organisationUnitGroupSet))
+                  .collect(Collectors.toList());
+          ao.getOrganisationUnitGroupSetDimensions().removeAll(dimensionsToDelete);
+        });
+  }
+
+  private void removeItem(
+      List<T> analyticalObjects,
+      DimensionalItemObject itemObject,
+      BiConsumer<BaseAnalyticalObject, DimensionalItemObject> updateOperation) {
+    for (T analyticalObject : analyticalObjects) {
+      updateOperation.accept(analyticalObject, itemObject);
+
+      service.update(analyticalObject);
     }
+  }
 
-    protected final void deleteDataElement( DataElement dataElement )
-    {
-        removeItem( service.getAnalyticalObjects( dataElement ), dataElement,
-            AnalyticalObject::removeDataDimensionItem );
+  private void removeDimensionalItem(
+      List<T> analyticalObjects,
+      DimensionalObject itemObject,
+      BiConsumer<BaseAnalyticalObject, DimensionalObject> updateOperation) {
+    for (T analyticalObject : analyticalObjects) {
+      updateOperation.accept(analyticalObject, itemObject);
+
+      service.update(analyticalObject);
     }
-
-    protected final void deleteDataSet( DataSet dataSet )
-    {
-        removeItem( service.getAnalyticalObjects( dataSet ), dataSet,
-            AnalyticalObject::removeDataDimensionItem );
-    }
-
-    protected final void deleteProgramIndicator( ProgramIndicator programIndicator )
-    {
-        removeItem( service.getAnalyticalObjects( programIndicator ), programIndicator,
-            AnalyticalObject::removeDataDimensionItem );
-    }
-
-    protected final void deletePeriod( Period period )
-    {
-        removeItem( service.getAnalyticalObjects( period ), period,
-            ( ao, di ) -> ao.getPeriods().remove( di ) );
-    }
-
-    protected final DeletionVeto allowDeletePeriod( Period period )
-    {
-        List<T> analyticalObjects = service.getAnalyticalObjects( period );
-
-        for ( T analyticalObject : analyticalObjects )
-        {
-            if ( analyticalObject.getPeriods().contains( period ) )
-            {
-                return veto;
-            }
-        }
-
-        return ACCEPT;
-    }
-
-    protected final void deleteOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        removeItem( service.getAnalyticalObjects( organisationUnit ), organisationUnit,
-            ( ao, di ) -> ao.getOrganisationUnits().remove( di ) );
-    }
-
-    protected final void deleteOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
-    {
-        removeItem( service.getAnalyticalObjects( organisationUnitGroup ), organisationUnitGroup,
-            ( ao, di ) -> {
-                List<OrganisationUnitGroupSetDimension> dimensionsToDelete = ao.getOrganisationUnitGroupSetDimensions()
-                    .stream()
-                    .filter( Objects::nonNull )
-                    .filter( ogsd -> ogsd.getItems().contains( organisationUnitGroup ) )
-                    .collect( Collectors.toList() );
-                ao.getOrganisationUnitGroupSetDimensions().removeAll( dimensionsToDelete );
-            } );
-    }
-
-    protected final void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
-    {
-        removeDimensionalItem( service.getAnalyticalObjects( organisationUnitGroupSet ),
-            organisationUnitGroupSet,
-            ( ao, di ) -> {
-                List<OrganisationUnitGroupSetDimension> dimensionsToDelete = ao.getOrganisationUnitGroupSetDimensions()
-                    .stream()
-                    .filter( Objects::nonNull )
-                    .filter( ogsd -> ogsd.getDimension().equals( organisationUnitGroupSet ) )
-                    .collect( Collectors.toList() );
-                ao.getOrganisationUnitGroupSetDimensions().removeAll( dimensionsToDelete );
-            } );
-    }
-
-    private void removeItem( List<T> analyticalObjects,
-        DimensionalItemObject itemObject,
-        BiConsumer<BaseAnalyticalObject, DimensionalItemObject> updateOperation )
-    {
-        for ( T analyticalObject : analyticalObjects )
-        {
-            updateOperation.accept( analyticalObject, itemObject );
-
-            service.update( analyticalObject );
-        }
-    }
-
-    private void removeDimensionalItem( List<T> analyticalObjects,
-        DimensionalObject itemObject,
-        BiConsumer<BaseAnalyticalObject, DimensionalObject> updateOperation )
-    {
-        for ( T analyticalObject : analyticalObjects )
-        {
-            updateOperation.accept( analyticalObject, itemObject );
-
-            service.update( analyticalObject );
-        }
-    }
+  }
 }

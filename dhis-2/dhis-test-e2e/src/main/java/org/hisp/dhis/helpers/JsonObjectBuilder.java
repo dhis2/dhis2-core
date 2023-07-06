@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.helpers;
 
-import java.util.List;
-
-import org.hisp.dhis.Constants;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jayway.jsonpath.Configuration;
@@ -38,214 +34,190 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import java.util.List;
+import org.hisp.dhis.Constants;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class JsonObjectBuilder
-{
-    private JsonObject jsonObject;
+public class JsonObjectBuilder {
+  private JsonObject jsonObject;
 
-    private Configuration jsonPathConfiguration = Configuration.builder().jsonProvider( new GsonJsonProvider() )
-        .options( Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS, Option.DEFAULT_PATH_LEAF_TO_NULL ).build();
+  private Configuration jsonPathConfiguration =
+      Configuration.builder()
+          .jsonProvider(new GsonJsonProvider())
+          .options(
+              Option.ALWAYS_RETURN_LIST,
+              Option.SUPPRESS_EXCEPTIONS,
+              Option.DEFAULT_PATH_LEAF_TO_NULL)
+          .build();
 
-    public JsonObjectBuilder()
-    {
-        jsonObject = new JsonObject();
+  public JsonObjectBuilder() {
+    jsonObject = new JsonObject();
+  }
+
+  public JsonObjectBuilder(JsonObject jsonObject) {
+    this.jsonObject = jsonObject;
+  }
+
+  public static JsonObjectBuilder jsonObject() {
+    return new JsonObjectBuilder();
+  }
+
+  public static JsonObjectBuilder jsonObject(JsonObject jsonObject) {
+    return new JsonObjectBuilder(jsonObject);
+  }
+
+  public JsonObjectBuilder addPropertyByJsonPath(String path, String value) {
+    JsonPath.using(jsonPathConfiguration).parse(jsonObject).set(path, value);
+
+    return this;
+  }
+
+  /**
+   * Adds additional property to the path.
+   *
+   * @param path eg "events[0]
+   * @param propertyName eg "event"
+   * @param value
+   * @return
+   */
+  public JsonObjectBuilder addPropertyByJsonPath(String path, String propertyName, String value) {
+    JsonPath.using(jsonPathConfiguration).parse(jsonObject).put(path, propertyName, value);
+
+    return this;
+  }
+
+  public JsonObjectBuilder addObjectByJsonPath(String path, Object obj) {
+    JsonPath.using(jsonPathConfiguration).parse(jsonObject).set(path, obj);
+
+    return this;
+  }
+
+  public JsonObjectBuilder addObjectByJsonPath(String path, String key, Object obj) {
+    JsonPath.using(jsonPathConfiguration).parse(jsonObject).put(path, key, obj);
+
+    return this;
+  }
+
+  public JsonObjectBuilder addProperty(String property, String value) {
+    jsonObject.addProperty(property, value);
+
+    return this;
+  }
+
+  public JsonObjectBuilder addArray(String name, List<String> array) {
+    JsonArray jsonArray = new JsonArray();
+    array.forEach(jsonArray::add);
+
+    return addArray(name, jsonArray);
+  }
+
+  public JsonObjectBuilder addArray(String name, JsonArray array) {
+    jsonObject.add(name, array);
+
+    return this;
+  }
+
+  public JsonObjectBuilder addObject(String property, JsonObjectBuilder obj) {
+    jsonObject.add(property, obj.build());
+
+    return this;
+  }
+
+  public JsonObjectBuilder addObject(String property, JsonObject obj) {
+    jsonObject.add(property, obj);
+
+    return this;
+  }
+
+  public JsonObjectBuilder addArray(String property, JsonObject... objects) {
+    JsonArray array = new JsonArray();
+    for (int i = 0; i < objects.length; i++) {
+      array.add(objects[i]);
     }
 
-    public JsonObjectBuilder( JsonObject jsonObject )
-    {
-        this.jsonObject = jsonObject;
+    jsonObject.add(property, array);
+
+    return this;
+  }
+
+  public JsonObjectBuilder addArrayByJsonPath(
+      String path, String arrayName, JsonObject... objects) {
+    JsonObject object = new JsonObjectBuilder().addArray(arrayName, objects).build();
+
+    JsonPath.using(jsonPathConfiguration)
+        .parse(jsonObject)
+        .put(path, arrayName, object.getAsJsonArray(arrayName));
+
+    return this;
+  }
+
+  public JsonObjectBuilder addOrAppendToArrayByJsonPath(
+      String path, String arrayName, JsonObject... objects) {
+    DocumentContext context = JsonPath.using(jsonPathConfiguration).parse(jsonObject);
+
+    if (!context.read(path + "." + arrayName).toString().contains("null")) {
+      for (JsonObject obj : objects) {
+        context.add(path + "." + arrayName, obj);
+      }
+    } else {
+      this.addArrayByJsonPath(path, arrayName, objects).build();
     }
 
-    public static JsonObjectBuilder jsonObject()
-    {
-        return new JsonObjectBuilder();
+    return this;
+  }
+
+  public JsonObjectBuilder addOrAppendToArray(String property, JsonObject... objects) {
+    if (jsonObject.has(property)) {
+      for (int i = 0; i < objects.length; i++) {
+        jsonObject.getAsJsonArray(property).add(objects[i]);
+      }
+    } else {
+      addArray(property, objects);
     }
 
-    public static JsonObjectBuilder jsonObject( JsonObject jsonObject )
-    {
-        return new JsonObjectBuilder( jsonObject );
-    }
+    return this;
+  }
 
-    public JsonObjectBuilder addPropertyByJsonPath( String path, String value )
-    {
-        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).set( path, value );
+  public JsonObjectBuilder addUserGroupAccess() {
+    JsonArray userGroupAccesses = new JsonArray();
 
-        return this;
-    }
-
-    /**
-     * Adds additional property to the path.
-     *
-     * @param path eg "events[0]
-     * @param propertyName eg "event"
-     * @param value
-     * @return
-     */
-    public JsonObjectBuilder addPropertyByJsonPath( String path, String propertyName, String value )
-    {
-        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).put( path, propertyName, value );
-
-        return this;
-    }
-
-    public JsonObjectBuilder addObjectByJsonPath( String path, Object obj )
-    {
-        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).set( path, obj );
-
-        return this;
-
-    }
-
-    public JsonObjectBuilder addObjectByJsonPath( String path, String key, Object obj )
-    {
-        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).put( path, key, obj );
-
-        return this;
-    }
-
-    public JsonObjectBuilder addProperty( String property, String value )
-    {
-        jsonObject.addProperty( property, value );
-
-        return this;
-    }
-
-    public JsonObjectBuilder addArray( String name, List<String> array )
-    {
-        JsonArray jsonArray = new JsonArray();
-        array.forEach( jsonArray::add );
-
-        return addArray( name, jsonArray );
-    }
-
-    public JsonObjectBuilder addArray( String name, JsonArray array )
-    {
-        jsonObject.add( name, array );
-
-        return this;
-    }
-
-    public JsonObjectBuilder addObject( String property, JsonObjectBuilder obj )
-    {
-        jsonObject.add( property, obj.build() );
-
-        return this;
-    }
-
-    public JsonObjectBuilder addObject( String property, JsonObject obj )
-    {
-        jsonObject.add( property, obj );
-
-        return this;
-    }
-
-    public JsonObjectBuilder addArray( String property, JsonObject... objects )
-    {
-        JsonArray array = new JsonArray();
-        for ( int i = 0; i < objects.length; i++ )
-        {
-            array.add( objects[i] );
-        }
-
-        jsonObject.add( property, array );
-
-        return this;
-    }
-
-    public JsonObjectBuilder addArrayByJsonPath( String path, String arrayName, JsonObject... objects )
-    {
-        JsonObject object = new JsonObjectBuilder()
-            .addArray( arrayName, objects )
+    JsonObject userGroupAccess =
+        JsonObjectBuilder.jsonObject()
+            .addProperty("access", "rwrw----")
+            .addProperty("userGroupId", Constants.USER_GROUP_ID)
+            .addProperty("id", Constants.USER_GROUP_ID)
             .build();
 
-        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).put( path, arrayName,
-            object.getAsJsonArray( arrayName ) );
+    userGroupAccesses.add(userGroupAccess);
 
-        return this;
-    }
+    jsonObject.add("userGroupAccesses", userGroupAccesses);
 
-    public JsonObjectBuilder addOrAppendToArrayByJsonPath( String path, String arrayName, JsonObject... objects )
-    {
-        DocumentContext context = JsonPath.using( jsonPathConfiguration ).parse( jsonObject );
+    return this;
+  }
 
-        if ( !context.read( path + "." + arrayName ).toString().contains( "null" ) )
-        {
-            for ( JsonObject obj : objects )
-            {
-                context.add( path + "." + arrayName, obj );
-            }
-        }
-        else
-        {
-            this.addArrayByJsonPath( path, arrayName, objects )
-                .build();
-        }
+  public JsonObject wrapIntoArray(String arrayName) {
+    JsonArray array = new JsonArray();
 
-        return this;
-    }
+    JsonObject newObj = new JsonObject();
 
-    public JsonObjectBuilder addOrAppendToArray( String property, JsonObject... objects )
-    {
-        if ( jsonObject.has( property ) )
-        {
-            for ( int i = 0; i < objects.length; i++ )
-            {
-                jsonObject.getAsJsonArray( property ).add( objects[i] );
-            }
-        }
+    array.add(jsonObject);
 
-        else
-        {
-            addArray( property, objects );
-        }
+    newObj.add(arrayName, array);
 
-        return this;
-    }
+    return newObj;
+  }
 
-    public JsonObjectBuilder addUserGroupAccess()
-    {
-        JsonArray userGroupAccesses = new JsonArray();
+  public JsonArray wrapIntoArray() {
+    JsonArray array = new JsonArray();
 
-        JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
-            .addProperty( "access", "rwrw----" )
-            .addProperty( "userGroupId", Constants.USER_GROUP_ID )
-            .addProperty( "id", Constants.USER_GROUP_ID )
-            .build();
+    array.add(jsonObject);
 
-        userGroupAccesses.add( userGroupAccess );
+    return array;
+  }
 
-        jsonObject.add( "userGroupAccesses", userGroupAccesses );
-
-        return this;
-    }
-
-    public JsonObject wrapIntoArray( String arrayName )
-    {
-        JsonArray array = new JsonArray();
-
-        JsonObject newObj = new JsonObject();
-
-        array.add( jsonObject );
-
-        newObj.add( arrayName, array );
-
-        return newObj;
-    }
-
-    public JsonArray wrapIntoArray()
-    {
-        JsonArray array = new JsonArray();
-
-        array.add( jsonObject );
-
-        return array;
-    }
-
-    public JsonObject build()
-    {
-        return this.jsonObject;
-    }
+  public JsonObject build() {
+    return this.jsonObject;
+  }
 }

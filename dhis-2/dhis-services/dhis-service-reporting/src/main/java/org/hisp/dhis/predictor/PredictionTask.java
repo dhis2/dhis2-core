@@ -29,44 +29,42 @@ package org.hisp.dhis.predictor;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.SecurityContextRunnable;
 
 /**
  * @author Jim Grace
  */
-public class PredictionTask
-    extends SecurityContextRunnable
-{
-    private final Date startDate;
+public class PredictionTask extends SecurityContextRunnable {
+  private final Date startDate;
 
-    private final Date endDate;
+  private final Date endDate;
 
-    private final List<String> predictors;
+  private final List<String> predictors;
 
-    private final List<String> predictorGroups;
+  private final List<String> predictorGroups;
 
-    private final PredictionService predictionService;
+  private final PredictionService predictionService;
 
-    private final JobProgress progress;
+  private final JobProgress progress;
 
-    public PredictionTask( Date startDate, Date endDate,
-        List<String> predictors, List<String> predictorGroups,
-        PredictionService predictionService, JobProgress progress )
-    {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.predictors = predictors;
-        this.predictorGroups = predictorGroups;
-        this.predictionService = predictionService;
-        this.progress = progress;
-    }
+  public PredictionTask(
+      Date startDate,
+      Date endDate,
+      List<String> predictors,
+      List<String> predictorGroups,
+      PredictionService predictionService,
+      JobProgress progress) {
+    this.startDate = startDate;
+    this.endDate = endDate;
+    this.predictors = predictors;
+    this.predictorGroups = predictorGroups;
+    this.predictionService = predictionService;
+    this.progress = progress;
+  }
 
-    @Override
-    public void call()
-    {
-        predictionService.predictTask( startDate, endDate,
-            predictors, predictorGroups, progress );
-    }
+  @Override
+  public void call() {
+    predictionService.predictTask(startDate, endDate, predictors, predictorGroups, progress);
+  }
 }

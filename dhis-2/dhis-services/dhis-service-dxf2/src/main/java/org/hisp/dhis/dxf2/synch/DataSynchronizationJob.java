@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.synch;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
 import org.hisp.dhis.scheduling.Job;
@@ -45,25 +44,22 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DataSynchronizationJob implements Job
-{
-    private final DataValueSynchronization dataValueSync;
+public class DataSynchronizationJob implements Job {
+  private final DataValueSynchronization dataValueSync;
 
-    private final CompleteDataSetRegistrationSynchronization completenessSync;
+  private final CompleteDataSetRegistrationSynchronization completenessSync;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.DATA_SYNC;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_SYNC;
+  }
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        DataSynchronizationJobParameters params = (DataSynchronizationJobParameters) config
-            .getJobParameters();
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    DataSynchronizationJobParameters params =
+        (DataSynchronizationJobParameters) config.getJobParameters();
 
-        dataValueSync.synchronizeData( params.getPageSize(), progress );
-        completenessSync.synchronizeData( progress );
-    }
+    dataValueSync.synchronizeData(params.getPageSize(), progress);
+    completenessSync.synchronizeData(progress);
+  }
 }

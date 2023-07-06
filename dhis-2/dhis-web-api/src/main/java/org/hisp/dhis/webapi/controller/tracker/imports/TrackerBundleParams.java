@@ -27,23 +27,20 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * Maps the Tracker import payload
@@ -56,34 +53,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonDeserialize( converter = TrackerBundleParamsConverter.class )
-public class TrackerBundleParams
-{
-    /**
-     * Tracked entities to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private final List<TrackedEntity> trackedEntities = new ArrayList<>();
+@JsonDeserialize(converter = TrackerBundleParamsConverter.class)
+public class TrackerBundleParams {
+  /** Tracked entities to import. */
+  @JsonProperty @Builder.Default
+  private final List<TrackedEntity> trackedEntities = new ArrayList<>();
 
-    /**
-     * Enrollments to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private final List<Enrollment> enrollments = new ArrayList<>();
+  /** Enrollments to import. */
+  @JsonProperty @Builder.Default private final List<Enrollment> enrollments = new ArrayList<>();
 
-    /**
-     * Events to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private final List<Event> events = new ArrayList<>();
+  /** Events to import. */
+  @JsonProperty @Builder.Default private final List<Event> events = new ArrayList<>();
 
-    /**
-     * Relationships to import.
-     */
-    @JsonProperty
-    @Builder.Default
-    private final List<Relationship> relationships = new ArrayList<>();
+  /** Relationships to import. */
+  @JsonProperty @Builder.Default private final List<Relationship> relationships = new ArrayList<>();
 }

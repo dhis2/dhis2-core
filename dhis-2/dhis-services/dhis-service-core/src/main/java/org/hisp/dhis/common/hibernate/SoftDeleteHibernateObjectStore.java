@@ -39,21 +39,23 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Enrico Colasante
  */
 public class SoftDeleteHibernateObjectStore<T extends SoftDeletableObject>
-    extends HibernateIdentifiableObjectStore<T>
-{
-    public SoftDeleteHibernateObjectStore( SessionFactory sessionFactory,
-        JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz,
-        CurrentUserService currentUserService, AclService aclService, boolean cacheable )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService,
-            cacheable );
-    }
+    extends HibernateIdentifiableObjectStore<T> {
+  public SoftDeleteHibernateObjectStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      Class<T> clazz,
+      CurrentUserService currentUserService,
+      AclService aclService,
+      boolean cacheable) {
+    super(
+        sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, aclService, cacheable);
+  }
 
-    @Override
-    public void delete( SoftDeletableObject object )
-    {
-        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
-        object.setDeleted( true );
-        getSession().update( object );
-    }
+  @Override
+  public void delete(SoftDeletableObject object) {
+    publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
+    object.setDeleted(true);
+    getSession().update(object);
+  }
 }

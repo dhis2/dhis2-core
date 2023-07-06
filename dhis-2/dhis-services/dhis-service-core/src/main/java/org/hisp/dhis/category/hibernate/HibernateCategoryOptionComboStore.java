@@ -29,7 +29,6 @@ package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
 import java.util.Set;
-
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -50,85 +49,86 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.category.CategoryOptionComboStore" )
+@Repository("org.hisp.dhis.category.CategoryOptionComboStore")
 public class HibernateCategoryOptionComboStore
     extends HibernateIdentifiableObjectStore<CategoryOptionCombo>
-    implements CategoryOptionComboStore
-{
-    private final DbmsManager dbmsManager;
+    implements CategoryOptionComboStore {
+  private final DbmsManager dbmsManager;
 
-    public HibernateCategoryOptionComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, DbmsManager dbmsManager )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionCombo.class, currentUserService, aclService,
-            true );
-        this.dbmsManager = dbmsManager;
+  public HibernateCategoryOptionComboStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService,
+      DbmsManager dbmsManager) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        CategoryOptionCombo.class,
+        currentUserService,
+        aclService,
+        true);
+    this.dbmsManager = dbmsManager;
+  }
+
+  @Override
+  public CategoryOptionCombo getCategoryOptionCombo(
+      CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions) {
+    StringBuilder hql =
+        new StringBuilder("from CategoryOptionCombo co where co.categoryCombo = :categoryCombo");
+
+    for (CategoryOption option : categoryOptions) {
+      hql.append(" and :option");
+      hql.append(option.getId());
+      hql.append(" in elements (co.categoryOptions)");
     }
 
-    @Override
-    public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
-        Set<CategoryOption> categoryOptions )
-    {
-        StringBuilder hql = new StringBuilder( "from CategoryOptionCombo co where co.categoryCombo = :categoryCombo" );
+    Query<CategoryOptionCombo> query = getQuery(hql.toString());
 
-        for ( CategoryOption option : categoryOptions )
-        {
-            hql.append( " and :option" );
-            hql.append( option.getId() );
-            hql.append( " in elements (co.categoryOptions)" );
-        }
+    query.setParameter("categoryCombo", categoryCombo);
 
-        Query<CategoryOptionCombo> query = getQuery( hql.toString() );
-
-        query.setParameter( "categoryCombo", categoryCombo );
-
-        for ( CategoryOption option : categoryOptions )
-        {
-            query.setParameter( "option" + option.getId(), option );
-        }
-
-        CategoryOptionCombo categoryOptionCombo = null;
-        try
-        {
-            categoryOptionCombo = query.uniqueResult();
-        }
-        catch ( NonUniqueResultException e )
-        {
-            // given only a subset of category options multiple
-            // categoryOptionCombos could be found
-            // from the perspective of the clients the categoryOptionCombo has
-            // not been found as only one is expected
-            // (see signature). Return null in that case, as when no result has
-            // been found.
-        }
-        return categoryOptionCombo;
+    for (CategoryOption option : categoryOptions) {
+      query.setParameter("option" + option.getId(), option);
     }
 
-    @Override
-    public void updateNames()
-    {
-        List<CategoryOptionCombo> categoryOptionCombos = getQuery( "from CategoryOptionCombo co where co.name is null" )
-            .list();
-        int counter = 0;
-
-        Session session = getSession();
-
-        for ( CategoryOptionCombo coc : categoryOptionCombos )
-        {
-            session.update( coc );
-
-            if ( (counter % 400) == 0 )
-            {
-                dbmsManager.clearSession();
-            }
-        }
+    CategoryOptionCombo categoryOptionCombo = null;
+    try {
+      categoryOptionCombo = query.uniqueResult();
+    } catch (NonUniqueResultException e) {
+      // given only a subset of category options multiple
+      // categoryOptionCombos could be found
+      // from the perspective of the clients the categoryOptionCombo has
+      // not been found as only one is expected
+      // (see signature). Return null in that case, as when no result has
+      // been found.
     }
+    return categoryOptionCombo;
+  }
 
-    @Override
-    public List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupUid, String dataElementUid )
-    {
-        final String hql = "select coc from DataElement de "
+  @Override
+  public void updateNames() {
+    List<CategoryOptionCombo> categoryOptionCombos =
+        getQuery("from CategoryOptionCombo co where co.name is null").list();
+    int counter = 0;
+
+    Session session = getSession();
+
+    for (CategoryOptionCombo coc : categoryOptionCombos) {
+      session.update(coc);
+
+      if ((counter % 400) == 0) {
+        dbmsManager.clearSession();
+      }
+    }
+  }
+
+  @Override
+  public List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid(
+      String groupUid, String dataElementUid) {
+    final String hql =
+        "select coc from DataElement de "
             + "join de.categoryCombo cc "
             + "join cc.optionCombos coc "
             + "join coc.categoryOptions co "
@@ -136,20 +136,19 @@ public class HibernateCategoryOptionComboStore
             + "where cog.uid = :groupUid "
             + "and de.uid = :dataElementUid";
 
-        return getQuery( hql )
-            .setParameter( "groupUid", groupUid )
-            .setParameter( "dataElementUid", dataElementUid )
-            .list();
-    }
+    return getQuery(hql)
+        .setParameter("groupUid", groupUid)
+        .setParameter("dataElementUid", dataElementUid)
+        .list();
+  }
 
-    @Override
-    public void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo )
-    {
-        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( categoryOptionCombo );
-        event.setShouldRollBack( false );
+  @Override
+  public void deleteNoRollBack(CategoryOptionCombo categoryOptionCombo) {
+    ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent(categoryOptionCombo);
+    event.setShouldRollBack(false);
 
-        publisher.publishEvent( event );
+    publisher.publishEvent(event);
 
-        getSession().delete( categoryOptionCombo );
-    }
+    getSession().delete(categoryOptionCombo);
+  }
 }

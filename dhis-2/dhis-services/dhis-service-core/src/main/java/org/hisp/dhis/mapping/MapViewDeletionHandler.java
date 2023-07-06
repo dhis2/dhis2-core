@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -50,56 +49,48 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class MapViewDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<MapView, MappingService>
-{
-    public MapViewDeletionHandler( MappingService mappingService )
-    {
-        super( new DeletionVeto( MapView.class ), mappingService );
-        checkNotNull( mappingService );
+    extends GenericAnalyticalObjectDeletionHandler<MapView, MappingService> {
+  public MapViewDeletionHandler(MappingService mappingService) {
+    super(new DeletionVeto(MapView.class), mappingService);
+    checkNotNull(mappingService);
+  }
+
+  @Override
+  protected void register() {
+    // generic
+    whenDeleting(Indicator.class, this::deleteIndicator);
+    whenDeleting(DataElement.class, this::deleteDataElement);
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenDeleting(ProgramIndicator.class, this::deleteProgramIndicator);
+    whenDeleting(Period.class, this::deletePeriod);
+    whenVetoing(Period.class, this::allowDeletePeriod);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+    // special
+    whenDeleting(LegendSet.class, this::deleteLegendSet);
+    whenDeleting(OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSetSpecial);
+    whenVetoing(MapView.class, this::allowDeleteMapView);
+  }
+
+  private void deleteLegendSet(LegendSet legendSet) {
+    List<MapView> mapViews = service.getAnalyticalObjects(legendSet);
+
+    for (MapView mapView : mapViews) {
+      mapView.setLegendSet(null);
+      service.update(mapView);
     }
+  }
 
-    @Override
-    protected void register()
-    {
-        // generic
-        whenDeleting( Indicator.class, this::deleteIndicator );
-        whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
-        whenDeleting( Period.class, this::deletePeriod );
-        whenVetoing( Period.class, this::allowDeletePeriod );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-        // special
-        whenDeleting( LegendSet.class, this::deleteLegendSet );
-        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSetSpecial );
-        whenVetoing( MapView.class, this::allowDeleteMapView );
+  public void deleteOrganisationUnitGroupSetSpecial(OrganisationUnitGroupSet groupSet) {
+    List<MapView> mapViews = service.getMapViewsByOrganisationUnitGroupSet(groupSet);
+
+    for (MapView mapView : mapViews) {
+      mapView.setOrganisationUnitGroupSet(null);
+      service.updateMapView(mapView);
     }
+  }
 
-    private void deleteLegendSet( LegendSet legendSet )
-    {
-        List<MapView> mapViews = service.getAnalyticalObjects( legendSet );
-
-        for ( MapView mapView : mapViews )
-        {
-            mapView.setLegendSet( null );
-            service.update( mapView );
-        }
-    }
-
-    public void deleteOrganisationUnitGroupSetSpecial( OrganisationUnitGroupSet groupSet )
-    {
-        List<MapView> mapViews = service.getMapViewsByOrganisationUnitGroupSet( groupSet );
-
-        for ( MapView mapView : mapViews )
-        {
-            mapView.setOrganisationUnitGroupSet( null );
-            service.updateMapView( mapView );
-        }
-    }
-
-    private DeletionVeto allowDeleteMapView( MapView mapView )
-    {
-        return service.countMapViewMaps( mapView ) == 0 ? ACCEPT : veto;
-    }
+  private DeletionVeto allowDeleteMapView(MapView mapView) {
+    return service.countMapViewMaps(mapView) == 0 ? ACCEPT : veto;
+  }
 }

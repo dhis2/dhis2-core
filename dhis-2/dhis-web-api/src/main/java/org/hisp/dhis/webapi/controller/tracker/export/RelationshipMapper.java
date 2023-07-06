@@ -32,13 +32,10 @@ import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    RelationshipItemMapper.class,
-    InstantMapper.class } )
+@Mapper(uses = {RelationshipItemMapper.class, InstantMapper.class})
 interface RelationshipMapper
-    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
-{
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship> {
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  Relationship from(org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship);
 }

@@ -30,9 +30,7 @@ package org.hisp.dhis.startup;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.UUID;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -40,48 +38,40 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 @Slf4j
-public class ConfigurationPopulator
-    extends TransactionContextStartupRoutine
-{
-    private final ConfigurationService configurationService;
+public class ConfigurationPopulator extends TransactionContextStartupRoutine {
+  private final ConfigurationService configurationService;
 
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+  private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    public ConfigurationPopulator( ConfigurationService configurationService,
-        DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        checkNotNull( configurationService );
-        checkNotNull( dhisConfigurationProvider );
+  public ConfigurationPopulator(
+      ConfigurationService configurationService,
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    checkNotNull(configurationService);
+    checkNotNull(dhisConfigurationProvider);
 
-        this.configurationService = configurationService;
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
+    this.configurationService = configurationService;
+    this.dhisConfigurationProvider = dhisConfigurationProvider;
+  }
+
+  @Override
+  public void executeInTransaction() {
+    checkSecurityConfiguration();
+
+    Configuration config = configurationService.getConfiguration();
+
+    if (config != null && config.getSystemId() == null) {
+      config.setSystemId(UUID.randomUUID().toString());
+      configurationService.setConfiguration(config);
     }
+  }
 
-    @Override
-    public void executeInTransaction()
-    {
-        checkSecurityConfiguration();
+  private void checkSecurityConfiguration() {
+    EncryptionStatus status = dhisConfigurationProvider.getEncryptionStatus();
 
-        Configuration config = configurationService.getConfiguration();
-
-        if ( config != null && config.getSystemId() == null )
-        {
-            config.setSystemId( UUID.randomUUID().toString() );
-            configurationService.setConfiguration( config );
-        }
+    if (!status.isOk()) {
+      log.warn("Encryption not configured: " + status.getKey());
+    } else {
+      log.info("Encryption is available");
     }
-
-    private void checkSecurityConfiguration()
-    {
-        EncryptionStatus status = dhisConfigurationProvider.getEncryptionStatus();
-
-        if ( !status.isOk() )
-        {
-            log.warn( "Encryption not configured: " + status.getKey() );
-        }
-        else
-        {
-            log.info( "Encryption is available" );
-        }
-    }
+  }
 }

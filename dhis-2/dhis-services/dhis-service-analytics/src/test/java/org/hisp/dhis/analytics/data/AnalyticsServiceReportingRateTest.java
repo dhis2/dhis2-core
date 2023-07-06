@@ -46,7 +46,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -67,281 +66,304 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
-{
-    @Test
-    void verifyReportingRatesValueWhenPeriodIsFilter()
-    {
-        int timeUnit = 10;
-        double expectedReports = 100D;
+class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest {
+  @Test
+  void verifyReportingRatesValueWhenPeriodIsFilter() {
+    int timeUnit = 10;
+    double expectedReports = 100D;
 
-        DataSet dataSetA = createDataSet( 'A' );
-        ReportingRate reportingRateA = new ReportingRate( dataSetA );
-        reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
-        ReportingRate reportingRateB = new ReportingRate( dataSetA );
-        reportingRateB.setMetric( ReportingRateMetric.ACTUAL_REPORTS );
-        ReportingRate reportingRateC = new ReportingRate( dataSetA );
-        reportingRateC.setMetric( ReportingRateMetric.EXPECTED_REPORTS );
+    DataSet dataSetA = createDataSet('A');
+    ReportingRate reportingRateA = new ReportingRate(dataSetA);
+    reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
+    ReportingRate reportingRateB = new ReportingRate(dataSetA);
+    reportingRateB.setMetric(ReportingRateMetric.ACTUAL_REPORTS);
+    ReportingRate reportingRateC = new ReportingRate(dataSetA);
+    reportingRateC.setMetric(ReportingRateMetric.EXPECTED_REPORTS);
 
-        List<DimensionalItemObject> periods = new ArrayList<>();
+    List<DimensionalItemObject> periods = new ArrayList<>();
 
-        Stream.iterate( 1, i -> i + 1 ).limit( timeUnit ).forEach(
-            x -> periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, x, 1, 0, 0 ).toDate() ) ) );
+    Stream.iterate(1, i -> i + 1)
+        .limit(timeUnit)
+        .forEach(
+            x ->
+                periods.add(
+                    new MonthlyPeriodType().createPeriod(new DateTime(2014, x, 1, 0, 0).toDate())));
 
-        OrganisationUnit ou = new OrganisationUnit( "aaaa" );
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
 
-        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ou)
             // DATA ELEMENTS
-            .withDataElements( newArrayList( reportingRateA, reportingRateB, reportingRateC ) ).withIgnoreLimit( true )
+            .withDataElements(newArrayList(reportingRateA, reportingRateB, reportingRateC))
+            .withIgnoreLimit(true)
             // FILTERS (OU)
             .withFilters(
-                singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+                singletonList(new BaseDimensionalObject("pe", DimensionType.PERIOD, periods)))
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        Map<String, Object> actualReports = new HashMap<>();
-        actualReports.put( dataSetA.getUid() + "-" + ou.getUid(), 500D );
+    Map<String, Object> actualReports = new HashMap<>();
+    actualReports.put(dataSetA.getUid() + "-" + ou.getUid(), 500D);
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actualReports ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(actualReports));
 
-        Map<String, Object> reportingRate = new HashMap<>();
-        reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
+    Map<String, Object> reportingRate = new HashMap<>();
+    reportingRate.put(dataSetA.getUid() + "-" + ou.getUid(), expectedReports);
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS_TARGET), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(reportingRate));
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
+    Grid grid = target.getAggregatedDataValueGrid(params);
 
-        assertEquals( (expectedReports * timeUnit),
-            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.EXPECTED_REPORTS ) ).get(),
-            0 );
-        assertEquals( 50L,
-            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(),
-            0 );
-        assertEquals( 500L,
-            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.ACTUAL_REPORTS ) ).get(),
-            0 );
-    }
+    assertEquals(
+        (expectedReports * timeUnit),
+        (Long)
+            getValueFromGrid(
+                    grid.getRows(), makeKey(dataSetA, ReportingRateMetric.EXPECTED_REPORTS))
+                .get(),
+        0);
+    assertEquals(
+        50L,
+        (Long)
+            getValueFromGrid(grid.getRows(), makeKey(dataSetA, ReportingRateMetric.REPORTING_RATE))
+                .get(),
+        0);
+    assertEquals(
+        500L,
+        (Long)
+            getValueFromGrid(grid.getRows(), makeKey(dataSetA, ReportingRateMetric.ACTUAL_REPORTS))
+                .get(),
+        0);
+  }
 
-    @Test
-    void verifyNullValueIsZeroForReportingRate()
-    {
-        double expectedReports = 100D;
-        DataSet dataSetA = createDataSet( 'A' );
-        ReportingRate reportingRateA = new ReportingRate( dataSetA );
-        reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
+  @Test
+  void verifyNullValueIsZeroForReportingRate() {
+    double expectedReports = 100D;
+    DataSet dataSetA = createDataSet('A');
+    ReportingRate reportingRateA = new ReportingRate(dataSetA);
+    reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() ) );
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate()));
 
-        OrganisationUnit ou = new OrganisationUnit( "aaaa" );
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
 
-        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ou)
             // DATA ELEMENTS
-            .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
+            .withDataElements(newArrayList(reportingRateA))
+            .withIgnoreLimit(true)
             // FILTERS (OU)
             .withFilters(
-                singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+                singletonList(new BaseDimensionalObject("pe", DimensionType.PERIOD, periods)))
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                                                                        // VALUES
-        Map<String, Object> reportingRate = new HashMap<>();
-        reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(null)); // NO
+    // VALUES
+    Map<String, Object> reportingRate = new HashMap<>();
+    reportingRate.put(dataSetA.getUid() + "-" + ou.getUid(), expectedReports);
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS_TARGET), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(reportingRate));
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
+    Grid grid = target.getAggregatedDataValueGrid(params);
 
-        assertEquals( 0,
-            (Long) getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(),
-            0L );
-    }
+    assertEquals(
+        0,
+        (Long)
+            getValueFromGrid(grid.getRows(), makeKey(dataSetA, ReportingRateMetric.REPORTING_RATE))
+                .get(),
+        0L);
+  }
 
-    @Test
-    void verifyNullTargetIsNullForReportingRate()
-    {
-        DataSet dataSetA = createDataSet( 'A' );
-        ReportingRate reportingRateA = new ReportingRate( dataSetA );
-        reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
+  @Test
+  void verifyNullTargetIsNullForReportingRate() {
+    DataSet dataSetA = createDataSet('A');
+    ReportingRate reportingRateA = new ReportingRate(dataSetA);
+    reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() ) );
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate()));
 
-        OrganisationUnit ou = new OrganisationUnit( "aaaa" );
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
 
-        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withOrganisationUnit(ou)
             // DATA ELEMENTS
-            .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
+            .withDataElements(newArrayList(reportingRateA))
+            .withIgnoreLimit(true)
             // FILTERS (OU)
             .withFilters(
-                singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+                singletonList(new BaseDimensionalObject("pe", DimensionType.PERIOD, periods)))
             .build();
 
-        initMock( params );
-        Map<String, Object> actualReports = new HashMap<>();
-        actualReports.put( dataSetA.getUid() + "-" + ou.getUid(), 500D );
+    initMock(params);
+    Map<String, Object> actualReports = new HashMap<>();
+    actualReports.put(dataSetA.getUid() + "-" + ou.getUid(), 500D);
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actualReports ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(actualReports));
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                          // TARGET
-                                                                          // RETURNED
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS_TARGET), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(null)); // NO
+    // TARGET
+    // RETURNED
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
+    Grid grid = target.getAggregatedDataValueGrid(params);
 
-        assertNull( getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) )
-            .orElse( null ) );
-    }
+    assertNull(
+        getValueFromGrid(grid.getRows(), makeKey(dataSetA, ReportingRateMetric.REPORTING_RATE))
+            .orElse(null));
+  }
 
-    @Test
-    void verifyReportingRatesForMonthsWithLessThen30DaysAreComputedCorrectly()
-    {
-        // Create a Dataset with a Daily period type
-        DataSet dataSetA = createDataSet( 'A' );
-        dataSetA.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
+  @Test
+  void verifyReportingRatesForMonthsWithLessThen30DaysAreComputedCorrectly() {
+    // Create a Dataset with a Daily period type
+    DataSet dataSetA = createDataSet('A');
+    dataSetA.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
 
-        ReportingRate reportingRateA = new ReportingRate( dataSetA );
-        reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
+    ReportingRate reportingRateA = new ReportingRate(dataSetA);
+    reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
-        // Set a period for a month with less then 30 days (Feb)
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( PeriodType.getPeriodFromIsoString( "201902" ) );
+    // Set a period for a month with less then 30 days (Feb)
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(PeriodType.getPeriodFromIsoString("201902"));
 
-        OrganisationUnit ou = new OrganisationUnit( "aaaa" );
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
 
-        // Create request
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
-            .withPeriods( periods )
-            .withFilters( singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, singletonList( ou ) ) ) )
+    // Create request
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataElements(newArrayList(reportingRateA))
+            .withIgnoreLimit(true)
+            .withPeriods(periods)
+            .withFilters(
+                singletonList(
+                    new BaseDimensionalObject(
+                        "ou", DimensionType.ORGANISATION_UNIT, singletonList(ou))))
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        // Response for COMPLETENESS_TARGET
-        Map<String, Object> targets = new HashMap<>();
-        targets.put( dataSetA.getUid() + "-" + "201902", 1D );
+    // Response for COMPLETENESS_TARGET
+    Map<String, Object> targets = new HashMap<>();
+    targets.put(dataSetA.getUid() + "-" + "201902", 1D);
 
-        // Response for COMPLETENESS - set the completeness value to the same
-        // number of days of the selected month
-        Map<String, Object> actuals = new HashMap<>();
-        actuals.put( dataSetA.getUid() + "-" + "201902", 28D );
+    // Response for COMPLETENESS - set the completeness value to the same
+    // number of days of the selected month
+    Map<String, Object> actuals = new HashMap<>();
+    actuals.put(dataSetA.getUid() + "-" + "201902", 28D);
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( targets ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS_TARGET), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(targets));
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actuals ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(actuals));
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
-        assertReportingRatesGrid( grid, dataSetA, "201902" );
-    }
+    Grid grid = target.getAggregatedDataValueGrid(params);
+    assertReportingRatesGrid(grid, dataSetA, "201902");
+  }
 
-    @Test
-    void verifyReportingRatesForMonthsWithMoreThen30DaysAreComputedCorrectly()
-    {
-        // Create a Dataset with a Daily period type
-        DataSet dataSetA = createDataSet( 'A' );
-        dataSetA.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
+  @Test
+  void verifyReportingRatesForMonthsWithMoreThen30DaysAreComputedCorrectly() {
+    // Create a Dataset with a Daily period type
+    DataSet dataSetA = createDataSet('A');
+    dataSetA.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
 
-        ReportingRate reportingRateA = new ReportingRate( dataSetA );
-        reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
+    ReportingRate reportingRateA = new ReportingRate(dataSetA);
+    reportingRateA.setMetric(ReportingRateMetric.REPORTING_RATE);
 
-        // Set a period for a month with more then 30 days (Jan)
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( PeriodType.getPeriodFromIsoString( "201901" ) );
+    // Set a period for a month with more then 30 days (Jan)
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(PeriodType.getPeriodFromIsoString("201901"));
 
-        OrganisationUnit ou = new OrganisationUnit( "aaaa" );
+    OrganisationUnit ou = new OrganisationUnit("aaaa");
 
-        // Create request
-        DataQueryParams params = DataQueryParams.newBuilder()
-            .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
-            .withPeriods( periods )
-            .withFilters( singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, singletonList( ou ) ) ) )
+    // Create request
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .withDataElements(newArrayList(reportingRateA))
+            .withIgnoreLimit(true)
+            .withPeriods(periods)
+            .withFilters(
+                singletonList(
+                    new BaseDimensionalObject(
+                        "ou", DimensionType.ORGANISATION_UNIT, singletonList(ou))))
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        // Response for COMPLETENESS_TARGET
-        Map<String, Object> targets = new HashMap<>();
-        targets.put( dataSetA.getUid() + "-" + "201901", 1D );
+    // Response for COMPLETENESS_TARGET
+    Map<String, Object> targets = new HashMap<>();
+    targets.put(dataSetA.getUid() + "-" + "201901", 1D);
 
-        // Response for COMPLETENESS - set the completeness value to the same
-        // number of
-        // days of the selected month
-        Map<String, Object> actuals = new HashMap<>();
-        actuals.put( dataSetA.getUid() + "-" + "201901", 31D );
+    // Response for COMPLETENESS - set the completeness value to the same
+    // number of
+    // days of the selected month
+    Map<String, Object> actuals = new HashMap<>();
+    actuals.put(dataSetA.getUid() + "-" + "201901", 31D);
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( targets ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS_TARGET), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(targets));
 
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actuals ) );
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.COMPLETENESS), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(actuals));
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
-        assertReportingRatesGrid( grid, dataSetA, "201901" );
+    Grid grid = target.getAggregatedDataValueGrid(params);
+    assertReportingRatesGrid(grid, dataSetA, "201901");
+  }
+
+  private void assertReportingRatesGrid(Grid grid, DataSet dataset, String period) {
+    assertThat(grid.getRows(), hasSize(1));
+    assertThat(grid.getRow(0), hasSize(3));
+    assertThat(grid.getHeaders(), hasSize(3));
+
+    assertThat(
+        grid.getRow(0).get(getDimensionIndex(grid.getHeaders(), "dx")),
+        is(dataset.getUid() + ".REPORTING_RATE"));
+    assertThat(grid.getRow(0).get(getDimensionIndex(grid.getHeaders(), "pe")), is(period));
+    assertThat(grid.getRow(0).get(getDimensionIndex(grid.getHeaders(), "value")), is(100L));
+  }
+
+  private int getDimensionIndex(List<GridHeader> headers, String dimension) {
+    int index = 0;
+    for (GridHeader header : headers) {
+      if (header.getName().equals(dimension)) {
+        return index;
+      }
+      index++;
     }
+    return -1;
+  }
 
-    private void assertReportingRatesGrid( Grid grid, DataSet dataset, String period )
-    {
-        assertThat( grid.getRows(), hasSize( 1 ) );
-        assertThat( grid.getRow( 0 ), hasSize( 3 ) );
-        assertThat( grid.getHeaders(), hasSize( 3 ) );
-
-        assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "dx" ) ),
-            is( dataset.getUid() + ".REPORTING_RATE" ) );
-        assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "pe" ) ), is( period ) );
-        assertThat( grid.getRow( 0 ).get( getDimensionIndex( grid.getHeaders(), "value" ) ), is( 100L ) );
+  private Optional<Number> getValueFromGrid(List<List<Object>> rows, String key) {
+    for (List<Object> row : rows) {
+      if (row.get(0).equals(key)) {
+        return Optional.of((Number) row.get(2));
+      }
     }
+    return Optional.empty();
+  }
 
-    private int getDimensionIndex( List<GridHeader> headers, String dimension )
-    {
-        int index = 0;
-        for ( GridHeader header : headers )
-        {
-            if ( header.getName().equals( dimension ) )
-            {
-                return index;
-            }
-            index++;
-        }
-        return -1;
-    }
-
-    private Optional<Number> getValueFromGrid( List<List<Object>> rows, String key )
-    {
-        for ( List<Object> row : rows )
-        {
-            if ( row.get( 0 ).equals( key ) )
-            {
-                return Optional.of( (Number) row.get( 2 ) );
-            }
-        }
-        return Optional.empty();
-    }
-
-    private String makeKey( DataSet dataSet, ReportingRateMetric reportingRateMetric )
-    {
-        return dataSet.getUid() + "." + reportingRateMetric.name();
-    }
+  private String makeKey(DataSet dataSet, ReportingRateMetric reportingRateMetric) {
+    return dataSet.getUid() + "." + reportingRateMetric.name();
+  }
 }

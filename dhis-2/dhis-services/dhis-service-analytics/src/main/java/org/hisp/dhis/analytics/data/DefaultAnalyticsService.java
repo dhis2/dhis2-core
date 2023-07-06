@@ -38,9 +38,7 @@ import static org.hisp.dhis.visualization.Visualization.addListIfEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -63,214 +61,204 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.analytics.AnalyticsService" )
+@Service("org.hisp.dhis.analytics.AnalyticsService")
 @RequiredArgsConstructor
-public class DefaultAnalyticsService
-    implements AnalyticsService
-{
-    private final AnalyticsSecurityManager securityManager;
+public class DefaultAnalyticsService implements AnalyticsService {
+  private final AnalyticsSecurityManager securityManager;
 
-    private final QueryValidator queryValidator;
+  private final QueryValidator queryValidator;
 
-    private final DataQueryService dataQueryService;
+  private final DataQueryService dataQueryService;
 
-    private final AnalyticsCache analyticsCache;
+  private final AnalyticsCache analyticsCache;
 
-    private final DataAggregator dataAggregator;
+  private final DataAggregator dataAggregator;
 
-    // -------------------------------------------------------------------------
-    // AnalyticsService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // AnalyticsService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getAggregatedDataValues( DataQueryParams params )
-    {
-        params = checkSecurityConstraints( params );
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getAggregatedDataValues(DataQueryParams params) {
+    params = checkSecurityConstraints(params);
 
-        queryValidator.validate( params );
+    queryValidator.validate(params);
 
-        if ( analyticsCache.isEnabled() && !params.analyzeOnly() )
-        {
-            final DataQueryParams immutableParams = newBuilder( params ).build();
+    if (analyticsCache.isEnabled() && !params.analyzeOnly()) {
+      final DataQueryParams immutableParams = newBuilder(params).build();
 
-            return analyticsCache.getOrFetch( params,
-                p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
-        }
-
-        return dataAggregator.getAggregatedDataValueGrid( params );
+      return analyticsCache.getOrFetch(
+          params, p -> dataAggregator.getAggregatedDataValueGrid(immutableParams));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
-    {
-        return isTableLayout( columns, rows ) ? getAggregatedDataValuesTableLayout( params, columns, rows )
-            : getAggregatedDataValues( params );
-    }
+    return dataAggregator.getAggregatedDataValueGrid(params);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getAggregatedDataValues( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getAggregatedDataValues(
+      DataQueryParams params, List<String> columns, List<String> rows) {
+    return isTableLayout(columns, rows)
+        ? getAggregatedDataValuesTableLayout(params, columns, rows)
+        : getAggregatedDataValues(params);
+  }
 
-        return getAggregatedDataValues( params );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getAggregatedDataValues(AnalyticalObject object) {
+    DataQueryParams params = dataQueryService.getFromAnalyticalObject(object);
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getRawDataValues( DataQueryParams params )
-    {
-        params = checkSecurityConstraints( params );
+    return getAggregatedDataValues(params);
+  }
 
-        queryValidator.validate( params );
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getRawDataValues(DataQueryParams params) {
+    params = checkSecurityConstraints(params);
 
-        return dataAggregator.getRawDataGrid( params );
-    }
+    queryValidator.validate(params);
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataValueSet getAggregatedDataValueSet( DataQueryParams params )
-    {
-        params = checkSecurityConstraints( params );
+    return dataAggregator.getRawDataGrid(params);
+  }
 
-        Grid grid = getAggregatedDataValueSetGrid( params );
+  @Override
+  @Transactional(readOnly = true)
+  public DataValueSet getAggregatedDataValueSet(DataQueryParams params) {
+    params = checkSecurityConstraints(params);
 
-        return getDataValueSet( params, grid );
-    }
+    Grid grid = getAggregatedDataValueSetGrid(params);
 
-    @Override
-    @Transactional( readOnly = true )
-    public Grid getAggregatedDataValueSetAsGrid( DataQueryParams params )
-    {
-        params = checkSecurityConstraints( params );
+    return getDataValueSet(params, grid);
+  }
 
-        Grid grid = getAggregatedDataValueSetGrid( params );
+  @Override
+  @Transactional(readOnly = true)
+  public Grid getAggregatedDataValueSetAsGrid(DataQueryParams params) {
+    params = checkSecurityConstraints(params);
 
-        return getDataValueSetAsGrid( grid );
-    }
+    Grid grid = getAggregatedDataValueSetGrid(params);
 
-    @Override
-    @Transactional( readOnly = true )
-    public Map<String, Object> getAggregatedDataValueMapping( DataQueryParams params )
-    {
-        Grid grid = getAggregatedDataValues( newBuilder( params )
-            .withIncludeNumDen( false ).build() );
+    return getDataValueSetAsGrid(grid);
+  }
 
-        return AnalyticsUtils.getAggregatedDataValueMapping( grid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Object> getAggregatedDataValueMapping(DataQueryParams params) {
+    Grid grid = getAggregatedDataValues(newBuilder(params).withIncludeNumDen(false).build());
 
-    @Override
-    @Transactional( readOnly = true )
-    public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
-    {
-        DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
+    return AnalyticsUtils.getAggregatedDataValueMapping(grid);
+  }
 
-        return getAggregatedDataValueMapping( params );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Map<String, Object> getAggregatedDataValueMapping(AnalyticalObject object) {
+    DataQueryParams params = dataQueryService.getFromAnalyticalObject(object);
 
-    // -------------------------------------------------------------------------
-    // Private business logic methods
-    // -------------------------------------------------------------------------
+    return getAggregatedDataValueMapping(params);
+  }
 
-    /**
-     * Returns a grid with aggregated data in data value set format.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @return a grid with aggregated data in data value set format.
-     */
-    private Grid getAggregatedDataValueSetGrid( DataQueryParams params )
-    {
-        DataQueryParams query = newBuilder( params )
-            .withSkipMeta( false )
-            .withSkipData( false )
-            .withIncludeNumDen( false )
-            .withOutputFormat( DATA_VALUE_SET )
+  // -------------------------------------------------------------------------
+  // Private business logic methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a grid with aggregated data in data value set format.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @return a grid with aggregated data in data value set format.
+   */
+  private Grid getAggregatedDataValueSetGrid(DataQueryParams params) {
+    DataQueryParams query =
+        newBuilder(params)
+            .withSkipMeta(false)
+            .withSkipData(false)
+            .withIncludeNumDen(false)
+            .withOutputFormat(DATA_VALUE_SET)
             .build();
 
-        return dataAggregator.getAggregatedDataValueGrid( query );
+    return dataAggregator.getAggregatedDataValueGrid(query);
+  }
+
+  /**
+   * Check the common security constraints that should be applied to the given params. Decide
+   * access, add constraints and validate.
+   *
+   * @param params
+   * @return the params after the security constraints appliance.
+   */
+  private DataQueryParams checkSecurityConstraints(DataQueryParams params) {
+    securityManager.decideAccess(params);
+
+    params = securityManager.withDataApprovalConstraints(params);
+    params = securityManager.withUserConstraints(params);
+
+    return params;
+  }
+
+  /**
+   * Returns a Grid with aggregated data in table layout.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param columns the column dimensions.
+   * @param rows the row dimensions.
+   * @return a Grid with aggregated data in table layout.
+   */
+  private Grid getAggregatedDataValuesTableLayout(
+      DataQueryParams params, List<String> columns, List<String> rows) {
+    params.setOutputIdScheme(null);
+
+    Grid grid = getAggregatedDataValues(params);
+
+    removeEmptys(columns);
+    removeEmptys(rows);
+
+    queryValidator.validateTableLayout(params, columns, rows);
+    queryValidator.validate(params);
+
+    final Visualization visualization = new Visualization();
+
+    List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
+    List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
+
+    if (columns != null) {
+      for (String dimension : columns) {
+        visualization.addDimensionDescriptor(
+            dimension, params.getDimension(dimension).getDimensionType());
+
+        visualization.getColumnDimensions().add(dimension);
+        tableColumns.add(params.getDimensionItemsExplodeCoc(dimension));
+      }
     }
 
-    /**
-     * Check the common security constraints that should be applied to the given
-     * params. Decide access, add constraints and validate.
-     *
-     * @param params
-     * @return the params after the security constraints appliance.
-     */
-    private DataQueryParams checkSecurityConstraints( DataQueryParams params )
-    {
-        securityManager.decideAccess( params );
+    if (rows != null) {
+      for (String dimension : rows) {
+        visualization.addDimensionDescriptor(
+            dimension, params.getDimension(dimension).getDimensionType());
 
-        params = securityManager.withDataApprovalConstraints( params );
-        params = securityManager.withUserConstraints( params );
-
-        return params;
+        visualization.getRowDimensions().add(dimension);
+        tableRows.add(params.getDimensionItemsExplodeCoc(dimension));
+      }
     }
 
-    /**
-     * Returns a Grid with aggregated data in table layout.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param columns the column dimensions.
-     * @param rows the row dimensions.
-     * @return a Grid with aggregated data in table layout.
-     */
-    private Grid getAggregatedDataValuesTableLayout( DataQueryParams params, List<String> columns, List<String> rows )
-    {
-        params.setOutputIdScheme( null );
+    visualization
+        .setGridTitle(IdentifiableObjectUtils.join(params.getFilterItems()))
+        .setGridColumns(CombinationGenerator.newInstance(tableColumns).getCombinations())
+        .setGridRows(CombinationGenerator.newInstance(tableRows).getCombinations());
 
-        Grid grid = getAggregatedDataValues( params );
+    addListIfEmpty(visualization.getGridColumns());
+    addListIfEmpty(visualization.getGridRows());
 
-        removeEmptys( columns );
-        removeEmptys( rows );
+    visualization.setHideEmptyRows(params.isHideEmptyRows());
+    visualization.setHideEmptyColumns(params.isHideEmptyColumns());
+    visualization.setShowHierarchy(params.isShowHierarchy());
 
-        queryValidator.validateTableLayout( params, columns, rows );
-        queryValidator.validate( params );
+    Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping(grid);
 
-        final Visualization visualization = new Visualization();
-
-        List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
-        List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
-
-        if ( columns != null )
-        {
-            for ( String dimension : columns )
-            {
-                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
-
-                visualization.getColumnDimensions().add( dimension );
-                tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
-            }
-        }
-
-        if ( rows != null )
-        {
-            for ( String dimension : rows )
-            {
-                visualization.addDimensionDescriptor( dimension, params.getDimension( dimension ).getDimensionType() );
-
-                visualization.getRowDimensions().add( dimension );
-                tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );
-            }
-        }
-
-        visualization
-            .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
-            .setGridColumns( CombinationGenerator.newInstance( tableColumns ).getCombinations() )
-            .setGridRows( CombinationGenerator.newInstance( tableRows ).getCombinations() );
-
-        addListIfEmpty( visualization.getGridColumns() );
-        addListIfEmpty( visualization.getGridRows() );
-
-        visualization.setHideEmptyRows( params.isHideEmptyRows() );
-        visualization.setHideEmptyColumns( params.isHideEmptyColumns() );
-        visualization.setShowHierarchy( params.isShowHierarchy() );
-
-        Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
-
-        return visualization.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap,
-            params.getDisplayProperty(), false );
-    }
+    return visualization.getGrid(
+        new ListGrid(grid.getMetaData(), grid.getInternalMetaData()),
+        valueMap,
+        params.getDisplayProperty(),
+        false);
+  }
 }

@@ -29,9 +29,7 @@ package org.hisp.dhis.config;
 
 import java.util.Map;
 import java.util.Properties;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -48,66 +46,62 @@ import org.testcontainers.utility.DockerImageName;
  */
 @Slf4j
 @Configuration
-@ComponentScan( "org.hisp.dhis" )
-public class IntegrationTestConfig
-{
-    private static final String POSTGRES_DATABASE_NAME = "dhis";
+@ComponentScan("org.hisp.dhis")
+public class IntegrationTestConfig {
+  private static final String POSTGRES_DATABASE_NAME = "dhis";
 
-    private static final String POSTGRES_USERNAME = "dhis";
+  private static final String POSTGRES_USERNAME = "dhis";
 
-    private static final String POSTGRES_PASSWORD = "dhis";
+  private static final String POSTGRES_PASSWORD = "dhis";
 
-    private static final DockerImageName POSTGIS_IMAGE_NAME = DockerImageName
-        .parse( "postgis/postgis" )
-        .asCompatibleSubstituteFor( "postgres" );
+  private static final DockerImageName POSTGIS_IMAGE_NAME =
+      DockerImageName.parse("postgis/postgis").asCompatibleSubstituteFor("postgres");
 
-    private static final String POSTGIS_VERSION = "10-2.5-alpine";
+  private static final String POSTGIS_VERSION = "10-2.5-alpine";
 
-    private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
+  private static final PostgreSQLContainer<?> POSTGRES_CONTAINER;
 
-    static
-    {
-        POSTGRES_CONTAINER = new PostgreSQLContainer<>( POSTGIS_IMAGE_NAME.withTag( POSTGIS_VERSION ) )
-            .withDatabaseName( POSTGRES_DATABASE_NAME )
-            .withUsername( POSTGRES_USERNAME )
-            .withPassword( POSTGRES_PASSWORD )
-            .withInitScript( "db/extensions.sql" )
-            .withTmpFs( Map.of( "/testtmpfs", "rw" ) );
-        POSTGRES_CONTAINER.start();
-    }
+  static {
+    POSTGRES_CONTAINER =
+        new PostgreSQLContainer<>(POSTGIS_IMAGE_NAME.withTag(POSTGIS_VERSION))
+            .withDatabaseName(POSTGRES_DATABASE_NAME)
+            .withUsername(POSTGRES_USERNAME)
+            .withPassword(POSTGRES_PASSWORD)
+            .withInitScript("db/extensions.sql")
+            .withTmpFs(Map.of("/testtmpfs", "rw"));
+    POSTGRES_CONTAINER.start();
+  }
 
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
+  @Bean
+  public LdapAuthenticator ldapAuthenticator() {
+    return authentication -> null;
+  }
 
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
-    }
+  @Bean
+  public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    return (dirContextOperations, s) -> null;
+  }
 
-    @Bean
-    public PasswordEncoder encoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public PasswordEncoder encoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
+  @Bean(name = "dhisConfigurationProvider")
+  public DhisConfigurationProvider dhisConfigurationProvider() {
 
-        PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
+    PostgresDhisConfigurationProvider dhisConfigurationProvider =
+        new PostgresDhisConfigurationProvider();
 
-        Properties properties = new Properties();
-        properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
-        properties.setProperty( "connection.driver_class", POSTGRES_CONTAINER.getDriverClassName() );
-        properties.setProperty( "connection.url", POSTGRES_CONTAINER.getJdbcUrl() );
-        properties.setProperty( "connection.username", POSTGRES_USERNAME );
-        properties.setProperty( "connection.password", POSTGRES_PASSWORD );
-        dhisConfigurationProvider.addProperties( properties );
+    Properties properties = new Properties();
+    properties.setProperty(
+        "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
+    properties.setProperty("connection.driver_class", POSTGRES_CONTAINER.getDriverClassName());
+    properties.setProperty("connection.url", POSTGRES_CONTAINER.getJdbcUrl());
+    properties.setProperty("connection.username", POSTGRES_USERNAME);
+    properties.setProperty("connection.password", POSTGRES_PASSWORD);
+    dhisConfigurationProvider.addProperties(properties);
 
-        return dhisConfigurationProvider;
-    }
+    return dhisConfigurationProvider;
+  }
 }

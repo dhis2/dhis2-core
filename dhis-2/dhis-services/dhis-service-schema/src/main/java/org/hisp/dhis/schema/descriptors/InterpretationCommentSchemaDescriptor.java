@@ -34,17 +34,15 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class InterpretationCommentSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "interpretationComment";
+public class InterpretationCommentSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "interpretationComment";
 
-    public static final String PLURAL = "interpretationComments";
+  public static final String PLURAL = "interpretationComments";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( InterpretationComment.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(InterpretationComment.class, SINGULAR, PLURAL);
+  }
 }

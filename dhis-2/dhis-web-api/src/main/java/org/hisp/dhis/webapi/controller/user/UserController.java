@@ -40,6 +40,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,12 +53,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
@@ -126,975 +126,860 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
 @Controller
-@RequestMapping( value = UserSchemaDescriptor.API_ENDPOINT )
-public class UserController
-    extends AbstractCrudController<User>
-{
-    public static final String INVITE_PATH = "/invite";
+@RequestMapping(value = UserSchemaDescriptor.API_ENDPOINT)
+public class UserController extends AbstractCrudController<User> {
+  public static final String INVITE_PATH = "/invite";
 
-    public static final String BULK_INVITE_PATH = "/invites";
+  public static final String BULK_INVITE_PATH = "/invites";
 
-    private static final String KEY_USERNAME = "username";
+  private static final String KEY_USERNAME = "username";
 
-    private static final String KEY_PASSWORD = "password";
+  private static final String KEY_PASSWORD = "password";
 
-    @Autowired
-    protected DbmsManager dbmsManager;
+  @Autowired protected DbmsManager dbmsManager;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private UserGroupService userGroupService;
+  @Autowired private UserGroupService userGroupService;
 
-    @Autowired
-    private UserControllerUtils userControllerUtils;
+  @Autowired private UserControllerUtils userControllerUtils;
 
-    @Autowired
-    private SecurityService securityService;
+  @Autowired private SecurityService securityService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private UserSettingService userSettingService;
+  @Autowired private UserSettingService userSettingService;
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // GET
+  // -------------------------------------------------------------------------
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    protected List<User> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders )
-        throws QueryParserException
-    {
-        UserQueryParams params = makeUserQueryParams( options );
+  @Override
+  @SuppressWarnings("unchecked")
+  protected List<User> getEntityList(
+      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      throws QueryParserException {
+    UserQueryParams params = makeUserQueryParams(options);
 
-        String ou = options.get( "ou" );
+    String ou = options.get("ou");
 
-        if ( ou != null )
-        {
-            params.addOrganisationUnit( organisationUnitService.getOrganisationUnit( ou ) );
-        }
-
-        if ( options.isManage() )
-        {
-            params.setCanManage( true );
-            params.setAuthSubset( true );
-        }
-
-        boolean hasUserGroupFilter = filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) );
-        params.setPrefetchUserGroups( hasUserGroupFilter );
-
-        if ( filters.isEmpty() && options.hasPaging() )
-        {
-            metadata.setPager( makePager( options, params ) );
-        }
-
-        Query query = makeQuery( options, filters, orders, params );
-
-        return (List<User>) queryService.query( query );
+    if (ou != null) {
+      params.addOrganisationUnit(organisationUnitService.getOrganisationUnit(ou));
     }
 
-    private Pager makePager( WebOptions options, UserQueryParams params )
-    {
-        long count = userService.getUserCount( params );
-
-        Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
-        params.setFirst( pager.getOffset() );
-        params.setMax( pager.getPageSize() );
-
-        return pager;
+    if (options.isManage()) {
+      params.setCanManage(true);
+      params.setAuthSubset(true);
     }
 
-    private Query makeQuery( WebOptions options, List<String> filters,
-        List<Order> orders, UserQueryParams params )
-    {
-        Pagination pagination = CollectionUtils.isEmpty( filters ) ? new Pagination() : getPaginationData( options );
+    boolean hasUserGroupFilter = filters.stream().anyMatch(f -> f.startsWith("userGroups."));
+    params.setPrefetchUserGroups(hasUserGroupFilter);
 
-        List<String> ordersAsString = (orders == null) ? null
-            : orders.stream()
-                .map( Order::toOrderString )
-                .collect( Collectors.toList() );
-
-        /*
-         * Keep the memory query on the result
-         */
-        Query query = queryService
-            .getQueryFromUrl( getEntityClass(), filters, orders, pagination, options.getRootJunction() );
-
-        // Fetches all users if there are no query, i.e only filters...
-        List<User> users = userService.getUsers( params, ordersAsString );
-        query.setObjects( users );
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
-        query.setDefaultOrder();
-
-        return query;
+    if (filters.isEmpty() && options.hasPaging()) {
+      metadata.setPager(makePager(options, params));
     }
 
-    private UserQueryParams makeUserQueryParams( WebOptions options )
-    {
-        UserQueryParams params = new UserQueryParams();
-        params.setQuery( StringUtils.trimToNull( options.get( "query" ) ) );
-        params.setPhoneNumber( StringUtils.trimToNull( options.get( "phoneNumber" ) ) );
-        params.setCanManage( options.isTrue( "canManage" ) );
-        params.setAuthSubset( options.isTrue( "authSubset" ) );
-        params.setLastLogin( options.getDate( "lastLogin" ) );
-        params.setInactiveMonths( options.getInt( "inactiveMonths" ) );
-        params.setInactiveSince( options.getDate( "inactiveSince" ) );
-        params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
-        params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
-        params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
-        params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
-        params.setOrgUnitBoundary( UserOrgUnitType.fromValue( options.get( "orgUnitBoundary" ) ) );
+    Query query = makeQuery(options, filters, orders, params);
 
-        return params;
-    }
+    return (List<User>) queryService.query(query);
+  }
 
-    @Override
-    protected List<User> getEntity( String uid, WebOptions options )
-    {
-        List<User> users = Lists.newArrayList();
-        Optional<User> user = Optional.ofNullable( userService.getUser( uid ) );
+  private Pager makePager(WebOptions options, UserQueryParams params) {
+    long count = userService.getUserCount(params);
 
-        user.ifPresent( users::add );
+    Pager pager = new Pager(options.getPage(), count, options.getPageSize());
+    params.setFirst(pager.getOffset());
+    params.setMax(pager.getPageSize());
 
-        return users;
-    }
+    return pager;
+  }
 
-    @Override
-    @GetMapping( "/{uid}/{property}" )
-    public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
-        @RequestParam Map<String, String> rpParameters,
-        TranslateParams translateParams,
-        @CurrentUser User currentUser,
-        HttpServletResponse response )
-        throws Exception
-    {
-        if ( !"dataApprovalWorkflows".equals( pvProperty ) )
-        {
-            return super.getObjectProperty( pvUid, pvProperty, rpParameters, translateParams, currentUser, response );
-        }
+  private Query makeQuery(
+      WebOptions options, List<String> filters, List<Order> orders, UserQueryParams params) {
+    Pagination pagination =
+        CollectionUtils.isEmpty(filters) ? new Pagination() : getPaginationData(options);
 
-        User user = userService.getUser( pvUid );
-
-        if ( user == null
-            // TODO: To remove when we remove old UserCredentials compatibility
-            || user.getUserCredentials() == null )
-        {
-            throw new WebMessageException( conflict( "User not found: " + pvUid ) );
-        }
-
-        if ( !aclService.canRead( currentUser, user ) )
-        {
-            throw new CreateAccessDeniedException( "You don't have the proper permissions to access this user." );
-        }
-
-        return ResponseEntity.ok( userControllerUtils.getUserDataApprovalWorkflows( user ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // POST
-    // -------------------------------------------------------------------------
-
-    @Override
-    @PostMapping( consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
-    @ResponseBody
-    public WebMessage postXmlObject( HttpServletRequest request )
-        throws Exception
-    {
-        return postObject( renderService.fromXml( request.getInputStream(), getEntityClass() ) );
-    }
-
-    @Override
-    @PostMapping( consumes = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage postJsonObject( HttpServletRequest request )
-        throws Exception
-    {
-        return postObject( renderService.fromJson( request.getInputStream(), getEntityClass() ) );
-    }
-
-    private WebMessage postObject( User user )
-        throws WebMessageException
-    {
-        // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoFields( user );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        validateCreateUser( user, currentUser );
-
-        return postObject( getObjectReport( createUser( user, currentUser ) ) );
-    }
-
-    @PostMapping( value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage postJsonInvite( HttpServletRequest request )
-        throws Exception
-    {
-        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
-        return postInvite( request, user );
-    }
-
-    @PostMapping( value = INVITE_PATH, consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
-    @ResponseBody
-    public WebMessage postXmlInvite( HttpServletRequest request )
-        throws Exception
-    {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-        return postInvite( request, user );
-    }
-
-    private WebMessage postInvite( HttpServletRequest request, User user )
-        throws WebMessageException
-    {
-        // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoFields( user );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        validateInviteUser( user, currentUser );
-
-        return postObject( inviteUser( user, currentUser, request ) );
-    }
-
-    @PostMapping( value = BULK_INVITE_PATH, consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postJsonInvites( HttpServletRequest request )
-        throws Exception
-    {
-        Users users = renderService.fromJson( request.getInputStream(), Users.class );
-        postInvites( request, users );
-    }
-
-    @PostMapping( value = BULK_INVITE_PATH, consumes = { APPLICATION_XML_VALUE,
-        TEXT_XML_VALUE } )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void postXmlInvites( HttpServletRequest request )
-        throws Exception
-    {
-        Users users = renderService.fromXml( request.getInputStream(), Users.class );
-        postInvites( request, users );
-    }
-
-    private void postInvites( HttpServletRequest request, Users users )
-        throws WebMessageException
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        // TODO: To remove when we remove old UserCredentials compatibility
-        for ( User user : users.getUsers() )
-        {
-            populateUserCredentialsDtoFields( user );
-        }
-
-        for ( User user : users.getUsers() )
-        {
-            validateInviteUser( user, currentUser );
-        }
-
-        for ( User user : users.getUsers() )
-        {
-            inviteUser( user, currentUser, request );
-        }
-    }
-
-    @PostMapping( value = "/{id}" + INVITE_PATH )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void resendInvite( @PathVariable String id, HttpServletRequest request )
-        throws Exception
-    {
-        User user = userService.getUser( id );
-        if ( user == null )
-        {
-            throw new WebMessageException( conflict( "User not found: " + id ) );
-        }
-
-        if ( !user.isInvitation() )
-        {
-            throw new WebMessageException( conflict( "User account is not an invitation: " + id ) );
-        }
-
-        ErrorCode errorCode = securityService.validateRestore( user );
-        if ( errorCode != null )
-        {
-            throw new IllegalQueryException( errorCode );
-        }
-
-        if ( !securityService
-            .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                securityService.getRestoreOptions( user.getRestoreToken() ) ) )
-        {
-            throw new WebMessageException( error( "Failed to send invite message" ) );
-        }
-    }
-
-    @PostMapping( "/{id}/reset" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void resetToInvite( @PathVariable String id, HttpServletRequest request )
-        throws Exception
-    {
-        User user = userService.getUser( id );
-        if ( user == null )
-        {
-            throw NotFoundException.notFoundUid( id );
-        }
-        ErrorCode errorCode = securityService.validateRestore( user );
-        if ( errorCode != null )
-        {
-            throw new IllegalQueryException( errorCode );
-        }
-        User currentUser = currentUserService.getCurrentUser();
-        if ( !aclService.canUpdate( currentUser, user ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
-        }
-        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
-        {
-            throw new UpdateAccessDeniedException(
-                "You must have permissions manage at least one user group for the user." );
-        }
-
-        securityService.prepareUserForInvite( user );
-        securityService.sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-            RestoreOptions.RECOVER_PASSWORD_OPTION );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_REPLICATE_USER')" )
-    @PostMapping( "/{uid}/replica" )
-    @ResponseBody
-    public WebMessage replicateUser( @PathVariable String uid,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
-    {
-        User existingUser = userService.getUser( uid );
-        if ( existingUser == null )
-        {
-            return conflict( "User not found: " + uid );
-        }
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        validateCreateUser( existingUser, currentUser );
-
-        Map<String, String> auth = renderService.fromJson( request.getInputStream(), Map.class );
-
-        String username = StringUtils.trimToNull( auth != null ? auth.get( KEY_USERNAME ) : null );
-        String password = StringUtils.trimToNull( auth != null ? auth.get( KEY_PASSWORD ) : null );
-
-        if ( auth == null || username == null )
-        {
-            return conflict( "Username must be specified" );
-        }
-
-        if ( userService.getUserByUsername( username ) != null )
-        {
-            return conflict( "Username already taken: " + username );
-        }
-
-        if ( password == null )
-        {
-            return conflict( "Password must be specified" );
-        }
-
-        if ( !ValidationUtils.passwordIsValid( password ) )
-        {
-            return conflict( "Password must have at least 8 characters, one digit, one uppercase" );
-        }
-
-        User userReplica = new User();
-        mergeService.merge( new MergeParams<>( existingUser, userReplica )
-            .setMergeMode( MergeMode.MERGE ) );
-        copyAttributeValues( userReplica );
-        userReplica.setId( 0 );
-        userReplica.setUuid( UUID.randomUUID() );
-        userReplica.setUid( CodeGenerator.generateUid() );
-        userReplica.setCode( null );
-        userReplica.setCreated( new Date() );
-        userReplica.setLdapId( null );
-        userReplica.setOpenId( null );
-        userReplica.setUsername( username );
-        userReplica.setLastLogin( null );
-        userService.encodeAndSetPassword( userReplica, password );
-
-        userService.addUser( userReplica );
-
-        userGroupService.addUserToGroups( userReplica, getUids( existingUser.getGroups() ),
-            currentUser );
-
-        // ---------------------------------------------------------------------
-        // Replicate user settings
-        // ---------------------------------------------------------------------
-
-        List<UserSetting> settings = userSettingService.getUserSettings( existingUser );
-        for ( UserSetting setting : settings )
-        {
-            Optional<UserSettingKey> key = UserSettingKey.getByName( setting.getName() );
-            key.ifPresent( userSettingKey -> userSettingService.saveUserSetting( userSettingKey, setting.getValue(),
-                userReplica ) );
-        }
-
-        return created( "User replica created" )
-            .setLocation( UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid() );
-    }
-
-    @PostMapping( "/{uid}/enabled" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void enableUser( @PathVariable( "uid" ) String uid )
-        throws Exception
-    {
-        setDisabled( uid, false );
-    }
-
-    @PostMapping( "/{uid}/disabled" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void disableUser( @PathVariable( "uid" ) String uid )
-        throws Exception
-    {
-        setDisabled( uid, true );
-    }
-
-    @PostMapping( "/{uid}/expired" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void expireUser( @PathVariable( "uid" ) String uid, @RequestParam( "date" ) Date accountExpiry )
-        throws Exception
-    {
-        setExpires( uid, accountExpiry );
-    }
-
-    @PostMapping( "/{uid}/unexpired" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void unexpireUser( @PathVariable( "uid" ) String uid )
-        throws Exception
-    {
-        setExpires( uid, null );
-    }
-
-    /**
-     * "Disable two-factor authentication for the user with the given uid."
-     * <p>
-     *
-     * @param uid The uid of the user to disable two-factor authentication for.
-     * @param currentUser This is the user that is currently logged in.
-     *
-     * @return A WebMessage object.
-     */
-    @PostMapping( "/{uid}/twoFA/disabled" )
-    @ResponseBody
-    public WebMessage disableTwoFA( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser )
-    {
-        List<ErrorReport> errors = new ArrayList<>();
-        userService.disableTwoFA( currentUser, uid, errors::add );
-
-        if ( errors.isEmpty() )
-        {
-            return WebMessageUtils.ok();
-        }
-
-        return WebMessageUtils.errorReports( errors );
-    }
-
-    // -------------------------------------------------------------------------
-    // PATCH
-    //
-
-    /**
-     * > This function is used to PATCH a user object
-     *
-     * @param pvUid The user's uid
-     * @param rpParameters The request parameters
-     * @param currentUser The user that is currently logged in.
-     * @param request The request object
-     */
-    @PatchMapping( value = "/{uid}" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    @Override
-    public void partialUpdateObject(
-        @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-        throws Exception
-    {
-        WebOptions options = new WebOptions( rpParameters );
-        List<User> entities = getEntity( pvUid, options );
-
-        if ( entities.isEmpty() )
-        {
-            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
-        }
-
-        User persistedObject = entities.get( 0 );
-
-        boolean twoFABefore = persistedObject.getTwoFA();
-
-        if ( !aclService.canUpdate( currentUser, persistedObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        Patch patch = diff( request );
-
-        mergeUserCredentialsMutations( patch );
-
-        prePatchEntity( persistedObject, persistedObject );
-        patchService.apply( patch, persistedObject );
-
-        boolean twoFAfter = persistedObject.getTwoFA();
-
-        securityService.validate2FAUpdate( twoFABefore, twoFAfter, persistedObject );
-
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-
-        manager.update( persistedObject );
-        postPatchEntity( persistedObject );
-    }
+    List<String> ordersAsString =
+        (orders == null)
+            ? null
+            : orders.stream().map(Order::toOrderString).collect(Collectors.toList());
 
     /*
-     * This method is used to merge the user credentials with the user object.
+     * Keep the memory query on the result
      */
-    private void mergeUserCredentialsMutations( Patch patch )
-    {
-        List<Mutation> mutations = patch.getMutations();
-        List<Mutation> filteredMutations = new ArrayList<>();
-        for ( Mutation mutation : mutations )
-        {
-            Mutation.Operation operation = mutation.getOperation();
-            String path = mutation.getPath();
-            Object value = mutation.getValue();
+    Query query =
+        queryService.getQueryFromUrl(
+            getEntityClass(), filters, orders, pagination, options.getRootJunction());
 
-            if ( path.startsWith( "userCredentials" ) )
-            {
-                path = path.replace( "userCredentials.", "" );
+    // Fetches all users if there are no query, i.e only filters...
+    List<User> users = userService.getUsers(params, ordersAsString);
+    query.setObjects(users);
+    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
+    query.setDefaultOrder();
 
-                Mutation filtered = new Mutation( path, value, operation );
-                filteredMutations.add( filtered );
-            }
-            else
-            {
-                filteredMutations.add( mutation );
-            }
+    return query;
+  }
 
-            patch.setMutations( filteredMutations );
-        }
+  private UserQueryParams makeUserQueryParams(WebOptions options) {
+    UserQueryParams params = new UserQueryParams();
+    params.setQuery(StringUtils.trimToNull(options.get("query")));
+    params.setPhoneNumber(StringUtils.trimToNull(options.get("phoneNumber")));
+    params.setCanManage(options.isTrue("canManage"));
+    params.setAuthSubset(options.isTrue("authSubset"));
+    params.setLastLogin(options.getDate("lastLogin"));
+    params.setInactiveMonths(options.getInt("inactiveMonths"));
+    params.setInactiveSince(options.getDate("inactiveSince"));
+    params.setSelfRegistered(options.isTrue("selfRegistered"));
+    params.setInvitationStatus(UserInvitationStatus.fromValue(options.get("invitationStatus")));
+    params.setUserOrgUnits(options.isTrue("userOrgUnits"));
+    params.setIncludeOrgUnitChildren(options.isTrue("includeChildren"));
+    params.setOrgUnitBoundary(UserOrgUnitType.fromValue(options.get("orgUnitBoundary")));
+
+    return params;
+  }
+
+  @Override
+  protected List<User> getEntity(String uid, WebOptions options) {
+    List<User> users = Lists.newArrayList();
+    Optional<User> user = Optional.ofNullable(userService.getUser(uid));
+
+    user.ifPresent(users::add);
+
+    return users;
+  }
+
+  @Override
+  @GetMapping("/{uid}/{property}")
+  public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
+      @PathVariable("uid") String pvUid,
+      @PathVariable("property") String pvProperty,
+      @RequestParam Map<String, String> rpParameters,
+      TranslateParams translateParams,
+      @CurrentUser User currentUser,
+      HttpServletResponse response)
+      throws Exception {
+    if (!"dataApprovalWorkflows".equals(pvProperty)) {
+      return super.getObjectProperty(
+          pvUid, pvProperty, rpParameters, translateParams, currentUser, response);
     }
 
-    // -------------------------------------------------------------------------
-    // PUT
-    // -------------------------------------------------------------------------
+    User user = userService.getUser(pvUid);
 
-    @Override
-    @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE,
-        TEXT_XML_VALUE }, produces = APPLICATION_XML_VALUE )
-    @ResponseBody
-    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
-        HttpServletRequest request,
-        HttpServletResponse response )
-        throws Exception
-    {
-        User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        return importReport( updateUser( pvUid, parsed ) )
-            .withPlainResponseBefore( DhisApiVersion.V38 );
-    }
-
-    @Override
-    @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
-        HttpServletRequest request )
-        throws Exception
-    {
-        User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
-
-        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
-        if ( users.isEmpty() )
-        {
-            throw new WebMessageException(
-                conflict( getEntityName() + " does not exist: " + pvUid ) );
-        }
-
+    if (user == null
         // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), parsed );
-
-        return importReport( updateUser( pvUid, parsed ) )
-            .withPlainResponseBefore( DhisApiVersion.V38 );
+        || user.getUserCredentials() == null) {
+      throw new WebMessageException(conflict("User not found: " + pvUid));
     }
 
-    protected ImportReport updateUser( String userUid, User parsedUserObject )
-        throws WebMessageException
-    {
-        List<User> users = getEntity( userUid, NO_WEB_OPTIONS );
-
-        if ( users.isEmpty() )
-        {
-            throw new WebMessageException(
-                conflict( getEntityName() + " does not exist: " + userUid ) );
-        }
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
-        }
-
-        // force initialization of all authorities of current user in order to
-        // prevent cases where user must be reloaded later
-        // (in case it gets detached)
-        currentUser.getAllAuthorities();
-
-        parsedUserObject.setId( users.get( 0 ).getId() );
-        parsedUserObject.setUid( userUid );
-        mergeLastLoginAttribute( users.get( 0 ), parsedUserObject );
-
-        boolean isPasswordChangeAttempt = parsedUserObject.getPassword() != null;
-
-        List<String> groupsUids = getUids( parsedUserObject.getGroups() );
-
-        if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
-            || !currentUser.canModifyUser( users.get( 0 ) ) )
-        {
-            throw new WebMessageException( conflict(
-                "You must have permissions to create user, " +
-                    "or ability to manage at least one user group for the user." ) );
-        }
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setImportReportMode( ImportReportMode.FULL );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.addObject( parsedUserObject );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
-        {
-            updateUserGroups( userUid, parsedUserObject, currentUser );
-
-            // If it was a pw change attempt (input.pw != null) and update was
-            // success we assume password has changed...
-            // We chose to expire the special case if password is set to the
-            // same. i.e. no before & after equals pw check
-            if ( isPasswordChangeAttempt )
-            {
-                userService.expireActiveSessions( parsedUserObject );
-            }
-        }
-
-        return importReport;
+    if (!aclService.canRead(currentUser, user)) {
+      throw new CreateAccessDeniedException(
+          "You don't have the proper permissions to access this user.");
     }
 
-    protected void updateUserGroups( String pvUid, User parsed, User currentUser )
-    {
-        User user = userService.getUser( pvUid );
+    return ResponseEntity.ok(userControllerUtils.getUserDataApprovalWorkflows(user));
+  }
 
-        if ( currentUser != null && currentUser.getId() == user.getId() )
-        {
-            currentUser = currentUserService.getCurrentUser();
-        }
+  // -------------------------------------------------------------------------
+  // POST
+  // -------------------------------------------------------------------------
 
-        List<String> uids = getUids( parsed.getGroups() );
+  @Override
+  @PostMapping(consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
+  @ResponseBody
+  public WebMessage postXmlObject(HttpServletRequest request) throws Exception {
+    return postObject(renderService.fromXml(request.getInputStream(), getEntityClass()));
+  }
 
-        userGroupService.updateUserGroups( user, uids, currentUser );
+  @Override
+  @PostMapping(consumes = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage postJsonObject(HttpServletRequest request) throws Exception {
+    return postObject(renderService.fromJson(request.getInputStream(), getEntityClass()));
+  }
+
+  private WebMessage postObject(User user) throws WebMessageException {
+    // TODO: To remove when we remove old UserCredentials compatibility
+    populateUserCredentialsDtoFields(user);
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    validateCreateUser(user, currentUser);
+
+    return postObject(getObjectReport(createUser(user, currentUser)));
+  }
+
+  @PostMapping(value = INVITE_PATH, consumes = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage postJsonInvite(HttpServletRequest request) throws Exception {
+    User user = renderService.fromJson(request.getInputStream(), getEntityClass());
+    return postInvite(request, user);
+  }
+
+  @PostMapping(
+      value = INVITE_PATH,
+      consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
+  @ResponseBody
+  public WebMessage postXmlInvite(HttpServletRequest request) throws Exception {
+    User user = renderService.fromXml(request.getInputStream(), getEntityClass());
+    return postInvite(request, user);
+  }
+
+  private WebMessage postInvite(HttpServletRequest request, User user) throws WebMessageException {
+    // TODO: To remove when we remove old UserCredentials compatibility
+    populateUserCredentialsDtoFields(user);
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    validateInviteUser(user, currentUser);
+
+    return postObject(inviteUser(user, currentUser, request));
+  }
+
+  @PostMapping(value = BULK_INVITE_PATH, consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void postJsonInvites(HttpServletRequest request) throws Exception {
+    Users users = renderService.fromJson(request.getInputStream(), Users.class);
+    postInvites(request, users);
+  }
+
+  @PostMapping(
+      value = BULK_INVITE_PATH,
+      consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void postXmlInvites(HttpServletRequest request) throws Exception {
+    Users users = renderService.fromXml(request.getInputStream(), Users.class);
+    postInvites(request, users);
+  }
+
+  private void postInvites(HttpServletRequest request, Users users) throws WebMessageException {
+    User currentUser = currentUserService.getCurrentUser();
+
+    // TODO: To remove when we remove old UserCredentials compatibility
+    for (User user : users.getUsers()) {
+      populateUserCredentialsDtoFields(user);
     }
 
-    // -------------------------------------------------------------------------
-    // PATCH
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected void prePatchEntity( User oldEntity, User newEntity )
-    {
-        // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoCopyOnlyChanges( oldEntity, newEntity );
+    for (User user : users.getUsers()) {
+      validateInviteUser(user, currentUser);
     }
 
-    @Override
-    protected void postJsonPatch( JsonPatch patch, User user )
-    {
-        // Make sure we always expire all the user's active sessions if we
-        // have disabled the user.
-        if ( user != null && user.isDisabled() )
-        {
-            userService.expireActiveSessions( user );
-        }
+    for (User user : users.getUsers()) {
+      inviteUser(user, currentUser, request);
+    }
+  }
 
-        // Support patching user.userGroups relation which User is not the owner
-        for ( JsonPatchOperation op : patch.getOperations() )
-        {
-            JsonPointer userGroups = op.getPath().matchProperty( "userGroups" );
-            if ( userGroups == null )
-            {
-                continue;
-            }
-
-            String opName = op.getOp();
-            if ( opName.equals( "add" ) )
-            {
-                List<String> groupIds = new ArrayList<>();
-                ((AddOperation) op).getValue().elements()
-                    .forEachRemaining( node -> groupIds.add( node.get( "id" ).asText() ) );
-                userGroupService.updateUserGroups( user, groupIds, currentUserService.getCurrentUser() );
-            }
-        }
+  @PostMapping(value = "/{id}" + INVITE_PATH)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void resendInvite(@PathVariable String id, HttpServletRequest request) throws Exception {
+    User user = userService.getUser(id);
+    if (user == null) {
+      throw new WebMessageException(conflict("User not found: " + id));
     }
 
-    // -------------------------------------------------------------------------
-    // DELETE
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected void preDeleteEntity( User entity )
-        throws Exception
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
-            || !currentUser.canModifyUser( entity ) )
-        {
-            throw new WebMessageException( conflict(
-                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
-
-        if ( userService.isLastSuperUser( entity ) )
-        {
-            throw new WebMessageException( conflict( "Can not remove the last super user." ) );
-        }
+    if (!user.isInvitation()) {
+      throw new WebMessageException(conflict("User account is not an invitation: " + id));
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Validates whether the given user can be created.
-     *
-     * @param user the user.
-     */
-    private void validateCreateUser( User user, User currentUser )
-        throws WebMessageException
-    {
-        if ( !aclService.canCreate( currentUser, getEntityClass() ) )
-        {
-            throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
-        }
-
-        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
-        {
-            throw new WebMessageException( conflict(
-                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
-
-        List<String> uids = getUids( user.getGroups() );
-
-        for ( String uid : uids )
-        {
-            if ( !userGroupService.canAddOrRemoveMember( uid, currentUser ) )
-            {
-                throw new WebMessageException(
-                    conflict( "You don't have permissions to add user to user group: " + uid ) );
-            }
-        }
+    ErrorCode errorCode = securityService.validateRestore(user);
+    if (errorCode != null) {
+      throw new IllegalQueryException(errorCode);
     }
 
-    /**
-     * Creates a user.
-     *
-     * @param user user object parsed from the POST request.
-     */
-    private ImportReport createUser( User user, User currentUser )
-    {
-        MetadataImportParams importParams = new MetadataImportParams()
-            .setImportReportMode( ImportReportMode.FULL )
-            .setImportStrategy( ImportStrategy.CREATE )
-            .addObject( user );
+    if (!securityService.sendRestoreOrInviteMessage(
+        user,
+        ContextUtils.getContextPath(request),
+        securityService.getRestoreOptions(user.getRestoreToken()))) {
+      throw new WebMessageException(error("Failed to send invite message"));
+    }
+  }
 
-        ImportReport importReport = importService.importMetadata( importParams );
-
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
-        {
-            userGroupService.addUserToGroups( user, getUids( user.getGroups() ), currentUser );
-        }
-
-        return importReport;
+  @PostMapping("/{id}/reset")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void resetToInvite(@PathVariable String id, HttpServletRequest request) throws Exception {
+    User user = userService.getUser(id);
+    if (user == null) {
+      throw NotFoundException.notFoundUid(id);
+    }
+    ErrorCode errorCode = securityService.validateRestore(user);
+    if (errorCode != null) {
+      throw new IllegalQueryException(errorCode);
+    }
+    User currentUser = currentUserService.getCurrentUser();
+    if (!aclService.canUpdate(currentUser, user)) {
+      throw new UpdateAccessDeniedException(
+          "You don't have the proper permissions to update this user.");
+    }
+    if (!userService.canAddOrUpdateUser(getUids(user.getGroups()), currentUser)) {
+      throw new UpdateAccessDeniedException(
+          "You must have permissions manage at least one user group for the user.");
     }
 
-    /**
-     * Validates whether a user can be invited / created.
-     *
-     * @param user the user.
-     */
-    private void validateInviteUser( User user, User currentUser )
-        throws WebMessageException
-    {
-        if ( user == null )
-        {
-            throw new WebMessageException( conflict( "User is not present" ) );
-        }
+    securityService.prepareUserForInvite(user);
+    securityService.sendRestoreOrInviteMessage(
+        user, ContextUtils.getContextPath(request), RestoreOptions.RECOVER_PASSWORD_OPTION);
+  }
 
-        validateCreateUser( user, currentUser );
-
-        ErrorCode errorCode = securityService.validateInvite( user );
-
-        if ( errorCode != null )
-        {
-            throw new IllegalQueryException( errorCode );
-        }
+  @SuppressWarnings("unchecked")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_REPLICATE_USER')")
+  @PostMapping("/{uid}/replica")
+  @ResponseBody
+  public WebMessage replicateUser(
+      @PathVariable String uid, HttpServletRequest request, HttpServletResponse response)
+      throws IOException, WebMessageException {
+    User existingUser = userService.getUser(uid);
+    if (existingUser == null) {
+      return conflict("User not found: " + uid);
     }
 
-    private ObjectReport inviteUser( User user, User currentUser, HttpServletRequest request )
-    {
-        RestoreOptions restoreOptions = user.getUsername() == null || user.getUsername().isEmpty()
+    User currentUser = currentUserService.getCurrentUser();
+
+    validateCreateUser(existingUser, currentUser);
+
+    Map<String, String> auth = renderService.fromJson(request.getInputStream(), Map.class);
+
+    String username = StringUtils.trimToNull(auth != null ? auth.get(KEY_USERNAME) : null);
+    String password = StringUtils.trimToNull(auth != null ? auth.get(KEY_PASSWORD) : null);
+
+    if (auth == null || username == null) {
+      return conflict("Username must be specified");
+    }
+
+    if (userService.getUserByUsername(username) != null) {
+      return conflict("Username already taken: " + username);
+    }
+
+    if (password == null) {
+      return conflict("Password must be specified");
+    }
+
+    if (!ValidationUtils.passwordIsValid(password)) {
+      return conflict("Password must have at least 8 characters, one digit, one uppercase");
+    }
+
+    User userReplica = new User();
+    mergeService.merge(new MergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.MERGE));
+    copyAttributeValues(userReplica);
+    userReplica.setId(0);
+    userReplica.setUuid(UUID.randomUUID());
+    userReplica.setUid(CodeGenerator.generateUid());
+    userReplica.setCode(null);
+    userReplica.setCreated(new Date());
+    userReplica.setLdapId(null);
+    userReplica.setOpenId(null);
+    userReplica.setUsername(username);
+    userReplica.setLastLogin(null);
+    userService.encodeAndSetPassword(userReplica, password);
+
+    userService.addUser(userReplica);
+
+    userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
+
+    // ---------------------------------------------------------------------
+    // Replicate user settings
+    // ---------------------------------------------------------------------
+
+    List<UserSetting> settings = userSettingService.getUserSettings(existingUser);
+    for (UserSetting setting : settings) {
+      Optional<UserSettingKey> key = UserSettingKey.getByName(setting.getName());
+      key.ifPresent(
+          userSettingKey ->
+              userSettingService.saveUserSetting(userSettingKey, setting.getValue(), userReplica));
+    }
+
+    return created("User replica created")
+        .setLocation(UserSchemaDescriptor.API_ENDPOINT + "/" + userReplica.getUid());
+  }
+
+  @PostMapping("/{uid}/enabled")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void enableUser(@PathVariable("uid") String uid) throws Exception {
+    setDisabled(uid, false);
+  }
+
+  @PostMapping("/{uid}/disabled")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void disableUser(@PathVariable("uid") String uid) throws Exception {
+    setDisabled(uid, true);
+  }
+
+  @PostMapping("/{uid}/expired")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void expireUser(@PathVariable("uid") String uid, @RequestParam("date") Date accountExpiry)
+      throws Exception {
+    setExpires(uid, accountExpiry);
+  }
+
+  @PostMapping("/{uid}/unexpired")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public void unexpireUser(@PathVariable("uid") String uid) throws Exception {
+    setExpires(uid, null);
+  }
+
+  /**
+   * "Disable two-factor authentication for the user with the given uid."
+   *
+   * <p>
+   *
+   * @param uid The uid of the user to disable two-factor authentication for.
+   * @param currentUser This is the user that is currently logged in.
+   * @return A WebMessage object.
+   */
+  @PostMapping("/{uid}/twoFA/disabled")
+  @ResponseBody
+  public WebMessage disableTwoFA(@PathVariable("uid") String uid, @CurrentUser User currentUser) {
+    List<ErrorReport> errors = new ArrayList<>();
+    userService.disableTwoFA(currentUser, uid, errors::add);
+
+    if (errors.isEmpty()) {
+      return WebMessageUtils.ok();
+    }
+
+    return WebMessageUtils.errorReports(errors);
+  }
+
+  // -------------------------------------------------------------------------
+  // PATCH
+  //
+
+  /**
+   * > This function is used to PATCH a user object
+   *
+   * @param pvUid The user's uid
+   * @param rpParameters The request parameters
+   * @param currentUser The user that is currently logged in.
+   * @param request The request object
+   */
+  @PatchMapping(value = "/{uid}")
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  @Override
+  public void partialUpdateObject(
+      @PathVariable("uid") String pvUid,
+      @RequestParam Map<String, String> rpParameters,
+      @CurrentUser User currentUser,
+      HttpServletRequest request)
+      throws Exception {
+    WebOptions options = new WebOptions(rpParameters);
+    List<User> entities = getEntity(pvUid, options);
+
+    if (entities.isEmpty()) {
+      throw new WebMessageException(notFound(getEntityClass(), pvUid));
+    }
+
+    User persistedObject = entities.get(0);
+
+    boolean twoFABefore = persistedObject.getTwoFA();
+
+    if (!aclService.canUpdate(currentUser, persistedObject)) {
+      throw new UpdateAccessDeniedException(
+          "You don't have the proper permissions to update this object.");
+    }
+
+    Patch patch = diff(request);
+
+    mergeUserCredentialsMutations(patch);
+
+    prePatchEntity(persistedObject, persistedObject);
+    patchService.apply(patch, persistedObject);
+
+    boolean twoFAfter = persistedObject.getTwoFA();
+
+    securityService.validate2FAUpdate(twoFABefore, twoFAfter, persistedObject);
+
+    validateAndThrowErrors(() -> schemaValidator.validate(persistedObject));
+
+    manager.update(persistedObject);
+    postPatchEntity(persistedObject);
+  }
+
+  /*
+   * This method is used to merge the user credentials with the user object.
+   */
+  private void mergeUserCredentialsMutations(Patch patch) {
+    List<Mutation> mutations = patch.getMutations();
+    List<Mutation> filteredMutations = new ArrayList<>();
+    for (Mutation mutation : mutations) {
+      Mutation.Operation operation = mutation.getOperation();
+      String path = mutation.getPath();
+      Object value = mutation.getValue();
+
+      if (path.startsWith("userCredentials")) {
+        path = path.replace("userCredentials.", "");
+
+        Mutation filtered = new Mutation(path, value, operation);
+        filteredMutations.add(filtered);
+      } else {
+        filteredMutations.add(mutation);
+      }
+
+      patch.setMutations(filteredMutations);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // PUT
+  // -------------------------------------------------------------------------
+
+  @Override
+  @PutMapping(
+      value = "/{uid}",
+      consumes = {APPLICATION_XML_VALUE, TEXT_XML_VALUE},
+      produces = APPLICATION_XML_VALUE)
+  @ResponseBody
+  public WebMessage putXmlObject(
+      @PathVariable("uid") String pvUid,
+      @CurrentUser User currentUser,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    User parsed = renderService.fromXml(request.getInputStream(), getEntityClass());
+
+    return importReport(updateUser(pvUid, parsed)).withPlainResponseBefore(DhisApiVersion.V38);
+  }
+
+  @Override
+  @PutMapping(
+      value = "/{uid}",
+      consumes = APPLICATION_JSON_VALUE,
+      produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage putJsonObject(
+      @PathVariable("uid") String pvUid, @CurrentUser User currentUser, HttpServletRequest request)
+      throws Exception {
+    User parsed = renderService.fromJson(request.getInputStream(), getEntityClass());
+
+    List<User> users = getEntity(pvUid, NO_WEB_OPTIONS);
+    if (users.isEmpty()) {
+      throw new WebMessageException(conflict(getEntityName() + " does not exist: " + pvUid));
+    }
+
+    // TODO: To remove when we remove old UserCredentials compatibility
+    populateUserCredentialsDtoCopyOnlyChanges(users.get(0), parsed);
+
+    return importReport(updateUser(pvUid, parsed)).withPlainResponseBefore(DhisApiVersion.V38);
+  }
+
+  protected ImportReport updateUser(String userUid, User parsedUserObject)
+      throws WebMessageException {
+    List<User> users = getEntity(userUid, NO_WEB_OPTIONS);
+
+    if (users.isEmpty()) {
+      throw new WebMessageException(conflict(getEntityName() + " does not exist: " + userUid));
+    }
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    if (!aclService.canUpdate(currentUser, users.get(0))) {
+      throw new UpdateAccessDeniedException(
+          "You don't have the proper permissions to update this user.");
+    }
+
+    // force initialization of all authorities of current user in order to
+    // prevent cases where user must be reloaded later
+    // (in case it gets detached)
+    currentUser.getAllAuthorities();
+
+    parsedUserObject.setId(users.get(0).getId());
+    parsedUserObject.setUid(userUid);
+    mergeLastLoginAttribute(users.get(0), parsedUserObject);
+
+    boolean isPasswordChangeAttempt = parsedUserObject.getPassword() != null;
+
+    List<String> groupsUids = getUids(parsedUserObject.getGroups());
+
+    if (!userService.canAddOrUpdateUser(groupsUids, currentUser)
+        || !currentUser.canModifyUser(users.get(0))) {
+      throw new WebMessageException(
+          conflict(
+              "You must have permissions to create user, "
+                  + "or ability to manage at least one user group for the user."));
+    }
+
+    MetadataImportParams params =
+        importService.getParamsFromMap(contextService.getParameterValuesMap());
+    params.setImportReportMode(ImportReportMode.FULL);
+    params.setImportStrategy(ImportStrategy.UPDATE);
+    params.addObject(parsedUserObject);
+
+    ImportReport importReport = importService.importMetadata(params);
+
+    if (importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1) {
+      updateUserGroups(userUid, parsedUserObject, currentUser);
+
+      // If it was a pw change attempt (input.pw != null) and update was
+      // success we assume password has changed...
+      // We chose to expire the special case if password is set to the
+      // same. i.e. no before & after equals pw check
+      if (isPasswordChangeAttempt) {
+        userService.expireActiveSessions(parsedUserObject);
+      }
+    }
+
+    return importReport;
+  }
+
+  protected void updateUserGroups(String pvUid, User parsed, User currentUser) {
+    User user = userService.getUser(pvUid);
+
+    if (currentUser != null && currentUser.getId() == user.getId()) {
+      currentUser = currentUserService.getCurrentUser();
+    }
+
+    List<String> uids = getUids(parsed.getGroups());
+
+    userGroupService.updateUserGroups(user, uids, currentUser);
+  }
+
+  // -------------------------------------------------------------------------
+  // PATCH
+  // -------------------------------------------------------------------------
+
+  @Override
+  protected void prePatchEntity(User oldEntity, User newEntity) {
+    // TODO: To remove when we remove old UserCredentials compatibility
+    populateUserCredentialsDtoCopyOnlyChanges(oldEntity, newEntity);
+  }
+
+  @Override
+  protected void postJsonPatch(JsonPatch patch, User user) {
+    // Make sure we always expire all the user's active sessions if we
+    // have disabled the user.
+    if (user != null && user.isDisabled()) {
+      userService.expireActiveSessions(user);
+    }
+
+    // Support patching user.userGroups relation which User is not the owner
+    for (JsonPatchOperation op : patch.getOperations()) {
+      JsonPointer userGroups = op.getPath().matchProperty("userGroups");
+      if (userGroups == null) {
+        continue;
+      }
+
+      String opName = op.getOp();
+      if (opName.equals("add")) {
+        List<String> groupIds = new ArrayList<>();
+        ((AddOperation) op)
+            .getValue()
+            .elements()
+            .forEachRemaining(node -> groupIds.add(node.get("id").asText()));
+        userGroupService.updateUserGroups(user, groupIds, currentUserService.getCurrentUser());
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // DELETE
+  // -------------------------------------------------------------------------
+
+  @Override
+  protected void preDeleteEntity(User entity) throws Exception {
+    User currentUser = currentUserService.getCurrentUser();
+
+    if (!userService.canAddOrUpdateUser(getUids(entity.getGroups()), currentUser)
+        || !currentUser.canModifyUser(entity)) {
+      throw new WebMessageException(
+          conflict(
+              "You must have permissions to create user, or ability to manage at least one user group for the user."));
+    }
+
+    if (userService.isLastSuperUser(entity)) {
+      throw new WebMessageException(conflict("Can not remove the last super user."));
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Validates whether the given user can be created.
+   *
+   * @param user the user.
+   */
+  private void validateCreateUser(User user, User currentUser) throws WebMessageException {
+    if (!aclService.canCreate(currentUser, getEntityClass())) {
+      throw new CreateAccessDeniedException(
+          "You don't have the proper permissions to create this object.");
+    }
+
+    if (!userService.canAddOrUpdateUser(getUids(user.getGroups()), currentUser)) {
+      throw new WebMessageException(
+          conflict(
+              "You must have permissions to create user, or ability to manage at least one user group for the user."));
+    }
+
+    List<String> uids = getUids(user.getGroups());
+
+    for (String uid : uids) {
+      if (!userGroupService.canAddOrRemoveMember(uid, currentUser)) {
+        throw new WebMessageException(
+            conflict("You don't have permissions to add user to user group: " + uid));
+      }
+    }
+  }
+
+  /**
+   * Creates a user.
+   *
+   * @param user user object parsed from the POST request.
+   */
+  private ImportReport createUser(User user, User currentUser) {
+    MetadataImportParams importParams =
+        new MetadataImportParams()
+            .setImportReportMode(ImportReportMode.FULL)
+            .setImportStrategy(ImportStrategy.CREATE)
+            .addObject(user);
+
+    ImportReport importReport = importService.importMetadata(importParams);
+
+    if (importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1) {
+      userGroupService.addUserToGroups(user, getUids(user.getGroups()), currentUser);
+    }
+
+    return importReport;
+  }
+
+  /**
+   * Validates whether a user can be invited / created.
+   *
+   * @param user the user.
+   */
+  private void validateInviteUser(User user, User currentUser) throws WebMessageException {
+    if (user == null) {
+      throw new WebMessageException(conflict("User is not present"));
+    }
+
+    validateCreateUser(user, currentUser);
+
+    ErrorCode errorCode = securityService.validateInvite(user);
+
+    if (errorCode != null) {
+      throw new IllegalQueryException(errorCode);
+    }
+  }
+
+  private ObjectReport inviteUser(User user, User currentUser, HttpServletRequest request) {
+    RestoreOptions restoreOptions =
+        user.getUsername() == null || user.getUsername().isEmpty()
             ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
             : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
 
-        securityService.prepareUserForInvite( user );
+    securityService.prepareUserForInvite(user);
 
-        ImportReport importReport = createUser( user, currentUser );
-        ObjectReport objectReport = getObjectReport( importReport );
+    ImportReport importReport = createUser(user, currentUser);
+    ObjectReport objectReport = getObjectReport(importReport);
 
-        if ( importReport.getStatus() == Status.OK &&
-            importReport.getStats().getCreated() == 1 &&
-            objectReport != null )
-        {
-            securityService
-                .sendRestoreOrInviteMessage( user, ContextUtils.getContextPath( request ),
-                    restoreOptions );
+    if (importReport.getStatus() == Status.OK
+        && importReport.getStats().getCreated() == 1
+        && objectReport != null) {
+      securityService.sendRestoreOrInviteMessage(
+          user, ContextUtils.getContextPath(request), restoreOptions);
 
-            log.info( String.format( "An invite email was successfully sent to: %s", user.getEmail() ) );
-        }
-
-        return objectReport;
+      log.info(String.format("An invite email was successfully sent to: %s", user.getEmail()));
     }
 
-    private static ObjectReport getObjectReport( ImportReport importReport )
-    {
-        return importReport.getFirstObjectReport();
+    return objectReport;
+  }
+
+  private static ObjectReport getObjectReport(ImportReport importReport) {
+    return importReport.getFirstObjectReport();
+  }
+
+  /**
+   * Make a copy of any existing attribute values, so they can be saved as new attribute values.
+   * Don't copy unique values.
+   *
+   * @param userReplica user for which to copy attribute values.
+   */
+  private void copyAttributeValues(User userReplica) {
+    if (userReplica.getAttributeValues() == null) {
+      return;
     }
 
-    /**
-     * Make a copy of any existing attribute values, so they can be saved as new
-     * attribute values. Don't copy unique values.
-     *
-     * @param userReplica user for which to copy attribute values.
-     */
-    private void copyAttributeValues( User userReplica )
-    {
-        if ( userReplica.getAttributeValues() == null )
-        {
-            return;
-        }
+    Set<AttributeValue> newAttributeValues = new HashSet<>();
 
-        Set<AttributeValue> newAttributeValues = new HashSet<>();
+    for (AttributeValue oldValue : userReplica.getAttributeValues()) {
+      if (!oldValue.getAttribute().isUnique()) {
+        AttributeValue newValue = new AttributeValue(oldValue.getValue(), oldValue.getAttribute());
 
-        for ( AttributeValue oldValue : userReplica.getAttributeValues() )
-        {
-            if ( !oldValue.getAttribute().isUnique() )
-            {
-                AttributeValue newValue = new AttributeValue( oldValue.getValue(), oldValue.getAttribute() );
-
-                newAttributeValues.add( newValue );
-            }
-        }
-
-        if ( newAttributeValues.isEmpty() )
-        {
-            userReplica.setAttributeValues( null );
-        }
-
-        userReplica.setAttributeValues( newAttributeValues );
+        newAttributeValues.add(newValue);
+      }
     }
 
-    private User mergeLastLoginAttribute( User source, User target )
-    {
-        if ( target == null )
-        {
-            return target;
-        }
-
-        if ( target.getLastLogin() != null )
-        {
-            return target;
-        }
-
-        if ( source != null && source.getLastLogin() != null )
-        {
-            target.setLastLogin( source.getLastLogin() );
-        }
-
-        return target;
+    if (newAttributeValues.isEmpty()) {
+      userReplica.setAttributeValues(null);
     }
 
-    /**
-     * Either disable or enable a user account
-     *
-     * @param uid the unique id of the user to enable or disable
-     * @param disable boolean value, true for disable, false for enable
-     *
-     * @throws WebMessageException thrown if "current" user is not allowed to
-     *         modify the user
-     */
-    private void setDisabled( String uid, boolean disable )
-        throws WebMessageException
-    {
-        User userToModify = userService.getUser( uid );
-        checkCurrentUserCanModify( userToModify );
+    userReplica.setAttributeValues(newAttributeValues);
+  }
 
-        if ( userToModify.isDisabled() != disable )
-        {
-            userToModify.setDisabled( disable );
-            userService.updateUser( userToModify );
-        }
-
-        if ( disable )
-        {
-            userService.expireActiveSessions( userToModify );
-        }
+  private User mergeLastLoginAttribute(User source, User target) {
+    if (target == null) {
+      return target;
     }
 
-    private void checkCurrentUserCanModify( User userToModify )
-        throws WebMessageException
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( currentUser, userToModify ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
-            || !currentUser.canModifyUser( userToModify ) )
-        {
-            throw new WebMessageException( conflict(
-                "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
-        }
+    if (target.getLastLogin() != null) {
+      return target;
     }
 
-    private void setExpires( String uid, Date accountExpiry )
-        throws WebMessageException
-    {
-        User userToModify = userService.getUser( uid );
-        checkCurrentUserCanModify( userToModify );
-
-        User user = userToModify;
-        user.setAccountExpiry( accountExpiry );
-        userService.updateUser( user );
-
-        if ( userService.isAccountExpired( user ) )
-        {
-            userService.expireActiveSessions( user );
-        }
+    if (source != null && source.getLastLogin() != null) {
+      target.setLastLogin(source.getLastLogin());
     }
+
+    return target;
+  }
+
+  /**
+   * Either disable or enable a user account
+   *
+   * @param uid the unique id of the user to enable or disable
+   * @param disable boolean value, true for disable, false for enable
+   * @throws WebMessageException thrown if "current" user is not allowed to modify the user
+   */
+  private void setDisabled(String uid, boolean disable) throws WebMessageException {
+    User userToModify = userService.getUser(uid);
+    checkCurrentUserCanModify(userToModify);
+
+    if (userToModify.isDisabled() != disable) {
+      userToModify.setDisabled(disable);
+      userService.updateUser(userToModify);
+    }
+
+    if (disable) {
+      userService.expireActiveSessions(userToModify);
+    }
+  }
+
+  private void checkCurrentUserCanModify(User userToModify) throws WebMessageException {
+    User currentUser = currentUserService.getCurrentUser();
+
+    if (!aclService.canUpdate(currentUser, userToModify)) {
+      throw new UpdateAccessDeniedException(
+          "You don't have the proper permissions to update this object.");
+    }
+
+    if (!userService.canAddOrUpdateUser(getUids(userToModify.getGroups()), currentUser)
+        || !currentUser.canModifyUser(userToModify)) {
+      throw new WebMessageException(
+          conflict(
+              "You must have permissions to create user, or ability to manage at least one user group for the user."));
+    }
+  }
+
+  private void setExpires(String uid, Date accountExpiry) throws WebMessageException {
+    User userToModify = userService.getUser(uid);
+    checkCurrentUserCanModify(userToModify);
+
+    User user = userToModify;
+    user.setAccountExpiry(accountExpiry);
+    userService.updateUser(user);
+
+    if (userService.isAccountExpired(user)) {
+      userService.expireActiveSessions(user);
+    }
+  }
 }

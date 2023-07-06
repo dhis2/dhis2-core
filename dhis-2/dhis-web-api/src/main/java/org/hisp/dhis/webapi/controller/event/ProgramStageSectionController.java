@@ -37,8 +37,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = ProgramStageSectionSchemaDescriptor.API_ENDPOINT )
-public class ProgramStageSectionController
-    extends AbstractCrudController<ProgramStageSection>
-{
-}
+@RequestMapping(value = ProgramStageSectionSchemaDescriptor.API_ENDPOINT)
+public class ProgramStageSectionController extends AbstractCrudController<ProgramStageSection> {}

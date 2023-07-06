@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
@@ -50,51 +49,48 @@ import org.springframework.http.MediaType;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@ExtendWith( MockitoExtension.class )
-class TrackedEntityInstanceStrategyHandlerTest
-{
+@ExtendWith(MockitoExtension.class)
+class TrackedEntityInstanceStrategyHandlerTest {
 
-    @InjectMocks
-    private TrackedEntityInstanceStrategyImpl trackedEntityInstanceStrategyHandler;
+  @InjectMocks private TrackedEntityInstanceStrategyImpl trackedEntityInstanceStrategyHandler;
 
-    @Mock
-    private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
+  @Mock private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
 
-    @Mock
-    private TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
+  @Mock private TrackedEntityInstanceSyncStrategyImpl trackedEntityInstanceSyncStrategy;
 
-    @Mock
-    private ImportOptions importOptions;
+  @Mock private ImportOptions importOptions;
 
-    @Test
-    void shouldCallSyncTrackedEntitySyncStrategy()
-        throws BadRequestException,
-        IOException
-    {
-        when( importOptions.isAsync() ).thenReturn( false );
+  @Test
+  void shouldCallSyncTrackedEntitySyncStrategy() throws BadRequestException, IOException {
+    when(importOptions.isAsync()).thenReturn(false);
 
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_JSON.toString() ).importOptions( importOptions ).build();
+    TrackerEntityInstanceRequest trackerEntityInstanceRequest =
+        TrackerEntityInstanceRequest.builder()
+            .mediaType(MediaType.APPLICATION_JSON.toString())
+            .importOptions(importOptions)
+            .build();
 
-        trackedEntityInstanceStrategyHandler.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+    trackedEntityInstanceStrategyHandler.mergeOrDeleteTrackedEntityInstances(
+        trackerEntityInstanceRequest);
 
-        verify( trackedEntityInstanceAsyncStrategy, times( 0 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-        verify( trackedEntityInstanceSyncStrategy, times( 1 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-    }
+    verify(trackedEntityInstanceAsyncStrategy, times(0)).mergeOrDeleteTrackedEntityInstances(any());
+    verify(trackedEntityInstanceSyncStrategy, times(1)).mergeOrDeleteTrackedEntityInstances(any());
+  }
 
-    @Test
-    void shouldCallAsyncTrackedEntitySyncStrategy()
-        throws BadRequestException,
-        IOException
-    {
-        when( importOptions.isAsync() ).thenReturn( true );
+  @Test
+  void shouldCallAsyncTrackedEntitySyncStrategy() throws BadRequestException, IOException {
+    when(importOptions.isAsync()).thenReturn(true);
 
-        TrackerEntityInstanceRequest trackerEntityInstanceRequest = TrackerEntityInstanceRequest.builder()
-            .mediaType( MediaType.APPLICATION_JSON.toString() ).importOptions( importOptions ).build();
+    TrackerEntityInstanceRequest trackerEntityInstanceRequest =
+        TrackerEntityInstanceRequest.builder()
+            .mediaType(MediaType.APPLICATION_JSON.toString())
+            .importOptions(importOptions)
+            .build();
 
-        trackedEntityInstanceStrategyHandler.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+    trackedEntityInstanceStrategyHandler.mergeOrDeleteTrackedEntityInstances(
+        trackerEntityInstanceRequest);
 
-        verify( trackedEntityInstanceAsyncStrategy, times( 1 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-        verify( trackedEntityInstanceSyncStrategy, times( 0 ) ).mergeOrDeleteTrackedEntityInstances( any() );
-    }
+    verify(trackedEntityInstanceAsyncStrategy, times(1)).mergeOrDeleteTrackedEntityInstances(any());
+    verify(trackedEntityInstanceSyncStrategy, times(0)).mergeOrDeleteTrackedEntityInstances(any());
+  }
 }

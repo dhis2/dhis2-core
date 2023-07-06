@@ -46,7 +46,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
-
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -58,163 +57,151 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class AnalyticsCacheSettingsTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class AnalyticsCacheSettingsTest {
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingManager systemSettingManager;
 
-    private AnalyticsCacheSettings analyticsCacheSettings;
+  private AnalyticsCacheSettings analyticsCacheSettings;
 
-    @BeforeEach
-    public void setUp()
-    {
-        analyticsCacheSettings = new AnalyticsCacheSettings( systemSettingManager );
-    }
+  @BeforeEach
+  public void setUp() {
+    analyticsCacheSettings = new AnalyticsCacheSettings(systemSettingManager);
+  }
 
-    @Test
-    void testWhenProgressiveCachingIsEnabled()
-    {
-        given( PROGRESSIVE, CACHE_1_MINUTE );
+  @Test
+  void testWhenProgressiveCachingIsEnabled() {
+    given(PROGRESSIVE, CACHE_1_MINUTE);
 
-        assertTrue( analyticsCacheSettings.isProgressiveCachingEnabled() );
-    }
+    assertTrue(analyticsCacheSettings.isProgressiveCachingEnabled());
+  }
 
-    @Test
-    void testWhenFixedCachingIsEnabled()
-    {
-        given( FIXED, CACHE_1_MINUTE );
+  @Test
+  void testWhenFixedCachingIsEnabled() {
+    given(FIXED, CACHE_1_MINUTE);
 
-        assertTrue( analyticsCacheSettings.isFixedCachingEnabled() );
-    }
+    assertTrue(analyticsCacheSettings.isFixedCachingEnabled());
+  }
 
-    @Test
-    void testWhenProgressiveCachingIsEnabledButStrategyIsNoCache()
-    {
-        given( PROGRESSIVE, NO_CACHE );
+  @Test
+  void testWhenProgressiveCachingIsEnabledButStrategyIsNoCache() {
+    given(PROGRESSIVE, NO_CACHE);
 
-        assertTrue( analyticsCacheSettings.isProgressiveCachingEnabled() );
-    }
+    assertTrue(analyticsCacheSettings.isProgressiveCachingEnabled());
+  }
 
-    @Test
-    void testWhenFixedCachingIsEnabledButStrategyIsNoCache()
-    {
-        given( FIXED, NO_CACHE );
+  @Test
+  void testWhenFixedCachingIsEnabledButStrategyIsNoCache() {
+    given(FIXED, NO_CACHE);
 
-        assertFalse( analyticsCacheSettings.isFixedCachingEnabled() );
-    }
+    assertFalse(analyticsCacheSettings.isFixedCachingEnabled());
+  }
 
-    @Test
-    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet()
-    {
-        // Given
-        final int aTtlFactor = 20;
-        final int oneDayDiff = 1;
-        final long theExpectedTtl = aTtlFactor * oneDayDiff; // See
-                                                             // TimeToLive.compute()
-        final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
+  @Test
+  void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet() {
+    // Given
+    final int aTtlFactor = 20;
+    final int oneDayDiff = 1;
+    final long theExpectedTtl = aTtlFactor * oneDayDiff; // See
+    // TimeToLive.compute()
+    final Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-        // When
-        when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
-            .thenReturn( aTtlFactor );
-        final long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
+    // When
+    when(systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR))
+        .thenReturn(aTtlFactor);
+    final long expirationTime =
+        analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday);
 
-        // Then
-        assertThat( expirationTime, is( theExpectedTtl ) );
-    }
+    // Then
+    assertThat(expirationTime, is(theExpectedTtl));
+  }
 
-    @Test
-    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet()
-    {
-        // Given
-        final int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
-        final int oneDayDiff = 1;
-        final long theExpectedTtl = theDefaultTtlFactor * oneDayDiff; // See
-                                                                      // TimeToLive.compute()
-        final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
+  @Test
+  void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet() {
+    // Given
+    final int theDefaultTtlFactor =
+        (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
+    final int oneDayDiff = 1;
+    final long theExpectedTtl = theDefaultTtlFactor * oneDayDiff; // See
+    // TimeToLive.compute()
+    final Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-        // When
-        when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
-            .thenReturn( theDefaultTtlFactor );
-        final long expirationTime = analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday );
+    // When
+    when(systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR))
+        .thenReturn(theDefaultTtlFactor);
+    final long expirationTime =
+        analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday);
 
-        // Then
-        assertThat( expirationTime, is( theExpectedTtl ) );
-    }
+    // Then
+    assertThat(expirationTime, is(theExpectedTtl));
+  }
 
-    @Test
-    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber()
-    {
-        // Given
-        final int aTtlFactor = -20;
-        final int oneDayDiff = 1;
-        final Date aDateBeforeToday = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
+  @Test
+  void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber() {
+    // Given
+    final int aTtlFactor = -20;
+    final int oneDayDiff = 1;
+    final Date aDateBeforeToday = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
 
-        // When
-        when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
-            .thenReturn( aTtlFactor );
+    // When
+    when(systemSettingManager.getIntegerSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR))
+        .thenReturn(aTtlFactor);
 
-        // Then
-        assertEquals( 1, analyticsCacheSettings.progressiveExpirationTimeOrDefault( aDateBeforeToday ) );
-    }
+    // Then
+    assertEquals(1, analyticsCacheSettings.progressiveExpirationTimeOrDefault(aDateBeforeToday));
+  }
 
-    @Test
-    void testWhenFixedExpirationTimeOrDefaultIsSet()
-    {
-        given( CACHE_10_MINUTES );
+  @Test
+  void testWhenFixedExpirationTimeOrDefaultIsSet() {
+    given(CACHE_10_MINUTES);
 
-        assertEquals( CACHE_TWO_WEEKS.toSeconds().longValue(), analyticsCacheSettings.fixedExpirationTimeOrDefault() );
-    }
+    assertEquals(
+        CACHE_TWO_WEEKS.toSeconds().longValue(),
+        analyticsCacheSettings.fixedExpirationTimeOrDefault());
+  }
 
-    @Test
-    void testWhenFixedExpirationTimeOrDefaultIsNotCache()
-    {
-        given( NO_CACHE );
+  @Test
+  void testWhenFixedExpirationTimeOrDefaultIsNotCache() {
+    given(NO_CACHE);
 
-        assertEquals( 0L, analyticsCacheSettings.fixedExpirationTimeOrDefault() );
-    }
+    assertEquals(0L, analyticsCacheSettings.fixedExpirationTimeOrDefault());
+  }
 
-    @Test
-    void testIsCachingEnabledWhenFixedExpirationTimeIsSet()
-    {
-        given( FIXED, CACHE_10_MINUTES );
+  @Test
+  void testIsCachingEnabledWhenFixedExpirationTimeIsSet() {
+    given(FIXED, CACHE_10_MINUTES);
 
-        assertTrue( analyticsCacheSettings.isCachingEnabled() );
-    }
+    assertTrue(analyticsCacheSettings.isCachingEnabled());
+  }
 
-    @Test
-    void testIsCachingEnabledWhenProgressiveExpirationTimeIsSet()
-    {
-        given( PROGRESSIVE, CACHE_10_MINUTES );
+  @Test
+  void testIsCachingEnabledWhenProgressiveExpirationTimeIsSet() {
+    given(PROGRESSIVE, CACHE_10_MINUTES);
 
-        assertTrue( analyticsCacheSettings.isCachingEnabled() );
-    }
+    assertTrue(analyticsCacheSettings.isCachingEnabled());
+  }
 
-    @Test
-    void testIsCachingEnabledWhenFixedExpirationTimeIsSetAndStrategyIsNoCache()
-    {
-        given( FIXED, NO_CACHE );
+  @Test
+  void testIsCachingEnabledWhenFixedExpirationTimeIsSetAndStrategyIsNoCache() {
+    given(FIXED, NO_CACHE);
 
-        assertFalse( analyticsCacheSettings.isCachingEnabled() );
-    }
+    assertFalse(analyticsCacheSettings.isCachingEnabled());
+  }
 
-    private void given( CacheStrategy strategy )
-    {
-        given( null, strategy );
-    }
+  private void given(CacheStrategy strategy) {
+    given(null, strategy);
+  }
 
-    private void given( AnalyticsCacheTtlMode mode, CacheStrategy strategy )
-    {
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class ) )
-            .thenReturn( mode );
-        when( systemSettingManager.getSystemSetting( CACHE_STRATEGY, CacheStrategy.class ) )
-            .thenReturn( strategy );
-    }
+  private void given(AnalyticsCacheTtlMode mode, CacheStrategy strategy) {
+    when(systemSettingManager.getSystemSetting(
+            ANALYTICS_CACHE_TTL_MODE, AnalyticsCacheTtlMode.class))
+        .thenReturn(mode);
+    when(systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class))
+        .thenReturn(strategy);
+  }
 
-    private int minus( final int value )
-    {
-        return -value;
-    }
+  private int minus(final int value) {
+    return -value;
+  }
 }

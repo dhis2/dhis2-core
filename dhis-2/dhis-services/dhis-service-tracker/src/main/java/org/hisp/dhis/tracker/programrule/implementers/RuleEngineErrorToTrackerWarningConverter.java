@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.rules.models.RuleActionError;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -42,46 +42,50 @@ import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
- * This implementer log as a warning any error raised by rule engine execution
- *
- * @Author Enrico Colasante
+ * This implementer log as a warning any error raised by rule engine execution @Author Enrico
+ * Colasante
  */
 @Component
 public class RuleEngineErrorToTrackerWarningConverter
-    extends AbstractRuleActionImplementer<RuleActionError>
-    implements RuleActionImplementer
-{
-    @Override
-    public Class<RuleActionError> getActionClass()
-    {
-        return RuleActionError.class;
-    }
+    extends AbstractRuleActionImplementer<RuleActionError> implements RuleActionImplementer {
+  @Override
+  public Class<RuleActionError> getActionClass() {
+    return RuleActionError.class;
+  }
 
-    @Override
-    public String getField( RuleActionError ruleAction )
-    {
-        return null;
-    }
+  @Override
+  public String getField(RuleActionError ruleAction) {
+    return null;
+  }
 
-    @Override
-    List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> eventActions, TrackerBundle bundle )
-    {
-        return eventActions.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), TrackerErrorCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  List<ProgramRuleIssue> applyToEvents(
+      Event event, List<EventActionRule> eventActions, TrackerBundle bundle) {
+    return eventActions.stream()
+        .map(
+            e ->
+                new ProgramRuleIssue(
+                    e.getRuleUid(),
+                    TrackerErrorCode.E1300,
+                    Lists.newArrayList(e.getData()),
+                    IssueType.WARNING))
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
-        TrackerBundle bundle )
-    {
-        return enrollmentActionRules.stream()
-            .map( e -> new ProgramRuleIssue( e.getRuleUid(), TrackerErrorCode.E1300,
-                Lists.newArrayList( e.getData() ), IssueType.WARNING ) )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  List<ProgramRuleIssue> applyToEnrollments(
+      Enrollment enrollment,
+      List<EnrollmentActionRule> enrollmentActionRules,
+      TrackerBundle bundle) {
+    return enrollmentActionRules.stream()
+        .map(
+            e ->
+                new ProgramRuleIssue(
+                    e.getRuleUid(),
+                    TrackerErrorCode.E1300,
+                    Lists.newArrayList(e.getData()),
+                    IssueType.WARNING))
+        .collect(Collectors.toList());
+  }
 }

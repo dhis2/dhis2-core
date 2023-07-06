@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -49,75 +48,70 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class OrgUnitAnalyticsController
-{
-    private static final String RESOURCE_PATH = "/orgUnitAnalytics";
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class OrgUnitAnalyticsController {
+  private static final String RESOURCE_PATH = "/orgUnitAnalytics";
 
-    @Autowired
-    private OrgUnitAnalyticsService analyticsService;
+  @Autowired private OrgUnitAnalyticsService analyticsService;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    @GetMapping( value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody Grid getJson(
-        @RequestParam String ou,
-        @RequestParam String ougs,
-        @RequestParam( required = false ) String columns,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return analyticsService.getOrgUnitData( params );
-    }
+  @GetMapping(value = RESOURCE_PATH, produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody Grid getJson(
+      @RequestParam String ou,
+      @RequestParam String ougs,
+      @RequestParam(required = false) String columns,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    return analyticsService.getOrgUnitData(params);
+  }
 
-    @GetMapping( RESOURCE_PATH + ".xls" )
-    public void getXls(
-        @RequestParam String ou,
-        @RequestParam String ougs,
-        @RequestParam( required = false ) String columns,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL,
-            CacheStrategy.RESPECT_SYSTEM_SETTING );
-        Grid grid = analyticsService.getOrgUnitData( params );
-        GridUtils.toXls( grid, response.getOutputStream() );
-    }
+  @GetMapping(RESOURCE_PATH + ".xls")
+  public void getXls(
+      @RequestParam String ou,
+      @RequestParam String ougs,
+      @RequestParam(required = false) String columns,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    Grid grid = analyticsService.getOrgUnitData(params);
+    GridUtils.toXls(grid, response.getOutputStream());
+  }
 
-    @GetMapping( RESOURCE_PATH + ".csv" )
-    public void getCsv(
-        @RequestParam String ou,
-        @RequestParam String ougs,
-        @RequestParam( required = false ) String columns,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        Grid grid = analyticsService.getOrgUnitData( params );
-        GridUtils.toCsv( grid, response.getWriter() );
-    }
+  @GetMapping(RESOURCE_PATH + ".csv")
+  public void getCsv(
+      @RequestParam String ou,
+      @RequestParam String ougs,
+      @RequestParam(required = false) String columns,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    Grid grid = analyticsService.getOrgUnitData(params);
+    GridUtils.toCsv(grid, response.getWriter());
+  }
 
-    @GetMapping( RESOURCE_PATH + ".pdf" )
-    public void getPdf(
-        @RequestParam String ou,
-        @RequestParam String ougs,
-        @RequestParam( required = false ) String columns,
-        DhisApiVersion apiVersion,
-        HttpServletResponse response )
-        throws Exception
-    {
-        OrgUnitQueryParams params = analyticsService.getParams( ou, ougs, columns );
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
-        Grid grid = analyticsService.getOrgUnitData( params );
-        GridUtils.toPdf( grid, response.getOutputStream() );
-    }
+  @GetMapping(RESOURCE_PATH + ".pdf")
+  public void getPdf(
+      @RequestParam String ou,
+      @RequestParam String ougs,
+      @RequestParam(required = false) String columns,
+      DhisApiVersion apiVersion,
+      HttpServletResponse response)
+      throws Exception {
+    OrgUnitQueryParams params = analyticsService.getParams(ou, ougs, columns);
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING);
+    Grid grid = analyticsService.getOrgUnitData(params);
+    GridUtils.toPdf(grid, response.getOutputStream());
+  }
 }

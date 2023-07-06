@@ -35,35 +35,30 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-@Service( "org.hisp.dhis.program.ProgramTempOwnerService" )
-public class DefaultProgramTempOwnerService implements ProgramTempOwnerService
-{
+@Service("org.hisp.dhis.program.ProgramTempOwnerService")
+public class DefaultProgramTempOwnerService implements ProgramTempOwnerService {
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramTempOwnerStore programTempOwnerStore;
+  @Autowired private ProgramTempOwnerStore programTempOwnerStore;
 
-    // -------------------------------------------------------------------------
-    // ProgramTempOwnershipAuditService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramTempOwnershipAuditService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void addProgramTempOwner( ProgramTempOwner programTempOwner )
-    {
-        programTempOwnerStore.addProgramTempOwner( programTempOwner );
-    }
+  @Override
+  @Transactional
+  public void addProgramTempOwner(ProgramTempOwner programTempOwner) {
+    programTempOwnerStore.addProgramTempOwner(programTempOwner);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public int getValidTempOwnerRecordCount( Program program, TrackedEntityInstance entityInstance, User user )
-    {
-        return programTempOwnerStore.getValidTempOwnerCount( program, entityInstance, user );
-    }
-
+  @Override
+  @Transactional(readOnly = true)
+  public int getValidTempOwnerRecordCount(
+      Program program, TrackedEntityInstance entityInstance, User user) {
+    return programTempOwnerStore.getValidTempOwnerCount(program, entityInstance, user);
+  }
 }

@@ -29,16 +29,14 @@ package org.hisp.dhis.analytics.common;
 
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.common.AnalyticsPagingCriteria;
 
 @Data
-@Builder( toBuilder = true )
-public class QueryRequest<T>
-{
-    private final T request;
+@Builder(toBuilder = true)
+public class QueryRequest<T> {
+  private final T request;
 
-    private final CommonQueryRequest commonQueryRequest;
+  private final CommonQueryRequest commonQueryRequest;
 
-    private final AnalyticsPagingCriteria pagingCriteria;
+  private final AnalyticsPagingCriteria pagingCriteria;
 }

@@ -31,9 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,94 +40,80 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * This interface defined methods for getting access to the currently logged in
- * user and clearing the logged in state. If no user is logged in or the auto
- * access admin is active, all user access methods will return null.
+ * This interface defined methods for getting access to the currently logged in user and clearing
+ * the logged in state. If no user is logged in or the auto access admin is active, all user access
+ * methods will return null.
  *
  * @author Torgeir Lorange Ostby
  * @version $Id: CurrentUserService.java 5708 2008-09-16 14:28:32Z larshelg $
  */
-@Service( "org.hisp.dhis.user.CurrentUserService" )
+@Service("org.hisp.dhis.user.CurrentUserService")
 @Slf4j
-public class CurrentUserService
-{
-    private final UserStore userStore;
+public class CurrentUserService {
+  private final UserStore userStore;
 
-    private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+  private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
-    public CurrentUserService( @Lazy UserStore userStore, CacheProvider cacheProvider )
-    {
-        checkNotNull( userStore );
+  public CurrentUserService(@Lazy UserStore userStore, CacheProvider cacheProvider) {
+    checkNotNull(userStore);
 
-        this.userStore = userStore;
-        this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+    this.userStore = userStore;
+    this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
+  }
+
+  /**
+   * @return the username of the currently logged in user. If no user is logged in or the auto
+   *     access admin is active, null is returned.
+   */
+  public String getCurrentUsername() {
+    return CurrentUserUtil.getCurrentUsername();
+  }
+
+  public User getCurrentUser() {
+    String username = CurrentUserUtil.getCurrentUsername();
+
+    return userStore.getUserByUsername(username);
+  }
+
+  @Transactional(readOnly = true)
+  public boolean currentUserIsSuper() {
+    User user = getCurrentUser();
+
+    return user != null && user.isSuper();
+  }
+
+  @Transactional(readOnly = true)
+  public Set<OrganisationUnit> getCurrentUserOrganisationUnits() {
+    User user = getCurrentUser();
+
+    return user != null ? new HashSet<>(user.getOrganisationUnits()) : new HashSet<>();
+  }
+
+  @Transactional(readOnly = true)
+  public boolean currentUserIsAuthorized(String auth) {
+    User user = getCurrentUser();
+
+    return user != null && user.isAuthorized(auth);
+  }
+
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupsInfo() {
+    CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+
+    return user == null ? null : getCurrentUserGroupsInfo(user.getUid());
+  }
+
+  @Transactional(readOnly = true)
+  public CurrentUserGroupInfo getCurrentUserGroupsInfo(String userUID) {
+    return currentUserGroupInfoCache.get(userUID, key -> userStore.getCurrentUserGroupInfo(key));
+  }
+
+  @Transactional(readOnly = true)
+  public void invalidateUserGroupCache(String userUID) {
+    try {
+      currentUserGroupInfoCache.invalidate(userUID);
+    } catch (NullPointerException exception) {
+      // Ignore if key doesn't exist
     }
-
-    /**
-     * @return the username of the currently logged in user. If no user is
-     *         logged in or the auto access admin is active, null is returned.
-     */
-    public String getCurrentUsername()
-    {
-        return CurrentUserUtil.getCurrentUsername();
-    }
-
-    public User getCurrentUser()
-    {
-        String username = CurrentUserUtil.getCurrentUsername();
-
-        return userStore.getUserByUsername( username );
-    }
-
-    @Transactional( readOnly = true )
-    public boolean currentUserIsSuper()
-    {
-        User user = getCurrentUser();
-
-        return user != null && user.isSuper();
-    }
-
-    @Transactional( readOnly = true )
-    public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
-    {
-        User user = getCurrentUser();
-
-        return user != null ? new HashSet<>( user.getOrganisationUnits() ) : new HashSet<>();
-    }
-
-    @Transactional( readOnly = true )
-    public boolean currentUserIsAuthorized( String auth )
-    {
-        User user = getCurrentUser();
-
-        return user != null && user.isAuthorized( auth );
-    }
-
-    @Transactional( readOnly = true )
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo()
-    {
-        CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
-
-        return user == null ? null : getCurrentUserGroupsInfo( user.getUid() );
-    }
-
-    @Transactional( readOnly = true )
-    public CurrentUserGroupInfo getCurrentUserGroupsInfo( String userUID )
-    {
-        return currentUserGroupInfoCache
-            .get( userUID, key -> userStore.getCurrentUserGroupInfo( key ) );
-    }
-
-    @Transactional( readOnly = true )
-    public void invalidateUserGroupCache( String userUID )
-    {
-        try
-        {
-            currentUserGroupInfoCache.invalidate( userUID );
-        }
-        catch ( NullPointerException exception )
-        {
-            // Ignore if key doesn't exist
-        }
-    }
+  }
 }

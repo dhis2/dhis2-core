@@ -27,18 +27,14 @@
  */
 package org.hisp.dhis.system.database;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.lang.reflect.InvocationTargetException;
-
 import javax.annotation.Nonnull;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.apache.commons.beanutils.BeanUtils;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
@@ -46,67 +42,52 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class DatabaseInfo
-{
-    @JsonProperty
-    private String name;
+public class DatabaseInfo {
+  @JsonProperty private String name;
 
-    @JsonProperty
-    private String user;
+  @JsonProperty private String user;
 
-    @JsonIgnore
-    private String password;
+  @JsonIgnore private String password;
 
-    @JsonProperty
-    private String url;
+  @JsonProperty private String url;
 
-    @JsonProperty
-    private String databaseVersion;
+  @JsonProperty private String databaseVersion;
 
-    @JsonProperty
-    private boolean spatialSupport;
+  @JsonProperty private boolean spatialSupport;
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public void clearSensitiveInfo()
-    {
-        this.name = null;
-        this.user = null;
-        this.password = null;
-        this.url = null;
-        this.databaseVersion = null;
+  public void clearSensitiveInfo() {
+    this.name = null;
+    this.user = null;
+    this.password = null;
+    this.url = null;
+    this.databaseVersion = null;
+  }
+
+  /**
+   * @return a cloned instance of this object.
+   */
+  @Nonnull
+  public DatabaseInfo instance() {
+    final DatabaseInfo cloned = new DatabaseInfo();
+    try {
+      BeanUtils.copyProperties(cloned, this);
+    } catch (IllegalAccessException | InvocationTargetException ex) {
+      throw new IllegalStateException(ex);
     }
 
-    /**
-     * @return a cloned instance of this object.
-     */
-    @Nonnull
-    public DatabaseInfo instance()
-    {
-        final DatabaseInfo cloned = new DatabaseInfo();
-        try
-        {
-            BeanUtils.copyProperties( cloned, this );
-        }
-        catch ( IllegalAccessException | InvocationTargetException ex )
-        {
-            throw new IllegalStateException( ex );
-        }
+    return cloned;
+  }
 
-        return cloned;
-    }
+  // -------------------------------------------------------------------------
+  // toString
+  // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    // toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String toString()
-    {
-        return "[Name: " + name +
-            ", User: " + user +
-            ", URL: " + url + "]";
-    }
+  @Override
+  public String toString() {
+    return "[Name: " + name + ", User: " + user + ", URL: " + url + "]";
+  }
 }

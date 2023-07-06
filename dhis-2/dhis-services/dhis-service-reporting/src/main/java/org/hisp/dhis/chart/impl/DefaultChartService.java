@@ -40,7 +40,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator;
 import org.apache.commons.math3.analysis.interpolation.UnivariateInterpolator;
@@ -115,781 +114,750 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.visualization.ChartService" )
-public class DefaultChartService implements ChartService
-{
-    private static final Font TITLE_FONT = new Font( Font.SANS_SERIF, Font.BOLD, 12 );
+@Service("org.hisp.dhis.visualization.ChartService")
+public class DefaultChartService implements ChartService {
+  private static final Font TITLE_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 12);
 
-    private static final Font SUB_TITLE_FONT = new Font( Font.SANS_SERIF, Font.PLAIN, 11 );
+  private static final Font SUB_TITLE_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 11);
 
-    private static final Font LABEL_FONT = new Font( Font.SANS_SERIF, Font.PLAIN, 10 );
+  private static final Font LABEL_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 10);
 
-    private static final String TREND_PREFIX = "Trend - ";
+  private static final String TREND_PREFIX = "Trend - ";
 
-    private static final Color[] COLORS = { Color.decode( "#88be3b" ), Color.decode( "#3b6286" ),
-        Color.decode( "#b7404c" ), Color.decode( "#ff9f3a" ), Color.decode( "#968f8f" ), Color.decode( "#b7409f" ),
-        Color.decode( "#ffda64" ), Color.decode( "#4fbdae" ), Color.decode( "#b78040" ), Color.decode( "#676767" ),
-        Color.decode( "#6a33cf" ), Color.decode( "#4a7833" ) };
+  private static final Color[] COLORS = {
+    Color.decode("#88be3b"),
+    Color.decode("#3b6286"),
+    Color.decode("#b7404c"),
+    Color.decode("#ff9f3a"),
+    Color.decode("#968f8f"),
+    Color.decode("#b7409f"),
+    Color.decode("#ffda64"),
+    Color.decode("#4fbdae"),
+    Color.decode("#b78040"),
+    Color.decode("#676767"),
+    Color.decode("#6a33cf"),
+    Color.decode("#4a7833")
+  };
 
-    private static final Color COLOR_LIGHT_GRAY = Color.decode( "#dddddd" );
+  private static final Color COLOR_LIGHT_GRAY = Color.decode("#dddddd");
 
-    private static final Color COLOR_LIGHTER_GRAY = Color.decode( "#eeeeee" );
+  private static final Color COLOR_LIGHTER_GRAY = Color.decode("#eeeeee");
 
-    private static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
+  private static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final PeriodService periodService;
+  private final PeriodService periodService;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final MinMaxDataElementService minMaxDataElementService;
+  private final MinMaxDataElementService minMaxDataElementService;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    private final AnalyticsService analyticsService;
+  private final AnalyticsService analyticsService;
 
-    private final EventAnalyticsService eventAnalyticsService;
+  private final EventAnalyticsService eventAnalyticsService;
 
-    public DefaultChartService( PeriodService periodService, DataValueService dataValueService,
-        MinMaxDataElementService minMaxDataElementService, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService, AnalyticsService analyticsService,
-        EventAnalyticsService eventAnalyticsService )
-    {
-        checkNotNull( periodService );
-        checkNotNull( dataValueService );
-        checkNotNull( minMaxDataElementService );
-        checkNotNull( currentUserService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( analyticsService );
-        checkNotNull( eventAnalyticsService );
+  public DefaultChartService(
+      PeriodService periodService,
+      DataValueService dataValueService,
+      MinMaxDataElementService minMaxDataElementService,
+      CurrentUserService currentUserService,
+      OrganisationUnitService organisationUnitService,
+      AnalyticsService analyticsService,
+      EventAnalyticsService eventAnalyticsService) {
+    checkNotNull(periodService);
+    checkNotNull(dataValueService);
+    checkNotNull(minMaxDataElementService);
+    checkNotNull(currentUserService);
+    checkNotNull(organisationUnitService);
+    checkNotNull(analyticsService);
+    checkNotNull(eventAnalyticsService);
 
-        this.periodService = periodService;
-        this.dataValueService = dataValueService;
-        this.minMaxDataElementService = minMaxDataElementService;
-        this.currentUserService = currentUserService;
-        this.organisationUnitService = organisationUnitService;
-        this.analyticsService = analyticsService;
-        this.eventAnalyticsService = eventAnalyticsService;
+    this.periodService = periodService;
+    this.dataValueService = dataValueService;
+    this.minMaxDataElementService = minMaxDataElementService;
+    this.currentUserService = currentUserService;
+    this.organisationUnitService = organisationUnitService;
+    this.analyticsService = analyticsService;
+    this.eventAnalyticsService = eventAnalyticsService;
+  }
+
+  // -------------------------------------------------------------------------
+  // ChartService implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional(readOnly = true)
+  public JFreeChart getJFreeChart(
+      PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format) {
+    return getJFreeChart(
+        plotData, date, organisationUnit, format, currentUserService.getCurrentUser());
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public JFreeChart getJFreeChart(
+      PlotData plotData,
+      Date date,
+      OrganisationUnit organisationUnit,
+      I18nFormat format,
+      User currentUser) {
+    User user = (currentUser != null ? currentUser : currentUserService.getCurrentUser());
+
+    if (organisationUnit == null && user != null) {
+      organisationUnit = user.getOrganisationUnit();
     }
 
-    // -------------------------------------------------------------------------
-    // ChartService implementation
-    // -------------------------------------------------------------------------
+    List<OrganisationUnit> atLevels = new ArrayList<>();
+    List<OrganisationUnit> inGroups = new ArrayList<>();
 
-    @Override
-    @Transactional( readOnly = true )
-    public JFreeChart getJFreeChart( PlotData plotData, Date date, OrganisationUnit organisationUnit,
-        I18nFormat format )
-    {
-        return getJFreeChart( plotData, date, organisationUnit, format, currentUserService.getCurrentUser() );
+    if (plotData.hasOrganisationUnitLevels()) {
+      atLevels.addAll(
+          organisationUnitService.getOrganisationUnitsAtLevels(
+              plotData.getOrganisationUnitLevels(), plotData.getOrganisationUnits()));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public JFreeChart getJFreeChart( PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format,
-        User currentUser )
-    {
-        User user = (currentUser != null ? currentUser : currentUserService.getCurrentUser());
-
-        if ( organisationUnit == null && user != null )
-        {
-            organisationUnit = user.getOrganisationUnit();
-        }
-
-        List<OrganisationUnit> atLevels = new ArrayList<>();
-        List<OrganisationUnit> inGroups = new ArrayList<>();
-
-        if ( plotData.hasOrganisationUnitLevels() )
-        {
-            atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels( plotData.getOrganisationUnitLevels(),
-                plotData.getOrganisationUnits() ) );
-        }
-
-        if ( plotData.hasItemOrganisationUnitGroups() )
-        {
-            inGroups.addAll( organisationUnitService.getOrganisationUnits( plotData.getItemOrganisationUnitGroups(),
-                plotData.getOrganisationUnits() ) );
-        }
-
-        plotData.init( user, date, organisationUnit, atLevels, inGroups, format );
-
-        JFreeChart resultChart = getJFreeChart( plotData );
-
-        plotData.clearTransientState();
-
-        return resultChart;
+    if (plotData.hasItemOrganisationUnitGroups()) {
+      inGroups.addAll(
+          organisationUnitService.getOrganisationUnits(
+              plotData.getItemOrganisationUnitGroups(), plotData.getOrganisationUnits()));
     }
 
-    // -------------------------------------------------------------------------
-    // Specific chart methods
-    // -------------------------------------------------------------------------
+    plotData.init(user, date, organisationUnit, atLevels, inGroups, format);
 
-    @Override
-    @Transactional( readOnly = true )
-    public JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit unit, boolean title,
-        I18nFormat format )
-    {
-        List<Period> periods = periodService.reloadPeriods(
-            new RelativePeriods().setLast12Months( true ).getRelativePeriods( format, true ) );
+    JFreeChart resultChart = getJFreeChart(plotData);
 
-        Visualization visualization = new Visualization();
+    plotData.clearTransientState();
 
-        if ( title )
-        {
-            visualization.setName( indicator.getName() );
-        }
+    return resultChart;
+  }
 
-        visualization.setType( VisualizationType.LINE );
-        visualization.setColumnDimensions( Arrays.asList( DimensionalObject.DATA_X_DIM_ID ) );
-        visualization.setRowDimensions( Arrays.asList( DimensionalObject.PERIOD_DIM_ID ) );
-        visualization.setFilterDimensions( Arrays.asList( DimensionalObject.ORGUNIT_DIM_ID ) );
-        visualization.setHideLegend( true );
-        visualization.addDataDimensionItem( indicator );
-        visualization.setPeriods( periods );
-        visualization.getOrganisationUnits().add( unit );
-        visualization.setHideSubtitle( title );
-        visualization.setFormat( format );
+  // -------------------------------------------------------------------------
+  // Specific chart methods
+  // -------------------------------------------------------------------------
 
-        return getJFreeChart( new PlotData( visualization ) );
+  @Override
+  @Transactional(readOnly = true)
+  public JFreeChart getJFreePeriodChart(
+      Indicator indicator, OrganisationUnit unit, boolean title, I18nFormat format) {
+    List<Period> periods =
+        periodService.reloadPeriods(
+            new RelativePeriods().setLast12Months(true).getRelativePeriods(format, true));
+
+    Visualization visualization = new Visualization();
+
+    if (title) {
+      visualization.setName(indicator.getName());
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public JFreeChart getJFreeOrganisationUnitChart( Indicator indicator, OrganisationUnit parent, boolean title,
-        I18nFormat format )
-    {
-        List<Period> periods = periodService.reloadPeriods(
-            new RelativePeriods().setThisYear( true ).getRelativePeriods( format, true ) );
+    visualization.setType(VisualizationType.LINE);
+    visualization.setColumnDimensions(Arrays.asList(DimensionalObject.DATA_X_DIM_ID));
+    visualization.setRowDimensions(Arrays.asList(DimensionalObject.PERIOD_DIM_ID));
+    visualization.setFilterDimensions(Arrays.asList(DimensionalObject.ORGUNIT_DIM_ID));
+    visualization.setHideLegend(true);
+    visualization.addDataDimensionItem(indicator);
+    visualization.setPeriods(periods);
+    visualization.getOrganisationUnits().add(unit);
+    visualization.setHideSubtitle(title);
+    visualization.setFormat(format);
 
-        Visualization visualization = new Visualization();
+    return getJFreeChart(new PlotData(visualization));
+  }
 
-        if ( title )
-        {
-            visualization.setName( indicator.getName() );
-        }
+  @Override
+  @Transactional(readOnly = true)
+  public JFreeChart getJFreeOrganisationUnitChart(
+      Indicator indicator, OrganisationUnit parent, boolean title, I18nFormat format) {
+    List<Period> periods =
+        periodService.reloadPeriods(
+            new RelativePeriods().setThisYear(true).getRelativePeriods(format, true));
 
-        visualization.setType( VisualizationType.COLUMN );
-        visualization.setColumnDimensions( Arrays.asList( DimensionalObject.DATA_X_DIM_ID ) );
-        visualization.setRowDimensions( Arrays.asList( DimensionalObject.ORGUNIT_DIM_ID ) );
-        visualization.setFilterDimensions( Arrays.asList( DimensionalObject.PERIOD_DIM_ID ) );
-        visualization.setHideLegend( true );
-        visualization.addDataDimensionItem( indicator );
-        visualization.setPeriods( periods );
-        visualization.setOrganisationUnits( parent.getSortedChildren() );
-        visualization.setHideSubtitle( title );
-        visualization.setFormat( format );
+    Visualization visualization = new Visualization();
 
-        return getJFreeChart( new PlotData( visualization ) );
+    if (title) {
+      visualization.setName(indicator.getName());
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public JFreeChart getJFreeChartHistory( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
-        int historyLength, I18nFormat format )
-    {
-        lastPeriod = periodService.reloadPeriod( lastPeriod );
+    visualization.setType(VisualizationType.COLUMN);
+    visualization.setColumnDimensions(Arrays.asList(DimensionalObject.DATA_X_DIM_ID));
+    visualization.setRowDimensions(Arrays.asList(DimensionalObject.ORGUNIT_DIM_ID));
+    visualization.setFilterDimensions(Arrays.asList(DimensionalObject.PERIOD_DIM_ID));
+    visualization.setHideLegend(true);
+    visualization.addDataDimensionItem(indicator);
+    visualization.setPeriods(periods);
+    visualization.setOrganisationUnits(parent.getSortedChildren());
+    visualization.setHideSubtitle(title);
+    visualization.setFormat(format);
 
-        List<Period> periods = periodService.getPeriods( lastPeriod, historyLength );
+    return getJFreeChart(new PlotData(visualization));
+  }
 
-        MinMaxDataElement minMax = minMaxDataElementService.getMinMaxDataElement( organisationUnit, dataElement,
-            categoryOptionCombo );
+  @Override
+  @Transactional(readOnly = true)
+  public JFreeChart getJFreeChartHistory(
+      DataElement dataElement,
+      CategoryOptionCombo categoryOptionCombo,
+      CategoryOptionCombo attributeOptionCombo,
+      Period lastPeriod,
+      OrganisationUnit organisationUnit,
+      int historyLength,
+      I18nFormat format) {
+    lastPeriod = periodService.reloadPeriod(lastPeriod);
 
-        UnivariateInterpolator interpolator = new SplineInterpolator();
+    List<Period> periods = periodService.getPeriods(lastPeriod, historyLength);
 
-        int periodCount = 0;
-        List<Double> x = new ArrayList<>();
-        List<Double> y = new ArrayList<>();
+    MinMaxDataElement minMax =
+        minMaxDataElementService.getMinMaxDataElement(
+            organisationUnit, dataElement, categoryOptionCombo);
 
-        // ---------------------------------------------------------------------
-        // DataValue, MinValue and MaxValue DataSets
-        // ---------------------------------------------------------------------
+    UnivariateInterpolator interpolator = new SplineInterpolator();
 
-        DefaultCategoryDataset dataValueDataSet = new DefaultCategoryDataset();
-        DefaultCategoryDataset metaDataSet = new DefaultCategoryDataset();
+    int periodCount = 0;
+    List<Double> x = new ArrayList<>();
+    List<Double> y = new ArrayList<>();
 
-        for ( Period period : periods )
-        {
-            ++periodCount;
+    // ---------------------------------------------------------------------
+    // DataValue, MinValue and MaxValue DataSets
+    // ---------------------------------------------------------------------
 
-            period.setName( format.formatPeriod( period ) );
+    DefaultCategoryDataset dataValueDataSet = new DefaultCategoryDataset();
+    DefaultCategoryDataset metaDataSet = new DefaultCategoryDataset();
 
-            DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit,
-                categoryOptionCombo, attributeOptionCombo );
+    for (Period period : periods) {
+      ++periodCount;
 
-            double value = 0;
+      period.setName(format.formatPeriod(period));
 
-            if ( dataValue != null && dataValue.getValue() != null && MathUtils.isNumeric( dataValue.getValue() ) )
-            {
-                value = Double.parseDouble( dataValue.getValue() );
+      DataValue dataValue =
+          dataValueService.getDataValue(
+              dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo);
 
-                x.add( (double) periodCount );
-                y.add( value );
-            }
+      double value = 0;
 
-            dataValueDataSet.addValue( value, dataElement.getShortName(), period.getName() );
+      if (dataValue != null
+          && dataValue.getValue() != null
+          && MathUtils.isNumeric(dataValue.getValue())) {
+        value = Double.parseDouble(dataValue.getValue());
 
-            if ( minMax != null )
-            {
-                metaDataSet.addValue( minMax.getMin(), "Min value", period.getName() );
-                metaDataSet.addValue( minMax.getMax(), "Max value", period.getName() );
-            }
-        }
+        x.add((double) periodCount);
+        y.add(value);
+      }
 
-        // ---------------------------------------------------------------------
-        // Interpolation DataSet
-        // ---------------------------------------------------------------------
+      dataValueDataSet.addValue(value, dataElement.getShortName(), period.getName());
 
-        if ( x.size() >= 3 ) // minimum 3 points required for interpolation
-        {
-            periodCount = 0;
-
-            double[] xa = getArray( x );
-
-            int min = MathUtils.getMin( xa ).intValue();
-            int max = MathUtils.getMax( xa ).intValue();
-
-            try
-            {
-                UnivariateFunction function = interpolator.interpolate( xa, getArray( y ) );
-
-                for ( Period period : periods )
-                {
-                    if ( ++periodCount >= min && periodCount <= max )
-                    {
-                        metaDataSet.addValue( function.value( periodCount ), "Regression value", period.getName() );
-                    }
-                }
-            }
-            catch ( MathRuntimeException ex )
-            {
-                throw new RuntimeException( "Failed to interpolate", ex );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Plots
-        // ---------------------------------------------------------------------
-
-        CategoryPlot plot = getCategoryPlot( dataValueDataSet, getBarRenderer(), PlotOrientation.VERTICAL,
-            CategoryLabelPositions.UP_45 );
-
-        plot.setDataset( 1, metaDataSet );
-        plot.setRenderer( 1, getLineRenderer() );
-
-        return getBasicJFreeChart( plot );
+      if (minMax != null) {
+        metaDataSet.addValue(minMax.getMin(), "Min value", period.getName());
+        metaDataSet.addValue(minMax.getMax(), "Max value", period.getName());
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Interpolation DataSet
+    // ---------------------------------------------------------------------
 
-    /**
-     * Returns a basic JFreeChart.
-     */
-    private JFreeChart getBasicJFreeChart( CategoryPlot plot )
+    if (x.size() >= 3) // minimum 3 points required for interpolation
     {
-        JFreeChart jFreeChart = new JFreeChart( null, TITLE_FONT, plot, false );
+      periodCount = 0;
 
-        jFreeChart.setBackgroundPaint( Color.WHITE );
-        jFreeChart.setAntiAlias( true );
+      double[] xa = getArray(x);
 
-        return jFreeChart;
+      int min = MathUtils.getMin(xa).intValue();
+      int max = MathUtils.getMax(xa).intValue();
+
+      try {
+        UnivariateFunction function = interpolator.interpolate(xa, getArray(y));
+
+        for (Period period : periods) {
+          if (++periodCount >= min && periodCount <= max) {
+            metaDataSet.addValue(function.value(periodCount), "Regression value", period.getName());
+          }
+        }
+      } catch (MathRuntimeException ex) {
+        throw new RuntimeException("Failed to interpolate", ex);
+      }
     }
 
-    /**
-     * Returns a CategoryPlot.
-     */
-    private CategoryPlot getCategoryPlot( CategoryDataset dataSet, CategoryItemRenderer renderer,
-        PlotOrientation orientation, CategoryLabelPositions labelPositions )
-    {
-        CategoryPlot plot = new CategoryPlot( dataSet, new CategoryAxis(), new NumberAxis(), renderer );
+    // ---------------------------------------------------------------------
+    // Plots
+    // ---------------------------------------------------------------------
 
-        plot.setDatasetRenderingOrder( DatasetRenderingOrder.FORWARD );
-        plot.setOrientation( orientation );
+    CategoryPlot plot =
+        getCategoryPlot(
+            dataValueDataSet,
+            getBarRenderer(),
+            PlotOrientation.VERTICAL,
+            CategoryLabelPositions.UP_45);
 
-        CategoryAxis xAxis = plot.getDomainAxis();
-        xAxis.setCategoryLabelPositions( labelPositions );
+    plot.setDataset(1, metaDataSet);
+    plot.setRenderer(1, getLineRenderer());
 
-        return plot;
+    return getBasicJFreeChart(plot);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Returns a basic JFreeChart. */
+  private JFreeChart getBasicJFreeChart(CategoryPlot plot) {
+    JFreeChart jFreeChart = new JFreeChart(null, TITLE_FONT, plot, false);
+
+    jFreeChart.setBackgroundPaint(Color.WHITE);
+    jFreeChart.setAntiAlias(true);
+
+    return jFreeChart;
+  }
+
+  /** Returns a CategoryPlot. */
+  private CategoryPlot getCategoryPlot(
+      CategoryDataset dataSet,
+      CategoryItemRenderer renderer,
+      PlotOrientation orientation,
+      CategoryLabelPositions labelPositions) {
+    CategoryPlot plot = new CategoryPlot(dataSet, new CategoryAxis(), new NumberAxis(), renderer);
+
+    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+    plot.setOrientation(orientation);
+
+    CategoryAxis xAxis = plot.getDomainAxis();
+    xAxis.setCategoryLabelPositions(labelPositions);
+
+    return plot;
+  }
+
+  /** Returns a bar renderer. */
+  private BarRenderer getBarRenderer() {
+    BarRenderer renderer = new BarRenderer();
+
+    renderer.setMaximumBarWidth(0.07);
+
+    for (int i = 0; i < COLORS.length; i++) {
+      renderer.setSeriesPaint(i, COLORS[i]);
+      renderer.setShadowVisible(false);
     }
 
-    /**
-     * Returns a bar renderer.
-     */
-    private BarRenderer getBarRenderer()
-    {
-        BarRenderer renderer = new BarRenderer();
+    return renderer;
+  }
 
-        renderer.setMaximumBarWidth( 0.07 );
+  /** Returns a line and shape renderer. */
+  private LineAndShapeRenderer getLineRenderer() {
+    LineAndShapeRenderer renderer = new LineAndShapeRenderer();
 
-        for ( int i = 0; i < COLORS.length; i++ )
-        {
-            renderer.setSeriesPaint( i, COLORS[i] );
-            renderer.setShadowVisible( false );
-        }
-
-        return renderer;
+    for (int i = 0; i < COLORS.length; i++) {
+      renderer.setSeriesPaint(i, COLORS[i]);
     }
 
-    /**
-     * Returns a line and shape renderer.
-     */
-    private LineAndShapeRenderer getLineRenderer()
-    {
-        LineAndShapeRenderer renderer = new LineAndShapeRenderer();
+    return renderer;
+  }
 
-        for ( int i = 0; i < COLORS.length; i++ )
-        {
-            renderer.setSeriesPaint( i, COLORS[i] );
-        }
+  /** Returns a stacked bar renderer. */
+  private StackedBarRenderer getStackedBarRenderer() {
+    StackedBarRenderer renderer = new StackedBarRenderer();
 
-        return renderer;
+    for (int i = 0; i < COLORS.length; i++) {
+      renderer.setSeriesPaint(i, COLORS[i]);
+      renderer.setShadowVisible(false);
     }
 
-    /**
-     * Returns a stacked bar renderer.
-     */
-    private StackedBarRenderer getStackedBarRenderer()
-    {
-        StackedBarRenderer renderer = new StackedBarRenderer();
+    return renderer;
+  }
 
-        for ( int i = 0; i < COLORS.length; i++ )
-        {
-            renderer.setSeriesPaint( i, COLORS[i] );
-            renderer.setShadowVisible( false );
-        }
+  /** Returns a stacked area renderer. */
+  private AreaRenderer getStackedAreaRenderer() {
+    StackedAreaRenderer renderer = new StackedAreaRenderer();
 
-        return renderer;
+    for (int i = 0; i < COLORS.length; i++) {
+      renderer.setSeriesPaint(i, COLORS[i]);
     }
 
-    /**
-     * Returns a stacked area renderer.
-     */
-    private AreaRenderer getStackedAreaRenderer()
-    {
-        StackedAreaRenderer renderer = new StackedAreaRenderer();
+    return renderer;
+  }
 
-        for ( int i = 0; i < COLORS.length; i++ )
-        {
-            renderer.setSeriesPaint( i, COLORS[i] );
-        }
+  /** Returns a horizontal line marker for the given x value and label. */
+  private Marker getMarker(Double value, String label) {
+    Marker marker = new ValueMarker(value);
+    marker.setPaint(Color.BLACK);
+    marker.setStroke(new BasicStroke(1.1f));
+    marker.setLabel(label);
+    marker.setLabelOffset(new RectangleInsets(-10, 50, 0, 0));
+    marker.setLabelFont(SUB_TITLE_FONT);
 
-        return renderer;
+    return marker;
+  }
+
+  /** Returns a JFreeChart of type defined in the chart argument. */
+  private JFreeChart getJFreeChart(PlotData plotData) {
+    final CategoryDataset[] dataSets = getCategoryDataSet(plotData);
+    final CategoryDataset dataSet = dataSets[0];
+
+    final BarRenderer barRenderer = getBarRenderer();
+    final LineAndShapeRenderer lineRenderer = getLineRenderer();
+
+    // ---------------------------------------------------------------------
+    // Plot
+    // ---------------------------------------------------------------------
+
+    CategoryPlot plot;
+
+    if (plotData.isType(VisualizationType.LINE.name())) {
+      plot = new CategoryPlot(dataSet, new CategoryAxis(), new NumberAxis(), lineRenderer);
+      plot.setOrientation(PlotOrientation.VERTICAL);
+    } else if (plotData.isType(VisualizationType.COLUMN.name())) {
+      plot = new CategoryPlot(dataSet, new CategoryAxis(), new NumberAxis(), barRenderer);
+      plot.setOrientation(PlotOrientation.VERTICAL);
+    } else if (plotData.isType(VisualizationType.BAR.name())) {
+      plot = new CategoryPlot(dataSet, new CategoryAxis(), new NumberAxis(), barRenderer);
+      plot.setOrientation(PlotOrientation.HORIZONTAL);
+    } else if (plotData.isType(VisualizationType.AREA.name())) {
+      return getStackedAreaChart(plotData, dataSet);
+    } else if (plotData.isType(VisualizationType.PIE.name())) {
+      return getMultiplePieChart(plotData, dataSets);
+    } else if (plotData.isType(VisualizationType.STACKED_COLUMN.name())) {
+      return getStackedBarChart(plotData, dataSet, false);
+    } else if (plotData.isType(VisualizationType.STACKED_BAR.name())) {
+      return getStackedBarChart(plotData, dataSet, true);
+    } else if (plotData.isType(VisualizationType.RADAR.name())) {
+      return getRadarChart(plotData, dataSet);
+    } else if (plotData.isType(VisualizationType.GAUGE.name())) {
+      Number number = dataSet.getValue(0, 0);
+      ValueDataset valueDataSet = new DefaultValueDataset(number);
+
+      return getGaugeChart(plotData, valueDataSet);
+    } else {
+      throw new IllegalArgumentException("Illegal or no chart type: " + plotData.getType());
     }
 
-    /**
-     * Returns a horizontal line marker for the given x value and label.
-     */
-    private Marker getMarker( Double value, String label )
-    {
-        Marker marker = new ValueMarker( value );
-        marker.setPaint( Color.BLACK );
-        marker.setStroke( new BasicStroke( 1.1f ) );
-        marker.setLabel( label );
-        marker.setLabelOffset( new RectangleInsets( -10, 50, 0, 0 ) );
-        marker.setLabelFont( SUB_TITLE_FONT );
-
-        return marker;
+    if (plotData.isRegression()) {
+      plot.setDataset(1, dataSets[1]);
+      plot.setRenderer(1, lineRenderer);
     }
 
-    /**
-     * Returns a JFreeChart of type defined in the chart argument.
-     */
-    private JFreeChart getJFreeChart( PlotData plotData )
-    {
-        final CategoryDataset[] dataSets = getCategoryDataSet( plotData );
-        final CategoryDataset dataSet = dataSets[0];
+    JFreeChart jFreeChart =
+        new JFreeChart(plotData.getName(), TITLE_FONT, plot, !plotData.isHideLegend());
 
-        final BarRenderer barRenderer = getBarRenderer();
-        final LineAndShapeRenderer lineRenderer = getLineRenderer();
+    setBasicConfig(jFreeChart, plotData);
 
-        // ---------------------------------------------------------------------
-        // Plot
-        // ---------------------------------------------------------------------
-
-        CategoryPlot plot;
-
-        if ( plotData.isType( VisualizationType.LINE.name() ) )
-        {
-            plot = new CategoryPlot( dataSet, new CategoryAxis(), new NumberAxis(), lineRenderer );
-            plot.setOrientation( PlotOrientation.VERTICAL );
-        }
-        else if ( plotData.isType( VisualizationType.COLUMN.name() ) )
-        {
-            plot = new CategoryPlot( dataSet, new CategoryAxis(), new NumberAxis(), barRenderer );
-            plot.setOrientation( PlotOrientation.VERTICAL );
-        }
-        else if ( plotData.isType( VisualizationType.BAR.name() ) )
-        {
-            plot = new CategoryPlot( dataSet, new CategoryAxis(), new NumberAxis(), barRenderer );
-            plot.setOrientation( PlotOrientation.HORIZONTAL );
-        }
-        else if ( plotData.isType( VisualizationType.AREA.name() ) )
-        {
-            return getStackedAreaChart( plotData, dataSet );
-        }
-        else if ( plotData.isType( VisualizationType.PIE.name() ) )
-        {
-            return getMultiplePieChart( plotData, dataSets );
-        }
-        else if ( plotData.isType( VisualizationType.STACKED_COLUMN.name() ) )
-        {
-            return getStackedBarChart( plotData, dataSet, false );
-        }
-        else if ( plotData.isType( VisualizationType.STACKED_BAR.name() ) )
-        {
-            return getStackedBarChart( plotData, dataSet, true );
-        }
-        else if ( plotData.isType( VisualizationType.RADAR.name() ) )
-        {
-            return getRadarChart( plotData, dataSet );
-        }
-        else if ( plotData.isType( VisualizationType.GAUGE.name() ) )
-        {
-            Number number = dataSet.getValue( 0, 0 );
-            ValueDataset valueDataSet = new DefaultValueDataset( number );
-
-            return getGaugeChart( plotData, valueDataSet );
-        }
-        else
-        {
-            throw new IllegalArgumentException( "Illegal or no chart type: " + plotData.getType() );
-        }
-
-        if ( plotData.isRegression() )
-        {
-            plot.setDataset( 1, dataSets[1] );
-            plot.setRenderer( 1, lineRenderer );
-        }
-
-        JFreeChart jFreeChart = new JFreeChart( plotData.getName(), TITLE_FONT, plot, !plotData.isHideLegend() );
-
-        setBasicConfig( jFreeChart, plotData );
-
-        if ( plotData.isTargetLine() )
-        {
-            plot.addRangeMarker( getMarker( plotData.getTargetLineValue(), plotData.getTargetLineLabel() ) );
-        }
-
-        if ( plotData.isBaseLine() )
-        {
-            plot.addRangeMarker( getMarker( plotData.getBaseLineValue(), plotData.getBaseLineLabel() ) );
-        }
-
-        if ( plotData.isHideSubtitle() )
-        {
-            jFreeChart.addSubtitle( getSubTitle( plotData ) );
-        }
-
-        plot.setDatasetRenderingOrder( DatasetRenderingOrder.FORWARD );
-
-        // ---------------------------------------------------------------------
-        // Category label positions
-        // ---------------------------------------------------------------------
-
-        CategoryAxis domainAxis = plot.getDomainAxis();
-        domainAxis.setCategoryLabelPositions( CategoryLabelPositions.UP_45 );
-        domainAxis.setLabel( plotData.getDomainAxisLabel() );
-
-        ValueAxis rangeAxis = plot.getRangeAxis();
-        rangeAxis.setLabel( plotData.getRangeAxisLabel() );
-
-        return jFreeChart;
+    if (plotData.isTargetLine()) {
+      plot.addRangeMarker(getMarker(plotData.getTargetLineValue(), plotData.getTargetLineLabel()));
     }
 
-    private JFreeChart getStackedAreaChart( PlotData plotData, CategoryDataset dataSet )
-    {
-        JFreeChart stackedAreaChart = ChartFactory.createStackedAreaChart( plotData.getName(),
-            plotData.getDomainAxisLabel(), plotData.getRangeAxisLabel(), dataSet, PlotOrientation.VERTICAL,
-            !plotData.isHideLegend(), false, false );
-
-        setBasicConfig( stackedAreaChart, plotData );
-
-        CategoryPlot plot = (CategoryPlot) stackedAreaChart.getPlot();
-        plot.setOrientation( PlotOrientation.VERTICAL );
-        plot.setRenderer( getStackedAreaRenderer() );
-
-        CategoryAxis xAxis = plot.getDomainAxis();
-        xAxis.setCategoryLabelPositions( CategoryLabelPositions.UP_45 );
-        xAxis.setLabelFont( LABEL_FONT );
-
-        return stackedAreaChart;
+    if (plotData.isBaseLine()) {
+      plot.addRangeMarker(getMarker(plotData.getBaseLineValue(), plotData.getBaseLineLabel()));
     }
 
-    private JFreeChart getRadarChart( PlotData plotData, CategoryDataset dataSet )
-    {
-        SpiderWebPlot plot = new SpiderWebPlot( dataSet, TableOrder.BY_ROW );
-        plot.setLabelFont( LABEL_FONT );
-
-        JFreeChart radarChart = new JFreeChart( plotData.getName(), TITLE_FONT, plot, !plotData.isHideLegend() );
-
-        setBasicConfig( radarChart, plotData );
-
-        return radarChart;
+    if (plotData.isHideSubtitle()) {
+      jFreeChart.addSubtitle(getSubTitle(plotData));
     }
 
-    private JFreeChart getStackedBarChart( PlotData plotData, CategoryDataset dataSet, boolean horizontal )
-    {
-        JFreeChart stackedBarChart = ChartFactory.createStackedBarChart( plotData.getName(),
-            plotData.getDomainAxisLabel(), plotData.getRangeAxisLabel(), dataSet, PlotOrientation.VERTICAL,
-            !plotData.isHideLegend(), false, false );
+    plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
 
-        setBasicConfig( stackedBarChart, plotData );
+    // ---------------------------------------------------------------------
+    // Category label positions
+    // ---------------------------------------------------------------------
 
-        CategoryPlot plot = (CategoryPlot) stackedBarChart.getPlot();
-        plot.setOrientation( horizontal ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL );
-        plot.setRenderer( getStackedBarRenderer() );
+    CategoryAxis domainAxis = plot.getDomainAxis();
+    domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+    domainAxis.setLabel(plotData.getDomainAxisLabel());
 
-        CategoryAxis xAxis = plot.getDomainAxis();
-        xAxis.setCategoryLabelPositions( CategoryLabelPositions.UP_45 );
+    ValueAxis rangeAxis = plot.getRangeAxis();
+    rangeAxis.setLabel(plotData.getRangeAxisLabel());
 
-        return stackedBarChart;
+    return jFreeChart;
+  }
+
+  private JFreeChart getStackedAreaChart(PlotData plotData, CategoryDataset dataSet) {
+    JFreeChart stackedAreaChart =
+        ChartFactory.createStackedAreaChart(
+            plotData.getName(),
+            plotData.getDomainAxisLabel(),
+            plotData.getRangeAxisLabel(),
+            dataSet,
+            PlotOrientation.VERTICAL,
+            !plotData.isHideLegend(),
+            false,
+            false);
+
+    setBasicConfig(stackedAreaChart, plotData);
+
+    CategoryPlot plot = (CategoryPlot) stackedAreaChart.getPlot();
+    plot.setOrientation(PlotOrientation.VERTICAL);
+    plot.setRenderer(getStackedAreaRenderer());
+
+    CategoryAxis xAxis = plot.getDomainAxis();
+    xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+    xAxis.setLabelFont(LABEL_FONT);
+
+    return stackedAreaChart;
+  }
+
+  private JFreeChart getRadarChart(PlotData plotData, CategoryDataset dataSet) {
+    SpiderWebPlot plot = new SpiderWebPlot(dataSet, TableOrder.BY_ROW);
+    plot.setLabelFont(LABEL_FONT);
+
+    JFreeChart radarChart =
+        new JFreeChart(plotData.getName(), TITLE_FONT, plot, !plotData.isHideLegend());
+
+    setBasicConfig(radarChart, plotData);
+
+    return radarChart;
+  }
+
+  private JFreeChart getStackedBarChart(
+      PlotData plotData, CategoryDataset dataSet, boolean horizontal) {
+    JFreeChart stackedBarChart =
+        ChartFactory.createStackedBarChart(
+            plotData.getName(),
+            plotData.getDomainAxisLabel(),
+            plotData.getRangeAxisLabel(),
+            dataSet,
+            PlotOrientation.VERTICAL,
+            !plotData.isHideLegend(),
+            false,
+            false);
+
+    setBasicConfig(stackedBarChart, plotData);
+
+    CategoryPlot plot = (CategoryPlot) stackedBarChart.getPlot();
+    plot.setOrientation(horizontal ? PlotOrientation.HORIZONTAL : PlotOrientation.VERTICAL);
+    plot.setRenderer(getStackedBarRenderer());
+
+    CategoryAxis xAxis = plot.getDomainAxis();
+    xAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+
+    return stackedBarChart;
+  }
+
+  private JFreeChart getMultiplePieChart(PlotData plotData, CategoryDataset[] dataSets) {
+    JFreeChart multiplePieChart =
+        ChartFactory.createMultiplePieChart(
+            plotData.getName(),
+            dataSets[0],
+            TableOrder.BY_ROW,
+            !plotData.isHideLegend(),
+            false,
+            false);
+
+    setBasicConfig(multiplePieChart, plotData);
+
+    if (multiplePieChart.getLegend() != null) {
+      multiplePieChart.getLegend().setItemFont(SUB_TITLE_FONT);
     }
 
-    private JFreeChart getMultiplePieChart( PlotData plotData, CategoryDataset[] dataSets )
-    {
-        JFreeChart multiplePieChart = ChartFactory.createMultiplePieChart( plotData.getName(), dataSets[0],
-            TableOrder.BY_ROW, !plotData.isHideLegend(), false, false );
+    MultiplePiePlot multiplePiePlot = (MultiplePiePlot) multiplePieChart.getPlot();
+    JFreeChart pieChart = multiplePiePlot.getPieChart();
+    pieChart.setBackgroundPaint(DEFAULT_BACKGROUND_COLOR);
+    pieChart.getTitle().setFont(SUB_TITLE_FONT);
 
-        setBasicConfig( multiplePieChart, plotData );
+    PiePlot piePlot = (PiePlot) pieChart.getPlot();
+    piePlot.setBackgroundPaint(DEFAULT_BACKGROUND_COLOR);
+    piePlot.setOutlinePaint(DEFAULT_BACKGROUND_COLOR);
+    piePlot.setLabelFont(LABEL_FONT);
+    piePlot.setLabelGenerator(new StandardPieSectionLabelGenerator("{2}"));
+    piePlot.setSimpleLabels(true);
+    piePlot.setIgnoreZeroValues(true);
+    piePlot.setIgnoreNullValues(true);
+    piePlot.setShadowXOffset(0d);
+    piePlot.setShadowYOffset(0d);
 
-        if ( multiplePieChart.getLegend() != null )
-        {
-            multiplePieChart.getLegend().setItemFont( SUB_TITLE_FONT );
-        }
-
-        MultiplePiePlot multiplePiePlot = (MultiplePiePlot) multiplePieChart.getPlot();
-        JFreeChart pieChart = multiplePiePlot.getPieChart();
-        pieChart.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
-        pieChart.getTitle().setFont( SUB_TITLE_FONT );
-
-        PiePlot piePlot = (PiePlot) pieChart.getPlot();
-        piePlot.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
-        piePlot.setOutlinePaint( DEFAULT_BACKGROUND_COLOR );
-        piePlot.setLabelFont( LABEL_FONT );
-        piePlot.setLabelGenerator( new StandardPieSectionLabelGenerator( "{2}" ) );
-        piePlot.setSimpleLabels( true );
-        piePlot.setIgnoreZeroValues( true );
-        piePlot.setIgnoreNullValues( true );
-        piePlot.setShadowXOffset( 0d );
-        piePlot.setShadowYOffset( 0d );
-
-        for ( int i = 0; i < dataSets[0].getColumnCount(); i++ )
-        {
-            piePlot.setSectionPaint( dataSets[0].getColumnKey( i ), COLORS[(i % COLORS.length)] );
-        }
-
-        return multiplePieChart;
+    for (int i = 0; i < dataSets[0].getColumnCount(); i++) {
+      piePlot.setSectionPaint(dataSets[0].getColumnKey(i), COLORS[(i % COLORS.length)]);
     }
 
-    private JFreeChart getGaugeChart( PlotData plotData, ValueDataset dataSet )
-    {
-        MeterPlot meterPlot = new MeterPlot( dataSet );
+    return multiplePieChart;
+  }
 
-        meterPlot.setUnits( "" );
-        meterPlot.setRange( new Range( 0.0d, 100d ) );
+  private JFreeChart getGaugeChart(PlotData plotData, ValueDataset dataSet) {
+    MeterPlot meterPlot = new MeterPlot(dataSet);
 
-        for ( int i = 0; i < 10; i++ )
-        {
-            double start = i * 10d;
-            double end = start + 10d;
-            String label = String.valueOf( start );
+    meterPlot.setUnits("");
+    meterPlot.setRange(new Range(0.0d, 100d));
 
-            meterPlot.addInterval(
-                new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
-        }
+    for (int i = 0; i < 10; i++) {
+      double start = i * 10d;
+      double end = start + 10d;
+      String label = String.valueOf(start);
 
-        meterPlot.setMeterAngle( 180 );
-        meterPlot.setDialBackgroundPaint( COLOR_LIGHT_GRAY );
-        meterPlot.setDialShape( DialShape.CHORD );
-        meterPlot.setNeedlePaint( COLORS[0] );
-        meterPlot.setTickLabelsVisible( true );
-        meterPlot.setTickLabelFont( LABEL_FONT );
-        meterPlot.setTickLabelPaint( Color.BLACK );
-        meterPlot.setTickPaint( COLOR_LIGHTER_GRAY );
-        meterPlot.setValueFont( TITLE_FONT );
-        meterPlot.setValuePaint( Color.BLACK );
-
-        JFreeChart meterChart = new JFreeChart( plotData.getName(), meterPlot );
-        setBasicConfig( meterChart, plotData );
-        meterChart.removeLegend();
-
-        return meterChart;
+      meterPlot.addInterval(
+          new MeterInterval(
+              label, new Range(start, end), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY));
     }
 
-    /**
-     * Sets basic configuration including title font, subtitle, background paint
-     * and anti-alias on the given JFreeChart.
-     */
-    private void setBasicConfig( JFreeChart jFreeChart, PlotData plotData )
-    {
-        jFreeChart.getTitle().setFont( TITLE_FONT );
+    meterPlot.setMeterAngle(180);
+    meterPlot.setDialBackgroundPaint(COLOR_LIGHT_GRAY);
+    meterPlot.setDialShape(DialShape.CHORD);
+    meterPlot.setNeedlePaint(COLORS[0]);
+    meterPlot.setTickLabelsVisible(true);
+    meterPlot.setTickLabelFont(LABEL_FONT);
+    meterPlot.setTickLabelPaint(Color.BLACK);
+    meterPlot.setTickPaint(COLOR_LIGHTER_GRAY);
+    meterPlot.setValueFont(TITLE_FONT);
+    meterPlot.setValuePaint(Color.BLACK);
 
-        jFreeChart.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
-        jFreeChart.setAntiAlias( true );
+    JFreeChart meterChart = new JFreeChart(plotData.getName(), meterPlot);
+    setBasicConfig(meterChart, plotData);
+    meterChart.removeLegend();
 
-        if ( !plotData.isHideTitle() )
-        {
-            jFreeChart.addSubtitle( getSubTitle( plotData ) );
-        }
+    return meterChart;
+  }
 
-        Plot plot = jFreeChart.getPlot();
-        plot.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
-        plot.setOutlinePaint( DEFAULT_BACKGROUND_COLOR );
+  /**
+   * Sets basic configuration including title font, subtitle, background paint and anti-alias on the
+   * given JFreeChart.
+   */
+  private void setBasicConfig(JFreeChart jFreeChart, PlotData plotData) {
+    jFreeChart.getTitle().setFont(TITLE_FONT);
+
+    jFreeChart.setBackgroundPaint(DEFAULT_BACKGROUND_COLOR);
+    jFreeChart.setAntiAlias(true);
+
+    if (!plotData.isHideTitle()) {
+      jFreeChart.addSubtitle(getSubTitle(plotData));
     }
 
-    private TextTitle getSubTitle( PlotData plotData )
-    {
-        TextTitle textTitle = new TextTitle();
+    Plot plot = jFreeChart.getPlot();
+    plot.setBackgroundPaint(DEFAULT_BACKGROUND_COLOR);
+    plot.setOutlinePaint(DEFAULT_BACKGROUND_COLOR);
+  }
 
-        String title = plotData.hasTitle() ? plotData.getDisplayTitle() : plotData.generateTitle();
+  private TextTitle getSubTitle(PlotData plotData) {
+    TextTitle textTitle = new TextTitle();
 
-        textTitle.setFont( SUB_TITLE_FONT );
-        textTitle.setText( title );
+    String title = plotData.hasTitle() ? plotData.getDisplayTitle() : plotData.generateTitle();
 
-        return textTitle;
+    textTitle.setFont(SUB_TITLE_FONT);
+    textTitle.setText(title);
+
+    return textTitle;
+  }
+
+  private CategoryDataset[] getCategoryDataSet(PlotData plotData) {
+    Map<String, Object> valueMap;
+
+    if (plotData.isAggregate()) {
+      valueMap = analyticsService.getAggregatedDataValueMapping(plotData.getVisualization());
+    } else {
+      if (plotData.getEventChart() != null) {
+        Grid grid = eventAnalyticsService.getAggregatedEventData(plotData.getEventChart());
+
+        plotData.getEventChart().setDataItemGrid(grid);
+
+        valueMap = GridUtils.getMetaValueMapping(grid, (grid.getWidth() - 1));
+      } else {
+        Grid grid = eventAnalyticsService.getAggregatedEventData(plotData.getEventVisualization());
+
+        plotData.getEventVisualization().setDataItemGrid(grid);
+
+        valueMap = GridUtils.getMetaValueMapping(grid, (grid.getWidth() - 1));
+      }
     }
 
-    private CategoryDataset[] getCategoryDataSet( PlotData plotData )
-    {
-        Map<String, Object> valueMap;
+    DefaultCategoryDataset regularDataSet = new DefaultCategoryDataset();
+    DefaultCategoryDataset regressionDataSet = new DefaultCategoryDataset();
 
-        if ( plotData.isAggregate() )
-        {
-            valueMap = analyticsService.getAggregatedDataValueMapping( plotData.getVisualization() );
-        }
-        else
-        {
-            if ( plotData.getEventChart() != null )
-            {
-                Grid grid = eventAnalyticsService.getAggregatedEventData( plotData.getEventChart() );
+    SimpleRegression regression = new SimpleRegression();
 
-                plotData.getEventChart().setDataItemGrid( grid );
+    valueMap = DimensionalObjectUtils.getSortedKeysMap(valueMap);
 
-                valueMap = GridUtils.getMetaValueMapping( grid, (grid.getWidth() - 1) );
-            }
-            else
-            {
-                Grid grid = eventAnalyticsService.getAggregatedEventData( plotData.getEventVisualization() );
+    List<NameableObject> seriez = new ArrayList<>(plotData.series());
+    List<NameableObject> categories =
+        new ArrayList<>(defaultIfNull(plotData.category(), emptyList()));
 
-                plotData.getEventVisualization().setDataItemGrid( grid );
-
-                valueMap = GridUtils.getMetaValueMapping( grid, (grid.getWidth() - 1) );
-            }
-        }
-
-        DefaultCategoryDataset regularDataSet = new DefaultCategoryDataset();
-        DefaultCategoryDataset regressionDataSet = new DefaultCategoryDataset();
-
-        SimpleRegression regression = new SimpleRegression();
-
-        valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
-
-        List<NameableObject> seriez = new ArrayList<>( plotData.series() );
-        List<NameableObject> categories = new ArrayList<>( defaultIfNull( plotData.category(), emptyList() ) );
-
-        if ( plotData.hasSortOrder() )
-        {
-            categories = getSortedCategories( categories, plotData, valueMap );
-        }
-
-        for ( NameableObject series : seriez )
-        {
-            double categoryIndex = 0;
-
-            for ( NameableObject category : categories )
-            {
-                categoryIndex++;
-
-                String key = getKey( series, category, plotData.getAnalyticsType() );
-
-                Object object = valueMap.get( key );
-
-                Number value = object != null && object instanceof Number ? (Number) object : null;
-
-                regularDataSet.addValue( value, series.getShortName(), category.getShortName() );
-
-                if ( plotData.isRegression() && value != null && value instanceof Double
-                    && !MathUtils.isEqual( (Double) value, MathUtils.ZERO ) )
-                {
-                    regression.addData( categoryIndex, (Double) value );
-                }
-            }
-
-            if ( plotData.isRegression() ) // Period must be category
-            {
-                categoryIndex = 0;
-
-                for ( NameableObject category : plotData.category() )
-                {
-                    final double value = regression.predict( categoryIndex++ );
-
-                    // Enough values must exist for regression
-
-                    if ( !Double.isNaN( value ) )
-                    {
-                        regressionDataSet.addValue( value, TREND_PREFIX + series.getShortName(),
-                            category.getShortName() );
-                    }
-                }
-            }
-        }
-
-        return new CategoryDataset[] { regularDataSet, regressionDataSet };
+    if (plotData.hasSortOrder()) {
+      categories = getSortedCategories(categories, plotData, valueMap);
     }
 
-    /**
-     * Creates a key based on the given input. Sorts the key on its components
-     * to remove significance of column order.
-     */
-    private String getKey( NameableObject series, NameableObject category, AnalyticsType analyticsType )
-    {
-        String key = series.getUid() + DIMENSION_SEP + category.getUid();
+    for (NameableObject series : seriez) {
+      double categoryIndex = 0;
 
-        // Replace potential operand separator with dimension separator
+      for (NameableObject category : categories) {
+        categoryIndex++;
 
-        key = AnalyticsType.AGGREGATE.equals( analyticsType )
-            ? key.replace( DataElementOperand.SEPARATOR, DIMENSION_SEP )
+        String key = getKey(series, category, plotData.getAnalyticsType());
+
+        Object object = valueMap.get(key);
+
+        Number value = object != null && object instanceof Number ? (Number) object : null;
+
+        regularDataSet.addValue(value, series.getShortName(), category.getShortName());
+
+        if (plotData.isRegression()
+            && value != null
+            && value instanceof Double
+            && !MathUtils.isEqual((Double) value, MathUtils.ZERO)) {
+          regression.addData(categoryIndex, (Double) value);
+        }
+      }
+
+      if (plotData.isRegression()) // Period must be category
+      {
+        categoryIndex = 0;
+
+        for (NameableObject category : plotData.category()) {
+          final double value = regression.predict(categoryIndex++);
+
+          // Enough values must exist for regression
+
+          if (!Double.isNaN(value)) {
+            regressionDataSet.addValue(
+                value, TREND_PREFIX + series.getShortName(), category.getShortName());
+          }
+        }
+      }
+    }
+
+    return new CategoryDataset[] {regularDataSet, regressionDataSet};
+  }
+
+  /**
+   * Creates a key based on the given input. Sorts the key on its components to remove significance
+   * of column order.
+   */
+  private String getKey(
+      NameableObject series, NameableObject category, AnalyticsType analyticsType) {
+    String key = series.getUid() + DIMENSION_SEP + category.getUid();
+
+    // Replace potential operand separator with dimension separator
+
+    key =
+        AnalyticsType.AGGREGATE.equals(analyticsType)
+            ? key.replace(DataElementOperand.SEPARATOR, DIMENSION_SEP)
             : key;
 
-        // TODO fix issue with keys including -.
+    // TODO fix issue with keys including -.
 
-        return DimensionalObjectUtils.sortKey( key );
+    return DimensionalObjectUtils.sortKey(key);
+  }
+
+  /**
+   * Returns a list of sorted nameable objects. Sorting is defined per the corresponding value in
+   * the given value map.
+   */
+  private List<NameableObject> getSortedCategories(
+      List<NameableObject> categories, PlotData plotData, Map<String, Object> valueMap) {
+    NameableObject series = plotData.series().get(0);
+
+    int sortOrder = plotData.getSortOrder();
+
+    List<NumericSortWrapper<NameableObject>> list = new ArrayList<>();
+
+    for (NameableObject category : categories) {
+      String key = getKey(series, category, plotData.getAnalyticsType());
+
+      Object value = valueMap.get(key);
+
+      if (value instanceof Number) {
+        list.add(new NumericSortWrapper<>(category, (Double) value, sortOrder));
+      }
     }
 
-    /**
-     * Returns a list of sorted nameable objects. Sorting is defined per the
-     * corresponding value in the given value map.
-     */
-    private List<NameableObject> getSortedCategories( List<NameableObject> categories, PlotData plotData,
-        Map<String, Object> valueMap )
-    {
-        NameableObject series = plotData.series().get( 0 );
+    Collections.sort(list);
 
-        int sortOrder = plotData.getSortOrder();
-
-        List<NumericSortWrapper<NameableObject>> list = new ArrayList<>();
-
-        for ( NameableObject category : categories )
-        {
-            String key = getKey( series, category, plotData.getAnalyticsType() );
-
-            Object value = valueMap.get( key );
-
-            if ( value instanceof Number )
-            {
-                list.add( new NumericSortWrapper<>( category, (Double) value, sortOrder ) );
-            }
-        }
-
-        Collections.sort( list );
-
-        return NumericSortWrapper.getObjectList( list );
-    }
+    return NumericSortWrapper.getObjectList(list);
+  }
 }

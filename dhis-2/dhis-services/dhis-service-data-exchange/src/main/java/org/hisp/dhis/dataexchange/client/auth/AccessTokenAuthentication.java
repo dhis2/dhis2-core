@@ -30,7 +30,6 @@ package org.hisp.dhis.dataexchange.client.auth;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpHeaders;
 
 /**
@@ -40,17 +39,13 @@ import org.springframework.http.HttpHeaders;
  */
 @Getter
 @RequiredArgsConstructor
-public class AccessTokenAuthentication
-    implements Authentication
-{
-    @NonNull
-    private final String accessToken;
+public class AccessTokenAuthentication implements Authentication {
+  @NonNull private final String accessToken;
 
-    @Override
-    public HttpHeaders withAuthentication( HttpHeaders headers )
-    {
-        String value = String.format( "ApiToken %s", accessToken );
-        headers.set( HttpHeaders.AUTHORIZATION, value );
-        return headers;
-    }
+  @Override
+  public HttpHeaders withAuthentication(HttpHeaders headers) {
+    String value = String.format("ApiToken %s", accessToken);
+    headers.set(HttpHeaders.AUTHORIZATION, value);
+    return headers;
+  }
 }

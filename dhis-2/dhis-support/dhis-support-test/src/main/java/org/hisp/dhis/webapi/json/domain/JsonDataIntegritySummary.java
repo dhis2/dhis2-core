@@ -28,36 +28,29 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.jsontree.Expected;
 import org.hisp.dhis.jsontree.JsonDate;
 
 /**
- * JSON API equivalent of
- * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
+ * JSON API equivalent of {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
  *
  * @author Jan Bernitt
  */
-public interface JsonDataIntegritySummary extends JsonDataIntegrityCheck
-{
-    @Expected
-    default LocalDateTime getFinishedTime()
-    {
-        return get( "finishedTime", JsonDate.class ).date();
-    }
+public interface JsonDataIntegritySummary extends JsonDataIntegrityCheck {
+  @Expected
+  default LocalDateTime getFinishedTime() {
+    return get("finishedTime", JsonDate.class).date();
+  }
 
-    default String getError()
-    {
-        return getString( "error" ).string( null );
-    }
+  default String getError() {
+    return getString("error").string(null);
+  }
 
-    default int getCount()
-    {
-        return getNumber( "count" ).intValue();
-    }
+  default int getCount() {
+    return getNumber("count").intValue();
+  }
 
-    default Number getPercentage()
-    {
-        return getNumber( "percentage" ).number();
-    }
+  default Number getPercentage() {
+    return getNumber("percentage").number();
+  }
 }

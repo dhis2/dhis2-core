@@ -32,10 +32,8 @@ import org.hisp.dhis.tracker.TrackerType;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface TrackerDto
-{
-    String getUid();
+public interface TrackerDto {
+  String getUid();
 
-    TrackerType getTrackerType();
-
+  TrackerType getTrackerType();
 }

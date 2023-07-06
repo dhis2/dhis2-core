@@ -29,12 +29,12 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -58,81 +58,76 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = ProgramSchemaDescriptor.API_ENDPOINT )
-public class ProgramController
-    extends AbstractCrudController<Program>
-{
-    @Autowired
-    private ProgramService programService;
+@RequestMapping(value = ProgramSchemaDescriptor.API_ENDPOINT)
+public class ProgramController extends AbstractCrudController<Program> {
+  @Autowired private ProgramService programService;
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders )
-        throws QueryParserException
-    {
-        boolean userFilter = Boolean.parseBoolean( options.getOptions().get( "userFilter" ) );
+  @Override
+  @SuppressWarnings("unchecked")
+  protected List<Program> getEntityList(
+      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      throws QueryParserException {
+    boolean userFilter = Boolean.parseBoolean(options.getOptions().get("userFilter"));
 
-        List<Program> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction() );
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+    List<Program> entityList;
+    Query query =
+        queryService.getQueryFromUrl(
+            getEntityClass(),
+            filters,
+            orders,
+            getPaginationData(options),
+            options.getRootJunction());
+    query.setDefaultOrder();
+    query.setDefaults(Defaults.valueOf(options.get("defaults", DEFAULTS)));
 
-        if ( options.getOptions().containsKey( "query" ) )
-        {
-            entityList = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
-        }
-        else
-        {
-            entityList = (List<Program>) queryService.query( query );
-        }
-
-        if ( userFilter )
-        {
-            List<Program> programs = programService.getCurrentUserPrograms();
-            entityList.retainAll( programs );
-            metadata.setPager( null );
-        }
-
-        return entityList;
+    if (options.getOptions().containsKey("query")) {
+      entityList =
+          Lists.newArrayList(manager.filter(getEntityClass(), options.getOptions().get("query")));
+    } else {
+      entityList = (List<Program>) queryService.query(query);
     }
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<MetadataExportParams> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException
-    {
-        Program program = programService.getProgram( pvUid );
-
-        if ( program == null )
-        {
-            throw new WebMessageException( notFound( "Program not found for uid: " + pvUid ) );
-        }
-
-        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        exportService.validate( exportParams );
-        exportParams.setObjectExportWithDependencies( program );
-
-        return ResponseEntity.ok( exportParams );
+    if (userFilter) {
+      List<Program> programs = programService.getCurrentUserPrograms();
+      entityList.retainAll(programs);
+      metadata.setPager(null);
     }
 
-    @ResponseBody
-    @GetMapping( value = "orgUnits" )
-    public Map<String, Collection<String>> getOrgUnitsAssociations(
-        @RequestParam( value = "programs" ) Set<String> programs )
-    {
-        return Optional.ofNullable( programs )
-            .filter( CollectionUtils::isNotEmpty )
-            .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
-            .map( SetValuedMap::asMap )
-            .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
+    return entityList;
+  }
+
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<MetadataExportParams> getProgramWithDependencies(
+      @PathVariable("uid") String pvUid,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException {
+    Program program = programService.getProgram(pvUid);
+
+    if (program == null) {
+      throw new WebMessageException(notFound("Program not found for uid: " + pvUid));
     }
 
+    MetadataExportParams exportParams =
+        exportService.getParamsFromMap(contextService.getParameterValuesMap());
+    exportService.validate(exportParams);
+    exportParams.setObjectExportWithDependencies(program);
+
+    return ResponseEntity.ok(exportParams);
+  }
+
+  @ResponseBody
+  @GetMapping(value = "orgUnits")
+  public Map<String, Collection<String>> getOrgUnitsAssociations(
+      @RequestParam(value = "programs") Set<String> programs) {
+    return Optional.ofNullable(programs)
+        .filter(CollectionUtils::isNotEmpty)
+        .map(programService::getProgramOrganisationUnitsAssociationsForCurrentUser)
+        .map(SetValuedMap::asMap)
+        .orElseThrow(
+            () -> new IllegalArgumentException("At least one program uid must be specified"));
+  }
 }

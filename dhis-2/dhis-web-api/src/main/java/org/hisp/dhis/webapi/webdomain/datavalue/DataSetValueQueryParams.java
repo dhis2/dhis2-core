@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
 import javax.validation.constraints.NotBlank;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,19 +44,15 @@ import lombok.Setter;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DataSetValueQueryParams
-{
-    @NotBlank
-    private String ds;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class DataSetValueQueryParams {
+  @NotBlank private String ds;
 
-    private String cc;
+  private String cc;
 
-    private String cp;
+  private String cp;
 
-    @NotBlank
-    private String pe;
+  @NotBlank private String pe;
 
-    @NotBlank
-    private String ou;
+  @NotBlank private String ou;
 }

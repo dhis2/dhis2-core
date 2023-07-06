@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.util;
 
-public class Constants
-{
-    public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
+public class Constants {
+  public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
 
-    public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+  public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
 
-    public static final int RANDOM_GENERATION_CHUNK = 10;
-
+  public static final int RANDOM_GENERATION_CHUNK = 10;
 }

@@ -33,13 +33,9 @@ import org.jeasy.random.api.Randomizer;
 /**
  * @author Luciano Fiandesio
  */
-public class IdRandomizer
-    implements
-    Randomizer<Long>
-{
-    @Override
-    public Long getRandomValue()
-    {
-        return RandomUtils.nextLong( 1, 100000 );
-    }
+public class IdRandomizer implements Randomizer<Long> {
+  @Override
+  public Long getRandomValue() {
+    return RandomUtils.nextLong(1, 100000);
+  }
 }

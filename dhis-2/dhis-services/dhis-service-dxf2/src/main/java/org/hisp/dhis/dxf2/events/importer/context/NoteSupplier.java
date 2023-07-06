@@ -39,7 +39,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -50,64 +49,61 @@ import org.springframework.stereotype.Component;
 /**
  * @author Luciano Fiandesio
  */
-@Component( "workContextNotesSupplier" )
-public class NoteSupplier extends AbstractSupplier<Map<String, Note>>
-{
-    public NoteSupplier( NamedParameterJdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
-    }
+@Component("workContextNotesSupplier")
+public class NoteSupplier extends AbstractSupplier<Map<String, Note>> {
+  public NoteSupplier(NamedParameterJdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
 
-    @Override
-    public Map<String, Note> get( ImportOptions importOptions, List<Event> events )
-    {
-        Map<String, Note> persistableNotes = new HashMap<>();
-        //
-        // Collects all the notes' UID
-        //
-        // @formatter:off
-        Set<String> notesUid = events.stream()
-            .map( Event::getNotes )
-            .flatMap( Collection::stream )
-            .map( Note::getNote )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toSet() );
-        // @formatter:on
+  @Override
+  public Map<String, Note> get(ImportOptions importOptions, List<Event> events) {
+    Map<String, Note> persistableNotes = new HashMap<>();
+    //
+    // Collects all the notes' UID
+    //
+    // @formatter:off
+    Set<String> notesUid =
+        events.stream()
+            .map(Event::getNotes)
+            .flatMap(Collection::stream)
+            .map(Note::getNote)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    // @formatter:on
 
-        if ( isNotEmpty( notesUid ) )
-        {
-            final String sql = "select uid from trackedentitycomment where uid in  (:ids)";
+    if (isNotEmpty(notesUid)) {
+      final String sql = "select uid from trackedentitycomment where uid in  (:ids)";
 
-            MapSqlParameterSource parameters = new MapSqlParameterSource();
-            parameters.addValue( "ids", notesUid );
+      MapSqlParameterSource parameters = new MapSqlParameterSource();
+      parameters.addValue("ids", notesUid);
 
-            List<String> foundNotes = new ArrayList<>();
+      List<String> foundNotes = new ArrayList<>();
 
-            //
-            // finds all the notes that EXIST in the DB (by uid)
-            //
-            jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-                while ( rs.next() )
-                {
-                    foundNotes.add( rs.getString( "uid" ) );
-                }
-
-            } );
-
-            for ( Event event : events )
-            {
-                // @formatter:off
-                List<Note> eventNotes = event.getNotes().stream()
-                        .filter(u -> !foundNotes.contains(u.getNote()))
-                        .collect(Collectors.toList());
-                // @formatter:on
-                if ( isNotEmpty( eventNotes ) )
-                {
-                    persistableNotes.putAll(
-                        eventNotes.stream().collect( Collectors.toMap( Note::getNote, Function.identity() ) ) );
-                }
+      //
+      // finds all the notes that EXIST in the DB (by uid)
+      //
+      jdbcTemplate.query(
+          sql,
+          parameters,
+          (ResultSet rs) -> {
+            while (rs.next()) {
+              foundNotes.add(rs.getString("uid"));
             }
+          });
+
+      for (Event event : events) {
+        // @formatter:off
+        List<Note> eventNotes =
+            event.getNotes().stream()
+                .filter(u -> !foundNotes.contains(u.getNote()))
+                .collect(Collectors.toList());
+        // @formatter:on
+        if (isNotEmpty(eventNotes)) {
+          persistableNotes.putAll(
+              eventNotes.stream().collect(Collectors.toMap(Note::getNote, Function.identity())));
         }
-        return persistableNotes;
+      }
     }
+    return persistableNotes;
+  }
 }

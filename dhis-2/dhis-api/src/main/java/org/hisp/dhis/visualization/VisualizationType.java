@@ -29,31 +29,42 @@ package org.hisp.dhis.visualization;
 
 import java.util.Set;
 
-public enum VisualizationType
-{
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    STACKED_AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SCATTER,
-    BUBBLE,
-    SINGLE_VALUE,
-    PIVOT_TABLE;
+public enum VisualizationType {
+  COLUMN,
+  STACKED_COLUMN,
+  BAR,
+  STACKED_BAR,
+  LINE,
+  AREA,
+  STACKED_AREA,
+  PIE,
+  RADAR,
+  GAUGE,
+  YEAR_OVER_YEAR_LINE,
+  YEAR_OVER_YEAR_COLUMN,
+  SCATTER,
+  BUBBLE,
+  SINGLE_VALUE,
+  PIVOT_TABLE;
 
-    private static final Set<VisualizationType> CHART_TYPES = Set.of(
-        COLUMN, STACKED_COLUMN, BAR, STACKED_BAR, LINE, AREA, STACKED_AREA, PIE, RADAR, GAUGE,
-        YEAR_OVER_YEAR_LINE, YEAR_OVER_YEAR_COLUMN, SCATTER, BUBBLE );
+  private static final Set<VisualizationType> CHART_TYPES =
+      Set.of(
+          COLUMN,
+          STACKED_COLUMN,
+          BAR,
+          STACKED_BAR,
+          LINE,
+          AREA,
+          STACKED_AREA,
+          PIE,
+          RADAR,
+          GAUGE,
+          YEAR_OVER_YEAR_LINE,
+          YEAR_OVER_YEAR_COLUMN,
+          SCATTER,
+          BUBBLE);
 
-    public boolean isChart()
-    {
-        return CHART_TYPES.contains( this );
-    }
+  public boolean isChart() {
+    return CHART_TYPES.contains(this);
+  }
 }

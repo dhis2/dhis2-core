@@ -36,6 +36,10 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,7 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.Transformer;
@@ -53,7 +56,6 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -105,384 +107,356 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( value = DataSetSchemaDescriptor.API_ENDPOINT )
-public class DataSetController
-    extends AbstractCrudController<DataSet>
-{
-    public static final String DSD_TRANSFORM = "/templates/metadata2dsd.xsl";
+@RequestMapping(value = DataSetSchemaDescriptor.API_ENDPOINT)
+public class DataSetController extends AbstractCrudController<DataSet> {
+  public static final String DSD_TRANSFORM = "/templates/metadata2dsd.xsl";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private DataEntryFormService dataEntryFormService;
+  @Autowired private DataEntryFormService dataEntryFormService;
 
-    @Autowired
-    private DataValueService dataValueService;
+  @Autowired private DataValueService dataValueService;
 
-    @Autowired
-    private DataValueSetService dataValueSetService;
+  @Autowired private DataValueSetService dataValueSetService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private InputUtils inputUtils;
+  @Autowired private InputUtils inputUtils;
 
-    @Autowired
-    @Qualifier( "xmlMapper" )
-    protected ObjectMapper xmlMapper;
+  @Autowired
+  @Qualifier("xmlMapper")
+  protected ObjectMapper xmlMapper;
 
-    // -------------------------------------------------------------------------
-    // Controller
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Controller
+  // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "unchecked" )
-    @GetMapping( produces = "application/dsd+xml" )
-    public void getStructureDefinition( @RequestParam Map<String, String> parameters, HttpServletResponse response )
-        throws IOException,
-        TransformerException
-    {
-        MetadataExportParams exportParams = filterMetadataOptions();
+  @SuppressWarnings("unchecked")
+  @GetMapping(produces = "application/dsd+xml")
+  public void getStructureDefinition(
+      @RequestParam Map<String, String> parameters, HttpServletResponse response)
+      throws IOException, TransformerException {
+    MetadataExportParams exportParams = filterMetadataOptions();
 
-        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadataMap = exportService
-            .getMetadata( exportParams );
+    Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadataMap =
+        exportService.getMetadata(exportParams);
 
-        Metadata metadata = new Metadata();
-        metadata.setDataElements( (List<DataElement>) metadataMap.get( DataElement.class ) );
-        metadata.setDataSets( (List<DataSet>) metadataMap.get( DataSet.class ) );
-        metadata.setCategoryOptionCombos( (List<CategoryOptionCombo>) metadataMap.get( CategoryOptionCombo.class ) );
+    Metadata metadata = new Metadata();
+    metadata.setDataElements((List<DataElement>) metadataMap.get(DataElement.class));
+    metadata.setDataSets((List<DataSet>) metadataMap.get(DataSet.class));
+    metadata.setCategoryOptionCombos(
+        (List<CategoryOptionCombo>) metadataMap.get(CategoryOptionCombo.class));
 
-        InputStream input = new ByteArrayInputStream( xmlMapper.writeValueAsString( metadata ).getBytes( "UTF-8" ) );
+    InputStream input =
+        new ByteArrayInputStream(xmlMapper.writeValueAsString(metadata).getBytes("UTF-8"));
 
-        TransformerFactory tf = TransformerFactory.newInstance();
-        tf.setURIResolver( new ClassPathUriResolver() );
+    TransformerFactory tf = TransformerFactory.newInstance();
+    tf.setURIResolver(new ClassPathUriResolver());
 
-        Transformer transformer = tf
-            .newTransformer( new StreamSource( new ClassPathResource( DSD_TRANSFORM ).getInputStream() ) );
+    Transformer transformer =
+        tf.newTransformer(new StreamSource(new ClassPathResource(DSD_TRANSFORM).getInputStream()));
 
-        transformer.transform( new StreamSource( input ), new StreamResult( response.getOutputStream() ) );
+    transformer.transform(new StreamSource(input), new StreamResult(response.getOutputStream()));
+  }
+
+  @GetMapping("/{uid}/version")
+  @ResponseBody
+  @ResponseStatus(HttpStatus.OK)
+  public Map<String, Integer> getVersion(
+      @PathVariable("uid") String uid, @RequestParam Map<String, String> parameters)
+      throws Exception {
+    DataSet dataSet = manager.get(DataSet.class, uid);
+
+    if (dataSet == null) {
+      throw new WebMessageException(conflict("Data set does not exist: " + uid));
     }
 
-    @GetMapping( "/{uid}/version" )
-    @ResponseBody
-    @ResponseStatus( HttpStatus.OK )
-    public Map<String, Integer> getVersion( @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> parameters )
-        throws Exception
-    {
-        DataSet dataSet = manager.get( DataSet.class, uid );
+    return singletonMap("version", dataSet.getVersion());
+  }
 
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
-        }
+  @PostMapping("/{uid}/version")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void bumpVersion(@PathVariable("uid") String uid) throws Exception {
+    DataSet dataSet = manager.get(DataSet.class, uid);
 
-        return singletonMap( "version", dataSet.getVersion() );
+    if (dataSet == null) {
+      throw new WebMessageException(conflict("Data set does not exist: " + uid));
     }
 
-    @PostMapping( "/{uid}/version" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void bumpVersion( @PathVariable( "uid" ) String uid )
-        throws Exception
-    {
-        DataSet dataSet = manager.get( DataSet.class, uid );
+    dataSet.increaseVersion();
 
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
-        }
+    dataSetService.updateDataSet(dataSet);
+  }
 
-        dataSet.increaseVersion();
+  @GetMapping("/{uid}/categoryCombos")
+  public ResponseEntity<JsonRoot> getCategoryCombinations(
+      @PathVariable("uid") String uid,
+      @RequestParam(defaultValue = "*") List<FieldPath> fields,
+      TranslateParams translateParams)
+      throws Exception {
+    setTranslationParams(translateParams);
+    DataSet dataSet = manager.get(DataSet.class, uid);
 
-        dataSetService.updateDataSet( dataSet );
+    if (dataSet == null) {
+      throw new WebMessageException(conflict("Data set does not exist: " + uid));
     }
 
-    @GetMapping( "/{uid}/categoryCombos" )
-    public ResponseEntity<JsonRoot> getCategoryCombinations(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( defaultValue = "*" ) List<FieldPath> fields,
-        TranslateParams translateParams )
-        throws Exception
-    {
-        setTranslationParams( translateParams );
-        DataSet dataSet = manager.get( DataSet.class, uid );
+    List<CategoryCombo> categoryCombos =
+        dataSet.getDataSetElements().stream()
+            .map(DataSetElement::getResolvedCategoryCombo)
+            .distinct()
+            .collect(Collectors.toList());
 
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( conflict( "Data set does not exist: " + uid ) );
-        }
+    Collections.sort(categoryCombos);
 
-        List<CategoryCombo> categoryCombos = dataSet.getDataSetElements().stream()
-            .map( DataSetElement::getResolvedCategoryCombo ).distinct().collect( Collectors.toList() );
+    List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(categoryCombos, fields);
 
-        Collections.sort( categoryCombos );
+    return ResponseEntity.ok(new JsonRoot("categoryCombos", objectNodes));
+  }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( categoryCombos, fields );
+  @GetMapping("/{uid}/dataValueSet")
+  public @ResponseBody RootNode getDvs(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "orgUnitIdScheme", defaultValue = "ID", required = false)
+          String orgUnitIdScheme,
+      @RequestParam(value = "dataElementIdScheme", defaultValue = "ID", required = false)
+          String dataElementIdScheme,
+      @RequestParam(value = "period", defaultValue = "", required = false) String period,
+      @RequestParam(value = "orgUnit", defaultValue = "", required = false) List<String> orgUnits,
+      @RequestParam(value = "comment", defaultValue = "true", required = false) boolean comment,
+      TranslateParams translateParams,
+      HttpServletResponse response)
+      throws IOException, WebMessageException {
+    setTranslationParams(translateParams);
+    List<DataSet> dataSets = getEntity(uid, NO_WEB_OPTIONS);
 
-        return ResponseEntity.ok( new JsonRoot( "categoryCombos", objectNodes ) );
+    if (dataSets.isEmpty()) {
+      throw new WebMessageException(notFound("DataSet not found for uid: " + uid));
     }
 
-    @GetMapping( "/{uid}/dataValueSet" )
-    public @ResponseBody RootNode getDvs( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "orgUnitIdScheme", defaultValue = "ID", required = false ) String orgUnitIdScheme,
-        @RequestParam( value = "dataElementIdScheme", defaultValue = "ID", required = false ) String dataElementIdScheme,
-        @RequestParam( value = "period", defaultValue = "", required = false ) String period,
-        @RequestParam( value = "orgUnit", defaultValue = "", required = false ) List<String> orgUnits,
-        @RequestParam( value = "comment", defaultValue = "true", required = false ) boolean comment,
-        TranslateParams translateParams, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
-    {
-        setTranslationParams( translateParams );
-        List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
+    Period pe = periodService.getPeriod(period);
 
-        if ( dataSets.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
-        }
+    return dataValueSetService.getDataValueSetTemplate(
+        dataSets.get(0), pe, orgUnits, comment, orgUnitIdScheme, dataElementIdScheme);
+  }
 
-        Period pe = periodService.getPeriod( period );
+  @GetMapping(value = "/{uid}/form", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  @ResponseStatus(HttpStatus.OK)
+  public Form getFormJson(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String orgUnit,
+      @RequestParam(value = "pe", required = false) String period,
+      @RequestParam(value = "categoryOptions", required = false) String categoryOptions,
+      @RequestParam(required = false) boolean metaData,
+      TranslateParams translateParams)
+      throws IOException, WebMessageException {
+    setTranslationParams(translateParams);
+    List<DataSet> dataSets = getEntity(uid, NO_WEB_OPTIONS);
 
-        return dataValueSetService.getDataValueSetTemplate( dataSets.get( 0 ), pe, orgUnits, comment, orgUnitIdScheme,
-            dataElementIdScheme );
+    if (dataSets.isEmpty()) {
+      throw new WebMessageException(notFound("Data set not found for uid: " + uid));
     }
 
-    @GetMapping( value = "/{uid}/form", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    @ResponseStatus( HttpStatus.OK )
-    public Form getFormJson(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnit,
-        @RequestParam( value = "pe", required = false ) String period,
-        @RequestParam( value = "categoryOptions", required = false ) String categoryOptions,
-        @RequestParam( required = false ) boolean metaData,
-        TranslateParams translateParams )
-        throws IOException,
-        WebMessageException
-    {
-        setTranslationParams( translateParams );
-        List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
+    OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 
-        if ( dataSets.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "Data set not found for uid: " + uid ) );
-        }
-
-        OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
-
-        if ( ou == null )
-        {
-            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
-        }
-
-        Period pe = PeriodType.getPeriodFromIsoString( period );
-
-        return getForm( dataSets, ou, pe, categoryOptions, metaData );
+    if (ou == null) {
+      throw new WebMessageException(notFound("Organisation unit does not exist: " + orgUnit));
     }
 
-    @GetMapping( value = "/{uid}/form", produces = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
-    public void getFormXml(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnit,
-        @RequestParam( value = "pe", required = false ) String period,
-        @RequestParam( value = "catOpts", required = false ) String categoryOptions,
-        @RequestParam( required = false ) boolean metaData,
-        TranslateParams translateParams, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
-    {
-        setTranslationParams( translateParams );
-        List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
+    Period pe = PeriodType.getPeriodFromIsoString(period);
 
-        if ( dataSets.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
-        }
+    return getForm(dataSets, ou, pe, categoryOptions, metaData);
+  }
 
-        OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
+  @GetMapping(
+      value = "/{uid}/form",
+      produces = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
+  public void getFormXml(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String orgUnit,
+      @RequestParam(value = "pe", required = false) String period,
+      @RequestParam(value = "catOpts", required = false) String categoryOptions,
+      @RequestParam(required = false) boolean metaData,
+      TranslateParams translateParams,
+      HttpServletResponse response)
+      throws IOException, WebMessageException {
+    setTranslationParams(translateParams);
+    List<DataSet> dataSets = getEntity(uid, NO_WEB_OPTIONS);
 
-        if ( ou == null )
-        {
-            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
-        }
-
-        Period pe = PeriodType.getPeriodFromIsoString( period );
-
-        Form form = getForm( dataSets, ou, pe, categoryOptions, metaData );
-
-        renderService.toXml( response.getOutputStream(), form );
+    if (dataSets.isEmpty()) {
+      throw new WebMessageException(notFound("DataSet not found for uid: " + uid));
     }
 
-    private Form getForm( List<DataSet> dataSets, OrganisationUnit ou, Period pe, String categoryOptions,
-        boolean metaData )
-        throws IOException
-    {
-        DataSet dataSet = dataSets.get( 0 );
+    OrganisationUnit ou = manager.get(OrganisationUnit.class, orgUnit);
 
-        Form form = FormUtils.fromDataSet( dataSets.get( 0 ), metaData, null );
-
-        Set<String> options = null;
-
-        if ( StringUtils.isNotEmpty( categoryOptions ) && categoryOptions.startsWith( "[" )
-            && categoryOptions.endsWith( "]" ) )
-        {
-            String[] split = categoryOptions.substring( 1, categoryOptions.length() - 1 ).split( "," );
-
-            options = new HashSet<>( Lists.newArrayList( split ) );
-        }
-
-        if ( ou != null && pe != null )
-        {
-            Set<CategoryOptionCombo> attrOptionCombos = options == null || options.isEmpty()
-                ? null
-                : Sets.newHashSet( inputUtils.getAttributeOptionCombo(
-                    dataSet.getCategoryCombo(), options, IdScheme.UID ) );
-
-            List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
-                .setDataElements( dataSets.get( 0 ).getDataElements() )
-                .setPeriods( Sets.newHashSet( pe ) )
-                .setOrganisationUnits( Sets.newHashSet( ou ) )
-                .setAttributeOptionCombos( attrOptionCombos ) );
-
-            FormUtils.fillWithDataValues( form, dataValues );
-        }
-
-        return form;
+    if (ou == null) {
+      throw new WebMessageException(notFound("Organisation unit does not exist: " + orgUnit));
     }
 
-    @RequestMapping( value = { "/{uid}/customDataEntryForm", "/{uid}/form" }, method = { RequestMethod.PUT,
-        RequestMethod.POST }, consumes = TEXT_HTML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void updateCustomDataEntryFormHtml( @PathVariable( "uid" ) String uid,
-        @RequestBody String formContent,
-        HttpServletResponse response )
-        throws Exception
-    {
-        DataSet dataSet = dataSetService.getDataSet( uid );
+    Period pe = PeriodType.getPeriodFromIsoString(period);
 
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
-        }
+    Form form = getForm(dataSets, ou, pe, categoryOptions, metaData);
 
-        DataEntryForm form = dataSet.getDataEntryForm();
+    renderService.toXml(response.getOutputStream(), form);
+  }
 
-        if ( form == null )
-        {
-            form = new DataEntryForm( dataSet.getName(), DisplayDensity.NORMAL, formContent );
-            dataEntryFormService.addDataEntryForm( form );
-            dataSet.setDataEntryForm( form );
-        }
-        else
-        {
-            form.setHtmlCode( formContent );
-            dataEntryFormService.updateDataEntryForm( form );
-        }
+  private Form getForm(
+      List<DataSet> dataSets,
+      OrganisationUnit ou,
+      Period pe,
+      String categoryOptions,
+      boolean metaData)
+      throws IOException {
+    DataSet dataSet = dataSets.get(0);
 
-        dataSet.increaseVersion();
-        dataSetService.updateDataSet( dataSet );
+    Form form = FormUtils.fromDataSet(dataSets.get(0), metaData, null);
+
+    Set<String> options = null;
+
+    if (StringUtils.isNotEmpty(categoryOptions)
+        && categoryOptions.startsWith("[")
+        && categoryOptions.endsWith("]")) {
+      String[] split = categoryOptions.substring(1, categoryOptions.length() - 1).split(",");
+
+      options = new HashSet<>(Lists.newArrayList(split));
     }
 
-    @PostMapping( value = "/{uid}/form", consumes = APPLICATION_JSON_VALUE )
-    @ApiVersion( value = DhisApiVersion.ALL )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void updateCustomDataEntryFormJson( @PathVariable( "uid" ) String uid, HttpServletRequest request )
-        throws WebMessageException
-    {
-        DataSet dataSet = dataSetService.getDataSet( uid );
+    if (ou != null && pe != null) {
+      Set<CategoryOptionCombo> attrOptionCombos =
+          options == null || options.isEmpty()
+              ? null
+              : Sets.newHashSet(
+                  inputUtils.getAttributeOptionCombo(
+                      dataSet.getCategoryCombo(), options, IdScheme.UID));
 
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
-        }
+      List<DataValue> dataValues =
+          dataValueService.getDataValues(
+              new DataExportParams()
+                  .setDataElements(dataSets.get(0).getDataElements())
+                  .setPeriods(Sets.newHashSet(pe))
+                  .setOrganisationUnits(Sets.newHashSet(ou))
+                  .setAttributeOptionCombos(attrOptionCombos));
 
-        DataEntryForm form = dataSet.getDataEntryForm();
-        DataEntryForm newForm;
-
-        try
-        {
-            newForm = renderService.fromJson( request.getInputStream(), DataEntryForm.class );
-        }
-        catch ( IOException e )
-        {
-            throw new WebMessageException( badRequest( "Failed to parse request", e.getMessage() ) );
-        }
-
-        if ( form == null )
-        {
-            if ( !newForm.hasForm() )
-            {
-                throw new WebMessageException( badRequest( "Missing required parameter 'htmlCode'" ) );
-            }
-
-            newForm.setName( dataSet.getName() );
-            dataEntryFormService.addDataEntryForm( newForm );
-            dataSet.setDataEntryForm( newForm );
-        }
-        else
-        {
-            if ( newForm.getHtmlCode() != null )
-            {
-                form.setHtmlCode( dataEntryFormService.prepareDataEntryFormForSave( newForm.getHtmlCode() ) );
-            }
-
-            if ( newForm.getStyle() != null )
-            {
-                form.setStyle( newForm.getStyle() );
-            }
-
-            dataEntryFormService.updateDataEntryForm( form );
-        }
-
-        dataSet.increaseVersion();
-        dataSetService.updateDataSet( dataSet );
+      FormUtils.fillWithDataValues(form, dataValues);
     }
 
-    @GetMapping( "/{uid}/metadata" )
-    public ResponseEntity<MetadataExportParams> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid,
-        @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException
-    {
-        DataSet dataSet = dataSetService.getDataSet( pvUid );
+    return form;
+  }
 
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + pvUid ) );
-        }
+  @RequestMapping(
+      value = {"/{uid}/customDataEntryForm", "/{uid}/form"},
+      method = {RequestMethod.PUT, RequestMethod.POST},
+      consumes = TEXT_HTML_VALUE)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void updateCustomDataEntryFormHtml(
+      @PathVariable("uid") String uid,
+      @RequestBody String formContent,
+      HttpServletResponse response)
+      throws Exception {
+    DataSet dataSet = dataSetService.getDataSet(uid);
 
-        MetadataExportParams exportParams = exportService.getParamsFromMap( contextService.getParameterValuesMap() );
-        exportService.validate( exportParams );
-        exportParams.setObjectExportWithDependencies( dataSet );
-
-        return ResponseEntity.ok( exportParams );
+    if (dataSet == null) {
+      throw new WebMessageException(notFound("DataSet not found for uid: " + uid));
     }
 
-    /**
-     * Select only the meta-data required to describe form definitions.
-     *
-     * @return the filtered options.
-     */
-    private MetadataExportParams filterMetadataOptions()
-    {
-        MetadataExportParams params = new MetadataExportParams();
-        params.addQuery( Query.from( schemaService.getSchema( DataElement.class ) ) );
-        params.addQuery( Query.from( schemaService.getSchema( DataSet.class ) ) );
-        params.addQuery( Query.from( schemaService.getSchema( CategoryOptionCombo.class ) ) );
+    DataEntryForm form = dataSet.getDataEntryForm();
 
-        return params;
+    if (form == null) {
+      form = new DataEntryForm(dataSet.getName(), DisplayDensity.NORMAL, formContent);
+      dataEntryFormService.addDataEntryForm(form);
+      dataSet.setDataEntryForm(form);
+    } else {
+      form.setHtmlCode(formContent);
+      dataEntryFormService.updateDataEntryForm(form);
     }
+
+    dataSet.increaseVersion();
+    dataSetService.updateDataSet(dataSet);
+  }
+
+  @PostMapping(value = "/{uid}/form", consumes = APPLICATION_JSON_VALUE)
+  @ApiVersion(value = DhisApiVersion.ALL)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void updateCustomDataEntryFormJson(
+      @PathVariable("uid") String uid, HttpServletRequest request) throws WebMessageException {
+    DataSet dataSet = dataSetService.getDataSet(uid);
+
+    if (dataSet == null) {
+      throw new WebMessageException(notFound("DataSet not found for uid: " + uid));
+    }
+
+    DataEntryForm form = dataSet.getDataEntryForm();
+    DataEntryForm newForm;
+
+    try {
+      newForm = renderService.fromJson(request.getInputStream(), DataEntryForm.class);
+    } catch (IOException e) {
+      throw new WebMessageException(badRequest("Failed to parse request", e.getMessage()));
+    }
+
+    if (form == null) {
+      if (!newForm.hasForm()) {
+        throw new WebMessageException(badRequest("Missing required parameter 'htmlCode'"));
+      }
+
+      newForm.setName(dataSet.getName());
+      dataEntryFormService.addDataEntryForm(newForm);
+      dataSet.setDataEntryForm(newForm);
+    } else {
+      if (newForm.getHtmlCode() != null) {
+        form.setHtmlCode(dataEntryFormService.prepareDataEntryFormForSave(newForm.getHtmlCode()));
+      }
+
+      if (newForm.getStyle() != null) {
+        form.setStyle(newForm.getStyle());
+      }
+
+      dataEntryFormService.updateDataEntryForm(form);
+    }
+
+    dataSet.increaseVersion();
+    dataSetService.updateDataSet(dataSet);
+  }
+
+  @GetMapping("/{uid}/metadata")
+  public ResponseEntity<MetadataExportParams> getDataSetWithDependencies(
+      @PathVariable("uid") String pvUid,
+      @RequestParam(required = false, defaultValue = "false") boolean download)
+      throws WebMessageException {
+    DataSet dataSet = dataSetService.getDataSet(pvUid);
+
+    if (dataSet == null) {
+      throw new WebMessageException(notFound("DataSet not found for uid: " + pvUid));
+    }
+
+    MetadataExportParams exportParams =
+        exportService.getParamsFromMap(contextService.getParameterValuesMap());
+    exportService.validate(exportParams);
+    exportParams.setObjectExportWithDependencies(dataSet);
+
+    return ResponseEntity.ok(exportParams);
+  }
+
+  /**
+   * Select only the meta-data required to describe form definitions.
+   *
+   * @return the filtered options.
+   */
+  private MetadataExportParams filterMetadataOptions() {
+    MetadataExportParams params = new MetadataExportParams();
+    params.addQuery(Query.from(schemaService.getSchema(DataElement.class)));
+    params.addQuery(Query.from(schemaService.getSchema(DataSet.class)));
+    params.addQuery(Query.from(schemaService.getSchema(CategoryOptionCombo.class)));
+
+    return params;
+  }
 }

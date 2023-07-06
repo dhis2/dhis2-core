@@ -29,6 +29,9 @@ package org.hisp.dhis.external.conf;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -41,12 +44,9 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -59,296 +59,251 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-
 /**
  * @author Lars Helge Overland
  */
-@Profile( {
-    "!test-h2",
-    "!test-postgres",
-} )
-@Component( "dhisConfigurationProvider" )
+@Profile({
+  "!test-h2",
+  "!test-postgres",
+})
+@Component("dhisConfigurationProvider")
 @Slf4j
 public class DefaultDhisConfigurationProvider extends LogOnceLogger
-    implements DhisConfigurationProvider
-{
-    private static final String CONF_FILENAME = "dhis.conf";
+    implements DhisConfigurationProvider {
+  private static final String CONF_FILENAME = "dhis.conf";
 
-    private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
+  private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
 
-    private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
+  private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final LocationManager locationManager;
+  private final LocationManager locationManager;
 
-    public DefaultDhisConfigurationProvider( LocationManager locationManager )
-    {
-        checkNotNull( locationManager );
-        this.locationManager = locationManager;
+  public DefaultDhisConfigurationProvider(LocationManager locationManager) {
+    checkNotNull(locationManager);
+    this.locationManager = locationManager;
+  }
+
+  /** Cache for properties. */
+  private Properties properties;
+
+  /** Cache for Google credential. */
+  private Optional<GoogleCredential> googleCredential = Optional.empty();
+
+  @PostConstruct
+  public void init() {
+    // ---------------------------------------------------------------------
+    // Load DHIS 2 configuration file into properties bundle
+    // ---------------------------------------------------------------------
+
+    this.properties = loadDhisConf();
+    this.properties.setProperty(
+        "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect");
+
+    // ---------------------------------------------------------------------
+    // Load Google JSON authentication file into properties bundle
+    // ---------------------------------------------------------------------
+
+    try (InputStream jsonIn = locationManager.getInputStream(GOOGLE_AUTH_FILENAME)) {
+      HashMap<String, Object> json =
+          new ObjectMapper().readValue(jsonIn, new TypeReference<HashMap<String, Object>>() {});
+
+      this.properties.put(
+          ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get("client_id"));
+    } catch (LocationManagerException ex) {
+      log(log, Level.INFO, "Could not find dhis-google-auth.json");
+    } catch (IOException ex) {
+      warn(log, "Could not load credential from dhis-google-auth.json", ex);
     }
 
-    /**
-     * Cache for properties.
-     */
-    private Properties properties;
+    // ---------------------------------------------------------------------
+    // Load Google JSON authentication file into GoogleCredential
+    // ---------------------------------------------------------------------
 
-    /**
-     * Cache for Google credential.
-     */
-    private Optional<GoogleCredential> googleCredential = Optional.empty();
+    try (InputStream credentialIn = locationManager.getInputStream(GOOGLE_AUTH_FILENAME)) {
+      GoogleCredential credential =
+          GoogleCredential.fromStream(credentialIn)
+              .createScoped(Collections.singleton(GOOGLE_EE_SCOPE));
 
-    @PostConstruct
-    public void init()
-    {
-        // ---------------------------------------------------------------------
-        // Load DHIS 2 configuration file into properties bundle
-        // ---------------------------------------------------------------------
+      this.googleCredential = Optional.of(credential);
 
-        this.properties = loadDhisConf();
-        this.properties
-            .setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
+      log(log, Level.INFO, "Loaded dhis-google-auth.json authentication file");
+    } catch (LocationManagerException ex) {
+      log(log, Level.INFO, "Could not find dhis-google-auth.json");
+    } catch (IOException ex) {
+      warn(log, "Could not load credential from dhis-google-auth.json", ex);
+    }
+  }
 
-        // ---------------------------------------------------------------------
-        // Load Google JSON authentication file into properties bundle
-        // ---------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DhisConfigurationProvider implementation
+  // -------------------------------------------------------------------------
 
-        try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
-        {
-            HashMap<String, Object> json = new ObjectMapper().readValue( jsonIn,
-                new TypeReference<HashMap<String, Object>>()
-                {
-                } );
+  @Override
+  public Properties getProperties() {
+    return properties;
+  }
 
-            this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
-        }
-        catch ( LocationManagerException ex )
-        {
-            log( log, Level.INFO, "Could not find dhis-google-auth.json" );
-        }
-        catch ( IOException ex )
-        {
-            warn( log, "Could not load credential from dhis-google-auth.json", ex );
-        }
+  @Override
+  public String getProperty(ConfigurationKey key) {
+    return getPropertyOrDefault(key, key.getDefaultValue());
+  }
 
-        // ---------------------------------------------------------------------
-        // Load Google JSON authentication file into GoogleCredential
-        // ---------------------------------------------------------------------
-
-        try ( InputStream credentialIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
-        {
-            GoogleCredential credential = GoogleCredential
-                .fromStream( credentialIn )
-                .createScoped( Collections.singleton( GOOGLE_EE_SCOPE ) );
-
-            this.googleCredential = Optional.of( credential );
-
-            log( log, Level.INFO, "Loaded dhis-google-auth.json authentication file" );
-        }
-        catch ( LocationManagerException ex )
-        {
-            log( log, Level.INFO, "Could not find dhis-google-auth.json" );
-        }
-        catch ( IOException ex )
-        {
-            warn( log, "Could not load credential from dhis-google-auth.json", ex );
-        }
+  @Override
+  public String getPropertyOrDefault(ConfigurationKey key, String defaultValue) {
+    for (String alias : key.getAliases()) {
+      if (properties.contains(alias)) {
+        return properties.getProperty(alias);
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // DhisConfigurationProvider implementation
-    // -------------------------------------------------------------------------
+    return properties.getProperty(key.getKey(), defaultValue);
+  }
 
-    @Override
-    public Properties getProperties()
-    {
-        return properties;
+  @Override
+  public boolean hasProperty(ConfigurationKey key) {
+    String value = properties.getProperty(key.getKey());
+
+    for (String alias : key.getAliases()) {
+      if (properties.contains(alias)) {
+        value = alias;
+      }
     }
 
-    @Override
-    public String getProperty( ConfigurationKey key )
-    {
-        return getPropertyOrDefault( key, key.getDefaultValue() );
+    return StringUtils.isNotEmpty(value);
+  }
+
+  @Override
+  public Optional<GoogleCredential> getGoogleCredential() {
+    return googleCredential;
+  }
+
+  @Override
+  public Optional<GoogleAccessToken> getGoogleAccessToken() {
+    if (!getGoogleCredential().isPresent()) {
+      return Optional.empty();
     }
 
-    @Override
-    public String getPropertyOrDefault( ConfigurationKey key, String defaultValue )
-    {
-        for ( String alias : key.getAliases() )
-        {
-            if ( properties.contains( alias ) )
-            {
-                return properties.getProperty( alias );
-            }
-        }
+    GoogleCredential credential = getGoogleCredential().get();
 
-        return properties.getProperty( key.getKey(), defaultValue );
+    try {
+      if (!credential.refreshToken() || credential.getExpiresInSeconds() == null) {
+        log.warn("There is no refresh token to be retrieved");
+
+        return Optional.empty();
+      }
+    } catch (IOException ex) {
+      throw new IllegalStateException("Could not retrieve refresh token: " + ex.getMessage(), ex);
     }
 
-    @Override
-    public boolean hasProperty( ConfigurationKey key )
-    {
-        String value = properties.getProperty( key.getKey() );
+    GoogleAccessToken token = new GoogleAccessToken();
 
-        for ( String alias : key.getAliases() )
-        {
-            if ( properties.contains( alias ) )
-            {
-                value = alias;
-            }
-        }
+    token.setAccessToken(credential.getAccessToken());
+    token.setClientId(getProperty(ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID));
+    token.setExpiresInSeconds(credential.getExpiresInSeconds());
+    token.setExpiresOn(LocalDateTime.now().plusSeconds(token.getExpiresInSeconds()));
 
-        return StringUtils.isNotEmpty( value );
+    return Optional.of(token);
+  }
+
+  @Override
+  public boolean isReadOnlyMode() {
+    return isEnabled(ConfigurationKey.SYSTEM_READ_ONLY_MODE);
+  }
+
+  @Override
+  public boolean isClusterEnabled() {
+    return StringUtils.isNotBlank(getProperty(ConfigurationKey.CLUSTER_MEMBERS))
+        && StringUtils.isNotBlank(getProperty(ConfigurationKey.CLUSTER_HOSTNAME));
+  }
+
+  @Override
+  public String getServerBaseUrl() {
+    return StringUtils.trimToNull(
+        properties.getProperty(ConfigurationKey.SERVER_BASE_URL.getKey()));
+  }
+
+  @Override
+  public boolean isLdapConfigured() {
+    String ldapUrl = getProperty(ConfigurationKey.LDAP_URL);
+    String managerDn = getProperty(ConfigurationKey.LDAP_MANAGER_DN);
+
+    return !(ConfigurationKey.LDAP_URL.getDefaultValue().equals(ldapUrl)
+        || ldapUrl == null
+        || managerDn == null);
+  }
+
+  @Override
+  public EncryptionStatus getEncryptionStatus() {
+    String password;
+
+    int maxKeyLength;
+
+    // Check for JCE files is present (key length > 128) and AES is
+    // available
+
+    try {
+      maxKeyLength = Cipher.getMaxAllowedKeyLength("AES");
+
+      if (maxKeyLength == 128) {
+        return EncryptionStatus.MISSING_JCE_POLICY;
+      }
+    } catch (NoSuchAlgorithmException e) {
+      return EncryptionStatus.MISSING_JCE_POLICY;
     }
 
-    @Override
-    public Optional<GoogleCredential> getGoogleCredential()
-    {
-        return googleCredential;
+    password = getProperty(ConfigurationKey.ENCRYPTION_PASSWORD);
+
+    if (password.length() == 0) {
+      return EncryptionStatus.MISSING_ENCRYPTION_PASSWORD;
     }
 
-    @Override
-    public Optional<GoogleAccessToken> getGoogleAccessToken()
-    {
-        if ( !getGoogleCredential().isPresent() )
-        {
-            return Optional.empty();
-        }
-
-        GoogleCredential credential = getGoogleCredential().get();
-
-        try
-        {
-            if ( !credential.refreshToken() || credential.getExpiresInSeconds() == null )
-            {
-                log.warn( "There is no refresh token to be retrieved" );
-
-                return Optional.empty();
-            }
-        }
-        catch ( IOException ex )
-        {
-            throw new IllegalStateException( "Could not retrieve refresh token: " + ex.getMessage(), ex );
-        }
-
-        GoogleAccessToken token = new GoogleAccessToken();
-
-        token.setAccessToken( credential.getAccessToken() );
-        token.setClientId( getProperty( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID ) );
-        token.setExpiresInSeconds( credential.getExpiresInSeconds() );
-        token.setExpiresOn( LocalDateTime.now().plusSeconds( token.getExpiresInSeconds() ) );
-
-        return Optional.of( token );
+    if (password.length() < 24) {
+      return EncryptionStatus.ENCRYPTION_PASSWORD_TOO_SHORT;
     }
 
-    @Override
-    public boolean isReadOnlyMode()
-    {
-        return isEnabled( ConfigurationKey.SYSTEM_READ_ONLY_MODE );
+    return EncryptionStatus.OK;
+  }
+
+  @Override
+  public Map<String, Serializable> getConfigurationsAsMap() {
+    return Stream.of(ConfigurationKey.values())
+        .collect(
+            Collectors.toMap(
+                ConfigurationKey::getKey,
+                v ->
+                    v.isConfidential()
+                        ? ""
+                        : getPropertyOrDefault(
+                            v, v.getDefaultValue() != null ? v.getDefaultValue() : "")));
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private Properties loadDhisConf() throws IllegalStateException {
+    try (InputStream in = locationManager.getInputStream(CONF_FILENAME)) {
+      Properties conf = PropertiesLoaderUtils.loadProperties(new InputStreamResource(in));
+      substituteEnvironmentVariables(conf);
+
+      return conf;
+    } catch (LocationManagerException | IOException | SecurityException ex) {
+      log.debug(String.format("Could not load %s", CONF_FILENAME), ex);
+
+      throw new IllegalStateException("Properties could not be loaded", ex);
     }
+  }
 
-    @Override
-    public boolean isClusterEnabled()
-    {
-        return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) )
-            && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
-    }
+  private void substituteEnvironmentVariables(Properties properties) {
+    // Matches on ${...}
+    final StringSubstitutor substitutor = new StringSubstitutor(System.getenv());
 
-    @Override
-    public String getServerBaseUrl()
-    {
-        return StringUtils.trimToNull( properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey() ) );
-    }
-
-    @Override
-    public boolean isLdapConfigured()
-    {
-        String ldapUrl = getProperty( ConfigurationKey.LDAP_URL );
-        String managerDn = getProperty( ConfigurationKey.LDAP_MANAGER_DN );
-
-        return !(ConfigurationKey.LDAP_URL.getDefaultValue().equals( ldapUrl ) ||
-            ldapUrl == null || managerDn == null);
-    }
-
-    @Override
-    public EncryptionStatus getEncryptionStatus()
-    {
-        String password;
-
-        int maxKeyLength;
-
-        // Check for JCE files is present (key length > 128) and AES is
-        // available
-
-        try
-        {
-            maxKeyLength = Cipher.getMaxAllowedKeyLength( "AES" );
-
-            if ( maxKeyLength == 128 )
-            {
-                return EncryptionStatus.MISSING_JCE_POLICY;
-            }
-        }
-        catch ( NoSuchAlgorithmException e )
-        {
-            return EncryptionStatus.MISSING_JCE_POLICY;
-        }
-
-        password = getProperty( ConfigurationKey.ENCRYPTION_PASSWORD );
-
-        if ( password.length() == 0 )
-        {
-            return EncryptionStatus.MISSING_ENCRYPTION_PASSWORD;
-        }
-
-        if ( password.length() < 24 )
-        {
-            return EncryptionStatus.ENCRYPTION_PASSWORD_TOO_SHORT;
-        }
-
-        return EncryptionStatus.OK;
-    }
-
-    @Override
-    public Map<String, Serializable> getConfigurationsAsMap()
-    {
-        return Stream.of( ConfigurationKey.values() )
-            .collect( Collectors.toMap( ConfigurationKey::getKey, v -> v.isConfidential() ? ""
-                : getPropertyOrDefault( v, v.getDefaultValue() != null ? v.getDefaultValue() : "" ) ) );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Properties loadDhisConf()
-        throws IllegalStateException
-    {
-        try ( InputStream in = locationManager.getInputStream( CONF_FILENAME ) )
-        {
-            Properties conf = PropertiesLoaderUtils.loadProperties( new InputStreamResource( in ) );
-            substituteEnvironmentVariables( conf );
-
-            return conf;
-        }
-        catch ( LocationManagerException | IOException | SecurityException ex )
-        {
-            log.debug( String.format( "Could not load %s", CONF_FILENAME ), ex );
-
-            throw new IllegalStateException( "Properties could not be loaded", ex );
-        }
-    }
-
-    private void substituteEnvironmentVariables( Properties properties )
-    {
-        // Matches on ${...}
-        final StringSubstitutor substitutor = new StringSubstitutor( System.getenv() );
-
-        properties.entrySet().forEach( entry -> entry.setValue( substitutor.replace( entry.getValue() ).trim() ) );
-    }
+    properties
+        .entrySet()
+        .forEach(entry -> entry.setValue(substitutor.replace(entry.getValue()).trim()));
+  }
 }

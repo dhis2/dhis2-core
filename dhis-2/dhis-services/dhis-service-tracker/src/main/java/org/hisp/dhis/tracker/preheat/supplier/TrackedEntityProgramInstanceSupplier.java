@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -45,101 +45,114 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
  * Adds to the preheat a Map of Tracked Entities to related Program Instances
  *
  * @author Luca Cambi
  */
 @Component
-public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSupplier
-{
+public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSupplier {
 
-    private static final String PR_UID_COLUMN = "pr.uid";
+  private static final String PR_UID_COLUMN = "pr.uid";
 
-    private static final String PR_UID_COLUMN_ALIAS = "pruid";
+  private static final String PR_UID_COLUMN_ALIAS = "pruid";
 
-    private static final String PI_UID_COLUMN = "pi.uid";
+  private static final String PI_UID_COLUMN = "pi.uid";
 
-    private static final String PI_UID_COLUMN_ALIAS = "piuid";
+  private static final String PI_UID_COLUMN_ALIAS = "piuid";
 
-    private static final String PI_STATUS_COLUMN = "pi.status";
+  private static final String PI_STATUS_COLUMN = "pi.status";
 
-    private static final String PI_STATUS_COLUMN_ALIAS = "status";
+  private static final String PI_STATUS_COLUMN_ALIAS = "status";
 
-    private static final String TEI_UID_COLUMN = "tei.uid";
+  private static final String TEI_UID_COLUMN = "tei.uid";
 
-    private static final String TEI_UID_COLUMN_ALIAS = "teiuid";
+  private static final String TEI_UID_COLUMN_ALIAS = "teiuid";
 
-    private static final String SQL = "select  " + PR_UID_COLUMN + " as " + PR_UID_COLUMN_ALIAS + ", "
-        + PI_UID_COLUMN + " as " + PI_UID_COLUMN_ALIAS + ", "
-        + PI_STATUS_COLUMN + " as " + PI_STATUS_COLUMN_ALIAS + ", "
-        + TEI_UID_COLUMN + " as " + TEI_UID_COLUMN_ALIAS +
-        " from programinstance pi " +
-        " join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
-        " join program pr on pr.programid = pi.programid " +
-        " where pi.deleted = false " +
-        " and tei.uid in (:teuids)" +
-        " and pr.uid in (:pruids)";
+  private static final String SQL =
+      "select  "
+          + PR_UID_COLUMN
+          + " as "
+          + PR_UID_COLUMN_ALIAS
+          + ", "
+          + PI_UID_COLUMN
+          + " as "
+          + PI_UID_COLUMN_ALIAS
+          + ", "
+          + PI_STATUS_COLUMN
+          + " as "
+          + PI_STATUS_COLUMN_ALIAS
+          + ", "
+          + TEI_UID_COLUMN
+          + " as "
+          + TEI_UID_COLUMN_ALIAS
+          + " from programinstance pi "
+          + " join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+          + " join program pr on pr.programid = pi.programid "
+          + " where pi.deleted = false "
+          + " and tei.uid in (:teuids)"
+          + " and pr.uid in (:pruids)";
 
-    protected TrackedEntityProgramInstanceSupplier( JdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
+  protected TrackedEntityProgramInstanceSupplier(JdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
+
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
+    List<String> trackedEntityList =
+        params.getEnrollments().stream()
+            .map(Enrollment::getTrackedEntity)
+            .collect(Collectors.toList());
+
+    List<String> programList =
+        preheat.getAll(Program.class).stream()
+            .map(BaseIdentifiableObject::getUid)
+            .collect(Collectors.toList());
+
+    List<List<String>> teiList =
+        Lists.partition(new ArrayList<>(trackedEntityList), Constant.SPLIT_LIST_PARTITION_SIZE);
+
+    if (programList.isEmpty() || teiList.isEmpty()) return;
+
+    Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
+
+    if (params.getEnrollments().isEmpty()) return;
+
+    for (List<String> trackedEntityListSubList : teiList) {
+      queryTeiAndAddToMap(trackedEntityToProgramInstanceMap, trackedEntityListSubList, programList);
     }
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        List<String> trackedEntityList = params.getEnrollments().stream().map( Enrollment::getTrackedEntity )
-            .collect( Collectors.toList() );
+    preheat.setTrackedEntityToProgramInstanceMap(trackedEntityToProgramInstanceMap);
+  }
 
-        List<String> programList = preheat.getAll( Program.class ).stream().map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+  private void queryTeiAndAddToMap(
+      Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap,
+      List<String> trackedEntityListSubList,
+      List<String> programList) {
+    MapSqlParameterSource parameters = new MapSqlParameterSource();
+    parameters.addValue("teuids", trackedEntityListSubList);
+    parameters.addValue("pruids", programList);
 
-        List<List<String>> teiList = Lists.partition( new ArrayList<>( trackedEntityList ),
-            Constant.SPLIT_LIST_PARTITION_SIZE );
+    jdbcTemplate.query(
+        SQL,
+        parameters,
+        resultSet -> {
+          String tei = resultSet.getString(TEI_UID_COLUMN_ALIAS);
 
-        if ( programList.isEmpty() || teiList.isEmpty() )
-            return;
+          ProgramInstance newPi = new ProgramInstance();
+          newPi.setUid(resultSet.getString(PI_UID_COLUMN_ALIAS));
+          newPi.setStatus(ProgramStatus.valueOf(resultSet.getString(PI_STATUS_COLUMN_ALIAS)));
 
-        Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
+          Program program = new Program();
+          program.setUid(resultSet.getString(PR_UID_COLUMN_ALIAS));
+          newPi.setProgram(program);
 
-        if ( params.getEnrollments().isEmpty() )
-            return;
+          List<ProgramInstance> piList =
+              trackedEntityToProgramInstanceMap.getOrDefault(tei, new ArrayList<>());
 
-        for ( List<String> trackedEntityListSubList : teiList )
-        {
-            queryTeiAndAddToMap( trackedEntityToProgramInstanceMap, trackedEntityListSubList, programList );
-        }
+          piList.add(newPi);
 
-        preheat.setTrackedEntityToProgramInstanceMap( trackedEntityToProgramInstanceMap );
-    }
-
-    private void queryTeiAndAddToMap( Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap,
-        List<String> trackedEntityListSubList, List<String> programList )
-    {
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "teuids", trackedEntityListSubList );
-        parameters.addValue( "pruids", programList );
-
-        jdbcTemplate.query( SQL, parameters, resultSet -> {
-            String tei = resultSet.getString( TEI_UID_COLUMN_ALIAS );
-
-            ProgramInstance newPi = new ProgramInstance();
-            newPi.setUid( resultSet.getString( PI_UID_COLUMN_ALIAS ) );
-            newPi.setStatus( ProgramStatus.valueOf( resultSet.getString( PI_STATUS_COLUMN_ALIAS ) ) );
-
-            Program program = new Program();
-            program.setUid( resultSet.getString( PR_UID_COLUMN_ALIAS ) );
-            newPi.setProgram( program );
-
-            List<ProgramInstance> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
-                new ArrayList<>() );
-
-            piList.add( newPi );
-
-            trackedEntityToProgramInstanceMap.put( tei, piList );
-        } );
-    }
+          trackedEntityToProgramInstanceMap.put(tei, piList);
+        });
+  }
 }

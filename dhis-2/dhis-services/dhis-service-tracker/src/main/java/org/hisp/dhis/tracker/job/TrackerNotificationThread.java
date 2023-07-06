@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import com.google.common.collect.ImmutableMap;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramInstance;
@@ -41,62 +41,63 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
- * Class represents a thread which will be triggered as soon as tracker
- * notification consumer consumes a message from tracker notification queue.
+ * Class represents a thread which will be triggered as soon as tracker notification consumer
+ * consumes a message from tracker notification queue.
  *
  * @author Zubair Asghar
  */
-
 @Component
-@Scope( BeanDefinition.SCOPE_PROTOTYPE )
-public class TrackerNotificationThread extends SecurityContextRunnable
-{
-    private final Notifier notifier;
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class TrackerNotificationThread extends SecurityContextRunnable {
+  private final Notifier notifier;
 
-    private ProgramNotificationService programNotificationService;
+  private ProgramNotificationService programNotificationService;
 
-    private TrackerSideEffectDataBundle sideEffectDataBundle;
+  private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    private IdentifiableObjectManager manager;
+  private IdentifiableObjectManager manager;
 
-    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
-        .put( ProgramInstance.class, id -> programNotificationService.sendEnrollmentNotifications( id ) )
-        .put( ProgramStageInstance.class, id -> programNotificationService.sendEventCompletionNotifications( id ) )
-        .build();
+  private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>>
+      serviceMapper =
+          new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
+              .put(
+                  ProgramInstance.class,
+                  id -> programNotificationService.sendEnrollmentNotifications(id))
+              .put(
+                  ProgramStageInstance.class,
+                  id -> programNotificationService.sendEventCompletionNotifications(id))
+              .build();
 
-    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier,
-        IdentifiableObjectManager manager )
-    {
-        this.programNotificationService = programNotificationService;
-        this.notifier = notifier;
-        this.manager = manager;
+  public TrackerNotificationThread(
+      ProgramNotificationService programNotificationService,
+      Notifier notifier,
+      IdentifiableObjectManager manager) {
+    this.programNotificationService = programNotificationService;
+    this.notifier = notifier;
+    this.manager = manager;
+  }
+
+  @Override
+  public void call() {
+    if (sideEffectDataBundle == null) {
+      return;
     }
 
-    @Override
-    public void call()
-    {
-        if ( sideEffectDataBundle == null )
-        {
-            return;
-        }
+    if (serviceMapper.containsKey(sideEffectDataBundle.getKlass())) {
+      BaseIdentifiableObject object =
+          manager.get(sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject());
 
-        if ( serviceMapper.containsKey( sideEffectDataBundle.getKlass() ) )
-        {
-            BaseIdentifiableObject object = manager.get( sideEffectDataBundle.getKlass(),
-                sideEffectDataBundle.getObject() );
-
-            serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
-        }
-
-        notifier.notify( sideEffectDataBundle.getJobConfiguration(), NotificationLevel.DEBUG,
-            "Tracker notification side effects completed" );
+      serviceMapper.get(sideEffectDataBundle.getKlass()).accept(object.getId());
     }
 
-    public void setSideEffectDataBundle( TrackerSideEffectDataBundle sideEffectDataBundle )
-    {
-        this.sideEffectDataBundle = sideEffectDataBundle;
-    }
+    notifier.notify(
+        sideEffectDataBundle.getJobConfiguration(),
+        NotificationLevel.DEBUG,
+        "Tracker notification side effects completed");
+  }
+
+  public void setSideEffectDataBundle(TrackerSideEffectDataBundle sideEffectDataBundle) {
+    this.sideEffectDataBundle = sideEffectDataBundle;
+  }
 }

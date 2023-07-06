@@ -32,10 +32,8 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -43,66 +41,58 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.program.Program;
 
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class CategorySecurityUtils
-{
-    /**
-     * Returns the categories the user is constrained to. If the user is super
-     * user, an empty set is returned. If the user is not super user, the
-     * categories of the program category combo are returned if present.
-     *
-     * @param params the data query parameters.
-     * @return the categories the user is constrained to.
-     */
-    static Collection<Category> getCategoriesWithoutRestrictions( DataQueryParams params )
-    {
-        return Optional.of( params )
-            .map( DataQueryParams::getProgram )
-            .filter( Program::hasNonDefaultCategoryCombo )
-            .map( Program::getCategoryCombo )
-            .map( CategoryCombo::getCategories )
-            .orElse( Collections.emptyList() )
-            .stream()
-            /*
-             * If the user has selected a category option, we do not want to
-             * apply any constraints
-             */
-            .filter( category -> !hasUserSelectedCategoryOption( category, params ) )
-            .collect( Collectors.toList() );
-    }
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class CategorySecurityUtils {
+  /**
+   * Returns the categories the user is constrained to. If the user is super user, an empty set is
+   * returned. If the user is not super user, the categories of the program category combo are
+   * returned if present.
+   *
+   * @param params the data query parameters.
+   * @return the categories the user is constrained to.
+   */
+  static Collection<Category> getCategoriesWithoutRestrictions(DataQueryParams params) {
+    return Optional.of(params)
+        .map(DataQueryParams::getProgram)
+        .filter(Program::hasNonDefaultCategoryCombo)
+        .map(Program::getCategoryCombo)
+        .map(CategoryCombo::getCategories)
+        .orElse(Collections.emptyList())
+        .stream()
+        /*
+         * If the user has selected a category option, we do not want to
+         * apply any constraints
+         */
+        .filter(category -> !hasUserSelectedCategoryOption(category, params))
+        .collect(Collectors.toList());
+  }
 
-    /**
-     * Returns true if the user has selected a category option for the given
-     * category.
-     *
-     * @param category the category
-     * @param params the data query parameters.
-     * @return true if the user has selected a category option for the given
-     *         category.
-     */
-    private static boolean hasUserSelectedCategoryOption( Category category, DataQueryParams params )
-    {
-        Stream<DimensionalObject> dimensionalObjects = Stream.concat(
-            params.getDimensions().stream(),
-            params.getFilters().stream() );
+  /**
+   * Returns true if the user has selected a category option for the given category.
+   *
+   * @param category the category
+   * @param params the data query parameters.
+   * @return true if the user has selected a category option for the given category.
+   */
+  private static boolean hasUserSelectedCategoryOption(Category category, DataQueryParams params) {
+    Stream<DimensionalObject> dimensionalObjects =
+        Stream.concat(params.getDimensions().stream(), params.getFilters().stream());
 
-        return dimensionalObjects
-            .anyMatch( dimensionalObject -> hasUserConstraints( dimensionalObject, category ) );
-    }
+    return dimensionalObjects.anyMatch(
+        dimensionalObject -> hasUserConstraints(dimensionalObject, category));
+  }
 
-    /**
-     * Returns true if the given dimensionalObject contains any constraint on
-     * the given Category
-     *
-     * @param dimensionalObject the dimensional object
-     * @param category the category
-     * @return true if the given dimensionalObject contains any constraint on
-     *         the given Category
-     */
-    private static boolean hasUserConstraints( DimensionalObject dimensionalObject, Category category )
-    {
-        return dimensionalObject.getDimensionType() == DimensionType.CATEGORY &&
-            dimensionalObject.getUid().equals( category.getUid() ) &&
-            !dimensionalObject.getItems().isEmpty();
-    }
+  /**
+   * Returns true if the given dimensionalObject contains any constraint on the given Category
+   *
+   * @param dimensionalObject the dimensional object
+   * @param category the category
+   * @return true if the given dimensionalObject contains any constraint on the given Category
+   */
+  private static boolean hasUserConstraints(
+      DimensionalObject dimensionalObject, Category category) {
+    return dimensionalObject.getDimensionType() == DimensionType.CATEGORY
+        && dimensionalObject.getUid().equals(category.getUid())
+        && !dimensionalObject.getItems().isEmpty();
+  }
 }

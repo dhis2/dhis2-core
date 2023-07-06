@@ -31,7 +31,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -46,78 +45,71 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TrackedEntityTrackerConverterService
-    implements TrackerConverterService<TrackedEntity, TrackedEntityInstance>
-{
-    @Override
-    public TrackedEntity to( TrackedEntityInstance trackedEntityInstance )
-    {
-        List<TrackedEntity> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
+    implements TrackerConverterService<TrackedEntity, TrackedEntityInstance> {
+  @Override
+  public TrackedEntity to(TrackedEntityInstance trackedEntityInstance) {
+    List<TrackedEntity> trackedEntities = to(Collections.singletonList(trackedEntityInstance));
 
-        if ( trackedEntities.isEmpty() )
-        {
-            return null;
-        }
-
-        return trackedEntities.get( 0 );
+    if (trackedEntities.isEmpty()) {
+      return null;
     }
 
-    @Override
-    public List<TrackedEntity> to( List<TrackedEntityInstance> trackedEntityInstances )
-    {
-        return trackedEntityInstances.stream().map( tei -> {
-            TrackedEntity trackedEntity = new TrackedEntity();
-            trackedEntity.setTrackedEntity( tei.getUid() );
+    return trackedEntities.get(0);
+  }
 
-            return trackedEntity;
-        } ).collect( Collectors.toList() );
+  @Override
+  public List<TrackedEntity> to(List<TrackedEntityInstance> trackedEntityInstances) {
+    return trackedEntityInstances.stream()
+        .map(
+            tei -> {
+              TrackedEntity trackedEntity = new TrackedEntity();
+              trackedEntity.setTrackedEntity(tei.getUid());
+
+              return trackedEntity;
+            })
+        .collect(Collectors.toList());
+  }
+
+  @Override
+  public TrackedEntityInstance from(TrackerPreheat preheat, TrackedEntity trackedEntity) {
+    TrackedEntityInstance tei = preheat.getTrackedEntity(trackedEntity.getTrackedEntity());
+    return from(preheat, trackedEntity, tei);
+  }
+
+  @Override
+  public List<TrackedEntityInstance> from(
+      TrackerPreheat preheat, List<TrackedEntity> trackedEntityInstances) {
+    return trackedEntityInstances.stream()
+        .map(te -> from(preheat, te))
+        .collect(Collectors.toList());
+  }
+
+  private TrackedEntityInstance from(
+      TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei) {
+    OrganisationUnit organisationUnit = preheat.getOrganisationUnit(te.getOrgUnit());
+    TrackedEntityType trackedEntityType = preheat.getTrackedEntityType(te.getTrackedEntityType());
+
+    Date now = new Date();
+
+    if (isNewEntity(tei)) {
+      tei = new TrackedEntityInstance();
+      tei.setUid(te.getTrackedEntity());
+      tei.setCreated(now);
+      tei.setCreatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
     }
 
-    @Override
-    public TrackedEntityInstance from( TrackerPreheat preheat,
-        TrackedEntity trackedEntity )
-    {
-        TrackedEntityInstance tei = preheat.getTrackedEntity(
-            trackedEntity.getTrackedEntity() );
-        return from( preheat, trackedEntity, tei );
-    }
+    tei.setLastUpdatedByUserInfo(UserInfoSnapshot.from(preheat.getUser()));
+    tei.setStoredBy(te.getStoredBy());
+    tei.setLastUpdated(now);
+    tei.setDeleted(false);
+    tei.setPotentialDuplicate(te.isPotentialDuplicate());
+    tei.setCreatedAtClient(DateUtils.fromInstant(te.getCreatedAtClient()));
+    tei.setLastUpdatedAtClient(DateUtils.fromInstant(te.getUpdatedAtClient()));
+    tei.setOrganisationUnit(organisationUnit);
+    tei.setTrackedEntityType(trackedEntityType);
+    tei.setInactive(te.isInactive());
+    tei.setGeometry(te.getGeometry());
 
-    @Override
-    public List<TrackedEntityInstance> from( TrackerPreheat preheat,
-        List<TrackedEntity> trackedEntityInstances )
-    {
-        return trackedEntityInstances
-            .stream()
-            .map( te -> from( preheat, te ) )
-            .collect( Collectors.toList() );
-    }
-
-    private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
-    {
-        OrganisationUnit organisationUnit = preheat.getOrganisationUnit( te.getOrgUnit() );
-        TrackedEntityType trackedEntityType = preheat.getTrackedEntityType( te.getTrackedEntityType() );
-
-        Date now = new Date();
-
-        if ( isNewEntity( tei ) )
-        {
-            tei = new TrackedEntityInstance();
-            tei.setUid( te.getTrackedEntity() );
-            tei.setCreated( now );
-            tei.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-        }
-
-        tei.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-        tei.setStoredBy( te.getStoredBy() );
-        tei.setLastUpdated( now );
-        tei.setDeleted( false );
-        tei.setPotentialDuplicate( te.isPotentialDuplicate() );
-        tei.setCreatedAtClient( DateUtils.fromInstant( te.getCreatedAtClient() ) );
-        tei.setLastUpdatedAtClient( DateUtils.fromInstant( te.getUpdatedAtClient() ) );
-        tei.setOrganisationUnit( organisationUnit );
-        tei.setTrackedEntityType( trackedEntityType );
-        tei.setInactive( te.isInactive() );
-        tei.setGeometry( te.getGeometry() );
-
-        return tei;
-    }
+    return tei;
+  }
 }

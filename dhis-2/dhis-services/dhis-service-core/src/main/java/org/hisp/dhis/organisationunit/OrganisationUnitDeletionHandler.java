@@ -31,7 +31,6 @@ import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
@@ -46,68 +45,74 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class OrganisationUnitDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class OrganisationUnitDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataSet.class, this::deleteDataSet );
-        whenDeleting( User.class, this::deleteUser );
-        whenDeleting( Program.class, this::deleteProgram );
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
-        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataSet.class, this::deleteDataSet);
+    whenDeleting(User.class, this::deleteUser);
+    whenDeleting(Program.class, this::deleteProgram);
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+    whenDeleting(OrganisationUnit.class, this::deleteOrganisationUnit);
+    whenVetoing(OrganisationUnit.class, this::allowDeleteOrganisationUnit);
+  }
 
-    private void deleteDataSet( DataSet dataSet )
-    {
-        dataSet.getSources().iterator().forEachRemaining( unit -> {
-            unit.getDataSets().remove( dataSet );
-            idObjectManager.updateNoAcl( unit );
-        } );
-    }
+  private void deleteDataSet(DataSet dataSet) {
+    dataSet
+        .getSources()
+        .iterator()
+        .forEachRemaining(
+            unit -> {
+              unit.getDataSets().remove(dataSet);
+              idObjectManager.updateNoAcl(unit);
+            });
+  }
 
-    private void deleteUser( User user )
-    {
-        user.getOrganisationUnits().iterator().forEachRemaining( unit -> {
-            unit.getUsers().remove( user );
-            idObjectManager.updateNoAcl( unit );
-        } );
-    }
+  private void deleteUser(User user) {
+    user.getOrganisationUnits()
+        .iterator()
+        .forEachRemaining(
+            unit -> {
+              unit.getUsers().remove(user);
+              idObjectManager.updateNoAcl(unit);
+            });
+  }
 
-    private void deleteProgram( Program program )
-    {
-        program.getOrganisationUnits().iterator().forEachRemaining( unit -> {
-            unit.getPrograms().remove( program );
-            idObjectManager.updateNoAcl( unit );
-        } );
-    }
+  private void deleteProgram(Program program) {
+    program
+        .getOrganisationUnits()
+        .iterator()
+        .forEachRemaining(
+            unit -> {
+              unit.getPrograms().remove(program);
+              idObjectManager.updateNoAcl(unit);
+            });
+  }
 
-    private void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
-    {
-        group.getMembers().iterator().forEachRemaining( unit -> {
-            unit.getGroups().remove( group );
-            idObjectManager.updateNoAcl( unit );
-        } );
-    }
+  private void deleteOrganisationUnitGroup(OrganisationUnitGroup group) {
+    group
+        .getMembers()
+        .iterator()
+        .forEachRemaining(
+            unit -> {
+              unit.getGroups().remove(group);
+              idObjectManager.updateNoAcl(unit);
+            });
+  }
 
-    private void deleteOrganisationUnit( OrganisationUnit unit )
-    {
-        if ( unit.getParent() != null )
-        {
-            unit.getParent().getChildren().remove( unit );
-            idObjectManager.updateNoAcl( unit.getParent() );
-        }
+  private void deleteOrganisationUnit(OrganisationUnit unit) {
+    if (unit.getParent() != null) {
+      unit.getParent().getChildren().remove(unit);
+      idObjectManager.updateNoAcl(unit.getParent());
     }
+  }
 
-    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
-    {
-        return unit.getChildren().isEmpty()
-            ? ACCEPT
-            : new DeletionVeto( OrganisationUnit.class, unit.getChildren().stream()
-                .map( BaseIdentifiableObject::getName )
-                .collect( joining( "," ) ) );
-    }
+  private DeletionVeto allowDeleteOrganisationUnit(OrganisationUnit unit) {
+    return unit.getChildren().isEmpty()
+        ? ACCEPT
+        : new DeletionVeto(
+            OrganisationUnit.class,
+            unit.getChildren().stream().map(BaseIdentifiableObject::getName).collect(joining(",")));
+  }
 }

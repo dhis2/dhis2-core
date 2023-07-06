@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.dataentry;
 
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -52,37 +51,33 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetCompletionController
-{
-    private final CompleteDataSetRegistrationService registrationService;
+@RequestMapping("/dataEntry")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataSetCompletionController {
+  private final CompleteDataSetRegistrationService registrationService;
 
-    private final DataValidator dataValidator;
+  private final DataValidator dataValidator;
 
-    @PostMapping( "/dataSetCompletion" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void saveDataSetCompletion( @RequestBody DataSetCompletionDto dto )
-    {
-        DataSet ds = dataValidator.getAndValidateDataSet( dto.getDataSet() );
-        Period pe = dataValidator.getAndValidatePeriod( dto.getPeriod() );
-        OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit( dto.getOrgUnit() );
-        CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo( dto.getAttribute() );
-        boolean completed = ObjectUtils.firstNonNull( dto.getCompleted(), Boolean.TRUE );
+  @PostMapping("/dataSetCompletion")
+  @ResponseStatus(value = HttpStatus.OK)
+  public void saveDataSetCompletion(@RequestBody DataSetCompletionDto dto) {
+    DataSet ds = dataValidator.getAndValidateDataSet(dto.getDataSet());
+    Period pe = dataValidator.getAndValidatePeriod(dto.getPeriod());
+    OrganisationUnit ou = dataValidator.getAndValidateOrganisationUnit(dto.getOrgUnit());
+    CategoryOptionCombo aoc = dataValidator.getAndValidateAttributeOptionCombo(dto.getAttribute());
+    boolean completed = ObjectUtils.firstNonNull(dto.getCompleted(), Boolean.TRUE);
 
-        CompleteDataSetRegistration cdr = registrationService.getCompleteDataSetRegistration( ds, pe, ou, aoc );
+    CompleteDataSetRegistration cdr =
+        registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);
 
-        if ( cdr != null )
-        {
-            cdr.setCompleted( completed );
+    if (cdr != null) {
+      cdr.setCompleted(completed);
 
-            registrationService.updateCompleteDataSetRegistration( cdr );
-        }
-        else
-        {
-            cdr = new CompleteDataSetRegistration( ds, pe, ou, aoc, completed );
+      registrationService.updateCompleteDataSetRegistration(cdr);
+    } else {
+      cdr = new CompleteDataSetRegistration(ds, pe, ou, aoc, completed);
 
-            registrationService.saveCompleteDataSetRegistration( cdr );
-        }
+      registrationService.saveCompleteDataSetRegistration(cdr);
     }
+  }
 }

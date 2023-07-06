@@ -29,10 +29,8 @@ package org.hisp.dhis.dxf2.metadata.sync;
 
 import java.util.List;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -54,193 +52,166 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @AllArgsConstructor
-public class DefaultMetadataSyncService implements MetadataSyncService
-{
-    private final MetadataVersionDelegate metadataVersionDelegate;
+public class DefaultMetadataSyncService implements MetadataSyncService {
+  private final MetadataVersionDelegate metadataVersionDelegate;
 
-    private final MetadataVersionService metadataVersionService;
+  private final MetadataVersionService metadataVersionService;
 
-    private final MetadataSyncDelegate metadataSyncDelegate;
+  private final MetadataSyncDelegate metadataSyncDelegate;
 
-    private final MetadataSyncImportHandler metadataSyncImportHandler;
+  private final MetadataSyncImportHandler metadataSyncImportHandler;
 
-    @Override
-    public MetadataSyncParams getParamsFromMap( Map<String, List<String>> parameters )
-    {
-        List<String> versionName = getVersionsFromParams( parameters );
-        MetadataImportParams importParams = new MetadataImportParams();
-        importParams.setMetadataSyncImport( true );
-        MetadataSyncParams syncParams = new MetadataSyncParams();
-        syncParams.setImportParams( importParams );
-        String versionNameStr = versionName.get( 0 );
+  @Override
+  public MetadataSyncParams getParamsFromMap(Map<String, List<String>> parameters) {
+    List<String> versionName = getVersionsFromParams(parameters);
+    MetadataImportParams importParams = new MetadataImportParams();
+    importParams.setMetadataSyncImport(true);
+    MetadataSyncParams syncParams = new MetadataSyncParams();
+    syncParams.setImportParams(importParams);
+    String versionNameStr = versionName.get(0);
 
-        if ( StringUtils.isNotEmpty( versionNameStr ) )
-        {
-            MetadataVersion version;
+    if (StringUtils.isNotEmpty(versionNameStr)) {
+      MetadataVersion version;
 
-            try
-            {
-                version = metadataVersionDelegate.getRemoteMetadataVersion( versionNameStr );
-            }
-            catch ( MetadataVersionServiceException e )
-            {
-                throw new MetadataSyncServiceException( e.getMessage(), e );
-            }
+      try {
+        version = metadataVersionDelegate.getRemoteMetadataVersion(versionNameStr);
+      } catch (MetadataVersionServiceException e) {
+        throw new MetadataSyncServiceException(e.getMessage(), e);
+      }
 
-            if ( version == null )
-            {
-                throw new MetadataSyncServiceException(
-                    "The MetadataVersion could not be fetched from the remote server for the versionName: " +
-                        versionNameStr );
-            }
+      if (version == null) {
+        throw new MetadataSyncServiceException(
+            "The MetadataVersion could not be fetched from the remote server for the versionName: "
+                + versionNameStr);
+      }
 
-            syncParams.setVersion( version );
-        }
-
-        syncParams.setParameters( parameters );
-
-        return syncParams;
+      syncParams.setVersion(version);
     }
 
-    @Override
-    public synchronized MetadataSyncSummary doMetadataSync( MetadataSyncParams syncParams )
-        throws MetadataSyncServiceException,
-        DhisVersionMismatchException
-    {
-        MetadataVersion version = getMetadataVersion( syncParams );
+    syncParams.setParameters(parameters);
 
-        setMetadataImportMode( syncParams, version );
-        String metadataVersionSnapshot = getMetadataVersionSnapshot( version );
+    return syncParams;
+  }
 
-        if ( metadataSyncDelegate.shouldStopSync( metadataVersionSnapshot ) )
-        {
-            throw new DhisVersionMismatchException(
-                "Metadata sync failed because your version of DHIS does not match the master version" );
-        }
+  @Override
+  public synchronized MetadataSyncSummary doMetadataSync(MetadataSyncParams syncParams)
+      throws MetadataSyncServiceException, DhisVersionMismatchException {
+    MetadataVersion version = getMetadataVersion(syncParams);
 
-        saveMetadataVersionSnapshotLocally( version, metadataVersionSnapshot );
-        MetadataSyncSummary metadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams,
-            metadataVersionSnapshot );
+    setMetadataImportMode(syncParams, version);
+    String metadataVersionSnapshot = getMetadataVersionSnapshot(version);
 
-        log.info( "Metadata Sync Summary: " + metadataSyncSummary );
-
-        return metadataSyncSummary;
+    if (metadataSyncDelegate.shouldStopSync(metadataVersionSnapshot)) {
+      throw new DhisVersionMismatchException(
+          "Metadata sync failed because your version of DHIS does not match the master version");
     }
 
-    @Override
-    public boolean isSyncRequired( MetadataSyncParams syncParams )
-    {
-        MetadataVersion version = getMetadataVersion( syncParams );
-        return (metadataVersionService.getVersionByName( version.getName() ) == null);
+    saveMetadataVersionSnapshotLocally(version, metadataVersionSnapshot);
+    MetadataSyncSummary metadataSyncSummary =
+        metadataSyncImportHandler.importMetadata(syncParams, metadataVersionSnapshot);
+
+    log.info("Metadata Sync Summary: " + metadataSyncSummary);
+
+    return metadataSyncSummary;
+  }
+
+  @Override
+  public boolean isSyncRequired(MetadataSyncParams syncParams) {
+    MetadataVersion version = getMetadataVersion(syncParams);
+    return (metadataVersionService.getVersionByName(version.getName()) == null);
+  }
+
+  private void saveMetadataVersionSnapshotLocally(
+      MetadataVersion version, String metadataVersionSnapshot) {
+    if (getLocalVersionSnapshot(version) == null) {
+      metadataVersionService.createMetadataVersionInDataStore(
+          version.getName(), metadataVersionSnapshot);
+      log.info(
+          "Downloaded the metadata snapshot from remote and saved in Data Store for the version: "
+              + version);
+    }
+  }
+
+  private String getMetadataVersionSnapshot(MetadataVersion version) {
+    String metadataVersionSnapshot = getLocalVersionSnapshot(version);
+
+    if (metadataVersionSnapshot != null) {
+      return metadataVersionSnapshot;
     }
 
-    private void saveMetadataVersionSnapshotLocally( MetadataVersion version, String metadataVersionSnapshot )
-    {
-        if ( getLocalVersionSnapshot( version ) == null )
-        {
-            metadataVersionService.createMetadataVersionInDataStore( version.getName(), metadataVersionSnapshot );
-            log.info(
-                "Downloaded the metadata snapshot from remote and saved in Data Store for the version: " + version );
-        }
+    metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote(version);
+
+    if (!(metadataVersionService.isMetadataPassingIntegrity(version, metadataVersionSnapshot))) {
+      throw new MetadataSyncServiceException(
+          "Metadata snapshot is corrupted. Not saving it locally");
     }
 
-    private String getMetadataVersionSnapshot( MetadataVersion version )
-    {
-        String metadataVersionSnapshot = getLocalVersionSnapshot( version );
+    return metadataVersionSnapshot;
+  }
 
-        if ( metadataVersionSnapshot != null )
-        {
-            return metadataVersionSnapshot;
-        }
+  private String getMetadataVersionSnapshotFromRemote(MetadataVersion version) {
+    String metadataVersionSnapshot;
 
-        metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote( version );
-
-        if ( !(metadataVersionService.isMetadataPassingIntegrity( version, metadataVersionSnapshot )) )
-        {
-            throw new MetadataSyncServiceException( "Metadata snapshot is corrupted. Not saving it locally" );
-        }
-
-        return metadataVersionSnapshot;
+    try {
+      metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot(version);
+    } catch (MetadataVersionServiceException | RemoteServerUnavailableException e) {
+      throw new MetadataSyncServiceException(e.getMessage(), e);
     }
 
-    private String getMetadataVersionSnapshotFromRemote( MetadataVersion version )
-    {
-        String metadataVersionSnapshot;
-
-        try
-        {
-            metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( version );
-        }
-        catch ( MetadataVersionServiceException | RemoteServerUnavailableException e )
-        {
-            throw new MetadataSyncServiceException( e.getMessage(), e );
-        }
-
-        if ( metadataVersionSnapshot == null )
-        {
-            throw new MetadataSyncServiceException( "Metadata snapshot can't be null." );
-        }
-
-        return metadataVersionSnapshot;
+    if (metadataVersionSnapshot == null) {
+      throw new MetadataSyncServiceException("Metadata snapshot can't be null.");
     }
 
-    private void setMetadataImportMode( MetadataSyncParams syncParams, MetadataVersion version )
-    {
-        if ( VersionType.BEST_EFFORT.equals( version.getType() ) )
-        {
-            syncParams.getImportParams().setAtomicMode( AtomicMode.NONE );
-        }
+    return metadataVersionSnapshot;
+  }
+
+  private void setMetadataImportMode(MetadataSyncParams syncParams, MetadataVersion version) {
+    if (VersionType.BEST_EFFORT.equals(version.getType())) {
+      syncParams.getImportParams().setAtomicMode(AtomicMode.NONE);
+    }
+  }
+
+  // ----------------------------------------------------------------------------------------
+  // Private Methods
+  // ----------------------------------------------------------------------------------------
+
+  private String getLocalVersionSnapshot(MetadataVersion version) {
+    String metadataVersionSnapshot = metadataVersionService.getVersionData(version.getName());
+
+    if (StringUtils.isNotEmpty(metadataVersionSnapshot)) {
+      log.info("Rendering the MetadataVersion from local DataStore");
+      return metadataVersionSnapshot;
     }
 
-    // ----------------------------------------------------------------------------------------
-    // Private Methods
-    // ----------------------------------------------------------------------------------------
+    return null;
+  }
 
-    private String getLocalVersionSnapshot( MetadataVersion version )
-    {
-        String metadataVersionSnapshot = metadataVersionService.getVersionData( version.getName() );
-
-        if ( StringUtils.isNotEmpty( metadataVersionSnapshot ) )
-        {
-            log.info( "Rendering the MetadataVersion from local DataStore" );
-            return metadataVersionSnapshot;
-        }
-
-        return null;
+  private List<String> getVersionsFromParams(Map<String, List<String>> parameters) {
+    if (parameters == null) {
+      throw new MetadataSyncServiceException("Missing required parameter: 'versionName'");
     }
 
-    private List<String> getVersionsFromParams( Map<String, List<String>> parameters )
-    {
-        if ( parameters == null )
-        {
-            throw new MetadataSyncServiceException( "Missing required parameter: 'versionName'" );
-        }
+    List<String> versionName = parameters.get("versionName");
 
-        List<String> versionName = parameters.get( "versionName" );
-
-        if ( versionName == null || versionName.size() == 0 )
-        {
-            throw new MetadataSyncServiceException( "Missing required parameter: 'versionName'" );
-        }
-
-        return versionName;
+    if (versionName == null || versionName.size() == 0) {
+      throw new MetadataSyncServiceException("Missing required parameter: 'versionName'");
     }
 
-    private MetadataVersion getMetadataVersion( MetadataSyncParams syncParams )
-    {
-        if ( syncParams == null )
-        {
-            throw new MetadataSyncServiceException( "MetadataSyncParams cant be null" );
-        }
+    return versionName;
+  }
 
-        MetadataVersion version = syncParams.getVersion();
-
-        if ( version == null )
-        {
-            throw new MetadataSyncServiceException(
-                "MetadataVersion for the Sync cant be null. The ClassListMap could not be constructed." );
-        }
-
-        return version;
+  private MetadataVersion getMetadataVersion(MetadataSyncParams syncParams) {
+    if (syncParams == null) {
+      throw new MetadataSyncServiceException("MetadataSyncParams cant be null");
     }
+
+    MetadataVersion version = syncParams.getVersion();
+
+    if (version == null) {
+      throw new MetadataSyncServiceException(
+          "MetadataVersion for the Sync cant be null. The ClassListMap could not be constructed.");
+    }
+
+    return version;
+  }
 }

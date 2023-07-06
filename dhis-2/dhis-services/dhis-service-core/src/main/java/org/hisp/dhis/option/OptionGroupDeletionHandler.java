@@ -28,9 +28,7 @@
 package org.hisp.dhis.option;
 
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,29 +36,25 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class OptionGroupDeletionHandler extends DeletionHandler
-{
-    @Autowired
-    private OptionGroupStore optionGroupStore;
+public class OptionGroupDeletionHandler extends DeletionHandler {
+  @Autowired private OptionGroupStore optionGroupStore;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( Option.class, this::deleteOption );
+  @Override
+  protected void register() {
+    whenDeleting(Option.class, this::deleteOption);
+  }
+
+  private void deleteOption(Option option) {
+    List<OptionGroup> optionGroup = optionGroupStore.getOptionGroupsByOptionId(option.getUid());
+
+    if (CollectionUtils.isEmpty(optionGroup)) {
+      return;
     }
 
-    private void deleteOption( Option option )
-    {
-        List<OptionGroup> optionGroup = optionGroupStore.getOptionGroupsByOptionId( option.getUid() );
-
-        if ( CollectionUtils.isEmpty( optionGroup ) )
-        {
-            return;
-        }
-
-        optionGroup.forEach( og -> {
-            og.removeOption( option );
-            optionGroupStore.update( og );
-        } );
-    }
+    optionGroup.forEach(
+        og -> {
+          og.removeOption(option);
+          optionGroupStore.update(og);
+        });
+  }
 }

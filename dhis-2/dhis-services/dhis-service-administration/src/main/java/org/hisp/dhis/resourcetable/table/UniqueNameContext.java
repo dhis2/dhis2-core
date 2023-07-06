@@ -34,32 +34,26 @@ import java.util.Set;
  * @author Luciano Fiandesio (initial)
  * @author Jan Bernitt (current)
  */
-public final class UniqueNameContext
-{
+public final class UniqueNameContext {
 
-    private final Set<String> uniqueNames = new HashSet<>();
+  private final Set<String> uniqueNames = new HashSet<>();
 
-    /**
-     * Returns the name that is unique in this name context.
-     *
-     * @param name a String
-     * @return a unique name based on the given name, eventually extended by a
-     *         counter number
-     */
-    public String uniqueName( String name )
-    {
-        String uniqueName = name;
-        if ( uniqueNames.contains( uniqueName ) )
-        {
-            int n = uniqueNames.size();
-            do
-            {
-                uniqueName = name + n;
-                n++;
-            }
-            while ( uniqueNames.contains( uniqueName ) );
-        }
-        this.uniqueNames.add( uniqueName );
-        return uniqueName;
+  /**
+   * Returns the name that is unique in this name context.
+   *
+   * @param name a String
+   * @return a unique name based on the given name, eventually extended by a counter number
+   */
+  public String uniqueName(String name) {
+    String uniqueName = name;
+    if (uniqueNames.contains(uniqueName)) {
+      int n = uniqueNames.size();
+      do {
+        uniqueName = name + n;
+        n++;
+      } while (uniqueNames.contains(uniqueName));
     }
+    this.uniqueNames.add(uniqueName);
+    return uniqueName;
+  }
 }

@@ -33,7 +33,6 @@ import static org.awaitility.Awaitility.with;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hisp.dhis.dto.ApiResponse;
@@ -42,61 +41,49 @@ import org.hisp.dhis.dto.ImportSummary;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SystemActions
-    extends RestApiActions
-{
-    private Logger logger = LogManager.getLogger( SystemActions.class.getName() );
+public class SystemActions extends RestApiActions {
+  private Logger logger = LogManager.getLogger(SystemActions.class.getName());
 
-    public SystemActions()
-    {
-        super( "/system" );
-    }
+  public SystemActions() {
+    super("/system");
+  }
 
-    public ApiResponse getTask( String taskType, String taskId )
-    {
-        return get( "/tasks/" + taskType + "/" + taskId );
-    }
+  public ApiResponse getTask(String taskType, String taskId) {
+    return get("/tasks/" + taskType + "/" + taskId);
+  }
 
-    /**
-     * Waits until the task is completed and returns a response
-     *
-     * @param taskType
-     * @param taskId
-     * @return
-     */
-    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
-    {
-        Callable<Boolean> taskIsCompleted = () -> getTask( taskType, taskId )
-            .validateStatus( 200 )
-            .extractList( "completed" ).contains( true );
+  /**
+   * Waits until the task is completed and returns a response
+   *
+   * @param taskType
+   * @param taskId
+   * @return
+   */
+  public ApiResponse waitUntilTaskCompleted(String taskType, String taskId) {
+    Callable<Boolean> taskIsCompleted =
+        () -> getTask(taskType, taskId).validateStatus(200).extractList("completed").contains(true);
 
-        with()
-            .atMost( 20, TimeUnit.SECONDS )
-            .await().until( () -> taskIsCompleted.call() );
+    with().atMost(20, TimeUnit.SECONDS).await().until(() -> taskIsCompleted.call());
 
-        return getTask( taskType, taskId );
-    }
+    return getTask(taskType, taskId);
+  }
 
-    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
-    {
-        return waitForTaskSummaries( taskType, taskId ).validateStatus( 200 ).getImportSummaries();
-    }
+  public List<ImportSummary> getTaskSummaries(String taskType, String taskId) {
+    return waitForTaskSummaries(taskType, taskId).validateStatus(200).getImportSummaries();
+  }
 
-    /**
-     * Waits until task summaries are generated and returns the response
-     *
-     * @param taskType
-     * @param taskId
-     * @return
-     */
-    public ApiResponse waitForTaskSummaries( String taskType, String taskId )
-    {
-        String url = String.format( "/taskSummaries/%s/%s", taskType, taskId );
+  /**
+   * Waits until task summaries are generated and returns the response
+   *
+   * @param taskType
+   * @param taskId
+   * @return
+   */
+  public ApiResponse waitForTaskSummaries(String taskType, String taskId) {
+    String url = String.format("/taskSummaries/%s/%s", taskType, taskId);
 
-        await().ignoreExceptions().until( () -> !get( url ).validateStatus( 200 )
-            .getBody().equals( null ) );
+    await().ignoreExceptions().until(() -> !get(url).validateStatus(200).getBody().equals(null));
 
-        return get( url );
-    }
-
+    return get(url);
+  }
 }

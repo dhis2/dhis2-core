@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -43,50 +42,41 @@ import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class AtomicModeIntegrationTest extends TrackerTest
-{
-    @Autowired
-    private TrackerImportService trackerImportService;
+class AtomicModeIntegrationTest extends TrackerTest {
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+  @Autowired private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Override
-    public void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/simple_metadata.json" );
-        injectAdminUser();
-    }
+  @Override
+  public void initTest() throws IOException {
+    setUpMetadata("tracker/simple_metadata.json");
+    injectAdminUser();
+  }
 
-    @Test
-    void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/one_valid_tei_and_one_invalid.json" );
-        params.setAtomicMode( AtomicMode.OBJECT );
+  @Test
+  void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
+    TrackerImportParams params = fromJson("tracker/one_valid_tei_and_one_invalid.json");
+    params.setAtomicMode(AtomicMode.OBJECT);
 
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
+    TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker(params);
 
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
-    }
+    assertNotNull(trackerImportTeiReport);
+    assertEquals(TrackerStatus.OK, trackerImportTeiReport.getStatus());
+    assertEquals(1, trackerImportTeiReport.getValidationReport().getErrors().size());
+    assertNotNull(trackedEntityInstanceService.getTrackedEntityInstance("VALIDTEIAAA"));
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance("INVALIDTEIA"));
+  }
 
-    @Test
-    void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/one_valid_tei_and_one_invalid.json" );
-        params.setAtomicMode( AtomicMode.ALL );
+  @Test
+  void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
+    TrackerImportParams params = fromJson("tracker/one_valid_tei_and_one_invalid.json");
+    params.setAtomicMode(AtomicMode.ALL);
 
-        TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-        assertNotNull( trackerImportTeiReport );
-        assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );
-        assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
-    }
+    TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker(params);
+    assertNotNull(trackerImportTeiReport);
+    assertEquals(TrackerStatus.ERROR, trackerImportTeiReport.getStatus());
+    assertEquals(1, trackerImportTeiReport.getValidationReport().getErrors().size());
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance("VALIDTEIAAA"));
+    assertNull(trackedEntityInstanceService.getTrackedEntityInstance("INVALIDTEIA"));
+  }
 }

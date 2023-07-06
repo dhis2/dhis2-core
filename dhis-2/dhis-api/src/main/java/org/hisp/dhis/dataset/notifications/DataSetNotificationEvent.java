@@ -30,21 +30,16 @@ package org.hisp.dhis.dataset.notifications;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.springframework.context.ApplicationEvent;
 
-/**
- * Created by zubair@dhis2.org on 18.01.18.
- */
-public class DataSetNotificationEvent extends ApplicationEvent
-{
-    private CompleteDataSetRegistration registration;
+/** Created by zubair@dhis2.org on 18.01.18. */
+public class DataSetNotificationEvent extends ApplicationEvent {
+  private CompleteDataSetRegistration registration;
 
-    public DataSetNotificationEvent( Object source, CompleteDataSetRegistration registration )
-    {
-        super( source );
-        this.registration = registration;
-    }
+  public DataSetNotificationEvent(Object source, CompleteDataSetRegistration registration) {
+    super(source);
+    this.registration = registration;
+  }
 
-    public CompleteDataSetRegistration getRegistration()
-    {
-        return registration;
-    }
+  public CompleteDataSetRegistration getRegistration() {
+    return registration;
+  }
 }

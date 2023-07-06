@@ -32,9 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.dbms.DbmsUtils;
@@ -44,61 +42,53 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-public class PeriodTypePopulator
-    extends TransactionContextStartupRoutine
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class PeriodTypePopulator extends TransactionContextStartupRoutine {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final PeriodStore periodStore;
+  private final PeriodStore periodStore;
 
-    private final SessionFactory sessionFactory;
+  private final SessionFactory sessionFactory;
 
-    public PeriodTypePopulator( PeriodStore periodStore, SessionFactory sessionFactory )
-    {
-        checkNotNull( periodStore );
-        checkNotNull( sessionFactory );
+  public PeriodTypePopulator(PeriodStore periodStore, SessionFactory sessionFactory) {
+    checkNotNull(periodStore);
+    checkNotNull(sessionFactory);
 
-        this.periodStore = periodStore;
-        this.sessionFactory = sessionFactory;
+    this.periodStore = periodStore;
+    this.sessionFactory = sessionFactory;
+  }
+
+  // -------------------------------------------------------------------------
+  // Execute
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void executeInTransaction() {
+    List<PeriodType> types = new ArrayList<>(PeriodType.getAvailablePeriodTypes());
+
+    Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
+
+    types.removeAll(storedTypes);
+
+    // ---------------------------------------------------------------------
+    // Populate missing
+    // ---------------------------------------------------------------------
+
+    StatelessSession session = sessionFactory.openStatelessSession();
+    session.beginTransaction();
+    try {
+      types.forEach(
+          type -> {
+            session.insert(type);
+            log.debug("Added PeriodType: " + type.getName());
+          });
+    } catch (Exception exception) {
+      exception.printStackTrace();
+    } finally {
+      DbmsUtils.closeStatelessSession(session);
     }
 
-    // -------------------------------------------------------------------------
-    // Execute
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void executeInTransaction()
-    {
-        List<PeriodType> types = new ArrayList<>( PeriodType.getAvailablePeriodTypes() );
-
-        Collection<PeriodType> storedTypes = periodStore.getAllPeriodTypes();
-
-        types.removeAll( storedTypes );
-
-        // ---------------------------------------------------------------------
-        // Populate missing
-        // ---------------------------------------------------------------------
-
-        StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
-        try
-        {
-            types.forEach( type -> {
-                session.insert( type );
-                log.debug( "Added PeriodType: " + type.getName() );
-            } );
-        }
-        catch ( Exception exception )
-        {
-            exception.printStackTrace();
-        }
-        finally
-        {
-            DbmsUtils.closeStatelessSession( session );
-        }
-
-        types.forEach( type -> periodStore.reloadPeriodType( type ) );
-    }
+    types.forEach(type -> periodStore.reloadPeriodType(type));
+  }
 }

@@ -29,20 +29,17 @@ package org.hisp.dhis.analytics.common.dimension;
 
 import java.util.Collection;
 import java.util.function.Function;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 
 @Getter
 @RequiredArgsConstructor
-public enum DimensionParamType
-{
-    DIMENSIONS( CommonQueryRequest::getDimension ),
-    FILTERS( CommonQueryRequest::getFilter );
+public enum DimensionParamType {
+  DIMENSIONS(CommonQueryRequest::getDimension),
+  FILTERS(CommonQueryRequest::getFilter);
 
-    // the getter method to invoke to retrieve the dimensions or filters from
-    // the CommonQueryRequest
-    private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
+  // the getter method to invoke to retrieve the dimensions or filters from
+  // the CommonQueryRequest
+  private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
 }

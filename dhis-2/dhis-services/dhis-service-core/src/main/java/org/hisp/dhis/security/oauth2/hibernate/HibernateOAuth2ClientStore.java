@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.oauth2.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -42,24 +41,30 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.security.oauth2.OAuth2ClientStore" )
-public class HibernateOAuth2ClientStore
-    extends HibernateIdentifiableObjectStore<OAuth2Client>
-    implements OAuth2ClientStore
-{
-    public HibernateOAuth2ClientStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OAuth2Client.class, currentUserService, aclService,
-            true );
-    }
+@Repository("org.hisp.dhis.security.oauth2.OAuth2ClientStore")
+public class HibernateOAuth2ClientStore extends HibernateIdentifiableObjectStore<OAuth2Client>
+    implements OAuth2ClientStore {
+  public HibernateOAuth2ClientStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        OAuth2Client.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public OAuth2Client getByClientId( String cid )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public OAuth2Client getByClientId(String cid) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "cid" ), cid ) ) );
-    }
+    return getSingleResult(
+        builder, newJpaParameters().addPredicate(root -> builder.equal(root.get("cid"), cid)));
+  }
 }

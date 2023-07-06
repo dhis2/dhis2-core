@@ -37,9 +37,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
@@ -62,148 +60,154 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "org.hisp.dhis.analytics.RawAnalyticsManager" )
-public class JdbcRawAnalyticsManager
-    implements RawAnalyticsManager
-{
-    private static final String DIM_NAME_OU = "ou.path";
+@Component("org.hisp.dhis.analytics.RawAnalyticsManager")
+public class JdbcRawAnalyticsManager implements RawAnalyticsManager {
+  private static final String DIM_NAME_OU = "ou.path";
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    public JdbcRawAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
+  public JdbcRawAnalyticsManager(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    checkNotNull(jdbcTemplate);
 
-        this.jdbcTemplate = jdbcTemplate;
+    this.jdbcTemplate = jdbcTemplate;
+  }
+
+  // -------------------------------------------------------------------------
+  // RawAnalyticsManager implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public Grid getRawDataValues(DataQueryParams params, Grid grid) {
+    Assert.isTrue(params.hasStartEndDate(), "Start and end dates must be specified");
+
+    List<DimensionalObject> dimensions = new ArrayList<>();
+    dimensions.addAll(params.getDimensions());
+    dimensions.addAll(params.getOrgUnitLevelsAsDimensions());
+
+    if (params.isIncludePeriodStartEndDates()) {
+      dimensions.add(
+          new BaseDimensionalObject(
+              PERIOD_START_DATE_ID,
+              DimensionType.STATIC,
+              PERIOD_START_DATE_NAME,
+              new ArrayList<>()));
+      dimensions.add(
+          new BaseDimensionalObject(
+              PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, new ArrayList<>()));
     }
 
-    // -------------------------------------------------------------------------
-    // RawAnalyticsManager implementation
-    // -------------------------------------------------------------------------
+    String sql = getSelectStatement(params, dimensions);
 
-    @Override
-    public Grid getRawDataValues( DataQueryParams params, Grid grid )
-    {
-        Assert.isTrue( params.hasStartEndDate(), "Start and end dates must be specified" );
+    log.debug("Get raw data SQL: " + sql);
 
-        List<DimensionalObject> dimensions = new ArrayList<>();
-        dimensions.addAll( params.getDimensions() );
-        dimensions.addAll( params.getOrgUnitLevelsAsDimensions() );
+    SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql);
 
-        if ( params.isIncludePeriodStartEndDates() )
-        {
-            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC,
-                PERIOD_START_DATE_NAME, new ArrayList<>() ) );
-            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME,
-                new ArrayList<>() ) );
-        }
+    while (rowSet.next()) {
+      grid.addRow();
 
-        String sql = getSelectStatement( params, dimensions );
+      for (DimensionalObject dim : dimensions) {
+        grid.addValue(rowSet.getString(dim.getDimensionName()));
+      }
 
-        log.debug( "Get raw data SQL: " + sql );
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        while ( rowSet.next() )
-        {
-            grid.addRow();
-
-            for ( DimensionalObject dim : dimensions )
-            {
-                grid.addValue( rowSet.getString( dim.getDimensionName() ) );
-            }
-
-            grid.addValue( rowSet.getDouble( "value" ) );
-        }
-
-        return grid;
+      grid.addValue(rowSet.getDouble("value"));
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    return grid;
+  }
 
-    /**
-     * Returns a SQL select statement.
-     *
-     * @param params the {@link DataQueryParams}.
-     * @param dimensions the list of dimensions.
-     * @return a SQL select statement.
-     */
-    private String getSelectStatement( DataQueryParams params, List<DimensionalObject> dimensions )
-    {
-        String idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID ).getIdentifiableString()
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns a SQL select statement.
+   *
+   * @param params the {@link DataQueryParams}.
+   * @param dimensions the list of dimensions.
+   * @return a SQL select statement.
+   */
+  private String getSelectStatement(DataQueryParams params, List<DimensionalObject> dimensions) {
+    String idScheme =
+        ObjectUtils.firstNonNull(params.getOutputIdScheme(), IdScheme.UID)
+            .getIdentifiableString()
             .toLowerCase();
 
-        List<String> dimensionColumns = dimensions.stream()
-            .map( d -> asColumnSelect( d, idScheme ) )
-            .collect( Collectors.toList() );
+    List<String> dimensionColumns =
+        dimensions.stream().map(d -> asColumnSelect(d, idScheme)).collect(Collectors.toList());
 
-        SqlHelper sqlHelper = new SqlHelper();
+    SqlHelper sqlHelper = new SqlHelper();
 
-        String sql = "select " + StringUtils.join( dimensionColumns, ", " ) + ", " + DIM_NAME_OU + ", value " +
-            "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
-            "inner join organisationunit ou on ax.ou = ou.uid " +
-            "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid " +
-            "inner join _periodstructure ps on ax.pe = ps.iso ";
+    String sql =
+        "select "
+            + StringUtils.join(dimensionColumns, ", ")
+            + ", "
+            + DIM_NAME_OU
+            + ", value "
+            + "from "
+            + params.getTableName()
+            + " as "
+            + ANALYTICS_TBL_ALIAS
+            + " "
+            + "inner join organisationunit ou on ax.ou = ou.uid "
+            + "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid "
+            + "inner join _periodstructure ps on ax.pe = ps.iso ";
 
-        for ( DimensionalObject dim : dimensions )
-        {
-            if ( !dim.getItems().isEmpty() && !dim.isFixed() )
-            {
-                String col = quote( dim.getDimensionName() );
+    for (DimensionalObject dim : dimensions) {
+      if (!dim.getItems().isEmpty() && !dim.isFixed()) {
+        String col = quote(dim.getDimensionName());
 
-                if ( DimensionalObject.ORGUNIT_DIM_ID.equals( dim.getDimension() ) )
-                {
-                    sql += sqlHelper.whereAnd() + " (";
+        if (DimensionalObject.ORGUNIT_DIM_ID.equals(dim.getDimension())) {
+          sql += sqlHelper.whereAnd() + " (";
 
-                    for ( DimensionalItemObject item : dim.getItems() )
-                    {
-                        OrganisationUnit unit = (OrganisationUnit) item;
+          for (DimensionalItemObject item : dim.getItems()) {
+            OrganisationUnit unit = (OrganisationUnit) item;
 
-                        sql += DIM_NAME_OU + " like '" + unit.getPath() + "%' or ";
-                    }
+            sql += DIM_NAME_OU + " like '" + unit.getPath() + "%' or ";
+          }
 
-                    sql = TextUtils.removeLastOr( sql ) + ") ";
-                }
-                else
-                {
-                    sql += sqlHelper.whereAnd() + " " + col + " in ("
-                        + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
-                }
-            }
+          sql = TextUtils.removeLastOr(sql) + ") ";
+        } else {
+          sql +=
+              sqlHelper.whereAnd()
+                  + " "
+                  + col
+                  + " in ("
+                  + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+                  + ") ";
         }
-
-        sql += sqlHelper.whereAnd() + " " +
-            "ps.startdate >= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "' and " +
-            "ps.enddate <= '" + DateUtils.getMediumDateString( params.getEndDate() ) + "' ";
-
-        return sql;
+      }
     }
 
-    /**
-     * Converts the given dimension to a column select statement according to
-     * the given identifier scheme.
-     *
-     * @param dimension the dimensional object.
-     * @param idScheme the identifier scheme.
-     * @return a column select statement.
-     */
-    private String asColumnSelect( DimensionalObject dimension, String idScheme )
-    {
-        if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
-        {
-            return ("ou." + idScheme + " as " + quote( dimension.getDimensionName() ));
-        }
-        else if ( DimensionType.ORGANISATION_UNIT_LEVEL == dimension.getDimensionType() )
-        {
-            int level = AnalyticsUtils.getLevelFromOrgUnitDimensionName( dimension.getDimensionName() );
+    sql +=
+        sqlHelper.whereAnd()
+            + " "
+            + "ps.startdate >= '"
+            + DateUtils.getMediumDateString(params.getStartDate())
+            + "' and "
+            + "ps.enddate <= '"
+            + DateUtils.getMediumDateString(params.getEndDate())
+            + "' ";
 
-            return ("ous." + idScheme + "level" + level + " as " + quote( dimension.getDimensionName() ));
-        }
-        else
-        {
-            return quote( dimension.getDimensionName() );
-        }
+    return sql;
+  }
+
+  /**
+   * Converts the given dimension to a column select statement according to the given identifier
+   * scheme.
+   *
+   * @param dimension the dimensional object.
+   * @param idScheme the identifier scheme.
+   * @return a column select statement.
+   */
+  private String asColumnSelect(DimensionalObject dimension, String idScheme) {
+    if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
+      return ("ou." + idScheme + " as " + quote(dimension.getDimensionName()));
+    } else if (DimensionType.ORGANISATION_UNIT_LEVEL == dimension.getDimensionType()) {
+      int level = AnalyticsUtils.getLevelFromOrgUnitDimensionName(dimension.getDimensionName());
+
+      return ("ous." + idScheme + "level" + level + " as " + quote(dimension.getDimensionName()));
+    } else {
+      return quote(dimension.getDimensionName());
     }
+  }
 }

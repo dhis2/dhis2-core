@@ -34,28 +34,27 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
 
-class OrganisationUnitMapperTest
-{
-    @Test
-    void testIdSchemeRelatedFieldsAreMapped()
-    {
+class OrganisationUnitMapperTest {
+  @Test
+  void testIdSchemeRelatedFieldsAreMapped() {
 
-        OrganisationUnit orgUnit = setIdSchemeFields(
+    OrganisationUnit orgUnit =
+        setIdSchemeFields(
             new OrganisationUnit(),
             "HpSAvRWtdDR",
             "meet",
             "green",
-            attributeValues( "m0GpPuMUfFW", "purple" ) );
+            attributeValues("m0GpPuMUfFW", "purple"));
 
-        OrganisationUnit mapped = OrganisationUnitMapper.INSTANCE.map( orgUnit );
+    OrganisationUnit mapped = OrganisationUnitMapper.INSTANCE.map(orgUnit);
 
-        assertEquals( "HpSAvRWtdDR", mapped.getUid() );
-        assertEquals( "meet", mapped.getName() );
-        assertEquals( "green", mapped.getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "purple" ) ), mapped.getAttributeValues() );
-    }
+    assertEquals("HpSAvRWtdDR", mapped.getUid());
+    assertEquals("meet", mapped.getName());
+    assertEquals("green", mapped.getCode());
+    assertContainsOnly(
+        Set.of(attributeValue("m0GpPuMUfFW", "purple")), mapped.getAttributeValues());
+  }
 }

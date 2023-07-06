@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.sync;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -42,21 +41,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class TrackerProgramsDataSynchronizationJob implements Job
-{
-    private final TrackerSynchronization trackerSync;
+public class TrackerProgramsDataSynchronizationJob implements Job {
+  private final TrackerSynchronization trackerSync;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.TRACKER_PROGRAMS_DATA_SYNC;
-    }
+  @Override
+  public JobType getJobType() {
+    return JobType.TRACKER_PROGRAMS_DATA_SYNC;
+  }
 
-    @Override
-    public void execute( JobConfiguration config, JobProgress progress )
-    {
-        TrackerProgramsDataSynchronizationJobParameters params = (TrackerProgramsDataSynchronizationJobParameters) config
-            .getJobParameters();
-        trackerSync.synchronizeData( params.getPageSize(), progress );
-    }
+  @Override
+  public void execute(JobConfiguration config, JobProgress progress) {
+    TrackerProgramsDataSynchronizationJobParameters params =
+        (TrackerProgramsDataSynchronizationJobParameters) config.getJobParameters();
+    trackerSync.synchronizeData(params.getPageSize(), progress);
+  }
 }

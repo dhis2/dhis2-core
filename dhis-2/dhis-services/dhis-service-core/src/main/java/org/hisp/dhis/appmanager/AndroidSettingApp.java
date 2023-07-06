@@ -33,22 +33,21 @@ import org.hisp.dhis.datastore.DatastoreService;
 import org.springframework.stereotype.Component;
 
 /**
- * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
- * that only the app can write to it using a role having the {@link #AUTHORITY}.
+ * The main purpose (so far) of the {@link AndroidSettingApp} component is to establish the
+ * protected {@link #NAMESPACE} in the {@link DatastoreService} so that only the app can write to it
+ * using a role having the {@link #AUTHORITY}.
  *
  * @author Jan Bernitt
  */
 @Component
-public class AndroidSettingApp
-{
-    public static final String NAMESPACE = "ANDROID_SETTING_APP";
+public class AndroidSettingApp {
+  public static final String NAMESPACE = "ANDROID_SETTING_APP";
 
-    public static final String AUTHORITY = "M_Android_Setting";
+  public static final String AUTHORITY = "M_Android_Setting";
 
-    public AndroidSettingApp( DatastoreService service )
-    {
-        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
-            ProtectionType.RESTRICTED, false, AUTHORITY ) );
-    }
+  public AndroidSettingApp(DatastoreService service) {
+    service.addProtection(
+        new DatastoreNamespaceProtection(
+            NAMESPACE, ProtectionType.NONE, ProtectionType.RESTRICTED, false, AUTHORITY));
+  }
 }

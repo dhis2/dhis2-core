@@ -28,7 +28,6 @@
 package org.hisp.dhis.indicator;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -38,24 +37,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class IndicatorGroupSetDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class IndicatorGroupSetDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( IndicatorGroup.class, this::deleteIndicatorGroup );
+  @Override
+  protected void register() {
+    whenDeleting(IndicatorGroup.class, this::deleteIndicatorGroup);
+  }
+
+  private void deleteIndicatorGroup(IndicatorGroup indicatorGroup) {
+    IndicatorGroupSet groupSet = indicatorGroup.getGroupSet();
+
+    if (groupSet != null) {
+      groupSet.getMembers().remove(indicatorGroup);
+      idObjectManager.updateNoAcl(groupSet);
     }
-
-    private void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
-    {
-        IndicatorGroupSet groupSet = indicatorGroup.getGroupSet();
-
-        if ( groupSet != null )
-        {
-            groupSet.getMembers().remove( indicatorGroup );
-            idObjectManager.updateNoAcl( groupSet );
-        }
-    }
+  }
 }

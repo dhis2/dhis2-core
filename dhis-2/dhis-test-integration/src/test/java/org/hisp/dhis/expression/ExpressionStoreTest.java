@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -46,113 +45,105 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Lars Helge Overland
  * @version $Id$
  */
-class ExpressionStoreTest extends SingleSetupIntegrationTestBase
-{
+class ExpressionStoreTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    @Qualifier( "org.hisp.dhis.expression.ExpressionStore" )
-    private GenericStore<Expression> expressionStore;
+  @Autowired
+  @Qualifier("org.hisp.dhis.expression.ExpressionStore")
+  private GenericStore<Expression> expressionStore;
 
-    @Autowired
-    private DataElementService dataElementService;
+  @Autowired private DataElementService dataElementService;
 
-    private long dataElementIdA;
+  private long dataElementIdA;
 
-    private long dataElementIdB;
+  private long dataElementIdB;
 
-    private long dataElementIdC;
+  private long dataElementIdC;
 
-    private long dataElementIdD;
+  private long dataElementIdD;
 
-    private String expressionA;
+  private String expressionA;
 
-    private String expressionB;
+  private String expressionB;
 
-    private String descriptionA;
+  private String descriptionA;
 
-    private String descriptionB;
+  private String descriptionB;
 
-    // -------------------------------------------------------------------------
-    // Fixture
-    // -------------------------------------------------------------------------
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        DataElement dataElementD = createDataElement( 'D' );
-        dataElementIdA = dataElementService.addDataElement( dataElementA );
-        dataElementIdB = dataElementService.addDataElement( dataElementB );
-        dataElementIdC = dataElementService.addDataElement( dataElementC );
-        dataElementIdD = dataElementService.addDataElement( dataElementD );
-        expressionA = "[" + dataElementIdA + "] + [" + dataElementIdB + "]";
-        expressionB = "[" + dataElementIdC + "] - [" + dataElementIdD + "]";
-        descriptionA = "Expression A";
-        descriptionB = "Expression B";
-    }
+  // -------------------------------------------------------------------------
+  // Fixture
+  // -------------------------------------------------------------------------
+  @Override
+  public void setUpTest() throws Exception {
+    DataElement dataElementA = createDataElement('A');
+    DataElement dataElementB = createDataElement('B');
+    DataElement dataElementC = createDataElement('C');
+    DataElement dataElementD = createDataElement('D');
+    dataElementIdA = dataElementService.addDataElement(dataElementA);
+    dataElementIdB = dataElementService.addDataElement(dataElementB);
+    dataElementIdC = dataElementService.addDataElement(dataElementC);
+    dataElementIdD = dataElementService.addDataElement(dataElementD);
+    expressionA = "[" + dataElementIdA + "] + [" + dataElementIdB + "]";
+    expressionB = "[" + dataElementIdC + "] - [" + dataElementIdD + "]";
+    descriptionA = "Expression A";
+    descriptionB = "Expression B";
+  }
 
-    // -------------------------------------------------------------------------
-    // Tests
-    // -------------------------------------------------------------------------
-    @Test
-    void testAddGetExpression()
-    {
-        Expression expr = new Expression( expressionA, descriptionA );
-        expressionStore.save( expr );
-        long id = expr.getId();
-        expr = expressionStore.get( id );
-        assertEquals( expr.getExpression(), expressionA );
-        assertEquals( expr.getDescription(), descriptionA );
-    }
+  // -------------------------------------------------------------------------
+  // Tests
+  // -------------------------------------------------------------------------
+  @Test
+  void testAddGetExpression() {
+    Expression expr = new Expression(expressionA, descriptionA);
+    expressionStore.save(expr);
+    long id = expr.getId();
+    expr = expressionStore.get(id);
+    assertEquals(expr.getExpression(), expressionA);
+    assertEquals(expr.getDescription(), descriptionA);
+  }
 
-    @Test
-    void testUpdateExpression()
-    {
-        Expression expr = new Expression( expressionA, descriptionA );
-        expressionStore.save( expr );
-        long id = expr.getId();
-        expr = expressionStore.get( id );
-        assertEquals( expr.getExpression(), expressionA );
-        assertEquals( expr.getDescription(), descriptionA );
-        expr.setExpression( expressionB );
-        expr.setDescription( descriptionB );
-        expressionStore.update( expr );
-        expr = expressionStore.get( id );
-        assertEquals( expr.getExpression(), expressionB );
-        assertEquals( expr.getDescription(), descriptionB );
-    }
+  @Test
+  void testUpdateExpression() {
+    Expression expr = new Expression(expressionA, descriptionA);
+    expressionStore.save(expr);
+    long id = expr.getId();
+    expr = expressionStore.get(id);
+    assertEquals(expr.getExpression(), expressionA);
+    assertEquals(expr.getDescription(), descriptionA);
+    expr.setExpression(expressionB);
+    expr.setDescription(descriptionB);
+    expressionStore.update(expr);
+    expr = expressionStore.get(id);
+    assertEquals(expr.getExpression(), expressionB);
+    assertEquals(expr.getDescription(), descriptionB);
+  }
 
-    @Test
-    void testDeleteExpression()
-    {
-        Expression exprA = new Expression( expressionA, descriptionA );
-        Expression exprB = new Expression( expressionB, descriptionB );
-        expressionStore.save( exprA );
-        long idA = exprA.getId();
-        expressionStore.save( exprB );
-        long idB = exprB.getId();
-        assertNotNull( expressionStore.get( idA ) );
-        assertNotNull( expressionStore.get( idB ) );
-        expressionStore.delete( exprA );
-        assertNull( expressionStore.get( idA ) );
-        assertNotNull( expressionStore.get( idB ) );
-        expressionStore.delete( exprB );
-        assertNull( expressionStore.get( idA ) );
-        assertNull( expressionStore.get( idB ) );
-    }
+  @Test
+  void testDeleteExpression() {
+    Expression exprA = new Expression(expressionA, descriptionA);
+    Expression exprB = new Expression(expressionB, descriptionB);
+    expressionStore.save(exprA);
+    long idA = exprA.getId();
+    expressionStore.save(exprB);
+    long idB = exprB.getId();
+    assertNotNull(expressionStore.get(idA));
+    assertNotNull(expressionStore.get(idB));
+    expressionStore.delete(exprA);
+    assertNull(expressionStore.get(idA));
+    assertNotNull(expressionStore.get(idB));
+    expressionStore.delete(exprB);
+    assertNull(expressionStore.get(idA));
+    assertNull(expressionStore.get(idB));
+  }
 
-    @Test
-    void testGetAllExpressions()
-    {
-        Expression exprA = new Expression( expressionA, descriptionA );
-        Expression exprB = new Expression( expressionB, descriptionB );
-        expressionStore.save( exprA );
-        expressionStore.save( exprB );
-        List<Expression> expressions = expressionStore.getAll();
-        assertTrue( expressions.size() == 2 );
-        assertTrue( expressions.contains( exprA ) );
-        assertTrue( expressions.contains( exprB ) );
-    }
+  @Test
+  void testGetAllExpressions() {
+    Expression exprA = new Expression(expressionA, descriptionA);
+    Expression exprB = new Expression(expressionB, descriptionB);
+    expressionStore.save(exprA);
+    expressionStore.save(exprB);
+    List<Expression> expressions = expressionStore.getAll();
+    assertTrue(expressions.size() == 2);
+    assertTrue(expressions.contains(exprA));
+    assertTrue(expressions.contains(exprB));
+  }
 }

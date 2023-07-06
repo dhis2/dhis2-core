@@ -28,20 +28,17 @@
 package org.hisp.dhis.indicator;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
-public interface IndicatorStore
-    extends IdentifiableObjectStore<Indicator>
-{
-    String ID = IndicatorStore.class.getName();
+public interface IndicatorStore extends IdentifiableObjectStore<Indicator> {
+  String ID = IndicatorStore.class.getName();
 
-    List<Indicator> getIndicatorsWithGroupSets();
+  List<Indicator> getIndicatorsWithGroupSets();
 
-    List<Indicator> getIndicatorsWithoutGroups();
+  List<Indicator> getIndicatorsWithoutGroups();
 
-    List<Indicator> getIndicatorsWithDataSets();
+  List<Indicator> getIndicatorsWithDataSets();
 }

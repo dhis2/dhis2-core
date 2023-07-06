@@ -29,7 +29,6 @@ package org.hisp.dhis.datastatistics;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -43,29 +42,23 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @AllArgsConstructor
-public class DataStatisticsJob implements Job
-{
-    private final DataStatisticsService dataStatisticsService;
+public class DataStatisticsJob implements Job {
+  private final DataStatisticsService dataStatisticsService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.DATA_STATISTICS;
+  @Override
+  public JobType getJobType() {
+    return JobType.DATA_STATISTICS;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    progress.startingProcess("Create data statistics snapshot");
+    long id = dataStatisticsService.saveDataStatisticsSnapshot(progress);
+
+    if (id > 0) {
+      progress.completedProcess("Saved data statistics snapshot");
+    } else {
+      progress.failedProcess("no snapshot created");
     }
-
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        progress.startingProcess( "Create data statistics snapshot" );
-        long id = dataStatisticsService.saveDataStatisticsSnapshot( progress );
-
-        if ( id > 0 )
-        {
-            progress.completedProcess( "Saved data statistics snapshot" );
-        }
-        else
-        {
-            progress.failedProcess( "no snapshot created" );
-        }
-    }
+  }
 }

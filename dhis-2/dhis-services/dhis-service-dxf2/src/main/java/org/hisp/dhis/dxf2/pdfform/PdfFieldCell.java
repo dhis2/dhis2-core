@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.pdfform;
 
-import java.io.IOException;
-
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.Phrase;
@@ -47,215 +45,217 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.PushbuttonField;
 import com.lowagie.text.pdf.RadioCheckField;
+import java.io.IOException;
 
 /**
  * @author James Chang
  */
-public class PdfFieldCell
-    implements PdfPCellEvent
-{
-    public static final int TYPE_DEFAULT = 0;
+public class PdfFieldCell implements PdfPCellEvent {
+  public static final int TYPE_DEFAULT = 0;
 
-    public static final int TYPE_BUTTON = 1;
+  public static final int TYPE_BUTTON = 1;
 
-    public static final int TYPE_TEXT_ORGUNIT = 2;
+  public static final int TYPE_TEXT_ORGUNIT = 2;
 
-    public static final int TYPE_TEXT_NUMBER = 3;
+  public static final int TYPE_TEXT_NUMBER = 3;
 
-    public static final int TYPE_CHECKBOX = 4;
+  public static final int TYPE_CHECKBOX = 4;
 
-    public static final int TYPE_RADIOBUTTON = 5;
+  public static final int TYPE_RADIOBUTTON = 5;
 
-    public static final int TPYE_LABEL = 6;
+  public static final int TPYE_LABEL = 6;
 
-    public static final String TPYEDEFINE_NAME = "T";
+  public static final String TPYEDEFINE_NAME = "T";
 
-    private static final float RADIOBUTTON_WIDTH = 10.0f;
+  private static final float RADIOBUTTON_WIDTH = 10.0f;
 
-    private static final float RADIOBUTTON_TEXTOFFSET = 3.0f;
+  private static final float RADIOBUTTON_TEXTOFFSET = 3.0f;
 
-    private static final float OFFSET_TOP = 0.5f;
+  private static final float OFFSET_TOP = 0.5f;
 
-    private static final float OFFSET_LEFT = 3.0f;
+  private static final float OFFSET_LEFT = 3.0f;
 
-    private PdfFormField parent;
+  private PdfFormField parent;
 
-    private PdfFormField formField;
+  private PdfFormField formField;
 
-    private PdfWriter writer;
+  private PdfWriter writer;
 
-    private float width;
+  private float width;
 
-    private float height;
+  private float height;
 
-    private int type;
+  private int type;
 
-    private String jsAction;
+  private String jsAction;
 
-    private String[] values;
+  private String[] values;
 
-    private String[] texts;
+  private String[] texts;
 
-    private String checkValue;
+  private String checkValue;
 
-    private String text;
+  private String text;
 
-    private String name;
+  private String name;
 
-    // Constructors
-    public PdfFieldCell( PdfFormField formField, float width, float height, PdfWriter writer )
-    {
-        this.formField = formField;
-        this.width = width;
-        this.height = height;
-        this.writer = writer;
-        this.type = TYPE_DEFAULT;
-    }
+  // Constructors
+  public PdfFieldCell(PdfFormField formField, float width, float height, PdfWriter writer) {
+    this.formField = formField;
+    this.width = width;
+    this.height = height;
+    this.writer = writer;
+    this.type = TYPE_DEFAULT;
+  }
 
-    public PdfFieldCell( PdfFormField formField, float width, float height, int type, PdfWriter writer )
-    {
-        this.formField = formField;
-        this.width = width;
-        this.height = height;
-        this.writer = writer;
-        this.type = type;
-    }
+  public PdfFieldCell(
+      PdfFormField formField, float width, float height, int type, PdfWriter writer) {
+    this.formField = formField;
+    this.width = width;
+    this.height = height;
+    this.writer = writer;
+    this.type = type;
+  }
 
-    public PdfFieldCell( PdfFormField formField, String jsAction, String name, String text, int type, PdfWriter writer )
-    {
-        this.formField = formField;
-        this.writer = writer;
-        this.type = type;
-        this.name = name;
-        this.text = text;
-        this.jsAction = jsAction;
-    }
+  public PdfFieldCell(
+      PdfFormField formField,
+      String jsAction,
+      String name,
+      String text,
+      int type,
+      PdfWriter writer) {
+    this.formField = formField;
+    this.writer = writer;
+    this.type = type;
+    this.name = name;
+    this.text = text;
+    this.jsAction = jsAction;
+  }
 
-    public PdfFieldCell( PdfFormField parent, String[] texts, String[] values, String checkValue, float width,
-        float height,
-        int type, PdfWriter writer )
-    {
-        this.writer = writer;
-        this.type = type;
-        this.parent = parent;
-        this.texts = texts;
-        this.values = values;
-        this.checkValue = checkValue;
-        this.width = width;
-        this.height = height;
-    }
+  public PdfFieldCell(
+      PdfFormField parent,
+      String[] texts,
+      String[] values,
+      String checkValue,
+      float width,
+      float height,
+      int type,
+      PdfWriter writer) {
+    this.writer = writer;
+    this.type = type;
+    this.parent = parent;
+    this.texts = texts;
+    this.values = values;
+    this.checkValue = checkValue;
+    this.width = width;
+    this.height = height;
+  }
 
-    @Override
-    public void cellLayout( PdfPCell cell, Rectangle rect, PdfContentByte[] canvases )
-    {
-        try
-        {
-            PdfContentByte canvasText = canvases[PdfPTable.TEXTCANVAS];
+  @Override
+  public void cellLayout(PdfPCell cell, Rectangle rect, PdfContentByte[] canvases) {
+    try {
+      PdfContentByte canvasText = canvases[PdfPTable.TEXTCANVAS];
 
-            if ( type == TYPE_RADIOBUTTON )
-            {
-                if ( parent != null )
-                {
-                    float leftLoc = rect.getLeft();
-                    float rightLoc = rect.getLeft() + RADIOBUTTON_WIDTH;
+      if (type == TYPE_RADIOBUTTON) {
+        if (parent != null) {
+          float leftLoc = rect.getLeft();
+          float rightLoc = rect.getLeft() + RADIOBUTTON_WIDTH;
 
-                    String text;
-                    String value;
+          String text;
+          String value;
 
-                    for ( int i = 0; i < texts.length; i++ )
-                    {
+          for (int i = 0; i < texts.length; i++) {
 
-                        text = texts[i];
-                        value = values[i];
+            text = texts[i];
+            value = values[i];
 
-                        Rectangle radioRec = new Rectangle( leftLoc, rect.getTop() - height, rightLoc, rect.getTop() );
+            Rectangle radioRec =
+                new Rectangle(leftLoc, rect.getTop() - height, rightLoc, rect.getTop());
 
-                        RadioCheckField rf = new RadioCheckField( writer, radioRec, "RDBtn_" + text, value );
+            RadioCheckField rf = new RadioCheckField(writer, radioRec, "RDBtn_" + text, value);
 
-                        if ( value != null && value.equals( checkValue ) )
-                        {
-                            rf.setChecked( true );
-                        }
-
-                        rf.setBorderColor( GrayColor.GRAYBLACK );
-                        rf.setBackgroundColor( GrayColor.GRAYWHITE );
-                        rf.setCheckType( RadioCheckField.TYPE_CIRCLE );
-
-                        parent.addKid( rf.getRadioField() );
-
-                        leftLoc = rightLoc;
-                        rightLoc += width;
-
-                        ColumnText.showTextAligned( canvasText, Element.ALIGN_LEFT, new Phrase( text ), leftLoc
-                            + RADIOBUTTON_TEXTOFFSET, height, 0 );
-
-                        leftLoc = rightLoc;
-                        rightLoc += RADIOBUTTON_WIDTH;
-                    }
-
-                    writer.addAnnotation( parent );
-                }
-            }
-            else if ( type == TYPE_BUTTON )
-            {
-                // Add the push button
-                PushbuttonField button = new PushbuttonField( writer, rect, name );
-                button.setBackgroundColor( new GrayColor( 0.75f ) );
-                button.setBorderColor( GrayColor.GRAYBLACK );
-                button.setBorderWidth( 1 );
-                button.setBorderStyle( PdfBorderDictionary.STYLE_BEVELED );
-                button.setTextColor( GrayColor.GRAYBLACK );
-                button.setFontSize( PdfDataEntryFormUtil.UNITSIZE_DEFAULT );
-                button.setText( text );
-                button.setLayout( PushbuttonField.LAYOUT_ICON_LEFT_LABEL_RIGHT );
-                button.setScaleIcon( PushbuttonField.SCALE_ICON_ALWAYS );
-                button.setProportionalIcon( true );
-                button.setIconHorizontalAdjustment( 0 );
-
-                formField = button.getField();
-                formField.setAction( PdfAction.javaScript( jsAction, writer ) );
-            }
-            else if ( type == TYPE_CHECKBOX )
-            {
-                float extraCheckBoxOffset_Left = 2.0f;
-                float extraCheckBoxOffset_Top = 1.5f;
-
-                formField.setWidget(
-                    new Rectangle( rect.getLeft() + OFFSET_LEFT + extraCheckBoxOffset_Left,
-                        rect.getTop() - height - OFFSET_TOP - extraCheckBoxOffset_Top,
-                        rect.getLeft() + width + OFFSET_LEFT + extraCheckBoxOffset_Left,
-                        rect.getTop() - OFFSET_TOP - extraCheckBoxOffset_Top ),
-                    PdfAnnotation.HIGHLIGHT_NONE );
-            }
-            else
-            {
-
-                if ( type == TYPE_TEXT_ORGUNIT )
-                {
-                    formField.setAdditionalActions( PdfName.BL, PdfAction.javaScript(
-                        "if(event.value == '') app.alert('Please enter org unit identifier');", writer ) );
-                }
-
-                // TYPE_TEXT_NUMBER and TYPE_CHECKBOX cases included as well
-                // here
-
-                formField.setWidget(
-                    new Rectangle( rect.getLeft() + OFFSET_LEFT, rect.getTop() - height - OFFSET_TOP,
-                        rect.getLeft() + width + OFFSET_LEFT, rect.getTop() - OFFSET_TOP ),
-                    PdfAnnotation.HIGHLIGHT_NONE );
-
+            if (value != null && value.equals(checkValue)) {
+              rf.setChecked(true);
             }
 
-            writer.addAnnotation( formField );
+            rf.setBorderColor(GrayColor.GRAYBLACK);
+            rf.setBackgroundColor(GrayColor.GRAYWHITE);
+            rf.setCheckType(RadioCheckField.TYPE_CIRCLE);
 
+            parent.addKid(rf.getRadioField());
+
+            leftLoc = rightLoc;
+            rightLoc += width;
+
+            ColumnText.showTextAligned(
+                canvasText,
+                Element.ALIGN_LEFT,
+                new Phrase(text),
+                leftLoc + RADIOBUTTON_TEXTOFFSET,
+                height,
+                0);
+
+            leftLoc = rightLoc;
+            rightLoc += RADIOBUTTON_WIDTH;
+          }
+
+          writer.addAnnotation(parent);
         }
-        catch ( DocumentException ex )
-        {
-            throw new RuntimeException( ex.getMessage() );
+      } else if (type == TYPE_BUTTON) {
+        // Add the push button
+        PushbuttonField button = new PushbuttonField(writer, rect, name);
+        button.setBackgroundColor(new GrayColor(0.75f));
+        button.setBorderColor(GrayColor.GRAYBLACK);
+        button.setBorderWidth(1);
+        button.setBorderStyle(PdfBorderDictionary.STYLE_BEVELED);
+        button.setTextColor(GrayColor.GRAYBLACK);
+        button.setFontSize(PdfDataEntryFormUtil.UNITSIZE_DEFAULT);
+        button.setText(text);
+        button.setLayout(PushbuttonField.LAYOUT_ICON_LEFT_LABEL_RIGHT);
+        button.setScaleIcon(PushbuttonField.SCALE_ICON_ALWAYS);
+        button.setProportionalIcon(true);
+        button.setIconHorizontalAdjustment(0);
+
+        formField = button.getField();
+        formField.setAction(PdfAction.javaScript(jsAction, writer));
+      } else if (type == TYPE_CHECKBOX) {
+        float extraCheckBoxOffset_Left = 2.0f;
+        float extraCheckBoxOffset_Top = 1.5f;
+
+        formField.setWidget(
+            new Rectangle(
+                rect.getLeft() + OFFSET_LEFT + extraCheckBoxOffset_Left,
+                rect.getTop() - height - OFFSET_TOP - extraCheckBoxOffset_Top,
+                rect.getLeft() + width + OFFSET_LEFT + extraCheckBoxOffset_Left,
+                rect.getTop() - OFFSET_TOP - extraCheckBoxOffset_Top),
+            PdfAnnotation.HIGHLIGHT_NONE);
+      } else {
+
+        if (type == TYPE_TEXT_ORGUNIT) {
+          formField.setAdditionalActions(
+              PdfName.BL,
+              PdfAction.javaScript(
+                  "if(event.value == '') app.alert('Please enter org unit identifier');", writer));
         }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( ex.getMessage() );
-        }
+
+        // TYPE_TEXT_NUMBER and TYPE_CHECKBOX cases included as well
+        // here
+
+        formField.setWidget(
+            new Rectangle(
+                rect.getLeft() + OFFSET_LEFT,
+                rect.getTop() - height - OFFSET_TOP,
+                rect.getLeft() + width + OFFSET_LEFT,
+                rect.getTop() - OFFSET_TOP),
+            PdfAnnotation.HIGHLIGHT_NONE);
+      }
+
+      writer.addAnnotation(formField);
+
+    } catch (DocumentException ex) {
+      throw new RuntimeException(ex.getMessage());
+    } catch (IOException ex) {
+      throw new RuntimeException(ex.getMessage());
     }
+  }
 }

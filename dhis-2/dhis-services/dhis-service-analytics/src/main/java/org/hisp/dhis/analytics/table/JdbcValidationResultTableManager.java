@@ -36,11 +36,13 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -67,195 +69,205 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Henning Håkonsen
  */
-@Service( "org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager" )
-public class JdbcValidationResultTableManager
-    extends AbstractJdbcTableManager
-{
-    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
-        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
-        new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
-        new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
-        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
+@Service("org.hisp.dhis.analytics.ValidationResultAnalyticsTableManager")
+public class JdbcValidationResultTableManager extends AbstractJdbcTableManager {
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      ImmutableList.of(
+          new AnalyticsTableColumn(quote("dx"), CHARACTER_11, NOT_NULL, "vr.uid"),
+          new AnalyticsTableColumn(quote("pestartdate"), TIMESTAMP, "pe.startdate"),
+          new AnalyticsTableColumn(quote("peenddate"), TIMESTAMP, "pe.enddate"),
+          new AnalyticsTableColumn(quote("year"), INTEGER, NOT_NULL, "ps.year"));
 
-    public JdbcValidationResultTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings );
-    }
+  public JdbcValidationResultTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      StatementBuilder statementBuilder,
+      PartitionManager partitionManager,
+      DatabaseInfo databaseInfo,
+      JdbcTemplate jdbcTemplate,
+      AnalyticsExportSettings analyticsExportSettings) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        statementBuilder,
+        partitionManager,
+        databaseInfo,
+        jdbcTemplate,
+        analyticsExportSettings);
+  }
 
-    @Override
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return AnalyticsTableType.VALIDATION_RESULT;
-    }
+  @Override
+  public AnalyticsTableType getAnalyticsTableType() {
+    return AnalyticsTableType.VALIDATION_RESULT;
+  }
 
-    @Override
-    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
-    {
-        AnalyticsTable table = params.isLatestUpdate() ? new AnalyticsTable()
-            : getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
+  @Override
+  public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    AnalyticsTable table =
+        params.isLatestUpdate()
+            ? new AnalyticsTable()
+            : getRegularAnalyticsTable(
+                params, getDataYears(params), getDimensionColumns(), getValueColumns());
 
-        return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
-    }
+    return table.hasPartitionTables() ? Lists.newArrayList(table) : Lists.newArrayList();
+  }
 
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return Sets.newHashSet( getTableName() );
-    }
+  @Override
+  public Set<String> getExistingDatabaseTables() {
+    return Sets.newHashSet(getTableName());
+  }
 
-    @Override
-    public String validState()
-    {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select validationresultid from validationresult limit 1" )
+  @Override
+  public String validState() {
+    boolean hasData =
+        jdbcTemplate
+            .queryForRowSet("select validationresultid from validationresult limit 1")
             .next();
 
-        if ( !hasData )
-        {
-            return "No validation results exist, not updating validation result analytics tables";
-        }
-
-        return null;
+    if (!hasData) {
+      return "No validation results exist, not updating validation result analytics tables";
     }
 
-    @Override
-    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
-    {
-        return false;
+    return null;
+  }
+
+  @Override
+  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+    return false;
+  }
+
+  @Override
+  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+    return Lists.newArrayList("year = " + partition.getYear() + "");
+  }
+
+  @Override
+  protected void populateTable(
+      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    String tableName = partition.getTempTableName();
+
+    String insert = "insert into " + partition.getTempTableName() + " (";
+
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
+    List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+
+    validateDimensionColumns(columns);
+
+    for (AnalyticsTableColumn col : ListUtils.union(columns, values)) {
+      insert += col.getName() + ",";
     }
 
-    @Override
-    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
-    {
-        return Lists.newArrayList(
-            "year = " + partition.getYear() + "" );
+    insert = TextUtils.removeLastComma(insert) + ") ";
+
+    String select = "select ";
+
+    for (AnalyticsTableColumn col : columns) {
+      select += col.getAlias() + ",";
     }
 
-    @Override
-    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
-    {
-        String tableName = partition.getTempTableName();
+    // Database legacy fix
 
-        String insert = "insert into " + partition.getTempTableName() + " (";
+    select = select.replace("organisationunitid", "sourceid");
 
-        List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-        List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
+    select +=
+        "vrs.created as value "
+            + "from validationresult vrs "
+            + "inner join period pe on vrs.periodid=pe.periodid "
+            + "inner join _periodstructure ps on vrs.periodid=ps.periodid "
+            + "inner join validationrule vr on vr.validationruleid=vrs.validationruleid "
+            + "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid "
+            + "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) "
+            + "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid "
+            + "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid "
+            + "where ps.year = "
+            + partition.getYear()
+            + " "
+            + "and vrs.created < '"
+            + getLongDateString(params.getStartTime())
+            + "' "
+            + "and vrs.created is not null";
 
-        validateDimensionColumns( columns );
+    String sql = insert + select;
 
-        for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
-        {
-            insert += col.getName() + ",";
-        }
+    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+  }
 
-        insert = TextUtils.removeLastComma( insert ) + ") ";
+  private List<Integer> getDataYears(AnalyticsTableUpdateParams params) {
+    String sql =
+        "select distinct(extract(year from pe.startdate)) "
+            + "from validationresult vrs "
+            + "inner join period pe on vrs.periodid=pe.periodid "
+            + "where pe.startdate is not null "
+            + "and vrs.created < '"
+            + getLongDateString(params.getStartTime())
+            + "' ";
 
-        String select = "select ";
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            select += col.getAlias() + ",";
-        }
-
-        // Database legacy fix
-
-        select = select.replace( "organisationunitid", "sourceid" );
-
-        select += "vrs.created as value " +
-            "from validationresult vrs " +
-            "inner join period pe on vrs.periodid=pe.periodid " +
-            "inner join _periodstructure ps on vrs.periodid=ps.periodid " +
-            "inner join validationrule vr on vr.validationruleid=vrs.validationruleid " +
-            "inner join _organisationunitgroupsetstructure ougs on vrs.organisationunitid=ougs.organisationunitid " +
-            "and (cast(date_trunc('month', pe.startdate) as date)=ougs.startdate or ougs.startdate is null) " +
-            "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
-            "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
-            "where ps.year = " + partition.getYear() + " " +
-            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and vrs.created is not null";
-
-        String sql = insert + select;
-
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+    if (params.getFromDate() != null) {
+      sql += "and pe.startdate >= '" + DateUtils.getMediumDateString(params.getFromDate()) + "'";
     }
 
-    private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
-    {
-        String sql = "select distinct(extract(year from pe.startdate)) " +
-            "from validationresult vrs " +
-            "inner join period pe on vrs.periodid=pe.periodid " +
-            "where pe.startdate is not null " +
-            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' ";
+    return jdbcTemplate.queryForList(sql, Integer.class);
+  }
 
-        if ( params.getFromDate() != null )
-        {
-            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
-        }
+  private List<AnalyticsTableColumn> getDimensionColumns() {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        return jdbcTemplate.queryForList( sql, Integer.class );
+    List<OrganisationUnitGroupSet> orgUnitGroupSets =
+        idObjectManager.getDataDimensionsNoAcl(OrganisationUnitGroupSet.class);
+
+    List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
+
+    List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
+
+    for (OrganisationUnitGroupSet groupSet : orgUnitGroupSets) {
+      columns.add(
+          new AnalyticsTableColumn(
+                  quote(groupSet.getUid()), CHARACTER_11, "ougs." + quote(groupSet.getUid()))
+              .withCreated(groupSet.getCreated()));
     }
 
-    private List<AnalyticsTableColumn> getDimensionColumns()
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-        List<OrganisationUnitGroupSet> orgUnitGroupSets = idObjectManager
-            .getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
-
-        List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
-
-        List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
-
-        for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
-        {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11,
-                "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
-        }
-
-        for ( OrganisationUnitLevel level : levels )
-        {
-            String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add(
-                new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
-        }
-
-        for ( Category category : attributeCategories )
-        {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11,
-                "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
-        }
-
-        for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
-        {
-            String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, TEXT, "ps." + column ) );
-        }
-
-        columns.addAll( getFixedColumns() );
-        return filterDimensionColumns( columns );
+    for (OrganisationUnitLevel level : levels) {
+      String column = quote(PREFIX_ORGUNITLEVEL + level.getLevel());
+      columns.add(
+          new AnalyticsTableColumn(column, CHARACTER_11, "ous." + column)
+              .withCreated(level.getCreated()));
     }
 
-    private List<AnalyticsTableColumn> getValueColumns()
-    {
-        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
+    for (Category category : attributeCategories) {
+      columns.add(
+          new AnalyticsTableColumn(
+                  quote(category.getUid()), CHARACTER_11, "acs." + quote(category.getUid()))
+              .withCreated(category.getCreated()));
     }
 
-    @Override
-    public List<AnalyticsTableColumn> getFixedColumns()
-    {
-        return FIXED_COLS;
+    for (PeriodType periodType : PeriodType.getAvailablePeriodTypes()) {
+      String column = quote(periodType.getName().toLowerCase());
+      columns.add(new AnalyticsTableColumn(column, TEXT, "ps." + column));
     }
+
+    columns.addAll(getFixedColumns());
+    return filterDimensionColumns(columns);
+  }
+
+  private List<AnalyticsTableColumn> getValueColumns() {
+    return Lists.newArrayList(new AnalyticsTableColumn(quote("value"), DATE, "value"));
+  }
+
+  @Override
+  public List<AnalyticsTableColumn> getFixedColumns() {
+    return FIXED_COLS;
+  }
 }

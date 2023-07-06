@@ -35,7 +35,6 @@ import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -59,159 +58,163 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Markus Bekken
  */
-public abstract class AbstractEventJdbcTableManager
-    extends AbstractJdbcTableManager
-{
-    public AbstractEventJdbcTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, AnalyticsExportSettings analyticsExportSettings )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings );
+public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableManager {
+  public AbstractEventJdbcTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      StatementBuilder statementBuilder,
+      PartitionManager partitionManager,
+      DatabaseInfo databaseInfo,
+      JdbcTemplate jdbcTemplate,
+      AnalyticsExportSettings analyticsExportSettings) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        statementBuilder,
+        partitionManager,
+        databaseInfo,
+        jdbcTemplate,
+        analyticsExportSettings);
+  }
+
+  protected final String getNumericClause() {
+    return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+  }
+
+  protected final String getDateClause() {
+    return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+  }
+
+  protected final boolean skipIndex(ValueType valueType, boolean hasOptionSet) {
+    return NO_INDEX_VAL_TYPES.contains(valueType) && !hasOptionSet;
+  }
+
+  /**
+   * Returns the select clause, potentially with a cast statement, based on the given value type.
+   *
+   * @param valueType the value type to represent as database column type.
+   */
+  protected String getSelectClause(ValueType valueType, String columnName) {
+    if (valueType.isDecimal()) {
+      return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
+    } else if (valueType.isInteger()) {
+      return "cast(" + columnName + " as bigint)";
+    } else if (valueType.isBoolean()) {
+      return "case when "
+          + columnName
+          + " = 'true' then 1 when "
+          + columnName
+          + " = 'false' then 0 else null end";
+    } else if (valueType.isDate()) {
+      return "cast(" + columnName + " as timestamp)";
+    } else if (valueType.isGeo() && databaseInfo.isSpatialSupport()) {
+      return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || ("
+          + columnName
+          + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+    } else if (valueType.isOrganisationUnit()) {
+      return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
+    } else {
+      return columnName;
+    }
+  }
+
+  @Override
+  public String validState() {
+    // Data values might be '{}' / empty object if data values existed
+    // and were removed later
+
+    final String sql =
+        "select programstageinstanceid "
+            + "from programstageinstance "
+            + "where eventdatavalues != '{}' limit 1;";
+
+    boolean hasData = jdbcTemplate.queryForRowSet(sql).next();
+
+    if (!hasData) {
+      return "No events exist, not updating event analytics tables";
     }
 
-    protected final String getNumericClause()
-    {
-        return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    return null;
+  }
+
+  @Override
+  protected boolean hasUpdatedLatestData(Date startDate, Date endDate) {
+    throw new IllegalStateException("This method should never be invoked");
+  }
+
+  /**
+   * Populates the given analytics table partition using the given columns and join statement.
+   *
+   * @param partition the {@link AnalyticsTablePartition}.
+   * @param columns the list of {@link AnalyticsTableColumn}.
+   * @param fromClause the SQL from clause.
+   */
+  protected void populateTableInternal(
+      AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause) {
+    final String tableName = partition.getTempTableName();
+
+    String sql = "insert into " + partition.getTempTableName() + " (";
+
+    validateDimensionColumns(columns);
+
+    for (AnalyticsTableColumn col : columns) {
+      sql += col.getName() + ",";
     }
 
-    protected final String getDateClause()
-    {
-        return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+    sql = TextUtils.removeLastComma(sql) + ") select ";
+
+    for (AnalyticsTableColumn col : columns) {
+      sql += col.getAlias() + ",";
     }
 
-    protected final boolean skipIndex( ValueType valueType, boolean hasOptionSet )
-    {
-        return NO_INDEX_VAL_TYPES.contains( valueType ) && !hasOptionSet;
+    sql = TextUtils.removeLastComma(sql) + " ";
+
+    sql += fromClause;
+
+    invokeTimeAndLog(sql, String.format("Populate %s", tableName));
+  }
+
+  protected List<AnalyticsTableColumn> addTrackedEntityAttributes(Program program) {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+    for (TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes()) {
+      ColumnDataType dataType =
+          getColumnType(attribute.getValueType(), databaseInfo.isSpatialSupport());
+      String dataClause =
+          attribute.isNumericType()
+              ? getNumericClause()
+              : attribute.isDateType() ? getDateClause() : "";
+      String select = getSelectClause(attribute.getValueType(), "value");
+      boolean skipIndex = skipIndex(attribute.getValueType(), attribute.hasOptionSet());
+
+      String sql =
+          "(select "
+              + select
+              + " "
+              + "from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+              + "and trackedentityattributeid="
+              + attribute.getId()
+              + dataClause
+              + ")"
+              + getClosingParentheses(select)
+              + " as "
+              + quote(attribute.getUid());
+
+      columns.add(
+          new AnalyticsTableColumn(quote(attribute.getUid()), dataType, sql)
+              .withSkipIndex(skipIndex));
     }
 
-    /**
-     * Returns the select clause, potentially with a cast statement, based on
-     * the given value type.
-     *
-     * @param valueType the value type to represent as database column type.
-     */
-    protected String getSelectClause( ValueType valueType, String columnName )
-    {
-        if ( valueType.isDecimal() )
-        {
-            return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
-        }
-        else if ( valueType.isInteger() )
-        {
-            return "cast(" + columnName + " as bigint)";
-        }
-        else if ( valueType.isBoolean() )
-        {
-            return "case when " + columnName + " = 'true' then 1 when " +
-                columnName + " = 'false' then 0 else null end";
-        }
-        else if ( valueType.isDate() )
-        {
-            return "cast(" + columnName + " as timestamp)";
-        }
-        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
-        {
-            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" +
-                columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
-        }
-        else if ( valueType.isOrganisationUnit() )
-        {
-            return "ou.uid from organisationunit ou where ou.uid = (select " + columnName;
-        }
-        else
-        {
-            return columnName;
-        }
-    }
-
-    @Override
-    public String validState()
-    {
-        // Data values might be '{}' / empty object if data values existed
-        // and were removed later
-
-        final String sql = "select programstageinstanceid " +
-            "from programstageinstance " +
-            "where eventdatavalues != '{}' limit 1;";
-
-        boolean hasData = jdbcTemplate.queryForRowSet( sql ).next();
-
-        if ( !hasData )
-        {
-            return "No events exist, not updating event analytics tables";
-        }
-
-        return null;
-    }
-
-    @Override
-    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
-    {
-        throw new IllegalStateException( "This method should never be invoked" );
-    }
-
-    /**
-     * Populates the given analytics table partition using the given columns and
-     * join statement.
-     *
-     * @param partition the {@link AnalyticsTablePartition}.
-     * @param columns the list of {@link AnalyticsTableColumn}.
-     * @param fromClause the SQL from clause.
-     */
-    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns,
-        String fromClause )
-    {
-        final String tableName = partition.getTempTableName();
-
-        String sql = "insert into " + partition.getTempTableName() + " (";
-
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getName() + ",";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + ") select ";
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getAlias() + ",";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + " ";
-
-        sql += fromClause;
-
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
-    }
-
-    protected List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
-        {
-            ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
-            String dataClause = attribute.isNumericType() ? getNumericClause()
-                : attribute.isDateType() ? getDateClause() : "";
-            String select = getSelectClause( attribute.getValueType(), "value" );
-            boolean skipIndex = skipIndex( attribute.getValueType(), attribute.hasOptionSet() );
-
-            String sql = "(select " + select + " " +
-                "from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" +
-                getClosingParentheses( select ) + " as " + quote( attribute.getUid() );
-
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql )
-                .withSkipIndex( skipIndex ) );
-        }
-
-        return columns;
-    }
+    return columns;
+  }
 }

@@ -30,109 +30,99 @@ package org.hisp.dhis.eventvisualization;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
- * @deprecated Needed to keep EventChart and EventReports backward compatible
- *             with the new entity EventVisualization.
- *
+ * @deprecated Needed to keep EventChart and EventReports backward compatible with the new entity
+ *     EventVisualization.
  * @author maikel arabori
  */
 @Deprecated
-public interface EventVisualizationStore extends
-    IdentifiableObjectStore<EventVisualization>
-{
-    /**
-     * Query the EventVisualization collection and retrieve only the
-     * EventVisualizations of type Chart.
-     *
-     * @param first the first result row
-     * @param max the maximum result row
-     * @return a list of Visualization containing only Charts
-     */
-    List<EventVisualization> getCharts( int first, int max );
+public interface EventVisualizationStore extends IdentifiableObjectStore<EventVisualization> {
+  /**
+   * Query the EventVisualization collection and retrieve only the EventVisualizations of type
+   * Chart.
+   *
+   * @param first the first result row
+   * @param max the maximum result row
+   * @return a list of Visualization containing only Charts
+   */
+  List<EventVisualization> getCharts(int first, int max);
 
-    /**
-     * Query the EventVisualization collection and retrieve only the
-     * EventVisualizations of type Reports (Pivot and Line list).
-     *
-     * @param first the first result row
-     * @param max the maximum result row
-     * @return a list of EventVisualization containing only Reports (Pivot and
-     *         Line list)
-     */
-    List<EventVisualization> getReports( int first, int max );
+  /**
+   * Query the EventVisualization collection and retrieve only the EventVisualizations of type
+   * Reports (Pivot and Line list).
+   *
+   * @param first the first result row
+   * @param max the maximum result row
+   * @return a list of EventVisualization containing only Reports (Pivot and Line list)
+   */
+  List<EventVisualization> getReports(int first, int max);
 
-    /**
-     * Query the EventVisualization collection and retrieve the
-     * EventVisualizations of type Line List ONLY.
-     *
-     * @param first the first result row
-     * @param max the maximum result row
-     * @return a list of EventVisualization containing only Line List
-     */
-    List<EventVisualization> getLineLists( int first, int max );
+  /**
+   * Query the EventVisualization collection and retrieve the EventVisualizations of type Line List
+   * ONLY.
+   *
+   * @param first the first result row
+   * @param max the maximum result row
+   * @return a list of EventVisualization containing only Line List
+   */
+  List<EventVisualization> getLineLists(int first, int max);
 
-    /**
-     * Query the EventVisualization collection and retrieve only the
-     * EventVisualizations of type Chart comparing the name using the given
-     * "chars".
-     *
-     * @param words the characters describing the EventVisualization's name
-     * @param first the first result row
-     * @param max the maximum result row
-     * @return a list of EventVisualization containing only Charts
-     */
-    List<EventVisualization> getChartsLikeName( Set<String> words, int first, int max );
+  /**
+   * Query the EventVisualization collection and retrieve only the EventVisualizations of type Chart
+   * comparing the name using the given "chars".
+   *
+   * @param words the characters describing the EventVisualization's name
+   * @param first the first result row
+   * @param max the maximum result row
+   * @return a list of EventVisualization containing only Charts
+   */
+  List<EventVisualization> getChartsLikeName(Set<String> words, int first, int max);
 
-    /**
-     * Query the EventVisualization collection and retrieve only the
-     * EventVisualizations of type Reports (Pivot and Line list) comparing the
-     * name using the given "chars".
-     *
-     * @param words the characters describing the Visualization's name
-     * @param first the first result row
-     * @param max the maximum result row
-     * @return a list of EventVisualization containing only Reports (Pivot and
-     *         Line list)
-     */
-    List<EventVisualization> getReportsLikeName( Set<String> words, int first, int max );
+  /**
+   * Query the EventVisualization collection and retrieve only the EventVisualizations of type
+   * Reports (Pivot and Line list) comparing the name using the given "chars".
+   *
+   * @param words the characters describing the Visualization's name
+   * @param first the first result row
+   * @param max the maximum result row
+   * @return a list of EventVisualization containing only Reports (Pivot and Line list)
+   */
+  List<EventVisualization> getReportsLikeName(Set<String> words, int first, int max);
 
-    /**
-     * Query the EventVisualization collection and retrieve only the
-     * EventVisualizations of type Line list only, comparing the name based on
-     * the given "words".
-     *
-     * @param words the characters describing the Visualization's name.
-     * @param first the first result row.
-     * @param max the maximum result row.
-     * @return a list of EventVisualization containing only Line lists.
-     */
-    List<EventVisualization> getLineListsLikeName( Set<String> words, int first, int max );
+  /**
+   * Query the EventVisualization collection and retrieve only the EventVisualizations of type Line
+   * list only, comparing the name based on the given "words".
+   *
+   * @param words the characters describing the Visualization's name.
+   * @param first the first result row.
+   * @param max the maximum result row.
+   * @return a list of EventVisualization containing only Line lists.
+   */
+  List<EventVisualization> getLineListsLikeName(Set<String> words, int first, int max);
 
-    /**
-     * Counts the number of Reports (Pivot and Line list) created since the
-     * given date.
-     *
-     * @param startingAt
-     * @return the total of Reports found.
-     */
-    int countReportsCreated( Date startingAt );
+  /**
+   * Counts the number of Reports (Pivot and Line list) created since the given date.
+   *
+   * @param startingAt
+   * @return the total of Reports found.
+   */
+  int countReportsCreated(Date startingAt);
 
-    /**
-     * Counts the number of Chart created since the given date.
-     *
-     * @param startingAt
-     * @return the total of Chart found.
-     */
-    int countChartsCreated( Date startingAt );
+  /**
+   * Counts the number of Chart created since the given date.
+   *
+   * @param startingAt
+   * @return the total of Chart found.
+   */
+  int countChartsCreated(Date startingAt);
 
-    /**
-     * Counts the number of EventVisualization created since the given date.
-     *
-     * @param startingAt
-     * @return the total of EventVisualization found.
-     */
-    int countEventVisualizationsCreated( Date startingAt );
+  /**
+   * Counts the number of EventVisualization created since the given date.
+   *
+   * @param startingAt
+   * @return the total of EventVisualization found.
+   */
+  int countEventVisualizationsCreated(Date startingAt);
 }

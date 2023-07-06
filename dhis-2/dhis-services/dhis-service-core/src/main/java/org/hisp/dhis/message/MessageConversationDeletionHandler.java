@@ -28,7 +28,6 @@
 package org.hisp.dhis.message;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -38,18 +37,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class MessageConversationDeletionHandler extends DeletionHandler
-{
-    private final MessageService messageService;
+public class MessageConversationDeletionHandler extends DeletionHandler {
+  private final MessageService messageService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+  }
 
-    private void deleteUser( User user )
-    {
-        messageService.deleteMessages( user );
-    }
+  private void deleteUser(User user) {
+    messageService.deleteMessages(user);
+  }
 }

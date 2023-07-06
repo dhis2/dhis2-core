@@ -57,66 +57,64 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class PreCheckMetaValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( tei.getOrgUnit() );
-        if ( organisationUnit == null )
-        {
-            reporter.addError( tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
-        }
-
-        TrackedEntityType entityType = bundle.getPreheat().getTrackedEntityType( tei.getTrackedEntityType() );
-        if ( entityType == null )
-        {
-            reporter.addError( tei, E1005, tei.getTrackedEntityType() );
-        }
+public class PreCheckMetaValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateTrackedEntity(
+      ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity tei) {
+    OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit(tei.getOrgUnit());
+    if (organisationUnit == null) {
+      reporter.addError(tei, TrackerErrorCode.E1049, tei.getOrgUnit());
     }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
-        reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
-
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
-
-        reporter.addErrorIf( () -> !trackedEntityInstanceExist( bundle, enrollment.getTrackedEntity() ),
-            enrollment,
-            E1068, enrollment.getTrackedEntity() );
+    TrackedEntityType entityType =
+        bundle.getPreheat().getTrackedEntityType(tei.getTrackedEntityType());
+    if (entityType == null) {
+      reporter.addError(tei, E1005, tei.getTrackedEntityType());
     }
+  }
 
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( event.getOrgUnit() );
-        reporter.addErrorIfNull( organisationUnit, event, E1011, event.getOrgUnit() );
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    OrganisationUnit organisationUnit =
+        bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
+    reporter.addErrorIfNull(organisationUnit, enrollment, E1070, enrollment.getOrgUnit());
 
-        Program program = bundle.getPreheat().getProgram( event.getProgram() );
-        reporter.addErrorIfNull( program, event, E1010, event.getProgram() );
+    Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
+    reporter.addErrorIfNull(program, enrollment, E1069, enrollment.getProgram());
 
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        reporter.addErrorIfNull( programStage, event, E1013, event.getProgramStage() );
-    }
+    reporter.addErrorIf(
+        () -> !trackedEntityInstanceExist(bundle, enrollment.getTrackedEntity()),
+        enrollment,
+        E1068,
+        enrollment.getTrackedEntity());
+  }
 
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        TrackerPreheat preheat = bundle.getPreheat();
-        RelationshipType relationshipType = preheat.getRelationshipType( relationship.getRelationshipType() );
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, TrackerBundle bundle, Event event) {
+    OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit(event.getOrgUnit());
+    reporter.addErrorIfNull(organisationUnit, event, E1011, event.getOrgUnit());
 
-        reporter.addErrorIfNull( relationshipType, relationship, E4006, relationship.getRelationshipType() );
-    }
+    Program program = bundle.getPreheat().getProgram(event.getProgram());
+    reporter.addErrorIfNull(program, event, E1010, event.getProgram());
 
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
+    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+    reporter.addErrorIfNull(programStage, event, E1013, event.getProgramStage());
+  }
 
+  @Override
+  public void validateRelationship(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Relationship relationship) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    RelationshipType relationshipType =
+        preheat.getRelationshipType(relationship.getRelationshipType());
+
+    reporter.addErrorIfNull(
+        relationshipType, relationship, E4006, relationship.getRelationshipType());
+  }
+
+  @Override
+  public boolean skipOnError() {
+    return true;
+  }
 }

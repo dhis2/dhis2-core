@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -54,135 +53,134 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class TeTaValidationTest extends TrackerTest
-{
-    @Autowired
-    private TrackerImportService trackerImportService;
+class TeTaValidationTest extends TrackerTest {
+  @Autowired private TrackerImportService trackerImportService;
 
-    @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private FileResourceService fileResourceService;
+  @Autowired private FileResourceService fileResourceService;
 
-    @Override
-    protected void initTest()
-        throws IOException
-    {
-        setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
-        injectAdminUser();
-    }
+  @Override
+  protected void initTest() throws IOException {
+    setUpMetadata("tracker/validations/te-program_with_tea_fileresource_metadata.json");
+    injectAdminUser();
+  }
 
-    @Test
-    void testTrackedEntityProgramAttributeFileResourceValue()
-        throws IOException
-    {
-        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 0,
-            "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
-        fileResource.setUid( "Jzf6hHNP7jx" );
-        File file = File.createTempFile( "file-resource", "test" );
-        fileResourceService.saveFileResource( fileResource, file );
-        assertFalse( fileResource.isAssigned() );
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_fileresource_data.json" );
-        trackerImportService.importTracker( trackerImportParams );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 1, attributeValues.size() );
-        fileResource = fileResourceService.getFileResource( fileResource.getUid() );
-        assertTrue( fileResource.isAssigned() );
-    }
+  @Test
+  void testTrackedEntityProgramAttributeFileResourceValue() throws IOException {
+    FileResource fileResource =
+        new FileResource(
+            "test.pdf",
+            "application/pdf",
+            0,
+            "d41d8cd98f00b204e9800998ecf8427e",
+            FileResourceDomain.DOCUMENT);
+    fileResource.setUid("Jzf6hHNP7jx");
+    File file = File.createTempFile("file-resource", "test");
+    fileResourceService.saveFileResource(fileResource, file);
+    assertFalse(fileResource.isAssigned());
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
+    trackerImportService.importTracker(trackerImportParams);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(1, attributeValues.size());
+    fileResource = fileResourceService.getFileResource(fileResource.getUid());
+    assertTrue(fileResource.isAssigned());
+  }
 
-    @Test
-    void testFileAlreadyAssign()
-        throws IOException
-    {
-        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 0,
-            "d41d8cd98f00b204e9800998ecf8427e", FileResourceDomain.DOCUMENT );
-        fileResource.setUid( "Jzf6hHNP7jx" );
-        File file = File.createTempFile( "file-resource", "test" );
-        fileResourceService.saveFileResource( fileResource, file );
-        assertFalse( fileResource.isAssigned() );
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_fileresource_data.json" );
-        trackerImportService.importTracker( trackerImportParams );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
-        assertEquals( 1, attributeValues.size() );
-        fileResource = fileResourceService.getFileResource( fileResource.getUid() );
-        assertTrue( fileResource.isAssigned() );
-        trackerImportParams = fromJson( "tracker/validations/te-program_with_tea_fileresource_data2.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1009 );
-    }
+  @Test
+  void testFileAlreadyAssign() throws IOException {
+    FileResource fileResource =
+        new FileResource(
+            "test.pdf",
+            "application/pdf",
+            0,
+            "d41d8cd98f00b204e9800998ecf8427e",
+            FileResourceDomain.DOCUMENT);
+    fileResource.setUid("Jzf6hHNP7jx");
+    File file = File.createTempFile("file-resource", "test");
+    fileResourceService.saveFileResource(fileResource, file);
+    assertFalse(fileResource.isAssigned());
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
+    trackerImportService.importTracker(trackerImportParams);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(1, trackedEntityInstances.size());
+    TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntityInstance);
+    assertEquals(1, attributeValues.size());
+    fileResource = fileResourceService.getFileResource(fileResource.getUid());
+    assertTrue(fileResource.isAssigned());
+    trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_fileresource_data2.json");
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1009);
+  }
 
-    @Test
-    void testNoFileRef()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_fileresource_data.json" );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+  @Test
+  void testNoFileRef() throws IOException {
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1084 );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 0, trackedEntityInstances.size() );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1084);
+    List<TrackedEntityInstance> trackedEntityInstances =
+        manager.getAll(TrackedEntityInstance.class);
+    assertEquals(0, trackedEntityInstances.size());
+  }
 
-    @Test
-    void testTeaMaxTextValueLength()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_too_long_text_value.json" );
+  @Test
+  void testTeaMaxTextValueLength() throws IOException {
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_too_long_text_value.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1077 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1077);
+  }
 
-    @Test
-    void testTeaInvalidFormat()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_invalid_format_value.json" );
+  @Test
+  void testTeaInvalidFormat() throws IOException {
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_invalid_format_value.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1085 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1085);
+  }
 
-    @Test
-    void testTeaInvalidImage()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_invalid_image_value.json" );
+  @Test
+  void testTeaInvalidImage() throws IOException {
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_invalid_image_value.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1085, TrackerErrorCode.E1007 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1085, TrackerErrorCode.E1007);
+  }
 
-    @Test
-    void testTeaIsNull()
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_invalid_value_isnull.json" );
+  @Test
+  void testTeaIsNull() throws IOException {
+    TrackerImportParams trackerImportParams =
+        fromJson("tracker/validations/te-program_with_tea_invalid_value_isnull.json");
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+    TrackerImportReport trackerImportReport =
+        trackerImportService.importTracker(trackerImportParams);
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1076 );
-    }
+    assertHasOnlyErrors(trackerImportReport, TrackerErrorCode.E1076);
+  }
 }

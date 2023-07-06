@@ -40,150 +40,160 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class GistValidationControllerTest extends AbstractGistControllerTest
-{
-    @Test
-    void testValidation_Filter_MisplacedArgument()
-    {
-        assertEquals( "Filter `surname:null:[value]` uses an unary operator and does not need an argument.",
-            GET( "/users/gist?filter=surname:null:value" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
-    }
+class GistValidationControllerTest extends AbstractGistControllerTest {
+  @Test
+  void testValidation_Filter_MisplacedArgument() {
+    assertEquals(
+        "Filter `surname:null:[value]` uses an unary operator and does not need an argument.",
+        GET("/users/gist?filter=surname:null:value").error(HttpStatus.BAD_REQUEST).getMessage());
+  }
 
-    @Test
-    void testValidation_Filter_MissingArgument()
-    {
-        assertEquals( "Filter `surname:eq:[]` uses a binary operator that does need an argument.",
-            GET( "/users/gist?filter=surname:eq" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
-    }
+  @Test
+  void testValidation_Filter_MissingArgument() {
+    assertEquals(
+        "Filter `surname:eq:[]` uses a binary operator that does need an argument.",
+        GET("/users/gist?filter=surname:eq").error(HttpStatus.BAD_REQUEST).getMessage());
+  }
 
-    @Test
-    void testValidation_Filter_TooManyArguments()
-    {
-        assertEquals( "Filter `surname:gt:[a, b]` can only be used with a single argument.",
-            GET( "/users/gist?filter=surname:gt:[a,b]" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
-    }
+  @Test
+  void testValidation_Filter_TooManyArguments() {
+    assertEquals(
+        "Filter `surname:gt:[a, b]` can only be used with a single argument.",
+        GET("/users/gist?filter=surname:gt:[a,b]").error(HttpStatus.BAD_REQUEST).getMessage());
+  }
 
-    @Test
-    void testValidation_Filter_CanRead_UserDoesNotExist()
-    {
-        assertEquals(
-            "Filtering by user access in filter `surname:canread:[not-a-UID]` requires permissions to manage the user not-a-UID.",
-            GET( "/users/gist?filter=surname:canRead:not-a-UID" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-    }
+  @Test
+  void testValidation_Filter_CanRead_UserDoesNotExist() {
+    assertEquals(
+        "Filtering by user access in filter `surname:canread:[not-a-UID]` requires permissions to manage the user not-a-UID.",
+        GET("/users/gist?filter=surname:canRead:not-a-UID")
+            .error(HttpStatus.FORBIDDEN)
+            .getMessage());
+  }
 
-    @Test
-    void testValidation_Filter_CanRead_NotAuthorized()
-    {
-        String uid = getSuperuserUid();
-        switchToGuestUser();
-        assertEquals(
-            "Filtering by user access in filter `surname:canread:[M5zQapPyTZI]` requires permissions to manage the user M5zQapPyTZI.",
-            GET( "/users/gist?filter=surname:canRead:{id}", uid ).error( HttpStatus.FORBIDDEN ).getMessage() );
-    }
+  @Test
+  void testValidation_Filter_CanRead_NotAuthorized() {
+    String uid = getSuperuserUid();
+    switchToGuestUser();
+    assertEquals(
+        "Filtering by user access in filter `surname:canread:[M5zQapPyTZI]` requires permissions to manage the user M5zQapPyTZI.",
+        GET("/users/gist?filter=surname:canRead:{id}", uid)
+            .error(HttpStatus.FORBIDDEN)
+            .getMessage());
+  }
 
-    @Test
-    void testValidation_Filter_CanAccessMissingPattern()
-    {
-        switchToSuperuser();
-        assertEquals(
-            "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a user ID and an access pattern argument.",
-            GET(
-                "/users/gist?filter=username:like:admin&filter=surname:canAccess" ).error( HttpStatus.BAD_REQUEST )
-                    .getMessage() );
-    }
+  @Test
+  void testValidation_Filter_CanAccessMissingPattern() {
+    switchToSuperuser();
+    assertEquals(
+        "Filter `surname:canaccess:["
+            + getSuperuserUid()
+            + "]` requires a user ID and an access pattern argument.",
+        GET("/users/gist?filter=username:like:admin&filter=surname:canAccess")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
 
-    @Test
-    void testValidation_Filter_CanAccessMaliciousPattern()
-    {
-        assertEquals(
-            "Filter `surname:canaccess:[fake-UID, drop tables]` pattern argument must be 2 to 8 letters allowing letters 'r', 'w', '_' and '%'.",
-            GET( "/users/gist?filter=surname:canAccess:[fake-UID,drop tables]" ).error( HttpStatus.BAD_REQUEST )
-                .getMessage() );
-    }
+  @Test
+  void testValidation_Filter_CanAccessMaliciousPattern() {
+    assertEquals(
+        "Filter `surname:canaccess:[fake-UID, drop tables]` pattern argument must be 2 to 8 letters allowing letters 'r', 'w', '_' and '%'.",
+        GET("/users/gist?filter=surname:canAccess:[fake-UID,drop tables]")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
 
-    @Test
-    void testValidation_Order_CollectionProperty()
-    {
-        assertEquals( "Property `userGroup` cannot be used as order property.",
-            GET( "/users/gist?order=userGroups" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
-    }
+  @Test
+  void testValidation_Order_CollectionProperty() {
+    assertEquals(
+        "Property `userGroup` cannot be used as order property.",
+        GET("/users/gist?order=userGroups").error(HttpStatus.BAD_REQUEST).getMessage());
+  }
 
-    @Test
-    void testValidation_Field_UnknownPreset()
-    {
-        assertEquals( "Field not supported: `:unknown`",
-            GET( "/organisationUnits/gist?fields=:unknown" ).error( HttpStatus.CONFLICT ).getMessage() );
-    }
+  @Test
+  void testValidation_Field_UnknownPreset() {
+    assertEquals(
+        "Field not supported: `:unknown`",
+        GET("/organisationUnits/gist?fields=:unknown").error(HttpStatus.CONFLICT).getMessage());
+  }
 
-    @Test
-    void testValidation_Field_NonPersistentPluck()
-    {
-        assertEquals( "Property `displayName` cannot be plucked as it is not a persistent field.",
-            GET( "/users/gist?fields=id,userGroups~pluck(displayName)" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
-    }
+  @Test
+  void testValidation_Field_NonPersistentPluck() {
+    assertEquals(
+        "Property `displayName` cannot be plucked as it is not a persistent field.",
+        GET("/users/gist?fields=id,userGroups~pluck(displayName)")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
 
-    @Test
-    void testValidation_Field_MultiPluck()
-    {
-        assertEquals( "Property `name, displayName` does not exist in userGroup",
-            GET( "/users/gist?fields=id,userGroups~pluck(name, displayName)" ).error( HttpStatus.BAD_REQUEST )
-                .getMessage() );
-    }
+  @Test
+  void testValidation_Field_MultiPluck() {
+    assertEquals(
+        "Property `name, displayName` does not exist in userGroup",
+        GET("/users/gist?fields=id,userGroups~pluck(name, displayName)")
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
 
-    @Test
-    void testValidation_Access_UserPublicFields()
-    {
-        switchToGuestUser();
-        JsonObject userLookup = GET( "/users/{id}/gist?fields=id,code,surname,firstName", getSuperuserUid() ).content();
-        assertTrue( userLookup.has( "id", "code", "surname", "firstName" ) );
-        assertEquals( getSuperuserUid(), userLookup.getString( "id" ).string() );
-        assertEquals( "Codeadmin", userLookup.getString( "code" ).string() );
-        assertEquals( "Surnameadmin", userLookup.getString( "surname" ).string() );
-        assertEquals( "FirstNameadmin", userLookup.getString( "firstName" ).string() );
-    }
+  @Test
+  void testValidation_Access_UserPublicFields() {
+    switchToGuestUser();
+    JsonObject userLookup =
+        GET("/users/{id}/gist?fields=id,code,surname,firstName", getSuperuserUid()).content();
+    assertTrue(userLookup.has("id", "code", "surname", "firstName"));
+    assertEquals(getSuperuserUid(), userLookup.getString("id").string());
+    assertEquals("Codeadmin", userLookup.getString("code").string());
+    assertEquals("Surnameadmin", userLookup.getString("surname").string());
+    assertEquals("FirstNameadmin", userLookup.getString("firstName").string());
+  }
 
-    @Test
-    void testValidation_Access_UserPrivateFields()
-    {
-        switchToGuestUser();
-        String url = "/users/{id}/gist?fields=id,email";
-        assertEquals( "Field `email` is not readable as user is not allowed to view objects of type User.",
-            GET( url, getSuperuserUid() ).error( HttpStatus.FORBIDDEN ).getMessage() );
-        switchToSuperuser();
-        assertStatus( HttpStatus.OK, GET( url, getSuperuserUid() ) );
-    }
+  @Test
+  void testValidation_Access_UserPrivateFields() {
+    switchToGuestUser();
+    String url = "/users/{id}/gist?fields=id,email";
+    assertEquals(
+        "Field `email` is not readable as user is not allowed to view objects of type User.",
+        GET(url, getSuperuserUid()).error(HttpStatus.FORBIDDEN).getMessage());
+    switchToSuperuser();
+    assertStatus(HttpStatus.OK, GET(url, getSuperuserUid()));
+  }
 
-    @Test
-    void testValidation_Access_UserPublicFields2()
-    {
-        switchToGuestUser();
-        assertEquals( "admin",
-            GET( "/users/{id}/gist?fields=username", getSuperuserUid() ).content().string() );
-    }
+  @Test
+  void testValidation_Access_UserPublicFields2() {
+    switchToGuestUser();
+    assertEquals(
+        "admin", GET("/users/{id}/gist?fields=username", getSuperuserUid()).content().string());
+  }
 
-    @Test
-    void testValidation_Access_UserPrivateFields2()
-    {
-        switchToGuestUser();
-        String url = "/users/{id}/gist?fields=twoFA,disabled";
-        assertEquals(
-            "Field `twoFA` is not readable as user is not allowed to view objects of type User.",
-            GET( url, getSuperuserUid() ).error( HttpStatus.FORBIDDEN ).getMessage() );
-        switchToSuperuser();
-        assertStatus( HttpStatus.OK, GET( url, getSuperuserUid() ) );
-    }
+  @Test
+  void testValidation_Access_UserPrivateFields2() {
+    switchToGuestUser();
+    String url = "/users/{id}/gist?fields=twoFA,disabled";
+    assertEquals(
+        "Field `twoFA` is not readable as user is not allowed to view objects of type User.",
+        GET(url, getSuperuserUid()).error(HttpStatus.FORBIDDEN).getMessage());
+    switchToSuperuser();
+    assertStatus(HttpStatus.OK, GET(url, getSuperuserUid()));
+  }
 
-    @Test
-    void testValidation_Access_CollectionOwnerSharing()
-    {
-        JsonObject group = GET( "/userGroups/{id}", userGroupId ).content();
-        String sharing = group.getObject( "sharing" ).node().extract().members().get( "public" )
-            .replaceWith( "\"--------\"" ).toString();
-        assertStatus( HttpStatus.NO_CONTENT, PUT( "/userGroups/" + userGroupId + "/sharing", sharing ) );
-        switchToGuestUser();
-        assertEquals( "User not allowed to view UserGroup " + userGroupId,
-            GET( "/userGroups/{id}/users/gist", userGroupId ).error( HttpStatus.FORBIDDEN ).getMessage() );
-        switchToSuperuser();
-        assertStatus( HttpStatus.OK, GET( "/userGroups/{id}/users/gist", userGroupId ) );
-    }
+  @Test
+  void testValidation_Access_CollectionOwnerSharing() {
+    JsonObject group = GET("/userGroups/{id}", userGroupId).content();
+    String sharing =
+        group
+            .getObject("sharing")
+            .node()
+            .extract()
+            .members()
+            .get("public")
+            .replaceWith("\"--------\"")
+            .toString();
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/userGroups/" + userGroupId + "/sharing", sharing));
+    switchToGuestUser();
+    assertEquals(
+        "User not allowed to view UserGroup " + userGroupId,
+        GET("/userGroups/{id}/users/gist", userGroupId).error(HttpStatus.FORBIDDEN).getMessage());
+    switchToSuperuser();
+    assertStatus(HttpStatus.OK, GET("/userGroups/{id}/users/gist", userGroupId));
+  }
 }

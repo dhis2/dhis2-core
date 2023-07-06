@@ -27,21 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.event.EventStatus;
 import org.locationtech.jts.geom.Geometry;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -50,242 +47,160 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RelationshipItem
-{
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class TrackedEntity
-    {
-        @JsonProperty
-        private String trackedEntity;
+public class RelationshipItem {
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class TrackedEntity {
+    @JsonProperty private String trackedEntity;
 
-        @JsonProperty
-        private String trackedEntityType;
+    @JsonProperty private String trackedEntityType;
 
-        @JsonProperty
-        private Instant createdAt;
+    @JsonProperty private Instant createdAt;
 
-        @JsonProperty
-        private Instant createdAtClient;
+    @JsonProperty private Instant createdAtClient;
 
-        @JsonProperty
-        private Instant updatedAt;
+    @JsonProperty private Instant updatedAt;
 
-        @JsonProperty
-        private Instant updatedAtClient;
+    @JsonProperty private Instant updatedAtClient;
 
-        @JsonProperty
-        private String orgUnit;
+    @JsonProperty private String orgUnit;
 
-        @JsonProperty
-        private boolean inactive;
+    @JsonProperty private boolean inactive;
 
-        @JsonProperty
-        private boolean deleted;
+    @JsonProperty private boolean deleted;
 
-        @JsonProperty
-        private boolean potentialDuplicate;
+    @JsonProperty private boolean potentialDuplicate;
 
-        @JsonProperty
-        private Geometry geometry;
+    @JsonProperty private Geometry geometry;
 
-        @JsonProperty
-        private String storedBy;
+    @JsonProperty private String storedBy;
 
-        @JsonProperty
-        private User createdBy;
+    @JsonProperty private User createdBy;
 
-        @JsonProperty
-        private User updatedBy;
+    @JsonProperty private User updatedBy;
 
-        @JsonProperty
-        @Builder.Default
-        private List<Attribute> attributes = new ArrayList<>();
+    @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
-        @JsonProperty
-        @Builder.Default
-        private List<Enrollment> enrollments = new ArrayList<>();
+    @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
-        @JsonProperty
-        @Builder.Default
-        private List<ProgramOwner> programOwners = new ArrayList<>();
-    }
+    @JsonProperty @Builder.Default private List<ProgramOwner> programOwners = new ArrayList<>();
+  }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Enrollment
-    {
-        @JsonProperty
-        private String enrollment;
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class Enrollment {
+    @JsonProperty private String enrollment;
 
-        @JsonProperty
-        private Instant createdAt;
+    @JsonProperty private Instant createdAt;
 
-        @JsonProperty
-        private Instant createdAtClient;
+    @JsonProperty private Instant createdAtClient;
 
-        @JsonProperty
-        private Instant updatedAt;
+    @JsonProperty private Instant updatedAt;
 
-        @JsonProperty
-        private Instant updatedAtClient;
+    @JsonProperty private Instant updatedAtClient;
 
-        @JsonProperty
-        private String trackedEntity;
+    @JsonProperty private String trackedEntity;
 
-        @JsonProperty
-        private String program;
+    @JsonProperty private String program;
 
-        @JsonProperty
-        private EnrollmentStatus status;
+    @JsonProperty private EnrollmentStatus status;
 
-        @JsonProperty
-        private String orgUnit;
+    @JsonProperty private String orgUnit;
 
-        @JsonProperty
-        private String orgUnitName;
+    @JsonProperty private String orgUnitName;
 
-        @JsonProperty
-        private Instant enrolledAt;
+    @JsonProperty private Instant enrolledAt;
 
-        @JsonProperty
-        private Instant occurredAt;
+    @JsonProperty private Instant occurredAt;
 
-        @JsonProperty
-        private boolean followUp;
+    @JsonProperty private boolean followUp;
 
-        @JsonProperty
-        private String completedBy;
+    @JsonProperty private String completedBy;
 
-        @JsonProperty
-        private Instant completedAt;
+    @JsonProperty private Instant completedAt;
 
-        @JsonProperty
-        private boolean deleted;
+    @JsonProperty private boolean deleted;
 
-        @JsonProperty
-        private String storedBy;
+    @JsonProperty private String storedBy;
 
-        @JsonProperty
-        private User createdBy;
+    @JsonProperty private User createdBy;
 
-        @JsonProperty
-        private User updatedBy;
+    @JsonProperty private User updatedBy;
 
-        @JsonProperty
-        private Geometry geometry;
+    @JsonProperty private Geometry geometry;
 
-        @JsonProperty
-        @Builder.Default
-        private List<Event> events = new ArrayList<>();
+    @JsonProperty @Builder.Default private List<Event> events = new ArrayList<>();
 
-        @JsonProperty
-        @Builder.Default
-        private List<Attribute> attributes = new ArrayList<>();
+    @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
-        @JsonProperty
-        @Builder.Default
-        private List<Note> notes = new ArrayList<>();
-    }
+    @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
+  }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Event
-    {
-        @JsonProperty
-        private String event;
+  @Data
+  @Builder
+  @NoArgsConstructor
+  @AllArgsConstructor
+  public static class Event {
+    @JsonProperty private String event;
 
-        @JsonProperty
-        @Builder.Default
-        private EventStatus status = EventStatus.ACTIVE;
+    @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
-        @JsonProperty
-        private String program;
+    @JsonProperty private String program;
 
-        @JsonProperty
-        private String programStage;
+    @JsonProperty private String programStage;
 
-        @JsonProperty
-        private String enrollment;
+    @JsonProperty private String enrollment;
 
-        @JsonProperty
-        private String orgUnit;
+    @JsonProperty private String orgUnit;
 
-        @JsonProperty
-        private String orgUnitName;
+    @JsonProperty private String orgUnitName;
 
-        @JsonProperty
-        private Instant occurredAt;
+    @JsonProperty private Instant occurredAt;
 
-        @JsonProperty
-        private Instant scheduledAt;
+    @JsonProperty private Instant scheduledAt;
 
-        @JsonProperty
-        private String storedBy;
+    @JsonProperty private String storedBy;
 
-        @JsonProperty
-        private boolean followup;
+    @JsonProperty private boolean followup;
 
-        @JsonProperty
-        private boolean deleted;
+    @JsonProperty private boolean deleted;
 
-        @JsonProperty
-        private Instant createdAt;
+    @JsonProperty private Instant createdAt;
 
-        @JsonProperty
-        private Instant createdAtClient;
+    @JsonProperty private Instant createdAtClient;
 
-        @JsonProperty
-        private Instant updatedAt;
+    @JsonProperty private Instant updatedAt;
 
-        @JsonProperty
-        private Instant updatedAtClient;
+    @JsonProperty private Instant updatedAtClient;
 
-        @JsonProperty
-        private String attributeOptionCombo;
+    @JsonProperty private String attributeOptionCombo;
 
-        @JsonProperty
-        private String attributeCategoryOptions;
+    @JsonProperty private String attributeCategoryOptions;
 
-        @JsonProperty
-        private String completedBy;
+    @JsonProperty private String completedBy;
 
-        @JsonProperty
-        private Instant completedAt;
+    @JsonProperty private Instant completedAt;
 
-        @JsonProperty
-        private Geometry geometry;
+    @JsonProperty private Geometry geometry;
 
-        @JsonProperty
-        private User assignedUser;
+    @JsonProperty private User assignedUser;
 
-        @JsonProperty
-        private User createdBy;
+    @JsonProperty private User createdBy;
 
-        @JsonProperty
-        private User updatedBy;
+    @JsonProperty private User updatedBy;
 
-        @JsonProperty
-        @Builder.Default
-        private Set<DataValue> dataValues = new HashSet<>();
+    @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
 
-        @JsonProperty
-        @Builder.Default
-        private List<Note> notes = new ArrayList<>();
-    }
+    @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
+  }
 
-    @JsonProperty
-    private TrackedEntity trackedEntity;
+  @JsonProperty private TrackedEntity trackedEntity;
 
-    @JsonProperty
-    private Enrollment enrollment;
+  @JsonProperty private Enrollment enrollment;
 
-    @JsonProperty
-    private Event event;
+  @JsonProperty private Event event;
 }

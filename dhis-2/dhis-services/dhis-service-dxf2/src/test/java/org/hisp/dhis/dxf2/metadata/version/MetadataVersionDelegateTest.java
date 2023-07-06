@@ -42,7 +42,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.http.HttpResponse;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
@@ -67,411 +66,459 @@ import org.springframework.http.HttpStatus;
 /**
  * @author anilkumk
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataVersionDelegateTest
-{
-    private MetadataVersionDelegate target;
+@ExtendWith(MockitoExtension.class)
+class MetadataVersionDelegateTest {
+  private MetadataVersionDelegate target;
 
-    @Mock
-    private SynchronizationManager synchronizationManager;
+  @Mock private SynchronizationManager synchronizationManager;
 
-    @Mock
-    private DefaultMetadataSystemSettingService metadataSystemSettingService;
+  @Mock private DefaultMetadataSystemSettingService metadataSystemSettingService;
 
-    @Mock
-    private MetadataVersionService metadataVersionService;
+  @Mock private MetadataVersionService metadataVersionService;
 
-    @Mock
-    private RenderService renderService;
+  @Mock private RenderService renderService;
 
-    private HttpResponse httpResponse;
+  private HttpResponse httpResponse;
 
-    private MetadataVersion metadataVersion;
+  private MetadataVersion metadataVersion;
 
-    private int VERSION_TIMEOUT = 120000;
+  private int VERSION_TIMEOUT = 120000;
 
-    private int DOWNLOAD_TIMEOUT = 300000;
+  private int DOWNLOAD_TIMEOUT = 300000;
 
-    private String username = "username";
+  private String username = "username";
 
-    private String password = "password";
+  private String password = "password";
 
-    private String versionUrl = "http://localhost:9080/api/metadata/version?versionName=Version_Name";
+  private String versionUrl = "http://localhost:9080/api/metadata/version?versionName=Version_Name";
 
-    private String baselineUrl = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
+  private String baselineUrl =
+      "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
 
-    private String downloadUrl = "http://localhost:9080/api/metadata/version/testVersion/data.gz";
+  private String downloadUrl = "http://localhost:9080/api/metadata/version/testVersion/data.gz";
 
-    private String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
+  private String response =
+      "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
 
-    @BeforeEach
-    public void setup()
-    {
-        httpResponse = mock( HttpResponse.class );
-        metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
-        metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
+  @BeforeEach
+  public void setup() {
+    httpResponse = mock(HttpResponse.class);
+    metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
+    metadataVersion.setHashCode("12wa32d4f2et3tyt5yu6i");
 
-        target = new MetadataVersionDelegate( metadataSystemSettingService, synchronizationManager, renderService,
-            metadataVersionService );
+    target =
+        new MetadataVersionDelegate(
+            metadataSystemSettingService,
+            synchronizationManager,
+            renderService,
+            metadataVersionService);
+  }
+
+  @Test
+  void testShouldThrowExceptionWhenServerNotAvailable() {
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(false, "test_message", null);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+
+    assertThrows(
+        RemoteServerUnavailableException.class,
+        () -> target.getRemoteMetadataVersion("testVersion"),
+        "test_message");
+  }
+
+  @Test
+  void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull() {
+
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "test_message", null);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      versionUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(null);
+
+      MetadataVersion version = target.getRemoteMetadataVersion("testVersion");
+
+      assertNull(version);
     }
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenServerNotAvailable()
-    {
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( false, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+  @Test
+  void testShouldThrowExceptionWhenHTTPRequestFails() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        assertThrows( RemoteServerUnavailableException.class, () -> target.getRemoteMetadataVersion( "testVersion" ),
-            "test_message" );
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "testMessage", null);
+
+    when(metadataSystemSettingService.getVersionDetailsUrl("testVersion")).thenReturn(versionUrl);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      versionUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenThrow(new Exception(""));
+
+      assertThrows(
+          MetadataVersionServiceException.class,
+          () -> target.getRemoteMetadataVersion("testVersion"));
     }
+  }
 
-    @Test
-    void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull()
-    {
+  @Test
+  void testShouldGetRemoteMetadataVersionWithStatusOk() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "testMessage", null);
+    DhisHttpResponse dhisHttpResponse =
+        new DhisHttpResponse(httpResponse, response, HttpStatus.OK.value());
 
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( null );
+    when(metadataSystemSettingService.getVersionDetailsUrl("testVersion")).thenReturn(versionUrl);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
 
-            MetadataVersion version = target.getRemoteMetadataVersion( "testVersion" );
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      versionUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
 
-            assertNull( version );
-        }
+      when(renderService.fromJson(response, MetadataVersion.class)).thenReturn(metadataVersion);
+      MetadataVersion remoteMetadataVersion = target.getRemoteMetadataVersion("testVersion");
+
+      assertEquals(metadataVersion.getType(), remoteMetadataVersion.getType());
+      assertEquals(metadataVersion.getHashCode(), remoteMetadataVersion.getHashCode());
+      assertEquals(metadataVersion.getName(), remoteMetadataVersion.getName());
+      assertEquals(metadataVersion, remoteMetadataVersion);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenHTTPRequestFails()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldGetMetaDataDifferenceWithStatusOk() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
+    String response =
+        "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
+    MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
+    metadataVersion.setHashCode("12wa32d4f2et3tyt5yu6i");
 
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+    String url = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
 
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenThrow( new Exception( "" ) );
+    when(metadataSystemSettingService.getMetaDataDifferenceURL("testVersion")).thenReturn(url);
 
-            assertThrows( MetadataVersionServiceException.class,
-                () -> target.getRemoteMetadataVersion( "testVersion" ) );
-        }
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "test_message", null);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+
+    HttpResponse httpResponse = mock(HttpResponse.class);
+    DhisHttpResponse dhisHttpResponse =
+        new DhisHttpResponse(httpResponse, response, HttpStatus.OK.value());
+
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      baselineUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
+
+      List<MetadataVersion> metadataVersionList = new ArrayList<>();
+      metadataVersionList.add(metadataVersion);
+
+      when(metadataSystemSettingService.getMetaDataDifferenceURL("testVersion"))
+          .thenReturn(baselineUrl);
+      when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+      when(renderService.fromMetadataVersion(
+              any(ByteArrayInputStream.class), eq(RenderFormat.JSON)))
+          .thenReturn(metadataVersionList);
+
+      List<MetadataVersion> metaDataDifference = target.getMetaDataDifference(metadataVersion);
+
+      assertEquals(metaDataDifference.size(), metadataVersionList.size());
+      assertEquals(metadataVersionList.get(0).getType(), metaDataDifference.get(0).getType());
+      assertEquals(metadataVersionList.get(0).getName(), metaDataDifference.get(0).getName());
+      assertEquals(
+          metadataVersionList.get(0).getHashCode(), metaDataDifference.get(0).getHashCode());
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+  }
 
-    @Test
-    void testShouldGetRemoteMetadataVersionWithStatusOk()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldThrowExceptionWhenRenderServiceThrowsExceptionWhileGettingMetadataDifference() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
+    String response =
+        "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
+    MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
+    metadataVersion.setHashCode("12wa32d4f2et3tyt5yu6i");
 
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+    String url = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
 
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
+    when(metadataSystemSettingService.getMetaDataDifferenceURL("testVersion")).thenReturn(url);
 
-            when( renderService.fromJson( response, MetadataVersion.class ) ).thenReturn( metadataVersion );
-            MetadataVersion remoteMetadataVersion = target.getRemoteMetadataVersion( "testVersion" );
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "test_message", null);
 
-            assertEquals( metadataVersion.getType(), remoteMetadataVersion.getType() );
-            assertEquals( metadataVersion.getHashCode(), remoteMetadataVersion.getHashCode() );
-            assertEquals( metadataVersion.getName(), remoteMetadataVersion.getName() );
-            assertEquals( metadataVersion, remoteMetadataVersion );
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+
+    DhisHttpResponse dhisHttpResponse =
+        new DhisHttpResponse(httpResponse, response, HttpStatus.OK.value());
+
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      baselineUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
+      when(renderService.fromMetadataVersion(
+              any(ByteArrayInputStream.class), eq(RenderFormat.JSON)))
+          .thenThrow(new IOException(""));
+
+      assertThrows(
+          MetadataVersionServiceException.class,
+          () -> target.getMetaDataDifference(metadataVersion),
+          "Exception occurred while trying to do JSON conversion. Caused by: ");
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+  }
 
-    @Test
-    void testShouldGetMetaDataDifferenceWithStatusOk()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldReturnEmptyMetadataDifference() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
-        metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
+    String response =
+        "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
+    MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
+    metadataVersion.setHashCode("12wa32d4f2et3tyt5yu6i");
 
-        String url = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
+    String url = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
 
-        when( metadataSystemSettingService.getMetaDataDifferenceURL( "testVersion" ) ).thenReturn( url );
+    when(metadataSystemSettingService.getMetaDataDifferenceURL("testVersion")).thenReturn(url);
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "test_message", null);
 
-        HttpResponse httpResponse = mock( HttpResponse.class );
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
 
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
+    DhisHttpResponse dhisHttpResponse =
+        new DhisHttpResponse(httpResponse, response, HttpStatus.BAD_REQUEST.value());
 
-            List<MetadataVersion> metadataVersionList = new ArrayList<>();
-            metadataVersionList.add( metadataVersion );
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      baselineUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
 
-            when( metadataSystemSettingService.getMetaDataDifferenceURL( "testVersion" ) ).thenReturn( baselineUrl );
-            when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-            when( renderService.fromMetadataVersion( any( ByteArrayInputStream.class ), eq( RenderFormat.JSON ) ) )
-                .thenReturn( metadataVersionList );
-
-            List<MetadataVersion> metaDataDifference = target.getMetaDataDifference( metadataVersion );
-
-            assertEquals( metaDataDifference.size(), metadataVersionList.size() );
-            assertEquals( metadataVersionList.get( 0 ).getType(), metaDataDifference.get( 0 ).getType() );
-            assertEquals( metadataVersionList.get( 0 ).getName(), metaDataDifference.get( 0 ).getName() );
-            assertEquals( metadataVersionList.get( 0 ).getHashCode(), metaDataDifference.get( 0 ).getHashCode() );
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
+      assertThrows(
+          MetadataVersionServiceException.class,
+          () -> target.getMetaDataDifference(metadataVersion),
+          "Client Error. Http call failed with status code: 400 Caused by: "
+              + dhisHttpResponse.getResponse());
     }
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenRenderServiceThrowsExceptionWhileGettingMetadataDifference()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithClientError() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
-        metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
+    String response =
+        "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
+    MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
+    metadataVersion.setHashCode("12wa32d4f2et3tyt5yu6i");
 
-        String url = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "test_message", null);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
 
-        when( metadataSystemSettingService.getMetaDataDifferenceURL( "testVersion" ) ).thenReturn( url );
+    HttpResponse httpResponse = mock(HttpResponse.class);
+    DhisHttpResponse dhisHttpResponse =
+        new DhisHttpResponse(httpResponse, response, HttpStatus.CONFLICT.value());
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
+    when(metadataSystemSettingService.getVersionDetailsUrl("testVersion")).thenReturn(versionUrl);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
 
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      versionUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
 
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
-
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
-            when( renderService.fromMetadataVersion( any( ByteArrayInputStream.class ), eq( RenderFormat.JSON ) ) )
-                .thenThrow( new IOException( "" ) );
-
-            assertThrows( MetadataVersionServiceException.class, () -> target.getMetaDataDifference( metadataVersion ),
-                "Exception occurred while trying to do JSON conversion. Caused by: " );
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
+      assertThrows(
+          MetadataVersionServiceException.class,
+          () -> target.getRemoteMetadataVersion("testVersion"),
+          "Client Error. Http call failed with status code: "
+              + HttpStatus.CONFLICT.value()
+              + " Caused by: "
+              + response);
     }
+  }
 
-    @Test
-    void testShouldReturnEmptyMetadataDifference()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithServerError() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
-        metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
+    String response =
+        "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
+    MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
+    metadataVersion.setHashCode("12wa32d4f2et3tyt5yu6i");
 
-        String url = "http://localhost:9080/api/metadata/version/history?baseline=testVersion";
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "test_message", null);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
 
-        when( metadataSystemSettingService.getMetaDataDifferenceURL( "testVersion" ) ).thenReturn( url );
+    HttpResponse httpResponse = mock(HttpResponse.class);
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
+    DhisHttpResponse dhisHttpResponse =
+        new DhisHttpResponse(httpResponse, response, HttpStatus.GATEWAY_TIMEOUT.value());
 
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+    when(metadataSystemSettingService.getVersionDetailsUrl("testVersion")).thenReturn(versionUrl);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      versionUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
 
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response,
-            HttpStatus.BAD_REQUEST.value() );
-
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( baselineUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
-
-            assertThrows( MetadataVersionServiceException.class, () -> target.getMetaDataDifference( metadataVersion ),
-                "Client Error. Http call failed with status code: 400 Caused by: " + dhisHttpResponse.getResponse() );
-        }
+      assertThrows(
+          MetadataVersionServiceException.class,
+          () -> target.getRemoteMetadataVersion("testVersion"),
+          "Server Error. Http call failed with status code: "
+              + HttpStatus.GATEWAY_TIMEOUT.value()
+              + " Caused by: "
+              + response);
     }
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithClientError()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldThrowExceptionWhenRenderServiceThrowsException() {
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
-        metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
+    AvailabilityStatus availabilityStatus = new AvailabilityStatus(true, "testMessage", null);
+    DhisHttpResponse dhisHttpResponse =
+        new DhisHttpResponse(httpResponse, response, HttpStatus.OK.value());
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+    when(metadataSystemSettingService.getVersionDetailsUrl("testVersion")).thenReturn(versionUrl);
+    when(synchronizationManager.isRemoteServerAvailable()).thenReturn(availabilityStatus);
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      versionUrl, true, username, password, null, VERSION_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
+      when(renderService.fromJson(response, MetadataVersion.class))
+          .thenThrow(new MetadataVersionServiceException(""));
 
-        HttpResponse httpResponse = mock( HttpResponse.class );
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.CONFLICT.value() );
-
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
-
-            assertThrows( MetadataVersionServiceException.class, () -> target.getRemoteMetadataVersion( "testVersion" ),
-                "Client Error. Http call failed with status code: "
-                    + HttpStatus.CONFLICT.value() + " Caused by: " + response );
-        }
+      assertThrows(
+          MetadataVersionServiceException.class,
+          () -> target.getRemoteMetadataVersion("testVersion"),
+          "Exception occurred while trying to do JSON conversion for metadata version");
+    } catch (IOException e) {
+      e.printStackTrace();
     }
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithServerError()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldDownloadMetadataVersion() {
+    when(metadataSystemSettingService.getDownloadVersionSnapshotURL("testVersion"))
+        .thenReturn(downloadUrl);
+    when(synchronizationManager.isRemoteServerAvailable())
+        .thenReturn(new AvailabilityStatus(true, "test_message", null));
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-        MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
-        metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      String response =
+          "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
+      DhisHttpResponse dhisHttpResponse =
+          new DhisHttpResponse(httpResponse, response, HttpStatus.OK.value());
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true))
+          .thenReturn(dhisHttpResponse);
+      MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
+      metadataVersion.setHashCode("12wa32d4f2et3tyt5yu6i");
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
+      String actualVersionSnapShot = target.downloadMetadataVersionSnapshot(metadataVersion);
 
-        HttpResponse httpResponse = mock( HttpResponse.class );
-
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response,
-            HttpStatus.GATEWAY_TIMEOUT.value() );
-
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
-
-            assertThrows( MetadataVersionServiceException.class, () -> target.getRemoteMetadataVersion( "testVersion" ),
-                "Server Error. Http call failed with status code: "
-                    + HttpStatus.GATEWAY_TIMEOUT.value() + " Caused by: " + response );
-        }
+      assertEquals(response, actualVersionSnapShot);
     }
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenRenderServiceThrowsException()
-    {
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldReturnNullOnInValidDHISResponse() {
+    when(metadataSystemSettingService.getDownloadVersionSnapshotURL("testVersion"))
+        .thenReturn(downloadUrl);
+    when(synchronizationManager.isRemoteServerAvailable())
+        .thenReturn(new AvailabilityStatus(true, "test_message", null));
+    when(metadataSystemSettingService.getRemoteInstanceUserName()).thenReturn(username);
+    when(metadataSystemSettingService.getRemoteInstancePassword()).thenReturn(password);
 
-        AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "testMessage", null );
-        DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true))
+          .thenReturn(null);
 
-        when( metadataSystemSettingService.getVersionDetailsUrl( "testVersion" ) ).thenReturn( versionUrl );
-        when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked.when( () -> HttpUtils.httpGET( versionUrl, true, username, password, null, VERSION_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
-            when( renderService.fromJson( response, MetadataVersion.class ) )
-                .thenThrow( new MetadataVersionServiceException( "" ) );
+      String actualVersionSnapShot =
+          target.downloadMetadataVersionSnapshot(
+              new MetadataVersion("testVersion", VersionType.BEST_EFFORT));
 
-            assertThrows( MetadataVersionServiceException.class, () -> target.getRemoteMetadataVersion( "testVersion" ),
-                "Exception occurred while trying to do JSON conversion for metadata version" );
-        }
-        catch ( IOException e )
-        {
-            e.printStackTrace();
-        }
+      assertNull(actualVersionSnapShot);
     }
+  }
 
-    @Test
-    void testShouldDownloadMetadataVersion()
-    {
-        when( metadataSystemSettingService.getDownloadVersionSnapshotURL( "testVersion" ) )
-            .thenReturn( downloadUrl );
-        when( synchronizationManager.isRemoteServerAvailable() )
-            .thenReturn( new AvailabilityStatus( true, "test_message", null ) );
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldNotGetMetadataVersionIfRemoteServerIsUnavailable() {
+    when(metadataSystemSettingService.getDownloadVersionSnapshotURL("testVersion"))
+        .thenReturn(downloadUrl);
+    when(synchronizationManager.isRemoteServerAvailable())
+        .thenReturn(new AvailabilityStatus(false, "test_message", null));
 
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            String response = "{\"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
-            DhisHttpResponse dhisHttpResponse = new DhisHttpResponse( httpResponse, response, HttpStatus.OK.value() );
-            mocked
-                .when( () -> HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) )
-                .thenReturn( dhisHttpResponse );
-            MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.BEST_EFFORT );
-            metadataVersion.setHashCode( "12wa32d4f2et3tyt5yu6i" );
+    try (MockedStatic<HttpUtils> mocked = mockStatic(HttpUtils.class)) {
+      mocked
+          .when(
+              () ->
+                  HttpUtils.httpGET(
+                      downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true))
+          .thenReturn(null);
 
-            String actualVersionSnapShot = target.downloadMetadataVersionSnapshot( metadataVersion );
+      assertThrows(
+          RemoteServerUnavailableException.class,
+          () ->
+              target.downloadMetadataVersionSnapshot(
+                  new MetadataVersion("testVersion", VersionType.BEST_EFFORT)));
 
-            assertEquals( response, actualVersionSnapShot );
-        }
+      mocked.verifyNoInteractions();
     }
+  }
 
-    @Test
-    void testShouldReturnNullOnInValidDHISResponse()
-    {
-        when( metadataSystemSettingService.getDownloadVersionSnapshotURL( "testVersion" ) )
-            .thenReturn( downloadUrl );
-        when( synchronizationManager.isRemoteServerAvailable() )
-            .thenReturn( new AvailabilityStatus( true, "test_message", null ) );
-        when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
-        when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
+  @Test
+  void testShouldAddNewMetadataVersion() {
+    target.addNewMetadataVersion(metadataVersion);
 
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked
-                .when( () -> HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) )
-                .thenReturn( null );
-
-            String actualVersionSnapShot = target
-                .downloadMetadataVersionSnapshot( new MetadataVersion( "testVersion", VersionType.BEST_EFFORT ) );
-
-            assertNull( actualVersionSnapShot );
-        }
-    }
-
-    @Test
-    void testShouldNotGetMetadataVersionIfRemoteServerIsUnavailable()
-    {
-        when( metadataSystemSettingService.getDownloadVersionSnapshotURL( "testVersion" ) )
-            .thenReturn( downloadUrl );
-        when( synchronizationManager.isRemoteServerAvailable() )
-            .thenReturn( new AvailabilityStatus( false, "test_message", null ) );
-
-        try ( MockedStatic<HttpUtils> mocked = mockStatic( HttpUtils.class ) )
-        {
-            mocked
-                .when( () -> HttpUtils.httpGET( downloadUrl, true, username, password, null, DOWNLOAD_TIMEOUT, true ) )
-                .thenReturn( null );
-
-            assertThrows( RemoteServerUnavailableException.class,
-                () -> target
-                    .downloadMetadataVersionSnapshot( new MetadataVersion( "testVersion", VersionType.BEST_EFFORT ) ) );
-
-            mocked.verifyNoInteractions();
-        }
-    }
-
-    @Test
-    void testShouldAddNewMetadataVersion()
-    {
-        target.addNewMetadataVersion( metadataVersion );
-
-        verify( metadataVersionService, times( 1 ) ).addVersion( metadataVersion );
-    }
+    verify(metadataVersionService, times(1)).addVersion(metadataVersion);
+  }
 }

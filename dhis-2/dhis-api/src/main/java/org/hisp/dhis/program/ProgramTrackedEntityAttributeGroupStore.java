@@ -33,6 +33,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * @author Viet Nguyen
  */
 public interface ProgramTrackedEntityAttributeGroupStore
-    extends IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup>
-{
-}
+    extends IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> {}

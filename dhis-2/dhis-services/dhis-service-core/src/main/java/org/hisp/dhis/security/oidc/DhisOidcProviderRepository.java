@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import com.google.common.base.MoreObjects;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.PostConstruct;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
@@ -42,75 +41,64 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
-import com.google.common.base.MoreObjects;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-
 @Component
-public class DhisOidcProviderRepository
-    implements ClientRegistrationRepository
-{
-    @Autowired
-    private DhisConfigurationProvider config;
+public class DhisOidcProviderRepository implements ClientRegistrationRepository {
+  @Autowired private DhisConfigurationProvider config;
 
-    private final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
+  private final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
 
-    @PostConstruct
-    public void init()
-    {
-        GenericOidcProviderConfigParser.parse( config.getProperties() ).forEach( this::addRegistration );
-        AzureAdProvider.parse( config.getProperties() ).forEach( this::addRegistration );
+  @PostConstruct
+  public void init() {
+    GenericOidcProviderConfigParser.parse(config.getProperties()).forEach(this::addRegistration);
+    AzureAdProvider.parse(config.getProperties()).forEach(this::addRegistration);
 
-        addRegistration( GoogleProvider.parse( config.getProperties() ) );
-        addRegistration( Wso2Provider.parse( config.getProperties() ) );
+    addRegistration(GoogleProvider.parse(config.getProperties()));
+    addRegistration(Wso2Provider.parse(config.getProperties()));
+  }
+
+  public void addRegistration(DhisOidcClientRegistration registration) {
+    if (registration == null) {
+      return;
     }
 
-    public void addRegistration( DhisOidcClientRegistration registration )
-    {
-        if ( registration == null )
-        {
-            return;
-        }
+    registrationHashMap.putIfAbsent(
+        registration.getClientRegistration().getRegistrationId(), registration);
+  }
 
-        registrationHashMap.putIfAbsent( registration.getClientRegistration().getRegistrationId(), registration );
+  public void clear() {
+    this.registrationHashMap.clear();
+  }
+
+  @Override
+  public ClientRegistration findByRegistrationId(String registrationId) {
+    final DhisOidcClientRegistration dhisOidcClientRegistration =
+        registrationHashMap.get(registrationId);
+    if (dhisOidcClientRegistration == null) {
+      return null;
     }
 
-    public void clear()
-    {
-        this.registrationHashMap.clear();
-    }
+    return dhisOidcClientRegistration.getClientRegistration();
+  }
 
-    @Override
-    public ClientRegistration findByRegistrationId( String registrationId )
-    {
-        final DhisOidcClientRegistration dhisOidcClientRegistration = registrationHashMap.get( registrationId );
-        if ( dhisOidcClientRegistration == null )
-        {
-            return null;
-        }
+  public DhisOidcClientRegistration getDhisOidcClientRegistration(String registrationId) {
+    return registrationHashMap.get(registrationId);
+  }
 
-        return dhisOidcClientRegistration.getClientRegistration();
-    }
+  public Set<String> getAllRegistrationId() {
+    return registrationHashMap.keySet();
+  }
 
-    public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )
-    {
-        return registrationHashMap.get( registrationId );
-    }
-
-    public Set<String> getAllRegistrationId()
-    {
-        return registrationHashMap.keySet();
-    }
-
-    public DhisOidcClientRegistration findByIssuerUri( String issuerUri )
-    {
-        return registrationHashMap.values().stream()
-            .filter( c -> MoreObjects.firstNonNull(
-                c.getClientRegistration().getProviderDetails().getIssuerUri(), "" )
-                .equals( issuerUri ) )
-            .findAny()
-            .orElse( null );
-    }
+  public DhisOidcClientRegistration findByIssuerUri(String issuerUri) {
+    return registrationHashMap.values().stream()
+        .filter(
+            c ->
+                MoreObjects.firstNonNull(
+                        c.getClientRegistration().getProviderDetails().getIssuerUri(), "")
+                    .equals(issuerUri))
+        .findAny()
+        .orElse(null);
+  }
 }

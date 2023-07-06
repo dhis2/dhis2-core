@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import java.util.List;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -46,71 +45,69 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class PreCheckUidValidationHook
-    implements TrackerValidationHook
-{
-    @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
-    {
-        checkUidFormat( trackedEntity.getTrackedEntity(), reporter, trackedEntity, trackedEntity,
-            trackedEntity.getTrackedEntity() );
+public class PreCheckUidValidationHook implements TrackerValidationHook {
+  @Override
+  public void validateTrackedEntity(
+      ValidationErrorReporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
+    checkUidFormat(
+        trackedEntity.getTrackedEntity(),
+        reporter,
+        trackedEntity,
+        trackedEntity,
+        trackedEntity.getTrackedEntity());
+  }
+
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    checkUidFormat(
+        enrollment.getEnrollment(), reporter, enrollment, enrollment, enrollment.getEnrollment());
+
+    validateNotesUid(enrollment.getNotes(), reporter, enrollment);
+  }
+
+  @Override
+  public void validateEvent(ValidationErrorReporter reporter, TrackerBundle bundle, Event event) {
+    checkUidFormat(event.getEvent(), reporter, event, event, event.getEvent());
+
+    validateNotesUid(event.getNotes(), reporter, event);
+  }
+
+  @Override
+  public void validateRelationship(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Relationship relationship) {
+    checkUidFormat(
+        relationship.getRelationship(),
+        reporter,
+        relationship,
+        relationship,
+        relationship.getRelationship());
+  }
+
+  private void validateNotesUid(
+      List<Note> notes, ValidationErrorReporter reporter, TrackerDto dto) {
+    for (Note note : notes) {
+      checkUidFormat(note.getNote(), reporter, dto, note, note.getNote());
     }
+  }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        checkUidFormat( enrollment.getEnrollment(), reporter, enrollment, enrollment, enrollment.getEnrollment() );
-
-        validateNotesUid( enrollment.getNotes(), reporter, enrollment );
+  /**
+   * Check if the given UID has a valid format.
+   *
+   * @param checkUid a UID to be checked
+   * @param reporter a {@see ValidationErrorReporter} to which the error is added
+   * @param dto the dto to which the report will be linked to
+   * @param args list of arguments for the Error report
+   */
+  private void checkUidFormat(
+      String checkUid, ValidationErrorReporter reporter, TrackerDto dto, Object... args) {
+    if (!CodeGenerator.isValidUid(checkUid)) {
+      reporter.addError(dto, TrackerErrorCode.E1048, checkUid, args[0], args[1]);
     }
+  }
 
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, TrackerBundle bundle, Event event )
-    {
-        checkUidFormat( event.getEvent(), reporter, event, event, event.getEvent() );
-
-        validateNotesUid( event.getNotes(), reporter, event );
-    }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, TrackerBundle bundle,
-        Relationship relationship )
-    {
-        checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship,
-            relationship.getRelationship() );
-    }
-
-    private void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter, TrackerDto dto )
-    {
-        for ( Note note : notes )
-        {
-            checkUidFormat( note.getNote(), reporter, dto, note, note.getNote() );
-        }
-    }
-
-    /**
-     * Check if the given UID has a valid format.
-     *
-     * @param checkUid a UID to be checked
-     * @param reporter a {@see ValidationErrorReporter} to which the error is
-     *        added
-     * @param dto the dto to which the report will be linked to
-     * @param args list of arguments for the Error report
-     */
-    private void checkUidFormat( String checkUid, ValidationErrorReporter reporter, TrackerDto dto,
-        Object... args )
-    {
-        if ( !CodeGenerator.isValidUid( checkUid ) )
-        {
-            reporter.addError( dto, TrackerErrorCode.E1048, checkUid, args[0], args[1] );
-        }
-    }
-
-    @Override
-    public boolean skipOnError()
-    {
-        return true;
-    }
-
+  @Override
+  public boolean skipOnError() {
+    return true;
+  }
 }

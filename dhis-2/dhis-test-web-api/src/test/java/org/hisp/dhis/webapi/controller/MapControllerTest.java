@@ -38,46 +38,56 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link org.hisp.dhis.webapi.controller.mapping.MapController} using
- * (mocked) REST requests.
+ * Tests the {@link org.hisp.dhis.webapi.controller.mapping.MapController} using (mocked) REST
+ * requests.
  *
  * @author Jan Bernitt
  */
-class MapControllerTest extends DhisControllerConvenienceTest
-{
+class MapControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPutJsonObject()
-    {
-        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
-        assertStatus( HttpStatus.NO_CONTENT, PUT( "/maps/" + mapId, "{'name':'My updated map'}" ) );
-    }
+  @Test
+  void testPutJsonObject() {
+    String mapId = assertStatus(HttpStatus.CREATED, POST("/maps/", "{'name':'My map'}"));
+    assertStatus(HttpStatus.NO_CONTENT, PUT("/maps/" + mapId, "{'name':'My updated map'}"));
+  }
 
-    @Test
-    void testPutJsonObject_NotFound()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "Map does not exist: xyz",
-            PUT( "/maps/xyz", "{'name':'My updated map'}" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testPutJsonObject_NotFound() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Map does not exist: xyz",
+        PUT("/maps/xyz", "{'name':'My updated map'}").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testGetWithMapViewAndOrgUnitField()
-    {
-        String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes",
-            "{  'name':'GeoJsonAttribute', " + "'valueType':'GEOJSON', " + "'organisationUnit':true}" ) );
+  @Test
+  void testGetWithMapViewAndOrgUnitField() {
+    String attrId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/attributes",
+                "{  'name':'GeoJsonAttribute', "
+                    + "'valueType':'GEOJSON', "
+                    + "'organisationUnit':true}"));
 
-        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/",
-            "{\"name\":\"My map\", \"mapViews\":[ { \"orgUnitField\": \"" + attrId + "\", " +
-                "\"layer\": \"thematic1\",\"renderingStrategy\": \"SINGLE\" } ]}" ) );
+    String mapId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps/",
+                "{\"name\":\"My map\", \"mapViews\":[ { \"orgUnitField\": \""
+                    + attrId
+                    + "\", "
+                    + "\"layer\": \"thematic1\",\"renderingStrategy\": \"SINGLE\" } ]}"));
 
-        JsonResponse map = GET( "/maps/{uid}", mapId ).content();
-        assertNotNull( map.getArray( "mapViews" ) );
-        assertEquals( 1, map.getArray( "mapViews" ).size() );
+    JsonResponse map = GET("/maps/{uid}", mapId).content();
+    assertNotNull(map.getArray("mapViews"));
+    assertEquals(1, map.getArray("mapViews").size());
 
-        JsonObject mapView = map.getArray( "mapViews" ).get( 0 ).as( JsonObject.class );
-        assertEquals( attrId, mapView.getString( "orgUnitField" ).string() );
-        assertEquals( "GeoJsonAttribute", mapView.getString( "orgUnitFieldDisplayName" ).string() );
-
-    }
-
+    JsonObject mapView = map.getArray("mapViews").get(0).as(JsonObject.class);
+    assertEquals(attrId, mapView.getString("orgUnitField").string());
+    assertEquals("GeoJsonAttribute", mapView.getString("orgUnitFieldDisplayName").string());
+  }
 }

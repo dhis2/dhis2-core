@@ -28,7 +28,6 @@
 package org.hisp.dhis.document.impl;
 
 import java.util.List;
-
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.document.DocumentStore;
@@ -44,87 +43,73 @@ import org.springframework.transaction.annotation.Transactional;
  * @version $Id$
  */
 @Transactional
-@Service( "org.hisp.dhis.document.DocumentService" )
-public class DefaultDocumentService
-    implements DocumentService
-{
-    @Autowired
-    private FileResourceService fileResourceService;
+@Service("org.hisp.dhis.document.DocumentService")
+public class DefaultDocumentService implements DocumentService {
+  @Autowired private FileResourceService fileResourceService;
 
-    @Autowired
-    private DocumentStore documentStore;
+  @Autowired private DocumentStore documentStore;
 
-    // -------------------------------------------------------------------------
-    // DocumentService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DocumentService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public long saveDocument( Document document )
-    {
-        documentStore.save( document );
+  @Override
+  public long saveDocument(Document document) {
+    documentStore.save(document);
 
-        return document.getId();
-    }
+    return document.getId();
+  }
 
-    @Override
-    public Document getDocument( long id )
-    {
-        return documentStore.get( id );
-    }
+  @Override
+  public Document getDocument(long id) {
+    return documentStore.get(id);
+  }
 
-    @Override
-    public Document getDocument( String uid )
-    {
-        return documentStore.getByUid( uid );
-    }
+  @Override
+  public Document getDocument(String uid) {
+    return documentStore.getByUid(uid);
+  }
 
-    @Override
-    public void deleteFileFromDocument( Document document )
-    {
-        FileResource fileResource = document.getFileResource();
+  @Override
+  public void deleteFileFromDocument(Document document) {
+    FileResource fileResource = document.getFileResource();
 
-        // Remove reference to fileResource from document to avoid db constraint
-        // exception
-        document.setFileResource( null );
-        documentStore.save( document );
+    // Remove reference to fileResource from document to avoid db constraint
+    // exception
+    document.setFileResource(null);
+    documentStore.save(document);
 
-        // Delete file
-        fileResourceService.deleteFileResource( fileResource.getUid() );
-    }
+    // Delete file
+    fileResourceService.deleteFileResource(fileResource.getUid());
+  }
 
-    @Override
-    public void deleteDocument( Document document )
-    {
-        documentStore.delete( document );
-    }
+  @Override
+  public void deleteDocument(Document document) {
+    documentStore.delete(document);
+  }
 
-    @Override
-    public List<Document> getAllDocuments()
-    {
-        return documentStore.getAll();
-    }
+  @Override
+  public List<Document> getAllDocuments() {
+    return documentStore.getAll();
+  }
 
-    @Override
-    public int getDocumentCount()
-    {
-        return documentStore.getCount();
-    }
+  @Override
+  public int getDocumentCount() {
+    return documentStore.getCount();
+  }
 
-    @Override
-    public int getDocumentCountByName( String name )
-    {
-        return documentStore.getCountLikeName( name );
-    }
+  @Override
+  public int getDocumentCountByName(String name) {
+    return documentStore.getCountLikeName(name);
+  }
 
-    @Override
-    public List<Document> getDocumentsByUid( List<String> uids )
-    {
-        return documentStore.getByUid( uids );
-    }
+  @Override
+  public List<Document> getDocumentsByUid(List<String> uids) {
+    return documentStore.getByUid(uids);
+  }
 
-    @Override
-    public long getCountDocumentByUser( User user )
-    {
-        return documentStore.getCountByUser( user );
-    }
+  @Override
+  public long getCountDocumentByUser(User user) {
+    return documentStore.getCountByUser(user);
+  }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -38,83 +37,81 @@ import org.hisp.dhis.user.User;
  * @author Abyot Asalefew
  * @version $Id$
  */
-public interface TrackedEntityAttributeValueService
-{
-    String ID = TrackedEntityAttributeValueService.class.getName();
+public interface TrackedEntityAttributeValueService {
+  String ID = TrackedEntityAttributeValueService.class.getName();
 
-    /**
-     * Adds an {@link TrackedEntityAttribute}
-     *
-     * @param attributeValue The to TrackedEntityAttribute add.
-     */
-    void addTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
+  /**
+   * Adds an {@link TrackedEntityAttribute}
+   *
+   * @param attributeValue The to TrackedEntityAttribute add.
+   */
+  void addTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
 
-    /**
-     * Updates an {@link TrackedEntityAttribute}.
-     *
-     * @param attributeValue the TrackedEntityAttribute to update.
-     */
-    void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
+  /**
+   * Updates an {@link TrackedEntityAttribute}.
+   *
+   * @param attributeValue the TrackedEntityAttribute to update.
+   */
+  void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
 
-    /**
-     * Updates an {@link TrackedEntityAttribute}.
-     *
-     * @param attributeValue the TrackedEntityAttribute to update.
-     * @param user User for audits
-     */
-    void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue, User user );
+  /**
+   * Updates an {@link TrackedEntityAttribute}.
+   *
+   * @param attributeValue the TrackedEntityAttribute to update.
+   * @param user User for audits
+   */
+  void updateTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue, User user);
 
-    /**
-     * Deletes a {@link TrackedEntityAttribute}.
-     *
-     * @param attributeValue the TrackedEntityAttribute to delete.
-     */
-    void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
+  /**
+   * Deletes a {@link TrackedEntityAttribute}.
+   *
+   * @param attributeValue the TrackedEntityAttribute to delete.
+   */
+  void deleteTrackedEntityAttributeValue(TrackedEntityAttributeValue attributeValue);
 
-    /**
-     * Retrieve a {@link TrackedEntityAttributeValue} on a
-     * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
-     *
-     * @param attribute {@link TrackedEntityAttribute}
-     * @return TrackedEntityAttributeValue
-     */
-    TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
-        TrackedEntityAttribute attribute );
+  /**
+   * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntityInstance} and {@link
+   * TrackedEntityAttribute}
+   *
+   * @param attribute {@link TrackedEntityAttribute}
+   * @return TrackedEntityAttributeValue
+   */
+  TrackedEntityAttributeValue getTrackedEntityAttributeValue(
+      TrackedEntityInstance instance, TrackedEntityAttribute attribute);
 
-    /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityInstance}
-     *
-     * @param instance TrackedEntityAttributeValue
-     * @return TrackedEntityAttributeValue list
-     */
-    List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance );
+  /**
+   * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityInstance}
+   *
+   * @param instance TrackedEntityAttributeValue
+   * @return TrackedEntityAttributeValue list
+   */
+  List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(TrackedEntityInstance instance);
 
-    /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityAttribute}
-     *
-     * @param attribute {@link TrackedEntityAttribute}
-     * @return TrackedEntityAttributeValue list
-     */
-    List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute );
+  /**
+   * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntityAttribute}
+   *
+   * @param attribute {@link TrackedEntityAttribute}
+   * @return TrackedEntityAttributeValue list
+   */
+  List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
+      TrackedEntityAttribute attribute);
 
-    /**
-     * Returns the number of assigned {@link TrackedEntityAttributeValue}s to
-     * the given {@link TrackedEntityAttribute}
-     *
-     * @param attribute {@link TrackedEntityAttribute}
-     * @return Number of assigned TrackedEntityAttributeValues
-     */
-    int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute );
+  /**
+   * Returns the number of assigned {@link TrackedEntityAttributeValue}s to the given {@link
+   * TrackedEntityAttribute}
+   *
+   * @param attribute {@link TrackedEntityAttribute}
+   * @return Number of assigned TrackedEntityAttributeValues
+   */
+  int getCountOfAssignedTrackedEntityAttributeValues(TrackedEntityAttribute attribute);
 
-    /**
-     * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the
-     * values and the tea present in uniqueAttributes
-     *
-     * @param uniqueAttributes A map that links a list of values to a TEA
-     * @return TrackedEntityAttributeValue list
-     */
-    List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
-        Map<TrackedEntityAttribute, List<String>> uniqueAttributes );
+  /**
+   * Retrieve a list of {@link TrackedEntityAttributeValue} that matches the values and the tea
+   * present in uniqueAttributes
+   *
+   * @param uniqueAttributes A map that links a list of values to a TEA
+   * @return TrackedEntityAttributeValue list
+   */
+  List<TrackedEntityAttributeValue> getUniqueAttributeByValues(
+      Map<TrackedEntityAttribute, List<String>> uniqueAttributes);
 }

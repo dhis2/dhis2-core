@@ -42,9 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -71,201 +69,220 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Populates the analytics_ownership_[programuid] table which is joined for
- * tracker analytics queries to find the owning organisation unit at the start
- * or end of the query date range.
+ * Populates the analytics_ownership_[programuid] table which is joined for tracker analytics
+ * queries to find the owning organisation unit at the start or end of the query date range.
  *
  * @author Jim Grace
  */
 @Slf4j
-@Service( "org.hisp.dhis.analytics.OwnershipAnalyticsTableManager" )
-public class JdbcOwnershipAnalyticsTableManager
-    extends AbstractEventJdbcTableManager
-{
-    private final JdbcConfiguration jdbcConfiguration;
+@Service("org.hisp.dhis.analytics.OwnershipAnalyticsTableManager")
+public class JdbcOwnershipAnalyticsTableManager extends AbstractEventJdbcTableManager {
+  private final JdbcConfiguration jdbcConfiguration;
 
-    private static final String HISTORY_TABLE_ID = "1001-01-01";
+  private static final String HISTORY_TABLE_ID = "1001-01-01";
 
-    // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
-    private static final String TEI_OWN_TABLE_ID = "2002-02-02";
+  // Must be later than the dummy HISTORY_TABLE_ID for SQL query order.
+  private static final String TEI_OWN_TABLE_ID = "2002-02-02";
 
-    public JdbcOwnershipAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
-        OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
-        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
-        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
-        JdbcTemplate jdbcTemplate, JdbcConfiguration jdbcConfiguration,
-        AnalyticsExportSettings analyticsExportSettings )
-    {
-        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
-            databaseInfo, jdbcTemplate, analyticsExportSettings );
-        this.jdbcConfiguration = jdbcConfiguration;
+  public JdbcOwnershipAnalyticsTableManager(
+      IdentifiableObjectManager idObjectManager,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      SystemSettingManager systemSettingManager,
+      DataApprovalLevelService dataApprovalLevelService,
+      ResourceTableService resourceTableService,
+      AnalyticsTableHookService tableHookService,
+      StatementBuilder statementBuilder,
+      PartitionManager partitionManager,
+      DatabaseInfo databaseInfo,
+      JdbcTemplate jdbcTemplate,
+      JdbcConfiguration jdbcConfiguration,
+      AnalyticsExportSettings analyticsExportSettings) {
+    super(
+        idObjectManager,
+        organisationUnitService,
+        categoryService,
+        systemSettingManager,
+        dataApprovalLevelService,
+        resourceTableService,
+        tableHookService,
+        statementBuilder,
+        partitionManager,
+        databaseInfo,
+        jdbcTemplate,
+        analyticsExportSettings);
+    this.jdbcConfiguration = jdbcConfiguration;
+  }
+
+  private static final List<AnalyticsTableColumn> FIXED_COLS =
+      List.of(
+          new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
+          new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
+          new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
+          new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
+
+  @Override
+  public AnalyticsTableType getAnalyticsTableType() {
+    return AnalyticsTableType.OWNERSHIP;
+  }
+
+  @Override
+  @Transactional
+  public List<AnalyticsTable> getAnalyticsTables(AnalyticsTableUpdateParams params) {
+    return params.isLatestUpdate() ? emptyList() : getRegularAnalyticsTables();
+  }
+
+  /**
+   * Creates a list of {@link AnalyticsTable} for each program.
+   *
+   * @return a list of {@link AnalyticsTableUpdateParams}.
+   */
+  private List<AnalyticsTable> getRegularAnalyticsTables() {
+    return idObjectManager.getAllNoAcl(Program.class).stream()
+        .map(
+            p -> new AnalyticsTable(getAnalyticsTableType(), getDimensionColumns(), emptyList(), p))
+        .collect(toList());
+  }
+
+  @Override
+  protected List<String> getPartitionChecks(AnalyticsTablePartition partition) {
+    return emptyList();
+  }
+
+  @Override
+  protected void populateTable(
+      AnalyticsTableUpdateParams params, AnalyticsTablePartition partition) {
+    Program program = partition.getMasterTable().getProgram();
+
+    if (program.getProgramType() == WITHOUT_REGISTRATION) {
+      return; // Builds an empty table, but it may be joined in queries.
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = List.of(
-        new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
-        new AnalyticsTableColumn( quote( "startdate" ), DATE, "a.startdate" ),
-        new AnalyticsTableColumn( quote( "enddate" ), DATE, "a.enddate" ),
-        new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
+    String sql = getInputSql(program);
 
-    @Override
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return AnalyticsTableType.OWNERSHIP;
+    log.debug("Populate {} with SQL: '{}'", partition.getTempTableName(), sql);
+
+    Timer timer = new SystemTimer().start();
+
+    populateTableInternal(partition, sql);
+
+    log.info("Populate {} in: {}", partition.getTempTableName(), timer.stop().toString());
+  }
+
+  private void populateTableInternal(AnalyticsTablePartition partition, String sql) {
+    List<String> columnNames =
+        getDimensionColumns().stream().map(AnalyticsTableColumn::getName).collect(toList());
+
+    MappingBatchHandler batchHandler =
+        MappingBatchHandler.builder()
+            .jdbcConfiguration(jdbcConfiguration)
+            .tableName(partition.getTempTableName())
+            .columns(columnNames)
+            .build();
+
+    batchHandler.init();
+
+    JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance(batchHandler);
+    AtomicInteger queryRowCount = new AtomicInteger();
+
+    jdbcTemplate.query(
+        sql,
+        resultSet -> {
+          writer.write(getRowMap(columnNames, resultSet));
+          queryRowCount.getAndIncrement();
+        });
+
+    log.info(
+        "OwnershipAnalytics query row count was {} for {}",
+        queryRowCount,
+        partition.getTempTableName());
+    batchHandler.flush();
+  }
+
+  private String getInputSql(Program program) {
+    // SELECT clause
+
+    StringBuilder sb = new StringBuilder("select ");
+
+    for (AnalyticsTableColumn col : getDimensionColumns()) {
+      sb.append(col.getAlias()).append(",");
     }
 
-    @Override
-    @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
-    {
-        return params.isLatestUpdate() ? emptyList() : getRegularAnalyticsTables();
+    sb.deleteCharAt(sb.length() - 1); // Remove the final ','.
+
+    // FROM clause
+
+    // For TEIs in this program that are in programownershiphistory, get
+    // one row for each programownershiphistory row and then get a final
+    // row from the trackedentityprogramowner table to show the final owner.
+    //
+    // The start date values are dummy so that all the history table rows
+    // will be ordered first and the tei owner table row will come last.
+    //
+    // (The start date in the analytics table will be a far past date for
+    // the first row for each TEI, or the previous row's end date plus one
+    // day in subsequent rows for that TEI.)
+
+    return sb.append(
+            " from ("
+                + "select h.trackedentityinstanceid, '"
+                + HISTORY_TABLE_ID
+                + "' as startdate, h.enddate as enddate, h.organisationunitid "
+                + "from programownershiphistory h "
+                + "where h.programid="
+                + program.getId()
+                + " "
+                + "union "
+                + "select o.trackedentityinstanceid, '"
+                + TEI_OWN_TABLE_ID
+                + "' as startdate, null as enddate, o.organisationunitid "
+                + "from trackedentityprogramowner o "
+                + "where o.programid="
+                + program.getId()
+                + " "
+                + "and exists (select programid from programownershiphistory p "
+                + "where o.trackedentityinstanceid = p.trackedentityinstanceid "
+                + "and p.programid="
+                + program.getId()
+                + ")"
+                + ") a "
+                + "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid "
+                + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
+                + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
+                + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
+                + "order by tei.uid, a.startdate, a.enddate")
+        .toString();
+  }
+
+  private Map<String, Object> getRowMap(List<String> columnNames, ResultSet resultSet)
+      throws SQLException {
+    Map<String, Object> rowMap = new HashMap<>();
+
+    for (int i = 0; i < columnNames.size(); i++) {
+      rowMap.put(columnNames.get(i), resultSet.getObject(i + 1));
     }
 
-    /**
-     * Creates a list of {@link AnalyticsTable} for each program.
-     *
-     * @return a list of {@link AnalyticsTableUpdateParams}.
-     */
-    private List<AnalyticsTable> getRegularAnalyticsTables()
-    {
-        return idObjectManager.getAllNoAcl( Program.class ).stream()
-            .map( p -> new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), emptyList(), p ) )
-            .collect( toList() );
-    }
+    return rowMap;
+  }
 
-    @Override
-    protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
-    {
-        return emptyList();
-    }
+  /**
+   * Returns dimensional analytics table columns.
+   *
+   * @return a list of {@link AnalyticsTableColumn}.
+   */
+  private List<AnalyticsTableColumn> getDimensionColumns() {
+    List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-    @Override
-    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
-    {
-        Program program = partition.getMasterTable().getProgram();
+    columns.addAll(addOrganisationUnitLevels());
+    columns.addAll(addOrganisationUnitGroupSets());
 
-        if ( program.getProgramType() == WITHOUT_REGISTRATION )
-        {
-            return; // Builds an empty table, but it may be joined in queries.
-        }
+    columns.addAll(getFixedColumns());
 
-        String sql = getInputSql( program );
+    return filterDimensionColumns(columns);
+  }
 
-        log.debug( "Populate {} with SQL: '{}'", partition.getTempTableName(), sql );
-
-        Timer timer = new SystemTimer().start();
-
-        populateTableInternal( partition, sql );
-
-        log.info( "Populate {} in: {}", partition.getTempTableName(), timer.stop().toString() );
-    }
-
-    private void populateTableInternal( AnalyticsTablePartition partition, String sql )
-    {
-        List<String> columnNames = getDimensionColumns().stream()
-            .map( AnalyticsTableColumn::getName )
-            .collect( toList() );
-
-        MappingBatchHandler batchHandler = MappingBatchHandler.builder()
-            .jdbcConfiguration( jdbcConfiguration )
-            .tableName( partition.getTempTableName() )
-            .columns( columnNames ).build();
-
-        batchHandler.init();
-
-        JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance( batchHandler );
-        AtomicInteger queryRowCount = new AtomicInteger();
-
-        jdbcTemplate.query( sql, resultSet -> {
-            writer.write( getRowMap( columnNames, resultSet ) );
-            queryRowCount.getAndIncrement();
-        } );
-
-        log.info( "OwnershipAnalytics query row count was {} for {}", queryRowCount, partition.getTempTableName() );
-        batchHandler.flush();
-    }
-
-    private String getInputSql( Program program )
-    {
-        // SELECT clause
-
-        StringBuilder sb = new StringBuilder( "select " );
-
-        for ( AnalyticsTableColumn col : getDimensionColumns() )
-        {
-            sb.append( col.getAlias() ).append( "," );
-        }
-
-        sb.deleteCharAt( sb.length() - 1 ); // Remove the final ','.
-
-        // FROM clause
-
-        // For TEIs in this program that are in programownershiphistory, get
-        // one row for each programownershiphistory row and then get a final
-        // row from the trackedentityprogramowner table to show the final owner.
-        //
-        // The start date values are dummy so that all the history table rows
-        // will be ordered first and the tei owner table row will come last.
-        //
-        // (The start date in the analytics table will be a far past date for
-        // the first row for each TEI, or the previous row's end date plus one
-        // day in subsequent rows for that TEI.)
-
-        return sb.append( " from (" +
-            "select h.trackedentityinstanceid, '" + HISTORY_TABLE_ID
-            + "' as startdate, h.enddate as enddate, h.organisationunitid " +
-            "from programownershiphistory h " +
-            "where h.programid=" + program.getId() + " " +
-            "union " +
-            "select o.trackedentityinstanceid, '" + TEI_OWN_TABLE_ID
-            + "' as startdate, null as enddate, o.organisationunitid " +
-            "from trackedentityprogramowner o " +
-            "where o.programid=" + program.getId() + " " +
-            "and exists (select programid from programownershiphistory p " +
-            "where o.trackedentityinstanceid = p.trackedentityinstanceid " +
-            "and p.programid=" + program.getId() + ")" +
-            ") a " +
-            "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid " +
-            "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid " +
-            "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid " +
-            "order by tei.uid, a.startdate, a.enddate" ).toString();
-    }
-
-    private Map<String, Object> getRowMap( List<String> columnNames, ResultSet resultSet )
-        throws SQLException
-    {
-        Map<String, Object> rowMap = new HashMap<>();
-
-        for ( int i = 0; i < columnNames.size(); i++ )
-        {
-            rowMap.put( columnNames.get( i ), resultSet.getObject( i + 1 ) );
-        }
-
-        return rowMap;
-    }
-
-    /**
-     * Returns dimensional analytics table columns.
-     *
-     * @return a list of {@link AnalyticsTableColumn}.
-     */
-    private List<AnalyticsTableColumn> getDimensionColumns()
-    {
-        List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-        columns.addAll( addOrganisationUnitLevels() );
-        columns.addAll( addOrganisationUnitGroupSets() );
-
-        columns.addAll( getFixedColumns() );
-
-        return filterDimensionColumns( columns );
-    }
-
-    @Override
-    public List<AnalyticsTableColumn> getFixedColumns()
-    {
-        return FIXED_COLS;
-    }
+  @Override
+  public List<AnalyticsTableColumn> getFixedColumns() {
+    return FIXED_COLS;
+  }
 }

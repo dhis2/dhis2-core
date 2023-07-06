@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.dimension.mappers;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.*;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -36,19 +37,16 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.hisp.dhis.webapi.dimension.mappers.BaseDimensionalObjectMapper;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableList;
+class BaseDimensionalObjectMapperTest {
 
-class BaseDimensionalObjectMapperTest
-{
+  private static final DimensionType DIMENSION_TYPE = DimensionType.PERIOD;
 
-    private static final DimensionType DIMENSION_TYPE = DimensionType.PERIOD;
-
-    @Test
-    void testDimensionalObjectMapper()
-    {
-        asserter( new BaseDimensionalObjectMapper(),
-            BaseDimensionalObject::new,
-            ImmutableList.of( b -> b.setDimensionType( DIMENSION_TYPE ) ),
-            ImmutableList.of( Pair.of( DimensionResponse::getDimensionType, DIMENSION_TYPE ) ) );
-    }
+  @Test
+  void testDimensionalObjectMapper() {
+    asserter(
+        new BaseDimensionalObjectMapper(),
+        BaseDimensionalObject::new,
+        ImmutableList.of(b -> b.setDimensionType(DIMENSION_TYPE)),
+        ImmutableList.of(Pair.of(DimensionResponse::getDimensionType, DIMENSION_TYPE)));
+  }
 }

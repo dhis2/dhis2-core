@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.scheduling.annotation.Async;
@@ -40,81 +39,80 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
-@Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService" )
-public class DefaultTrackedEntityInstanceAuditService
-    implements TrackedEntityInstanceAuditService
-{
+@Service("org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService")
+public class DefaultTrackedEntityInstanceAuditService implements TrackedEntityInstanceAuditService {
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
+  private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
 
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+  private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    private final TrackerAccessManager trackerAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    public DefaultTrackedEntityInstanceAuditService( TrackerAccessManager trackerAccessManager,
-        TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore,
-        TrackedEntityInstanceStore trackedEntityInstanceStore, CurrentUserService currentUserService )
-    {
-        checkNotNull( trackedEntityInstanceAuditStore );
-        checkNotNull( trackedEntityInstanceStore );
-        checkNotNull( trackerAccessManager );
-        checkNotNull( currentUserService );
+  public DefaultTrackedEntityInstanceAuditService(
+      TrackerAccessManager trackerAccessManager,
+      TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore,
+      TrackedEntityInstanceStore trackedEntityInstanceStore,
+      CurrentUserService currentUserService) {
+    checkNotNull(trackedEntityInstanceAuditStore);
+    checkNotNull(trackedEntityInstanceStore);
+    checkNotNull(trackerAccessManager);
+    checkNotNull(currentUserService);
 
-        this.trackedEntityInstanceAuditStore = trackedEntityInstanceAuditStore;
-        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
-        this.trackerAccessManager = trackerAccessManager;
-        this.currentUserService = currentUserService;
-    }
+    this.trackedEntityInstanceAuditStore = trackedEntityInstanceAuditStore;
+    this.trackedEntityInstanceStore = trackedEntityInstanceStore;
+    this.trackerAccessManager = trackerAccessManager;
+    this.currentUserService = currentUserService;
+  }
 
-    // -------------------------------------------------------------------------
-    // TrackedEntityInstanceAuditService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // TrackedEntityInstanceAuditService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Async
-    @Transactional
-    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
-    {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
-    }
+  @Override
+  @Async
+  @Transactional
+  public void addTrackedEntityInstanceAudit(TrackedEntityInstanceAudit trackedEntityInstanceAudit) {
+    trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit(trackedEntityInstanceAudit);
+  }
 
-    @Override
-    @Async
-    @Transactional
-    public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits )
-    {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudits );
-    }
+  @Override
+  @Async
+  @Transactional
+  public void addTrackedEntityInstanceAudit(
+      List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits) {
+    trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit(trackedEntityInstanceAudits);
+  }
 
-    @Override
-    @Transactional
-    public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
-    {
-        trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntityInstance );
-    }
+  @Override
+  @Transactional
+  public void deleteTrackedEntityInstanceAudit(TrackedEntityInstance trackedEntityInstance) {
+    trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit(trackedEntityInstance);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-        TrackedEntityInstanceAuditQueryParams params )
-    {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits( params ).stream()
-            .filter( a -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
-                trackedEntityInstanceStore.getByUid( a.getTrackedEntityInstance() ) ).isEmpty() )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
+      TrackedEntityInstanceAuditQueryParams params) {
+    return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits(params).stream()
+        .filter(
+            a ->
+                trackerAccessManager
+                    .canRead(
+                        currentUserService.getCurrentUser(),
+                        trackedEntityInstanceStore.getByUid(a.getTrackedEntityInstance()))
+                    .isEmpty())
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
-    {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public int getTrackedEntityInstanceAuditsCount(TrackedEntityInstanceAuditQueryParams params) {
+    return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount(params);
+  }
 }

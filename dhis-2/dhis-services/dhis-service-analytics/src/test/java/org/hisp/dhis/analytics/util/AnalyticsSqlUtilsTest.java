@@ -30,44 +30,41 @@ package org.hisp.dhis.analytics.util;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-class AnalyticsSqlUtilsTest
-{
+class AnalyticsSqlUtilsTest {
 
-    @Test
-    void testQuote()
-    {
-        assertEquals( "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote( "Some \"special\" value" ) );
-        assertEquals( "\"Data element\"", AnalyticsSqlUtils.quote( "Data element" ) );
-    }
+  @Test
+  void testQuote() {
+    assertEquals(
+        "\"Some \"\"special\"\" value\"", AnalyticsSqlUtils.quote("Some \"special\" value"));
+    assertEquals("\"Data element\"", AnalyticsSqlUtils.quote("Data element"));
+  }
 
-    @Test
-    void testQuoteWithAlias()
-    {
-        assertEquals( "ougs.\"Short name\"", AnalyticsSqlUtils.quote( "ougs", "Short name" ) );
-        assertEquals( "ous.\"uid\"", AnalyticsSqlUtils.quote( "ous", "uid" ) );
-    }
+  @Test
+  void testQuoteWithAlias() {
+    assertEquals("ougs.\"Short name\"", AnalyticsSqlUtils.quote("ougs", "Short name"));
+    assertEquals("ous.\"uid\"", AnalyticsSqlUtils.quote("ous", "uid"));
+  }
 
-    @Test
-    void testQuoteAliasCommaSeparate()
-    {
-        assertEquals( "ax.\"de\",ax.\"pe\",ax.\"ou\"",
-            AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "de", "pe", "ou" ) ) );
-        assertEquals( "ax.\"gender\",ax.\"date of \"\"birth\"\"\"",
-            AnalyticsSqlUtils.quoteAliasCommaSeparate( List.of( "gender", "date of \"birth\"" ) ) );
-    }
+  @Test
+  void testQuoteAliasCommaSeparate() {
+    assertEquals(
+        "ax.\"de\",ax.\"pe\",ax.\"ou\"",
+        AnalyticsSqlUtils.quoteAliasCommaSeparate(List.of("de", "pe", "ou")));
+    assertEquals(
+        "ax.\"gender\",ax.\"date of \"\"birth\"\"\"",
+        AnalyticsSqlUtils.quoteAliasCommaSeparate(List.of("gender", "date of \"birth\"")));
+  }
 
-    @Test
-    void testGetClosingParentheses()
-    {
-        assertEquals( "", AnalyticsSqlUtils.getClosingParentheses( null ) );
-        assertEquals( "", AnalyticsSqlUtils.getClosingParentheses( "" ) );
-        assertEquals( ")", AnalyticsSqlUtils.getClosingParentheses( "from(select(select (*))" ) );
-        assertEquals( "))", AnalyticsSqlUtils.getClosingParentheses( "((" ) );
-    }
+  @Test
+  void testGetClosingParentheses() {
+    assertEquals("", AnalyticsSqlUtils.getClosingParentheses(null));
+    assertEquals("", AnalyticsSqlUtils.getClosingParentheses(""));
+    assertEquals(")", AnalyticsSqlUtils.getClosingParentheses("from(select(select (*))"));
+    assertEquals("))", AnalyticsSqlUtils.getClosingParentheses("(("));
+  }
 }

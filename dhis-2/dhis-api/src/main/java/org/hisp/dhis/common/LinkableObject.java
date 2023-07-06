@@ -30,9 +30,8 @@ package org.hisp.dhis.common;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface LinkableObject
-{
-    String getHref();
+public interface LinkableObject {
+  String getHref();
 
-    void setHref( String link );
+  void setHref(String link);
 }

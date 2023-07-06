@@ -39,78 +39,89 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Zubair Asghar
  */
+class RuleActionAssignImplementerTest extends DhisConvenienceTest {
+  public static final String PI_UI = "pi-uid";
 
-class RuleActionAssignImplementerTest extends DhisConvenienceTest
-{
-    public static final String PI_UI = "pi-uid";
+  private ProgramInstance programInstance;
 
-    private ProgramInstance programInstance;
+  private RuleVariableInMemoryMap inMemoryMap;
 
-    private RuleVariableInMemoryMap inMemoryMap;
+  private RuleActionAssignValueImplementer assignValueImplementer;
 
-    private RuleActionAssignValueImplementer assignValueImplementer;
+  @BeforeEach
+  public void initTest() {
+    programInstance = new ProgramInstance();
+    programInstance.setUid(PI_UI);
 
-    @BeforeEach
-    public void initTest()
-    {
-        programInstance = new ProgramInstance();
-        programInstance.setUid( PI_UI );
+    inMemoryMap = new RuleVariableInMemoryMap();
+    assignValueImplementer = new RuleActionAssignValueImplementer(inMemoryMap);
+  }
 
-        inMemoryMap = new RuleVariableInMemoryMap();
-        assignValueImplementer = new RuleActionAssignValueImplementer( inMemoryMap );
-    }
+  @Test
+  void testRuleActionAssignRegex1() {
+    assignValueImplementer.implement(
+        RuleEffect.create(
+            "ruleId1", RuleActionAssign.create("content", "action-data", "field"), "field-data"),
+        programInstance);
 
-    @Test
-    void testRuleActionAssignRegex1()
-    {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "field" ), "field-data" ), programInstance );
+    assertTrue(inMemoryMap.get(PI_UI).containsKey("field"));
+  }
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "field" ) );
-    }
+  @Test
+  void testRuleActionAssignRegex2() {
+    assignValueImplementer.implement(
+        RuleEffect.create(
+            "ruleId1", RuleActionAssign.create("content", "action-data", "field123"), "field-data"),
+        programInstance);
 
-    @Test
-    void testRuleActionAssignRegex2()
-    {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "field123" ), "field-data" ), programInstance );
+    assertTrue(inMemoryMap.get(PI_UI).containsKey("field123"));
+  }
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "field123" ) );
-    }
+  @Test
+  void testRuleActionAssignRegex3() {
+    assignValueImplementer.implement(
+        RuleEffect.create(
+            "ruleId1",
+            RuleActionAssign.create("content", "action-data", "name-field"),
+            "field-data"),
+        programInstance);
 
-    @Test
-    void testRuleActionAssignRegex3()
-    {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name-field" ), "field-data" ), programInstance );
+    assertTrue(inMemoryMap.get(PI_UI).containsKey("name-field"));
+  }
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name-field" ) );
-    }
+  @Test
+  void testRuleActionAssignRegex4() {
+    assignValueImplementer.implement(
+        RuleEffect.create(
+            "ruleId1",
+            RuleActionAssign.create("content", "action-data", "name field"),
+            "field-data"),
+        programInstance);
 
-    @Test
-    void testRuleActionAssignRegex4()
-    {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name field" ), "field-data" ), programInstance );
+    assertTrue(inMemoryMap.get(PI_UI).containsKey("name field"));
+  }
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name field" ) );
-    }
+  @Test
+  void testRuleActionAssignRegex5() {
+    assignValueImplementer.implement(
+        RuleEffect.create(
+            "ruleId1",
+            RuleActionAssign.create("content", "action-data", "name.field"),
+            "field-data"),
+        programInstance);
 
-    @Test
-    void testRuleActionAssignRegex5()
-    {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name.field" ), "field-data" ), programInstance );
+    assertTrue(inMemoryMap.get(PI_UI).containsKey("name.field"));
+  }
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name.field" ) );
-    }
+  @Test
+  void testRuleActionAssignRegex6() {
+    assignValueImplementer.implement(
+        RuleEffect.create(
+            "ruleId1",
+            RuleActionAssign.create("content", "action-data", "first name field"),
+            "field-data"),
+        programInstance);
 
-    @Test
-    void testRuleActionAssignRegex6()
-    {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "first name field" ), "field-data" ), programInstance );
-
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "first name field" ) );
-    }
+    assertTrue(inMemoryMap.get(PI_UI).containsKey("first name field"));
+  }
 }

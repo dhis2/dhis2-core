@@ -30,49 +30,49 @@ package org.hisp.dhis.common;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Function;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.TimeField;
 
 /**
- * Enum to map time fields into functions that can extract respective date from
- * controller parameters
+ * Enum to map time fields into functions that can extract respective date from controller
+ * parameters
  */
 @Getter
 @RequiredArgsConstructor
-public enum AnalyticsDateFilter
-{
-    EVENT_DATE( TimeField.EVENT_DATE, EventsAnalyticsQueryCriteria::getEventDate, null ),
-    ENROLLMENT_DATE( TimeField.ENROLLMENT_DATE, EventsAnalyticsQueryCriteria::getEnrollmentDate,
-        EnrollmentAnalyticsQueryCriteria::getEnrollmentDate ),
-    SCHEDULED_DATE( TimeField.SCHEDULED_DATE, EventsAnalyticsQueryCriteria::getScheduledDate, null ),
-    INCIDENT_DATE( TimeField.INCIDENT_DATE, EventsAnalyticsQueryCriteria::getIncidentDate,
-        EnrollmentAnalyticsQueryCriteria::getIncidentDate ),
-    LAST_UPDATED( TimeField.LAST_UPDATED, EventsAnalyticsQueryCriteria::getLastUpdated,
-        EnrollmentAnalyticsQueryCriteria::getLastUpdated );
+public enum AnalyticsDateFilter {
+  EVENT_DATE(TimeField.EVENT_DATE, EventsAnalyticsQueryCriteria::getEventDate, null),
+  ENROLLMENT_DATE(
+      TimeField.ENROLLMENT_DATE,
+      EventsAnalyticsQueryCriteria::getEnrollmentDate,
+      EnrollmentAnalyticsQueryCriteria::getEnrollmentDate),
+  SCHEDULED_DATE(TimeField.SCHEDULED_DATE, EventsAnalyticsQueryCriteria::getScheduledDate, null),
+  INCIDENT_DATE(
+      TimeField.INCIDENT_DATE,
+      EventsAnalyticsQueryCriteria::getIncidentDate,
+      EnrollmentAnalyticsQueryCriteria::getIncidentDate),
+  LAST_UPDATED(
+      TimeField.LAST_UPDATED,
+      EventsAnalyticsQueryCriteria::getLastUpdated,
+      EnrollmentAnalyticsQueryCriteria::getLastUpdated);
 
-    private final TimeField timeField;
+  private final TimeField timeField;
 
-    private final Function<EventsAnalyticsQueryCriteria, String> eventExtractor;
+  private final Function<EventsAnalyticsQueryCriteria, String> eventExtractor;
 
-    private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
+  private final Function<EnrollmentAnalyticsQueryCriteria, String> enrollmentExtractor;
 
-    public static Optional<AnalyticsDateFilter> of( String dateField )
-    {
-        return Arrays.stream( values() )
-            .filter( analyticsDateFilter -> analyticsDateFilter.name().equalsIgnoreCase( dateField ) )
-            .findFirst();
-    }
+  public static Optional<AnalyticsDateFilter> of(String dateField) {
+    return Arrays.stream(values())
+        .filter(analyticsDateFilter -> analyticsDateFilter.name().equalsIgnoreCase(dateField))
+        .findFirst();
+  }
 
-    public boolean appliesToEnrollments()
-    {
-        return enrollmentExtractor != null;
-    }
+  public boolean appliesToEnrollments() {
+    return enrollmentExtractor != null;
+  }
 
-    public boolean appliesToEvents()
-    {
-        return eventExtractor != null;
-    }
+  public boolean appliesToEvents() {
+    return eventExtractor != null;
+  }
 }

@@ -33,22 +33,18 @@ import java.util.Set;
 /**
  * @author Lars Helge Overland
  */
-public class ServiceProvider<T>
-{
-    protected Map<String, T> services;
+public class ServiceProvider<T> {
+  protected Map<String, T> services;
 
-    public void setServices( Map<String, T> services )
-    {
-        this.services = services;
-    }
+  public void setServices(Map<String, T> services) {
+    this.services = services;
+  }
 
-    public T provide( String key )
-    {
-        return services.get( key );
-    }
+  public T provide(String key) {
+    return services.get(key);
+  }
 
-    public Set<String> getServiceKeySet()
-    {
-        return services.keySet();
-    }
+  public Set<String> getServiceKeySet() {
+    return services.keySet();
+  }
 }

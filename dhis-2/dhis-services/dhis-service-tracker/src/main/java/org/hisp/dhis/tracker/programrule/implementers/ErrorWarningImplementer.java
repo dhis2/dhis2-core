@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.tracker.programrule.implementers;
 
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.event.EventStatus;
@@ -43,103 +43,87 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
-import com.google.common.collect.Lists;
-
 /**
- * This implementer check if there are errors or warnings the
- * {@link TrackerBundle}
- *
- * @Author Enrico Colasante
+ * This implementer check if there are errors or warnings the {@link TrackerBundle} @Author Enrico
+ * Colasante
  */
 public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
-    extends AbstractRuleActionImplementer<T>
-    implements RuleActionImplementer
-{
-    public abstract boolean isOnComplete();
+    extends AbstractRuleActionImplementer<T> implements RuleActionImplementer {
+  public abstract boolean isOnComplete();
 
-    public abstract IssueType getIssueType();
+  public abstract IssueType getIssueType();
 
-    @Override
-    public String getField( RuleActionMessage ruleAction )
-    {
-        return ruleAction.field();
+  @Override
+  public String getField(RuleActionMessage ruleAction) {
+    return ruleAction.field();
+  }
+
+  @Override
+  public String getContent(RuleActionMessage ruleAction) {
+    return ruleAction.content();
+  }
+
+  @Override
+  List<ProgramRuleIssue> applyToEnrollments(
+      Enrollment enrollment,
+      List<EnrollmentActionRule> enrollmentActionRules,
+      TrackerBundle bundle) {
+    if (needsToRun(enrollment)) {
+      return parseErrors(enrollmentActionRules);
     }
+    return Collections.emptyList();
+  }
 
-    @Override
-    public String getContent( RuleActionMessage ruleAction )
-    {
-        return ruleAction.content();
+  @Override
+  public List<ProgramRuleIssue> applyToEvents(
+      Event event, List<EventActionRule> actionRules, TrackerBundle bundle) {
+    if (needsToRun(event)) {
+      return parseErrors(actionRules);
     }
+    return Collections.emptyList();
+  }
 
-    @Override
-    List<ProgramRuleIssue> applyToEnrollments( Enrollment enrollment, List<EnrollmentActionRule> enrollmentActionRules,
-        TrackerBundle bundle )
-    {
-        if ( needsToRun( enrollment ) )
-        {
-            return parseErrors( enrollmentActionRules );
-        }
-        return Collections.emptyList();
+  private <U extends ActionRule> List<ProgramRuleIssue> parseErrors(List<U> effects) {
+    return effects.stream()
+        .map(
+            actionRule -> {
+              String field = actionRule.getField();
+              String content = actionRule.getContent();
+              String data = actionRule.getData();
+
+              StringBuilder stringBuilder = new StringBuilder(content);
+              if (!StringUtils.isEmpty(data)) {
+                stringBuilder.append(" ").append(data);
+              }
+              if (!StringUtils.isEmpty(field)) {
+                stringBuilder.append(" (").append(field).append(")");
+              }
+
+              return Pair.of(actionRule.getRuleUid(), stringBuilder.toString());
+            })
+        .map(
+            message ->
+                new ProgramRuleIssue(
+                    message.getKey(),
+                    TrackerErrorCode.E1300,
+                    Lists.newArrayList(message.getValue()),
+                    getIssueType()))
+        .collect(Collectors.toList());
+  }
+
+  private boolean needsToRun(Event event) {
+    if (isOnComplete()) {
+      return Objects.equals(EventStatus.COMPLETED, event.getStatus());
+    } else {
+      return true;
     }
+  }
 
-    @Override
-    public List<ProgramRuleIssue> applyToEvents( Event event, List<EventActionRule> actionRules,
-        TrackerBundle bundle )
-    {
-        if ( needsToRun( event ) )
-        {
-            return parseErrors( actionRules );
-        }
-        return Collections.emptyList();
+  private boolean needsToRun(Enrollment enrollment) {
+    if (isOnComplete()) {
+      return Objects.equals(EnrollmentStatus.COMPLETED, enrollment.getStatus());
+    } else {
+      return true;
     }
-
-    private <U extends ActionRule> List<ProgramRuleIssue> parseErrors( List<U> effects )
-    {
-        return effects
-            .stream()
-            .map( actionRule -> {
-                String field = actionRule.getField();
-                String content = actionRule.getContent();
-                String data = actionRule.getData();
-
-                StringBuilder stringBuilder = new StringBuilder( content );
-                if ( !StringUtils.isEmpty( data ) )
-                {
-                    stringBuilder.append( " " ).append( data );
-                }
-                if ( !StringUtils.isEmpty( field ) )
-                {
-                    stringBuilder.append( " (" ).append( field ).append( ")" );
-                }
-
-                return Pair.of( actionRule.getRuleUid(), stringBuilder.toString() );
-            } )
-            .map( message -> new ProgramRuleIssue( message.getKey(), TrackerErrorCode.E1300,
-                Lists.newArrayList( message.getValue() ), getIssueType() ) )
-            .collect( Collectors.toList() );
-    }
-
-    private boolean needsToRun( Event event )
-    {
-        if ( isOnComplete() )
-        {
-            return Objects.equals( EventStatus.COMPLETED, event.getStatus() );
-        }
-        else
-        {
-            return true;
-        }
-    }
-
-    private boolean needsToRun( Enrollment enrollment )
-    {
-        if ( isOnComplete() )
-        {
-            return Objects.equals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
-        }
-        else
-        {
-            return true;
-        }
-    }
+  }
 }

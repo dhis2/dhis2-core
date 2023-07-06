@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.dataexchange.client.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DHIS 2 import operation summary response.
@@ -43,9 +41,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ImportSummaryResponse
-    extends Dhis2Response
-{
-    @JsonProperty
-    private ImportSummary response;
+public class ImportSummaryResponse extends Dhis2Response {
+  @JsonProperty private ImportSummary response;
 }

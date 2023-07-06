@@ -28,7 +28,6 @@
 package org.hisp.dhis.legend;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -37,24 +36,19 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class LegendSetDeletionHandler extends DeletionHandler
-{
-    private final LegendSetService legendSetService;
+public class LegendSetDeletionHandler extends DeletionHandler {
+  private final LegendSetService legendSetService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( Legend.class, this::deleteLegend );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(Legend.class, this::deleteLegend);
+  }
 
-    private void deleteLegend( Legend legend )
-    {
-        for ( LegendSet legendSet : legendSetService.getAllLegendSets() )
-        {
-            if ( legendSet.getLegends().remove( legend ) )
-            {
-                legendSetService.updateLegendSet( legendSet );
-            }
-        }
+  private void deleteLegend(Legend legend) {
+    for (LegendSet legendSet : legendSetService.getAllLegendSets()) {
+      if (legendSet.getLegends().remove(legend)) {
+        legendSetService.updateLegendSet(legendSet);
+      }
     }
+  }
 }

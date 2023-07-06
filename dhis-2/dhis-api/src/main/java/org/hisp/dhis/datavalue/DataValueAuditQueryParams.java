@@ -29,10 +29,8 @@ package org.hisp.dhis.datavalue;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Data;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Pager;
@@ -46,25 +44,23 @@ import org.hisp.dhis.period.Period;
  * @author Lars Helge Overland
  */
 @Data
-@Accessors( chain = true )
-public class DataValueAuditQueryParams
-{
-    private List<DataElement> dataElements = new ArrayList<>();
+@Accessors(chain = true)
+public class DataValueAuditQueryParams {
+  private List<DataElement> dataElements = new ArrayList<>();
 
-    private List<Period> periods = new ArrayList<>();
+  private List<Period> periods = new ArrayList<>();
 
-    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+  private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    private CategoryOptionCombo attributeOptionCombo;
+  private CategoryOptionCombo attributeOptionCombo;
 
-    private List<AuditType> auditTypes = new ArrayList<>();
+  private List<AuditType> auditTypes = new ArrayList<>();
 
-    private Pager pager;
+  private Pager pager;
 
-    public boolean hasPaging()
-    {
-        return pager != null;
-    }
+  public boolean hasPaging() {
+    return pager != null;
+  }
 }

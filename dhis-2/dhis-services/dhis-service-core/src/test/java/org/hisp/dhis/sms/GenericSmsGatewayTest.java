@@ -38,13 +38,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.sms.config.ContentType;
@@ -68,167 +68,170 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Zubair Asghar.
  */
-@ExtendWith( MockitoExtension.class )
-class GenericSmsGatewayTest
-{
+@ExtendWith(MockitoExtension.class)
+class GenericSmsGatewayTest {
 
-    private static final String GATEWAY_URL = "http://gateway.com/messages";
+  private static final String GATEWAY_URL = "http://gateway.com/messages";
 
-    private static final String UID = "UID-123";
+  private static final String UID = "UID-123";
 
-    private static final String CONFIG_TEMPLATE_JSON = "{\"to\": \"${recipients}\",\"body\": \"${text}\"}";
+  private static final String CONFIG_TEMPLATE_JSON =
+      "{\"to\": \"${recipients}\",\"body\": \"${text}\"}";
 
-    private static final String CONFIG_TEMPLATE_URL_ENCODED = "to=${recipients}&message=${text}&user=${user}&pass=${password}";
+  private static final String CONFIG_TEMPLATE_URL_ENCODED =
+      "to=${recipients}&message=${text}&user=${user}&pass=${password}";
 
-    private static final String TEXT = "HI DHIS2";
+  private static final String TEXT = "HI DHIS2";
 
-    private static final String SUBJECT = "Greeting";
+  private static final String SUBJECT = "Greeting";
 
-    private static final Set<String> RECIPIENTS = Sets.newHashSet( "4033XXYY, 404YYXXX" );
+  private static final Set<String> RECIPIENTS = Sets.newHashSet("4033XXYY, 404YYXXX");
 
-    @Mock
-    private RestTemplate restTemplate;
+  @Mock private RestTemplate restTemplate;
 
-    @Mock
-    private PBEStringEncryptor pbeStringEncryptor;
+  @Mock private PBEStringEncryptor pbeStringEncryptor;
 
-    @Captor
-    private ArgumentCaptor<HttpEntity<String>> httpEntityArgumentCaptor;
+  @Captor private ArgumentCaptor<HttpEntity<String>> httpEntityArgumentCaptor;
 
-    @Captor
-    private ArgumentCaptor<HttpMethod> httpMethodArgumentCaptor;
+  @Captor private ArgumentCaptor<HttpMethod> httpMethodArgumentCaptor;
 
-    private SimplisticHttpGetGateWay subject;
+  private SimplisticHttpGetGateWay subject;
 
-    private GenericHttpGatewayConfig gatewayConfig;
+  private GenericHttpGatewayConfig gatewayConfig;
 
-    private GenericGatewayParameter username;
+  private GenericGatewayParameter username;
 
-    private GenericGatewayParameter password;
+  private GenericGatewayParameter password;
 
-    private StringSubstitutor strSubstitutor;
+  private StringSubstitutor strSubstitutor;
 
-    private String body;
+  private String body;
 
-    private Map<String, String> valueStore = new HashMap<>();
+  private Map<String, String> valueStore = new HashMap<>();
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new SimplisticHttpGetGateWay( restTemplate, pbeStringEncryptor );
+  @BeforeEach
+  public void setUp() {
+    subject = new SimplisticHttpGetGateWay(restTemplate, pbeStringEncryptor);
 
-        gatewayConfig = new GenericHttpGatewayConfig();
-        gatewayConfig.setUseGet( false );
-        gatewayConfig.setName( "generic" );
-        gatewayConfig.setUrlTemplate( GATEWAY_URL );
-        gatewayConfig.setDefault( true );
-        gatewayConfig.setUid( UID );
+    gatewayConfig = new GenericHttpGatewayConfig();
+    gatewayConfig.setUseGet(false);
+    gatewayConfig.setName("generic");
+    gatewayConfig.setUrlTemplate(GATEWAY_URL);
+    gatewayConfig.setDefault(true);
+    gatewayConfig.setUid(UID);
 
-        username = new GenericGatewayParameter();
-        username.setKey( "user" );
-        username.setValue( "user_uio" );
-        username.setEncode( false );
-        username.setHeader( true );
-        username.setConfidential( false );
+    username = new GenericGatewayParameter();
+    username.setKey("user");
+    username.setValue("user_uio");
+    username.setEncode(false);
+    username.setHeader(true);
+    username.setConfidential(false);
 
-        password = new GenericGatewayParameter();
-        password.setKey( "password" );
-        password.setValue( "abc123" );
-        password.setEncode( false );
-        password.setHeader( true );
-        password.setConfidential( true );
+    password = new GenericGatewayParameter();
+    password.setKey("password");
+    password.setValue("abc123");
+    password.setEncode(false);
+    password.setHeader(true);
+    password.setConfidential(true);
 
-        valueStore.put( SmsGateway.KEY_TEXT, SmsUtils.encode( TEXT ) );
-        valueStore.put( SmsGateway.KEY_RECIPIENT, StringUtils.join( RECIPIENTS, "," ) );
-    }
+    valueStore.put(SmsGateway.KEY_TEXT, SmsUtils.encode(TEXT));
+    valueStore.put(SmsGateway.KEY_RECIPIENT, StringUtils.join(RECIPIENTS, ","));
+  }
 
-    @Test
-    void testSendSms_Json()
-    {
-        strSubstitutor = new StringSubstitutor( valueStore );
-        body = strSubstitutor.replace( CONFIG_TEMPLATE_JSON );
+  @Test
+  void testSendSms_Json() {
+    strSubstitutor = new StringSubstitutor(valueStore);
+    body = strSubstitutor.replace(CONFIG_TEMPLATE_JSON);
 
-        gatewayConfig.getParameters().clear();
-        gatewayConfig.setParameters( Arrays.asList( username, password ) );
-        gatewayConfig.setContentType( ContentType.APPLICATION_JSON );
-        gatewayConfig.setConfigurationTemplate( CONFIG_TEMPLATE_JSON );
+    gatewayConfig.getParameters().clear();
+    gatewayConfig.setParameters(Arrays.asList(username, password));
+    gatewayConfig.setContentType(ContentType.APPLICATION_JSON);
+    gatewayConfig.setConfigurationTemplate(CONFIG_TEMPLATE_JSON);
 
-        ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
+    ResponseEntity<String> responseEntity = new ResponseEntity<>("success", HttpStatus.OK);
 
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-            eq( String.class ) ) )
-                .thenReturn( responseEntity );
+    when(restTemplate.exchange(
+            any(URI.class), any(HttpMethod.class), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(responseEntity);
 
-        assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
+    assertThat(subject.send(SUBJECT, TEXT, RECIPIENTS, gatewayConfig).isOk(), is(true));
 
-        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
-            httpEntityArgumentCaptor.capture(), eq( String.class ) );
+    verify(restTemplate)
+        .exchange(
+            any(URI.class),
+            httpMethodArgumentCaptor.capture(),
+            httpEntityArgumentCaptor.capture(),
+            eq(String.class));
 
-        assertNotNull( httpEntityArgumentCaptor.getValue() );
-        assertNotNull( httpMethodArgumentCaptor.getValue() );
+    assertNotNull(httpEntityArgumentCaptor.getValue());
+    assertNotNull(httpMethodArgumentCaptor.getValue());
 
-        HttpMethod httpMethod = httpMethodArgumentCaptor.getValue();
-        assertEquals( HttpMethod.POST, httpMethod );
+    HttpMethod httpMethod = httpMethodArgumentCaptor.getValue();
+    assertEquals(HttpMethod.POST, httpMethod);
 
-        HttpEntity<String> requestEntity = httpEntityArgumentCaptor.getValue();
+    HttpEntity<String> requestEntity = httpEntityArgumentCaptor.getValue();
 
-        assertEquals( body, requestEntity.getBody() );
+    assertEquals(body, requestEntity.getBody());
 
-        HttpHeaders httpHeaders = requestEntity.getHeaders();
-        assertTrue( httpHeaders.get( "Content-type" ).contains( gatewayConfig.getContentType().getValue() ) );
+    HttpHeaders httpHeaders = requestEntity.getHeaders();
+    assertTrue(httpHeaders.get("Content-type").contains(gatewayConfig.getContentType().getValue()));
 
-        List<GenericGatewayParameter> parameters = gatewayConfig.getParameters();
+    List<GenericGatewayParameter> parameters = gatewayConfig.getParameters();
 
-        parameters.stream().filter( p -> p.isEncode() && p.isConfidential() && p.isHeader() ).forEach( p -> {
-            assertTrue( httpHeaders.containsKey( p.getKey() ) );
-            assertEquals( " Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.get( p.getKey() ).get( 0 ) );
-        } );
-    }
+    parameters.stream()
+        .filter(p -> p.isEncode() && p.isConfidential() && p.isHeader())
+        .forEach(
+            p -> {
+              assertTrue(httpHeaders.containsKey(p.getKey()));
+              assertEquals(" Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.get(p.getKey()).get(0));
+            });
+  }
 
-    @Test
-    void testSendSms_Url()
-    {
-        username.setHeader( false );
-        password.setHeader( false );
-        password.setConfidential( true );
+  @Test
+  void testSendSms_Url() {
+    username.setHeader(false);
+    password.setHeader(false);
+    password.setConfidential(true);
 
-        valueStore.put( username.getKey(), username.getValue() );
-        valueStore.put( password.getKey(), password.getValue() );
+    valueStore.put(username.getKey(), username.getValue());
+    valueStore.put(password.getKey(), password.getValue());
 
-        strSubstitutor = new StringSubstitutor( valueStore );
+    strSubstitutor = new StringSubstitutor(valueStore);
 
-        gatewayConfig.getParameters().clear();
-        gatewayConfig.setParameters( Arrays.asList( username, password ) );
-        gatewayConfig.setContentType( ContentType.FORM_URL_ENCODED );
-        gatewayConfig.setConfigurationTemplate( CONFIG_TEMPLATE_URL_ENCODED );
+    gatewayConfig.getParameters().clear();
+    gatewayConfig.setParameters(Arrays.asList(username, password));
+    gatewayConfig.setContentType(ContentType.FORM_URL_ENCODED);
+    gatewayConfig.setConfigurationTemplate(CONFIG_TEMPLATE_URL_ENCODED);
 
-        body = strSubstitutor.replace( CONFIG_TEMPLATE_URL_ENCODED );
+    body = strSubstitutor.replace(CONFIG_TEMPLATE_URL_ENCODED);
 
-        ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
+    ResponseEntity<String> responseEntity = new ResponseEntity<>("success", HttpStatus.OK);
 
-        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( password.getValue() );
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-            eq( String.class ) ) )
-                .thenReturn( responseEntity );
+    when(pbeStringEncryptor.decrypt(anyString())).thenReturn(password.getValue());
+    when(restTemplate.exchange(
+            any(URI.class), any(HttpMethod.class), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(responseEntity);
 
-        assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
+    assertThat(subject.send(SUBJECT, TEXT, RECIPIENTS, gatewayConfig).isOk(), is(true));
 
-        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
-            httpEntityArgumentCaptor.capture(), eq( String.class ) );
+    verify(restTemplate)
+        .exchange(
+            any(URI.class),
+            httpMethodArgumentCaptor.capture(),
+            httpEntityArgumentCaptor.capture(),
+            eq(String.class));
 
-        assertNotNull( httpEntityArgumentCaptor.getValue() );
-        assertNotNull( httpMethodArgumentCaptor.getValue() );
+    assertNotNull(httpEntityArgumentCaptor.getValue());
+    assertNotNull(httpMethodArgumentCaptor.getValue());
 
-        HttpMethod httpMethod = httpMethodArgumentCaptor.getValue();
-        assertEquals( HttpMethod.POST, httpMethod );
+    HttpMethod httpMethod = httpMethodArgumentCaptor.getValue();
+    assertEquals(HttpMethod.POST, httpMethod);
 
-        HttpEntity<String> requestEntity = httpEntityArgumentCaptor.getValue();
+    HttpEntity<String> requestEntity = httpEntityArgumentCaptor.getValue();
 
-        assertEquals( body, requestEntity.getBody() );
-    }
+    assertEquals(body, requestEntity.getBody());
+  }
 }

@@ -27,72 +27,62 @@
  */
 package org.hisp.dhis.about.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.List;
 import java.util.Locale;
-
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
  * @version $Id: HelpAction.java 3116 2007-03-20 12:04:19Z torgeilo $
  */
-public class HelpAction
-    implements Action
-{
-    private static final String helpPagePreLocale = "/dhis-web-commons/help/help_";
+public class HelpAction implements Action {
+  private static final String helpPagePreLocale = "/dhis-web-commons/help/help_";
 
-    private static final String helpPagePostLocale = ".vm";
+  private static final String helpPagePostLocale = ".vm";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private LocaleManager localeManager;
+  private LocaleManager localeManager;
 
-    public void setLocaleManager( LocaleManager localeManager )
-    {
-        this.localeManager = localeManager;
-    }
+  public void setLocaleManager(LocaleManager localeManager) {
+    this.localeManager = localeManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
 
-    private String helpPage;
+  private String helpPage;
 
-    public String getHelpPage()
-    {
-        return helpPage;
-    }
+  public String getHelpPage() {
+    return helpPage;
+  }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public String execute()
-        throws Exception
-    {
-        List<Locale> locales = localeManager.getLocalesOrderedByPriority();
+  @Override
+  public String execute() throws Exception {
+    List<Locale> locales = localeManager.getLocalesOrderedByPriority();
 
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
+    ResourceLoader resourceLoader = new DefaultResourceLoader();
 
-        for ( Locale locale : locales )
-        {
-            String helpPage = helpPagePreLocale + locale.toString() + helpPagePostLocale;
+    for (Locale locale : locales) {
+      String helpPage = helpPagePreLocale + locale.toString() + helpPagePostLocale;
 
-            if ( resourceLoader.getResource( helpPage ) != null )
-            {
-                this.helpPage = helpPage;
-
-                return SUCCESS;
-            }
-        }
+      if (resourceLoader.getResource(helpPage) != null) {
+        this.helpPage = helpPage;
 
         return SUCCESS;
+      }
     }
+
+    return SUCCESS;
+  }
 }

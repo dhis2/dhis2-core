@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
@@ -50,61 +49,61 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Halvdan Hoem Grelland
  */
 @Controller
-@RequestMapping( value = ProgramNotificationTemplateSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping(value = ProgramNotificationTemplateSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 public class ProgramNotificationTemplateController
-    extends AbstractCrudController<ProgramNotificationTemplate>
-{
-    private final ProgramService programService;
+    extends AbstractCrudController<ProgramNotificationTemplate> {
+  private final ProgramService programService;
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    private final ProgramNotificationTemplateService programNotificationTemplateService;
+  private final ProgramNotificationTemplateService programNotificationTemplateService;
 
-    public ProgramNotificationTemplateController( ProgramService programService,
-        ProgramStageService programStageService,
-        ProgramNotificationTemplateService programNotificationTemplateService )
-    {
-        this.programService = programService;
-        this.programStageService = programStageService;
-        this.programNotificationTemplateService = programNotificationTemplateService;
-    }
+  public ProgramNotificationTemplateController(
+      ProgramService programService,
+      ProgramStageService programStageService,
+      ProgramNotificationTemplateService programNotificationTemplateService) {
+    this.programService = programService;
+    this.programStageService = programStageService;
+    this.programNotificationTemplateService = programNotificationTemplateService;
+  }
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // GET
+  // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL')" )
-    @GetMapping( produces = { "application/json" }, value = "/filter" )
-    public @ResponseBody PagingWrapper<ProgramNotificationTemplate> getProgramNotificationTemplates(
-        @RequestParam( required = false ) String program,
-        @RequestParam( required = false ) String programStage,
-        @RequestParam( required = false ) boolean skipPaging,
-        @RequestParam( required = false, defaultValue = "0" ) int page,
-        @RequestParam( required = false, defaultValue = "50" ) int pageSize )
-    {
-        ProgramNotificationTemplateParam params = ProgramNotificationTemplateParam.builder()
-            .program( programService.getProgram( program ) )
-            .programStage( programStageService.getProgramStage( programStage ) )
-            .skipPaging( skipPaging )
-            .page( page )
-            .pageSize( pageSize )
+  @PreAuthorize("hasRole('ALL')")
+  @GetMapping(
+      produces = {"application/json"},
+      value = "/filter")
+  public @ResponseBody PagingWrapper<ProgramNotificationTemplate> getProgramNotificationTemplates(
+      @RequestParam(required = false) String program,
+      @RequestParam(required = false) String programStage,
+      @RequestParam(required = false) boolean skipPaging,
+      @RequestParam(required = false, defaultValue = "0") int page,
+      @RequestParam(required = false, defaultValue = "50") int pageSize) {
+    ProgramNotificationTemplateParam params =
+        ProgramNotificationTemplateParam.builder()
+            .program(programService.getProgram(program))
+            .programStage(programStageService.getProgramStage(programStage))
+            .skipPaging(skipPaging)
+            .page(page)
+            .pageSize(pageSize)
             .build();
 
-        PagingWrapper<ProgramNotificationTemplate> templatePagingWrapper = new PagingWrapper<>();
+    PagingWrapper<ProgramNotificationTemplate> templatePagingWrapper = new PagingWrapper<>();
 
-        if ( !skipPaging )
-        {
-            long total = programNotificationTemplateService.countProgramNotificationTemplates( params );
+    if (!skipPaging) {
+      long total = programNotificationTemplateService.countProgramNotificationTemplates(params);
 
-            templatePagingWrapper = templatePagingWrapper.withPager(
-                PagingWrapper.Pager.builder().page( page ).pageSize( pageSize )
-                    .total( total ).build() );
-        }
-
-        List<ProgramNotificationTemplate> instances = programNotificationTemplateService
-            .getProgramNotificationTemplates( params );
-
-        return templatePagingWrapper.withInstances( instances );
+      templatePagingWrapper =
+          templatePagingWrapper.withPager(
+              PagingWrapper.Pager.builder().page(page).pageSize(pageSize).total(total).build());
     }
+
+    List<ProgramNotificationTemplate> instances =
+        programNotificationTemplateService.getProgramNotificationTemplates(params);
+
+    return templatePagingWrapper.withInstances(instances);
+  }
 }

@@ -29,7 +29,6 @@ package org.hisp.dhis.security;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -44,33 +43,26 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Torgeir Lorange Ostby
  */
 @Slf4j
-@Service( "ldapUserDetailsService" )
+@Service("ldapUserDetailsService")
 @AllArgsConstructor
-public class DefaultLdapUserDetailsService
-    implements UserDetailsService
-{
-    private final UserService userService;
+public class DefaultLdapUserDetailsService implements UserDetailsService {
+  private final UserService userService;
 
-    @Override
-    @Transactional( readOnly = true )
-    public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
-    {
-        User user = userService.getUserByUsername( username );
-        if ( user == null )
-        {
-            throw new UsernameNotFoundException( String.format( "Username '%s' not found.", username ) );
-        }
-
-        if ( !user.isExternalAuth() || !user.hasLdapId() )
-        {
-            throw new UsernameNotFoundException( "Wrong type of user, is not LDAP user." );
-        }
-
-        String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode( 10 );
-
-        return userService.validateAndCreateUserDetails( user, password );
+  @Override
+  @Transactional(readOnly = true)
+  public UserDetails loadUserByUsername(String username)
+      throws UsernameNotFoundException, DataAccessException {
+    User user = userService.getUserByUsername(username);
+    if (user == null) {
+      throw new UsernameNotFoundException(String.format("Username '%s' not found.", username));
     }
 
+    if (!user.isExternalAuth() || !user.hasLdapId()) {
+      throw new UsernameNotFoundException("Wrong type of user, is not LDAP user.");
+    }
+
+    String password = "EXTERNAL_LDAP_" + CodeGenerator.generateCode(10);
+
+    return userService.validateAndCreateUserDetails(user, password);
+  }
 }

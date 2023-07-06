@@ -27,104 +27,90 @@
  */
 package org.hisp.dhis.analytics;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0 )
-public class AnalyticsTableHook
-    extends BaseIdentifiableObject implements MetadataObject
-{
-    private AnalyticsTablePhase phase;
+@JacksonXmlRootElement(localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0)
+public class AnalyticsTableHook extends BaseIdentifiableObject implements MetadataObject {
+  private AnalyticsTablePhase phase;
 
-    private ResourceTableType resourceTableType;
+  private ResourceTableType resourceTableType;
 
-    private AnalyticsTableType analyticsTableType;
+  private AnalyticsTableType analyticsTableType;
 
-    private String sql;
+  private String sql;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public AnalyticsTableHook()
-    {
-    }
+  public AnalyticsTableHook() {}
 
-    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, ResourceTableType resourceTableType, String sql )
-    {
-        this.name = name;
-        this.phase = phase;
-        this.resourceTableType = resourceTableType;
-        this.sql = sql;
-    }
+  public AnalyticsTableHook(
+      String name, AnalyticsTablePhase phase, ResourceTableType resourceTableType, String sql) {
+    this.name = name;
+    this.phase = phase;
+    this.resourceTableType = resourceTableType;
+    this.sql = sql;
+  }
 
-    public AnalyticsTableHook( String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType,
-        String sql )
-    {
-        this.name = name;
-        this.phase = phase;
-        this.analyticsTableType = analyticsTableType;
-        this.sql = sql;
-    }
+  public AnalyticsTableHook(
+      String name, AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType, String sql) {
+    this.name = name;
+    this.phase = phase;
+    this.analyticsTableType = analyticsTableType;
+    this.sql = sql;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsTablePhase getPhase()
-    {
-        return phase;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AnalyticsTablePhase getPhase() {
+    return phase;
+  }
 
-    public void setPhase( AnalyticsTablePhase phase )
-    {
-        this.phase = phase;
-    }
+  public void setPhase(AnalyticsTablePhase phase) {
+    this.phase = phase;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ResourceTableType getResourceTableType()
-    {
-        return resourceTableType;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public ResourceTableType getResourceTableType() {
+    return resourceTableType;
+  }
 
-    public void setResourceTableType( ResourceTableType resourceTableType )
-    {
-        this.resourceTableType = resourceTableType;
-    }
+  public void setResourceTableType(ResourceTableType resourceTableType) {
+    this.resourceTableType = resourceTableType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AnalyticsTableType getAnalyticsTableType()
-    {
-        return analyticsTableType;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AnalyticsTableType getAnalyticsTableType() {
+    return analyticsTableType;
+  }
 
-    public void setAnalyticsTableType( AnalyticsTableType analyticsTableType )
-    {
-        this.analyticsTableType = analyticsTableType;
-    }
+  public void setAnalyticsTableType(AnalyticsTableType analyticsTableType) {
+    this.analyticsTableType = analyticsTableType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSql()
-    {
-        return sql;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getSql() {
+    return sql;
+  }
 
-    public void setSql( String sql )
-    {
-        this.sql = sql;
-    }
+  public void setSql(String sql) {
+    this.sql = sql;
+  }
 }

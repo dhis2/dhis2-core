@@ -29,10 +29,8 @@ package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -47,29 +45,29 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = Event.class, mapper = ProgramStageInstanceMapper.class )
-public class EventStrategy implements ClassBasedSupplierStrategy
-{
-    @NonNull
-    private final ProgramStageInstanceStore programStageInstanceStore;
+@StrategyFor(value = Event.class, mapper = ProgramStageInstanceMapper.class)
+public class EventStrategy implements ClassBasedSupplierStrategy {
+  @NonNull private final ProgramStageInstanceStore programStageInstanceStore;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        for ( List<String> ids : splitList )
-        {
-            List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getIncludingDeleted( ids );
+  @Override
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    for (List<String> ids : splitList) {
+      List<ProgramStageInstance> programStageInstances =
+          programStageInstanceStore.getIncludingDeleted(ids);
 
-            final List<String> rootEntities = params.getEvents().stream().map( Event::getEvent )
-                .collect( Collectors.toList() );
+      final List<String> rootEntities =
+          params.getEvents().stream().map(Event::getEvent).collect(Collectors.toList());
 
-            preheat.putEvents(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    programStageInstances ),
-                params.getEvents().stream()
-                    .filter(
-                        e -> RootEntitiesUtils.filterOutNonRootEntities( ids, rootEntities ).contains( e.getEvent() ) )
-                    .collect( Collectors.toList() ) );
-        }
+      preheat.putEvents(
+          DetachUtils.detach(
+              this.getClass().getAnnotation(StrategyFor.class).mapper(), programStageInstances),
+          params.getEvents().stream()
+              .filter(
+                  e ->
+                      RootEntitiesUtils.filterOutNonRootEntities(ids, rootEntities)
+                          .contains(e.getEvent()))
+              .collect(Collectors.toList()));
     }
+  }
 }

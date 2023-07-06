@@ -27,70 +27,65 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import lombok.Builder;
-import lombok.Value;
-
-import org.hisp.dhis.tracker.TrackerType;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Value;
+import org.hisp.dhis.tracker.TrackerType;
 
 /**
  * @author Enrico Colasante
  */
 @Value
 @Builder
-public class TrackerWarningReport
-{
-    private final String warningMessage;
+public class TrackerWarningReport {
+  private final String warningMessage;
 
-    private final TrackerErrorCode warningCode;
+  private final TrackerErrorCode warningCode;
 
-    private final TrackerType trackerType;
+  private final TrackerType trackerType;
 
-    private final String uid;
+  private final String uid;
 
-    @JsonCreator
-    public TrackerWarningReport( @JsonProperty( "message" ) String warningMessage,
-        @JsonProperty( "errorCode" ) TrackerErrorCode warningCode,
-        @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.warningMessage = warningMessage;
-        this.warningCode = warningCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
-    }
+  @JsonCreator
+  public TrackerWarningReport(
+      @JsonProperty("message") String warningMessage,
+      @JsonProperty("errorCode") TrackerErrorCode warningCode,
+      @JsonProperty("trackerType") TrackerType trackerType,
+      @JsonProperty("uid") String uid) {
+    this.warningMessage = warningMessage;
+    this.warningCode = warningCode;
+    this.trackerType = trackerType;
+    this.uid = uid;
+  }
 
-    @JsonProperty
-    public TrackerErrorCode getWarningCode()
-    {
-        return warningCode;
-    }
+  @JsonProperty
+  public TrackerErrorCode getWarningCode() {
+    return warningCode;
+  }
 
-    @JsonProperty
-    public String getMessage()
-    {
-        return warningMessage;
-    }
+  @JsonProperty
+  public String getMessage() {
+    return warningMessage;
+  }
 
-    @JsonProperty
-    public TrackerType getTrackerType()
-    {
-        return trackerType;
-    }
+  @JsonProperty
+  public TrackerType getTrackerType() {
+    return trackerType;
+  }
 
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
+  @JsonProperty
+  public String getUid() {
+    return uid;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "TrackerWarningReport{" +
-            "message=" + warningMessage +
-            ", warningCode=" + warningCode +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "TrackerWarningReport{"
+        + "message="
+        + warningMessage
+        + ", warningCode="
+        + warningCode
+        + '}';
+  }
 }

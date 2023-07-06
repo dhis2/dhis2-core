@@ -40,86 +40,79 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author anilkumk
  */
-class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    SystemSettingManager systemSettingManager;
+class MetadataSystemSettingServiceTest extends SingleSetupIntegrationTestBase {
+  @Autowired SystemSettingManager systemSettingManager;
 
-    @Autowired
-    DefaultMetadataSystemSettingService metadataSystemSettingService;
+  @Autowired DefaultMetadataSystemSettingService metadataSystemSettingService;
 
-    @BeforeEach
-    public void setup()
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, "http://localhost:9080" );
-        systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME, "username" );
-        systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD, "password" );
-        systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, true );
-    }
+  @BeforeEach
+  public void setup() {
+    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_URL, "http://localhost:9080");
+    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_USERNAME, "username");
+    systemSettingManager.saveSystemSetting(SettingKey.REMOTE_INSTANCE_PASSWORD, "password");
+    systemSettingManager.saveSystemSetting(SettingKey.STOP_METADATA_SYNC, true);
+  }
 
-    @Test
-    void testShouldGetRemoteUserName()
-    {
-        String remoteInstanceUserName = metadataSystemSettingService.getRemoteInstanceUserName();
+  @Test
+  void testShouldGetRemoteUserName() {
+    String remoteInstanceUserName = metadataSystemSettingService.getRemoteInstanceUserName();
 
-        assertEquals( "username", remoteInstanceUserName );
-    }
+    assertEquals("username", remoteInstanceUserName);
+  }
 
-    @Test
-    void testShouldGetRemotePassword()
-    {
-        String remoteInstancePassword = metadataSystemSettingService.getRemoteInstancePassword();
+  @Test
+  void testShouldGetRemotePassword() {
+    String remoteInstancePassword = metadataSystemSettingService.getRemoteInstancePassword();
 
-        assertEquals( "password", remoteInstancePassword );
-    }
+    assertEquals("password", remoteInstancePassword);
+  }
 
-    @Test
-    void testShouldDownloadMetadataVersionForGivenVersionName()
-    {
-        String downloadVersionUrl = metadataSystemSettingService.getVersionDetailsUrl( "Version_Name" );
+  @Test
+  void testShouldDownloadMetadataVersionForGivenVersionName() {
+    String downloadVersionUrl = metadataSystemSettingService.getVersionDetailsUrl("Version_Name");
 
-        assertEquals( "http://localhost:9080/api/metadata/version?versionName=Version_Name", downloadVersionUrl );
-    }
+    assertEquals(
+        "http://localhost:9080/api/metadata/version?versionName=Version_Name", downloadVersionUrl);
+  }
 
-    @Test
-    void testShouldDownloadMetadataVersionSnapshotForGivenVersionName()
-    {
-        String downloadVersionUrl = metadataSystemSettingService.getDownloadVersionSnapshotURL( "Version_Name" );
+  @Test
+  void testShouldDownloadMetadataVersionSnapshotForGivenVersionName() {
+    String downloadVersionUrl =
+        metadataSystemSettingService.getDownloadVersionSnapshotURL("Version_Name");
 
-        assertEquals( "http://localhost:9080/api/metadata/version/Version_Name/data.gz", downloadVersionUrl );
-    }
+    assertEquals(
+        "http://localhost:9080/api/metadata/version/Version_Name/data.gz", downloadVersionUrl);
+  }
 
-    @Test
-    void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
-    {
-        String metadataDifferenceUrl = metadataSystemSettingService.getMetaDataDifferenceURL( "Version_Name" );
+  @Test
+  void testShouldGetAllVersionsCreatedAfterTheGivenVersionName() {
+    String metadataDifferenceUrl =
+        metadataSystemSettingService.getMetaDataDifferenceURL("Version_Name");
 
-        assertEquals( "http://localhost:9080/api/metadata/version/history?baseline=Version_Name",
-            metadataDifferenceUrl );
-    }
+    assertEquals(
+        "http://localhost:9080/api/metadata/version/history?baseline=Version_Name",
+        metadataDifferenceUrl);
+  }
 
-    @Test
-    void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven()
-    {
-        String versionHistoryUrl = metadataSystemSettingService.getEntireVersionHistory();
+  @Test
+  void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven() {
+    String versionHistoryUrl = metadataSystemSettingService.getEntireVersionHistory();
 
-        assertEquals( "http://localhost:9080/api/metadata/version/history", versionHistoryUrl );
-    }
+    assertEquals("http://localhost:9080/api/metadata/version/history", versionHistoryUrl);
+  }
 
-    @Test
-    void testShouldGetStopMetadataSyncSettingValue()
-    {
-        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
+  @Test
+  void testShouldGetStopMetadataSyncSettingValue() {
+    Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
-        assertEquals( true, stopMetadataSync );
-    }
+    assertEquals(true, stopMetadataSync);
+  }
 
-    @Test
-    void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, null );
-        Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
+  @Test
+  void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull() {
+    systemSettingManager.saveSystemSetting(SettingKey.STOP_METADATA_SYNC, null);
+    Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
-        assertEquals( false, stopMetadataSync );
-    }
+    assertEquals(false, stopMetadataSync);
+  }
 }

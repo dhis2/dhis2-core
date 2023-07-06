@@ -27,43 +27,32 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import lombok.Data;
-
-import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 
 /**
  * @author Lars Helge Overland
  */
 @Data
-public class DataValueFollowUpRequest
-{
-    @JsonProperty
-    private String dataElement;
+public class DataValueFollowUpRequest {
+  @JsonProperty private String dataElement;
 
-    @JsonProperty
-    private String period;
+  @JsonProperty private String period;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String categoryOptionCombo;
+  @JsonProperty private String categoryOptionCombo;
 
-    @JsonProperty
-    private String attributeOptionCombo;
+  @JsonProperty private String attributeOptionCombo;
 
-    @JsonProperty
-    private DataValueCategoryDto attribute;
+  @JsonProperty private DataValueCategoryDto attribute;
 
-    @JsonProperty
-    private Boolean followup;
+  @JsonProperty private Boolean followup;
 
-    @JsonIgnore
-    public boolean hasAttribute()
-    {
-        return attribute != null;
-    }
+  @JsonIgnore
+  public boolean hasAttribute() {
+    return attribute != null;
+  }
 }

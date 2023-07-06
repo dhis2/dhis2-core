@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Henning Håkonsen
@@ -44,26 +41,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class PredictorJobParameters implements JobParameters
-{
-    @JsonProperty
-    private int relativeStart;
+public class PredictorJobParameters implements JobParameters {
+  @JsonProperty private int relativeStart;
 
-    @JsonProperty
-    private int relativeEnd;
+  @JsonProperty private int relativeEnd;
 
-    @JsonProperty
-    private List<String> predictors = new ArrayList<>();
+  @JsonProperty private List<String> predictors = new ArrayList<>();
 
-    @JsonProperty
-    private List<String> predictorGroups = new ArrayList<>();
+  @JsonProperty private List<String> predictorGroups = new ArrayList<>();
 
-    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors,
-        List<String> predictorGroups )
-    {
-        this.relativeStart = relativeStart;
-        this.relativeEnd = relativeEnd;
-        this.predictors = predictors;
-        this.predictorGroups = predictorGroups;
-    }
+  public PredictorJobParameters(
+      int relativeStart, int relativeEnd, List<String> predictors, List<String> predictorGroups) {
+    this.relativeStart = relativeStart;
+    this.relativeEnd = relativeEnd;
+    this.predictors = predictors;
+    this.predictorGroups = predictorGroups;
+  }
 }

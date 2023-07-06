@@ -37,29 +37,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class BaseAction
-{
-    @Autowired
-    protected AclService aclService;
+public abstract class BaseAction {
+  @Autowired protected AclService aclService;
 
-    @Autowired
-    protected CurrentUserService currentUserService;
+  @Autowired protected CurrentUserService currentUserService;
 
-    public final <T extends IdentifiableObject> void canReadType( Class<T> type )
-    {
-        if ( !aclService.canRead( currentUserService.getCurrentUser(), type ) )
-        {
-            throw new ReadAccessDeniedException(
-                "You don't have the proper permissions to read objects of this type." );
-        }
+  public final <T extends IdentifiableObject> void canReadType(Class<T> type) {
+    if (!aclService.canRead(currentUserService.getCurrentUser(), type)) {
+      throw new ReadAccessDeniedException(
+          "You don't have the proper permissions to read objects of this type.");
     }
+  }
 
-    public final void canReadInstance( IdentifiableObject instance, User currentUser )
-    {
-        if ( !aclService.canRead( currentUser, instance ) )
-        {
-            throw new ReadAccessDeniedException(
-                "You don't have the proper permissions to read this object instance." );
-        }
+  public final void canReadInstance(IdentifiableObject instance, User currentUser) {
+    if (!aclService.canRead(currentUser, instance)) {
+      throw new ReadAccessDeniedException(
+          "You don't have the proper permissions to read this object instance.");
     }
+  }
 }

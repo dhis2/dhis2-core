@@ -37,65 +37,59 @@ import org.hisp.dhis.program.Program;
 /**
  * @author Lars Helge Overland
  */
-public interface EventDataQueryService
-{
-    /**
-     * Creates an {@link EventQueryParams} based on the given request.
-     *
-     * @param request the {@link EventDataQueryRequest} containing the URL
-     *        parameters.
-     * @return an {@link EventQueryParams}.
-     */
-    EventQueryParams getFromRequest( EventDataQueryRequest request );
+public interface EventDataQueryService {
+  /**
+   * Creates an {@link EventQueryParams} based on the given request.
+   *
+   * @param request the {@link EventDataQueryRequest} containing the URL parameters.
+   * @return an {@link EventQueryParams}.
+   */
+  EventQueryParams getFromRequest(EventDataQueryRequest request);
 
-    /**
-     * Creates an {@link EventQueryParams} based on the given request.
-     *
-     * @param request the {@link EventDataQueryRequest} containing the URL
-     *        parameters.
-     * @return an {@link EventQueryParams}.
-     */
-    EventQueryParams getFromRequest( EventDataQueryRequest request, boolean analyzeOnly );
+  /**
+   * Creates an {@link EventQueryParams} based on the given request.
+   *
+   * @param request the {@link EventDataQueryRequest} containing the URL parameters.
+   * @return an {@link EventQueryParams}.
+   */
+  EventQueryParams getFromRequest(EventDataQueryRequest request, boolean analyzeOnly);
 
-    /**
-     * Creates an {@link EventQueryParams} based on the given event analytical
-     * object.
-     *
-     * @param request the {@link EventAnalyticalObject}.
-     * @return an {@link EventQueryParams}.
-     */
-    EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
+  /**
+   * Creates an {@link EventQueryParams} based on the given event analytical object.
+   *
+   * @param request the {@link EventAnalyticalObject}.
+   * @return an {@link EventQueryParams}.
+   */
+  EventQueryParams getFromAnalyticalObject(EventAnalyticalObject object);
 
-    /**
-     * Returns the coordinate column field to use for the given coordinate
-     * field. Coordinate field must match EVENT, a data element identifier or an
-     * attribute identifier.
-     *
-     * @param coordinate the coordinate field.
-     * @return the coordinate column field.
-     * @throws IllegalQueryException if the coordinate field is not valid.
-     */
-    String getCoordinateField( String coordinate );
+  /**
+   * Returns the coordinate column field to use for the given coordinate field. Coordinate field
+   * must match EVENT, a data element identifier or an attribute identifier.
+   *
+   * @param coordinate the coordinate field.
+   * @return the coordinate column field.
+   * @throws IllegalQueryException if the coordinate field is not valid.
+   */
+  String getCoordinateField(String coordinate);
 
-    /**
-     * Returns the coordinate column field to use for the given coordinate
-     * field. Coordinate field must match EVENT, a data element identifier or an
-     * attribute identifier.
-     *
-     * @param coordinate the coordinate field.
-     * @param program the program uid.
-     * @return the coordinate column field.
-     * @throws IllegalQueryException if the coordinate field is not valid.
-     */
-    String getFallbackCoordinateField( String coordinate, String program );
+  /**
+   * Returns the coordinate column field to use for the given coordinate field. Coordinate field
+   * must match EVENT, a data element identifier or an attribute identifier.
+   *
+   * @param coordinate the coordinate field.
+   * @param program the program uid.
+   * @return the coordinate column field.
+   * @throws IllegalQueryException if the coordinate field is not valid.
+   */
+  String getFallbackCoordinateField(String coordinate, String program);
 
-    /**
-     * Returns a {@link QueryItem}.
-     *
-     * @param dimensionString the dimension string.
-     * @param program the {@link Program}.
-     * @param type the {@link EventOutputType}.
-     * @return a {@link QueryItem}.
-     */
-    QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type );
+  /**
+   * Returns a {@link QueryItem}.
+   *
+   * @param dimensionString the dimension string.
+   * @param program the {@link Program}.
+   * @param type the {@link EventOutputType}.
+   * @return a {@link QueryItem}.
+   */
+  QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type);
 }

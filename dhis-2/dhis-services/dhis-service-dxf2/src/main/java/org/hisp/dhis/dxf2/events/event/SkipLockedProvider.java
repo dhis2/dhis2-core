@@ -28,10 +28,9 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /**
- * Provide the SQL for SKIP LOCKED option. H2 does not support this option so we
- * need a different implementation for the integration tests
+ * Provide the SQL for SKIP LOCKED option. H2 does not support this option so we need a different
+ * implementation for the integration tests
  */
-public interface SkipLockedProvider
-{
-    String getSkipLocked();
+public interface SkipLockedProvider {
+  String getSkipLocked();
 }

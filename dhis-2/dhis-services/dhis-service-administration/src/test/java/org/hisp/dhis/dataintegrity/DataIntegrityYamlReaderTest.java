@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.junit.jupiter.api.Test;
 
@@ -43,29 +42,44 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataIntegrityYamlReaderTest
-{
-    @Test
-    void testReadDataIntegrityYaml()
-    {
-        List<DataIntegrityCheck> checks = new ArrayList<>();
-        readDataIntegrityYaml( "data-integrity-checks.yaml", checks::add,
-            ( property, defaultValue ) -> defaultValue,
-            sql -> check -> new DataIntegritySummary( check, new Date(), null, 1, 100d ),
-            sql -> check -> new DataIntegrityDetails( check, new Date(), null,
-                List.of( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-        assertEquals( 6, checks.size() );
-        DataIntegrityCheck check = checks.get( 0 );
-        assertEquals( "categories_no_options", check.getName() );
-        assertEquals( "Categories with no category options", check.getDescription() );
-        assertEquals( "Categories", check.getSection() );
-        assertEquals( "categories", check.getIssuesIdType() );
-        assertEquals( DataIntegritySeverity.WARNING, check.getSeverity() );
-        assertEquals( "Categories should always have at least a single category options.", check.getIntroduction() );
-        assertEquals( "Any categories without category options should either be removed from the"
+class DataIntegrityYamlReaderTest {
+  @Test
+  void testReadDataIntegrityYaml() {
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readDataIntegrityYaml(
+        "data-integrity-checks.yaml",
+        checks::add,
+        (property, defaultValue) -> defaultValue,
+        sql -> check -> new DataIntegritySummary(check, new Date(), null, 1, 100d),
+        sql ->
+            check ->
+                new DataIntegrityDetails(
+                    check,
+                    new Date(),
+                    null,
+                    List.of(new DataIntegrityIssue("id", "name", sql, List.of()))));
+    assertEquals(6, checks.size());
+    DataIntegrityCheck check = checks.get(0);
+    assertEquals("categories_no_options", check.getName());
+    assertEquals("Categories with no category options", check.getDescription());
+    assertEquals("Categories", check.getSection());
+    assertEquals("categories", check.getIssuesIdType());
+    assertEquals(DataIntegritySeverity.WARNING, check.getSeverity());
+    assertEquals(
+        "Categories should always have at least a single category options.",
+        check.getIntroduction());
+    assertEquals(
+        "Any categories without category options should either be removed from the"
             + " system if they are not in use. Otherwise, appropriate category options"
-            + " should be added to the category.", check.getRecommendation() );
-        assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
-            .startsWith( "SELECT uid,name from dataelementcategory" ) );
-    }
+            + " should be added to the category.",
+        check.getRecommendation());
+    assertTrue(
+        check
+            .getRunDetailsCheck()
+            .apply(check)
+            .getIssues()
+            .get(0)
+            .getComment()
+            .startsWith("SELECT uid,name from dataelementcategory"));
+  }
 }

@@ -37,8 +37,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Viet Nguyen
  */
 @Controller
-@RequestMapping( value = ProgramTrackedEntityAttributeGroupSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = ProgramTrackedEntityAttributeGroupSchemaDescriptor.API_ENDPOINT)
 public class ProgramTrackedEntityAttributeGroupController
-    extends AbstractCrudController<ProgramTrackedEntityAttributeGroup>
-{
-}
+    extends AbstractCrudController<ProgramTrackedEntityAttributeGroup> {}

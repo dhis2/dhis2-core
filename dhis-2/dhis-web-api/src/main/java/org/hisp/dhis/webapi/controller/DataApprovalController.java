@@ -40,9 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -100,730 +98,684 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Controller
 @RequestMapping
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataApprovalController
-{
-    private static final String APPROVALS_PATH = "/dataApprovals";
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataApprovalController {
+  private static final String APPROVALS_PATH = "/dataApprovals";
 
-    private static final String STATUS_PATH = APPROVALS_PATH + "/status";
+  private static final String STATUS_PATH = APPROVALS_PATH + "/status";
 
-    private static final String ACCEPTANCES_PATH = "/dataAcceptances";
+  private static final String ACCEPTANCES_PATH = "/dataAcceptances";
 
-    private static final String MULTIPLE_APPROVALS_PATH = APPROVALS_PATH + "/multiple";
+  private static final String MULTIPLE_APPROVALS_PATH = APPROVALS_PATH + "/multiple";
 
-    @Autowired
-    private DataApprovalService dataApprovalService;
+  @Autowired private DataApprovalService dataApprovalService;
 
-    @Autowired
-    private DataApprovalLevelService dataApprovalLevelService;
+  @Autowired private DataApprovalLevelService dataApprovalLevelService;
 
-    @Autowired
-    private DataSetService dataSetService;
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private IdentifiableObjectManager objectManager;
+  @Autowired private IdentifiableObjectManager objectManager;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
-    @Autowired
-    private CategoryService categoryService;
+  @Autowired private CategoryService categoryService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+  @Autowired private FieldFilterService fieldFilterService;
 
-    @Autowired
-    private ContextService contextService;
+  @Autowired private ContextService contextService;
 
-    // -------------------------------------------------------------------------
-    // Get
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Get
+  // -------------------------------------------------------------------------
 
-    @GetMapping( value = APPROVALS_PATH, produces = MediaType.APPLICATION_JSON_VALUE )
-    @ResponseBody
-    @ResponseStatus( HttpStatus.OK )
-    public DataApprovalPermissions getApprovalPermissions(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
-        throws WebMessageException
-    {
-        DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
-        Period period = getAndValidatePeriod( pe );
-        OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+  @GetMapping(value = APPROVALS_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  @ResponseStatus(HttpStatus.OK)
+  public DataApprovalPermissions getApprovalPermissions(
+      @RequestParam(required = false) String ds,
+      @RequestParam(required = false) String wf,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String aoc)
+      throws WebMessageException {
+    DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
+    Period period = getAndValidatePeriod(pe);
+    OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
+    CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
 
-        DataApprovalStatus status = dataApprovalService
-            .getDataApprovalStatus( workflow, period, organisationUnit, optionCombo );
+    DataApprovalStatus status =
+        dataApprovalService.getDataApprovalStatus(workflow, period, organisationUnit, optionCombo);
 
-        DataApprovalPermissions permissions = status.getPermissions();
-        permissions.setState( status.getState().toString() );
+    DataApprovalPermissions permissions = status.getPermissions();
+    permissions.setState(status.getState().toString());
 
-        return status.getPermissions();
+    return status.getPermissions();
+  }
+
+  @GetMapping(
+      value = {MULTIPLE_APPROVALS_PATH, APPROVALS_PATH + "/approvals"},
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  @ResponseStatus(HttpStatus.OK)
+  public List<ApprovalStatusDto> getMultipleApprovalPermissions(
+      @RequestParam Set<String> wf,
+      @RequestParam(required = false) Set<String> pe,
+      @RequestParam(required = false) Date startDate,
+      @RequestParam(required = false) Date endDate,
+      @RequestParam Set<String> ou,
+      @RequestParam(required = false) Set<String> aoc)
+      throws WebMessageException {
+    Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows(null, wf);
+
+    List<Period> periods = null;
+
+    if (pe == null) {
+      if (startDate == null || endDate == null) {
+        throw new WebMessageException(
+            conflict("Must have either pe or both startDate and endDate."));
+      }
+    } else {
+      if (startDate != null || endDate != null) {
+        throw new WebMessageException(conflict("Cannot have both pe and startDate or endDate."));
+      }
+
+      periods = new ArrayList<>();
+
+      for (String period : pe) {
+        Period periodObj = periodService.getPeriod(getAndValidatePeriod(period).getIsoDate());
+
+        if (periodObj != null) {
+          periods.add(periodObj);
+        }
+      }
     }
 
-    @GetMapping( value = { MULTIPLE_APPROVALS_PATH,
-        APPROVALS_PATH + "/approvals" }, produces = MediaType.APPLICATION_JSON_VALUE )
-    @ResponseBody
-    @ResponseStatus( HttpStatus.OK )
-    public List<ApprovalStatusDto> getMultipleApprovalPermissions(
-        @RequestParam Set<String> wf,
-        @RequestParam( required = false ) Set<String> pe,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> ou,
-        @RequestParam( required = false ) Set<String> aoc )
-        throws WebMessageException
-    {
-        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( null, wf );
+    List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-        List<Period> periods = null;
+    for (String orgUnit : ou) {
+      orgUnits.add(getAndValidateOrgUnit(orgUnit));
+    }
 
-        if ( pe == null )
-        {
-            if ( startDate == null || endDate == null )
-            {
-                throw new WebMessageException(
-                    conflict( "Must have either pe or both startDate and endDate." ) );
+    Set<CategoryOptionCombo> attributeOptionCombos = getAndValidateAttributeOptionCombos(aoc);
+
+    List<DataApproval> dataApprovals = new ArrayList<>();
+
+    for (DataApprovalWorkflow workflow : workflows) {
+      List<Period> workflowPeriods =
+          periods != null
+              ? periods
+              : periodService.getPeriodsBetweenDates(workflow.getPeriodType(), startDate, endDate);
+
+      for (Period period : workflowPeriods) {
+        if (period.getPeriodType().equals(workflow.getPeriodType())) {
+          for (OrganisationUnit orgUnit : orgUnits) {
+            for (CategoryOptionCombo optionCombo : attributeOptionCombos) {
+              dataApprovals.add(new DataApproval(null, workflow, period, orgUnit, optionCombo));
             }
+          }
         }
-        else
-        {
-            if ( startDate != null || endDate != null )
-            {
-                throw new WebMessageException(
-                    conflict( "Cannot have both pe and startDate or endDate." ) );
-            }
-
-            periods = new ArrayList<>();
-
-            for ( String period : pe )
-            {
-                Period periodObj = periodService.getPeriod( getAndValidatePeriod( period ).getIsoDate() );
-
-                if ( periodObj != null )
-                {
-                    periods.add( periodObj );
-                }
-            }
-        }
-
-        List<OrganisationUnit> orgUnits = new ArrayList<>();
-
-        for ( String orgUnit : ou )
-        {
-            orgUnits.add( getAndValidateOrgUnit( orgUnit ) );
-        }
-
-        Set<CategoryOptionCombo> attributeOptionCombos = getAndValidateAttributeOptionCombos( aoc );
-
-        List<DataApproval> dataApprovals = new ArrayList<>();
-
-        for ( DataApprovalWorkflow workflow : workflows )
-        {
-            List<Period> workflowPeriods = periods != null ? periods
-                : periodService.getPeriodsBetweenDates( workflow.getPeriodType(), startDate, endDate );
-
-            for ( Period period : workflowPeriods )
-            {
-                if ( period.getPeriodType().equals( workflow.getPeriodType() ) )
-                {
-                    for ( OrganisationUnit orgUnit : orgUnits )
-                    {
-                        for ( CategoryOptionCombo optionCombo : attributeOptionCombos )
-                        {
-                            dataApprovals.add( new DataApproval( null, workflow, period, orgUnit, optionCombo ) );
-                        }
-                    }
-                }
-            }
-        }
-
-        return dataApprovalService.getDataApprovalStatuses( dataApprovals ).entrySet().stream()
-            .map( ApprovalStatusDto::from )
-            .collect( toList() );
+      }
     }
 
-    @GetMapping( value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody RootNode getApproval(
-        @RequestParam Set<String> ds,
-        @RequestParam( required = false ) String pe,
-        @RequestParam( required = false ) Date startDate,
-        @RequestParam( required = false ) Date endDate,
-        @RequestParam Set<String> ou,
-        @RequestParam( required = false ) boolean children,
-        HttpServletResponse response )
-        throws WebMessageException,
-        BadRequestException
-    {
-        List<String> fields = new ArrayList<>( contextService.getParameterValues( "fields" ) );
+    return dataApprovalService.getDataApprovalStatuses(dataApprovals).entrySet().stream()
+        .map(ApprovalStatusDto::from)
+        .collect(toList());
+  }
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-            List<String> defaults = new ArrayList<>();
-            defaults.add(
-                "period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]" );
-            fields.addAll( defaults );
-        }
+  @GetMapping(value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON)
+  public @ResponseBody RootNode getApproval(
+      @RequestParam Set<String> ds,
+      @RequestParam(required = false) String pe,
+      @RequestParam(required = false) Date startDate,
+      @RequestParam(required = false) Date endDate,
+      @RequestParam Set<String> ou,
+      @RequestParam(required = false) boolean children,
+      HttpServletResponse response)
+      throws WebMessageException, BadRequestException {
+    List<String> fields = new ArrayList<>(contextService.getParameterValues("fields"));
 
-        Set<DataSet> dataSets = parseDataSetsWithWorkflow( ds );
-
-        Set<Period> periods = parsePeriods( pe, startDate, endDate );
-
-        Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-        if ( children )
-        {
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( ou ) );
-        }
-        else
-        {
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsByUid( ou ) );
-        }
-
-        List<DataApprovalStateResponse> responses = new ArrayList<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            for ( OrganisationUnit organisationUnit : organisationUnits )
-            {
-                for ( Period period : periods )
-                {
-                    responses.add( getDataApprovalStateResponse( dataSet, organisationUnit, period ) );
-                }
-            }
-        }
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        rootNode.addChild( fieldFilterService.toCollectionNode( DataApprovalStateResponse.class,
-            new FieldFilterParams( responses, fields ) ) );
-
-        return rootNode;
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.ALL.getFields());
+      List<String> defaults = new ArrayList<>();
+      defaults.add(
+          "period[id,name,code],organisationUnit[id,name,created,lastUpdated],dataSet[code,name,created,lastUpdated,id]");
+      fields.addAll(defaults);
     }
 
-    private Set<Period> parsePeriods( String pe, Date startDate, Date endDate )
-        throws BadRequestException
-    {
-        if ( startDate == null || endDate == null )
-        {
-            Period period = periodService.getPeriod( pe );
-            if ( period == null )
-            {
-                throw new BadRequestException( "Either provide startDate and endDate or a valid ISO period for pe" );
-            }
-            return singleton( period );
-        }
+    Set<DataSet> dataSets = parseDataSetsWithWorkflow(ds);
 
-        PeriodType periodType = periodService.getPeriodTypeByName( pe );
-        if ( periodType != null )
-        {
-            return new HashSet<>( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
-        }
-        return new HashSet<>( periodService.getPeriodsBetweenDates( startDate, endDate ) );
+    Set<Period> periods = parsePeriods(pe, startDate, endDate);
+
+    Set<OrganisationUnit> organisationUnits = new HashSet<>();
+
+    if (children) {
+      organisationUnits.addAll(organisationUnitService.getOrganisationUnitsWithChildren(ou));
+    } else {
+      organisationUnits.addAll(organisationUnitService.getOrganisationUnitsByUid(ou));
     }
 
-    private DataApprovalStateResponse getDataApprovalStateResponse( DataSet dataSet, OrganisationUnit organisationUnit,
-        Period period )
-    {
-        CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+    List<DataApprovalStateResponse> responses = new ArrayList<>();
 
-        DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( dataSet.getWorkflow(), period,
-            organisationUnit, optionCombo );
-
-        DataApprovalPermissions permissions = status.getPermissions();
-        return DataApprovalStateResponse.builder()
-            .dataSet( dataSet )
-            .organisationUnit( organisationUnit )
-            .period( period )
-            .state( status.getState().toString() )
-            .createdDate( status.getCreated() )
-            .createdByUsername( status.getCreator() == null ? null : status.getCreator().getUsername() )
-            .permissions( permissions )
-            .build();
-    }
-
-    @GetMapping( value = APPROVALS_PATH
-        + "/categoryOptionCombos", produces = MediaType.APPLICATION_JSON_VALUE )
-    @ResponseBody
-    @ResponseStatus( HttpStatus.OK )
-    public List<Map<String, Object>> getApprovalByCategoryOptionCombos(
-        @RequestParam( required = false ) Set<String> ds,
-        @RequestParam( required = false ) Set<String> wf,
-        @RequestParam String pe,
-        @RequestParam( required = false ) String ou,
-        @RequestParam( required = false ) String ouFilter,
-        @RequestParam( required = false ) Set<String> aoc )
-        throws WebMessageException
-    {
-        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
-        Period period = getAndValidatePeriod( pe );
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ou );
-        OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit( ouFilter );
-        Set<CategoryOptionCombo> attributeOptionCombos = getAndValidateAttributeOptionCombos( aoc );
-
-        if ( orgUnit != null && orgUnit.isRoot() )
-        {
-            orgUnit = null; // Look for all org units.
+    for (DataSet dataSet : dataSets) {
+      for (OrganisationUnit organisationUnit : organisationUnits) {
+        for (Period period : periods) {
+          responses.add(getDataApprovalStateResponse(dataSet, organisationUnit, period));
         }
+      }
+    }
 
-        List<DataApprovalStatus> statusList = new ArrayList<>();
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-        for ( DataApprovalWorkflow workflow : workflows )
-        {
-            Set<CategoryCombo> attributeCombos = new HashSet<>();
+    RootNode rootNode = NodeUtils.createMetadata();
 
-            for ( DataSet dataSet : workflow.getDataSets() )
-            {
-                attributeCombos.add( dataSet.getCategoryCombo() );
-            }
+    rootNode.addChild(
+        fieldFilterService.toCollectionNode(
+            DataApprovalStateResponse.class, new FieldFilterParams(responses, fields)));
 
-            for ( CategoryCombo attributeCombo : attributeCombos )
-            {
-                statusList.addAll( dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period, orgUnit,
-                    orgUnitFilter, attributeCombo, attributeOptionCombos ) );
-            }
+    return rootNode;
+  }
+
+  private Set<Period> parsePeriods(String pe, Date startDate, Date endDate)
+      throws BadRequestException {
+    if (startDate == null || endDate == null) {
+      Period period = periodService.getPeriod(pe);
+      if (period == null) {
+        throw new BadRequestException(
+            "Either provide startDate and endDate or a valid ISO period for pe");
+      }
+      return singleton(period);
+    }
+
+    PeriodType periodType = periodService.getPeriodTypeByName(pe);
+    if (periodType != null) {
+      return new HashSet<>(periodService.getPeriodsBetweenDates(periodType, startDate, endDate));
+    }
+    return new HashSet<>(periodService.getPeriodsBetweenDates(startDate, endDate));
+  }
+
+  private DataApprovalStateResponse getDataApprovalStateResponse(
+      DataSet dataSet, OrganisationUnit organisationUnit, Period period) {
+    CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
+
+    DataApprovalStatus status =
+        dataApprovalService.getDataApprovalStatus(
+            dataSet.getWorkflow(), period, organisationUnit, optionCombo);
+
+    DataApprovalPermissions permissions = status.getPermissions();
+    return DataApprovalStateResponse.builder()
+        .dataSet(dataSet)
+        .organisationUnit(organisationUnit)
+        .period(period)
+        .state(status.getState().toString())
+        .createdDate(status.getCreated())
+        .createdByUsername(status.getCreator() == null ? null : status.getCreator().getUsername())
+        .permissions(permissions)
+        .build();
+  }
+
+  @GetMapping(
+      value = APPROVALS_PATH + "/categoryOptionCombos",
+      produces = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  @ResponseStatus(HttpStatus.OK)
+  public List<Map<String, Object>> getApprovalByCategoryOptionCombos(
+      @RequestParam(required = false) Set<String> ds,
+      @RequestParam(required = false) Set<String> wf,
+      @RequestParam String pe,
+      @RequestParam(required = false) String ou,
+      @RequestParam(required = false) String ouFilter,
+      @RequestParam(required = false) Set<String> aoc)
+      throws WebMessageException {
+    Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows(ds, wf);
+    Period period = getAndValidatePeriod(pe);
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ou);
+    OrganisationUnit orgUnitFilter = organisationUnitService.getOrganisationUnit(ouFilter);
+    Set<CategoryOptionCombo> attributeOptionCombos = getAndValidateAttributeOptionCombos(aoc);
+
+    if (orgUnit != null && orgUnit.isRoot()) {
+      orgUnit = null; // Look for all org units.
+    }
+
+    List<DataApprovalStatus> statusList = new ArrayList<>();
+
+    for (DataApprovalWorkflow workflow : workflows) {
+      Set<CategoryCombo> attributeCombos = new HashSet<>();
+
+      for (DataSet dataSet : workflow.getDataSets()) {
+        attributeCombos.add(dataSet.getCategoryCombo());
+      }
+
+      for (CategoryCombo attributeCombo : attributeCombos) {
+        statusList.addAll(
+            dataApprovalService.getUserDataApprovalsAndPermissions(
+                workflow, period, orgUnit, orgUnitFilter, attributeCombo, attributeOptionCombos));
+      }
+    }
+
+    List<Map<String, Object>> list = new ArrayList<>();
+
+    for (DataApprovalStatus status : statusList) {
+      Map<String, Object> item = new HashMap<>();
+
+      Map<String, String> approvalLevel = new HashMap<>();
+
+      if (status.getApprovedLevel() != null) {
+        approvalLevel.put("id", status.getApprovedLevel().getUid());
+        approvalLevel.put("level", String.valueOf(status.getApprovedLevel().getLevel()));
+      }
+
+      item.put("id", status.getAttributeOptionComboUid());
+      item.put("level", approvalLevel);
+      item.put("ou", status.getOrganisationUnitUid());
+      item.put("ouName", status.getOrganisationUnitName());
+      item.put("accepted", status.isAccepted());
+      item.put("permissions", status.getPermissions());
+
+      list.add(item);
+    }
+    return list;
+  }
+
+  // -------------------------------------------------------------------------
+  // Post, approval
+  // -------------------------------------------------------------------------
+
+  @PreAuthorize(
+      "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')")
+  @PostMapping(value = APPROVALS_PATH)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void saveApproval(
+      @RequestParam(required = false) String ds,
+      @RequestParam(required = false) String wf,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String aoc)
+      throws WebMessageException {
+    DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
+    Period period = getAndValidatePeriod(pe);
+    OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
+    DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
+    CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
+
+    User user = currentUserService.getCurrentUser();
+
+    List<DataApproval> dataApprovalList =
+        getApprovalsAsList(
+            dataApprovalLevel,
+            workflow,
+            period,
+            organisationUnit,
+            optionCombo,
+            false,
+            new Date(),
+            user);
+
+    dataApprovalService.approveData(dataApprovalList);
+  }
+
+  @PostMapping(APPROVALS_PATH + "/approvals")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void saveApprovalBatch(@RequestBody ApprovalsDto approvals) throws WebMessageException {
+    dataApprovalService.approveData(getDataApprovalList(approvals));
+  }
+
+  @PostMapping(APPROVALS_PATH + "/unapprovals")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeApprovalBatch(@RequestBody ApprovalsDto approvals) throws WebMessageException {
+    dataApprovalService.unapproveData(getDataApprovalList(approvals));
+  }
+
+  // -------------------------------------------------------------------------
+  // Post, acceptance
+  // -------------------------------------------------------------------------
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')")
+  @PostMapping(ACCEPTANCES_PATH)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void acceptApproval(
+      @RequestParam(required = false) String ds,
+      @RequestParam(required = false) String wf,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String aoc)
+      throws WebMessageException {
+    DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
+    Period period = getAndValidatePeriod(pe);
+    OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
+    DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
+    CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
+
+    User user = currentUserService.getCurrentUser();
+
+    List<DataApproval> dataApprovalList =
+        getApprovalsAsList(
+            dataApprovalLevel,
+            workflow,
+            period,
+            organisationUnit,
+            optionCombo,
+            false,
+            new Date(),
+            user);
+
+    dataApprovalService.acceptData(dataApprovalList);
+  }
+
+  @PostMapping(ACCEPTANCES_PATH + "/acceptances")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void saveAcceptanceBatch(@RequestBody ApprovalsDto approvals) throws WebMessageException {
+    dataApprovalService.acceptData(getDataApprovalList(approvals));
+  }
+
+  @PostMapping(ACCEPTANCES_PATH + "/unacceptances")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeAcceptancesBatch(@RequestBody ApprovalsDto approvals)
+      throws WebMessageException {
+    dataApprovalService.unacceptData(getDataApprovalList(approvals));
+  }
+
+  // -------------------------------------------------------------------------
+  // Delete
+  // -------------------------------------------------------------------------
+
+  @PreAuthorize(
+      "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')")
+  @DeleteMapping(APPROVALS_PATH)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeApproval(
+      @RequestParam(required = false) Set<String> ds,
+      @RequestParam(required = false) Set<String> wf,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String aoc)
+      throws WebMessageException {
+    Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows(ds, wf);
+
+    Period period = getAndValidatePeriod(pe);
+    OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
+    DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
+    CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
+
+    User user = currentUserService.getCurrentUser();
+
+    List<DataApproval> dataApprovalList = new ArrayList<>();
+
+    for (DataApprovalWorkflow workflow : workflows) {
+      dataApprovalList.addAll(
+          getApprovalsAsList(
+              dataApprovalLevel,
+              workflow,
+              period,
+              organisationUnit,
+              optionCombo,
+              false,
+              new Date(),
+              user));
+    }
+
+    dataApprovalService.unapproveData(dataApprovalList);
+  }
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')")
+  @DeleteMapping(ACCEPTANCES_PATH)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void unacceptApproval(
+      @RequestParam(required = false) String ds,
+      @RequestParam(required = false) String wf,
+      @RequestParam String pe,
+      @RequestParam String ou,
+      @RequestParam(required = false) String aoc)
+      throws WebMessageException {
+    DataApprovalWorkflow workflow = getAndValidateWorkflow(ds, wf);
+    Period period = getAndValidatePeriod(pe);
+    OrganisationUnit organisationUnit = getAndValidateOrgUnit(ou);
+    DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel(organisationUnit);
+    CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo(aoc);
+
+    User user = currentUserService.getCurrentUser();
+
+    List<DataApproval> dataApprovalList =
+        getApprovalsAsList(
+            dataApprovalLevel,
+            workflow,
+            period,
+            organisationUnit,
+            optionCombo,
+            false,
+            new Date(),
+            user);
+
+    dataApprovalService.unacceptData(dataApprovalList);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private Set<DataSet> parseDataSetsWithWorkflow(Set<String> ds) throws WebMessageException {
+    Set<DataSet> dataSets = new HashSet<>(objectManager.getByUid(DataSet.class, ds));
+
+    for (DataSet dataSet : dataSets) {
+      if (dataSet.getWorkflow() == null) {
+        throw new WebMessageException(
+            conflict("DataSet does not have an approval workflow: " + dataSet.getUid()));
+      }
+    }
+
+    return dataSets;
+  }
+
+  private List<DataApproval> getApprovalsAsList(
+      DataApprovalLevel dataApprovalLevel,
+      DataApprovalWorkflow workflow,
+      Period period,
+      OrganisationUnit organisationUnit,
+      CategoryOptionCombo optionCombo,
+      boolean accepted,
+      Date created,
+      User creator) {
+    List<DataApproval> approvals = new ArrayList<>();
+
+    period = periodService.reloadPeriod(period);
+
+    approvals.add(
+        new DataApproval(
+            dataApprovalLevel,
+            workflow,
+            period,
+            organisationUnit,
+            optionCombo,
+            accepted,
+            created,
+            creator));
+
+    return approvals;
+  }
+
+  private List<DataApproval> getDataApprovalList(ApprovalsDto approvals)
+      throws WebMessageException {
+    Set<DataApprovalWorkflow> workflows =
+        getAndValidateWorkflows(approvals.getDs(), approvals.getWf());
+    List<Period> periods = PeriodType.getPeriodsFromIsoStrings(approvals.getPe());
+    periods = periodService.reloadPeriods(periods);
+
+    if (periods.isEmpty()) {
+      throw new WebMessageException(conflict("Approvals must have periods"));
+    }
+
+    User user = currentUserService.getCurrentUser();
+    CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
+    Date date = new Date();
+
+    List<DataApproval> dataApprovals = new ArrayList<>();
+
+    List<CategoryOptionCombo> optionCombos = categoryService.getAllCategoryOptionCombos();
+
+    Map<String, CategoryOptionCombo> comboMap =
+        optionCombos.stream().collect(Collectors.toMap(CategoryOptionCombo::getUid, c -> c));
+
+    Map<String, OrganisationUnit> ouCache = new HashMap<>();
+
+    for (ApprovalDto approval : approvals.getApprovals()) {
+      CategoryOptionCombo atributeOptionCombo = comboMap.get(approval.getAoc());
+      atributeOptionCombo = ObjectUtils.firstNonNull(atributeOptionCombo, defaultOptionCombo);
+      OrganisationUnit unit = ouCache.get(approval.getOu());
+
+      if (unit == null) {
+        unit = getAndValidateOrgUnit(approval.getOu());
+        ouCache.put(approval.getOu(), unit);
+      }
+
+      for (DataApprovalWorkflow workflow : workflows) {
+        for (Period period : periods) {
+          dataApprovals.add(
+              new DataApproval(
+                  null, workflow, period, unit, atributeOptionCombo, false, date, user));
         }
-
-        List<Map<String, Object>> list = new ArrayList<>();
-
-        for ( DataApprovalStatus status : statusList )
-        {
-            Map<String, Object> item = new HashMap<>();
-
-            Map<String, String> approvalLevel = new HashMap<>();
-
-            if ( status.getApprovedLevel() != null )
-            {
-                approvalLevel.put( "id", status.getApprovedLevel().getUid() );
-                approvalLevel.put( "level", String.valueOf( status.getApprovedLevel().getLevel() ) );
-            }
-
-            item.put( "id", status.getAttributeOptionComboUid() );
-            item.put( "level", approvalLevel );
-            item.put( "ou", status.getOrganisationUnitUid() );
-            item.put( "ouName", status.getOrganisationUnitName() );
-            item.put( "accepted", status.isAccepted() );
-            item.put( "permissions", status.getPermissions() );
-
-            list.add( item );
-        }
-        return list;
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Post, approval
-    // -------------------------------------------------------------------------
+    return dataApprovals;
+  }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
-    @PostMapping( value = APPROVALS_PATH )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveApproval(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
-        throws WebMessageException
-    {
-        DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
-        Period period = getAndValidatePeriod( pe );
-        OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-        DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+  // -------------------------------------------------------------------------
+  // Validation
+  // -------------------------------------------------------------------------
 
-        User user = currentUserService.getCurrentUser();
+  /**
+   * Validates the data set and workflow parameters and returns a data approval workflow.
+   *
+   * @param ds the data set identifier.
+   * @param wf the data approval workflow identifier.
+   * @return a DataApprovalWorkflow.
+   * @throws WebMessageException if object is not found.
+   */
+  private DataApprovalWorkflow getAndValidateWorkflow(String ds, String wf)
+      throws WebMessageException {
+    if (ds != null) {
+      DataSet dataSet = dataSetService.getDataSet(ds);
 
-        List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, optionCombo, false, new Date(), user );
+      if (dataSet == null) {
+        throw new WebMessageException(conflict("Data set does not exist: " + ds));
+      }
 
-        dataApprovalService.approveData( dataApprovalList );
+      if (dataSet.getWorkflow() == null) {
+        throw new WebMessageException(
+            conflict("Data set does not have an approval workflow: " + ds));
+      }
+
+      return dataSet.getWorkflow();
+    } else if (wf != null) {
+      DataApprovalWorkflow workflow = dataApprovalService.getWorkflow(wf);
+
+      if (workflow == null) {
+        throw new WebMessageException(conflict("Data approval workflow does not exist: " + wf));
+      }
+
+      return workflow;
+    } else {
+      throw new WebMessageException(
+          conflict("Either data set or data approval workflow must be specified"));
+    }
+  }
+
+  /**
+   * Validates the sets of data set and workflow parameters and returns a set of data approval
+   * workflows.
+   *
+   * @param dss the data set identifiers.
+   * @param wfs the data approval workflow identifiers.
+   * @return a set of DataApprovalWorkflows.
+   * @throws WebMessageException if workflows are not found.
+   */
+  private Set<DataApprovalWorkflow> getAndValidateWorkflows(
+      Collection<String> dss, Collection<String> wfs) throws WebMessageException {
+    Set<DataApprovalWorkflow> workflows = new HashSet<>();
+
+    if (dss != null) {
+      for (String ds : dss) {
+        workflows.add(getAndValidateWorkflow(ds, null));
+      }
     }
 
-    @PostMapping( APPROVALS_PATH + "/approvals" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveApprovalBatch( @RequestBody ApprovalsDto approvals )
-        throws WebMessageException
-    {
-        dataApprovalService.approveData( getDataApprovalList( approvals ) );
+    if (wfs != null) {
+      for (String wf : wfs) {
+        workflows.add(getAndValidateWorkflow(null, wf));
+      }
     }
 
-    @PostMapping( APPROVALS_PATH + "/unapprovals" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeApprovalBatch( @RequestBody ApprovalsDto approvals )
-        throws WebMessageException
-    {
-        dataApprovalService.unapproveData( getDataApprovalList( approvals ) );
+    if (workflows.isEmpty()) {
+      throw new WebMessageException(
+          conflict("Either data sets or data approval workflows must be specified"));
     }
 
-    // -------------------------------------------------------------------------
-    // Post, acceptance
-    // -------------------------------------------------------------------------
+    return workflows;
+  }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
-    @PostMapping( ACCEPTANCES_PATH )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void acceptApproval(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
-        throws WebMessageException
-    {
-        DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
-        Period period = getAndValidatePeriod( pe );
-        OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-        DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+  private Period getAndValidatePeriod(String pe) throws WebMessageException {
+    Period period = PeriodType.getPeriodFromIsoString(pe);
 
-        User user = currentUserService.getCurrentUser();
-
-        List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, optionCombo, false, new Date(), user );
-
-        dataApprovalService.acceptData( dataApprovalList );
+    if (period == null) {
+      throw new WebMessageException(conflict("Illegal period identifier: " + pe));
     }
 
-    @PostMapping( ACCEPTANCES_PATH + "/acceptances" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void saveAcceptanceBatch( @RequestBody ApprovalsDto approvals )
-        throws WebMessageException
-    {
-        dataApprovalService.acceptData( getDataApprovalList( approvals ) );
+    return period;
+  }
+
+  private OrganisationUnit getAndValidateOrgUnit(String ou) throws WebMessageException {
+    OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(ou);
+
+    if (organisationUnit == null) {
+      throw new WebMessageException(conflict("Organisation unit does not exist: " + ou));
     }
 
-    @PostMapping( ACCEPTANCES_PATH + "/unacceptances" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeAcceptancesBatch( @RequestBody ApprovalsDto approvals )
-        throws WebMessageException
-    {
-        dataApprovalService.unacceptData( getDataApprovalList( approvals ) );
+    return organisationUnit;
+  }
+
+  private DataApprovalLevel getAndValidateApprovalLevel(OrganisationUnit unit)
+      throws WebMessageException {
+    DataApprovalLevel dataApprovalLevel =
+        dataApprovalLevelService.getHighestDataApprovalLevel(unit);
+
+    if (dataApprovalLevel == null) {
+      throw new WebMessageException(
+          conflict("Approval level not found for org unit: " + unit.getUid()));
     }
 
-    // -------------------------------------------------------------------------
-    // Delete
-    // -------------------------------------------------------------------------
+    return dataApprovalLevel;
+  }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_APPROVE_DATA') or hasRole('F_APPROVE_DATA_LOWER_LEVELS')" )
-    @DeleteMapping( APPROVALS_PATH )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void removeApproval(
-        @RequestParam( required = false ) Set<String> ds,
-        @RequestParam( required = false ) Set<String> wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
-        throws WebMessageException
-    {
-        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
+  private Set<CategoryOptionCombo> getAndValidateAttributeOptionCombos(Set<String> aoc)
+      throws WebMessageException {
+    Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
-        Period period = getAndValidatePeriod( pe );
-        OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-        DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
-
-        User user = currentUserService.getCurrentUser();
-
-        List<DataApproval> dataApprovalList = new ArrayList<>();
-
-        for ( DataApprovalWorkflow workflow : workflows )
-        {
-            dataApprovalList.addAll( getApprovalsAsList( dataApprovalLevel, workflow,
-                period, organisationUnit, optionCombo, false, new Date(), user ) );
-        }
-
-        dataApprovalService.unapproveData( dataApprovalList );
+    if (aoc == null) {
+      optionCombos.add(categoryService.getDefaultCategoryOptionCombo());
+    } else {
+      for (String optionCombo : aoc) {
+        optionCombos.add(getAndValidateAttributeOptionCombo(optionCombo));
+      }
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ACCEPT_DATA_LOWER_LEVELS')" )
-    @DeleteMapping( ACCEPTANCES_PATH )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void unacceptApproval(
-        @RequestParam( required = false ) String ds,
-        @RequestParam( required = false ) String wf,
-        @RequestParam String pe,
-        @RequestParam String ou,
-        @RequestParam( required = false ) String aoc )
-        throws WebMessageException
-    {
-        DataApprovalWorkflow workflow = getAndValidateWorkflow( ds, wf );
-        Period period = getAndValidatePeriod( pe );
-        OrganisationUnit organisationUnit = getAndValidateOrgUnit( ou );
-        DataApprovalLevel dataApprovalLevel = getAndValidateApprovalLevel( organisationUnit );
-        CategoryOptionCombo optionCombo = getAndValidateAttributeOptionCombo( aoc );
+    return optionCombos;
+  }
 
-        User user = currentUserService.getCurrentUser();
+  private CategoryOptionCombo getAndValidateAttributeOptionCombo(String aoc)
+      throws WebMessageException {
+    if (aoc != null) {
+      CategoryOptionCombo optionCombo = categoryService.getCategoryOptionCombo(aoc);
 
-        List<DataApproval> dataApprovalList = getApprovalsAsList( dataApprovalLevel, workflow,
-            period, organisationUnit, optionCombo, false, new Date(), user );
+      if (optionCombo == null) {
+        throw new WebMessageException(conflict("Attribute option combo does not exist: " + aoc));
+      }
 
-        dataApprovalService.unacceptData( dataApprovalList );
+      return optionCombo;
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Set<DataSet> parseDataSetsWithWorkflow( Set<String> ds )
-        throws WebMessageException
-    {
-        Set<DataSet> dataSets = new HashSet<>( objectManager.getByUid( DataSet.class, ds ) );
-
-        for ( DataSet dataSet : dataSets )
-        {
-            if ( dataSet.getWorkflow() == null )
-            {
-                throw new WebMessageException(
-                    conflict( "DataSet does not have an approval workflow: " + dataSet.getUid() ) );
-            }
-        }
-
-        return dataSets;
-    }
-
-    private List<DataApproval> getApprovalsAsList( DataApprovalLevel dataApprovalLevel,
-        DataApprovalWorkflow workflow, Period period, OrganisationUnit organisationUnit,
-        CategoryOptionCombo optionCombo, boolean accepted, Date created, User creator )
-    {
-        List<DataApproval> approvals = new ArrayList<>();
-
-        period = periodService.reloadPeriod( period );
-
-        approvals.add( new DataApproval( dataApprovalLevel, workflow, period,
-            organisationUnit, optionCombo, accepted, created, creator ) );
-
-        return approvals;
-    }
-
-    private List<DataApproval> getDataApprovalList( ApprovalsDto approvals )
-        throws WebMessageException
-    {
-        Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( approvals.getDs(), approvals.getWf() );
-        List<Period> periods = PeriodType.getPeriodsFromIsoStrings( approvals.getPe() );
-        periods = periodService.reloadPeriods( periods );
-
-        if ( periods.isEmpty() )
-        {
-            throw new WebMessageException( conflict( "Approvals must have periods" ) );
-        }
-
-        User user = currentUserService.getCurrentUser();
-        CategoryOptionCombo defaultOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        Date date = new Date();
-
-        List<DataApproval> dataApprovals = new ArrayList<>();
-
-        List<CategoryOptionCombo> optionCombos = categoryService.getAllCategoryOptionCombos();
-
-        Map<String, CategoryOptionCombo> comboMap = optionCombos.stream()
-            .collect( Collectors.toMap( CategoryOptionCombo::getUid, c -> c ) );
-
-        Map<String, OrganisationUnit> ouCache = new HashMap<>();
-
-        for ( ApprovalDto approval : approvals.getApprovals() )
-        {
-            CategoryOptionCombo atributeOptionCombo = comboMap.get( approval.getAoc() );
-            atributeOptionCombo = ObjectUtils.firstNonNull( atributeOptionCombo, defaultOptionCombo );
-            OrganisationUnit unit = ouCache.get( approval.getOu() );
-
-            if ( unit == null )
-            {
-                unit = getAndValidateOrgUnit( approval.getOu() );
-                ouCache.put( approval.getOu(), unit );
-            }
-
-            for ( DataApprovalWorkflow workflow : workflows )
-            {
-                for ( Period period : periods )
-                {
-                    dataApprovals.add(
-                        new DataApproval( null, workflow, period, unit, atributeOptionCombo, false, date, user ) );
-                }
-            }
-        }
-
-        return dataApprovals;
-    }
-
-    // -------------------------------------------------------------------------
-    // Validation
-    // -------------------------------------------------------------------------
-
-    /**
-     * Validates the data set and workflow parameters and returns a data
-     * approval workflow.
-     *
-     * @param ds the data set identifier.
-     * @param wf the data approval workflow identifier.
-     * @return a DataApprovalWorkflow.
-     * @throws WebMessageException if object is not found.
-     */
-    private DataApprovalWorkflow getAndValidateWorkflow( String ds, String wf )
-        throws WebMessageException
-    {
-        if ( ds != null )
-        {
-            DataSet dataSet = dataSetService.getDataSet( ds );
-
-            if ( dataSet == null )
-            {
-                throw new WebMessageException( conflict( "Data set does not exist: " + ds ) );
-            }
-
-            if ( dataSet.getWorkflow() == null )
-            {
-                throw new WebMessageException(
-                    conflict( "Data set does not have an approval workflow: " + ds ) );
-            }
-
-            return dataSet.getWorkflow();
-        }
-        else if ( wf != null )
-        {
-            DataApprovalWorkflow workflow = dataApprovalService.getWorkflow( wf );
-
-            if ( workflow == null )
-            {
-                throw new WebMessageException(
-                    conflict( "Data approval workflow does not exist: " + wf ) );
-            }
-
-            return workflow;
-        }
-        else
-        {
-            throw new WebMessageException(
-                conflict( "Either data set or data approval workflow must be specified" ) );
-        }
-    }
-
-    /**
-     * Validates the sets of data set and workflow parameters and returns a set
-     * of data approval workflows.
-     *
-     * @param dss the data set identifiers.
-     * @param wfs the data approval workflow identifiers.
-     * @return a set of DataApprovalWorkflows.
-     * @throws WebMessageException if workflows are not found.
-     */
-    private Set<DataApprovalWorkflow> getAndValidateWorkflows( Collection<String> dss, Collection<String> wfs )
-        throws WebMessageException
-    {
-        Set<DataApprovalWorkflow> workflows = new HashSet<>();
-
-        if ( dss != null )
-        {
-            for ( String ds : dss )
-            {
-                workflows.add( getAndValidateWorkflow( ds, null ) );
-            }
-        }
-
-        if ( wfs != null )
-        {
-            for ( String wf : wfs )
-            {
-                workflows.add( getAndValidateWorkflow( null, wf ) );
-            }
-        }
-
-        if ( workflows.isEmpty() )
-        {
-            throw new WebMessageException(
-                conflict( "Either data sets or data approval workflows must be specified" ) );
-        }
-
-        return workflows;
-    }
-
-    private Period getAndValidatePeriod( String pe )
-        throws WebMessageException
-    {
-        Period period = PeriodType.getPeriodFromIsoString( pe );
-
-        if ( period == null )
-        {
-            throw new WebMessageException( conflict( "Illegal period identifier: " + pe ) );
-        }
-
-        return period;
-    }
-
-    private OrganisationUnit getAndValidateOrgUnit( String ou )
-        throws WebMessageException
-    {
-        OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou );
-
-        if ( organisationUnit == null )
-        {
-            throw new WebMessageException( conflict( "Organisation unit does not exist: " + ou ) );
-        }
-
-        return organisationUnit;
-    }
-
-    private DataApprovalLevel getAndValidateApprovalLevel( OrganisationUnit unit )
-        throws WebMessageException
-    {
-        DataApprovalLevel dataApprovalLevel = dataApprovalLevelService.getHighestDataApprovalLevel( unit );
-
-        if ( dataApprovalLevel == null )
-        {
-            throw new WebMessageException(
-                conflict( "Approval level not found for org unit: " + unit.getUid() ) );
-        }
-
-        return dataApprovalLevel;
-    }
-
-    private Set<CategoryOptionCombo> getAndValidateAttributeOptionCombos( Set<String> aoc )
-        throws WebMessageException
-    {
-        Set<CategoryOptionCombo> optionCombos = new HashSet<>();
-
-        if ( aoc == null )
-        {
-            optionCombos.add( categoryService.getDefaultCategoryOptionCombo() );
-        }
-        else
-        {
-            for ( String optionCombo : aoc )
-            {
-                optionCombos.add( getAndValidateAttributeOptionCombo( optionCombo ) );
-            }
-        }
-
-        return optionCombos;
-    }
-
-    private CategoryOptionCombo getAndValidateAttributeOptionCombo( String aoc )
-        throws WebMessageException
-    {
-        if ( aoc != null )
-        {
-            CategoryOptionCombo optionCombo = categoryService.getCategoryOptionCombo( aoc );
-
-            if ( optionCombo == null )
-            {
-                throw new WebMessageException(
-                    conflict( "Attribute option combo does not exist: " + aoc ) );
-            }
-
-            return optionCombo;
-        }
-
-        return categoryService.getDefaultCategoryOptionCombo();
-    }
+    return categoryService.getDefaultCategoryOptionCombo();
+  }
 }

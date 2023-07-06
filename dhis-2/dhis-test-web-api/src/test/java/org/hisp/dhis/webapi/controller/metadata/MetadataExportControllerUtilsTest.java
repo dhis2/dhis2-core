@@ -27,10 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.net.HttpHeaders;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -46,90 +48,87 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.net.HttpHeaders;
-
 /**
  * Unit tests for {@link MetadataExportControllerUtils}.
  *
  * @author Volker Schmidt
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataExportControllerUtilsTest
-{
+@ExtendWith(MockitoExtension.class)
+class MetadataExportControllerUtilsTest {
 
-    @Mock
-    private ContextService contextService;
+  @Mock private ContextService contextService;
 
-    @Mock
-    private MetadataExportService exportService;
+  @Mock private MetadataExportService exportService;
 
-    @Test
-    void getWithDependencies()
-    {
-        final Map<String, List<String>> parameterValuesMap = new HashMap<>();
-        final MetadataExportParams exportParams = new MetadataExportParams();
-        final Attribute attribute = new Attribute();
-        final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
+  @Test
+  void getWithDependencies() {
+    final Map<String, List<String>> parameterValuesMap = new HashMap<>();
+    final MetadataExportParams exportParams = new MetadataExportParams();
+    final Attribute attribute = new Attribute();
+    final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
-        Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
-        Mockito
-            .when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( attribute ),
-                Mockito.same( exportParams ) ) )
-            .thenReturn( rootNode );
+    Mockito.when(contextService.getParameterValuesMap()).thenReturn(parameterValuesMap);
+    Mockito.when(exportService.getParamsFromMap(Mockito.same(parameterValuesMap)))
+        .thenReturn(exportParams);
+    Mockito.when(
+            exportService.getMetadataWithDependenciesAsNode(
+                Mockito.same(attribute), Mockito.same(exportParams)))
+        .thenReturn(rootNode);
 
-        final ResponseEntity<JsonNode> responseEntity = MetadataExportControllerUtils
-            .getWithDependencies( contextService, exportService, attribute, false );
-        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assertions.assertSame( rootNode, responseEntity.getBody() );
-        Assertions.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
-    }
+    final ResponseEntity<JsonNode> responseEntity =
+        MetadataExportControllerUtils.getWithDependencies(
+            contextService, exportService, attribute, false);
+    Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    Assertions.assertSame(rootNode, responseEntity.getBody());
+    Assertions.assertFalse(
+        responseEntity.getHeaders().containsKey(HttpHeaders.CONTENT_DISPOSITION));
+  }
 
-    @Test
-    void getWithDependenciesAsDownload()
-    {
-        final Map<String, List<String>> parameterValuesMap = new HashMap<>();
-        final MetadataExportParams exportParams = new MetadataExportParams();
-        final Attribute attribute = new Attribute();
-        final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
+  @Test
+  void getWithDependenciesAsDownload() {
+    final Map<String, List<String>> parameterValuesMap = new HashMap<>();
+    final MetadataExportParams exportParams = new MetadataExportParams();
+    final Attribute attribute = new Attribute();
+    final ObjectNode rootNode = JacksonObjectMapperConfig.jsonMapper.createObjectNode();
 
-        Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
-        Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
-        Mockito
-            .when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( attribute ),
-                Mockito.same( exportParams ) ) )
-            .thenReturn( rootNode );
+    Mockito.when(contextService.getParameterValuesMap()).thenReturn(parameterValuesMap);
+    Mockito.when(exportService.getParamsFromMap(Mockito.same(parameterValuesMap)))
+        .thenReturn(exportParams);
+    Mockito.when(
+            exportService.getMetadataWithDependenciesAsNode(
+                Mockito.same(attribute), Mockito.same(exportParams)))
+        .thenReturn(rootNode);
 
-        final ResponseEntity<JsonNode> responseEntity = MetadataExportControllerUtils
-            .getWithDependencies( contextService, exportService, attribute, true );
-        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assertions.assertSame( rootNode, responseEntity.getBody() );
-        Assertions.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
-    }
+    final ResponseEntity<JsonNode> responseEntity =
+        MetadataExportControllerUtils.getWithDependencies(
+            contextService, exportService, attribute, true);
+    Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    Assertions.assertSame(rootNode, responseEntity.getBody());
+    Assertions.assertEquals(
+        "attachment; filename=metadata",
+        responseEntity.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+  }
 
-    @Test
-    void createResponseEntity()
-    {
-        final RootNode rootNode = new RootNode( "test" );
-        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,
-            false );
-        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assertions.assertSame( rootNode, responseEntity.getBody() );
-        Assertions.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
-    }
+  @Test
+  void createResponseEntity() {
+    final RootNode rootNode = new RootNode("test");
+    final ResponseEntity<RootNode> responseEntity =
+        MetadataExportControllerUtils.createResponseEntity(rootNode, false);
+    Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    Assertions.assertSame(rootNode, responseEntity.getBody());
+    Assertions.assertFalse(
+        responseEntity.getHeaders().containsKey(HttpHeaders.CONTENT_DISPOSITION));
+  }
 
-    @Test
-    void createResponseEntityAsDownload()
-    {
-        final RootNode rootNode = new RootNode( "test" );
-        final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,
-            true );
-        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assertions.assertSame( rootNode, responseEntity.getBody() );
-        Assertions.assertEquals( "attachment; filename=metadata",
-            responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
-    }
+  @Test
+  void createResponseEntityAsDownload() {
+    final RootNode rootNode = new RootNode("test");
+    final ResponseEntity<RootNode> responseEntity =
+        MetadataExportControllerUtils.createResponseEntity(rootNode, true);
+    Assertions.assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    Assertions.assertSame(rootNode, responseEntity.getBody());
+    Assertions.assertEquals(
+        "attachment; filename=metadata",
+        responseEntity.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION));
+  }
 }

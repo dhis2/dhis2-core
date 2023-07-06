@@ -29,31 +29,22 @@ package org.hisp.dhis.analytics.common;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Builder;
-
 import org.hisp.dhis.common.QueryItem;
 
-@Builder( toBuilder = true )
-public class AnalyticsPagingAndSortingParams
-{
-    private final Integer page;
+@Builder(toBuilder = true)
+public class AnalyticsPagingAndSortingParams {
+  private final Integer page;
 
-    private final Integer pageSize;
+  private final Integer pageSize;
 
-    private final Boolean requestPaged;
+  private final Boolean requestPaged;
 
-    private final Boolean countRequested;
+  private final Boolean countRequested;
 
-    /**
-     * Columns to sort ascending.
-     */
-    @Builder.Default
-    private List<QueryItem> asc = new ArrayList<>();
+  /** Columns to sort ascending. */
+  @Builder.Default private List<QueryItem> asc = new ArrayList<>();
 
-    /**
-     * Columns to sort descending.
-     */
-    @Builder.Default
-    private List<QueryItem> desc = new ArrayList<>();
+  /** Columns to sort descending. */
+  @Builder.Default private List<QueryItem> desc = new ArrayList<>();
 }

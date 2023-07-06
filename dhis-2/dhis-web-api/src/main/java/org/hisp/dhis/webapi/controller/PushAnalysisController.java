@@ -30,11 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -61,62 +58,58 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Stian Sandvold
  */
 @Controller
-@RequestMapping( PushAnalysisSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(PushAnalysisSchemaDescriptor.API_ENDPOINT)
 @Slf4j
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class PushAnalysisController
-    extends AbstractCrudController<PushAnalysis>
-{
-    @Autowired
-    private PushAnalysisService pushAnalysisService;
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class PushAnalysisController extends AbstractCrudController<PushAnalysis> {
+  @Autowired private PushAnalysisService pushAnalysisService;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private SchedulingManager schedulingManager;
+  @Autowired private SchedulingManager schedulingManager;
 
-    @GetMapping( "/{uid}/render" )
-    public void renderPushAnalytics( @PathVariable( ) String uid, HttpServletResponse response )
-        throws WebMessageException,
-        IOException
-    {
-        PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
+  @GetMapping("/{uid}/render")
+  public void renderPushAnalytics(@PathVariable() String uid, HttpServletResponse response)
+      throws WebMessageException, IOException {
+    PushAnalysis pushAnalysis = pushAnalysisService.getByUid(uid);
 
-        if ( pushAnalysis == null )
-        {
-            throw new WebMessageException(
-                notFound( "Push analysis with uid " + uid + " was not found" ) );
-        }
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE );
-
-        log.info(
-            "User '" + currentUserService.getCurrentUser().getUsername() + "' started PushAnalysis for 'rendering'" );
-
-        String result = pushAnalysisService.generateHtmlReport( pushAnalysis, currentUserService.getCurrentUser() );
-        response.getWriter().write( result );
-        response.getWriter().close();
+    if (pushAnalysis == null) {
+      throw new WebMessageException(notFound("Push analysis with uid " + uid + " was not found"));
     }
 
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @PostMapping( "/{uid}/run" )
-    public void sendPushAnalysis( @PathVariable( ) String uid )
-        throws WebMessageException
-    {
-        PushAnalysis pushAnalysis = pushAnalysisService.getByUid( uid );
+    contextUtils.configureResponse(
+        response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE);
 
-        if ( pushAnalysis == null )
-        {
-            throw new WebMessageException(
-                notFound( "Push analysis with uid " + uid + " was not found" ) );
-        }
+    log.info(
+        "User '"
+            + currentUserService.getCurrentUser().getUsername()
+            + "' started PushAnalysis for 'rendering'");
 
-        JobConfiguration config = new JobConfiguration( "pushAnalysisJob from controller",
-            JobType.PUSH_ANALYSIS, "", new PushAnalysisJobParameters( uid ), true, true );
-        schedulingManager.executeNow( config );
+    String result =
+        pushAnalysisService.generateHtmlReport(pushAnalysis, currentUserService.getCurrentUser());
+    response.getWriter().write(result);
+    response.getWriter().close();
+  }
+
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @PostMapping("/{uid}/run")
+  public void sendPushAnalysis(@PathVariable() String uid) throws WebMessageException {
+    PushAnalysis pushAnalysis = pushAnalysisService.getByUid(uid);
+
+    if (pushAnalysis == null) {
+      throw new WebMessageException(notFound("Push analysis with uid " + uid + " was not found"));
     }
+
+    JobConfiguration config =
+        new JobConfiguration(
+            "pushAnalysisJob from controller",
+            JobType.PUSH_ANALYSIS,
+            "",
+            new PushAnalysisJobParameters(uid),
+            true,
+            true);
+    schedulingManager.executeNow(config);
+  }
 }

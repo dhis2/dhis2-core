@@ -30,9 +30,7 @@ package org.hisp.dhis.sms.listener;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -69,192 +67,191 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Component( "org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" )
+@Component("org.hisp.dhis.sms.listener.AggregateDatasetSMSListener")
 @Transactional
-public class AggregateDataSetSMSListener
-    extends
-    CompressionSMSListener
-{
-    private final DataSetService dataSetService;
+public class AggregateDataSetSMSListener extends CompressionSMSListener {
+  private final DataSetService dataSetService;
 
-    private final DataValueService dataValueService;
+  private final DataValueService dataValueService;
 
-    private final CompleteDataSetRegistrationService registrationService;
+  private final CompleteDataSetRegistrationService registrationService;
 
-    public AggregateDataSetSMSListener( IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
-        ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        DataSetService dataSetService, DataValueService dataValueService,
-        CompleteDataSetRegistrationService registrationService, IdentifiableObjectManager identifiableObjectManager )
-    {
-        super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
-            identifiableObjectManager );
+  public AggregateDataSetSMSListener(
+      IncomingSmsService incomingSmsService,
+      @Qualifier("smsMessageSender") MessageSender smsSender,
+      UserService userService,
+      TrackedEntityTypeService trackedEntityTypeService,
+      TrackedEntityAttributeService trackedEntityAttributeService,
+      ProgramService programService,
+      OrganisationUnitService organisationUnitService,
+      CategoryService categoryService,
+      DataElementService dataElementService,
+      ProgramStageInstanceService programStageInstanceService,
+      DataSetService dataSetService,
+      DataValueService dataValueService,
+      CompleteDataSetRegistrationService registrationService,
+      IdentifiableObjectManager identifiableObjectManager) {
+    super(
+        incomingSmsService,
+        smsSender,
+        userService,
+        trackedEntityTypeService,
+        trackedEntityAttributeService,
+        programService,
+        organisationUnitService,
+        categoryService,
+        dataElementService,
+        programStageInstanceService,
+        identifiableObjectManager);
 
-        this.dataSetService = dataSetService;
-        this.dataValueService = dataValueService;
-        this.registrationService = registrationService;
+    this.dataSetService = dataSetService;
+    this.dataValueService = dataValueService;
+    this.registrationService = registrationService;
+  }
+
+  @Override
+  protected SmsResponse postProcess(IncomingSms sms, SmsSubmission submission)
+      throws SMSProcessingException {
+    AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
+
+    Uid ouid = subm.getOrgUnit();
+    Uid dsid = subm.getDataSet();
+    String per = subm.getPeriod();
+    Uid aocid = subm.getAttributeOptionCombo();
+
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid.getUid());
+    User user = userService.getUser(subm.getUserId().getUid());
+
+    DataSet dataSet = dataSetService.getDataSet(dsid.getUid());
+
+    if (dataSet == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_DATASET.set(dsid));
     }
 
-    @Override
-    protected SmsResponse postProcess( IncomingSms sms, SmsSubmission submission )
-        throws SMSProcessingException
-    {
-        AggregateDatasetSmsSubmission subm = (AggregateDatasetSmsSubmission) submission;
-
-        Uid ouid = subm.getOrgUnit();
-        Uid dsid = subm.getDataSet();
-        String per = subm.getPeriod();
-        Uid aocid = subm.getAttributeOptionCombo();
-
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
-        User user = userService.getUser( subm.getUserId().getUid() );
-
-        DataSet dataSet = dataSetService.getDataSet( dsid.getUid() );
-
-        if ( dataSet == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_DATASET.set( dsid ) );
-        }
-
-        Period period = PeriodType.getPeriodFromIsoString( per );
-        if ( period == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_PERIOD.set( per ) );
-        }
-
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.getUid() );
-
-        if ( aoc == null )
-        {
-            throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
-        }
-
-        if ( !dataSet.hasOrganisationUnit( orgUnit ) )
-        {
-            throw new SMSProcessingException( SmsResponse.OU_NOTIN_DATASET.set( ouid, dsid ) );
-        }
-
-        if ( !dataSetService.getLockStatus( dataSet, period, orgUnit, aoc ).isOpen() )
-        {
-            throw new SMSProcessingException( SmsResponse.DATASET_LOCKED.set( dsid, per ) );
-        }
-
-        List<Object> errorElems = submitDataValues( subm.getValues(), period, orgUnit, aoc, user );
-
-        if ( subm.isComplete() )
-        {
-            CompleteDataSetRegistration existingReg = registrationService.getCompleteDataSetRegistration( dataSet,
-                period, orgUnit, aoc );
-            if ( existingReg != null )
-            {
-                registrationService.deleteCompleteDataSetRegistration( existingReg );
-            }
-            Date now = new Date();
-            String username = user.getUsername();
-            CompleteDataSetRegistration newReg = new CompleteDataSetRegistration( dataSet, period, orgUnit, aoc, now,
-                username, now, username, true );
-            registrationService.saveCompleteDataSetRegistration( newReg );
-        }
-
-        if ( !errorElems.isEmpty() )
-        {
-            return SmsResponse.WARN_DVERR.setList( errorElems );
-        }
-        else if ( subm.getValues() == null || subm.getValues().isEmpty() )
-        {
-            // TODO: Should we save if there are no data values?
-            return SmsResponse.WARN_DVEMPTY;
-        }
-
-        return SmsResponse.SUCCESS;
+    Period period = PeriodType.getPeriodFromIsoString(per);
+    if (period == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_PERIOD.set(per));
     }
 
-    private List<Object> submitDataValues( List<SmsDataValue> values, Period period, OrganisationUnit orgUnit,
-        CategoryOptionCombo aoc, User user )
-    {
-        ArrayList<Object> errorElems = new ArrayList<>();
+    CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid.getUid());
 
-        if ( values == null )
-        {
-            return errorElems;
-        }
-
-        for ( SmsDataValue smsdv : values )
-        {
-            Uid deid = smsdv.getDataElement();
-            Uid cocid = smsdv.getCategoryOptionCombo();
-            String combid = deid + "-" + cocid;
-
-            DataElement de = dataElementService.getDataElement( deid.getUid() );
-
-            if ( de == null )
-            {
-                log.warn( String.format( "Data element [%s] does not exist. Continuing with submission...", deid ) );
-                errorElems.add( combid );
-                continue;
-            }
-
-            CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.getUid() );
-
-            if ( coc == null )
-            {
-                log.warn( String.format( "Category Option Combo [%s] does not exist. Continuing with submission...",
-                    cocid ) );
-                errorElems.add( combid );
-                continue;
-            }
-
-            String val = smsdv.getValue();
-            if ( val == null || StringUtils.isEmpty( val ) )
-            {
-                log.warn( String.format( "Value for [%s]  is null or empty. Continuing with submission...", combid ) );
-                continue;
-            }
-
-            DataValue dv = dataValueService.getDataValue( de, period, orgUnit, coc, aoc );
-
-            boolean newDataValue = false;
-            if ( dv == null )
-            {
-                dv = new DataValue();
-                dv.setCategoryOptionCombo( coc );
-                dv.setSource( orgUnit );
-                dv.setDataElement( de );
-                dv.setPeriod( period );
-                dv.setComment( "" );
-                newDataValue = true;
-            }
-
-            dv.setValue( val );
-            dv.setLastUpdated( new java.util.Date() );
-            dv.setStoredBy( user.getUsername() );
-
-            if ( newDataValue )
-            {
-                boolean addedDataValue = dataValueService.addDataValue( dv );
-                if ( !addedDataValue )
-                {
-                    log.warn(
-                        String.format( "Failed to submit data value [%s]. Continuing with submission...", combid ) );
-                    errorElems.add( combid );
-                }
-            }
-            else
-            {
-                dataValueService.updateDataValue( dv );
-            }
-        }
-
-        return errorElems;
+    if (aoc == null) {
+      throw new SMSProcessingException(SmsResponse.INVALID_AOC.set(aocid));
     }
 
-    @Override
-    protected boolean handlesType( SubmissionType type )
-    {
-        return (type == SubmissionType.AGGREGATE_DATASET);
+    if (!dataSet.hasOrganisationUnit(orgUnit)) {
+      throw new SMSProcessingException(SmsResponse.OU_NOTIN_DATASET.set(ouid, dsid));
     }
 
+    if (!dataSetService.getLockStatus(dataSet, period, orgUnit, aoc).isOpen()) {
+      throw new SMSProcessingException(SmsResponse.DATASET_LOCKED.set(dsid, per));
+    }
+
+    List<Object> errorElems = submitDataValues(subm.getValues(), period, orgUnit, aoc, user);
+
+    if (subm.isComplete()) {
+      CompleteDataSetRegistration existingReg =
+          registrationService.getCompleteDataSetRegistration(dataSet, period, orgUnit, aoc);
+      if (existingReg != null) {
+        registrationService.deleteCompleteDataSetRegistration(existingReg);
+      }
+      Date now = new Date();
+      String username = user.getUsername();
+      CompleteDataSetRegistration newReg =
+          new CompleteDataSetRegistration(
+              dataSet, period, orgUnit, aoc, now, username, now, username, true);
+      registrationService.saveCompleteDataSetRegistration(newReg);
+    }
+
+    if (!errorElems.isEmpty()) {
+      return SmsResponse.WARN_DVERR.setList(errorElems);
+    } else if (subm.getValues() == null || subm.getValues().isEmpty()) {
+      // TODO: Should we save if there are no data values?
+      return SmsResponse.WARN_DVEMPTY;
+    }
+
+    return SmsResponse.SUCCESS;
+  }
+
+  private List<Object> submitDataValues(
+      List<SmsDataValue> values,
+      Period period,
+      OrganisationUnit orgUnit,
+      CategoryOptionCombo aoc,
+      User user) {
+    ArrayList<Object> errorElems = new ArrayList<>();
+
+    if (values == null) {
+      return errorElems;
+    }
+
+    for (SmsDataValue smsdv : values) {
+      Uid deid = smsdv.getDataElement();
+      Uid cocid = smsdv.getCategoryOptionCombo();
+      String combid = deid + "-" + cocid;
+
+      DataElement de = dataElementService.getDataElement(deid.getUid());
+
+      if (de == null) {
+        log.warn(
+            String.format("Data element [%s] does not exist. Continuing with submission...", deid));
+        errorElems.add(combid);
+        continue;
+      }
+
+      CategoryOptionCombo coc = categoryService.getCategoryOptionCombo(cocid.getUid());
+
+      if (coc == null) {
+        log.warn(
+            String.format(
+                "Category Option Combo [%s] does not exist. Continuing with submission...", cocid));
+        errorElems.add(combid);
+        continue;
+      }
+
+      String val = smsdv.getValue();
+      if (val == null || StringUtils.isEmpty(val)) {
+        log.warn(
+            String.format(
+                "Value for [%s]  is null or empty. Continuing with submission...", combid));
+        continue;
+      }
+
+      DataValue dv = dataValueService.getDataValue(de, period, orgUnit, coc, aoc);
+
+      boolean newDataValue = false;
+      if (dv == null) {
+        dv = new DataValue();
+        dv.setCategoryOptionCombo(coc);
+        dv.setSource(orgUnit);
+        dv.setDataElement(de);
+        dv.setPeriod(period);
+        dv.setComment("");
+        newDataValue = true;
+      }
+
+      dv.setValue(val);
+      dv.setLastUpdated(new java.util.Date());
+      dv.setStoredBy(user.getUsername());
+
+      if (newDataValue) {
+        boolean addedDataValue = dataValueService.addDataValue(dv);
+        if (!addedDataValue) {
+          log.warn(
+              String.format(
+                  "Failed to submit data value [%s]. Continuing with submission...", combid));
+          errorElems.add(combid);
+        }
+      } else {
+        dataValueService.updateDataValue(dv);
+      }
+    }
+
+    return errorElems;
+  }
+
+  @Override
+  protected boolean handlesType(SubmissionType type) {
+    return (type == SubmissionType.AGGREGATE_DATASET);
+  }
 }

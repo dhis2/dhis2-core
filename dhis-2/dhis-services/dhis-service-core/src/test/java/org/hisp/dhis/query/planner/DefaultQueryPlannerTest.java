@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.beans.PropertyDescriptor;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.dataelement.DataElement;
@@ -54,174 +53,161 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class DefaultQueryPlannerTest
-{
+@ExtendWith(MockitoExtension.class)
+class DefaultQueryPlannerTest {
 
-    private DefaultQueryPlanner subject;
+  private DefaultQueryPlanner subject;
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    @BeforeEach
-    public void setUp()
-    {
-        this.subject = new DefaultQueryPlanner( schemaService );
-    }
+  @BeforeEach
+  public void setUp() {
+    this.subject = new DefaultQueryPlanner(schemaService);
+  }
 
-    @Test
-    void verifyPlanQueryReturnsPersistedAndNotPersistedQueries()
-        throws Exception
-    {
-        // Create schema with attributes
-        final Attribute attribute = new Attribute();
-        final Map<String, Property> propertyMap = new HashMap<>();
-        addProperty( propertyMap, attribute, "id", true );
-        addProperty( propertyMap, attribute, "uid", true );
-        Schema schema = new OrganisationUnitSchemaDescriptor().getSchema();
-        schema.setPropertyMap( propertyMap );
+  @Test
+  void verifyPlanQueryReturnsPersistedAndNotPersistedQueries() throws Exception {
+    // Create schema with attributes
+    final Attribute attribute = new Attribute();
+    final Map<String, Property> propertyMap = new HashMap<>();
+    addProperty(propertyMap, attribute, "id", true);
+    addProperty(propertyMap, attribute, "uid", true);
+    Schema schema = new OrganisationUnitSchemaDescriptor().getSchema();
+    schema.setPropertyMap(propertyMap);
 
-        // Add restriction
-        Query query = Query.from( schema, Junction.Type.OR );
-        query.add( Restrictions.eq( "id", 100L ) );
+    // Add restriction
+    Query query = Query.from(schema, Junction.Type.OR);
+    query.add(Restrictions.eq("id", 100L));
 
-        // method under test
-        QueryPlan queryPlan = subject.planQuery( query, true );
+    // method under test
+    QueryPlan queryPlan = subject.planQuery(query, true);
 
-        Query persistedQuery = queryPlan.getPersistedQuery();
+    Query persistedQuery = queryPlan.getPersistedQuery();
 
-        assertTrue( persistedQuery.isPlannedQuery() );
-        assertEquals( persistedQuery.getCriterions().size(), 1 );
-        assertEquals( persistedQuery.getFirstResult().intValue(), 0 );
-        assertEquals( persistedQuery.getMaxResults().intValue(), Integer.MAX_VALUE );
-        assertEquals( persistedQuery.getRootJunctionType(), Junction.Type.OR );
+    assertTrue(persistedQuery.isPlannedQuery());
+    assertEquals(persistedQuery.getCriterions().size(), 1);
+    assertEquals(persistedQuery.getFirstResult().intValue(), 0);
+    assertEquals(persistedQuery.getMaxResults().intValue(), Integer.MAX_VALUE);
+    assertEquals(persistedQuery.getRootJunctionType(), Junction.Type.OR);
 
-        Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
-        assertEquals( nonPersistedQuery.getCriterions().size(), 0 );
-        assertTrue( nonPersistedQuery.isPlannedQuery() );
+    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
+    assertEquals(nonPersistedQuery.getCriterions().size(), 0);
+    assertTrue(nonPersistedQuery.isPlannedQuery());
+  }
 
-    }
+  /*
+   * Verifies that when adding criteria on non-persisted fields and using OR
+   * junction type the planner returns a "non Persisted Query" containing all
+   * the criteria - since it will execute filter on the entire dataset from
+   * the target table
+   */
+  @Test
+  void verifyPlanQueryReturnsNonPersistedQueryWithCriterion() throws Exception {
+    // Create schema with attributes
+    final Attribute attribute = new Attribute();
+    final Map<String, Property> propertyMap = new HashMap<>();
+    addProperty(propertyMap, attribute, "id", true);
+    addProperty(propertyMap, attribute, "uid", true);
+    // note that this is a non-persisted attribute!
+    addProperty(propertyMap, attribute, "name", false);
+    Schema schema = new OrganisationUnitSchemaDescriptor().getSchema();
+    schema.setPropertyMap(propertyMap);
 
-    /*
-     * Verifies that when adding criteria on non-persisted fields and using OR
-     * junction type the planner returns a "non Persisted Query" containing all
-     * the criteria - since it will execute filter on the entire dataset from
-     * the target table
-     */
-    @Test
-    void verifyPlanQueryReturnsNonPersistedQueryWithCriterion()
-        throws Exception
-    {
-        // Create schema with attributes
-        final Attribute attribute = new Attribute();
-        final Map<String, Property> propertyMap = new HashMap<>();
-        addProperty( propertyMap, attribute, "id", true );
-        addProperty( propertyMap, attribute, "uid", true );
-        // note that this is a non-persisted attribute!
-        addProperty( propertyMap, attribute, "name", false );
-        Schema schema = new OrganisationUnitSchemaDescriptor().getSchema();
-        schema.setPropertyMap( propertyMap );
+    // Add restrictions on a non persisted field
+    Query query = Query.from(schema, Junction.Type.OR);
+    // adding a criterion on a non-persisted attribute
+    query.add(Restrictions.eq("name", "test"));
+    query.add(Restrictions.eq("id", 100));
 
-        // Add restrictions on a non persisted field
-        Query query = Query.from( schema, Junction.Type.OR );
-        // adding a criterion on a non-persisted attribute
-        query.add( Restrictions.eq( "name", "test" ) );
-        query.add( Restrictions.eq( "id", 100 ) );
+    // method under test
+    QueryPlan queryPlan = subject.planQuery(query, false);
 
-        // method under test
-        QueryPlan queryPlan = subject.planQuery( query, false );
+    Query persistedQuery = queryPlan.getPersistedQuery();
 
-        Query persistedQuery = queryPlan.getPersistedQuery();
+    assertTrue(persistedQuery.isPlannedQuery());
+    assertEquals(persistedQuery.getCriterions().size(), 0);
+    assertEquals(persistedQuery.getFirstResult().intValue(), 0);
+    assertEquals(persistedQuery.getMaxResults().intValue(), Integer.MAX_VALUE);
+    assertEquals(persistedQuery.getRootJunctionType(), Junction.Type.AND);
 
-        assertTrue( persistedQuery.isPlannedQuery() );
-        assertEquals( persistedQuery.getCriterions().size(), 0 );
-        assertEquals( persistedQuery.getFirstResult().intValue(), 0 );
-        assertEquals( persistedQuery.getMaxResults().intValue(), Integer.MAX_VALUE );
-        assertEquals( persistedQuery.getRootJunctionType(), Junction.Type.AND );
+    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
+    assertEquals(nonPersistedQuery.getCriterions().size(), 2);
+    assertTrue(nonPersistedQuery.isPlannedQuery());
+    assertEquals(nonPersistedQuery.getRootJunctionType(), Junction.Type.OR);
+  }
 
-        Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
-        assertEquals( nonPersistedQuery.getCriterions().size(), 2 );
-        assertTrue( nonPersistedQuery.isPlannedQuery() );
-        assertEquals( nonPersistedQuery.getRootJunctionType(), Junction.Type.OR );
-    }
+  @Test
+  void verifyPlanQueryReturnsNonPersistedQueryWithCriterion2() throws Exception {
+    // Create schema with attributes
+    final Attribute attribute = new Attribute();
+    final Map<String, Property> propertyMap = new HashMap<>();
+    addProperty(propertyMap, attribute, "id", true);
+    addProperty(propertyMap, attribute, "uid", true);
+    addProperty(propertyMap, attribute, "name", true);
+    Schema schema = new OrganisationUnitSchemaDescriptor().getSchema();
+    schema.setPropertyMap(propertyMap);
 
-    @Test
-    void verifyPlanQueryReturnsNonPersistedQueryWithCriterion2()
-        throws Exception
-    {
-        // Create schema with attributes
-        final Attribute attribute = new Attribute();
-        final Map<String, Property> propertyMap = new HashMap<>();
-        addProperty( propertyMap, attribute, "id", true );
-        addProperty( propertyMap, attribute, "uid", true );
-        addProperty( propertyMap, attribute, "name", true );
-        Schema schema = new OrganisationUnitSchemaDescriptor().getSchema();
-        schema.setPropertyMap( propertyMap );
+    // Add restrictions on a non persisted field
+    Query query = Query.from(schema, Junction.Type.AND);
+    query.setMaxResults(10);
+    query.setFirstResult(500);
 
-        // Add restrictions on a non persisted field
-        Query query = Query.from( schema, Junction.Type.AND );
-        query.setMaxResults( 10 );
-        query.setFirstResult( 500 );
+    query.add(Restrictions.eq("name", "test"));
+    query.add(Restrictions.eq("id", 100));
 
-        query.add( Restrictions.eq( "name", "test" ) );
-        query.add( Restrictions.eq( "id", 100 ) );
+    // method under test
+    QueryPlan queryPlan = subject.planQuery(query, false);
 
-        // method under test
-        QueryPlan queryPlan = subject.planQuery( query, false );
+    Query persistedQuery = queryPlan.getPersistedQuery();
 
-        Query persistedQuery = queryPlan.getPersistedQuery();
+    assertTrue(persistedQuery.isPlannedQuery());
+    assertEquals(persistedQuery.getCriterions().size(), 2);
+    assertEquals(persistedQuery.getFirstResult().intValue(), 500);
+    assertEquals(persistedQuery.getMaxResults().intValue(), 10);
+    assertEquals(persistedQuery.getRootJunctionType(), Junction.Type.AND);
 
-        assertTrue( persistedQuery.isPlannedQuery() );
-        assertEquals( persistedQuery.getCriterions().size(), 2 );
-        assertEquals( persistedQuery.getFirstResult().intValue(), 500 );
-        assertEquals( persistedQuery.getMaxResults().intValue(), 10 );
-        assertEquals( persistedQuery.getRootJunctionType(), Junction.Type.AND );
+    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
+    assertEquals(nonPersistedQuery.getCriterions().size(), 0);
+    assertTrue(nonPersistedQuery.isPlannedQuery());
+    assertEquals(nonPersistedQuery.getRootJunctionType(), Junction.Type.AND);
+  }
 
-        Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
-        assertEquals( nonPersistedQuery.getCriterions().size(), 0 );
-        assertTrue( nonPersistedQuery.isPlannedQuery() );
-        assertEquals( nonPersistedQuery.getRootJunctionType(), Junction.Type.AND );
-    }
+  @Test
+  void verifyPlanQueryWithPersistedAndNotPersistedCriteria() throws Exception {
+    final DataElement dataElement = new DataElement();
+    final Map<String, Property> propertyMap = new HashMap<>();
+    addProperty(propertyMap, dataElement, "domainType", true);
+    addProperty(propertyMap, dataElement, "groups", false);
+    Schema schema = new DataElementSchemaDescriptor().getSchema();
+    schema.setPropertyMap(propertyMap);
 
-    @Test
-    void verifyPlanQueryWithPersistedAndNotPersistedCriteria()
-        throws Exception
-    {
-        final DataElement dataElement = new DataElement();
-        final Map<String, Property> propertyMap = new HashMap<>();
-        addProperty( propertyMap, dataElement, "domainType", true );
-        addProperty( propertyMap, dataElement, "groups", false );
-        Schema schema = new DataElementSchemaDescriptor().getSchema();
-        schema.setPropertyMap( propertyMap );
+    // Add restriction
+    Query query = Query.from(schema, Junction.Type.AND);
+    query.add(Restrictions.eq("domainType", "Aggregate"));
+    query.add(Restrictions.eq("groups", "dataElementGroupId"));
 
-        // Add restriction
-        Query query = Query.from( schema, Junction.Type.AND );
-        query.add( Restrictions.eq( "domainType", "Aggregate" ) );
-        query.add( Restrictions.eq( "groups", "dataElementGroupId" ) );
+    // method under test
+    QueryPlan queryPlan = subject.planQuery(query, false);
 
-        // method under test
-        QueryPlan queryPlan = subject.planQuery( query, false );
+    Query persistedQuery = queryPlan.getPersistedQuery();
 
-        Query persistedQuery = queryPlan.getPersistedQuery();
+    assertTrue(persistedQuery.isPlannedQuery());
+    assertEquals(1, persistedQuery.getCriterions().size());
 
-        assertTrue( persistedQuery.isPlannedQuery() );
-        assertEquals( 1, persistedQuery.getCriterions().size() );
+    Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
+    assertTrue(nonPersistedQuery.isPlannedQuery());
+    assertEquals(1, nonPersistedQuery.getCriterions().size());
+  }
 
-        Query nonPersistedQuery = queryPlan.getNonPersistedQuery();
-        assertTrue( nonPersistedQuery.isPlannedQuery() );
-        assertEquals( 1, nonPersistedQuery.getCriterions().size() );
+  private void addProperty(
+      Map<String, Property> propertyMap, Object bean, String property, boolean persisted)
+      throws Exception {
+    PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor(bean, property);
+    Property p = new Property(pd.getPropertyType(), pd.getReadMethod(), pd.getWriteMethod());
+    p.setName(pd.getName());
+    p.setReadable(true);
+    p.setPersisted(persisted);
 
-    }
-
-    private void addProperty( Map<String, Property> propertyMap, Object bean, String property, boolean persisted )
-        throws Exception
-    {
-        PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor( bean, property );
-        Property p = new Property( pd.getPropertyType(), pd.getReadMethod(), pd.getWriteMethod() );
-        p.setName( pd.getName() );
-        p.setReadable( true );
-        p.setPersisted( persisted );
-
-        propertyMap.put( pd.getName(), p );
-    }
+    propertyMap.put(pd.getName(), p);
+  }
 }

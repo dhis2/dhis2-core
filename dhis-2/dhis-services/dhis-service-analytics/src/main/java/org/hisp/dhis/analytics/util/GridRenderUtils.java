@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -45,67 +44,63 @@ import org.hisp.dhis.system.grid.ListGrid;
 /**
  * @author Lars Helge Overland
  */
-public class GridRenderUtils
-{
-    /**
-     * Generates a grid according to the provided columns, rows and values.
-     *
-     * @param columns the columns.
-     * @param rows the rows.
-     * @param valueMap the values as a mapping between metadata key and value.
-     * @return a grid.
-     */
-    public static Grid asGrid( List<? extends DimensionalObject> columns, List<? extends DimensionalObject> rows,
-        Map<String, Object> valueMap )
-    {
-        List<List<DimensionalItemObject>> columnItems = columns.stream()
-            .map( DimensionalObject::getItems ).collect( Collectors.toList() );
-        List<List<DimensionalItemObject>> rowItems = rows.stream()
-            .map( DimensionalObject::getItems ).collect( Collectors.toList() );
+public class GridRenderUtils {
+  /**
+   * Generates a grid according to the provided columns, rows and values.
+   *
+   * @param columns the columns.
+   * @param rows the rows.
+   * @param valueMap the values as a mapping between metadata key and value.
+   * @return a grid.
+   */
+  public static Grid asGrid(
+      List<? extends DimensionalObject> columns,
+      List<? extends DimensionalObject> rows,
+      Map<String, Object> valueMap) {
+    List<List<DimensionalItemObject>> columnItems =
+        columns.stream().map(DimensionalObject::getItems).collect(Collectors.toList());
+    List<List<DimensionalItemObject>> rowItems =
+        rows.stream().map(DimensionalObject::getItems).collect(Collectors.toList());
 
-        List<List<DimensionalItemObject>> gridColumns = CombinationGenerator.newInstance( columnItems )
-            .getCombinations();
-        List<List<DimensionalItemObject>> gridRows = CombinationGenerator.newInstance( rowItems ).getCombinations();
+    List<List<DimensionalItemObject>> gridColumns =
+        CombinationGenerator.newInstance(columnItems).getCombinations();
+    List<List<DimensionalItemObject>> gridRows =
+        CombinationGenerator.newInstance(rowItems).getCombinations();
 
-        Map<String, Object> internalValueMap = getSortedKeysMap( valueMap );
+    Map<String, Object> internalValueMap = getSortedKeysMap(valueMap);
 
-        Grid grid = new ListGrid();
+    Grid grid = new ListGrid();
 
-        // ---------------------------------------------------------------------
-        // Headers
-        // ---------------------------------------------------------------------
+    // ---------------------------------------------------------------------
+    // Headers
+    // ---------------------------------------------------------------------
 
-        for ( DimensionalObject object : rows )
-        {
-            grid.addHeader( new GridHeader( object.getDimension(), object.getDimensionDisplayName() ) );
-        }
-
-        for ( List<DimensionalItemObject> column : gridColumns )
-        {
-            grid.addHeader( new GridHeader( getKey( column ), getName( column ) ) );
-        }
-
-        // ---------------------------------------------------------------------
-        // Rows
-        // ---------------------------------------------------------------------
-
-        for ( List<DimensionalItemObject> row : gridRows )
-        {
-            grid.addRow();
-
-            for ( DimensionalItemObject object : row )
-            {
-                grid.addValue( object.getDisplayName() );
-            }
-
-            for ( List<DimensionalItemObject> column : gridColumns )
-            {
-                String key = getKey( column, row );
-                Object value = internalValueMap.get( key );
-                grid.addValue( value );
-            }
-        }
-
-        return grid;
+    for (DimensionalObject object : rows) {
+      grid.addHeader(new GridHeader(object.getDimension(), object.getDimensionDisplayName()));
     }
+
+    for (List<DimensionalItemObject> column : gridColumns) {
+      grid.addHeader(new GridHeader(getKey(column), getName(column)));
+    }
+
+    // ---------------------------------------------------------------------
+    // Rows
+    // ---------------------------------------------------------------------
+
+    for (List<DimensionalItemObject> row : gridRows) {
+      grid.addRow();
+
+      for (DimensionalItemObject object : row) {
+        grid.addValue(object.getDisplayName());
+      }
+
+      for (List<DimensionalItemObject> column : gridColumns) {
+        String key = getKey(column, row);
+        Object value = internalValueMap.get(key);
+        grid.addValue(value);
+      }
+    }
+
+    return grid;
+  }
 }

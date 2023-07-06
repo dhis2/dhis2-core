@@ -40,49 +40,65 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class SqlViewControllerTest extends DhisControllerConvenienceTest
-{
+class SqlViewControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testExecuteView_NoSuchView()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "SQL view does not exist: xyz",
-            POST( "/sqlViews/xyz/execute" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testExecuteView_NoSuchView() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "SQL view does not exist: xyz",
+        POST("/sqlViews/xyz/execute").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testExecuteView_ValidationError()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "SQL query contains references to protected tables",
-            POST( "/sqlViews/" + uid + "/execute" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testExecuteView_ValidationError() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "SQL query contains references to protected tables",
+        POST("/sqlViews/" + uid + "/execute").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testRefreshMaterializedView()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
-        assertWebMessage( "Conflict", 409, "ERROR", "View could not be refreshed",
-            POST( "/sqlViews/" + uid + "/refresh" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testRefreshMaterializedView() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}"));
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "View could not be refreshed",
+        POST("/sqlViews/" + uid + "/refresh").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testRefreshMaterializedView_NoSuchView()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "SQL view does not exist: xyz",
-            POST( "/sqlViews/xyz/refresh" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testRefreshMaterializedView_NoSuchView() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "SQL view does not exist: xyz",
+        POST("/sqlViews/xyz/refresh").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    public void testCreateWithDefaultValues()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
+  @Test
+  public void testCreateWithDefaultValues() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}"));
 
-        JsonResponse sqlView = GET( "/sqlViews/{uid}", uid ).content();
-        assertEquals( "VIEW", sqlView.getString( "type" ).string() );
-        assertEquals( "RESPECT_SYSTEM_SETTING", sqlView.getString( "cacheStrategy" ).string() );
-    }
+    JsonResponse sqlView = GET("/sqlViews/{uid}", uid).content();
+    assertEquals("VIEW", sqlView.getString("type").string());
+    assertEquals("RESPECT_SYSTEM_SETTING", sqlView.getString("cacheStrategy").string());
+  }
 }

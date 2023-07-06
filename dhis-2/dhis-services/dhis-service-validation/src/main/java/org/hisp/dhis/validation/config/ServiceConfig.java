@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.validation.config;
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.ServiceProvider;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
 import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService;
@@ -34,22 +35,22 @@ import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "validationServiceConfig" )
-public class ServiceConfig
-{
-    @Bean( "dataAnalysisServiceProvider" )
-    public ServiceProvider<DataAnalysisService> dataAnalysisServiceProvider(
-        StdDevOutlierAnalysisService stdDevOutlierAnalysisService,
-        MinMaxOutlierAnalysisService minMaxOutlierAnalysisService )
-    {
-        ServiceProvider<DataAnalysisService> serviceProvider = new ServiceProvider<>();
-        serviceProvider.setServices( ImmutableMap.of( "stddevoutlier", stdDevOutlierAnalysisService, "minmaxoutlier",
-            minMaxOutlierAnalysisService ) );
-        return serviceProvider;
-    }
+@Configuration("validationServiceConfig")
+public class ServiceConfig {
+  @Bean("dataAnalysisServiceProvider")
+  public ServiceProvider<DataAnalysisService> dataAnalysisServiceProvider(
+      StdDevOutlierAnalysisService stdDevOutlierAnalysisService,
+      MinMaxOutlierAnalysisService minMaxOutlierAnalysisService) {
+    ServiceProvider<DataAnalysisService> serviceProvider = new ServiceProvider<>();
+    serviceProvider.setServices(
+        ImmutableMap.of(
+            "stddevoutlier",
+            stdDevOutlierAnalysisService,
+            "minmaxoutlier",
+            minMaxOutlierAnalysisService));
+    return serviceProvider;
+  }
 }

@@ -32,8 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -53,98 +53,87 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
+@ExtendWith(MockitoExtension.class)
+class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest {
 
-@ExtendWith( MockitoExtension.class )
-class RuleEngineErrorToTrackerWarningConverterTest extends DhisConvenienceTest
-{
+  private static final String RULE_EVENT_ID = "Rule_event_id";
 
-    private final static String RULE_EVENT_ID = "Rule_event_id";
+  private static final String EVENT_ERROR_MESSAGE = "Event error message";
 
-    private final static String EVENT_ERROR_MESSAGE = "Event error message";
+  private static final String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
 
-    private final static String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
+  private static final String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
 
-    private final static String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
+  private static final String ENROLLMENT_ID = "EnrollmentUid";
 
-    private final static String ENROLLMENT_ID = "EnrollmentUid";
+  private static final String EVENT_ID = "EventUid";
 
-    private final static String EVENT_ID = "EventUid";
+  private static final String TEI_ID = "TeiId";
 
-    private final static String TEI_ID = "TeiId";
+  private static ProgramStage programStage;
 
-    private static ProgramStage programStage;
+  private final RuleEngineErrorToTrackerWarningConverter ruleEngineErrorToTrackerWarningConverter =
+      new RuleEngineErrorToTrackerWarningConverter();
 
-    private final RuleEngineErrorToTrackerWarningConverter ruleEngineErrorToTrackerWarningConverter = new RuleEngineErrorToTrackerWarningConverter();
+  private TrackerBundle bundle;
 
-    private TrackerBundle bundle;
+  @Mock private TrackerPreheat preheat;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @BeforeEach
+  void setUpTest() {
+    programStage = createProgramStage('A', 0);
+    programStage.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    bundle = TrackerBundle.builder().build();
+    bundle.setPreheat(preheat);
+  }
 
-    @BeforeEach
-    void setUpTest()
-    {
-        programStage = createProgramStage( 'A', 0 );
-        programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        bundle = TrackerBundle.builder().build();
-        bundle.setPreheat( preheat );
-    }
+  @Test
+  void testValidateEventWithError() {
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
+    List<ProgramRuleIssue> issues =
+        ruleEngineErrorToTrackerWarningConverter.validateEvent(
+            bundle, getRuleEventEffects(), getEvent());
 
-    @Test
-    void testValidateEventWithError()
-    {
-        when( preheat.getProgramStage( MetadataIdentifier.ofUid( programStage ) ) ).thenReturn( programStage );
-        List<ProgramRuleIssue> issues = ruleEngineErrorToTrackerWarningConverter.validateEvent( bundle,
-            getRuleEventEffects(),
-            getEvent() );
+    assertFalse(issues.isEmpty());
+    assertEquals(WARNING, issues.get(0).getIssueType());
+    assertEquals(RULE_EVENT_ID, issues.get(0).getRuleUid());
+    assertEquals(TrackerErrorCode.E1300, issues.get(0).getIssueCode());
+    assertEquals(EVENT_ERROR_MESSAGE, issues.get(0).getArgs().get(0));
+  }
 
-        assertFalse( issues.isEmpty() );
-        assertEquals( WARNING, issues.get( 0 ).getIssueType() );
-        assertEquals( RULE_EVENT_ID, issues.get( 0 ).getRuleUid() );
-        assertEquals( TrackerErrorCode.E1300, issues.get( 0 ).getIssueCode() );
-        assertEquals( EVENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
-    }
+  @Test
+  void testValidateEnrollmentWithError() {
+    List<ProgramRuleIssue> issues =
+        ruleEngineErrorToTrackerWarningConverter.validateEnrollment(
+            bundle, getRuleEnrollmentEffects(), getEnrollment());
 
-    @Test
-    void testValidateEnrollmentWithError()
-    {
-        List<ProgramRuleIssue> issues = ruleEngineErrorToTrackerWarningConverter.validateEnrollment( bundle,
-            getRuleEnrollmentEffects(),
-            getEnrollment() );
+    assertFalse(issues.isEmpty());
+    assertEquals(WARNING, issues.get(0).getIssueType());
+    assertEquals(RULE_ENROLLMENT_ID, issues.get(0).getRuleUid());
+    assertEquals(TrackerErrorCode.E1300, issues.get(0).getIssueCode());
+    assertEquals(ENROLLMENT_ERROR_MESSAGE, issues.get(0).getArgs().get(0));
+  }
 
-        assertFalse( issues.isEmpty() );
-        assertEquals( WARNING, issues.get( 0 ).getIssueType() );
-        assertEquals( RULE_ENROLLMENT_ID, issues.get( 0 ).getRuleUid() );
-        assertEquals( TrackerErrorCode.E1300, issues.get( 0 ).getIssueCode() );
-        assertEquals( ENROLLMENT_ERROR_MESSAGE, issues.get( 0 ).getArgs().get( 0 ) );
-    }
+  private Event getEvent() {
+    Event event = new Event();
+    event.setEvent(EVENT_ID);
+    event.setProgramStage(MetadataIdentifier.ofUid(programStage));
+    return event;
+  }
 
-    private Event getEvent()
-    {
-        Event event = new Event();
-        event.setEvent( EVENT_ID );
-        event.setProgramStage( MetadataIdentifier.ofUid( programStage ) );
-        return event;
-    }
+  private Enrollment getEnrollment() {
+    return Enrollment.builder().enrollment(ENROLLMENT_ID).trackedEntity(TEI_ID).build();
+  }
 
-    private Enrollment getEnrollment()
-    {
-        return Enrollment.builder()
-            .enrollment( ENROLLMENT_ID )
-            .trackedEntity( TEI_ID )
-            .build();
-    }
+  private List<RuleEffect> getRuleEventEffects() {
+    RuleAction ruleActionError = RuleActionError.create(EVENT_ERROR_MESSAGE);
+    return Lists.newArrayList(
+        RuleEffect.create(RULE_EVENT_ID, ruleActionError, EVENT_ERROR_MESSAGE));
+  }
 
-    private List<RuleEffect> getRuleEventEffects()
-    {
-        RuleAction ruleActionError = RuleActionError.create( EVENT_ERROR_MESSAGE );
-        return Lists.newArrayList( RuleEffect.create( RULE_EVENT_ID, ruleActionError, EVENT_ERROR_MESSAGE ) );
-    }
-
-    private List<RuleEffect> getRuleEnrollmentEffects()
-    {
-        RuleAction ruleActionError = RuleActionError.create( ENROLLMENT_ERROR_MESSAGE );
-        return Lists.newArrayList( RuleEffect.create( RULE_ENROLLMENT_ID, ruleActionError, ENROLLMENT_ERROR_MESSAGE ) );
-    }
+  private List<RuleEffect> getRuleEnrollmentEffects() {
+    RuleAction ruleActionError = RuleActionError.create(ENROLLMENT_ERROR_MESSAGE);
+    return Lists.newArrayList(
+        RuleEffect.create(RULE_ENROLLMENT_ID, ruleActionError, ENROLLMENT_ERROR_MESSAGE));
+  }
 }

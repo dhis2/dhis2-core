@@ -35,12 +35,10 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface CsvEventService<T>
-{
-    void writeEvents( OutputStream outputStream, List<T> events, boolean withHeader )
-        throws IOException;
+public interface CsvEventService<T> {
+  void writeEvents(OutputStream outputStream, List<T> events, boolean withHeader)
+      throws IOException;
 
-    List<T> readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException,
-        org.locationtech.jts.io.ParseException;
+  List<T> readEvents(InputStream inputStream, boolean skipFirst)
+      throws IOException, org.locationtech.jts.io.ParseException;
 }

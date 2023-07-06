@@ -33,9 +33,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
 import java.util.Date;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -61,68 +59,59 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Stian Sandvold
  */
 @Controller
-@RequestMapping( ExternalFileResourceSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ExternalFileResourceController
-{
-    @Autowired
-    private ExternalFileResourceService externalFileResourceService;
+@RequestMapping(ExternalFileResourceSchemaDescriptor.API_ENDPOINT)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ExternalFileResourceController {
+  @Autowired private ExternalFileResourceService externalFileResourceService;
 
-    @Autowired
-    private FileResourceService fileResourceService;
+  @Autowired private FileResourceService fileResourceService;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
+  @Autowired private DhisConfigurationProvider dhisConfig;
 
-    /**
-     * Returns a file associated with the externalFileResource resolved from the
-     * accessToken.
-     * <p>
-     * Only files contained in externalFileResources with a valid accessToken,
-     * expiration date null or in the future are files allowed to be served
-     * trough this endpoint.
-     *
-     * @param accessToken a unique string that resolves to a given
-     *        externalFileResource
-     * @param response
-     * @throws WebMessageException
-     */
-    @GetMapping( "/{accessToken}" )
-    public void getExternalFileResource( @PathVariable String accessToken,
-        HttpServletResponse response )
-        throws WebMessageException
-    {
-        ExternalFileResource externalFileResource = externalFileResourceService
-            .getExternalFileResourceByAccessToken( accessToken );
+  /**
+   * Returns a file associated with the externalFileResource resolved from the accessToken.
+   *
+   * <p>Only files contained in externalFileResources with a valid accessToken, expiration date null
+   * or in the future are files allowed to be served trough this endpoint.
+   *
+   * @param accessToken a unique string that resolves to a given externalFileResource
+   * @param response
+   * @throws WebMessageException
+   */
+  @GetMapping("/{accessToken}")
+  public void getExternalFileResource(
+      @PathVariable String accessToken, HttpServletResponse response) throws WebMessageException {
+    ExternalFileResource externalFileResource =
+        externalFileResourceService.getExternalFileResourceByAccessToken(accessToken);
 
-        if ( externalFileResource == null )
-        {
-            throw new WebMessageException( notFound( "No file found with key '" + accessToken + "'" ) );
-        }
-
-        if ( externalFileResource.getExpires() != null && externalFileResource.getExpires().before( new Date() ) )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .createWebMessage( "The key you requested has expired", Status.WARNING, HttpStatus.GONE ) );
-        }
-
-        FileResource fileResource = externalFileResource.getFileResource();
-
-        response.setContentType( fileResource.getContentType() );
-        response.setContentLengthLong( fileResource.getContentLength() );
-        response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
-
-        HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-        setNoStore( response );
-
-        try
-        {
-            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
-        }
-        catch ( IOException e )
-        {
-            throw new WebMessageException( error( "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
-        }
+    if (externalFileResource == null) {
+      throw new WebMessageException(notFound("No file found with key '" + accessToken + "'"));
     }
+
+    if (externalFileResource.getExpires() != null
+        && externalFileResource.getExpires().before(new Date())) {
+      throw new WebMessageException(
+          WebMessageUtils.createWebMessage(
+              "The key you requested has expired", Status.WARNING, HttpStatus.GONE));
+    }
+
+    FileResource fileResource = externalFileResource.getFileResource();
+
+    response.setContentType(fileResource.getContentType());
+    response.setContentLengthLong(fileResource.getContentLength());
+    response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+
+    HeaderUtils.setSecurityHeaders(
+        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
+    setNoStore(response);
+
+    try {
+      fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+    } catch (IOException e) {
+      throw new WebMessageException(
+          error(
+              "Failed fetching the file from storage",
+              "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related"));
+    }
+  }
 }

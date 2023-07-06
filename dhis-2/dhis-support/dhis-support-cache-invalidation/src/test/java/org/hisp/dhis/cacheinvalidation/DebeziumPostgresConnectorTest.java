@@ -29,21 +29,18 @@ package org.hisp.dhis.cacheinvalidation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.debezium.connector.postgresql.PostgresConnector;
 import org.junit.jupiter.api.Test;
 
-import io.debezium.connector.postgresql.PostgresConnector;
-
 /**
- * Test to make sure that the Debezium Postgres connector is available. It is
- * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
+ * Test to make sure that the Debezium Postgres connector is available. It is needed for PostgreSQL
+ * cache invalidation in a DHIS2 cluster configuration.
  *
  * @author Jim Grace
  */
-class DebeziumPostgresConnectorTest
-{
-    @Test
-    void testDebeziumPostgresConnectorPresent()
-    {
-        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
-    }
+class DebeziumPostgresConnectorTest {
+  @Test
+  void testDebeziumPostgresConnectorPresent() {
+    assertEquals("PostgresConnector", PostgresConnector.class.getSimpleName());
+  }
 }

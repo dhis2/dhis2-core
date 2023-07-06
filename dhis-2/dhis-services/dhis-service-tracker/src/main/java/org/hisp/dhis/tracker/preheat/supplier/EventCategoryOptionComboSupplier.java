@@ -31,10 +31,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -50,110 +48,106 @@ import org.hisp.dhis.tracker.preheat.mappers.CategoryOptionComboMapper;
 import org.springframework.stereotype.Component;
 
 /**
- * EventCategoryOptionComboSupplier adds category option combos to the preheat
- * for events with attributeCategoryOptions but no attributeOptionCombo.
+ * EventCategoryOptionComboSupplier adds category option combos to the preheat for events with
+ * attributeCategoryOptions but no attributeOptionCombo.
  *
- * {@link ClassBasedSupplier} is responsible for adding category option combos
- * to the preheat for which identifiers are present in the event.
+ * <p>{@link ClassBasedSupplier} is responsible for adding category option combos to the preheat for
+ * which identifiers are present in the event.
  *
- * An event for which the category option combo can not be found is invalid.
- * Validation will thus subsequently invalidate it.
+ * <p>An event for which the category option combo can not be found is invalid. Validation will thus
+ * subsequently invalidate it.
  */
 @RequiredArgsConstructor
 @Component
-public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier
-{
-    @NonNull
-    private final CategoryService categoryService;
+public class EventCategoryOptionComboSupplier extends AbstractPreheatSupplier {
+  @NonNull private final CategoryService categoryService;
 
-    @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
-    {
+  @Override
+  public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat) {
 
-        List<Pair<CategoryCombo, Set<CategoryOption>>> events = params.getEvents().stream()
-            .filter( e -> e.getAttributeOptionCombo().isBlank() && !e.getAttributeCategoryOptions().isEmpty() )
-            .map( e -> Pair.of( resolveProgram( preheat, e ), e.getAttributeCategoryOptions() ) )
-            .filter( p -> p.getLeft() != null )
-            .filter( p -> hasOnlyExistingCategoryOptions( preheat, p.getRight() ) )
-            .map( p -> Pair.of( p.getLeft().getCategoryCombo(), toCategoryOptions( preheat, p.getRight() ) ) )
-            .collect( Collectors.toList() );
+    List<Pair<CategoryCombo, Set<CategoryOption>>> events =
+        params.getEvents().stream()
+            .filter(
+                e ->
+                    e.getAttributeOptionCombo().isBlank()
+                        && !e.getAttributeCategoryOptions().isEmpty())
+            .map(e -> Pair.of(resolveProgram(preheat, e), e.getAttributeCategoryOptions()))
+            .filter(p -> p.getLeft() != null)
+            .filter(p -> hasOnlyExistingCategoryOptions(preheat, p.getRight()))
+            .map(
+                p ->
+                    Pair.of(
+                        p.getLeft().getCategoryCombo(), toCategoryOptions(preheat, p.getRight())))
+            .collect(Collectors.toList());
 
-        for ( Pair<CategoryCombo, Set<CategoryOption>> p : events )
-        {
-            if ( preheat.containsCategoryOptionCombo( p.getLeft(), p.getRight() ) )
-            {
-                continue;
-            }
+    for (Pair<CategoryCombo, Set<CategoryOption>> p : events) {
+      if (preheat.containsCategoryOptionCombo(p.getLeft(), p.getRight())) {
+        continue;
+      }
 
-            CategoryOptionCombo aoc = CategoryOptionComboMapper.INSTANCE
-                .map( categoryService.getCategoryOptionCombo( p.getLeft(), p.getRight() ) );
-            preheat.putCategoryOptionCombo( p.getLeft(), p.getRight(), aoc );
-        }
+      CategoryOptionCombo aoc =
+          CategoryOptionComboMapper.INSTANCE.map(
+              categoryService.getCategoryOptionCombo(p.getLeft(), p.getRight()));
+      preheat.putCategoryOptionCombo(p.getLeft(), p.getRight(), aoc);
+    }
+  }
+
+  /**
+   * Resolve the event program either via the program property in the payload or via the
+   * programStage property in the payload. Property program is not required but programStage is.
+   * Since the preheat phase is before pre-process and validation we need to be more defensive with
+   * null-checks.
+   */
+  private Program resolveProgram(TrackerPreheat preheat, Event e) {
+
+    Program program = preheat.getProgram(e.getProgram());
+    if (program != null) {
+      return program;
     }
 
-    /**
-     * Resolve the event program either via the program property in the payload
-     * or via the programStage property in the payload. Property program is not
-     * required but programStage is. Since the preheat phase is before
-     * pre-process and validation we need to be more defensive with null-checks.
-     */
-    private Program resolveProgram( TrackerPreheat preheat, Event e )
-    {
-
-        Program program = preheat.getProgram( e.getProgram() );
-        if ( program != null )
-        {
-            return program;
-        }
-
-        if ( e.getProgramStage().isBlank() )
-        {
-            return null;
-        }
-        ProgramStage programStage = preheat.getProgramStage( e.getProgramStage() );
-        if ( programStage == null || programStage.getProgram() == null )
-        {
-            // TODO remove check for programStage.getProgram() == null once
-            // metadata import is fixed
-            // Program stages should always have a program! Due to
-            // how metadata
-            // import is currently implemented
-            // it's possible that users run into the edge case that
-            // a program
-            // stage does not have an associated
-            // program. Tell the user it's an issue with the
-            // metadata and not
-            // the event itself. This should be
-            // fixed in the metadata import. For more see
-            // https://jira.dhis2.org/browse/DHIS2-12123
-            //
-            // PreCheckMandatoryFieldsValidationHook.validateEvent
-            // will create
-            // a validation error for this edge case
-            return null;
-        }
-        return programStage.getProgram();
+    if (e.getProgramStage().isBlank()) {
+      return null;
     }
-
-    private boolean hasOnlyExistingCategoryOptions( TrackerPreheat preheat, Set<MetadataIdentifier> ids )
-    {
-        for ( MetadataIdentifier id : ids )
-        {
-            if ( preheat.getCategoryOption( id ) == null )
-            {
-                return false;
-            }
-        }
-        return true;
+    ProgramStage programStage = preheat.getProgramStage(e.getProgramStage());
+    if (programStage == null || programStage.getProgram() == null) {
+      // TODO remove check for programStage.getProgram() == null once
+      // metadata import is fixed
+      // Program stages should always have a program! Due to
+      // how metadata
+      // import is currently implemented
+      // it's possible that users run into the edge case that
+      // a program
+      // stage does not have an associated
+      // program. Tell the user it's an issue with the
+      // metadata and not
+      // the event itself. This should be
+      // fixed in the metadata import. For more see
+      // https://jira.dhis2.org/browse/DHIS2-12123
+      //
+      // PreCheckMandatoryFieldsValidationHook.validateEvent
+      // will create
+      // a validation error for this edge case
+      return null;
     }
+    return programStage.getProgram();
+  }
 
-    private Set<CategoryOption> toCategoryOptions( TrackerPreheat preheat, Set<MetadataIdentifier> ids )
-    {
-        Set<CategoryOption> categoryOptions = new HashSet<>();
-        for ( MetadataIdentifier id : ids )
-        {
-            categoryOptions.add( preheat.getCategoryOption( id ) );
-        }
-        return categoryOptions;
+  private boolean hasOnlyExistingCategoryOptions(
+      TrackerPreheat preheat, Set<MetadataIdentifier> ids) {
+    for (MetadataIdentifier id : ids) {
+      if (preheat.getCategoryOption(id) == null) {
+        return false;
+      }
     }
+    return true;
+  }
+
+  private Set<CategoryOption> toCategoryOptions(
+      TrackerPreheat preheat, Set<MetadataIdentifier> ids) {
+    Set<CategoryOption> categoryOptions = new HashSet<>();
+    for (MetadataIdentifier id : ids) {
+      categoryOptions.add(preheat.getCategoryOption(id));
+    }
+    return categoryOptions;
+  }
 }

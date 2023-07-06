@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents a min-max value.
@@ -41,22 +40,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class MinMaxValueDto
-{
-    @JsonProperty
-    private String dataElement;
+public class MinMaxValueDto {
+  @JsonProperty private String dataElement;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String categoryOptionCombo;
+  @JsonProperty private String categoryOptionCombo;
 
-    @JsonProperty
-    private Integer minValue;
+  @JsonProperty private Integer minValue;
 
-    @JsonProperty
-    private Integer maxValue;
+  @JsonProperty private Integer maxValue;
 }

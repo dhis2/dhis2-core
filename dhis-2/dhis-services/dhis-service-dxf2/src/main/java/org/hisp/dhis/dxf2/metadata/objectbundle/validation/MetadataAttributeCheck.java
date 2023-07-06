@@ -34,9 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -53,80 +51,89 @@ import org.springframework.stereotype.Component;
 
 /**
  * This is one of the validators of the Metadata Import service.
- * <p>
- * It will validate Metadata {@link Attribute} of all importing objects by
- * executing {@link AttributeValidator}'s functions.
+ *
+ * <p>It will validate Metadata {@link Attribute} of all importing objects by executing {@link
+ * AttributeValidator}'s functions.
  *
  * @author viet
  */
 @Component
 @RequiredArgsConstructor
-public class MetadataAttributeCheck implements ObjectValidationCheck
-{
-    private final AttributeValidator attributeValidator;
+public class MetadataAttributeCheck implements ObjectValidationCheck {
+  private final AttributeValidator attributeValidator;
 
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
-    {
-        Schema schema = ctx.getSchemaService().getDynamicSchema( klass );
-        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    Schema schema = ctx.getSchemaService().getDynamicSchema(klass);
+    List<T> objects = selectObjects(persistedObjects, nonPersistedObjects, importStrategy);
 
-        if ( objects.isEmpty() || !schema.havePersistedProperty( BaseIdentifiableObject_.ATTRIBUTE_VALUES ) )
-        {
-            return;
-        }
+    if (objects.isEmpty()
+        || !schema.havePersistedProperty(BaseIdentifiableObject_.ATTRIBUTE_VALUES)) {
+      return;
+    }
 
-        Map<String, Attribute> attributesMap = bundle.getPreheat().getAttributesByClass( klass ) != null
-            ? bundle.getPreheat().getAttributesByClass( klass )
+    Map<String, Attribute> attributesMap =
+        bundle.getPreheat().getAttributesByClass(klass) != null
+            ? bundle.getPreheat().getAttributesByClass(klass)
             : Map.of();
 
-        for ( T object : objects )
-        {
-            if ( CollectionUtils.isEmpty( object.getAttributeValues() ) )
-            {
-                continue;
-            }
+    for (T object : objects) {
+      if (CollectionUtils.isEmpty(object.getAttributeValues())) {
+        continue;
+      }
 
-            List<ErrorReport> errorReports = new ArrayList<>();
+      List<ErrorReport> errorReports = new ArrayList<>();
 
-            object.getAttributeValues()
-                .forEach( av -> getValueType( av.getAttribute().getUid(), attributesMap, klass.getSimpleName(),
-                    errorReports::add )
-                        .ifPresent( type -> attributeValidator.validate( type, av.getValue(),
-                            errorReports::add ) ) );
+      object
+          .getAttributeValues()
+          .forEach(
+              av ->
+                  getValueType(
+                          av.getAttribute().getUid(),
+                          attributesMap,
+                          klass.getSimpleName(),
+                          errorReports::add)
+                      .ifPresent(
+                          type ->
+                              attributeValidator.validate(type, av.getValue(), errorReports::add)));
 
-            if ( !errorReports.isEmpty() )
-            {
-                addReports.accept( createObjectReport( errorReports, object, bundle ) );
-                ctx.markForRemoval( object );
-            }
-        }
+      if (!errorReports.isEmpty()) {
+        addReports.accept(createObjectReport(errorReports, object, bundle));
+        ctx.markForRemoval(object);
+      }
+    }
+  }
+
+  /**
+   * Get {@link ValueType} of the given attributeId.
+   *
+   * <p>Return {@link ErrorCode#E6012} if the given {@link Attribute} is not assigned to current
+   * klass.
+   *
+   * @param attributeId Id of the {@link Attribute} for checking.
+   * @param valueTypeMap Map contains all attributes of current object.
+   * @param klassName name of current class.
+   * @param addError Consumer for {@link ErrorReport} if any.
+   * @return {@link ValueType} if exists otherwise {@link Optional#empty()}
+   */
+  private Optional<ValueType> getValueType(
+      String attributeId,
+      Map<String, Attribute> valueTypeMap,
+      String klassName,
+      Consumer<ErrorReport> addError) {
+    Attribute attribute = valueTypeMap.get(attributeId);
+    if (attribute == null) {
+      addError.accept(new ErrorReport(Attribute.class, ErrorCode.E6012, attributeId, klassName));
+      return Optional.empty();
     }
 
-    /**
-     * Get {@link ValueType} of the given attributeId.
-     * <p>
-     * Return {@link ErrorCode#E6012} if the given {@link Attribute} is not
-     * assigned to current klass.
-     *
-     * @param attributeId Id of the {@link Attribute} for checking.
-     * @param valueTypeMap Map contains all attributes of current object.
-     * @param klassName name of current class.
-     * @param addError Consumer for {@link ErrorReport} if any.
-     * @return {@link ValueType} if exists otherwise {@link Optional#empty()}
-     */
-    private Optional<ValueType> getValueType( String attributeId, Map<String, Attribute> valueTypeMap, String klassName,
-        Consumer<ErrorReport> addError )
-    {
-        Attribute attribute = valueTypeMap.get( attributeId );
-        if ( attribute == null )
-        {
-            addError.accept( new ErrorReport( Attribute.class, ErrorCode.E6012, attributeId, klassName ) );
-            return Optional.empty();
-        }
-
-        return Optional.of( attribute.getValueType() );
-    }
+    return Optional.of(attribute.getValueType());
+  }
 }

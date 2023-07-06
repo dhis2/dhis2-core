@@ -34,17 +34,15 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityProgramIndicatorDimensionSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataElementDimension";
+public class TrackedEntityProgramIndicatorDimensionSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataElementDimension";
 
-    public static final String PLURAL = "dataElementDimensions";
+  public static final String PLURAL = "dataElementDimensions";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( TrackedEntityProgramIndicatorDimension.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(TrackedEntityProgramIndicatorDimension.class, SINGULAR, PLURAL);
+  }
 }

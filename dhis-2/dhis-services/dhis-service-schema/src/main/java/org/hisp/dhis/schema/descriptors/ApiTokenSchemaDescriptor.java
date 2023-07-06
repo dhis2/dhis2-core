@@ -34,24 +34,22 @@ import org.hisp.dhis.security.apikey.ApiToken;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "apiToken";
+public class ApiTokenSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "apiToken";
 
-    public static final String PLURAL = "apiToken";
+  public static final String PLURAL = "apiToken";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ApiToken.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setDataShareable( false );
-        schema.setDefaultPrivate( true );
-        schema.setDataReadShareable( false );
-        schema.setDataWriteShareable( false );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ApiToken.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setDataShareable(false);
+    schema.setDefaultPrivate(true);
+    schema.setDataReadShareable(false);
+    schema.setDataWriteShareable(false);
 
-        return schema;
-    }
+    return schema;
+  }
 }

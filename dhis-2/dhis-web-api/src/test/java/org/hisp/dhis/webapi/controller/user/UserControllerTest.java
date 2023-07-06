@@ -49,7 +49,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.Stats;
@@ -78,252 +77,231 @@ import org.mockito.quality.Strictness;
  *
  * @author Volker Schmidt
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class UserControllerTest
-{
-    @Mock
-    private UserService userService;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class UserControllerTest {
+  @Mock private UserService userService;
 
-    @Mock
-    private UserGroupService userGroupService;
+  @Mock private UserGroupService userGroupService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @InjectMocks
-    private UserController userController;
+  @InjectMocks private UserController userController;
 
-    private UserGroup userGroup1;
+  private UserGroup userGroup1;
 
-    private UserGroup userGroup2;
+  private UserGroup userGroup2;
 
-    private User currentUser;
+  private User currentUser;
 
-    private User user;
+  private User user;
 
-    private User parsedUser;
+  private User parsedUser;
 
-    @BeforeEach
-    public void setUp()
-    {
-        userGroup1 = new UserGroup();
-        userGroup1.setUid( "abc1" );
+  @BeforeEach
+  public void setUp() {
+    userGroup1 = new UserGroup();
+    userGroup1.setUid("abc1");
 
-        userGroup2 = new UserGroup();
-        userGroup2.setUid( "abc2" );
+    userGroup2 = new UserGroup();
+    userGroup2.setUid("abc2");
 
-        currentUser = new User();
-        currentUser.setId( 1000 );
-        currentUser.setUid( "def1" );
+    currentUser = new User();
+    currentUser.setId(1000);
+    currentUser.setUid("def1");
 
-        user = new User();
-        user.setId( 1001 );
-        user.setUid( "def2" );
+    user = new User();
+    user.setId(1001);
+    user.setUid("def2");
 
-        parsedUser = new User();
-        parsedUser.setUid( "def2" );
-        parsedUser.setGroups( new HashSet<>( Arrays.asList( userGroup1, userGroup2 ) ) );
+    parsedUser = new User();
+    parsedUser.setUid("def2");
+    parsedUser.setGroups(new HashSet<>(Arrays.asList(userGroup1, userGroup2)));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void updateUserGroups() {
+    when(userService.getUser("def2")).thenReturn(user);
+
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
+      userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    @Test
-    @SuppressWarnings( "unchecked" )
-    public void updateUserGroups()
-    {
-        when( userService.getUser( "def2" ) ).thenReturn( user );
+    verifyNoInteractions(currentUserService);
+    verify(userGroupService)
+        .updateUserGroups(
+            same(user),
+            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
+            same(currentUser));
+  }
 
-        if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incUpdated ) ) )
-        {
-            userController.updateUserGroups( "def2", parsedUser, currentUser );
-        }
-
-        verifyNoInteractions( currentUserService );
-        verify( userGroupService ).updateUserGroups( same( user ),
-            (Collection<String>) argThat( containsInAnyOrder( "abc1", "abc2" ) ),
-            same( currentUser ) );
+  @Test
+  void updateUserGroupsNotOk() {
+    if (isInStatusUpdatedOK(createReportWith(Status.ERROR, Stats::incUpdated))) {
+      userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    @Test
-    void updateUserGroupsNotOk()
-    {
-        if ( isInStatusUpdatedOK( createReportWith( Status.ERROR, Stats::incUpdated ) ) )
-        {
-            userController.updateUserGroups( "def2", parsedUser, currentUser );
-        }
+    verifyNoInteractions(currentUserService);
+    verifyNoInteractions(userService);
+    verifyNoInteractions(userGroupService);
+  }
 
-        verifyNoInteractions( currentUserService );
-        verifyNoInteractions( userService );
-        verifyNoInteractions( userGroupService );
+  @Test
+  void updateUserGroupsNotUpdated() {
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incCreated))) {
+      userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    @Test
-    void updateUserGroupsNotUpdated()
-    {
-        if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incCreated ) ) )
-        {
-            userController.updateUserGroups( "def2", parsedUser, currentUser );
-        }
+    verifyNoInteractions(currentUserService);
+    verifyNoInteractions(userService);
+    verifyNoInteractions(userGroupService);
+  }
 
-        verifyNoInteractions( currentUserService );
-        verifyNoInteractions( userService );
-        verifyNoInteractions( userGroupService );
+  @Test
+  public void updateUserGroupsSameUser() {
+    currentUser.setId(1001);
+    currentUser.setUid("def2");
+
+    User currentUser2 = new User();
+    currentUser2.setId(1001);
+    currentUser2.setUid("def2");
+
+    when(userService.getUser("def2")).thenReturn(user);
+    when(currentUserService.getCurrentUser()).thenReturn(currentUser2);
+
+    if (isInStatusUpdatedOK(createReportWith(Status.OK, Stats::incUpdated))) {
+      userController.updateUserGroups("def2", parsedUser, currentUser);
     }
 
-    @Test
-    public void updateUserGroupsSameUser()
-    {
-        currentUser.setId( 1001 );
-        currentUser.setUid( "def2" );
+    verify(currentUserService).getCurrentUser();
+    verifyNoMoreInteractions(currentUserService);
+    verify(userGroupService)
+        .updateUserGroups(
+            same(user),
+            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
+            same(currentUser2));
+  }
 
-        User currentUser2 = new User();
-        currentUser2.setId( 1001 );
-        currentUser2.setUid( "def2" );
+  private ImportReport createReportWith(Status status, Consumer<Stats> operation) {
+    TypeReport typeReport = new TypeReport(User.class);
+    operation.accept(typeReport.getStats());
+    ImportReport report = new ImportReport();
+    report.setStatus(status);
+    report.addTypeReport(typeReport);
+    return report;
+  }
 
-        when( userService.getUser( "def2" ) ).thenReturn( user );
-        when( currentUserService.getCurrentUser() ).thenReturn( currentUser2 );
+  private boolean isInStatusUpdatedOK(ImportReport report) {
+    return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
+  }
 
-        if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incUpdated ) ) )
-        {
-            userController.updateUserGroups( "def2", parsedUser, currentUser );
-        }
+  private void setUpUserExpireScenarios() {
+    addUserTo(user);
+    addUserTo(currentUser);
+    // make current user have ALL authority
+    setUpUserAuthority(currentUser, UserRole.AUTHORITY_ALL);
+    // allow any change
+    when(aclService.canUpdate(any(), any())).thenReturn(true);
+    when(userService.canAddOrUpdateUser(any(), any())).thenReturn(true);
+    // link user and current user to service methods
+    when(userService.getUser(eq(user.getUid()))).thenReturn(user);
+    when(currentUserService.getCurrentUser()).thenReturn(currentUser);
+  }
 
-        verify( currentUserService ).getCurrentUser();
-        verifyNoMoreInteractions( currentUserService );
-        verify( userGroupService ).updateUserGroups( same( user ),
-            (Collection<String>) argThat( containsInAnyOrder( "abc1", "abc2" ) ), same( currentUser2 ) );
-    }
+  @Test
+  void expireUserInTheFutureDoesNotExpireSession() throws Exception {
+    setUpUserExpireScenarios();
 
-    private ImportReport createReportWith( Status status, Consumer<Stats> operation )
-    {
-        TypeReport typeReport = new TypeReport( User.class );
-        operation.accept( typeReport.getStats() );
-        ImportReport report = new ImportReport();
-        report.setStatus( status );
-        report.addTypeReport( typeReport );
-        return report;
-    }
+    Date inTheFuture = new Date(System.currentTimeMillis() + 1000);
+    userController.expireUser(user.getUid(), inTheFuture);
 
-    private boolean isInStatusUpdatedOK( ImportReport report )
-    {
-        return report.getStatus() == Status.OK && report.getStats().getUpdated() == 1;
-    }
+    assertUserUpdatedWithAccountExpiry(inTheFuture);
+    verify(userService, never()).expireActiveSessions(any());
+  }
 
-    private void setUpUserExpireScenarios()
-    {
-        addUserTo( user );
-        addUserTo( currentUser );
-        // make current user have ALL authority
-        setUpUserAuthority( currentUser, UserRole.AUTHORITY_ALL );
-        // allow any change
-        when( aclService.canUpdate( any(), any() ) ).thenReturn( true );
-        when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( true );
-        // link user and current user to service methods
-        when( userService.getUser( eq( user.getUid() ) ) ).thenReturn( user );
-        when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
-    }
+  @Test
+  void expireUserNowDoesExpireSession() throws Exception {
+    setUpUserExpireScenarios();
+    when(userService.isAccountExpired(same(user))).thenReturn(true);
 
-    @Test
-    void expireUserInTheFutureDoesNotExpireSession()
-        throws Exception
-    {
-        setUpUserExpireScenarios();
+    Date now = new Date();
+    userController.expireUser(user.getUid(), now);
 
-        Date inTheFuture = new Date( System.currentTimeMillis() + 1000 );
-        userController.expireUser( user.getUid(), inTheFuture );
+    assertUserUpdatedWithAccountExpiry(now);
+    verify(userService, atLeastOnce()).expireActiveSessions(same(user));
+  }
 
-        assertUserUpdatedWithAccountExpiry( inTheFuture );
-        verify( userService, never() ).expireActiveSessions( any() );
-    }
+  @Test
+  void unexpireUserDoesUpdateUser() throws Exception {
+    setUpUserExpireScenarios();
 
-    @Test
-    void expireUserNowDoesExpireSession()
-        throws Exception
-    {
-        setUpUserExpireScenarios();
-        when( userService.isAccountExpired( same( user ) ) ).thenReturn( true );
+    userController.unexpireUser(user.getUid());
 
-        Date now = new Date();
-        userController.expireUser( user.getUid(), now );
+    assertUserUpdatedWithAccountExpiry(null);
+  }
 
-        assertUserUpdatedWithAccountExpiry( now );
-        verify( userService, atLeastOnce() ).expireActiveSessions( same( user ) );
-    }
+  @Test
+  void updateUserExpireRequiresUserBasedAuthority() {
+    setUpUserExpireScenarios();
+    // executing user has no authorities
+    currentUser.setUserRoles(emptySet());
+    // changed user does have an authority
+    setUpUserAuthority(user, "whatever");
 
-    @Test
-    void unexpireUserDoesUpdateUser()
-        throws Exception
-    {
-        setUpUserExpireScenarios();
+    WebMessageException ex =
+        assertThrows(
+            WebMessageException.class, () -> userController.expireUser(user.getUid(), new Date()));
+    assertEquals(
+        "You must have permissions to create user, or ability to manage at least one user group for the user.",
+        ex.getWebMessage().getMessage());
+  }
 
-        userController.unexpireUser( user.getUid() );
+  @Test
+  void updateUserExpireRequiresGroupBasedAuthority() {
+    setUpUserExpireScenarios();
+    when(userService.canAddOrUpdateUser(any(), any())).thenReturn(false);
 
-        assertUserUpdatedWithAccountExpiry( null );
-    }
+    WebMessageException ex =
+        assertThrows(
+            WebMessageException.class, () -> userController.expireUser(user.getUid(), new Date()));
+    assertEquals(
+        "You must have permissions to create user, or ability to manage at least one user group for the user.",
+        ex.getWebMessage().getMessage());
+  }
 
-    @Test
-    void updateUserExpireRequiresUserBasedAuthority()
-    {
-        setUpUserExpireScenarios();
-        // executing user has no authorities
-        currentUser.setUserRoles( emptySet() );
-        // changed user does have an authority
-        setUpUserAuthority( user, "whatever" );
+  @Test
+  void updateUserExpireRequiresShareBasedAuthority() {
+    setUpUserExpireScenarios();
+    when(aclService.canUpdate(currentUser, user)).thenReturn(false);
 
-        WebMessageException ex = assertThrows( WebMessageException.class,
-            () -> userController.expireUser( user.getUid(), new Date() ) );
-        assertEquals(
-            "You must have permissions to create user, or ability to manage at least one user group for the user.",
-            ex.getWebMessage().getMessage() );
-    }
+    Exception ex =
+        assertThrows(
+            UpdateAccessDeniedException.class,
+            () -> userController.expireUser(user.getUid(), new Date()));
+    assertEquals("You don't have the proper permissions to update this object.", ex.getMessage());
+  }
 
-    @Test
-    void updateUserExpireRequiresGroupBasedAuthority()
-    {
-        setUpUserExpireScenarios();
-        when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( false );
+  private void setUpUserAuthority(User user, String authority) {
+    UserRole suGroup = new UserRole();
+    suGroup.setAuthorities(singleton(authority));
+    user.setUserRoles(singleton(suGroup));
+  }
 
-        WebMessageException ex = assertThrows( WebMessageException.class,
-            () -> userController.expireUser( user.getUid(), new Date() ) );
-        assertEquals(
-            "You must have permissions to create user, or ability to manage at least one user group for the user.",
-            ex.getWebMessage().getMessage() );
-    }
+  private void assertUserUpdatedWithAccountExpiry(Date accountExpiry) {
+    ArgumentCaptor<User> credentials = ArgumentCaptor.forClass(User.class);
+    verify(userService).updateUser(credentials.capture());
+    User actual = credentials.getValue();
+    assertSame(actual, user, "no user credentials update occurred");
+    assertEquals(accountExpiry, actual.getAccountExpiry(), "date was not updated");
+    verify(userService).isAccountExpired(same(actual));
+  }
 
-    @Test
-    void updateUserExpireRequiresShareBasedAuthority()
-    {
-        setUpUserExpireScenarios();
-        when( aclService.canUpdate( currentUser, user ) ).thenReturn( false );
-
-        Exception ex = assertThrows( UpdateAccessDeniedException.class,
-            () -> userController.expireUser( user.getUid(), new Date() ) );
-        assertEquals( "You don't have the proper permissions to update this object.", ex.getMessage() );
-    }
-
-    private void setUpUserAuthority( User user, String authority )
-    {
-        UserRole suGroup = new UserRole();
-        suGroup.setAuthorities( singleton( authority ) );
-        user.setUserRoles( singleton( suGroup ) );
-    }
-
-    private void assertUserUpdatedWithAccountExpiry( Date accountExpiry )
-    {
-        ArgumentCaptor<User> credentials = ArgumentCaptor.forClass( User.class );
-        verify( userService ).updateUser( credentials.capture() );
-        User actual = credentials.getValue();
-        assertSame( actual, user, "no user credentials update occurred" );
-        assertEquals( accountExpiry, actual.getAccountExpiry(), "date was not updated" );
-        verify( userService ).isAccountExpired( same( actual ) );
-    }
-
-    private static void addUserTo( User user )
-    {
-        User credentials = new User();
-        credentials.setUser( user );
-        credentials.setUid( user.getUid() );
-    }
+  private static void addUserTo(User user) {
+    User credentials = new User();
+    credentials.setUser(user);
+    credentials.setUid(user.getUid());
+  }
 }

@@ -40,37 +40,34 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class MetadataItemTest
-{
-    @Test
-    void testCreateForDataElement()
-    {
-        DataElement deA = createDataElement( 'A' );
-        deA.setValueType( ValueType.INTEGER_ZERO_OR_POSITIVE );
-        deA.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
+class MetadataItemTest {
+  @Test
+  void testCreateForDataElement() {
+    DataElement deA = createDataElement('A');
+    deA.setValueType(ValueType.INTEGER_ZERO_OR_POSITIVE);
+    deA.setAggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT);
 
-        MetadataItem miA = new MetadataItem( "MIA", deA );
+    MetadataItem miA = new MetadataItem("MIA", deA);
 
-        assertEquals( "MIA", miA.getName() );
-        assertEquals( ValueType.NUMBER, miA.getValueType() );
-        assertEquals( AggregationType.AVERAGE_SUM_ORG_UNIT, miA.getAggregationType() );
-    }
+    assertEquals("MIA", miA.getName());
+    assertEquals(ValueType.NUMBER, miA.getValueType());
+    assertEquals(AggregationType.AVERAGE_SUM_ORG_UNIT, miA.getAggregationType());
+  }
 
-    @Test
-    void testCreateForDataElementOperand()
-    {
-        DataElement deA = createDataElement( 'A' );
-        deA.setValueType( ValueType.BOOLEAN );
-        deA.setAggregationType( AggregationType.COUNT );
+  @Test
+  void testCreateForDataElementOperand() {
+    DataElement deA = createDataElement('A');
+    deA.setValueType(ValueType.BOOLEAN);
+    deA.setAggregationType(AggregationType.COUNT);
 
-        CategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
+    CategoryOptionCombo cocA = createCategoryOptionCombo('A');
 
-        DataElementOperand doA = new DataElementOperand( deA, cocA );
+    DataElementOperand doA = new DataElementOperand(deA, cocA);
 
-        MetadataItem miA = new MetadataItem( "MIA", doA );
+    MetadataItem miA = new MetadataItem("MIA", doA);
 
-        assertEquals( "MIA", miA.getName() );
-        assertEquals( ValueType.BOOLEAN, miA.getValueType() );
-        assertEquals( AggregationType.COUNT, miA.getAggregationType() );
-    }
+    assertEquals("MIA", miA.getName());
+    assertEquals(ValueType.BOOLEAN, miA.getValueType());
+    assertEquals(AggregationType.COUNT, miA.getAggregationType());
+  }
 }

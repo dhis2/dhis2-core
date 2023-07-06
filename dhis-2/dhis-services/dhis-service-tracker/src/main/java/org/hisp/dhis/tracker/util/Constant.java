@@ -27,30 +27,24 @@
  */
 package org.hisp.dhis.tracker.util;
 
+import com.google.common.collect.ImmutableSet;
 import java.beans.Introspector;
 import java.util.Set;
-
 import javax.imageio.ImageIO;
-
 import org.hisp.dhis.tracker.preheat.supplier.strategy.GenericStrategy;
 
-import com.google.common.collect.ImmutableSet;
+public class Constant {
+  private Constant() {}
 
-public class Constant
-{
-    private Constant()
-    {
-    }
+  public static final int MAX_ATTR_VALUE_LENGTH = 1200;
 
-    public static final int MAX_ATTR_VALUE_LENGTH = 1200;
+  public static final String GENERIC_STRATEGY_BEAN =
+      Introspector.decapitalize(GenericStrategy.class.getSimpleName());
 
-    public static final String GENERIC_STRATEGY_BEAN = Introspector
-        .decapitalize( GenericStrategy.class.getSimpleName() );
+  public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
 
-    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
+  public static final int ATTRIBUTE_VALUE_MAX_LENGTH = 50000;
 
-    public static final int ATTRIBUTE_VALUE_MAX_LENGTH = 50000;
-
-    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String> builder().add(
-        ImageIO.getReaderFormatNames() ).build();
+  public static final Set<String> VALID_IMAGE_FORMATS =
+      ImmutableSet.<String>builder().add(ImageIO.getReaderFormatNames()).build();
 }

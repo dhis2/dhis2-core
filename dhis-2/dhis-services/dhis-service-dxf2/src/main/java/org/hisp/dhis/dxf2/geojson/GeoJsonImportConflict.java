@@ -35,95 +35,65 @@ import org.hisp.dhis.feedback.ErrorCode;
  *
  * @author Jan Bernitt
  */
-public enum GeoJsonImportConflict implements ImportConflictDescriptor
-{
-    /* global conflicts */
-    /**
-     * When reading the input stream fails for some IO related reason
-     */
-    INPUT_IO_ERROR( ErrorCode.E7700, "" ),
-    /**
-     * When parsing the JSON document showed that the input is not valid
-     * (generic) JSON
-     */
-    INPUT_FORMAT_ERROR( ErrorCode.E7701, "" ),
-    /**
-     * When an attribute was defined but does not exist in DHIS2
-     */
-    ATTRIBUTE_NOT_FOUND( ErrorCode.E7702, "" ),
-    /**
-     * When an attribute was defined, but the existing
-     * {@link org.hisp.dhis.attribute.Attribute} is not of
-     * {@link org.hisp.dhis.common.ValueType#GEOJSON}
-     */
-    ATTRIBUTE_NOT_GEO_JSON( ErrorCode.E7703, "" ),
-    /**
-     * When an attribute was defined, exists and has
-     * {@link org.hisp.dhis.common.ValueType#GEOJSON} but is not usable for
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnit}s.
-     */
-    ATTRIBUTE_NOT_USABLE( ErrorCode.E7704, "" ),
+public enum GeoJsonImportConflict implements ImportConflictDescriptor {
+  /* global conflicts */
+  /** When reading the input stream fails for some IO related reason */
+  INPUT_IO_ERROR(ErrorCode.E7700, ""),
+  /** When parsing the JSON document showed that the input is not valid (generic) JSON */
+  INPUT_FORMAT_ERROR(ErrorCode.E7701, ""),
+  /** When an attribute was defined but does not exist in DHIS2 */
+  ATTRIBUTE_NOT_FOUND(ErrorCode.E7702, ""),
+  /**
+   * When an attribute was defined, but the existing {@link org.hisp.dhis.attribute.Attribute} is
+   * not of {@link org.hisp.dhis.common.ValueType#GEOJSON}
+   */
+  ATTRIBUTE_NOT_GEO_JSON(ErrorCode.E7703, ""),
+  /**
+   * When an attribute was defined, exists and has {@link org.hisp.dhis.common.ValueType#GEOJSON}
+   * but is not usable for {@link org.hisp.dhis.organisationunit.OrganisationUnit}s.
+   */
+  ATTRIBUTE_NOT_USABLE(ErrorCode.E7704, ""),
 
-    /* individual conflicts */
-    /**
-     * When extracting the geometry identifier from the GeoJSON feature results
-     * in null value
-     */
-    FEATURE_LACKS_IDENTIFIER( ErrorCode.E7705, "feature" ),
-    /**
-     * When the feature simply lacks a definition of a geometry
-     */
-    FEATURE_LACKS_GEOMETRY( ErrorCode.E7706, "feature" ),
-    /**
-     * When validating or parsing (and setting) the provided GeoJSON geometry
-     * fails
-     */
-    GEOMETRY_INVALID( ErrorCode.E7707, "geometry" ),
-    /**
-     * When the organisation unit referenced by the feature does not exist
-     */
-    ORG_UNIT_NOT_FOUND( ErrorCode.E7708, "" ),
-    /**
-     * When storing the updated
-     * {@link org.hisp.dhis.organisationunit.OrganisationUnit} fails for some
-     * reason
-     */
-    ORG_UNIT_INVALID( ErrorCode.E7709, "geometry" ),
-    /**
-     * When the current user is not allowed to update the target organisation
-     * unit
-     */
-    ORG_UNIT_NOT_ACCESSIBLE( ErrorCode.E7710, "" ),
-    /**
-     * When the name used to identify the target organisation unit is not unique
-     */
-    ORG_UNIT_NOT_UNIQUE( ErrorCode.E7711, "" );
+  /* individual conflicts */
+  /** When extracting the geometry identifier from the GeoJSON feature results in null value */
+  FEATURE_LACKS_IDENTIFIER(ErrorCode.E7705, "feature"),
+  /** When the feature simply lacks a definition of a geometry */
+  FEATURE_LACKS_GEOMETRY(ErrorCode.E7706, "feature"),
+  /** When validating or parsing (and setting) the provided GeoJSON geometry fails */
+  GEOMETRY_INVALID(ErrorCode.E7707, "geometry"),
+  /** When the organisation unit referenced by the feature does not exist */
+  ORG_UNIT_NOT_FOUND(ErrorCode.E7708, ""),
+  /**
+   * When storing the updated {@link org.hisp.dhis.organisationunit.OrganisationUnit} fails for some
+   * reason
+   */
+  ORG_UNIT_INVALID(ErrorCode.E7709, "geometry"),
+  /** When the current user is not allowed to update the target organisation unit */
+  ORG_UNIT_NOT_ACCESSIBLE(ErrorCode.E7710, ""),
+  /** When the name used to identify the target organisation unit is not unique */
+  ORG_UNIT_NOT_UNIQUE(ErrorCode.E7711, "");
 
-    private final ErrorCode errorCode;
+  private final ErrorCode errorCode;
 
-    private final String property;
+  private final String property;
 
-    GeoJsonImportConflict( ErrorCode errorCode, String property )
-    {
-        this.errorCode = errorCode;
-        this.property = property;
-    }
+  GeoJsonImportConflict(ErrorCode errorCode, String property) {
+    this.errorCode = errorCode;
+    this.property = property;
+  }
 
-    @Override
-    public ErrorCode getErrorCode()
-    {
-        return errorCode;
-    }
+  @Override
+  public ErrorCode getErrorCode() {
+    return errorCode;
+  }
 
-    @Override
-    public Class<?>[] getObjectTypes()
-    {
-        return new Class[0];
-    }
+  @Override
+  public Class<?>[] getObjectTypes() {
+    return new Class[0];
+  }
 
-    @Override
-    public String getProperty()
-    {
-        return property;
-    }
+  @Override
+  public String getProperty() {
+    return property;
+  }
 }

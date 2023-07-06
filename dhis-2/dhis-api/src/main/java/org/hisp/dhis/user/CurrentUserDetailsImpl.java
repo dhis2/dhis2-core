@@ -31,37 +31,34 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
 import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
 @Getter
 @Builder
-public class CurrentUserDetailsImpl implements CurrentUserDetails
-{
-    private final String uid;
+public class CurrentUserDetailsImpl implements CurrentUserDetails {
+  private final String uid;
 
-    private final String username;
+  private final String username;
 
-    private final String password;
+  private final String password;
 
-    private final boolean enabled;
+  private final boolean enabled;
 
-    private final boolean accountNonExpired;
+  private final boolean accountNonExpired;
 
-    private final boolean accountNonLocked;
+  private final boolean accountNonLocked;
 
-    private final boolean credentialsNonExpired;
+  private final boolean credentialsNonExpired;
 
-    private final Collection<GrantedAuthority> authorities;
+  private final Collection<GrantedAuthority> authorities;
 
-    private final Map<String, Serializable> userSettings;
+  private final Map<String, Serializable> userSettings;
 
-    private final Set<String> userGroupIds;
+  private final Set<String> userGroupIds;
 
-    private final boolean isSuper;
+  private final boolean isSuper;
 }

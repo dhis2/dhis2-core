@@ -36,8 +36,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.Date;
-
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -63,70 +63,73 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class JdbcEnrollmentAnalyticsTableManagerTest
-{
+@ExtendWith(MockitoExtension.class)
+class JdbcEnrollmentAnalyticsTableManagerTest {
 
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfo databaseInfo;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsExportSettings analyticsExportSettings;
 
-    private JdbcEnrollmentAnalyticsTableManager subject;
+  private JdbcEnrollmentAnalyticsTableManager subject;
 
-    private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
+  private static final Date START_TIME = new DateTime(2019, 8, 1, 0, 0).toDate();
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new JdbcEnrollmentAnalyticsTableManager( idObjectManager, mock( OrganisationUnitService.class ),
-            mock( CategoryService.class ), mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ),
-            mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ),
-            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate,
-            analyticsExportSettings );
-    }
+  @BeforeEach
+  public void setUp() {
+    subject =
+        new JdbcEnrollmentAnalyticsTableManager(
+            idObjectManager,
+            mock(OrganisationUnitService.class),
+            mock(CategoryService.class),
+            mock(SystemSettingManager.class),
+            mock(DataApprovalLevelService.class),
+            mock(ResourceTableService.class),
+            mock(AnalyticsTableHookService.class),
+            new PostgreSQLStatementBuilder(),
+            mock(PartitionManager.class),
+            databaseInfo,
+            jdbcTemplate,
+            analyticsExportSettings);
+  }
 
-    @Test
-    void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
-    {
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
-        when( databaseInfo.isSpatialSupport() ).thenReturn( true );
-        Program p1 = createProgram( 'A' );
+  @Test
+  void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable() {
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    when(databaseInfo.isSpatialSupport()).thenReturn(true);
+    Program p1 = createProgram('A');
 
-        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
-        tea.setId( 9999 );
+    TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
+    tea.setId(9999);
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( p1, tea );
+    ProgramTrackedEntityAttribute programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(p1, tea);
 
-        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+    p1.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(Lists.newArrayList(p1));
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
-            .withStartTime( START_TIME ).build();
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().withLastYears(2).withStartTime(START_TIME).build();
 
-        subject.populateTable( params,
-            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+    subject.populateTable(
+        params, PartitionUtils.getTablePartitions(subject.getAnalyticsTables(params)).get(0));
 
-        verify( jdbcTemplate ).execute( sql.capture() );
+    verify(jdbcTemplate).execute(sql.capture());
 
-        String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = " +
-            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
-            +
-            "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+    String ouQuery =
+        "(select ou.%s from organisationunit ou where ou.uid = "
+            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributeid=9999)) as \""
+            + tea.getUid()
+            + "\"";
 
-        assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
-    }
+    assertThat(sql.getValue(), containsString(String.format(ouQuery, "uid")));
+  }
 }

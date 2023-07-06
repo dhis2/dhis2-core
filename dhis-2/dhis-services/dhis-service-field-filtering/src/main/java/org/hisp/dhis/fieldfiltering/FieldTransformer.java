@@ -27,36 +27,31 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.Ordered;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
- * Interface for FieldTransformers, used to modify the Jackson Json tree
- * dynamically (for example renaming of keys).
+ * Interface for FieldTransformers, used to modify the Jackson Json tree dynamically (for example
+ * renaming of keys).
  *
  * @author Morten Olav Hansen
  */
 @FunctionalInterface
-public interface FieldTransformer extends Ordered
-{
-    JsonNode apply( String path, JsonNode value, JsonNode parent );
+public interface FieldTransformer extends Ordered {
+  JsonNode apply(String path, JsonNode value, JsonNode parent);
 
-    default String getFieldName( String path )
-    {
-        int idx = path.lastIndexOf( '.' );
-        String key = path;
+  default String getFieldName(String path) {
+    int idx = path.lastIndexOf('.');
+    String key = path;
 
-        if ( idx > -1 )
-        {
-            key = path.substring( idx + 1 );
-        }
-
-        return key;
+    if (idx > -1) {
+      key = path.substring(idx + 1);
     }
 
-    default int getOrder()
-    {
-        return Ordered.HIGHEST_PRECEDENCE;
-    }
+    return key;
+  }
+
+  default int getOrder() {
+    return Ordered.HIGHEST_PRECEDENCE;
+  }
 }

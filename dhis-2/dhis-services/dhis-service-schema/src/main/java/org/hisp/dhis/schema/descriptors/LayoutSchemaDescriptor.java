@@ -34,15 +34,13 @@ import org.hisp.dhis.security.acl.Access;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LayoutSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "layout";
+public class LayoutSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "layout";
 
-    public static final String PLURAL = "layouts";
+  public static final String PLURAL = "layouts";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( Access.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(Access.class, SINGULAR, PLURAL);
+  }
 }

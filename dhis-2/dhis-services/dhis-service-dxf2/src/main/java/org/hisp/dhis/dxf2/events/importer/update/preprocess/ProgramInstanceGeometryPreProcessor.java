@@ -39,18 +39,20 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class ProgramInstanceGeometryPreProcessor implements Processor
-{
-    @Override
-    public void process( final Event event, final WorkContext ctx )
-    {
-        ctx.getProgramStageInstance( event.getUid() ).ifPresent( psi -> {
-
-            if ( event.getGeometry() != null && (!psi.getProgramStage().getFeatureType().equals( NONE ) || psi
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() )) )
-            {
-                event.getGeometry().setSRID( SRID );
-            }
-        } );
-    }
+public class ProgramInstanceGeometryPreProcessor implements Processor {
+  @Override
+  public void process(final Event event, final WorkContext ctx) {
+    ctx.getProgramStageInstance(event.getUid())
+        .ifPresent(
+            psi -> {
+              if (event.getGeometry() != null
+                  && (!psi.getProgramStage().getFeatureType().equals(NONE)
+                      || psi.getProgramStage()
+                          .getFeatureType()
+                          .value()
+                          .equals(event.getGeometry().getGeometryType()))) {
+                event.getGeometry().setSRID(SRID);
+              }
+            });
+  }
 }

@@ -31,7 +31,6 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesTo
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -46,32 +45,29 @@ import org.springframework.stereotype.Component;
  * @author Enrico Colasante
  */
 @Component
-public class EnrollmentRuleValidationHook
-    implements TrackerValidationHook
-{
-    private List<RuleActionImplementer> validators;
+public class EnrollmentRuleValidationHook implements TrackerValidationHook {
+  private List<RuleActionImplementer> validators;
 
-    @Autowired( required = false )
-    public void setValidators( List<RuleActionImplementer> validators )
-    {
-        this.validators = validators;
+  @Autowired(required = false)
+  public void setValidators(List<RuleActionImplementer> validators) {
+    this.validators = validators;
+  }
+
+  @Override
+  public void validateEnrollment(
+      ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    List<RuleEffect> ruleEffects =
+        bundle.getEnrollmentRuleEffects().get(enrollment.getEnrollment());
+
+    if (ruleEffects == null || ruleEffects.isEmpty()) {
+      return;
     }
 
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        List<RuleEffect> ruleEffects = bundle.getEnrollmentRuleEffects().get( enrollment.getEnrollment() );
+    List<ProgramRuleIssue> programRuleIssues =
+        validators.stream()
+            .flatMap(v -> v.validateEnrollment(bundle, ruleEffects, enrollment).stream())
+            .collect(Collectors.toList());
 
-        if ( ruleEffects == null || ruleEffects.isEmpty() )
-        {
-            return;
-        }
-
-        List<ProgramRuleIssue> programRuleIssues = validators
-            .stream()
-            .flatMap( v -> v.validateEnrollment( bundle, ruleEffects, enrollment ).stream() )
-            .collect( Collectors.toList() );
-
-        addIssuesToReporter( reporter, enrollment, programRuleIssues );
-    }
+    addIssuesToReporter(reporter, enrollment, programRuleIssues);
+  }
 }

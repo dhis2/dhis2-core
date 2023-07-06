@@ -36,8 +36,5 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = AnalyticsTableHookSchemaDescriptor.API_ENDPOINT )
-public class AnalyticsTableHookController
-    extends AbstractCrudController<AnalyticsTableHook>
-{
-}
+@RequestMapping(value = AnalyticsTableHookSchemaDescriptor.API_ENDPOINT)
+public class AnalyticsTableHookController extends AbstractCrudController<AnalyticsTableHook> {}

@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.artemis;
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Zubair Asghar
  */
-public interface SerializableMessage extends Serializable, Message
-{
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    MessageType getMessageType();
+public interface SerializableMessage extends Serializable, Message {
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  MessageType getMessageType();
 }

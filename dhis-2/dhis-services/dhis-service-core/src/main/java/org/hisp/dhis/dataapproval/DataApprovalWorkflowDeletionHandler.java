@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataapproval;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
@@ -38,25 +37,20 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DataApprovalWorkflowDeletionHandler extends DeletionHandler
-{
-    private final IdentifiableObjectManager idObjectManager;
+public class DataApprovalWorkflowDeletionHandler extends DeletionHandler {
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( DataApprovalLevel.class, this::deleteDataApprovalLevel );
-    }
+  @Override
+  protected void register() {
+    whenDeleting(DataApprovalLevel.class, this::deleteDataApprovalLevel);
+  }
 
-    private void deleteDataApprovalLevel( DataApprovalLevel level )
-    {
-        for ( DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl( DataApprovalWorkflow.class ) )
-        {
-            if ( workflow.getLevels().contains( level ) )
-            {
-                workflow.getLevels().remove( level );
-                idObjectManager.updateNoAcl( workflow );
-            }
-        }
+  private void deleteDataApprovalLevel(DataApprovalLevel level) {
+    for (DataApprovalWorkflow workflow : idObjectManager.getAllNoAcl(DataApprovalWorkflow.class)) {
+      if (workflow.getLevels().contains(level)) {
+        workflow.getLevels().remove(level);
+        idObjectManager.updateNoAcl(workflow);
+      }
     }
+  }
 }

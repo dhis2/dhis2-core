@@ -30,9 +30,7 @@ package org.hisp.dhis.webapi.controller.dataentry;
 import static org.hisp.dhis.commons.collection.CollectionUtils.mapToList;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.LockException;
@@ -48,18 +46,16 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( "/dataEntry" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetLockExceptionController
-{
-    private final DataSetService dataSetService;
+@RequestMapping("/dataEntry")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DataSetLockExceptionController {
+  private final DataSetService dataSetService;
 
-    @GetMapping( "/lockExceptions" )
-    public LockExceptionsDto getLockExceptions()
-    {
-        List<LockException> lockExceptions = dataSetService.getDataWriteLockExceptions();
+  @GetMapping("/lockExceptions")
+  public LockExceptionsDto getLockExceptions() {
+    List<LockException> lockExceptions = dataSetService.getDataWriteLockExceptions();
 
-        return new LockExceptionsDto()
-            .setLockExceptions( mapToList( lockExceptions, DataEntryDtoMapper::toDto ) );
-    }
+    return new LockExceptionsDto()
+        .setLockExceptions(mapToList(lockExceptions, DataEntryDtoMapper::toDto));
+  }
 }

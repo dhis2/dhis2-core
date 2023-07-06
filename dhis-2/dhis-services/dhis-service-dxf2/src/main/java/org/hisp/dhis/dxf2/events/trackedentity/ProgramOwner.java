@@ -27,104 +27,93 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity;
 
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Objects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.com>
  */
-@JacksonXmlRootElement( localName = "programOwner", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramOwner
-{
-    private String ownerOrgUnit;
+@JacksonXmlRootElement(localName = "programOwner", namespace = DxfNamespaces.DXF_2_0)
+public class ProgramOwner {
+  private String ownerOrgUnit;
 
-    private String trackedEntityInstance;
+  private String trackedEntityInstance;
 
-    private String program;
+  private String program;
 
-    public ProgramOwner()
-    {
+  public ProgramOwner() {}
+
+  public ProgramOwner(TrackedEntityProgramOwner programOwner) {
+    this.ownerOrgUnit = programOwner.getOrganisationUnit().getUid();
+    this.program = programOwner.getProgram().getUid();
+    this.trackedEntityInstance = programOwner.getEntityInstance().getUid();
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getOwnerOrgUnit() {
+    return ownerOrgUnit;
+  }
+
+  public void setOwnerOrgUnit(String ownerOrgUnit) {
+    this.ownerOrgUnit = ownerOrgUnit;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getTrackedEntityInstance() {
+    return trackedEntityInstance;
+  }
+
+  public void setTrackedEntityInstance(String trackedEntityInstance) {
+    this.trackedEntityInstance = trackedEntityInstance;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getProgram() {
+    return program;
+  }
+
+  public void setProgram(String program) {
+    this.program = program;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(trackedEntityInstance, program, ownerOrgUnit);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
-
-    public ProgramOwner( TrackedEntityProgramOwner programOwner )
-    {
-        this.ownerOrgUnit = programOwner.getOrganisationUnit().getUid();
-        this.program = programOwner.getProgram().getUid();
-        this.trackedEntityInstance = programOwner.getEntityInstance().getUid();
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
+    final ProgramOwner other = (ProgramOwner) obj;
+    return Objects.equals(this.trackedEntityInstance, other.trackedEntityInstance)
+        && Objects.equals(this.program, other.program)
+        && Objects.equals(this.ownerOrgUnit, other.ownerOrgUnit);
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getOwnerOrgUnit()
-    {
-        return ownerOrgUnit;
-    }
-
-    public void setOwnerOrgUnit( String ownerOrgUnit )
-    {
-        this.ownerOrgUnit = ownerOrgUnit;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getTrackedEntityInstance()
-    {
-        return trackedEntityInstance;
-    }
-
-    public void setTrackedEntityInstance( String trackedEntityInstance )
-    {
-        this.trackedEntityInstance = trackedEntityInstance;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getProgram()
-    {
-        return program;
-    }
-
-    public void setProgram( String program )
-    {
-        this.program = program;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( trackedEntityInstance, program, ownerOrgUnit );
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-        final ProgramOwner other = (ProgramOwner) obj;
-        return Objects.equals( this.trackedEntityInstance, other.trackedEntityInstance )
-            && Objects.equals( this.program, other.program )
-            && Objects.equals( this.ownerOrgUnit, other.ownerOrgUnit );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "ProgramOwner{" +
-            "ownerOrgUnit='" + ownerOrgUnit + '\'' +
-            ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
-            ", program='" + program + '\'' +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "ProgramOwner{"
+        + "ownerOrgUnit='"
+        + ownerOrgUnit
+        + '\''
+        + ", trackedEntityInstance='"
+        + trackedEntityInstance
+        + '\''
+        + ", program='"
+        + program
+        + '\''
+        + '}';
+  }
 }

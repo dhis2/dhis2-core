@@ -32,10 +32,10 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityInstance;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
@@ -50,110 +50,115 @@ import org.junit.jupiter.api.Test;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramInstanceCheckTest extends BaseValidationTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ProgramInstanceCheckTest extends BaseValidationTest {
 
-    private ProgramInstanceCheck rule;
+  private ProgramInstanceCheck rule;
 
-    private Program program;
+  private Program program;
 
-    @BeforeEach
-    void setUp()
-    {
-        rule = new ProgramInstanceCheck();
-        //
-        // Program
-        //
-        program = createProgram( 'P' );
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( program.getUid(), program );
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-    }
+  @BeforeEach
+  void setUp() {
+    rule = new ProgramInstanceCheck();
+    //
+    // Program
+    //
+    program = createProgram('P');
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(program.getUid(), program);
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+  }
 
-    @Test
-    void failOnNoProgramInstanceByActiveProgramAndTei()
-    {
-        // Data preparation
-        //
-        // Program Instance
-        //
-        when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
-        //
-        // Tracked Entity Instance
-        //
-        TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
-        event.setProgram( program.getUid() );
-        //
-        // Method under test
-        //
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event,
-            "Tracked entity instance: " + tei.getUid() + " is not enrolled in program: " + program.getUid() );
-    }
+  @Test
+  void failOnNoProgramInstanceByActiveProgramAndTei() {
+    // Data preparation
+    //
+    // Program Instance
+    //
+    when(workContext.getProgramInstanceMap()).thenReturn(new HashMap<>());
+    //
+    // Tracked Entity Instance
+    //
+    TrackedEntityInstance tei = createTrackedEntityInstance(createOrganisationUnit('A'));
+    when(workContext.getTrackedEntityInstance(event.getUid())).thenReturn(Optional.of(tei));
+    event.setProgram(program.getUid());
+    //
+    // Method under test
+    //
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertHasError(
+        summary,
+        event,
+        "Tracked entity instance: "
+            + tei.getUid()
+            + " is not enrolled in program: "
+            + program.getUid());
+  }
 
-    @Test
-    void failOnMultipleProgramInstanceByActiveProgramAndTei()
-    {
-        // Data preparation
-        //
-        // Program Instance
-        //
-        when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
-        //
-        // Tracked Entity Instance
-        //
-        TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
-        ProgramInstance programInstance1 = new ProgramInstance();
-        ProgramInstance programInstance2 = new ProgramInstance();
-        when( this.programInstanceStore.get( tei, program, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
-        event.setProgram( program.getUid() );
-        //
-        // Method under test
-        //
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event, "Tracked entity instance: " + tei.getUid()
-            + " has multiple active enrollments in program: " + program.getUid() );
-    }
+  @Test
+  void failOnMultipleProgramInstanceByActiveProgramAndTei() {
+    // Data preparation
+    //
+    // Program Instance
+    //
+    when(workContext.getProgramInstanceMap()).thenReturn(new HashMap<>());
+    //
+    // Tracked Entity Instance
+    //
+    TrackedEntityInstance tei = createTrackedEntityInstance(createOrganisationUnit('A'));
+    when(workContext.getTrackedEntityInstance(event.getUid())).thenReturn(Optional.of(tei));
+    ProgramInstance programInstance1 = new ProgramInstance();
+    ProgramInstance programInstance2 = new ProgramInstance();
+    when(this.programInstanceStore.get(tei, program, ProgramStatus.ACTIVE))
+        .thenReturn(Lists.newArrayList(programInstance1, programInstance2));
+    event.setProgram(program.getUid());
+    //
+    // Method under test
+    //
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertHasError(
+        summary,
+        event,
+        "Tracked entity instance: "
+            + tei.getUid()
+            + " has multiple active enrollments in program: "
+            + program.getUid());
+  }
 
-    @Test
-    void failOnMultipleProgramInstance()
-    {
-        // Data preparation
-        Program programNoReg = createProgram( 'P' );
-        programNoReg.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( programNoReg.getUid(), programNoReg );
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-        //
-        // Program Instance
-        //
-        when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
-        //
-        // Tracked Entity Instance
-        //
-        TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), Pair.of( tei, true ) );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
-        ProgramInstance programInstance1 = new ProgramInstance();
-        ProgramInstance programInstance2 = new ProgramInstance();
-        when( this.programInstanceStore.get( programNoReg, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
-        event.setProgram( programNoReg.getUid() );
-        //
-        // Method under test
-        //
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event,
-            "Multiple active program instances exists for program: " + programNoReg.getUid() );
-    }
+  @Test
+  void failOnMultipleProgramInstance() {
+    // Data preparation
+    Program programNoReg = createProgram('P');
+    programNoReg.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(programNoReg.getUid(), programNoReg);
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+    //
+    // Program Instance
+    //
+    when(workContext.getProgramInstanceMap()).thenReturn(new HashMap<>());
+    //
+    // Tracked Entity Instance
+    //
+    TrackedEntityInstance tei = createTrackedEntityInstance(createOrganisationUnit('A'));
+    Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+    teiMap.put(event.getUid(), Pair.of(tei, true));
+    when(workContext.getTrackedEntityInstanceMap()).thenReturn(teiMap);
+    ProgramInstance programInstance1 = new ProgramInstance();
+    ProgramInstance programInstance2 = new ProgramInstance();
+    when(this.programInstanceStore.get(programNoReg, ProgramStatus.ACTIVE))
+        .thenReturn(Lists.newArrayList(programInstance1, programInstance2));
+    event.setProgram(programNoReg.getUid());
+    //
+    // Method under test
+    //
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertHasError(
+        summary,
+        event,
+        "Multiple active program instances exists for program: " + programNoReg.getUid());
+  }
 }

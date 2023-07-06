@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,217 +61,196 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Enrico Colasante
  */
-@ExtendWith( MockitoExtension.class )
-class FileResourceSupplierTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class FileResourceSupplierTest extends DhisConvenienceTest {
 
-    private FileResourceSupplier supplier;
+  private FileResourceSupplier supplier;
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    @Mock
-    private FileResourceService fileResourceService;
+  @Mock private FileResourceService fileResourceService;
 
-    @BeforeEach
-    public void setUp()
-    {
-        preheat = new TrackerPreheat();
-        supplier = new FileResourceSupplier( fileResourceService );
-    }
+  @BeforeEach
+  public void setUp() {
+    preheat = new TrackerPreheat();
+    supplier = new FileResourceSupplier(fileResourceService);
+  }
 
-    @Test
-    void testSupplierAddsFileResourcesReferencedByTEIAttributes()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            List.of( teaNumericAttribute( "numeric" ), teaFileResource( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierAddsFileResourcesReferencedByTEIAttributes() {
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        List.of(teaNumericAttribute("numeric"), teaFileResource("hQKI6KcEu5t")));
 
-        FileResource fileResource = fileResource( "kKacJUdANDC" );
-        when( fileResourceService.getFileResources( List.of( "kKacJUdANDC" ) ) )
-            .thenReturn( List.of( fileResource ) );
+    FileResource fileResource = fileResource("kKacJUdANDC");
+    when(fileResourceService.getFileResources(List.of("kKacJUdANDC")))
+        .thenReturn(List.of(fileResource));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
             .trackedEntities(
-                List.of( trackedEntity( numericAttribute(), fileAttribute( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+                List.of(
+                    trackedEntity(numericAttribute(), fileAttribute("hQKI6KcEu5t", "kKacJUdANDC"))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertContainsOnly( List.of( fileResource ), preheat.getAll( FileResource.class ) );
-    }
+    assertContainsOnly(List.of(fileResource), preheat.getAll(FileResource.class));
+  }
 
-    @Test
-    void testSupplierDoesNotAddFileResourceIfTEIAttributeValueIsEmpty()
-    {
-        preheat.put( TrackerIdSchemeParam.UID, List.of( teaFileResource( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierDoesNotAddFileResourceIfTEIAttributeValueIsEmpty() {
+    preheat.put(TrackerIdSchemeParam.UID, List.of(teaFileResource("hQKI6KcEu5t")));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .trackedEntities( List.of( trackedEntity( fileAttribute( "hQKI6KcEu5t", "" ) ) ) )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .trackedEntities(List.of(trackedEntity(fileAttribute("hQKI6KcEu5t", ""))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertEquals( Collections.emptyList(), preheat.getAll( FileResource.class ) );
-    }
+    assertEquals(Collections.emptyList(), preheat.getAll(FileResource.class));
+  }
 
-    @Test
-    void testSupplierAddsFileResourcesReferencedByEnrollmentAttributes()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            List.of( teaNumericAttribute( "numeric" ), teaFileResource( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierAddsFileResourcesReferencedByEnrollmentAttributes() {
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        List.of(teaNumericAttribute("numeric"), teaFileResource("hQKI6KcEu5t")));
 
-        FileResource fileResource = fileResource( "kKacJUdANDC" );
-        when( fileResourceService.getFileResources( List.of( "kKacJUdANDC" ) ) )
-            .thenReturn( List.of( fileResource ) );
+    FileResource fileResource = fileResource("kKacJUdANDC");
+    when(fileResourceService.getFileResources(List.of("kKacJUdANDC")))
+        .thenReturn(List.of(fileResource));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .enrollments( List.of( enrollment( numericAttribute(), fileAttribute( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .enrollments(
+                List.of(
+                    enrollment(numericAttribute(), fileAttribute("hQKI6KcEu5t", "kKacJUdANDC"))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertContainsOnly( List.of( fileResource ), preheat.getAll( FileResource.class ) );
-    }
+    assertContainsOnly(List.of(fileResource), preheat.getAll(FileResource.class));
+  }
 
-    @Test
-    void testSupplierAddsFileResourcesReferencedByEventDataElement()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            List.of( numericDataElement( "numeric" ), fileDataElement( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierAddsFileResourcesReferencedByEventDataElement() {
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        List.of(numericDataElement("numeric"), fileDataElement("hQKI6KcEu5t")));
 
-        FileResource fileResource = fileResource( "kKacJUdANDC" );
-        when( fileResourceService.getFileResources( List.of( "kKacJUdANDC" ) ) )
-            .thenReturn( List.of( fileResource ) );
+    FileResource fileResource = fileResource("kKacJUdANDC");
+    when(fileResourceService.getFileResources(List.of("kKacJUdANDC")))
+        .thenReturn(List.of(fileResource));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .events( List.of( event( dataValue( "numeric", "2" ), dataValue( "hQKI6KcEu5t", "kKacJUdANDC" ) ) ) )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .events(
+                List.of(event(dataValue("numeric", "2"), dataValue("hQKI6KcEu5t", "kKacJUdANDC"))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertContainsOnly( List.of( fileResource ), preheat.getAll( FileResource.class ) );
-    }
+    assertContainsOnly(List.of(fileResource), preheat.getAll(FileResource.class));
+  }
 
-    @Test
-    void testSupplierDoesNotAddFileResourceIfEventDataValueValueIsEmpty()
-    {
-        preheat.put( TrackerIdSchemeParam.UID, List.of( fileDataElement( "hQKI6KcEu5t" ) ) );
+  @Test
+  void testSupplierDoesNotAddFileResourceIfEventDataValueValueIsEmpty() {
+    preheat.put(TrackerIdSchemeParam.UID, List.of(fileDataElement("hQKI6KcEu5t")));
 
-        TrackerImportParams params = params( TrackerIdSchemeParams.builder().build() )
-            .events( List.of( event( dataValue( "hQKI6KcEu5t", "" ) ) ) )
+    TrackerImportParams params =
+        params(TrackerIdSchemeParams.builder().build())
+            .events(List.of(event(dataValue("hQKI6KcEu5t", ""))))
             .build();
 
-        supplier.preheatAdd( params, preheat );
+    supplier.preheatAdd(params, preheat);
 
-        assertEquals( Collections.emptyList(), preheat.getAll( FileResource.class ) );
-    }
+    assertEquals(Collections.emptyList(), preheat.getAll(FileResource.class));
+  }
 
-    private TrackedEntityAttribute teaNumericAttribute( String uid )
-    {
-        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        attribute.setUid( uid );
-        attribute.setValueType( ValueType.NUMBER );
-        return attribute;
-    }
+  private TrackedEntityAttribute teaNumericAttribute(String uid) {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    attribute.setUid(uid);
+    attribute.setValueType(ValueType.NUMBER);
+    return attribute;
+  }
 
-    private TrackedEntityAttribute teaFileResource( String uid )
-    {
-        TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        attribute.setUid( uid );
-        attribute.setValueType( ValueType.FILE_RESOURCE );
-        return attribute;
-    }
+  private TrackedEntityAttribute teaFileResource(String uid) {
+    TrackedEntityAttribute attribute = createTrackedEntityAttribute('A');
+    attribute.setUid(uid);
+    attribute.setValueType(ValueType.FILE_RESOURCE);
+    return attribute;
+  }
 
-    private FileResource fileResource( String uid )
-    {
-        FileResource fileResource = createFileResource( 'A', "FileResource".getBytes() );
-        fileResource.setUid( uid );
-        return fileResource;
-    }
+  private FileResource fileResource(String uid) {
+    FileResource fileResource = createFileResource('A', "FileResource".getBytes());
+    fileResource.setUid(uid);
+    return fileResource;
+  }
 
-    private TrackerImportParams.TrackerImportParamsBuilder params( TrackerIdSchemeParams idSchemes )
-    {
-        return TrackerImportParams.builder().idSchemes( idSchemes );
-    }
+  private TrackerImportParams.TrackerImportParamsBuilder params(TrackerIdSchemeParams idSchemes) {
+    return TrackerImportParams.builder().idSchemes(idSchemes);
+  }
 
-    private Attribute numericAttribute()
-    {
-        return Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( "numeric" ) )
-            .valueType( ValueType.NUMBER )
-            .build();
-    }
+  private Attribute numericAttribute() {
+    return Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid("numeric"))
+        .valueType(ValueType.NUMBER)
+        .build();
+  }
 
-    private Attribute fileAttribute( String uid, String value )
-    {
-        return Attribute.builder()
-            .attribute( MetadataIdentifier.ofUid( uid ) )
-            .valueType( ValueType.FILE_RESOURCE )
-            .value( value )
-            .build();
-    }
+  private Attribute fileAttribute(String uid, String value) {
+    return Attribute.builder()
+        .attribute(MetadataIdentifier.ofUid(uid))
+        .valueType(ValueType.FILE_RESOURCE)
+        .value(value)
+        .build();
+  }
 
-    private TrackedEntity trackedEntity( Attribute... attributes )
-    {
-        return TrackedEntity.builder()
-            .attributes( attributes( attributes ) )
-            .build();
-    }
+  private TrackedEntity trackedEntity(Attribute... attributes) {
+    return TrackedEntity.builder().attributes(attributes(attributes)).build();
+  }
 
-    private Enrollment enrollment( Attribute... attributes )
-    {
-        return Enrollment.builder()
-            .attributes( attributes( attributes ) )
-            .build();
-    }
+  private Enrollment enrollment(Attribute... attributes) {
+    return Enrollment.builder().attributes(attributes(attributes)).build();
+  }
 
-    private List<Attribute> attributes( Attribute[] attributes )
-    {
-        List<Attribute> attrs = new ArrayList<>();
-        for ( Attribute at : attributes )
-        {
-            attrs.add( at );
-        }
-        return attrs;
+  private List<Attribute> attributes(Attribute[] attributes) {
+    List<Attribute> attrs = new ArrayList<>();
+    for (Attribute at : attributes) {
+      attrs.add(at);
     }
+    return attrs;
+  }
 
-    private DataElement numericDataElement( String uid )
-    {
-        DataElement element = createDataElement( 'A' );
-        element.setUid( uid );
-        element.setValueType( ValueType.NUMBER );
-        return element;
-    }
+  private DataElement numericDataElement(String uid) {
+    DataElement element = createDataElement('A');
+    element.setUid(uid);
+    element.setValueType(ValueType.NUMBER);
+    return element;
+  }
 
-    private DataElement fileDataElement( String uid )
-    {
-        DataElement element = createDataElement( 'A' );
-        element.setUid( uid );
-        element.setValueType( ValueType.FILE_RESOURCE );
-        return element;
-    }
+  private DataElement fileDataElement(String uid) {
+    DataElement element = createDataElement('A');
+    element.setUid(uid);
+    element.setValueType(ValueType.FILE_RESOURCE);
+    return element;
+  }
 
-    private Event event( DataValue... dataValues )
-    {
-        return Event.builder()
-            .dataValues( dataValues( dataValues ) )
-            .build();
-    }
+  private Event event(DataValue... dataValues) {
+    return Event.builder().dataValues(dataValues(dataValues)).build();
+  }
 
-    private Set<DataValue> dataValues( DataValue[] dataValues )
-    {
-        Set<DataValue> dvs = new HashSet<>();
-        for ( DataValue dv : dataValues )
-        {
-            dvs.add( dv );
-        }
-        return dvs;
+  private Set<DataValue> dataValues(DataValue[] dataValues) {
+    Set<DataValue> dvs = new HashSet<>();
+    for (DataValue dv : dataValues) {
+      dvs.add(dv);
     }
+    return dvs;
+  }
 
-    private DataValue dataValue( String uid, String value )
-    {
-        return DataValue.builder()
-            .dataElement( MetadataIdentifier.ofUid( uid ) )
-            .value( value )
-            .build();
-    }
+  private DataValue dataValue(String uid, String value) {
+    return DataValue.builder().dataElement(MetadataIdentifier.ofUid(uid)).value(value).build();
+  }
 }

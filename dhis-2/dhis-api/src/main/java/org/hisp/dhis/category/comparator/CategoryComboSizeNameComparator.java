@@ -32,22 +32,17 @@ package org.hisp.dhis.category.comparator;
  * @version $Id$
  */
 import java.util.Comparator;
-
 import org.hisp.dhis.category.CategoryCombo;
 
-public class CategoryComboSizeNameComparator
-    implements Comparator<CategoryCombo>
-{
-    @Override
-    public int compare( CategoryCombo o1, CategoryCombo o2 )
-    {
-        int result = o1.getOptionCombos().size() - o2.getOptionCombos().size();
+public class CategoryComboSizeNameComparator implements Comparator<CategoryCombo> {
+  @Override
+  public int compare(CategoryCombo o1, CategoryCombo o2) {
+    int result = o1.getOptionCombos().size() - o2.getOptionCombos().size();
 
-        if ( result == 0 )
-        {
-            result = o1.getDisplayName().compareTo( o2.getDisplayName() );
-        }
-
-        return result;
+    if (result == 0) {
+      result = o1.getDisplayName().compareTo(o2.getDisplayName());
     }
+
+    return result;
+  }
 }

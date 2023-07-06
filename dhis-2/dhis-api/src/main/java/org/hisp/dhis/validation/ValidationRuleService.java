@@ -30,180 +30,173 @@ package org.hisp.dhis.validation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 
 /**
  * @author Margrethe Store
  */
-public interface ValidationRuleService extends ValidationRuleDataIntegrityProvider
-{
-    String ID = ValidationRuleService.class.getName();
+public interface ValidationRuleService extends ValidationRuleDataIntegrityProvider {
+  String ID = ValidationRuleService.class.getName();
 
-    // -------------------------------------------------------------------------
-    // ValidationRule
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ValidationRule
+  // -------------------------------------------------------------------------
 
-    /**
-     * Save a ValidationRule to the database.
-     *
-     * @param validationRule the ValidationRule to save.
-     * @return the generated unique identifier for the ValidationRule.
-     */
-    long saveValidationRule( ValidationRule validationRule );
+  /**
+   * Save a ValidationRule to the database.
+   *
+   * @param validationRule the ValidationRule to save.
+   * @return the generated unique identifier for the ValidationRule.
+   */
+  long saveValidationRule(ValidationRule validationRule);
 
-    /**
-     * Update a ValidationRule to the database.
-     *
-     * @param validationRule the ValidationRule to update.
-     */
-    void updateValidationRule( ValidationRule validationRule );
+  /**
+   * Update a ValidationRule to the database.
+   *
+   * @param validationRule the ValidationRule to update.
+   */
+  void updateValidationRule(ValidationRule validationRule);
 
-    /**
-     * Delete a validation rule with the given identifiers from the database.
-     *
-     * @param validationRule the ValidationRule to delete.
-     */
-    void deleteValidationRule( ValidationRule validationRule );
+  /**
+   * Delete a validation rule with the given identifiers from the database.
+   *
+   * @param validationRule the ValidationRule to delete.
+   */
+  void deleteValidationRule(ValidationRule validationRule);
 
-    /**
-     * Get ValidationRule with the given identifier.
-     *
-     * @param id the unique identifier of the ValidationRule.
-     * @return the ValidationRule or null if it doesn't exist.
-     */
-    ValidationRule getValidationRule( long id );
+  /**
+   * Get ValidationRule with the given identifier.
+   *
+   * @param id the unique identifier of the ValidationRule.
+   * @return the ValidationRule or null if it doesn't exist.
+   */
+  ValidationRule getValidationRule(long id);
 
-    /**
-     * Get ValidationRule with the given uid.
-     *
-     * @param uid the unique identifier of the ValidationRule.
-     * @return the ValidationRule or null if it doesn't exist.
-     */
-    ValidationRule getValidationRule( String uid );
+  /**
+   * Get ValidationRule with the given uid.
+   *
+   * @param uid the unique identifier of the ValidationRule.
+   * @return the ValidationRule or null if it doesn't exist.
+   */
+  ValidationRule getValidationRule(String uid);
 
-    /**
-     * Get all validation rules.
-     *
-     * @return a List of ValidationRule or null if there are no validation
-     *         rules.
-     */
-    List<ValidationRule> getAllValidationRules();
+  /**
+   * Get all validation rules.
+   *
+   * @return a List of ValidationRule or null if there are no validation rules.
+   */
+  List<ValidationRule> getAllValidationRules();
 
-    /**
-     * Get all validation rules for form validation.
-     *
-     * @return a List of ValidationRule or null if there are none for form
-     *         validation.
-     */
-    List<ValidationRule> getAllFormValidationRules();
+  /**
+   * Get all validation rules for form validation.
+   *
+   * @return a List of ValidationRule or null if there are none for form validation.
+   */
+  List<ValidationRule> getAllFormValidationRules();
 
-    /**
-     * Get a validation rule with the given name.
-     *
-     * @param name the name of the validation rule.
-     */
-    ValidationRule getValidationRuleByName( String name );
+  /**
+   * Get a validation rule with the given name.
+   *
+   * @param name the name of the validation rule.
+   */
+  ValidationRule getValidationRuleByName(String name);
 
-    /**
-     * Get data elements part of the left side and right side expressions of the
-     * given validation rule.
-     *
-     * @param validationRule the validation rule.
-     * @return a set of data elements.
-     */
-    Set<DataElement> getDataElements( ValidationRule validationRule );
+  /**
+   * Get data elements part of the left side and right side expressions of the given validation
+   * rule.
+   *
+   * @param validationRule the validation rule.
+   * @return a set of data elements.
+   */
+  Set<DataElement> getDataElements(ValidationRule validationRule);
 
-    /**
-     * Returns all form validation rules for validating a data set.
-     *
-     * @param dataSet the data set to validate.
-     * @return all validation rules which apply to that data set.
-     */
-    Set<ValidationRule> getValidationRulesForDataSet( DataSet dataSet );
+  /**
+   * Returns all form validation rules for validating a data set.
+   *
+   * @param dataSet the data set to validate.
+   * @return all validation rules which apply to that data set.
+   */
+  Set<ValidationRule> getValidationRulesForDataSet(DataSet dataSet);
 
-    /**
-     * Returns all ValidationRules which have associated
-     * ValidationNotificationTemplates.
-     *
-     * @return a List of ValidationRule.
-     */
-    List<ValidationRule> getValidationRulesWithNotificationTemplates();
+  /**
+   * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+   *
+   * @return a List of ValidationRule.
+   */
+  List<ValidationRule> getValidationRulesWithNotificationTemplates();
 
-    // -------------------------------------------------------------------------
-    // ValidationRuleGroup
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ValidationRuleGroup
+  // -------------------------------------------------------------------------
 
-    /**
-     * Adds a ValidationRuleGroup to the database.
-     *
-     * @param validationRuleGroup the ValidationRuleGroup to add.
-     * @return the generated unique identifier for the ValidationRuleGroup.
-     */
-    long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
+  /**
+   * Adds a ValidationRuleGroup to the database.
+   *
+   * @param validationRuleGroup the ValidationRuleGroup to add.
+   * @return the generated unique identifier for the ValidationRuleGroup.
+   */
+  long addValidationRuleGroup(ValidationRuleGroup validationRuleGroup);
 
-    /**
-     * Delete a ValidationRuleGroup with the given identifiers from the
-     * database.
-     *
-     * @param validationRuleGroup the ValidationRuleGroup to delete.
-     */
-    void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
+  /**
+   * Delete a ValidationRuleGroup with the given identifiers from the database.
+   *
+   * @param validationRuleGroup the ValidationRuleGroup to delete.
+   */
+  void deleteValidationRuleGroup(ValidationRuleGroup validationRuleGroup);
 
-    /**
-     * Update a ValidationRuleGroup with the given identifiers.
-     *
-     * @param validationRuleGroup the ValidationRule to update.
-     */
-    void updateValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
+  /**
+   * Update a ValidationRuleGroup with the given identifiers.
+   *
+   * @param validationRuleGroup the ValidationRule to update.
+   */
+  void updateValidationRuleGroup(ValidationRuleGroup validationRuleGroup);
 
-    /**
-     * Get ValidationRuleGroup with the given identifier.
-     *
-     * @param id the unique identifier of the ValidationRuleGroup.
-     * @return the ValidationRuleGroup or null if it doesn't exist.
-     */
-    ValidationRuleGroup getValidationRuleGroup( long id );
+  /**
+   * Get ValidationRuleGroup with the given identifier.
+   *
+   * @param id the unique identifier of the ValidationRuleGroup.
+   * @return the ValidationRuleGroup or null if it doesn't exist.
+   */
+  ValidationRuleGroup getValidationRuleGroup(long id);
 
-    /**
-     * Get ValidationRuleGroup with the given uid.
-     *
-     * @param uid the unique identifier of the ValidationRuleGroup.
-     * @return the ValidationRuleGroup or null if it doesn't exist.
-     */
-    ValidationRuleGroup getValidationRuleGroup( String uid );
+  /**
+   * Get ValidationRuleGroup with the given uid.
+   *
+   * @param uid the unique identifier of the ValidationRuleGroup.
+   * @return the ValidationRuleGroup or null if it doesn't exist.
+   */
+  ValidationRuleGroup getValidationRuleGroup(String uid);
 
-    /**
-     * Get all ValidationRuleGroups.
-     *
-     * @return a List of ValidationRuleGroup or null if it there are no
-     *         ValidationRuleGroups.
-     */
-    List<ValidationRuleGroup> getAllValidationRuleGroups();
+  /**
+   * Get all ValidationRuleGroups.
+   *
+   * @return a List of ValidationRuleGroup or null if it there are no ValidationRuleGroups.
+   */
+  List<ValidationRuleGroup> getAllValidationRuleGroups();
 
-    /**
-     * Get a ValidationRuleGroup with the given name.
-     *
-     * @param name the name of the ValidationRuleGroup.
-     */
-    ValidationRuleGroup getValidationRuleGroupByName( String name );
+  /**
+   * Get a ValidationRuleGroup with the given name.
+   *
+   * @param name the name of the ValidationRuleGroup.
+   */
+  ValidationRuleGroup getValidationRuleGroupByName(String name);
 
-    List<ValidationRule> getValidationRulesBetween( int first, int max );
+  List<ValidationRule> getValidationRulesBetween(int first, int max);
 
-    List<ValidationRule> getValidationRulesBetweenByName( String name, int first, int max );
+  List<ValidationRule> getValidationRulesBetweenByName(String name, int first, int max);
 
-    List<ValidationRule> getValidationRulesByUid( Collection<String> uids );
+  List<ValidationRule> getValidationRulesByUid(Collection<String> uids);
 
-    int getValidationRuleCount();
+  int getValidationRuleCount();
 
-    int getValidationRuleCountByName( String name );
+  int getValidationRuleCountByName(String name);
 
-    List<ValidationRuleGroup> getValidationRuleGroupsBetween( int first, int max );
+  List<ValidationRuleGroup> getValidationRuleGroupsBetween(int first, int max);
 
-    List<ValidationRuleGroup> getValidationRuleGroupsBetweenByName( String name, int first, int max );
+  List<ValidationRuleGroup> getValidationRuleGroupsBetweenByName(String name, int first, int max);
 
-    int getValidationRuleGroupCount();
+  int getValidationRuleGroupCount();
 
-    int getValidationRuleGroupCountByName( String name );
+  int getValidationRuleGroupCountByName(String name);
 }

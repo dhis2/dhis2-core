@@ -37,9 +37,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.Map;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -56,176 +56,179 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.MimeTypeUtils;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class FileResourceServiceTest
-{
-    @Mock
-    private FileResourceStore fileResourceStore;
+@ExtendWith(MockitoExtension.class)
+class FileResourceServiceTest {
+  @Mock private FileResourceStore fileResourceStore;
 
-    @Mock
-    private SessionFactory sessionFactory;
+  @Mock private SessionFactory sessionFactory;
 
-    @Mock
-    private FileResourceContentStore fileResourceContentStore;
+  @Mock private FileResourceContentStore fileResourceContentStore;
 
-    @Mock
-    private ImageProcessingService imageProcessingService;
+  @Mock private ImageProcessingService imageProcessingService;
 
-    @Mock
-    private ApplicationEventPublisher fileEventPublisher;
+  @Mock private ApplicationEventPublisher fileEventPublisher;
 
-    @Mock
-    private Session session;
+  @Mock private Session session;
 
-    @Captor
-    private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
+  @Captor private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
 
-    @Captor
-    private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
+  @Captor private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
 
-    @Captor
-    private ArgumentCaptor<FileDeletedEvent> fileDeletedEventCaptor;
+  @Captor private ArgumentCaptor<FileDeletedEvent> fileDeletedEventCaptor;
 
-    private FileResourceService subject;
+  private FileResourceService subject;
 
-    @BeforeEach
-    public void setUp()
-    {
-        subject = new DefaultFileResourceService( fileResourceStore, sessionFactory, fileResourceContentStore,
-            imageProcessingService, fileEventPublisher );
-    }
+  @BeforeEach
+  public void setUp() {
+    subject =
+        new DefaultFileResourceService(
+            fileResourceStore,
+            sessionFactory,
+            fileResourceContentStore,
+            imageProcessingService,
+            fileEventPublisher);
+  }
 
-    @Test
-    void verifySaveFile()
-    {
-        FileResource fileResource = new FileResource( "mycat.pdf", "application/pdf", 1000, "md5",
-            FileResourceDomain.PUSH_ANALYSIS );
+  @Test
+  void verifySaveFile() {
+    FileResource fileResource =
+        new FileResource(
+            "mycat.pdf", "application/pdf", 1000, "md5", FileResourceDomain.PUSH_ANALYSIS);
 
-        fileResource.setUid( "fileRes1" );
+    fileResource.setUid("fileRes1");
 
-        File file = new File( "" );
+    File file = new File("");
 
-        when( sessionFactory.getCurrentSession() ).thenReturn( session );
+    when(sessionFactory.getCurrentSession()).thenReturn(session);
 
-        subject.saveFileResource( fileResource, file );
+    subject.saveFileResource(fileResource, file);
 
-        verify( fileResourceStore ).save( fileResource );
-        verify( session ).flush();
+    verify(fileResourceStore).save(fileResource);
+    verify(session).flush();
 
-        verify( fileEventPublisher, times( 1 ) ).publishEvent( fileSavedEventCaptor.capture() );
+    verify(fileEventPublisher, times(1)).publishEvent(fileSavedEventCaptor.capture());
 
-        FileSavedEvent event = fileSavedEventCaptor.getValue();
+    FileSavedEvent event = fileSavedEventCaptor.getValue();
 
-        assertThat( event.getFileResource(), is( "fileRes1" ) );
-        assertThat( event.getFile(), is( file ) );
-    }
+    assertThat(event.getFileResource(), is("fileRes1"));
+    assertThat(event.getFile(), is(file));
+  }
 
-    @Test
-    void verifySaveIllegalFileTypeResourceA()
-    {
-        FileResource fileResource = new FileResource( "very_evil_script.html", "text/html", 1024, "md5",
-            FileResourceDomain.USER_AVATAR );
+  @Test
+  void verifySaveIllegalFileTypeResourceA() {
+    FileResource fileResource =
+        new FileResource(
+            "very_evil_script.html", "text/html", 1024, "md5", FileResourceDomain.USER_AVATAR);
 
-        File file = new File( "very_evil_script.html" );
-        assertThrows( IllegalQueryException.class, () -> subject.saveFileResource( fileResource, file ) );
-    }
+    File file = new File("very_evil_script.html");
+    assertThrows(IllegalQueryException.class, () -> subject.saveFileResource(fileResource, file));
+  }
 
-    @Test
-    void verifySaveIllegalFileTypeResourceB()
-    {
-        FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 2048, "md5",
-            FileResourceDomain.MESSAGE_ATTACHMENT );
+  @Test
+  void verifySaveIllegalFileTypeResourceB() {
+    FileResource fileResource =
+        new FileResource(
+            "suspicious_program.rpm",
+            "application/x-rpm",
+            2048,
+            "md5",
+            FileResourceDomain.MESSAGE_ATTACHMENT);
 
-        File file = new File( "suspicious_program.rpm" );
-        assertThrows( IllegalQueryException.class, () -> subject.saveFileResource( fileResource, file ) );
-    }
+    File file = new File("suspicious_program.rpm");
+    assertThrows(IllegalQueryException.class, () -> subject.saveFileResource(fileResource, file));
+  }
 
-    @Test
-    void verifySaveImageFile()
-    {
-        FileResource fileResource = new FileResource( "test.jpeg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
-            FileResourceDomain.DATA_VALUE );
+  @Test
+  void verifySaveImageFile() {
+    FileResource fileResource =
+        new FileResource(
+            "test.jpeg",
+            MimeTypeUtils.IMAGE_JPEG.toString(),
+            1000,
+            "md5",
+            FileResourceDomain.DATA_VALUE);
 
-        File file = new File( "" );
+    File file = new File("");
 
-        Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
+    Map<ImageFileDimension, File> imageFiles = ImmutableMap.of(ImageFileDimension.LARGE, file);
 
-        when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
+    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
 
-        when( sessionFactory.getCurrentSession() ).thenReturn( session );
+    when(sessionFactory.getCurrentSession()).thenReturn(session);
 
-        fileResource.setUid( "imageUid1" );
+    fileResource.setUid("imageUid1");
 
-        subject.saveFileResource( fileResource, file );
+    subject.saveFileResource(fileResource, file);
 
-        verify( fileResourceStore ).save( fileResource );
-        verify( session ).flush();
+    verify(fileResourceStore).save(fileResource);
+    verify(session).flush();
 
-        verify( fileEventPublisher, times( 1 ) ).publishEvent( imageFileSavedEventCaptor.capture() );
+    verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
 
-        ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+    ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-        assertThat( event.getFileResource(), is( "imageUid1" ) );
-        assertFalse( event.getImageFiles().isEmpty() );
-        assertThat( event.getImageFiles().size(), is( 1 ) );
-        assertThat( event.getImageFiles(), hasKey( ImageFileDimension.LARGE ) );
-    }
+    assertThat(event.getFileResource(), is("imageUid1"));
+    assertFalse(event.getImageFiles().isEmpty());
+    assertThat(event.getImageFiles().size(), is(1));
+    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+  }
 
-    @Test
-    void verifyDeleteFile()
-    {
-        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 1000, "md5",
-            FileResourceDomain.DOCUMENT );
+  @Test
+  void verifyDeleteFile() {
+    FileResource fileResource =
+        new FileResource("test.pdf", "application/pdf", 1000, "md5", FileResourceDomain.DOCUMENT);
 
-        fileResource.setUid( "fileUid1" );
+    fileResource.setUid("fileUid1");
 
-        when( fileResourceStore.get( anyLong() ) ).thenReturn( fileResource );
+    when(fileResourceStore.get(anyLong())).thenReturn(fileResource);
 
-        subject.deleteFileResource( fileResource );
+    subject.deleteFileResource(fileResource);
 
-        verify( fileResourceStore ).delete( fileResource );
+    verify(fileResourceStore).delete(fileResource);
 
-        verify( fileEventPublisher, times( 1 ) ).publishEvent( fileDeletedEventCaptor.capture() );
+    verify(fileEventPublisher, times(1)).publishEvent(fileDeletedEventCaptor.capture());
 
-        FileDeletedEvent event = fileDeletedEventCaptor.getValue();
+    FileDeletedEvent event = fileDeletedEventCaptor.getValue();
 
-        assertThat( event.getContentType(), is( "application/pdf" ) );
-        assertThat( event.getDomain(), is( FileResourceDomain.DOCUMENT ) );
-    }
+    assertThat(event.getContentType(), is("application/pdf"));
+    assertThat(event.getDomain(), is(FileResourceDomain.DOCUMENT));
+  }
 
-    @Test
-    void verifySaveOrgUnitImageFile()
-    {
-        FileResource fileResource = new FileResource( "test.jpeg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
-            FileResourceDomain.ORG_UNIT );
+  @Test
+  void verifySaveOrgUnitImageFile() {
+    FileResource fileResource =
+        new FileResource(
+            "test.jpeg",
+            MimeTypeUtils.IMAGE_JPEG.toString(),
+            1000,
+            "md5",
+            FileResourceDomain.ORG_UNIT);
 
-        File file = new File( "" );
+    File file = new File("");
 
-        Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
+    Map<ImageFileDimension, File> imageFiles = ImmutableMap.of(ImageFileDimension.LARGE, file);
 
-        when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
+    when(imageProcessingService.createImages(fileResource, file)).thenReturn(imageFiles);
 
-        when( sessionFactory.getCurrentSession() ).thenReturn( session );
+    when(sessionFactory.getCurrentSession()).thenReturn(session);
 
-        fileResource.setUid( "imageUid1" );
+    fileResource.setUid("imageUid1");
 
-        subject.saveFileResource( fileResource, file );
+    subject.saveFileResource(fileResource, file);
 
-        verify( fileResourceStore ).save( fileResource );
-        verify( session ).flush();
+    verify(fileResourceStore).save(fileResource);
+    verify(session).flush();
 
-        verify( fileEventPublisher, times( 1 ) ).publishEvent( imageFileSavedEventCaptor.capture() );
+    verify(fileEventPublisher, times(1)).publishEvent(imageFileSavedEventCaptor.capture());
 
-        ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+    ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
 
-        assertThat( event.getFileResource(), is( "imageUid1" ) );
-        assertFalse( event.getImageFiles().isEmpty() );
-        assertThat( event.getImageFiles().size(), is( 1 ) );
-        assertThat( event.getImageFiles(), hasKey( ImageFileDimension.LARGE ) );
-    }
+    assertThat(event.getFileResource(), is("imageUid1"));
+    assertFalse(event.getImageFiles().isEmpty());
+    assertThat(event.getImageFiles().size(), is(1));
+    assertThat(event.getImageFiles(), hasKey(ImageFileDimension.LARGE));
+  }
 }

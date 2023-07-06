@@ -41,7 +41,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -56,239 +55,250 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class TrackerImportParamsBuilderTest
-{
+class TrackerImportParamsBuilderTest {
 
-    private Map<String, List<String>> paramMap = new HashMap<>();
+  private Map<String, List<String>> paramMap = new HashMap<>();
 
-    @Test
-    void testDefaultParams()
-    {
-        final TrackerImportParams params = TrackerImportParamsBuilder.build( null );
-        assertDefaultParams( params );
-    }
+  @Test
+  void testDefaultParams() {
+    final TrackerImportParams params = TrackerImportParamsBuilder.build(null);
+    assertDefaultParams(params);
+  }
 
-    @Test
-    void testValidationMode()
-    {
-        Arrays.stream( ValidationMode.values() ).forEach( e -> {
-            paramMap.put( VALIDATION_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getValidationMode(), is( e ) );
-        } );
-    }
+  @Test
+  void testValidationMode() {
+    Arrays.stream(ValidationMode.values())
+        .forEach(
+            e -> {
+              paramMap.put(VALIDATION_MODE_KEY.getKey(), Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getValidationMode(), is(e));
+            });
+  }
 
-    @Test
-    void testImportMode()
-    {
-        Arrays.stream( TrackerBundleMode.values() ).forEach( e -> {
-            paramMap.put( IMPORT_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getImportMode(), is( e ) );
-        } );
-    }
+  @Test
+  void testImportMode() {
+    Arrays.stream(TrackerBundleMode.values())
+        .forEach(
+            e -> {
+              paramMap.put(IMPORT_MODE_KEY.getKey(), Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getImportMode(), is(e));
+            });
+  }
 
-    @Test
-    void testAtomicMode()
-    {
-        Arrays.stream( AtomicMode.values() ).forEach( e -> {
-            paramMap.put( ATOMIC_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getAtomicMode(), is( e ) );
-        } );
-    }
+  @Test
+  void testAtomicMode() {
+    Arrays.stream(AtomicMode.values())
+        .forEach(
+            e -> {
+              paramMap.put(ATOMIC_MODE_KEY.getKey(), Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getAtomicMode(), is(e));
+            });
+  }
 
-    @Test
-    void testFlushMode()
-    {
-        Arrays.stream( FlushMode.values() ).forEach( e -> {
-            paramMap.put( FLUSH_MODE_KEY.getKey(), Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getFlushMode(), is( e ) );
-        } );
-    }
+  @Test
+  void testFlushMode() {
+    Arrays.stream(FlushMode.values())
+        .forEach(
+            e -> {
+              paramMap.put(FLUSH_MODE_KEY.getKey(), Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getFlushMode(), is(e));
+            });
+  }
 
-    @Test
-    void testImportStrategy()
-    {
-        Arrays.stream( TrackerImportStrategy.values() ).forEach( e -> {
-            paramMap.put( IMPORT_STRATEGY_KEY.getKey(), Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getImportStrategy(), is( e ) );
-        } );
-    }
+  @Test
+  void testImportStrategy() {
+    Arrays.stream(TrackerImportStrategy.values())
+        .forEach(
+            e -> {
+              paramMap.put(IMPORT_STRATEGY_KEY.getKey(), Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getImportStrategy(), is(e));
+            });
+  }
 
-    @Test
-    void testIdSchemeUsingIdSchemeName()
-    {
-        TrackerImportParams params = TrackerImportParamsBuilder
-            .build( Map.of( "idScheme", Collections.singletonList( "NAME" ) ) );
+  @Test
+  void testIdSchemeUsingIdSchemeName() {
+    TrackerImportParams params =
+        TrackerImportParamsBuilder.build(Map.of("idScheme", Collections.singletonList("NAME")));
 
-        TrackerIdSchemeParam expected = TrackerIdSchemeParam.of( TrackerIdScheme.NAME, null );
-        assertEquals( expected, params.getIdSchemes().getIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getDataElementIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getOrgUnitIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getProgramIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getProgramStageIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getCategoryOptionComboIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getCategoryOptionIdScheme() );
-    }
+    TrackerIdSchemeParam expected = TrackerIdSchemeParam.of(TrackerIdScheme.NAME, null);
+    assertEquals(expected, params.getIdSchemes().getIdScheme());
+    assertEquals(expected, params.getIdSchemes().getDataElementIdScheme());
+    assertEquals(expected, params.getIdSchemes().getOrgUnitIdScheme());
+    assertEquals(expected, params.getIdSchemes().getProgramIdScheme());
+    assertEquals(expected, params.getIdSchemes().getProgramStageIdScheme());
+    assertEquals(expected, params.getIdSchemes().getCategoryOptionComboIdScheme());
+    assertEquals(expected, params.getIdSchemes().getCategoryOptionIdScheme());
+  }
 
-    @Test
-    void testIdSchemeUsingIdSchemeAttribute()
-    {
-        TrackerImportParams params = TrackerImportParamsBuilder
-            .build( Map.of( "idScheme", Collections.singletonList( "ATTRIBUTE:WSiOAALYocA" ) ) );
+  @Test
+  void testIdSchemeUsingIdSchemeAttribute() {
+    TrackerImportParams params =
+        TrackerImportParamsBuilder.build(
+            Map.of("idScheme", Collections.singletonList("ATTRIBUTE:WSiOAALYocA")));
 
-        TrackerIdSchemeParam expected = TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" );
-        assertEquals( expected, params.getIdSchemes().getIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getDataElementIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getOrgUnitIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getProgramIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getProgramStageIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getCategoryOptionComboIdScheme() );
-        assertEquals( expected, params.getIdSchemes().getCategoryOptionIdScheme() );
-    }
+    TrackerIdSchemeParam expected = TrackerIdSchemeParam.ofAttribute("WSiOAALYocA");
+    assertEquals(expected, params.getIdSchemes().getIdScheme());
+    assertEquals(expected, params.getIdSchemes().getDataElementIdScheme());
+    assertEquals(expected, params.getIdSchemes().getOrgUnitIdScheme());
+    assertEquals(expected, params.getIdSchemes().getProgramIdScheme());
+    assertEquals(expected, params.getIdSchemes().getProgramStageIdScheme());
+    assertEquals(expected, params.getIdSchemes().getCategoryOptionComboIdScheme());
+    assertEquals(expected, params.getIdSchemes().getCategoryOptionIdScheme());
+  }
 
-    @Test
-    void testOrgUnitIdentifier()
-    {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
-            paramMap.put( "orgUnitIdScheme", Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getIdSchemes().getOrgUnitIdScheme().getIdScheme(), is( e ) );
-        } );
-    }
+  @Test
+  void testOrgUnitIdentifier() {
+    Arrays.stream(TrackerIdScheme.values())
+        .forEach(
+            e -> {
+              paramMap.put("orgUnitIdScheme", Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getIdSchemes().getOrgUnitIdScheme().getIdScheme(), is(e));
+            });
+  }
 
-    @Test
-    void testProgramIdentifier()
-    {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
-            paramMap.put( "programIdScheme", Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getIdSchemes().getProgramIdScheme().getIdScheme(), is( e ) );
-        } );
-    }
+  @Test
+  void testProgramIdentifier() {
+    Arrays.stream(TrackerIdScheme.values())
+        .forEach(
+            e -> {
+              paramMap.put("programIdScheme", Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getIdSchemes().getProgramIdScheme().getIdScheme(), is(e));
+            });
+  }
 
-    @Test
-    void testProgramIdentifierUsingIdSchemeUidAndValue()
-    {
-        // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
-        // to UID
-        paramMap.put( "programIdScheme", Collections.singletonList( "UID:WSiOAALYocA" ) );
-        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+  @Test
+  void testProgramIdentifierUsingIdSchemeUidAndValue() {
+    // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
+    // to UID
+    paramMap.put("programIdScheme", Collections.singletonList("UID:WSiOAALYocA"));
+    TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
 
-        assertEquals( TrackerIdSchemeParam.of( TrackerIdScheme.UID, null ),
-            params.getIdSchemes().getProgramIdScheme() );
-    }
+    assertEquals(
+        TrackerIdSchemeParam.of(TrackerIdScheme.UID, null),
+        params.getIdSchemes().getProgramIdScheme());
+  }
 
-    @Test
-    void testProgramIdentifierUsingIdSchemeCodeAndValue()
-    {
-        // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
-        // to UID
-        paramMap.put( "programIdScheme", Collections.singletonList( "CODE:WSiOAALYocA" ) );
-        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+  @Test
+  void testProgramIdentifierUsingIdSchemeCodeAndValue() {
+    // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
+    // to UID
+    paramMap.put("programIdScheme", Collections.singletonList("CODE:WSiOAALYocA"));
+    TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
 
-        assertEquals( TrackerIdSchemeParam.of( TrackerIdScheme.UID, null ),
-            params.getIdSchemes().getProgramIdScheme() );
-    }
+    assertEquals(
+        TrackerIdSchemeParam.of(TrackerIdScheme.UID, null),
+        params.getIdSchemes().getProgramIdScheme());
+  }
 
-    @Test
-    void testProgramIdentifierUsingIdSchemeNameAndValue()
-    {
-        // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
-        // to UID
-        paramMap.put( "programIdScheme", Collections.singletonList( "NAME:WSiOAALYocA" ) );
-        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+  @Test
+  void testProgramIdentifierUsingIdSchemeNameAndValue() {
+    // only ATTRIBUTE is accompanied by a value; invalid idSchemes default
+    // to UID
+    paramMap.put("programIdScheme", Collections.singletonList("NAME:WSiOAALYocA"));
+    TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
 
-        assertEquals( TrackerIdSchemeParam.of( TrackerIdScheme.UID, null ),
-            params.getIdSchemes().getProgramIdScheme() );
-    }
+    assertEquals(
+        TrackerIdSchemeParam.of(TrackerIdScheme.UID, null),
+        params.getIdSchemes().getProgramIdScheme());
+  }
 
-    @Test
-    void testProgramIdentifierUsingIdSchemeAttribute()
-    {
-        paramMap.put( "programIdScheme", Collections.singletonList( "ATTRIBUTE:WSiOAALYocA" ) );
-        TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
+  @Test
+  void testProgramIdentifierUsingIdSchemeAttribute() {
+    paramMap.put("programIdScheme", Collections.singletonList("ATTRIBUTE:WSiOAALYocA"));
+    TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
 
-        assertEquals( TrackerIdSchemeParam.ofAttribute( "WSiOAALYocA" ), params.getIdSchemes().getProgramIdScheme() );
-    }
+    assertEquals(
+        TrackerIdSchemeParam.ofAttribute("WSiOAALYocA"),
+        params.getIdSchemes().getProgramIdScheme());
+  }
 
-    @Test
-    void testProgramIdentifierUsingIdSchemeAttributeGivenInvalidUid()
-    {
-        TrackerImportParams params = TrackerImportParamsBuilder
-            .build( Map.of( "programIdScheme", Collections.singletonList( "ATTRIBUTE:abc" ) ) );
+  @Test
+  void testProgramIdentifierUsingIdSchemeAttributeGivenInvalidUid() {
+    TrackerImportParams params =
+        TrackerImportParamsBuilder.build(
+            Map.of("programIdScheme", Collections.singletonList("ATTRIBUTE:abc")));
 
-        assertEquals( TrackerIdSchemeParam.of( TrackerIdScheme.UID, null ),
-            params.getIdSchemes().getProgramIdScheme() );
-    }
+    assertEquals(
+        TrackerIdSchemeParam.of(TrackerIdScheme.UID, null),
+        params.getIdSchemes().getProgramIdScheme());
+  }
 
-    @Test
-    void testProgramIdentifierUsingUnsupportedIdScheme()
-    {
-        TrackerImportParams params = TrackerImportParamsBuilder
-            .build( Map.of( "programIdScheme", Collections.singletonList( "SOMEUNSUPPORTEDIDSCHEME" ) ) );
+  @Test
+  void testProgramIdentifierUsingUnsupportedIdScheme() {
+    TrackerImportParams params =
+        TrackerImportParamsBuilder.build(
+            Map.of("programIdScheme", Collections.singletonList("SOMEUNSUPPORTEDIDSCHEME")));
 
-        assertEquals( TrackerIdSchemeParam.of( TrackerIdScheme.UID, null ),
-            params.getIdSchemes().getProgramIdScheme() );
-    }
+    assertEquals(
+        TrackerIdSchemeParam.of(TrackerIdScheme.UID, null),
+        params.getIdSchemes().getProgramIdScheme());
+  }
 
-    @Test
-    void testProgramStageIdentifier()
-    {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
-            paramMap.put( "programStageIdScheme", Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getIdSchemes().getProgramStageIdScheme().getIdScheme(), is( e ) );
-        } );
-    }
+  @Test
+  void testProgramStageIdentifier() {
+    Arrays.stream(TrackerIdScheme.values())
+        .forEach(
+            e -> {
+              paramMap.put("programStageIdScheme", Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getIdSchemes().getProgramStageIdScheme().getIdScheme(), is(e));
+            });
+  }
 
-    @Test
-    void testDataElementIdentifier()
-    {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
-            paramMap.put( "dataElementIdScheme", Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getIdSchemes().getDataElementIdScheme().getIdScheme(), is( e ) );
-        } );
-    }
+  @Test
+  void testDataElementIdentifier() {
+    Arrays.stream(TrackerIdScheme.values())
+        .forEach(
+            e -> {
+              paramMap.put("dataElementIdScheme", Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getIdSchemes().getDataElementIdScheme().getIdScheme(), is(e));
+            });
+  }
 
-    @Test
-    void testCategoryOptionComboIdentifier()
-    {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
-            paramMap.put( "categoryOptionComboIdScheme", Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getIdSchemes().getCategoryOptionComboIdScheme().getIdScheme(), is( e ) );
-        } );
-    }
+  @Test
+  void testCategoryOptionComboIdentifier() {
+    Arrays.stream(TrackerIdScheme.values())
+        .forEach(
+            e -> {
+              paramMap.put("categoryOptionComboIdScheme", Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(
+                  params.getIdSchemes().getCategoryOptionComboIdScheme().getIdScheme(), is(e));
+            });
+  }
 
-    @Test
-    void testCategoryOptionIdentifier()
-    {
-        Arrays.stream( TrackerIdScheme.values() ).forEach( e -> {
-            paramMap.put( "categoryOptionIdScheme", Collections.singletonList( e.name() ) );
-            TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
-            assertThat( params.getIdSchemes().getCategoryOptionIdScheme().getIdScheme(), is( e ) );
-        } );
-    }
+  @Test
+  void testCategoryOptionIdentifier() {
+    Arrays.stream(TrackerIdScheme.values())
+        .forEach(
+            e -> {
+              paramMap.put("categoryOptionIdScheme", Collections.singletonList(e.name()));
+              TrackerImportParams params = TrackerImportParamsBuilder.build(paramMap);
+              assertThat(params.getIdSchemes().getCategoryOptionIdScheme().getIdScheme(), is(e));
+            });
+  }
 
-    private void assertDefaultParams( TrackerImportParams params )
-    {
-        assertThat( params.getValidationMode(), is( ValidationMode.FULL ) );
-        assertThat( params.getImportMode(), is( TrackerBundleMode.COMMIT ) );
-        assertThat( params.getImportStrategy(), is( TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        assertThat( params.getAtomicMode(), is( AtomicMode.ALL ) );
-        assertThat( params.getFlushMode(), is( FlushMode.AUTO ) );
-        TrackerIdSchemeParams identifiers = params.getIdSchemes();
-        assertThat( identifiers.getOrgUnitIdScheme(), is( TrackerIdSchemeParam.UID ) );
-        assertThat( identifiers.getProgramIdScheme(), is( TrackerIdSchemeParam.UID ) );
-        assertThat( identifiers.getCategoryOptionComboIdScheme(), is( TrackerIdSchemeParam.UID ) );
-        assertThat( identifiers.getCategoryOptionIdScheme(), is( TrackerIdSchemeParam.UID ) );
-        assertThat( identifiers.getDataElementIdScheme(), is( TrackerIdSchemeParam.UID ) );
-        assertThat( identifiers.getProgramStageIdScheme(), is( TrackerIdSchemeParam.UID ) );
-        assertThat( identifiers.getIdScheme(), is( TrackerIdSchemeParam.UID ) );
-    }
+  private void assertDefaultParams(TrackerImportParams params) {
+    assertThat(params.getValidationMode(), is(ValidationMode.FULL));
+    assertThat(params.getImportMode(), is(TrackerBundleMode.COMMIT));
+    assertThat(params.getImportStrategy(), is(TrackerImportStrategy.CREATE_AND_UPDATE));
+    assertThat(params.getAtomicMode(), is(AtomicMode.ALL));
+    assertThat(params.getFlushMode(), is(FlushMode.AUTO));
+    TrackerIdSchemeParams identifiers = params.getIdSchemes();
+    assertThat(identifiers.getOrgUnitIdScheme(), is(TrackerIdSchemeParam.UID));
+    assertThat(identifiers.getProgramIdScheme(), is(TrackerIdSchemeParam.UID));
+    assertThat(identifiers.getCategoryOptionComboIdScheme(), is(TrackerIdSchemeParam.UID));
+    assertThat(identifiers.getCategoryOptionIdScheme(), is(TrackerIdSchemeParam.UID));
+    assertThat(identifiers.getDataElementIdScheme(), is(TrackerIdSchemeParam.UID));
+    assertThat(identifiers.getProgramStageIdScheme(), is(TrackerIdSchemeParam.UID));
+    assertThat(identifiers.getIdScheme(), is(TrackerIdSchemeParam.UID));
+  }
 }

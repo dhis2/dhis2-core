@@ -29,47 +29,41 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
 import java.util.Set;
-
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.core.convert.converter.ConditionalGenericConverter;
 
-public class FieldPathConverter implements ConditionalGenericConverter
-{
+public class FieldPathConverter implements ConditionalGenericConverter {
 
-    @Override
-    public boolean matches( TypeDescriptor sourceType, TypeDescriptor targetType )
-    {
-        return targetType.getResolvableType().getGenerics().length == 1 &&
-            FieldPath.class.equals( targetType.getResolvableType().getGeneric( 0 ).resolve() );
-    }
+  @Override
+  public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
+    return targetType.getResolvableType().getGenerics().length == 1
+        && FieldPath.class.equals(targetType.getResolvableType().getGeneric(0).resolve());
+  }
 
-    @Override
-    public Set<ConvertiblePair> getConvertibleTypes()
-    {
-        return Set.of(
-            new ConvertiblePair( String.class, List.class ),
-            new ConvertiblePair( String[].class, List.class ) );
-    }
+  @Override
+  public Set<ConvertiblePair> getConvertibleTypes() {
+    return Set.of(
+        new ConvertiblePair(String.class, List.class),
+        new ConvertiblePair(String[].class, List.class));
+  }
 
-    @Override
-    public Object convert( Object source, TypeDescriptor sourceType, TypeDescriptor targetType )
-    {
-        if ( sourceType.isArray() )
-        {
-            /*
-             * @formatter:off
-             *
-             * Undo Spring's splitting of
-             * `fields=attributes[attribute,value],deleted` into
-             * 0 = "attributes[attribute"
-             * 1 = "value]"
-             * 2 = "deleted"
-             * separating nested fields attribute and value.
-             *
-             * @formatter:on
-             */
-            return FieldFilterParser.parse( String.join( ",", (String[]) source ) );
-        }
-        return FieldFilterParser.parse( (String) source );
+  @Override
+  public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+    if (sourceType.isArray()) {
+      /*
+       * @formatter:off
+       *
+       * Undo Spring's splitting of
+       * `fields=attributes[attribute,value],deleted` into
+       * 0 = "attributes[attribute"
+       * 1 = "value]"
+       * 2 = "deleted"
+       * separating nested fields attribute and value.
+       *
+       * @formatter:on
+       */
+      return FieldFilterParser.parse(String.join(",", (String[]) source));
     }
+    return FieldFilterParser.parse((String) source);
+  }
 }

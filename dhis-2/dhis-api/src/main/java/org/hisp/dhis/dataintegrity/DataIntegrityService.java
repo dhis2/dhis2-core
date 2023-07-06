@@ -30,43 +30,39 @@ package org.hisp.dhis.dataintegrity;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * @author Fredrik Fjeld (old API)
  * @author Jan Bernitt (new API)
  */
-public interface DataIntegrityService
-{
-    /*
-     * Old API
-     */
+public interface DataIntegrityService {
+  /*
+   * Old API
+   */
 
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, long)} and
-     *             {@link #getDetails(Set, long)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
+  /**
+   * @deprecated Replaced by {@link #getSummaries(Set, long)} and {@link #getDetails(Set, long)},
+   *     kept for backwards compatibility until new UI exists
+   */
+  @Deprecated(since = "2.38", forRemoval = true)
+  FlattenedDataIntegrityReport getReport(Set<String> checks, JobProgress progress);
 
-    /*
-     * New generic API
-     */
+  /*
+   * New generic API
+   */
 
-    default Collection<DataIntegrityCheck> getDataIntegrityChecks()
-    {
-        return getDataIntegrityChecks( Set.of() );
-    }
+  default Collection<DataIntegrityCheck> getDataIntegrityChecks() {
+    return getDataIntegrityChecks(Set.of());
+  }
 
-    Collection<DataIntegrityCheck> getDataIntegrityChecks( Set<String> checks );
+  Collection<DataIntegrityCheck> getDataIntegrityChecks(Set<String> checks);
 
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, long timeout );
+  Map<String, DataIntegritySummary> getSummaries(Set<String> checks, long timeout);
 
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, long timeout );
+  Map<String, DataIntegrityDetails> getDetails(Set<String> checks, long timeout);
 
-    void runSummaryChecks( Set<String> checks, JobProgress progress );
+  void runSummaryChecks(Set<String> checks, JobProgress progress);
 
-    void runDetailsChecks( Set<String> checks, JobProgress progress );
+  void runDetailsChecks(Set<String> checks, JobProgress progress);
 }

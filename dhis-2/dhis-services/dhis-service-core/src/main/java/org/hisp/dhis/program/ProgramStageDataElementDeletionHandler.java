@@ -29,9 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -42,38 +40,31 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class ProgramStageDataElementDeletionHandler extends DeletionHandler
-{
-    private final ProgramStageDataElementService programStageDataElementService;
+public class ProgramStageDataElementDeletionHandler extends DeletionHandler {
+  private final ProgramStageDataElementService programStageDataElementService;
 
-    @Override
-    protected void register()
-    {
-        whenDeleting( ProgramStage.class, this::deleteProgramStage );
-        whenDeleting( DataElement.class, this::deleteDataElement );
+  @Override
+  protected void register() {
+    whenDeleting(ProgramStage.class, this::deleteProgramStage);
+    whenDeleting(DataElement.class, this::deleteDataElement);
+  }
+
+  private void deleteProgramStage(ProgramStage programStage) {
+    List<ProgramStageDataElement> programStageDataElements =
+        new ArrayList<>(programStage.getProgramStageDataElements());
+
+    for (ProgramStageDataElement programStageDataElement : programStageDataElements) {
+      programStage.getProgramStageDataElements().remove(programStageDataElement);
+      programStageDataElementService.deleteProgramStageDataElement(programStageDataElement);
     }
+  }
 
-    private void deleteProgramStage( ProgramStage programStage )
-    {
-        List<ProgramStageDataElement> programStageDataElements = new ArrayList<>(
-            programStage.getProgramStageDataElements() );
-
-        for ( ProgramStageDataElement programStageDataElement : programStageDataElements )
-        {
-            programStage.getProgramStageDataElements().remove( programStageDataElement );
-            programStageDataElementService.deleteProgramStageDataElement( programStageDataElement );
-        }
+  private void deleteDataElement(DataElement dataElement) {
+    if (DataElementDomain.TRACKER == dataElement.getDomainType()) {
+      for (ProgramStageDataElement element :
+          programStageDataElementService.getProgramStageDataElements(dataElement)) {
+        programStageDataElementService.deleteProgramStageDataElement(element);
+      }
     }
-
-    private void deleteDataElement( DataElement dataElement )
-    {
-        if ( DataElementDomain.TRACKER == dataElement.getDomainType() )
-        {
-            for ( ProgramStageDataElement element : programStageDataElementService
-                .getProgramStageDataElements( dataElement ) )
-            {
-                programStageDataElementService.deleteProgramStageDataElement( element );
-            }
-        }
-    }
+  }
 }

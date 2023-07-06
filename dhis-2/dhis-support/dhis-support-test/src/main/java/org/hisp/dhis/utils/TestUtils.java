@@ -29,26 +29,20 @@ package org.hisp.dhis.utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class TestUtils
-{
-    public static void executeStartupRoutines( ApplicationContext applicationContext )
-        throws NoSuchMethodException,
-        InvocationTargetException,
-        IllegalAccessException
-    {
-        String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
+public class TestUtils {
+  public static void executeStartupRoutines(ApplicationContext applicationContext)
+      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
 
-        if ( applicationContext.containsBean( id ) )
-        {
-            Object object = applicationContext.getBean( id );
-            Method method = object.getClass().getMethod( "executeForTesting" );
-            method.invoke( object );
-        }
+    if (applicationContext.containsBean(id)) {
+      Object object = applicationContext.getBean(id);
+      Method method = object.getClass().getMethod("executeForTesting");
+      method.invoke(object);
     }
+  }
 }

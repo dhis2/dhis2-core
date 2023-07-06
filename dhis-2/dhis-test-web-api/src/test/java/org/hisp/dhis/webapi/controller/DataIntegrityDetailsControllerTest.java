@@ -39,42 +39,44 @@ import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails.JsonDataIntegri
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link DataIntegrityController} API with focus API returning
- * {@link org.hisp.dhis.dataintegrity.DataIntegrityDetails}.
+ * Tests the {@link DataIntegrityController} API with focus API returning {@link
+ * org.hisp.dhis.dataintegrity.DataIntegrityDetails}.
  *
  * @author Jan Bernitt
  */
-class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityControllerTest
-{
-    @Test
-    void testLegacyChecksOnly()
-    {
-        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
-        {
-            String check = type.getName();
-            postDetails( check );
-            JsonDataIntegrityDetails details = getDetails( check );
-            assertTrue( details.getIssues().isEmpty() );
-        }
+class DataIntegrityDetailsControllerTest extends AbstractDataIntegrityControllerTest {
+  @Test
+  void testLegacyChecksOnly() {
+    for (DataIntegrityCheckType type : DataIntegrityCheckType.values()) {
+      String check = type.getName();
+      postDetails(check);
+      JsonDataIntegrityDetails details = getDetails(check);
+      assertTrue(details.getIssues().isEmpty());
     }
+  }
 
-    @Test
-    void testSingleCheckByPath()
-    {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+  @Test
+  void testSingleCheckByPath() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/categories",
+                "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}"));
 
-        postDetails( "categories-no-options" );
-        JsonDataIntegrityDetails details = GET( "/dataIntegrity/categories-no-options/details?timeout=1000" )
-            .content().as( JsonDataIntegrityDetails.class );
+    postDetails("categories-no-options");
+    JsonDataIntegrityDetails details =
+        GET("/dataIntegrity/categories-no-options/details?timeout=1000")
+            .content()
+            .as(JsonDataIntegrityDetails.class);
 
-        assertTrue( details.exists() );
-        assertTrue( details.isObject() );
-        JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
-        assertTrue( issues.exists() );
-        assertEquals( 1, issues.size() );
-        assertEquals( uid, issues.get( 0 ).getId() );
-        assertEquals( "CatDog", issues.get( 0 ).getName() );
-        assertEquals( "categories", details.getIssuesIdType() );
-    }
+    assertTrue(details.exists());
+    assertTrue(details.isObject());
+    JsonList<JsonDataIntegrityIssue> issues = details.getIssues();
+    assertTrue(issues.exists());
+    assertEquals(1, issues.size());
+    assertEquals(uid, issues.get(0).getId());
+    assertEquals("CatDog", issues.get(0).getName());
+    assertEquals("categories", details.getIssuesIdType());
+  }
 }

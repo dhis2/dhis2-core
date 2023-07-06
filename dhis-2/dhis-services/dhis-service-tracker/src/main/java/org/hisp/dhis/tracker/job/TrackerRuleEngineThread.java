@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.job;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
@@ -42,83 +42,74 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
-
 /**
- * Class represents a thread which will be triggered as soon as tracker rule
- * engine consumer consumes a message from tracker rule engine queue. It loops
- * through the list of rule effects and implement it if it has an associated
- * rule implementer class.
+ * Class represents a thread which will be triggered as soon as tracker rule engine consumer
+ * consumes a message from tracker rule engine queue. It loops through the list of rule effects and
+ * implement it if it has an associated rule implementer class.
  *
  * @author Zubair Asghar
  */
 @Component
-@Scope( BeanDefinition.SCOPE_PROTOTYPE )
-public class TrackerRuleEngineThread extends SecurityContextRunnable
-{
-    private final List<RuleActionImplementer> ruleActionImplementers;
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class TrackerRuleEngineThread extends SecurityContextRunnable {
+  private final List<RuleActionImplementer> ruleActionImplementers;
 
-    private final TrackerSideEffectConverterService trackerSideEffectConverterService;
+  private final TrackerSideEffectConverterService trackerSideEffectConverterService;
 
-    private final Notifier notifier;
+  private final Notifier notifier;
 
-    private TrackerSideEffectDataBundle sideEffectDataBundle;
+  private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread(
-        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" ) RuleActionImplementer sendMessageRuleActionImplementer,
-        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" ) RuleActionImplementer scheduleMessageRuleActionImplementer,
-        TrackerSideEffectConverterService trackerSideEffectConverterService,
-        Notifier notifier )
-    {
-        this.ruleActionImplementers = Lists.newArrayList( scheduleMessageRuleActionImplementer,
-            sendMessageRuleActionImplementer );
-        this.trackerSideEffectConverterService = trackerSideEffectConverterService;
-        this.notifier = notifier;
+  public TrackerRuleEngineThread(
+      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer")
+          RuleActionImplementer sendMessageRuleActionImplementer,
+      @Qualifier("org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer")
+          RuleActionImplementer scheduleMessageRuleActionImplementer,
+      TrackerSideEffectConverterService trackerSideEffectConverterService,
+      Notifier notifier) {
+    this.ruleActionImplementers =
+        Lists.newArrayList(scheduleMessageRuleActionImplementer, sendMessageRuleActionImplementer);
+    this.trackerSideEffectConverterService = trackerSideEffectConverterService;
+    this.notifier = notifier;
+  }
+
+  @Override
+  public void call() {
+    if (sideEffectDataBundle == null) {
+      return;
     }
 
-    @Override
-    public void call()
-    {
-        if ( sideEffectDataBundle == null )
-        {
-            return;
-        }
+    Map<String, List<RuleEffect>> enrollmentRuleEffects =
+        trackerSideEffectConverterService.toRuleEffects(
+            sideEffectDataBundle.getEnrollmentRuleEffects());
+    Map<String, List<RuleEffect>> eventRuleEffects =
+        trackerSideEffectConverterService.toRuleEffects(sideEffectDataBundle.getEventRuleEffects());
 
-        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerSideEffectConverterService
-            .toRuleEffects( sideEffectDataBundle.getEnrollmentRuleEffects() );
-        Map<String, List<RuleEffect>> eventRuleEffects = trackerSideEffectConverterService
-            .toRuleEffects( sideEffectDataBundle.getEventRuleEffects() );
+    for (RuleActionImplementer ruleActionImplementer : ruleActionImplementers) {
+      for (Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet()) {
+        ProgramInstance pi = sideEffectDataBundle.getProgramInstance();
+        pi.setProgram(sideEffectDataBundle.getProgram());
 
-        for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
-        {
-            for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
-            {
-                ProgramInstance pi = sideEffectDataBundle.getProgramInstance();
-                pi.setProgram( sideEffectDataBundle.getProgram() );
+        entry.getValue().stream()
+            .filter(effect -> ruleActionImplementer.accept(effect.ruleAction()))
+            .forEach(effect -> ruleActionImplementer.implement(effect, pi));
+      }
 
-                entry.getValue()
-                    .stream()
-                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implement( effect, pi ) );
-            }
+      for (Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet()) {
+        ProgramStageInstance psi = sideEffectDataBundle.getProgramStageInstance();
+        psi.getProgramStage().setProgram(sideEffectDataBundle.getProgram());
 
-            for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
-            {
-                ProgramStageInstance psi = sideEffectDataBundle.getProgramStageInstance();
-                psi.getProgramStage().setProgram( sideEffectDataBundle.getProgram() );
-
-                entry.getValue()
-                    .stream()
-                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implement( effect, psi ) );
-            }
-        }
-
-        notifier.notify( sideEffectDataBundle.getJobConfiguration(), "Tracker Rule-engine side effects completed" );
+        entry.getValue().stream()
+            .filter(effect -> ruleActionImplementer.accept(effect.ruleAction()))
+            .forEach(effect -> ruleActionImplementer.implement(effect, psi));
+      }
     }
 
-    public void setSideEffectDataBundle( TrackerSideEffectDataBundle sideEffectDataBundle )
-    {
-        this.sideEffectDataBundle = sideEffectDataBundle;
-    }
+    notifier.notify(
+        sideEffectDataBundle.getJobConfiguration(), "Tracker Rule-engine side effects completed");
+  }
+
+  public void setSideEffectDataBundle(TrackerSideEffectDataBundle sideEffectDataBundle) {
+    this.sideEffectDataBundle = sideEffectDataBundle;
+  }
 }

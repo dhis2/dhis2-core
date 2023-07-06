@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.apphub;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import java.util.regex.Pattern;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -36,78 +37,64 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-
 /**
  * @author Lars Helge Overland
  */
-public class AppHubUtils
-{
-    private static final ImmutableSet<String> ILLEGAL_QUERY_STRINGS = ImmutableSet
-        .of( "..", "//", "http://", "https://", "file://" );
+public class AppHubUtils {
+  private static final ImmutableSet<String> ILLEGAL_QUERY_STRINGS =
+      ImmutableSet.of("..", "//", "http://", "https://", "file://");
 
-    private static final Pattern API_VERSION_PATTERN = Pattern.compile( "v\\d+" );
+  private static final Pattern API_VERSION_PATTERN = Pattern.compile("v\\d+");
 
-    /**
-     * Validates the path and query segment. Checks whether the query is null or
-     * contains illegal strings.
-     *
-     * @param query the query.
-     * @throws IllegalQueryException if the query is invalid.
-     */
-    public static void validateQuery( String query )
-        throws IllegalQueryException
-    {
-        if ( query == null || query.isEmpty() )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1000 ) );
-        }
-
-        if ( ILLEGAL_QUERY_STRINGS.stream().anyMatch( query::contains ) )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1001 ) );
-        }
+  /**
+   * Validates the path and query segment. Checks whether the query is null or contains illegal
+   * strings.
+   *
+   * @param query the query.
+   * @throws IllegalQueryException if the query is invalid.
+   */
+  public static void validateQuery(String query) throws IllegalQueryException {
+    if (query == null || query.isEmpty()) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1000));
     }
 
-    /**
-     * Validate the API version. Must start with {@code v} followed by an
-     * integer.
-     *
-     * @param apiVersion the API version string.
-     * @throws IllegalQueryException if the API version is invalid.
-     */
-    public static void validateApiVersion( String apiVersion )
-        throws IllegalQueryException
-    {
-        if ( !API_VERSION_PATTERN.matcher( apiVersion ).matches() )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1002 ) );
-        }
+    if (ILLEGAL_QUERY_STRINGS.stream().anyMatch(query::contains)) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1001));
     }
+  }
 
-    /**
-     * Sanitizes the query. Removes leading forward slashes.
-     *
-     * @param query the query.
-     * @return the sanitized query.
-     */
-    public static String sanitizeQuery( String query )
-    {
-        query = query.replaceFirst( "^/*", "" );
-        return query;
+  /**
+   * Validate the API version. Must start with {@code v} followed by an integer.
+   *
+   * @param apiVersion the API version string.
+   * @throws IllegalQueryException if the API version is invalid.
+   */
+  public static void validateApiVersion(String apiVersion) throws IllegalQueryException {
+    if (!API_VERSION_PATTERN.matcher(apiVersion).matches()) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1002));
     }
+  }
 
-    /**
-     * Returns an {@link HttpEntity} with {@link HttpHeaders} set to accept a
-     * {@code application/json} response.
-     *
-     * @return a {@link HttpEntity}.
-     */
-    public static <T> HttpEntity<T> getJsonRequestEntity()
-    {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept( Lists.newArrayList( MediaType.APPLICATION_JSON ) );
-        return new HttpEntity<T>( headers );
-    }
+  /**
+   * Sanitizes the query. Removes leading forward slashes.
+   *
+   * @param query the query.
+   * @return the sanitized query.
+   */
+  public static String sanitizeQuery(String query) {
+    query = query.replaceFirst("^/*", "");
+    return query;
+  }
+
+  /**
+   * Returns an {@link HttpEntity} with {@link HttpHeaders} set to accept a {@code application/json}
+   * response.
+   *
+   * @return a {@link HttpEntity}.
+   */
+  public static <T> HttpEntity<T> getJsonRequestEntity() {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Lists.newArrayList(MediaType.APPLICATION_JSON));
+    return new HttpEntity<T>(headers);
+  }
 }

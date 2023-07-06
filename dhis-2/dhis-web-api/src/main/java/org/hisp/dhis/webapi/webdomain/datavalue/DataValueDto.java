@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents a data value.
@@ -44,58 +42,42 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class DataValueDto
-{
-    @JsonProperty
-    private String dataElement;
+public class DataValueDto {
+  @JsonProperty private String dataElement;
 
-    @JsonProperty
-    private String period;
+  @JsonProperty private String period;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String categoryOptionCombo;
+  @JsonProperty private String categoryOptionCombo;
 
-    @JsonProperty
-    private DataValueCategoryDto attribute;
+  @JsonProperty private DataValueCategoryDto attribute;
 
-    @JsonProperty
-    private String dataSet;
+  @JsonProperty private String dataSet;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 
-    @JsonProperty
-    private String comment;
+  @JsonProperty private String comment;
 
-    @JsonProperty
-    private Boolean followUp;
+  @JsonProperty private Boolean followUp;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private Date created;
+  @JsonProperty private Date created;
 
-    @JsonProperty
-    private Date lastUpdated;
+  @JsonProperty private Date lastUpdated;
 
-    @JsonProperty
-    private Boolean force;
+  @JsonProperty private Boolean force;
 
-    @JsonIgnore
-    public boolean isFollowUp()
-    {
-        return followUp != null && followUp;
-    }
+  @JsonIgnore
+  public boolean isFollowUp() {
+    return followUp != null && followUp;
+  }
 
-    @JsonIgnore
-    public boolean isForce()
-    {
-        return force != null && force;
-    }
+  @JsonIgnore
+  public boolean isForce() {
+    return force != null && force;
+  }
 }

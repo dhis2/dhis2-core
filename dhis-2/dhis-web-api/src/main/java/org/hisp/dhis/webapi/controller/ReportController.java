@@ -33,14 +33,11 @@ import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;
-
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -72,177 +69,207 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = ReportSchemaDescriptor.API_ENDPOINT )
-public class ReportController
-    extends AbstractCrudController<Report>
-{
-    @Autowired
-    public ReportService reportService;
+@RequestMapping(value = ReportSchemaDescriptor.API_ENDPOINT)
+public class ReportController extends AbstractCrudController<Report> {
+  @Autowired public ReportService reportService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    // -------------------------------------------------------------------------
-    // CRUD
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // CRUD
+  // -------------------------------------------------------------------------
 
-    @PutMapping( "/{uid}/design" )
-    @PreAuthorize( "hasRole('ALL')" )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void updateReportDesign( @PathVariable( "uid" ) String uid,
-        @RequestBody String designContent,
-        HttpServletResponse response )
-        throws Exception
-    {
-        Report report = reportService.getReport( uid );
+  @PutMapping("/{uid}/design")
+  @PreAuthorize("hasRole('ALL')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void updateReportDesign(
+      @PathVariable("uid") String uid,
+      @RequestBody String designContent,
+      HttpServletResponse response)
+      throws Exception {
+    Report report = reportService.getReport(uid);
 
-        if ( report == null )
-        {
-            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
-        }
-
-        report.setDesignContent( designContent );
-        reportService.saveReport( report );
+    if (report == null) {
+      throw new WebMessageException(notFound("Report not found for identifier: " + uid));
     }
 
-    @GetMapping( "/{uid}/design" )
-    public void getReportDesign( @PathVariable( "uid" ) String uid, HttpServletResponse response )
-        throws Exception
-    {
-        Report report = reportService.getReport( uid );
+    report.setDesignContent(designContent);
+    reportService.saveReport(report);
+  }
 
-        if ( report == null )
-        {
-            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
-        }
+  @GetMapping("/{uid}/design")
+  public void getReportDesign(@PathVariable("uid") String uid, HttpServletResponse response)
+      throws Exception {
+    Report report = reportService.getReport(uid);
 
-        if ( report.getDesignContent() == null )
-        {
-            throw new WebMessageException( conflict( "Report has no design content: " + uid ) );
-        }
-
-        if ( report.isTypeHtml() )
-        {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE,
-                filenameEncode( report.getName() ) + ".html", true );
-        }
-        else
-        {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE,
-                filenameEncode( report.getName() ) + ".jrxml", true );
-        }
-
-        response.getWriter().write( report.getDesignContent() );
+    if (report == null) {
+      throw new WebMessageException(notFound("Report not found for identifier: " + uid));
     }
 
-    // -------------------------------------------------------------------------
-    // Get data
-    // -------------------------------------------------------------------------
-
-    @GetMapping( value = { "/{uid}/data", "/{uid}/data.pdf" } )
-    public void getReportAsPdf( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
-        @RequestParam( value = "pe", required = false ) String period,
-        @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        getReport( request, response, uid, organisationUnitUid, period, date, "pdf", ContextUtils.CONTENT_TYPE_PDF,
-            false );
+    if (report.getDesignContent() == null) {
+      throw new WebMessageException(conflict("Report has no design content: " + uid));
     }
 
-    @GetMapping( "/{uid}/data.xls" )
-    public void getReportAsXls( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
-        @RequestParam( value = "pe", required = false ) String period,
-        @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        getReport( request, response, uid, organisationUnitUid, period, date, "xls", ContextUtils.CONTENT_TYPE_EXCEL,
-            true );
+    if (report.isTypeHtml()) {
+      contextUtils.configureResponse(
+          response,
+          ContextUtils.CONTENT_TYPE_HTML,
+          CacheStrategy.NO_CACHE,
+          filenameEncode(report.getName()) + ".html",
+          true);
+    } else {
+      contextUtils.configureResponse(
+          response,
+          ContextUtils.CONTENT_TYPE_XML,
+          CacheStrategy.NO_CACHE,
+          filenameEncode(report.getName()) + ".jrxml",
+          true);
     }
 
-    @GetMapping( "/{uid}/data.html" )
-    public void getReportAsHtml( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String organisationUnitUid,
-        @RequestParam( value = "pe", required = false ) String period,
-        @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        getReport( request, response, uid, organisationUnitUid, period, date, "html", ContextUtils.CONTENT_TYPE_HTML,
-            false );
+    response.getWriter().write(report.getDesignContent());
+  }
+
+  // -------------------------------------------------------------------------
+  // Get data
+  // -------------------------------------------------------------------------
+
+  @GetMapping(value = {"/{uid}/data", "/{uid}/data.pdf"})
+  public void getReportAsPdf(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String organisationUnitUid,
+      @RequestParam(value = "pe", required = false) String period,
+      @RequestParam(value = "date", required = false) Date date,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    getReport(
+        request,
+        response,
+        uid,
+        organisationUnitUid,
+        period,
+        date,
+        "pdf",
+        ContextUtils.CONTENT_TYPE_PDF,
+        false);
+  }
+
+  @GetMapping("/{uid}/data.xls")
+  public void getReportAsXls(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String organisationUnitUid,
+      @RequestParam(value = "pe", required = false) String period,
+      @RequestParam(value = "date", required = false) Date date,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    getReport(
+        request,
+        response,
+        uid,
+        organisationUnitUid,
+        period,
+        date,
+        "xls",
+        ContextUtils.CONTENT_TYPE_EXCEL,
+        true);
+  }
+
+  @GetMapping("/{uid}/data.html")
+  public void getReportAsHtml(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "ou", required = false) String organisationUnitUid,
+      @RequestParam(value = "pe", required = false) String period,
+      @RequestParam(value = "date", required = false) Date date,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws Exception {
+    getReport(
+        request,
+        response,
+        uid,
+        organisationUnitUid,
+        period,
+        date,
+        "html",
+        ContextUtils.CONTENT_TYPE_HTML,
+        false);
+  }
+
+  // -------------------------------------------------------------------------
+  // Images
+  // -------------------------------------------------------------------------
+
+  /**
+   * This methods wraps the Jasper image servlet to avoid having a separate servlet mapping around.
+   * Note that the path to images are relative to the reports path in this controller.
+   */
+  @GetMapping("/jasperReports/img")
+  public void getJasperImage(
+      @RequestParam String image, HttpServletRequest request, HttpServletResponse response)
+      throws Exception {
+    new ImageServlet().service(request, response);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private void getReport(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      String uid,
+      String organisationUnitUid,
+      String isoPeriod,
+      Date date,
+      String type,
+      String contentType,
+      boolean attachment)
+      throws Exception {
+    Report report = reportService.getReport(uid);
+
+    if (report == null) {
+      throw new WebMessageException(notFound("Report not found for identifier: " + uid));
     }
 
-    // -------------------------------------------------------------------------
-    // Images
-    // -------------------------------------------------------------------------
+    if (organisationUnitUid == null
+        && report.hasVisualization()
+        && report.getVisualization().hasReportingParams()
+        && report.getVisualization().getReportingParams().isOrganisationUnitSet()) {
+      List<OrganisationUnit> rootUnits = organisationUnitService.getRootOrganisationUnits();
 
-    /**
-     * This methods wraps the Jasper image servlet to avoid having a separate
-     * servlet mapping around. Note that the path to images are relative to the
-     * reports path in this controller.
-     */
-    @GetMapping( "/jasperReports/img" )
-    public void getJasperImage( @RequestParam String image,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        new ImageServlet().service( request, response );
+      organisationUnitUid = !rootUnits.isEmpty() ? rootUnits.get(0).getUid() : null;
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    if (report.isTypeHtml()) {
+      contextUtils.configureResponse(
+          response, ContextUtils.CONTENT_TYPE_HTML, report.getCacheStrategy());
 
-    private void getReport( HttpServletRequest request, HttpServletResponse response, String uid,
-        String organisationUnitUid, String isoPeriod,
-        Date date, String type, String contentType, boolean attachment )
-        throws Exception
-    {
-        Report report = reportService.getReport( uid );
+      reportService.renderHtmlReport(response.getWriter(), uid, date, organisationUnitUid);
+    } else {
+      date = date != null ? date : new DateTime().minusMonths(1).toDate();
 
-        if ( report == null )
-        {
-            throw new WebMessageException( notFound( "Report not found for identifier: " + uid ) );
-        }
+      Period period =
+          isoPeriod != null
+              ? PeriodType.getPeriodFromIsoString(isoPeriod)
+              : new MonthlyPeriodType().createPeriod(date);
 
-        if ( organisationUnitUid == null && report.hasVisualization() && report.getVisualization().hasReportingParams()
-            && report.getVisualization().getReportingParams().isOrganisationUnitSet() )
-        {
-            List<OrganisationUnit> rootUnits = organisationUnitService.getRootOrganisationUnits();
+      String filename = CodecUtils.filenameEncode(report.getName()) + "." + type;
 
-            organisationUnitUid = !rootUnits.isEmpty() ? rootUnits.get( 0 ).getUid() : null;
-        }
+      contextUtils.configureResponse(
+          response, contentType, report.getCacheStrategy(), filename, attachment);
 
-        if ( report.isTypeHtml() )
-        {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, report.getCacheStrategy() );
+      JasperPrint print =
+          reportService.renderReport(
+              response.getOutputStream(), uid, period, organisationUnitUid, type);
 
-            reportService.renderHtmlReport( response.getWriter(), uid, date, organisationUnitUid );
-        }
-        else
-        {
-            date = date != null ? date : new DateTime().minusMonths( 1 ).toDate();
-
-            Period period = isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod )
-                : new MonthlyPeriodType().createPeriod( date );
-
-            String filename = CodecUtils.filenameEncode( report.getName() ) + "." + type;
-
-            contextUtils.configureResponse( response, contentType, report.getCacheStrategy(), filename, attachment );
-
-            JasperPrint print = reportService.renderReport( response.getOutputStream(), uid, period,
-                organisationUnitUid, type );
-
-            if ( ReportType.HTML.name().equalsIgnoreCase( type ) )
-            {
-                request.getSession().setAttribute( BaseHttpServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE, print );
-            }
-        }
+      if (ReportType.HTML.name().equalsIgnoreCase(type)) {
+        request
+            .getSession()
+            .setAttribute(BaseHttpServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE, print);
+      }
     }
+  }
 }

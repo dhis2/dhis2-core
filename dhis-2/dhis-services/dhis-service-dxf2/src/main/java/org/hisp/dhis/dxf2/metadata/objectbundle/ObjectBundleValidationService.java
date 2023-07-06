@@ -32,12 +32,11 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface ObjectBundleValidationService
-{
-    /**
-     * Validate object bundle
-     *
-     * @param bundle Bundle to validate
-     */
-    ObjectBundleValidationReport validate( ObjectBundle bundle );
+public interface ObjectBundleValidationService {
+  /**
+   * Validate object bundle
+   *
+   * @param bundle Bundle to validate
+   */
+  ObjectBundleValidationReport validate(ObjectBundle bundle);
 }

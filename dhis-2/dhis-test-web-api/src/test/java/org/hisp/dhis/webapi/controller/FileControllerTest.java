@@ -39,22 +39,27 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class FileControllerTest extends DhisControllerConvenienceTest
-{
+class FileControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPostCustomScript()
-    {
-        assertWebMessage( "OK", 200, "OK", "Custom script created",
-            POST( "/files/script", Body( "var i = 1;" ), ContentType( "application/javascript" ) )
-                .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostCustomScript() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Custom script created",
+        POST("/files/script", Body("var i = 1;"), ContentType("application/javascript"))
+            .content(HttpStatus.OK));
+  }
 
-    @Test
-    void testPostCustomStyle()
-    {
-        assertWebMessage( "OK", 200, "OK", "Custom style created",
-            POST( "/files/style", Body( "body { width: 100%; }" ), ContentType( "text/css" ) )
-                .content( HttpStatus.OK ) );
-    }
+  @Test
+  void testPostCustomStyle() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Custom style created",
+        POST("/files/style", Body("body { width: 100%; }"), ContentType("text/css"))
+            .content(HttpStatus.OK));
+  }
 }

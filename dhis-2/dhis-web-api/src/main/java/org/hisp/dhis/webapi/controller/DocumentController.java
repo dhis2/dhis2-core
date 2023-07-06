@@ -32,11 +32,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
@@ -63,77 +60,66 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @Slf4j
-@RequestMapping( value = DocumentSchemaDescriptor.API_ENDPOINT )
-public class DocumentController
-    extends AbstractCrudController<Document>
-{
+@RequestMapping(value = DocumentSchemaDescriptor.API_ENDPOINT)
+public class DocumentController extends AbstractCrudController<Document> {
 
-    @Autowired
-    private DocumentService documentService;
+  @Autowired private DocumentService documentService;
 
-    @Autowired
-    private LocationManager locationManager;
+  @Autowired private LocationManager locationManager;
 
-    @Autowired
-    private FileResourceService fileResourceService;
+  @Autowired private FileResourceService fileResourceService;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
+  @Autowired private DhisConfigurationProvider dhisConfig;
 
-    @GetMapping( "/{uid}/data" )
-    public void getDocumentContent( @PathVariable( "uid" ) String uid, HttpServletResponse response )
-        throws Exception
-    {
-        Document document = documentService.getDocument( uid );
+  @GetMapping("/{uid}/data")
+  public void getDocumentContent(@PathVariable("uid") String uid, HttpServletResponse response)
+      throws Exception {
+    Document document = documentService.getDocument(uid);
 
-        if ( document == null )
-        {
-            throw new WebMessageException( notFound( "Document not found for uid: " + uid ) );
-        }
-
-        if ( document.isExternal() )
-        {
-            response.sendRedirect( response.encodeRedirectURL( document.getUrl() ) );
-        }
-        else if ( document.getFileResource() != null )
-        {
-            FileResource fileResource = document.getFileResource();
-
-            response.setContentType( fileResource.getContentType() );
-            response.setContentLengthLong( fileResource.getContentLength() );
-            response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
-            HeaderUtils.setSecurityHeaders( response, dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-
-            try
-            {
-                fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
-            }
-            catch ( IOException e )
-            {
-                throw new WebMessageException( error( "Failed fetching the file from storage",
-                    "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
-            }
-        }
-        else
-        {
-            contextUtils.configureResponse( response, document.getContentType(), CacheStrategy.CACHE_TWO_WEEKS,
-                document.getUrl(),
-                document.getAttachment() == null ? false : document.getAttachment() );
-
-            try ( InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ) )
-            {
-                IOUtils.copy( in, response.getOutputStream() );
-            }
-            catch ( IOException e )
-            {
-                log.error( "Could not retrieve file.", e );
-                throw new WebMessageException( error( "Failed fetching the file from storage",
-                    "There was an exception when trying to fetch the file from the storage backend. " +
-                        "Depending on the provider the root cause could be network or file system related." ) );
-            }
-        }
+    if (document == null) {
+      throw new WebMessageException(notFound("Document not found for uid: " + uid));
     }
+
+    if (document.isExternal()) {
+      response.sendRedirect(response.encodeRedirectURL(document.getUrl()));
+    } else if (document.getFileResource() != null) {
+      FileResource fileResource = document.getFileResource();
+
+      response.setContentType(fileResource.getContentType());
+      response.setContentLengthLong(fileResource.getContentLength());
+      response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
+      HeaderUtils.setSecurityHeaders(
+          response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
+
+      try {
+        fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
+      } catch (IOException e) {
+        throw new WebMessageException(
+            error(
+                "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related"));
+      }
+    } else {
+      contextUtils.configureResponse(
+          response,
+          document.getContentType(),
+          CacheStrategy.CACHE_TWO_WEEKS,
+          document.getUrl(),
+          document.getAttachment() == null ? false : document.getAttachment());
+
+      try (InputStream in =
+          locationManager.getInputStream(document.getUrl(), DocumentService.DIR)) {
+        IOUtils.copy(in, response.getOutputStream());
+      } catch (IOException e) {
+        log.error("Could not retrieve file.", e);
+        throw new WebMessageException(
+            error(
+                "Failed fetching the file from storage",
+                "There was an exception when trying to fetch the file from the storage backend. "
+                    + "Depending on the provider the root cause could be network or file system related."));
+      }
+    }
+  }
 }

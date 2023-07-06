@@ -32,7 +32,6 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public interface TrackerImporter
-{
-    TrackerImportReport importTracker( TrackerImportRequest trackerImportRequest );
+public interface TrackerImporter {
+  TrackerImportReport importTracker(TrackerImportRequest trackerImportRequest);
 }
