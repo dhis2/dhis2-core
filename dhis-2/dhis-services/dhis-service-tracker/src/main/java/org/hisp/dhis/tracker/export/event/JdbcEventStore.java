@@ -547,7 +547,7 @@ public class JdbcEventStore implements EventStore {
     MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
 
     if (params.hasFilters()) {
-      sql = buildGridSql(user, params, mapSqlParameterSource);
+      sql = buildGridSql(params, mapSqlParameterSource);
     } else {
       sql = getEventSelectQuery(params, mapSqlParameterSource, user);
     }
@@ -564,7 +564,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String buildGridSql(
-      User user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
+      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
     SqlHelper hlp = new SqlHelper();
 
     StringBuilder selectBuilder =
@@ -576,13 +576,7 @@ public class JdbcEventStore implements EventStore {
                     .collect(Collectors.joining(", ")));
 
     return selectBuilder
-        .append(
-            getFromWhereClause(
-                user,
-                params,
-                dataElementAndFiltersSql(params, mapSqlParameterSource, hlp, selectBuilder),
-                mapSqlParameterSource,
-                hlp))
+        .append(getFromWhereClause(params, mapSqlParameterSource, hlp))
         .append(getGridOrderQuery(params))
         .append(getEventPagingQuery(params))
         .toString();
@@ -1174,11 +1168,7 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getFromWhereClause(
-      User user,
-      EventSearchParams params,
-      StringBuilder dataElementAndFiltersSql,
-      MapSqlParameterSource mapSqlParameterSource,
-      SqlHelper hlp) {
+      EventSearchParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
     StringBuilder sqlBuilder =
         new StringBuilder()
             .append(
