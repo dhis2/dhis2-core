@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.appmanager.AndroidSettingApp.AUTHORITY;
-import static org.hisp.dhis.appmanager.AndroidSettingApp.NAMESPACE;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.AUTHORITY;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.NAMESPACE;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
