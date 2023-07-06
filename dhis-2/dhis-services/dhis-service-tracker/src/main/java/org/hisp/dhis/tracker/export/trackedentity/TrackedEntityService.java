@@ -28,10 +28,10 @@
 package org.hisp.dhis.tracker.export.trackedentity;
 
 import java.util.List;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 
 public interface TrackedEntityService {
   TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params)
@@ -46,17 +46,16 @@ public interface TrackedEntityService {
   /**
    * Fetches {@see TrackedEntity}s based on the specified parameters.
    *
-   * @param queryParams a {@see TrackedEntityQueryParams} instance with the query parameters
-   * @param params a {@see TrackedEntityParams} instance containing the directives for how much data
-   *     should be fetched (e.g. Enrollments, Events, Relationships)
+   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
+   *     parameters
    * @return {@see TrackedEntity}s
    */
-  List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams queryParams, TrackedEntityParams params)
-      throws ForbiddenException, NotFoundException;
+  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, NotFoundException, BadRequestException;
 
   int getTrackedEntityCount(
-      TrackedEntityQueryParams params,
+      TrackedEntityOperationParams operationParams,
       boolean skipAccessValidation,
-      boolean skipSearchScopeValidation);
+      boolean skipSearchScopeValidation)
+      throws ForbiddenException, BadRequestException;
 }
