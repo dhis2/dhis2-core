@@ -86,7 +86,6 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -1029,25 +1028,12 @@ public class JdbcEventStore implements EventStore {
   }
 
   private String getOrgUnitSql(EventSearchParams params, String ouTable) {
-    OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
-
-    if (orgUnitSelectionMode == null) {
-      if (params.getOrgUnit() != null) {
-        return getSelectedOrgUnitPath(params.getOrgUnit(), ouTable);
-      }
-
-      return getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
-    }
-
-    if (params.isOrganisationUnitMode(OrganisationUnitSelectionMode.SELECTED)) {
-      return getSelectedOrgUnitPath(params.getOrgUnit(), ouTable);
-    } else if (params.isOrganisationUnitMode(CHILDREN)) {
-      return getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
-    } else if (!params.isOrganisationUnitMode(ALL)) {
-      return getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
-    }
-
-    return null;
+    return switch (params.getOrgUnitSelectionMode()) {
+      case SELECTED -> getSelectedOrgUnitPath(params.getAccessibleOrgUnits(), ouTable);
+      case CHILDREN -> getChildrenOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+      case ALL -> null;
+      default -> getOrgUnitsPath(params.getAccessibleOrgUnits(), ouTable);
+    };
   }
 
   /**
@@ -1617,8 +1603,10 @@ public class JdbcEventStore implements EventStore {
     return orgUnitSqlJoiner.toString();
   }
 
-  private String getSelectedOrgUnitPath(OrganisationUnit orgUnit, String ouTable) {
-    return ouTable + "." + PATH_EQ + " '" + orgUnit.getPath() + "' ";
+  private String getSelectedOrgUnitPath(List<OrganisationUnit> orgUnits, String ouTable) {
+    return orgUnits.isEmpty()
+        ? null
+        : ouTable + "." + PATH_EQ + " '" + orgUnits.get(0).getPath() + "' ";
   }
 
   private String getOrgUnitsPath(List<OrganisationUnit> orgUnits, String ouTable) {

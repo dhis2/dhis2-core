@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
@@ -168,7 +170,7 @@ public class EventOperationParamsMapper {
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitSelectionMode(operationParams.getOrgUnitSelectionMode())
+        .setOrgUnitSelectionMode(getOrgUnitMode(orgUnit, operationParams.getOrgUnitSelectionMode()))
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -289,15 +291,13 @@ public class EventOperationParamsMapper {
       OrganisationUnit orgUnit,
       OrganisationUnitSelectionMode orgUnitMode,
       Function<String, List<OrganisationUnit>> orgUnitDescendants) {
+
     if (orgUnitMode == null) {
       if (orgUnit != null) {
-        return trackerAccessManager.canAccess(user, program, orgUnit)
-            ? List.of(orgUnit)
-            : Collections.emptyList();
+        return getSelectedOrgUnits(user, program, orgUnit);
       }
-      return isProgramAccessRestricted(program)
-          ? user.getOrganisationUnits().stream().toList().stream().toList()
-          : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
+
+      return getAccessibleOrgUnits(user, program);
     }
 
     return switch (orgUnitMode) {
@@ -305,17 +305,29 @@ public class EventOperationParamsMapper {
           ? getAccessibleDescendants(orgUnitDescendants.apply(orgUnit.getUid()), program, user)
           : Collections.emptyList();
       case CHILDREN -> orgUnit != null
-          ? getAccessibleDescendants(orgUnit.getChildren().stream().toList(), program, user)
+          ? getAccessibleDescendants(
+              Stream.concat(Stream.of(orgUnit), orgUnit.getChildren().stream()).toList(),
+              program,
+              user)
           : Collections.emptyList();
       case CAPTURE -> user.getOrganisationUnits().stream().toList();
-      case ACCESSIBLE -> isProgramAccessRestricted(program)
-          ? user.getOrganisationUnits().stream().toList().stream().toList()
-          : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
-      case SELECTED -> trackerAccessManager.canAccess(user, program, orgUnit)
-          ? List.of(orgUnit)
-          : Collections.emptyList();
+      case ACCESSIBLE -> getAccessibleOrgUnits(user, program);
+      case SELECTED -> getSelectedOrgUnits(user, program, orgUnit);
       default -> Collections.emptyList();
     };
+  }
+
+  private List<OrganisationUnit> getSelectedOrgUnits(
+      User user, Program program, OrganisationUnit orgUnit) {
+    return trackerAccessManager.canAccess(user, program, orgUnit)
+        ? List.of(orgUnit)
+        : Collections.emptyList();
+  }
+
+  private List<OrganisationUnit> getAccessibleOrgUnits(User user, Program program) {
+    return isProgramAccessRestricted(program)
+        ? user.getOrganisationUnits().stream().toList().stream().toList()
+        : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
   }
 
   /**
@@ -549,5 +561,21 @@ public class EventOperationParamsMapper {
     }
 
     return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
+  }
+
+  /**
+   * Returns the same org unit mode if not null. If null, and an org unit is present, SELECT mode is
+   * used by default, mode ACCESSIBLE is used otherwise.
+   *
+   * @param orgUnit
+   * @param orgUnitMode
+   * @return an org unit mode given the two input params
+   */
+  private OrganisationUnitSelectionMode getOrgUnitMode(
+      OrganisationUnit orgUnit, OrganisationUnitSelectionMode orgUnitMode) {
+    if (orgUnitMode == null) {
+      return orgUnit != null ? SELECTED : ACCESSIBLE;
+    }
+    return orgUnitMode;
   }
 }

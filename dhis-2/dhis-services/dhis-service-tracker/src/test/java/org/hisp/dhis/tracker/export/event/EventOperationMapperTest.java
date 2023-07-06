@@ -819,6 +819,53 @@ class EventOperationMapperTest {
     assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
   }
 
+  @Test
+  void shouldMapRequestedOrgUnitAsSelectedWhenOrgUnitProvidedAndNoOrgUnitModeProvided()
+      throws ForbiddenException, BadRequestException {
+    Program program = new Program();
+    program.setUid(PROGRAM_UID);
+    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
+    User user = new User();
+    user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
+
+    when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
+    when(aclService.canDataRead(user, program)).thenReturn(true);
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+    when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
+    when(trackerAccessManager.canAccess(user, program, orgUnit)).thenReturn(true);
+
+    EventOperationParams requestParams =
+        EventOperationParams.builder()
+            .programUid(program.getUid())
+            .orgUnitUid(orgUnit.getUid())
+            .build();
+
+    EventSearchParams searchParams = mapper.map(requestParams);
+
+    assertEquals(SELECTED, searchParams.getOrgUnitSelectionMode());
+    assertContainsOnly(List.of(orgUnit), searchParams.getAccessibleOrgUnits());
+  }
+
+  @Test
+  void shouldMapRequestedOrgUnitAsAccessibleWhenNoOrgUnitProvidedAndNoOrgUnitModeProvided()
+      throws ForbiddenException, BadRequestException {
+    Program program = new Program();
+    program.setAccessLevel(OPEN);
+    OrganisationUnit searchScopeOrgUnit = createOrgUnit("searchScopeOrgUnit", "uid4");
+    User user = new User();
+    user.setOrganisationUnits(Set.of(searchScopeOrgUnit));
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    EventOperationParams requestParams =
+        EventOperationParams.builder().programUid(program.getUid()).build();
+
+    EventSearchParams searchParams = mapper.map(requestParams);
+
+    assertEquals(ACCESSIBLE, searchParams.getOrgUnitSelectionMode());
+    assertContainsOnly(List.of(searchScopeOrgUnit), searchParams.getAccessibleOrgUnits());
+  }
+
   private OrganisationUnit createOrgUnit(String name, String uid) {
     OrganisationUnit orgUnit = new OrganisationUnit(name);
     orgUnit.setUid(uid);

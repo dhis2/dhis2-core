@@ -186,14 +186,9 @@ class AclEventExporterTest extends TrackerTest {
     assertFalse(
         events.isEmpty(),
         "Expected to find events when no program specified, ou mode children and org units in search scope");
-    events.forEach(
-        e ->
-            assertEquals(
-                "uoNW0E3xXUy",
-                e.getOrganisationUnit().getUid(),
-                "Expected to find children org unit uoNW0E3xXUy, but found "
-                    + e.getOrganisationUnit().getUid()
-                    + " instead"));
+    assertContainsOnly(
+        events.stream().map(e -> e.getOrganisationUnit().getUid()).toList(),
+        List.of("uoNW0E3xXUy", "h4w96yEMlzO"));
   }
 
   @Test
