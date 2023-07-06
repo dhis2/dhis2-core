@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.lang.Integer.parseInt;
 import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -38,6 +39,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -165,11 +168,7 @@ public final class GistQuery {
   }
 
   public boolean hasFilterGroups() {
-    if (filters.size() <= 1) {
-      return false;
-    }
-    int group0 = filters.get(0).group;
-    return filters.stream().anyMatch(f -> f.group != group0);
+    return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
   }
 
   public GistQuery with(NamedParams params) {
@@ -478,33 +477,31 @@ public final class GistQuery {
           : new Filter(group, propertyPath, operator, value, attribute);
     }
 
+    /**
+     * Expression syntax is (with : being any of the allowed delimiters)
+     *
+     * <pre>
+     *   [group : ] name : op [ : value ]
+     * </pre>
+     */
+    private static final Pattern FILTER_SPLIT =
+        Pattern.compile("(?:(\\d+)[:~@]{1,2})?([^:~@]+)[:~@]{1,2}([^:~@]+)(?:[:~@]{1,2}(.*))?");
+
     public static Filter parse(String filter) {
-      String[] parts = filter.split("(?:::|:|~|@)");
-      int group = 0;
-      int nameIndex = 0;
-      int opIndex = 1;
-      int valueIndex = 2;
-      if (parts[0].matches("[0-9]")) {
-        nameIndex++;
-        opIndex++;
-        valueIndex++;
-        group = Integer.parseInt(parts[0]);
-      }
-      if (parts.length == valueIndex) {
-        return new Filter(parts[nameIndex], Comparison.parse(parts[opIndex])).inGroup(group);
-      }
-      if (parts.length == valueIndex + 1) {
-        String value = parts[valueIndex];
-        if (value.startsWith("[") && value.endsWith("]")) {
-          return new Filter(
-                  parts[nameIndex],
-                  Comparison.parse(parts[opIndex]),
-                  value.substring(1, value.length() - 1).split(","))
-              .inGroup(group);
-        }
-        return new Filter(parts[nameIndex], Comparison.parse(parts[opIndex]), value).inGroup(group);
-      }
-      throw new IllegalArgumentException("Not a valid filter expression: " + filter);
+      Matcher m = FILTER_SPLIT.matcher(filter);
+      if (!m.matches())
+        throw new IllegalArgumentException("Not a valid filter expression: " + filter);
+      String group = m.group(1);
+      if (group == null || group.isEmpty()) group = "-1";
+      String name = m.group(2);
+      String op = m.group(3);
+      String value = m.group(4);
+      if (value == null || value.isEmpty())
+        return new Filter(name, Comparison.parse(op)).inGroup(parseInt(group));
+      if (!value.startsWith("[") || !value.endsWith("]"))
+        return new Filter(name, Comparison.parse(op), value).inGroup(parseInt(group));
+      String[] values = value.substring(1, value.length() - 1).split(",");
+      return new Filter(name, Comparison.parse(op), values).inGroup(parseInt(group));
     }
 
     @Override
