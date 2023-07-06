@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.hisp.dhis</groupId>
@@ -11,6 +10,9 @@
   <artifactId>dhis-web-commons</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Common Functionality for Web</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -54,7 +56,7 @@
     </dependency>
 
     <!-- Web -->
-    
+
     <dependency>
       <groupId>org.apache.struts</groupId>
       <artifactId>struts2-core</artifactId>
@@ -181,14 +183,11 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
-    <!-- Test -->    
+    <!-- Test -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>
