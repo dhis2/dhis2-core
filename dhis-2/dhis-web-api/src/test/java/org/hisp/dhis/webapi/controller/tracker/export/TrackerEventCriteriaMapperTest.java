@@ -521,8 +521,8 @@ class TrackerEventCriteriaMapperTest
     void testMutualExclusionOfEventsAndFilter()
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
-        criteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
+        criteria.setFilter( DE_1_UID + ":ge:1:le:2" );
+        criteria.setEvent( DE_1_UID + ";" + DE_2_UID );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
@@ -591,7 +591,7 @@ class TrackerEventCriteriaMapperTest
         ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilter( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) );
+        criteria.setFilter( DE_1_UID + ":eq:2" + "," + DE_2_UID + ":like:foo" );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -624,9 +624,8 @@ class TrackerEventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
+        criteria.setFilterAttributes( TEA_1_UID + ":eq:2" + "," + TEA_2_UID + ":like:foo" );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -660,7 +659,7 @@ class TrackerEventCriteriaMapperTest
         ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilter( Set.of( DE_1_UID + ":gt:10:lt:20" ) );
+        criteria.setFilter( DE_1_UID + ":gt:10:lt:20" );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -685,7 +684,7 @@ class TrackerEventCriteriaMapperTest
         ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
+        criteria.setFilterAttributes( TEA_1_UID + ":gt:10:lt:20" );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -709,7 +708,7 @@ class TrackerEventCriteriaMapperTest
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         String filterName = "filter";
-        criteria.setFilter( Set.of( filterName ) );
+        criteria.setFilter( filterName );
         when( dataElementService.getDataElement( filterName ) ).thenReturn( null );
 
         Exception exception = assertThrows( BadRequestException.class,
@@ -723,7 +722,7 @@ class TrackerEventCriteriaMapperTest
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setFilterAttributes(
-            Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
+            "TvjwTPToKHO:lt:20" + "," + "cy2oRh2sNr6:lt:20" + "," + "TvjwTPToKHO:gt:30" + "," + "cy2oRh2sNr6:gt:30" );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
@@ -742,7 +741,7 @@ class TrackerEventCriteriaMapperTest
         ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID ) );
+        criteria.setFilterAttributes( TEA_1_UID );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -799,5 +798,22 @@ class TrackerEventCriteriaMapperTest
 
         assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
             exception.getMessage() );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaHasMultipleFiltersAndFilterValueWithSplitChars()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        TrackerEventCriteria criteria = new TrackerEventCriteria();
+        criteria.setFilterAttributes( TEA_1_UID + ":like:value/,with/,comma" + "," + TEA_2_UID + ":eq:value/:x" );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilterAttributes().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
+            new QueryFilter( QueryOperator.EQ, "value:x" ) ), actualFilters );
     }
 }
