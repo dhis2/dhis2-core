@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.patch;
 
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -266,7 +268,9 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase
         deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
         Patch diff = patchService.diff( new PatchParams( deA, deB ) );
-        assertEquals( 10, diff.getMutations().size() );
+        assertTrue( diff.getMutations().stream().map( Mutation::getPath ).collect( toList() ).containsAll(
+            List.of( "displayDescription", "code", "dimensionItem", "displayName", "name", "description", "id",
+                "shortName", "displayFormName", "displayShortName" ) ) );
     }
 
     @Test

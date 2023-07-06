@@ -27,20 +27,27 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 
 import lombok.Getter;
 
+/**
+ * Encapsulates some information about the current request and endpoint invoked.
+ * They are needed because of some internal rules.
+ */
 public class RequestTypeAware
 {
-    private EndpointAction endpointAction = EndpointAction.OTHER;
+    @Getter
+    private EndpointAction endpointAction = OTHER;
 
     @Getter
     private EndpointItem endpointItem;
 
-    public RequestTypeAware withQueryEndpointAction()
+    public RequestTypeAware withEndpointAction( EndpointAction endpointAction )
     {
-        endpointAction = QUERY;
+        this.endpointAction = endpointAction;
         return this;
     }
 
@@ -55,8 +62,14 @@ public class RequestTypeAware
         return QUERY == endpointAction;
     }
 
-    enum EndpointAction
+    public boolean isAggregateEndpoint()
     {
+        return AGGREGATE == endpointAction;
+    }
+
+    public enum EndpointAction
+    {
+        AGGREGATE,
         QUERY,
         OTHER
     }
@@ -67,5 +80,4 @@ public class RequestTypeAware
         ENROLLMENT,
         TRACKED_ENTITY_INSTANCE
     }
-
 }
