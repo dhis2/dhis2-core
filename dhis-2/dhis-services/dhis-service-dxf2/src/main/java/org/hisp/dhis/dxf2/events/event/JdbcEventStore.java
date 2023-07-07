@@ -1960,7 +1960,6 @@ public class JdbcEventStore implements EventStore {
 
   private void bindEventParamsForInsert(PreparedStatement ps, ProgramStageInstance event)
       throws SQLException, JsonProcessingException {
-    // @formatter:off
     ps.setLong(1, event.getProgramInstance().getId());
     ps.setLong(2, event.getProgramStage().getId());
     ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getDueDate()));
