@@ -46,7 +46,6 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
   public EnrollmentValidator(
       SecurityOwnershipValidator securityOwnershipValidator,
       AttributeValidator attributeValidator) {
-    // @formatter:off
     validator =
         each(
             TrackerBundle::getEnrollments,
@@ -64,7 +63,6 @@ public class EnrollmentValidator implements Validator<TrackerBundle> {
                     new GeoValidator(),
                     new DateValidator(),
                     attributeValidator)));
-    // @formatter:on
   }
 
   @Override
