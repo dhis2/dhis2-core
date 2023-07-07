@@ -61,15 +61,19 @@ public class RedisLeaderManager implements LeaderManager {
 
   private StringRedisTemplate redisTemplate;
 
-    public RedisLeaderManager( Long timeToLiveMinutes, StringRedisTemplate redisTemplate,
-        DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        this.nodeId = dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID );
-        this.nodeUuid = UUID.randomUUID().toString();
-        log.info( "Setting up redis based leader manager with NodeUuid:{} and NodeID:{}", this.nodeUuid, this.nodeId );
-        this.timeToLiveSeconds = timeToLiveMinutes * 60;
-        this.redisTemplate = redisTemplate;
-    }
+  public RedisLeaderManager(
+      Long timeToLiveMinutes,
+      StringRedisTemplate redisTemplate,
+      DhisConfigurationProvider dhisConfigurationProvider) {
+    this.nodeId = dhisConfigurationProvider.getProperty(ConfigurationKey.NODE_ID);
+    this.nodeUuid = UUID.randomUUID().toString();
+    log.info(
+        "Setting up redis based leader manager with NodeUuid:{} and NodeID:{}",
+        this.nodeUuid,
+        this.nodeId);
+    this.timeToLiveSeconds = timeToLiveMinutes * 60;
+    this.redisTemplate = redisTemplate;
+  }
 
   @Override
   public void renewLeader() {

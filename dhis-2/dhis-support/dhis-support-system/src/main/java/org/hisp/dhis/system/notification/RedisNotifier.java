@@ -139,19 +139,19 @@ public class RedisNotifier implements Notifier {
     return notifications;
   }
 
-    @Override
-    public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
-    {
-        Set<String> notifications = redisTemplate.boundZSetOps( generateNotificationKey( jobType, jobId ) ).range( 0,
-            -1 );
-        if ( notifications == null )
-            return new LinkedList<>();
-        List<Notification> res = new ArrayList<>();
-        notifications.forEach( notification -> executeLogErrors(
-            () -> res.add( jsonMapper.readValue( notification, Notification.class ) ) ) );
-        Collections.sort( res );
-        return new LinkedList<>( res );
-    }
+  @Override
+  public Deque<Notification> getNotificationsByJobId(JobType jobType, String jobId) {
+    Set<String> notifications =
+        redisTemplate.boundZSetOps(generateNotificationKey(jobType, jobId)).range(0, -1);
+    if (notifications == null) return new LinkedList<>();
+    List<Notification> res = new ArrayList<>();
+    notifications.forEach(
+        notification ->
+            executeLogErrors(
+                () -> res.add(jsonMapper.readValue(notification, Notification.class))));
+    Collections.sort(res);
+    return new LinkedList<>(res);
+  }
 
   @Override
   public Map<String, Deque<Notification>> getNotificationsByJobType(JobType jobType) {
