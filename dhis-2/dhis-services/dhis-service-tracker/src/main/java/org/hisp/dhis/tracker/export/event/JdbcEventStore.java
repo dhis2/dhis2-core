@@ -405,14 +405,12 @@ public class JdbcEventStore implements EventStore {
               note.setCreated(resultSet.getDate("psinote_storeddate"));
               note.setCreator(resultSet.getString("psinote_storedby"));
 
-              if (resultSet.getObject("usernoteupdated_id") != null) {
+              if (resultSet.getObject("usernote_id") != null) {
                 User userNote = new User();
-                userNote.setId(resultSet.getLong("usernoteupdated_id"));
-                userNote.setCode(resultSet.getString("usernoteupdated_code"));
-                userNote.setUid(resultSet.getString("usernoteupdated_uid"));
-                userNote.setUsername(resultSet.getString("usernoteupdated_username"));
-                userNote.setFirstName(resultSet.getString("usernoteupdated_firstname"));
-                userNote.setSurname(resultSet.getString("usernoteupdated_surname"));
+                userNote.setId(resultSet.getLong("usernote_id"));
+                userNote.setCode(resultSet.getString("usernote_code"));
+                userNote.setUid(resultSet.getString("usernote_uid"));
+                userNote.setUsername(resultSet.getString("usernote_username"));
                 note.setLastUpdatedBy(userNote);
               }
 

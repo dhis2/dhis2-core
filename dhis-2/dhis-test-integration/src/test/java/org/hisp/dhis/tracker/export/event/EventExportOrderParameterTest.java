@@ -48,7 +48,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -92,44 +93,18 @@ class EventExportOrderParameterTest extends TrackerTest {
     injectAdminUser();
   }
 
-  @Test
-  void shouldExportEventWithOrderOccurredAtDESC() throws ForbiddenException, BadRequestException {
-    OrderCriteria orderCriteria = OrderCriteria.of("occurredAt", SortDirection.DESC);
+  @ParameterizedTest
+  @ValueSource(strings = {"occurredAt", "scheduleAt", "event"})
+  void shouldExportEventWithOrderDesc(String field) throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of(field, SortDirection.DESC);
 
     assertEquals(desc, getEvents(getParams(orderCriteria)));
   }
 
-  @Test
-  void shouldExportEventWithOrderOccurredAtASC() throws ForbiddenException, BadRequestException {
-    OrderCriteria orderCriteria = OrderCriteria.of("occurredAt", SortDirection.ASC);
-
-    assertEquals(asc, getEvents(getParams(orderCriteria)));
-  }
-
-  @Test
-  void shouldExportEventWithOrderScheduledAtDESC() throws ForbiddenException, BadRequestException {
-    OrderCriteria orderCriteria = OrderCriteria.of("scheduleAt", SortDirection.DESC);
-
-    assertEquals(desc, getEvents(getParams(orderCriteria)));
-  }
-
-  @Test
-  void shouldExportEventWithOrderScheduledAtASC() throws ForbiddenException, BadRequestException {
-    OrderCriteria orderCriteria = OrderCriteria.of("scheduleAt", SortDirection.ASC);
-
-    assertEquals(asc, getEvents(getParams(orderCriteria)));
-  }
-
-  @Test
-  void shouldExportEventWithOrderEventIdDESC() throws ForbiddenException, BadRequestException {
-    OrderCriteria orderCriteria = OrderCriteria.of("event", SortDirection.DESC);
-
-    assertEquals(desc, getEvents(getParams(orderCriteria)));
-  }
-
-  @Test
-  void shouldExportEventWithOrderEventIdASC() throws ForbiddenException, BadRequestException {
-    OrderCriteria orderCriteria = OrderCriteria.of("event", SortDirection.ASC);
+  @ParameterizedTest
+  @ValueSource(strings = {"occurredAt", "scheduleAt", "event"})
+  void shouldExportEventWithOrderAsc(String field) throws ForbiddenException, BadRequestException {
+    OrderCriteria orderCriteria = OrderCriteria.of(field, SortDirection.ASC);
 
     assertEquals(asc, getEvents(getParams(orderCriteria)));
   }
