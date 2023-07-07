@@ -119,8 +119,6 @@ class EventExporterTest extends TrackerTest {
     manager.update(categoryOption);
 
     manager.flush();
-
-    injectSecurityContext(userService.getUser("M5zQapPyTZI"));
   }
 
   @BeforeEach

@@ -595,7 +595,6 @@ class EventOperationMapperTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
 
-    when(aclService.canDataRead(user, program)).thenReturn(true);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
@@ -702,7 +701,6 @@ class EventOperationMapperTest {
     User user = new User();
     user.setOrganisationUnits(Set.of(captureScopeOrgUnit));
 
-    when(aclService.canDataRead(user, program)).thenReturn(true);
     when(programService.getProgram(PROGRAM_UID)).thenReturn(program);
     when(currentUserService.getCurrentUser()).thenReturn(user);
     when(organisationUnitService.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);

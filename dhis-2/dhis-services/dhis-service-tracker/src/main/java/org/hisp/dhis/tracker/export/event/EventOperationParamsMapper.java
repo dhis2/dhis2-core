@@ -117,8 +117,11 @@ public class EventOperationParamsMapper {
 
     Program program = validateProgram(operationParams.getProgramUid());
     ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
-    OrganisationUnit orgUnit = validateOrgUnit(operationParams.getOrgUnitUid());
-    validateUser(user, program, programStage, orgUnit, operationParams.getOrgUnitSelectionMode());
+    OrganisationUnit requestedOrgUnit = validateRequestedOrgUnit(operationParams.getOrgUnitUid());
+    List<OrganisationUnit> accessibleOrgUnits =
+        validateAccessibleOrgUnits(
+            requestedOrgUnit, operationParams.getOrgUnitSelectionMode(), program, user);
+    validateUser(user, program, programStage);
     TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
     CategoryOptionCombo attributeOptionCombo =
@@ -159,18 +162,13 @@ public class EventOperationParamsMapper {
     return searchParams
         .setProgram(program)
         .setProgramStage(programStage)
-        .setOrgUnit(orgUnit)
-        .setAccessibleOrgUnits(
-            getUserAccessibleOrgUnits(
-                program,
-                user,
-                orgUnit,
-                operationParams.getOrgUnitSelectionMode(),
-                organisationUnitService::getOrganisationUnitWithChildren))
+        .setOrgUnit(requestedOrgUnit)
+        .setAccessibleOrgUnits(accessibleOrgUnits)
         .setTrackedEntity(trackedEntity)
         .setProgramStatus(operationParams.getProgramStatus())
         .setFollowUp(operationParams.getFollowUp())
-        .setOrgUnitSelectionMode(getOrgUnitMode(orgUnit, operationParams.getOrgUnitSelectionMode()))
+        .setOrgUnitSelectionMode(
+            getOrgUnitMode(requestedOrgUnit, operationParams.getOrgUnitSelectionMode()))
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
@@ -206,6 +204,27 @@ public class EventOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted());
   }
 
+  private List<OrganisationUnit> validateAccessibleOrgUnits(
+      OrganisationUnit orgUnit,
+      OrganisationUnitSelectionMode orgUnitMode,
+      Program program,
+      User user)
+      throws ForbiddenException {
+    List<OrganisationUnit> accessibleOrgUnits =
+        getUserAccessibleOrgUnits(
+            program,
+            user,
+            orgUnit,
+            orgUnitMode,
+            organisationUnitService::getOrganisationUnitWithChildren);
+
+    if (orgUnit != null && accessibleOrgUnits.isEmpty()) {
+      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
+    }
+
+    return accessibleOrgUnits;
+  }
+
   private Program validateProgram(String programUid) throws BadRequestException {
     if (programUid == null) {
       return null;
@@ -233,7 +252,7 @@ public class EventOperationParamsMapper {
     return programStage;
   }
 
-  private OrganisationUnit validateOrgUnit(String orgUnitUid) throws BadRequestException {
+  private OrganisationUnit validateRequestedOrgUnit(String orgUnitUid) throws BadRequestException {
     if (orgUnitUid == null) {
       return null;
     }
@@ -246,12 +265,7 @@ public class EventOperationParamsMapper {
     return orgUnit;
   }
 
-  private void validateUser(
-      User user,
-      Program program,
-      ProgramStage programStage,
-      OrganisationUnit orgUnit,
-      OrganisationUnitSelectionMode ouMode)
+  private void validateUser(User user, Program program, ProgramStage programStage)
       throws ForbiddenException {
     if (user.isSuper()) {
       return;
@@ -262,17 +276,6 @@ public class EventOperationParamsMapper {
 
     if (programStage != null && !aclService.canDataRead(user, programStage)) {
       throw new ForbiddenException("User has no access to program stage: " + programStage.getUid());
-    }
-
-    if (orgUnit != null
-        && getUserAccessibleOrgUnits(
-                program,
-                user,
-                orgUnit,
-                ouMode,
-                organisationUnitService::getOrganisationUnitWithChildren)
-            .isEmpty()) {
-      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit.getUid());
     }
   }
 
@@ -292,11 +295,11 @@ public class EventOperationParamsMapper {
       OrganisationUnitSelectionMode orgUnitMode,
       Function<String, List<OrganisationUnit>> orgUnitDescendants) {
 
-    if (orgUnitMode == null) {
-      if (orgUnit != null) {
-        return getSelectedOrgUnits(user, program, orgUnit);
-      }
+    if (orgUnitMode == null && orgUnit != null) {
+      return getSelectedOrgUnits(user, program, orgUnit);
+    }
 
+    if (orgUnitMode == null) {
       return getAccessibleOrgUnits(user, program);
     }
 
