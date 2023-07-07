@@ -1958,7 +1958,6 @@ public class JdbcEventStore implements EventStore {
 
   private void bindEventParamsForInsert(PreparedStatement ps, ProgramStageInstance event)
       throws SQLException, JsonProcessingException {
-    // @formatter:off
     ps.setLong(1, event.getProgramInstance().getId());
     ps.setLong(2, event.getProgramStage().getId());
     ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getDueDate()));
@@ -1985,7 +1984,6 @@ public class JdbcEventStore implements EventStore {
       ps.setObject(21, null);
     }
     ps.setObject(22, eventDataValuesToJson(event.getEventDataValues(), this.jsonMapper));
-    // @formatter:on
   }
 
   private MapSqlParameterSource getSqlParameters(ProgramStageInstance programStageInstance)

@@ -61,7 +61,6 @@ public class NoteSupplier extends AbstractSupplier<Map<String, Note>> {
     //
     // Collects all the notes' UID
     //
-    // @formatter:off
     Set<String> notesUid =
         events.stream()
             .map(Event::getNotes)
@@ -69,7 +68,6 @@ public class NoteSupplier extends AbstractSupplier<Map<String, Note>> {
             .map(Note::getNote)
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
-    // @formatter:on
 
     if (isNotEmpty(notesUid)) {
       final String sql = "select uid from trackedentitycomment where uid in  (:ids)";
@@ -92,12 +90,10 @@ public class NoteSupplier extends AbstractSupplier<Map<String, Note>> {
           });
 
       for (Event event : events) {
-        // @formatter:off
         List<Note> eventNotes =
             event.getNotes().stream()
                 .filter(u -> !foundNotes.contains(u.getNote()))
                 .collect(Collectors.toList());
-        // @formatter:on
         if (isNotEmpty(eventNotes)) {
           persistableNotes.putAll(
               eventNotes.stream().collect(Collectors.toMap(Note::getNote, Function.identity())));
