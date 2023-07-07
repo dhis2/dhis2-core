@@ -51,16 +51,14 @@ public class FieldPathConverter implements ConditionalGenericConverter {
   public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
     if (sourceType.isArray()) {
       /*
-       * @formatter:off
-       *
        * Undo Spring's splitting of
-       * `fields=attributes[attribute,value],deleted` into
-       * 0 = "attributes[attribute"
-       * 1 = "value]"
-       * 2 = "deleted"
+       * {@code fields=attributes[attribute,value],deleted} into
+       * <ul>
+       * <li>0 = "attributes[attribute"</li>
+       * <li>1 = "value]"</li>
+       * <li>2 = "deleted"</li>
+       * </ul>
        * separating nested fields attribute and value.
-       *
-       * @formatter:on
        */
       return FieldFilterParser.parse(String.join(",", (String[]) source));
     }
