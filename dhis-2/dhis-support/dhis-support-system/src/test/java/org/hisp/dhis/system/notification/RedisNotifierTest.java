@@ -32,10 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.scheduling.JobType;
 import org.junit.jupiter.api.Test;
@@ -46,69 +46,62 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author David Mackessy
  */
-@ExtendWith( MockitoExtension.class )
-class RedisNotifierTest extends DhisConvenienceTest
-{
+@ExtendWith(MockitoExtension.class)
+class RedisNotifierTest extends DhisConvenienceTest {
 
-    @Mock
-    private RedisTemplate<String, String> redisTemplate;
+  @Mock private RedisTemplate<String, String> redisTemplate;
 
-    @Mock
-    private BoundZSetOperations<String, String> boundZSetOperations;
+  @Mock private BoundZSetOperations<String, String> boundZSetOperations;
 
-    @InjectMocks
-    private RedisNotifier notifier;
+  @InjectMocks private RedisNotifier notifier;
 
-    /**
-     * When Redis is enabled, the APP UI relies on specific ordered data to know
-     * when generating Resource/Analytics tables has completed. The APP UI only
-     * knows the job is complete once it sees that the first element in the
-     * returned data is marked as 'completed'. This test confirms that the
-     * returned data always has the latest {@link Notification} as the first
-     * element.
-     */
-    @Test
-    void getNotificationsByJobIdTest_OrderedByTime()
-    {
-        notifier = new RedisNotifier( redisTemplate, new ObjectMapper() );
-        JobType jobType = JobType.ANALYTICS_TABLE;
-        String jobId = "job1d1";
-        Set<String> dataFromRedis = new HashSet<>();
+  /**
+   * When Redis is enabled, the APP UI relies on specific ordered data to know when generating
+   * Resource/Analytics tables has completed. The APP UI only knows the job is complete once it sees
+   * that the first element in the returned data is marked as 'completed'. This test confirms that
+   * the returned data always has the latest {@link Notification} as the first element.
+   */
+  @Test
+  void getNotificationsByJobIdTest_OrderedByTime() {
+    notifier = new RedisNotifier(redisTemplate, new ObjectMapper());
+    JobType jobType = JobType.ANALYTICS_TABLE;
+    String jobId = "job1d1";
+    Set<String> dataFromRedis = new HashSet<>();
 
-        //3 Notifications, each with a different 'time' value
-        // the 'completed' Notification has the latest time
-        String notificationMiddle = "{\"uid\":\"ju8WSUHJKHO\",\"level\": \"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.554\",\"message\":\"1 Analytics tables updated\",\"completed\":false}";
-        String notificationLatest = "{\"uid\":\"zM8zxPLTKaY\",\"level\":\"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.555\",\"message\":\"2 Drop SQL views\",\"completed\":true}";
-        String notificationEarliest = "{\"uid\":\"aM8zxPLTKaY\",\"level\":\"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.553\",\"message\":\"3 Drop SQL views\",\"completed\":false}";
+    // 3 Notifications, each with a different 'time' value
+    // the 'completed' Notification has the latest time
+    String notificationMiddle =
+        "{\"uid\":\"ju8WSUHJKHO\",\"level\": \"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.554\",\"message\":\"1 Analytics tables updated\",\"completed\":false}";
+    String notificationLatest =
+        "{\"uid\":\"zM8zxPLTKaY\",\"level\":\"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.555\",\"message\":\"2 Drop SQL views\",\"completed\":true}";
+    String notificationEarliest =
+        "{\"uid\":\"aM8zxPLTKaY\",\"level\":\"INFO\",\"category\":\"ANALYTICS_TABLE\",\"time\":\"2023-07-05T10:16:33.553\",\"message\":\"3 Drop SQL views\",\"completed\":false}";
 
-        //add notifications unordered
-        dataFromRedis.add( notificationMiddle );
-        dataFromRedis.add( notificationEarliest );
-        dataFromRedis.add( notificationLatest );
+    // add notifications unordered
+    dataFromRedis.add(notificationMiddle);
+    dataFromRedis.add(notificationEarliest);
+    dataFromRedis.add(notificationLatest);
 
-        when( redisTemplate.boundZSetOps( any() ) ).thenReturn( boundZSetOperations );
-        when( redisTemplate.boundZSetOps( any() ).range( 0, -1 ) ).thenReturn( dataFromRedis );
+    when(redisTemplate.boundZSetOps(any())).thenReturn(boundZSetOperations);
+    when(redisTemplate.boundZSetOps(any()).range(0, -1)).thenReturn(dataFromRedis);
 
-        //Notifications should be returned in an ordered Queue from this call
-        Deque<Notification> result = notifier.getNotificationsByJobId( jobType, jobId );
+    // Notifications should be returned in an ordered Queue from this call
+    Deque<Notification> result = notifier.getNotificationsByJobId(jobType, jobId);
 
-        assertFalse( result.isEmpty() );
-        //check first Notification is completed
-        Notification peek = result.peek();
-        assertTrue( peek.isCompleted() );
+    assertFalse(result.isEmpty());
+    // check first Notification is completed
+    Notification peek = result.peek();
+    assertTrue(peek.isCompleted());
 
-        //confirm the ordering of each Notification
-        Notification latestNotification = result.removeFirst();
-        Notification middleNotification = result.removeFirst();
-        Notification earliestNotification = result.removeFirst();
-        assertTrue( latestNotification.getTime().after( middleNotification.getTime() ) );
-        assertTrue( latestNotification.getTime().after( earliestNotification.getTime() ) );
-        assertTrue( middleNotification.getTime().after( earliestNotification.getTime() ) );
-    }
-
+    // confirm the ordering of each Notification
+    Notification latestNotification = result.removeFirst();
+    Notification middleNotification = result.removeFirst();
+    Notification earliestNotification = result.removeFirst();
+    assertTrue(latestNotification.getTime().after(middleNotification.getTime()));
+    assertTrue(latestNotification.getTime().after(earliestNotification.getTime()));
+    assertTrue(middleNotification.getTime().after(earliestNotification.getTime()));
+  }
 }
