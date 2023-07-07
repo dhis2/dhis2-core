@@ -31,11 +31,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Deque;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -141,14 +144,13 @@ public class RedisNotifier implements Notifier {
     Set<String> notifications =
         redisTemplate.boundZSetOps(generateNotificationKey(jobType, jobId)).range(0, -1);
     if (notifications == null) return new LinkedList<>();
-    Deque<Notification> res = new LinkedList<>();
-    notifications.stream()
-        .sorted()
-        .forEach(
-            notification ->
-                executeLogErrors(
-                    () -> res.add(jsonMapper.readValue(notification, Notification.class))));
-    return res;
+    List<Notification> res = new ArrayList<>();
+    notifications.forEach(
+        notification ->
+            executeLogErrors(
+                () -> res.add(jsonMapper.readValue(notification, Notification.class))));
+    Collections.sort(res);
+    return new LinkedList<>(res);
   }
 
   @Override
