@@ -46,6 +46,9 @@
     <!-- Level 9 -->
     <module>dhis-service-reporting</module>
   </modules>
+  <properties>
+    <rootDir>../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -62,7 +65,4 @@
       <artifactId>dhis-support-test</artifactId>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../</rootDir>
-  </properties>
 </project>

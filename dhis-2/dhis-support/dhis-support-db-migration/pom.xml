@@ -1,6 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -12,24 +11,27 @@
   <artifactId>dhis-support-db-migration</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Database Migration Support</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
     <!-- Flyway -->
     <dependency>
-     <groupId>org.flywaydb</groupId>
-     <artifactId>flyway-core</artifactId>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
     </dependency>
 
-     <dependency>
+    <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
-    
+
     <!-- DHIS -->
     <dependency>
-     <groupId>org.hisp.dhis</groupId>
-     <artifactId>dhis-api</artifactId>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-api</artifactId>
     </dependency>
 
     <dependency>
@@ -88,7 +90,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>
