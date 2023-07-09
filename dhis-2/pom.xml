@@ -6,14 +6,12 @@
   <version>2.40.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS 2</name>
-  <url>http://dhis2.org</url>
 
-  <description>
-    The District Health Information System 2 deals with
+  <description>The District Health Information System 2 deals with
     aggregating and reporting statistical health data. The goal is to allow users to analyze
     and use this data to guide local action. The system is based around an goals of empowering
-    users, by allowing them to decide what to register and report data for.
-  </description>
+    users, by allowing them to decide what to register and report data for.</description>
+  <url>http://dhis2.org</url>
 
   <organization>
     <name>UiO</name>
@@ -27,6 +25,14 @@
     </license>
   </licenses>
 
+  <mailingLists>
+    <mailingList>
+      <name>Developer mailing list</name>
+      <subscribe>https://launchpad.net/~dhis2-devs</subscribe>
+      <post>dhis2-devs@lists.launchpad.net</post>
+    </mailingList>
+  </mailingLists>
+
   <modules>
     <module>dhis-api</module>
     <module>dhis-services</module>
@@ -38,9 +44,26 @@
     <module>dhis-test-integration</module>
   </modules>
 
+  <scm>
+    <url>lp:dhis2</url>
+  </scm>
+
+  <issueManagement>
+    <system>Launchpad</system>
+    <url>https://launchpad.net/dhis2</url>
+  </issueManagement>
+
+  <distributionManagement>
+    <repository>
+      <id/>
+      <name>DHIS 2 Maven repository</name>
+      <url>scp://</url>
+    </repository>
+  </distributionManagement>
+
   <properties>
     <!-- Build Properties -->
-    <rootDir></rootDir>
+    <rootDir/>
     <!-- Custom source directory property, as <build><sourceDirectory> cannot 
       be set in a profile. See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDir>${project.basedir}/src/main/java</sourceDir>
@@ -223,655 +246,6 @@
     <gson.version>2.8.9</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
   </properties>
-
-  <distributionManagement>
-    <repository>
-      <id></id>
-      <name>DHIS 2 Maven repository</name>
-      <url>scp://</url>
-    </repository>
-  </distributionManagement>
-
-  <repositories>
-    <repository>
-      <id>central</id>
-      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>osgeo</id>
-      <name>Open Source Geospatial Foundation Repository</name>
-      <url>https://repo.osgeo.org/repository/release/</url>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-      <releases>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-    </repository>
-    <repository>
-      <id>DHIS2_MAVEN_REPO_MIRROR</id>
-      <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>ossrh</id>
-      <name>Sonatype OSS</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
-
-  <pluginRepositories>
-    <pluginRepository>
-      <id>central</id>
-      <url>https://repo1.maven.org/maven2</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-    </pluginRepository>
-  </pluginRepositories>
-
-  <issueManagement>
-    <system>Launchpad</system>
-    <url>https://launchpad.net/dhis2</url>
-  </issueManagement>
-
-  <scm>
-    <url>lp:dhis2</url>
-  </scm>
-
-  <mailingLists>
-    <mailingList>
-      <name>Developer mailing list</name>
-      <post>dhis2-devs@lists.launchpad.net</post>
-      <subscribe>https://launchpad.net/~dhis2-devs</subscribe>
-    </mailingList>
-  </mailingLists>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.owasp</groupId>
-        <artifactId>dependency-check-maven</artifactId>
-        <version>${dependency-check-maven.version}</version>
-        <configuration>
-          <name>Dependency Check</name>
-        </configuration>
-        <reportSets>
-          <reportSet>
-            <reports>
-              <report>aggregate</report>
-            </reports>
-          </reportSet>
-        </reportSets>
-      </plugin>
-    </plugins>
-  </reporting>
-
-  <profiles>
-
-    <!-- Default profile will run all unit tests, not integration tests -->
-    <profile>
-      <id>default</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <parallel>all</parallel>
-              <threadCount>10</threadCount>
-              <skipTests>${skipTests}</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
-              <systemPropertyVariables>
-                <!-- Uncomment if you need to debug the log4j2 config itself -->
-                <!-- <log4j2.debug>true</log4j2.debug> -->
-                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
-                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- Integration test profile, runs all integrations tests, not unit 
-      tests -->
-    <profile>
-      <id>integration</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>false</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <groups>integration</groups>
-              <systemPropertyVariables>
-                <!-- Uncomment if you need to debug the log4j2 config itself -->
-                <!-- <log4j2.debug>true</log4j2.debug> -->
-                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
-                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- IntegrationH2 test profile, this runs all the integrations tests 
-      with H2, but not the unit tests -->
-    <profile>
-      <id>integrationH2</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>false</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <groups>integrationH2</groups>
-              <systemPropertyVariables>
-                <!-- Uncomment if you need to debug the log4j2 config itself -->
-                <!-- <log4j2.debug>true</log4j2.debug> -->
-                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
-                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>dev</id>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <skipTests>true</skipTests>
-              <trimStackTrace>false</trimStackTrace>
-              <argLine>@{argLine} ${surefireArgLine}</argLine>
-              <excludedGroups>integration,integrationH2</excludedGroups>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.zeroturnaround</groupId>
-            <artifactId>jrebel-maven-plugin</artifactId>
-            <version>${jrebel-x-maven-plugin.version}</version>
-            <executions>
-              <execution>
-                <configuration>
-                </configuration>
-                <id>generate-rebel-xml</id>
-                <phase>process-resources</phase>
-                <goals>
-                  <goal>generate</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
-      <id>javadoc</id>
-      <properties>
-        <sourceDir>${project.build.directory}/generated-sources/delombok</sourceDir>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok-maven-plugin</artifactId>
-            <version>${lombok-maven-plugin.version}</version>
-            <configuration>
-              <addOutputDirectory>false</addOutputDirectory>
-              <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
-            </configuration>
-            <executions>
-              <execution>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>delombok</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-  </profiles>
-
-  <build>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
-      a custom property for overwriting it, see https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
-    <sourceDirectory>${sourceDir}</sourceDirectory>
-
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.sonarsource.scanner.maven</groupId>
-          <artifactId>sonar-maven-plugin</artifactId>
-          <version>3.9.1.2184</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>versions-maven-plugin</artifactId>
-          <version>${versions-maven-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven-compiler-plugin.version}</version>
-          <configuration>
-            <release>${minimum-java.version}</release>
-            <encoding>${project.build.sourceEncoding}</encoding>
-            <annotationProcessorPaths>
-              <path>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
-              </path>
-              <path>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct-processor</artifactId>
-                <version>${mapstruct.version}</version>
-              </path>
-            </annotationProcessorPaths>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>${maven-resources-plugin.version}</version>
-          <configuration>
-            <encoding>${project.build.sourceEncoding}</encoding>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven-surefire-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${maven-failsafe-plugin.version}</version>
-          <configuration>
-            <argLine>
-              --illegal-access=permit
-            </argLine>
-            <encoding>${project.build.sourceEncoding}</encoding>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${maven-javadoc-plugin.version}</version>
-          <configuration>
-            <additionalparam>-Xdoclint:none</additionalparam>
-          </configuration>
-          <executions>
-            <execution>
-              <id>attach-javadocs</id>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <version>${maven-enforcer-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>com.github.spotbugs</groupId>
-          <artifactId>spotbugs-maven-plugin</artifactId>
-          <version>${spotbugs-maven-plugin.version}</version>
-          <dependencies>
-            <dependency>
-              <groupId>com.github.spotbugs</groupId>
-              <artifactId>spotbugs</artifactId>
-              <version>4.7.3</version>
-            </dependency>
-          </dependencies>
-          <configuration>
-            <xmlOutput>true</xmlOutput>
-            <excludeFilterFile>${rootDir}findbugs-exclude.xml
-            </excludeFilterFile>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-antrun-plugin</artifactId>
-          <version>${maven-antrun-plugin.version}</version>
-          <executions>
-            <execution>
-              <phase>prepare-package</phase>
-              <configuration>
-                <target>
-                  <tstamp>
-                    <format property="now" pattern="yyyy-MM-dd HH:mm:ss" />
-                  </tstamp>
-                  <mkdir dir="${project.build.outputDirectory}" />
-                  <exec executable="git" outputproperty="revision"
-                    failifexecutionfails="false">
-                    <arg value="rev-parse" />
-                    <arg value="--short=7" />
-                    <arg value="HEAD" />
-                  </exec>
-                  <!-- formatter:off -->
-                  <echo file="${project.build.outputDirectory}/build.properties">
-                    build.version=${project.version}
-                    build.time=${now}
-                    build.revision=${revision}
-                    jasperreports.version=${jasperreports.version}
-                    <!-- formatter:on -->
-                  </echo>
-                </target>
-              </configuration>
-              <goals>
-                <goal>run</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.owasp</groupId>
-          <artifactId>dependency-check-maven</artifactId>
-          <version>${dependency-check-maven.version}</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>check</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.projectlombok</groupId>
-          <artifactId>lombok-maven-plugin</artifactId>
-          <version>${lombok-maven-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>com.diffplug.spotless</groupId>
-          <artifactId>spotless-maven-plugin</artifactId>
-          <version>${spotless.version}</version>
-          <configuration>
-            <upToDateChecking>
-              <enabled>true</enabled>
-            </upToDateChecking>
-            <java>
-              <googleJavaFormat/>
-              <trimTrailingWhitespace/>
-              <licenseHeader>
-                <file>${rootDir}/license-header</file>
-              </licenseHeader>
-            </java>
-            <pom>
-              <toggleOffOn>
-                <off>formatter:off</off><on>formatter:on</on>
-              </toggleOffOn>
-              <includes>
-                <include>pom.xml</include>
-              </includes>
-              <sortPom>
-                <expandEmptyElements>false</expandEmptyElements>
-              </sortPom>
-            </pom>
-            <lineEndings>UNIX</lineEndings>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-dependency-plugin</artifactId>
-          <version>${maven-dependency-plugin.version}</version>
-          <configuration>
-            <failOnWarning>true</failOnWarning>
-            <ignoredUnusedDeclaredDependencies>
-              <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
-              <!-- Needed by dhis-web modules -->
-              <ignoredUnusedDeclaredDependency>io.lettuce:lettuce-core</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.struts:struts2-spring-plugin</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.velocity:velocity-tools</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
-              <!-- Removing makes some tests fail -->
-              <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
-              <!-- Removing makes the startup fail -->
-              <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
-              <!-- Removing makes the startup with Jetty fail -->
-              <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
-              <!-- Only exist at runtime -->
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons-resources</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
-            </ignoredUnusedDeclaredDependencies>
-            <ignoredUsedUndeclaredDependencies>
-              <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>io.debezium:debezium-core</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient_common</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.eclipse.jetty.toolchain:jetty-servlet-api</ignoredUsedUndeclaredDependency>
-            </ignoredUsedUndeclaredDependencies>
-            <ignoredNonTestScopedDependencies>
-              <!-- Setting the scope to test makes the build fail -->
-              <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
-              <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
-            </ignoredNonTestScopedDependencies>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>${jacoco-maven-plugin.version}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <dependencies>
-          <dependency>
-            <groupId>de.skuzzle.enforcer</groupId>
-            <artifactId>restrict-imports-enforcer-rule</artifactId>
-            <version>${restrict-imports-enforcer.version}</version>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <id>enforce-maven</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <bannedDependencies>
-                  <excludes>
-                    <exclude>log4j:log4j</exclude>
-                    <exclude>org.slf4j:slf4j-simple</exclude>
-                  </excludes>
-                </bannedDependencies>
-                <banDuplicatePomDependencyVersions />
-                <requireMavenVersion>
-                  <version>${minimum-maven.version}</version>
-                </requireMavenVersion>
-                <requireJavaVersion>
-                  <version>${minimum-java.version}</version>
-                </requireJavaVersion>
-                <RestrictImports>
-                  <reason>Write JUnit 5 tests only; JUnit 4 cannot yet
-                    be excluded from our dependencies because of
-                    testcontainers issue
-                    https://github.com/testcontainers/testcontainers-java/issues/970</reason>
-                  <bannedImports>
-                    <bannedImport>org.junit.Test</bannedImport>
-                    <bannedImport>org.junit.Ignore</bannedImport>
-                    <bannedImport>org.junit.Assert.**</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-                <RestrictImports>
-                  <reason>Do not use this util. Use com.google.common
-                    instead</reason>
-                  <bannedImports>
-                    <bannedImport>com.google.api.client.util.**</bannedImport>
-                    <bannedImport>org.apache.logging.log4j.util.**</bannedImport>
-                    <bannedImport>org.wildfly.common.**</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-                <RestrictImports>
-                  <reason>Do not use this util. Use
-                    com.google.common.lang3 instead</reason>
-                  <bannedImports>
-                    <bannedImport>org.apache.commons.lang.**</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-                <RestrictImports>
-                  <reason>Do not use this common. Use
-                    org.apache.commons.collections4 instead</reason>
-                  <bannedImports>
-                    <bannedImport>org.apache.commons.collections.**</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-                <RestrictImports>
-                  <reason>Do not use this annotations. Use
-                    javax.annotation instead</reason>
-                  <bannedImports>
-                    <bannedImport>org.jetbrains.annotations.**</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-                <RestrictImports>
-                  <reason>Do not use this json library. Use
-                    org.hisp.dhis.jsontree instead</reason>
-                  <bannedImports>
-                    <bannedImport>org.json.**</bannedImport>
-                    <bannedImport>net.minidev.json.**</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-                <RestrictImports>
-                  <reason>Do not use this Transactional import. Use
-                    org.springframework.transaction.annotation.Transactional
-                    instead</reason>
-                  <bannedImports>
-                    <bannedImport>javax.transaction.Transactional</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-                <RestrictImports>
-                  <reason>Use javax.annotation.Nonnull and javax.annotation.CheckForNull instead</reason>
-                  <bannedImports>
-                    <bannedImport>lombok.NonNull</bannedImport>
-                  </bannedImports>
-                </RestrictImports>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>${maven-dependency-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>analyze</id>
-            <goals>
-              <goal>analyze-only</goal>
-            </goals>
-            <configuration>
-              <failOnWarning>true</failOnWarning>
-              <skip>${skipTests}</skip>
-            </configuration>
-            <phase>process-test-classes</phase>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>prepare-agent</id>
-            <goals>
-              <goal>prepare-agent</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 
   <dependencyManagement>
     <dependencies>
@@ -1912,8 +1286,8 @@
         <groupId>com.fasterxml.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
         <version>${jackson.version}</version>
-        <scope>import</scope>
         <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>com.graphhopper.external</groupId>
@@ -2157,7 +1531,6 @@
         <version>${semver4j.version}</version>
       </dependency>
 
-
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-rewrite</artifactId>
@@ -2192,7 +1565,6 @@
         <version>${lombok.version}</version>
         <scope>provided</scope>
       </dependency>
-
 
       <dependency>
         <groupId>io.debezium</groupId>
@@ -2376,5 +1748,624 @@
 
     </dependencies>
   </dependencyManagement>
+
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+      <id>central</id>
+      <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+    </repository>
+    <repository>
+      <releases>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+      <id>osgeo</id>
+      <name>Open Source Geospatial Foundation Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+      <id>DHIS2_MAVEN_REPO_MIRROR</id>
+      <url>https://raw.githubusercontent.com/dhis2/maven-repo-mirror/master/</url>
+    </repository>
+    <repository>
+      <releases>
+        <enabled>false</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+      <id>ossrh</id>
+      <name>Sonatype OSS</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </repository>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <build>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>3.9.1.2184</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>${versions-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <release>${minimum-java.version}</release>
+            <encoding>${project.build.sourceEncoding}</encoding>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+              <path>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
+              </path>
+            </annotationProcessorPaths>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${maven-resources-plugin.version}</version>
+          <configuration>
+            <encoding>${project.build.sourceEncoding}</encoding>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${maven-failsafe-plugin.version}</version>
+          <configuration>
+            <argLine>--illegal-access=permit</argLine>
+            <encoding>${project.build.sourceEncoding}</encoding>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin.version}</version>
+          <configuration>
+            <additionalparam>-Xdoclint:none</additionalparam>
+          </configuration>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven-enforcer-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${spotbugs-maven-plugin.version}</version>
+          <configuration>
+            <xmlOutput>true</xmlOutput>
+            <excludeFilterFile>${rootDir}findbugs-exclude.xml</excludeFilterFile>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>com.github.spotbugs</groupId>
+              <artifactId>spotbugs</artifactId>
+              <version>4.7.3</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>${maven-antrun-plugin.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>run</goal>
+              </goals>
+              <phase>prepare-package</phase>
+              <configuration>
+                <target>
+                  <tstamp>
+                    <format pattern="yyyy-MM-dd HH:mm:ss" property="now"/>
+                  </tstamp>
+                  <mkdir dir="${project.build.outputDirectory}"/>
+                  <exec executable="git" failifexecutionfails="false" outputproperty="revision">
+                    <arg value="rev-parse"/>
+                    <arg value="--short=7"/>
+                    <arg value="HEAD"/>
+                  </exec>
+                  <!-- formatter:off -->
+                  <echo file="${project.build.outputDirectory}/build.properties">
+                    build.version=${project.version}
+                    build.time=${now}
+                    build.revision=${revision}
+                    jasperreports.version=${jasperreports.version}
+                    <!-- formatter:on -->
+                  </echo>
+                </target>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.owasp</groupId>
+          <artifactId>dependency-check-maven</artifactId>
+          <version>${dependency-check-maven.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>${lombok-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless.version}</version>
+          <configuration>
+            <upToDateChecking>
+              <enabled>true</enabled>
+            </upToDateChecking>
+            <java>
+              <googleJavaFormat/>
+              <trimTrailingWhitespace/>
+              <licenseHeader>
+                <file>${rootDir}/license-header</file>
+              </licenseHeader>
+            </java>
+            <pom>
+              <toggleOffOn>
+                <off>formatter:off</off><on>formatter:on</on>
+              </toggleOffOn>
+              <includes>
+                <include>pom.xml</include>
+              </includes>
+              <sortPom>
+                <expandEmptyElements>false</expandEmptyElements>
+              </sortPom>
+            </pom>
+            <lineEndings>UNIX</lineEndings>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>${maven-dependency-plugin.version}</version>
+          <configuration>
+            <failOnWarning>true</failOnWarning>
+            <ignoredUnusedDeclaredDependencies>
+              <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.mockito:mockito-inline</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>javax.servlet:javax.servlet-api</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.provider:aws-s3</ignoredUnusedDeclaredDependency>
+              <!-- Needed by dhis-web modules -->
+              <ignoredUnusedDeclaredDependency>io.lettuce:lettuce-core</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.struts:struts2-spring-plugin</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.velocity:velocity-tools</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.springframework:spring-context-support</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.xmlgraphics:batik-codec</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>commons-fileupload:commons-fileupload</ignoredUnusedDeclaredDependency>
+              <!-- Removing makes some tests fail -->
+              <ignoredUnusedDeclaredDependency>io.netty:netty-all</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.cache2k:cache2k-core</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.springframework.security:spring-security-aspects</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:filesystem</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.jclouds.api:s3</ignoredUnusedDeclaredDependency>
+              <!-- Removing makes the startup fail -->
+              <ignoredUnusedDeclaredDependency>org.hibernate:hibernate-ehcache</ignoredUnusedDeclaredDependency>
+              <!-- Removing makes the startup with Jetty fail -->
+              <ignoredUnusedDeclaredDependency>javax.media:jai_imageio</ignoredUnusedDeclaredDependency>
+              <!-- Only exist at runtime -->
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-hibernate</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-db-migration</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-audit</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-administration</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-dxf2</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-reporting</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-analytics</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons-resources</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
+            </ignoredUnusedDeclaredDependencies>
+            <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.debezium:debezium-core</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient_common</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.eclipse.jetty.toolchain:jetty-servlet-api</ignoredUsedUndeclaredDependency>
+            </ignoredUsedUndeclaredDependencies>
+            <ignoredNonTestScopedDependencies>
+              <!-- Setting the scope to test makes the build fail -->
+              <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
+              <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
+            </ignoredNonTestScopedDependencies>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco-maven-plugin.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>de.skuzzle.enforcer</groupId>
+            <artifactId>restrict-imports-enforcer-rule</artifactId>
+            <version>${restrict-imports-enforcer.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>log4j:log4j</exclude>
+                    <exclude>org.slf4j:slf4j-simple</exclude>
+                  </excludes>
+                </bannedDependencies>
+                <banDuplicatePomDependencyVersions/>
+                <requireMavenVersion>
+                  <version>${minimum-maven.version}</version>
+                </requireMavenVersion>
+                <requireJavaVersion>
+                  <version>${minimum-java.version}</version>
+                </requireJavaVersion>
+                <RestrictImports>
+                  <reason>Write JUnit 5 tests only; JUnit 4 cannot yet
+                    be excluded from our dependencies because of
+                    testcontainers issue
+                    https://github.com/testcontainers/testcontainers-java/issues/970</reason>
+                  <bannedImports>
+                    <bannedImport>org.junit.Test</bannedImport>
+                    <bannedImport>org.junit.Ignore</bannedImport>
+                    <bannedImport>org.junit.Assert.**</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Do not use this util. Use com.google.common
+                    instead</reason>
+                  <bannedImports>
+                    <bannedImport>com.google.api.client.util.**</bannedImport>
+                    <bannedImport>org.apache.logging.log4j.util.**</bannedImport>
+                    <bannedImport>org.wildfly.common.**</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Do not use this util. Use
+                    com.google.common.lang3 instead</reason>
+                  <bannedImports>
+                    <bannedImport>org.apache.commons.lang.**</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Do not use this common. Use
+                    org.apache.commons.collections4 instead</reason>
+                  <bannedImports>
+                    <bannedImport>org.apache.commons.collections.**</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Do not use this annotations. Use
+                    javax.annotation instead</reason>
+                  <bannedImports>
+                    <bannedImport>org.jetbrains.annotations.**</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Do not use this json library. Use
+                    org.hisp.dhis.jsontree instead</reason>
+                  <bannedImports>
+                    <bannedImport>org.json.**</bannedImport>
+                    <bannedImport>net.minidev.json.**</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Do not use this Transactional import. Use
+                    org.springframework.transaction.annotation.Transactional
+                    instead</reason>
+                  <bannedImports>
+                    <bannedImport>javax.transaction.Transactional</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Use javax.annotation.Nonnull and javax.annotation.CheckForNull instead</reason>
+                  <bannedImports>
+                    <bannedImport>lombok.NonNull</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven-dependency-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>analyze</id>
+            <goals>
+              <goal>analyze-only</goal>
+            </goals>
+            <phase>process-test-classes</phase>
+            <configuration>
+              <failOnWarning>true</failOnWarning>
+              <skip>${skipTests}</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
+      a custom property for overwriting it, see https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
+    <sourceDirectory>${sourceDir}</sourceDirectory>
+  </build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>${dependency-check-maven.version}</version>
+        <configuration>
+          <name>Dependency Check</name>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
+
+  <profiles>
+
+    <!-- Default profile will run all unit tests, not integration tests -->
+    <profile>
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <parallel>all</parallel>
+              <threadCount>10</threadCount>
+              <skipTests>${skipTests}</skipTests>
+              <trimStackTrace>false</trimStackTrace>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
+              <excludedGroups>integration,integrationH2</excludedGroups>
+              <systemPropertyVariables>
+                <!-- Uncomment if you need to debug the log4j2 config itself -->
+                <!-- <log4j2.debug>true</log4j2.debug> -->
+                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
+                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Integration test profile, runs all integrations tests, not unit 
+      tests -->
+    <profile>
+      <id>integration</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>false</skipTests>
+              <trimStackTrace>false</trimStackTrace>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
+              <groups>integration</groups>
+              <systemPropertyVariables>
+                <!-- Uncomment if you need to debug the log4j2 config itself -->
+                <!-- <log4j2.debug>true</log4j2.debug> -->
+                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
+                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- IntegrationH2 test profile, this runs all the integrations tests 
+      with H2, but not the unit tests -->
+    <profile>
+      <id>integrationH2</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>false</skipTests>
+              <trimStackTrace>false</trimStackTrace>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
+              <groups>integrationH2</groups>
+              <systemPropertyVariables>
+                <!-- Uncomment if you need to debug the log4j2 config itself -->
+                <!-- <log4j2.debug>true</log4j2.debug> -->
+                <!-- Specifying it to be in full control and turn off Log4JLogConfigInitializer -->
+                <log4j2.configurationFile>log4j2-test.xml</log4j2.configurationFile>
+              </systemPropertyVariables>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>dev</id>
+      <properties>
+        <skipTests>true</skipTests>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>true</skipTests>
+              <trimStackTrace>false</trimStackTrace>
+              <argLine>@{argLine} ${surefireArgLine}</argLine>
+              <excludedGroups>integration,integrationH2</excludedGroups>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.zeroturnaround</groupId>
+            <artifactId>jrebel-maven-plugin</artifactId>
+            <version>${jrebel-x-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>generate-rebel-xml</id>
+                <goals>
+                  <goal>generate</goal>
+                </goals>
+                <phase>process-resources</phase>
+                <configuration/>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>javadoc</id>
+      <properties>
+        <sourceDir>${project.build.directory}/generated-sources/delombok</sourceDir>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${lombok-maven-plugin.version}</version>
+            <configuration>
+              <addOutputDirectory>false</addOutputDirectory>
+              <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <phase>generate-sources</phase>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+  </profiles>
 
 </project>

@@ -11,6 +11,9 @@
   <artifactId>dhis-service-node</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Node service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -130,7 +133,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

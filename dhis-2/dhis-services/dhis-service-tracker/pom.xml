@@ -11,6 +11,9 @@
   <artifactId>dhis-service-tracker</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Tracker services</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -200,7 +203,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

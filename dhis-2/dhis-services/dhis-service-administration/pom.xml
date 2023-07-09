@@ -11,6 +11,9 @@
   <artifactId>dhis-service-administration</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Administration Service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -164,7 +167,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

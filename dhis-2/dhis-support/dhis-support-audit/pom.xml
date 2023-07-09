@@ -12,6 +12,10 @@
   <packaging>jar</packaging>
   <name>DHIS Audit Support</name>
 
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
+
   <dependencies>
 
     <!-- DHIS -->
@@ -66,8 +70,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

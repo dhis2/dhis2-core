@@ -11,6 +11,9 @@
   <artifactId>dhis-service-program-rule</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Program Rule Service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -120,7 +123,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

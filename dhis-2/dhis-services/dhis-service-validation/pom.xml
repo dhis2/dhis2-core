@@ -11,6 +11,9 @@
   <artifactId>dhis-service-validation</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Validation Service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -126,7 +129,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

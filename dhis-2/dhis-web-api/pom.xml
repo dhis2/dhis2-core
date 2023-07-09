@@ -12,19 +12,9 @@
   <packaging>jar</packaging>
   <name>DHIS Web API</name>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <compilerArgs>
-            <arg>-parameters</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  <properties>
+    <rootDir>../</rootDir>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -394,7 +384,17 @@
     </dependency>
   </dependencies>
 
-  <properties>
-    <rootDir>../</rootDir>
-  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

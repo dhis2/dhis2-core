@@ -11,6 +11,9 @@
   <artifactId>dhis-service-schema</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Schema service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -106,7 +109,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>
