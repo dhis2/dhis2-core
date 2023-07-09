@@ -11,6 +11,9 @@
   <artifactId>dhis-service-administration</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Administration Service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -33,7 +36,7 @@
       <artifactId>dhis-service-schema</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hisp.dhis</groupId>    
+      <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-validation</artifactId>
     </dependency>
     <dependency>
@@ -178,7 +181,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

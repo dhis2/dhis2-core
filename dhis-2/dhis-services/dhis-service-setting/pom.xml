@@ -11,6 +11,9 @@
   <artifactId>dhis-service-setting</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Settings service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -99,7 +102,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

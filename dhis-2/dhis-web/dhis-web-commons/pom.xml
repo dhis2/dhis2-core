@@ -10,6 +10,9 @@
   <artifactId>dhis-web-commons</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Common Functionality for Web</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -53,7 +56,7 @@
     </dependency>
 
     <!-- Web -->
-    
+
     <dependency>
       <groupId>org.apache.struts</groupId>
       <artifactId>struts2-core</artifactId>
@@ -180,7 +183,4 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

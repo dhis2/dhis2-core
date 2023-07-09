@@ -11,6 +11,9 @@
   <artifactId>dhis-service-acl</artifactId>
   <packaging>jar</packaging>
   <name>DHIS ACL service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -54,7 +57,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

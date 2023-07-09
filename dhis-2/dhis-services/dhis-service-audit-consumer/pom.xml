@@ -11,6 +11,9 @@
   <artifactId>dhis-service-audit-consumer</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Audit consumer service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -65,7 +68,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

@@ -11,6 +11,9 @@
   <artifactId>dhis-support-test</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Test Support</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -160,7 +163,4 @@
       <artifactId>guava</artifactId>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

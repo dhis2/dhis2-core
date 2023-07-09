@@ -11,6 +11,9 @@
   <artifactId>dhis-support-external</artifactId>
   <packaging>jar</packaging>
   <name>DHIS External Support</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -96,7 +99,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

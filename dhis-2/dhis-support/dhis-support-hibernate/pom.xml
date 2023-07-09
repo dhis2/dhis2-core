@@ -11,6 +11,9 @@
   <artifactId>dhis-support-hibernate</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Hibernate Support</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -191,7 +194,4 @@
       <artifactId>javax.persistence-api</artifactId>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

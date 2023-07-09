@@ -11,6 +11,9 @@
   <artifactId>dhis-service-reporting</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Reporting Service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -162,7 +165,6 @@
       <artifactId>jsr305</artifactId>
     </dependency>
 
-
     <!-- JasperReports -->
 
     <dependency>
@@ -242,7 +244,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

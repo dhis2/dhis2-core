@@ -11,6 +11,9 @@
   <artifactId>dhis-support-db-migration</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Database Migration Support</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -95,7 +98,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

@@ -11,6 +11,9 @@
   <artifactId>dhis-support-jdbc</artifactId>
   <packaging>jar</packaging>
   <name>DHIS JDBC Service</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -84,7 +87,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

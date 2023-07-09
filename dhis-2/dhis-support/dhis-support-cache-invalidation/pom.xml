@@ -11,6 +11,9 @@
   <artifactId>dhis-support-cache-invalidation</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Cache invalidation Support</name>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -104,7 +107,4 @@
     </dependency>
 
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

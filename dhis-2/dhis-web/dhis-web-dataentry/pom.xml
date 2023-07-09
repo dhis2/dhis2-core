@@ -11,10 +11,9 @@
   <artifactId>dhis-web-dataentry</artifactId>
   <packaging>war</packaging>
   <name>DHIS Data Entry</name>
-
-  <build>
-    <finalName>dhis-web-dataentry</finalName>
-  </build>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -83,9 +82,9 @@
       <artifactId>spring-beans</artifactId>
     </dependency>
 
-
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
+
+  <build>
+    <finalName>dhis-web-dataentry</finalName>
+  </build>
 </project>

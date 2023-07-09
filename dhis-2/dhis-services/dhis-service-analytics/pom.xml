@@ -12,6 +12,10 @@
   <packaging>jar</packaging>
   <name>DHIS Analytics</name>
 
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
+
   <dependencies>
     <!-- DHIS -->
 
@@ -218,8 +222,4 @@
     </dependency>
 
   </dependencies>
-
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
 </project>

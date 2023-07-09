@@ -12,6 +12,10 @@
   <packaging>jar</packaging>
   <name>DHIS Web API</name>
 
+  <properties>
+    <rootDir>../</rootDir>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -371,8 +375,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <properties>
-    <rootDir>../</rootDir>
-  </properties>
 </project>
