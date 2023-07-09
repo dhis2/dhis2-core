@@ -156,6 +156,17 @@
                 <file>${rootDir}/license-header</file>
               </licenseHeader>
             </java>
+            <pom>
+              <toggleOffOn>
+                <off>formatter:off</off><on>formatter:on</on>
+              </toggleOffOn>
+              <includes>
+                <include>pom.xml</include>
+              </includes>
+              <sortPom>
+                <expandEmptyElements>false</expandEmptyElements>
+              </sortPom>
+            </pom>
             <lineEndings>UNIX</lineEndings>
           </configuration>
         </plugin>

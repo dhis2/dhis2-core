@@ -19,13 +19,13 @@
 
     <organization>
         <name>UiO</name>
-        <url>http://www.dhis2.org</url>
+        <url>https://dhis2.org</url>
     </organization>
 
     <licenses>
         <license>
             <name>BSD</name>
-            <url>http://opensource.org/licenses/BSD-2-Clause</url>
+            <url>https://opensource.org/license/bsd-2-clause</url>
         </license>
     </licenses>
 
@@ -646,8 +646,14 @@
                                         <arg value="--short=7"/>
                                         <arg value="HEAD"/>
                                     </exec>
-                                    <echo file="${project.build.outputDirectory}/build.properties"
-                                          message="build.version = ${project.version}&#10;build.time = ${now}&#10;build.revision = ${revision}&#10;jasperreports.version = ${jasperreports.version}&#10;"/>
+                                    <!-- formatter:off -->
+                                    <echo file="${project.build.outputDirectory}/build.properties">
+                                        build.version=${project.version}
+                                        build.time=${now}
+                                        build.revision=${revision}
+                                        jasperreports.version=${jasperreports.version}
+                                    <!-- formatter:on -->
+                                    </echo>
                                 </target>
                             </configuration>
                             <goals>
@@ -688,6 +694,17 @@
                                 <file>${rootDir}/license-header</file>
                             </licenseHeader>
                         </java>
+                        <pom>
+                            <toggleOffOn>
+                                <off>formatter:off</off><on>formatter:on</on>
+                            </toggleOffOn>
+                            <includes>
+                                <include>pom.xml</include>
+                            </includes>
+                            <sortPom>
+                                <expandEmptyElements>false</expandEmptyElements>
+                            </sortPom>
+                        </pom>
                         <lineEndings>UNIX</lineEndings>
                     </configuration>
                 </plugin>
