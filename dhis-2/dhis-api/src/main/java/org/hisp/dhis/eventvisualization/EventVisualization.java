@@ -28,6 +28,7 @@
 package org.hisp.dhis.eventvisualization;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
@@ -639,14 +640,15 @@ public class EventVisualization extends BaseAnalyticalObject
 
   /** Validates the state of the current list of {@link Sorting} objects (if one is defined). */
   public void validateSortingState() {
+    getColumns();
     List<String> columns = getColumnDimensions();
-    List<Sorting> sortings = getSorting().stream().toList();
+    List<Sorting> sortingList = getSorting().stream().toList();
 
-    sortings.forEach(
+    sortingList.forEach(
         s -> {
           if (isBlank(s.getDimension()) || s.getDirection() == null) {
             throw new IllegalArgumentException("Sorting is not valid");
-          } else if (!columns.contains(s.getDimension())) {
+          } else if (columns.stream().noneMatch(c -> contains(s.getDimension().split("\\."), c))) {
             throw new IllegalStateException(s.getDimension());
           }
         });
