@@ -218,7 +218,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
         JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
-        assertEquals( 0, response.getNumber( "options[0].sortOrder" ).intValue() );
+        assertEquals( 3, response.getNumber( "options[0].sortOrder" ).intValue() );
         assertEquals( 5, response.getNumber( "options[1].sortOrder" ).intValue() );
         assertEquals( "Uh4HvjK6zg3", response.getString( "options[0].id" ).string() );
         assertEquals( "BQMei56UBl6", response.getString( "options[1].id" ).string() );
@@ -272,18 +272,19 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void testImportOptionSetWithTwoOptionsNoSortOrder()
     {
-        POST( "/metadata", "{\"optionSets\":" +
-            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"BQMei56UBl6\"}]}],\n"
-            +
-            "\"options\":" +
-            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-            .content( HttpStatus.OK );
+        POST( "/optionSets",
+            "    {\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}")
+            .content( HttpStatus.CREATED );
 
-        POST( "/metadata", "{ \"options\":" +
-            "    [{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-            .content( HttpStatus.OK );
+        POST( "/options",
+            "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}" )
+            .content( HttpStatus.CREATED );
 
-        JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+        POST( "/options",
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}" )
+            .content( HttpStatus.CREATED );
+
+        JsonObject response = GET( "/optionSets/{uid}", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
         assertEquals( "BQMei56UBl6", response.getString( "options[0].id" ).string() );

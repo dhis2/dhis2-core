@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.MapUtils;
@@ -118,7 +119,7 @@ public class Preheat
      * {@link org.hisp.dhis.common.SortableObject} mapped by class type. Value
      * is a set of Property names.
      */
-    private Map<Class<? extends IdentifiableObject>, Set<String>> mapSortableObjectProperties = new HashMap<>();
+    private Map<Class<?>, Set<String>> mapSortableObjectProperties = new HashMap<>();
 
     public Preheat()
     {
@@ -507,6 +508,17 @@ public class Preheat
         return attributes.values().stream()
             .filter( attribute -> attribute.getValueType() == valueType )
             .map( attribute -> attribute.getUid() ).collect( Collectors.toUnmodifiableSet() );
+    }
+
+    /**
+     * Get Set of Sortable properties of given klass. If not found, return defaultSupplier.get().
+     * @param klass Class to be used for querying.
+     * @param defaultSupplier Supplier to be used if not found.
+     * @return Set of Sortable properties of given klass.
+     */
+    public Set<String> getSortablePropertiesByClass( Class<?> klass, Supplier<Set<String>> defaultSupplier )
+    {
+        return mapSortableObjectProperties.computeIfAbsent( klass, k -> defaultSupplier.get() );
     }
 
     /*

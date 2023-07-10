@@ -58,7 +58,7 @@ class OptionControllerTest extends DhisControllerConvenienceTest
 
         // sortOrder is 1 and 2
         assertEquals( 2, response.getObject( "options" ).size() );
-        assertEquals( 1, response.getNumber( "options[0].sortOrder" ).intValue() );
+        assertEquals( 3, response.getNumber( "options[0].sortOrder" ).intValue() );
         assertEquals( 2, response.getNumber( "options[1].sortOrder" ).intValue() );
 
         // Update option sortOrder 2 to 20

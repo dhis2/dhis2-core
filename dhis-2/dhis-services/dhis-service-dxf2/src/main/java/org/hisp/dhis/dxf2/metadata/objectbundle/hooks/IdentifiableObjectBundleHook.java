@@ -29,6 +29,9 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -43,6 +46,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -89,10 +93,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     private void handleSortOrder( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
     {
-        findSortableProperty( schema )
-            .forEach( property -> {
+        findSortableProperty( bundle.getPreheat(), schema )
+            .forEach( propertyName -> {
                 List<IdentifiableObject> collection = ListUtils.emptyIfNull(
-                    ReflectionUtils.invokeGetterMethod( property.getFieldName(), identifiableObject ) );
+                    ReflectionUtils.invokeGetterMethod( propertyName, identifiableObject ) );
 
                 boolean hasSortOrder = collection.stream()
                     .anyMatch( item -> ((SortableObject) item).getSortOrder() != null );
@@ -112,14 +116,21 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
             } );
     }
 
-    private List<Property> findSortableProperty( Schema schema )
+    /**
+     * Get Set of property names that are sortable of given class from Preheat. If not found, find them and put them to Preheat.
+     *
+     * @param preheat Preheat
+     * @param schema Schema
+     * @return Set of property names that are sortable
+     */
+    private Set<String> findSortableProperty( Preheat preheat, Schema schema )
     {
-        // TODO: Need to improve the performance by adding Map<Class, List<String>> mapSortableObjectProperties in Preheat
-        return schema.getPersistedProperties().values().stream()
+        return preheat.getSortablePropertiesByClass( schema.getKlass(), () ->
+            schema.getPersistedProperties().values().stream()
             .filter( p -> List.class.isAssignableFrom( p.getKlass() )
                 && SortableObject.class.isAssignableFrom( p.getItemKlass() )
                 && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )
-            .toList();
+            .map( Property::getFieldName ).collect( Collectors.toSet() ) ) ;
     }
 
     @Override
