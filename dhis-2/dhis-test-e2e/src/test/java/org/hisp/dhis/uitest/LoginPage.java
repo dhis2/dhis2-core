@@ -5,19 +5,18 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 
-public class LoginPage
-{
-    @FindBy( css = "input[id$='username']" )
-    public WebElement inputUsername;
+public class LoginPage {
 
-    @FindBy( css = "input[class='button']" )
-    public WebElement inputSubmit;
+  @FindBy(css = "input[id$='username']")
+  public WebElement inputUsername;
 
-    @FindBy( css = "input[id$='password']" )
-    public WebElement inputPassword;
+  @FindBy(css = "input[class='button']")
+  public WebElement inputSubmit;
 
-    public LoginPage( WebDriver driver )
-    {
-        PageFactory.initElements( driver, this );
-    }
+  @FindBy(css = "input[id$='password']")
+  public WebElement inputPassword;
+
+  public LoginPage(WebDriver driver) {
+    PageFactory.initElements(driver, this);
+  }
 }

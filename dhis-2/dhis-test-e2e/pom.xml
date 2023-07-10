@@ -30,6 +30,8 @@
     <awaitility.version>4.2.0</awaitility.version>
     <lombok.version>1.18.28</lombok.version>
     <allure.version>2.22.0</allure.version>
+    <selenium-java.version>4.9.0</selenium-java.version>
+    <slf4j-simple.version>2.0.7</slf4j-simple.version>
   </properties>
 
   <dependencies>
@@ -154,7 +156,7 @@
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
-      <version>4.9.0</version>
+      <version>${selenium-java.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -166,7 +168,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>2.0.7</version>
+      <version>${slf4j-simple.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -274,6 +276,20 @@
             </configuration>
           </plugin>
         </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>uitests</id>
+      <build>
+          <plugins>
+              <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-surefire-plugin</artifactId>
+                  <configuration>
+                      <groups>uitests</groups>
+                  </configuration>
+              </plugin>
+          </plugins>
       </build>
     </profile>
   </profiles>
