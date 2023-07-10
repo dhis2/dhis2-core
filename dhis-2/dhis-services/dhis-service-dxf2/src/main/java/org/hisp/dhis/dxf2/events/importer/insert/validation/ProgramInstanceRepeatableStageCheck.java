@@ -63,7 +63,6 @@ public class ProgramInstanceRepeatableStageCheck implements Checker {
      * ProgramInstance should never be null. If it's null, the
      * ProgramInstanceCheck should report this anomaly.
      */
-    // @formatter:off
     if (programInstance != null
         && tei != null
         && program.isRegistration()
@@ -78,7 +77,6 @@ public class ProgramInstanceRepeatableStageCheck implements Checker {
           .setReference(event.getEvent())
           .incrementIgnored();
     }
-    // @formatter:on
 
     return success();
   }
@@ -88,7 +86,6 @@ public class ProgramInstanceRepeatableStageCheck implements Checker {
       long programInstanceId,
       long programStageId,
       long trackedEntityInstanceId) {
-    // @formatter:off
     final String sql =
         "select exists( "
             + "select * "
@@ -100,7 +97,6 @@ public class ProgramInstanceRepeatableStageCheck implements Checker {
             + "  and pi.trackedentityinstanceid = ? "
             + "  and psi.status != 'SKIPPED'"
             + ")";
-    // @formatter:on
 
     return jdbcTemplate.queryForObject(
         sql, Boolean.class, programInstanceId, programStageId, trackedEntityInstanceId);

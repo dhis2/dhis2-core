@@ -46,7 +46,6 @@ public class TrackedEntityValidator implements Validator<TrackerBundle> {
   public TrackedEntityValidator(
       SecurityOwnershipValidator securityOwnershipValidator,
       AttributeValidator attributeValidator) {
-    // @formatter:off
     validator =
         each(
             TrackerBundle::getTrackedEntities,
@@ -58,7 +57,6 @@ public class TrackedEntityValidator implements Validator<TrackerBundle> {
                 new UpdatableFieldsValidator(),
                 securityOwnershipValidator,
                 all(attributeValidator)));
-    // @formatter:on
   }
 
   @Override

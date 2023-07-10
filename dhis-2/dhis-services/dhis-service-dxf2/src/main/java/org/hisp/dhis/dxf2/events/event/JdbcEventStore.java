@@ -1987,7 +1987,6 @@ public class JdbcEventStore implements EventStore {
       ps.setObject(21, null);
     }
     ps.setObject(22, eventDataValuesToJson(event.getEventDataValues(), this.jsonMapper));
-    // @formatter:on
   }
 
   private MapSqlParameterSource getSqlParameters(ProgramStageInstance programStageInstance)

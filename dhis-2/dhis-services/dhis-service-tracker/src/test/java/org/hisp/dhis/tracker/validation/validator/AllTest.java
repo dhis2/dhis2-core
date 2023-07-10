@@ -66,7 +66,6 @@ class AllTest {
 
   @Test
   void testAllAreCalled() {
-    // @formatter:off
     Validator<String> validator =
         all(
             (r, b, s) -> addError(r, "V1"),
@@ -85,7 +84,6 @@ class AllTest {
   void testAllDoesNotCallValidatorIfItShouldNotRunOnGivenStrategy() {
     bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
 
-    // @formatter:off
     Validator<String> validator =
         all(
             (r, b, s) -> addError(r, "V1"),
@@ -114,7 +112,6 @@ class AllTest {
             .resolvedStrategyMap(new EnumMap<>(Map.of(TrackerType.EVENT, Map.of("event1", UPDATE))))
             .build();
 
-    // @formatter:off
     Validator<Event> validator =
         all(
             new Validator<>() {
