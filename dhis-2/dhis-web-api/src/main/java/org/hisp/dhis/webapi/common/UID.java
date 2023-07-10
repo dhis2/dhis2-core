@@ -53,11 +53,6 @@ public final class UID {
     this.value = value;
   }
 
-  @Override
-  public String toString() {
-    return value;
-  }
-
   public static UID of(String value) {
     return new UID(value);
   }
@@ -66,11 +61,20 @@ public final class UID {
     return new UID(object.getUid());
   }
 
+  public static String toValue(UID uid) {
+    return uid == null ? null : uid.getValue();
+  }
+
   public static Set<String> toValueSet(Collection<UID> uids) {
     return uids.stream().map(UID::getValue).collect(toUnmodifiableSet());
   }
 
   public static List<String> toValueList(Collection<UID> uids) {
     return uids.stream().map(UID::getValue).toList();
+  }
+
+  @Override
+  public String toString() {
+    return value;
   }
 }

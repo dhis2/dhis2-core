@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AssignedUserQueryParam;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -50,12 +51,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 class TrackedEntityRequestParamsMapper {
-  private final TrackedEntityFieldsParamMapper fieldsParamMapper;
 
-  public TrackedEntityOperationParams map(RequestParams requestParams, User user)
-      throws BadRequestException {
-    return map(requestParams, user, requestParams.getFields());
-  }
+  private final TrackedEntityFieldsParamMapper fieldsParamMapper;
 
   public TrackedEntityOperationParams map(
       RequestParams requestParams, User user, List<FieldPath> fields) throws BadRequestException {
@@ -81,12 +78,8 @@ class TrackedEntityRequestParamsMapper {
 
     return TrackedEntityOperationParams.builder()
         .query(queryFilter)
-        .programUid(
-            requestParams.getProgram() == null ? null : requestParams.getProgram().getValue())
-        .programStageUid(
-            requestParams.getProgramStage() == null
-                ? null
-                : requestParams.getProgramStage().getValue())
+        .programUid(UID.toValue(requestParams.getProgram()))
+        .programStageUid(UID.toValue(requestParams.getProgramStage()))
         .programStatus(requestParams.getProgramStatus())
         .followUp(requestParams.getFollowUp())
         .lastUpdatedStartDate(requestParams.getUpdatedAfter())
@@ -96,12 +89,12 @@ class TrackedEntityRequestParamsMapper {
         .programEnrollmentEndDate(requestParams.getEnrollmentEnrolledBefore())
         .programIncidentStartDate(requestParams.getEnrollmentOccurredAfter())
         .programIncidentEndDate(requestParams.getEnrollmentOccurredBefore())
-        .trackedEntityTypeUid(
-            requestParams.getTrackedEntityType() == null
-                ? null
-                : requestParams.getTrackedEntityType().getValue())
+        .trackedEntityTypeUid(UID.toValue(requestParams.getTrackedEntityType()))
         .organisationUnits(UID.toValueSet(orgUnitUids))
-        .organisationUnitMode(requestParams.getOuMode())
+        .organisationUnitMode(
+            requestParams.getOuMode() == null
+                ? OrganisationUnitSelectionMode.DESCENDANTS
+                : requestParams.getOuMode())
         .eventStatus(requestParams.getEventStatus())
         .eventStartDate(requestParams.getEventOccurredAfter())
         .eventEndDate(requestParams.getEventOccurredBefore())

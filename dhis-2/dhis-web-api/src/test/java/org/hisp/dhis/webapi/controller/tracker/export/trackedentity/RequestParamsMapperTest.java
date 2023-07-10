@@ -46,8 +46,10 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -55,12 +57,15 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class RequestParamsMapperTest {
+
   private static final String PROGRAM_UID = "XhBYIraw7sv";
 
   private static final String PROGRAM_STAGE_UID = "RpCr2u2pFqw";
@@ -84,6 +89,8 @@ class RequestParamsMapperTest {
 
   @Test
   void testMapping() throws BadRequestException {
+    Mockito.when(fieldsParamMapper.map(ArgumentMatchers.any()))
+        .thenReturn(TrackedEntityParams.FALSE);
     requestParams.setQuery("query-test");
     requestParams.setOuMode(OrganisationUnitSelectionMode.DESCENDANTS);
     requestParams.setProgramStatus(ProgramStatus.ACTIVE);
@@ -109,7 +116,8 @@ class RequestParamsMapperTest {
     requestParams.setOrder(
         Collections.singletonList(OrderCriteria.of("created", SortDirection.ASC)));
 
-    final TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    List<FieldPath> fieldPaths = List.of(new FieldPath("field", List.of("fields")));
+    final TrackedEntityOperationParams params = mapper.map(requestParams, user, fieldPaths);
 
     assertThat(params.getQuery().getFilter(), is("query-test"));
     assertThat(params.getQuery().getOperator(), is(QueryOperator.EQ));
@@ -137,6 +145,7 @@ class RequestParamsMapperTest {
         params.getOrders().stream()
             .anyMatch(
                 orderParam -> orderParam.equals(OrderCriteria.of("created", SortDirection.ASC))));
+    assertEquals(TrackedEntityParams.FALSE, params.getTrackedEntityParams());
   }
 
   @Test
@@ -144,7 +153,7 @@ class RequestParamsMapperTest {
     Date date = parseDate("2022-12-13");
     requestParams.setEnrollmentEnrolledAfter(date);
 
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertEquals(date, params.getProgramEnrollmentStartDate());
   }
@@ -156,7 +165,7 @@ class RequestParamsMapperTest {
     requestParams.setQuery(queryWithBadFormat);
 
     BadRequestException e =
-        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+        assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user, List.of()));
 
     assertEquals("Query item or filter is invalid: " + queryWithBadFormat, e.getMessage());
   }
@@ -165,7 +174,7 @@ class RequestParamsMapperTest {
   void testMappingProgram() throws BadRequestException {
     requestParams.setProgram(UID.of(PROGRAM_UID));
 
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertEquals(PROGRAM_UID, params.getProgramUid());
   }
@@ -175,7 +184,7 @@ class RequestParamsMapperTest {
     requestParams.setProgram(UID.of(PROGRAM_UID));
     requestParams.setProgramStage(UID.of(PROGRAM_STAGE_UID));
 
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertEquals(PROGRAM_STAGE_UID, params.getProgramStageUid());
   }
@@ -184,7 +193,7 @@ class RequestParamsMapperTest {
   void testMappingTrackedEntityType() throws BadRequestException {
     requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
 
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityTypeUid());
   }
@@ -194,7 +203,7 @@ class RequestParamsMapperTest {
     requestParams.setAssignedUser("IsdLBTOBzMi;l5ab8q5skbB");
     requestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
 
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertContainsOnly(
         Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
@@ -207,7 +216,7 @@ class RequestParamsMapperTest {
     requestParams.setAssignedUsers(Set.of(UID.of("IsdLBTOBzMi"), UID.of("l5ab8q5skbB")));
     requestParams.setAssignedUserMode(AssignedUserSelectionMode.PROVIDED);
 
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertContainsOnly(
         Set.of("IsdLBTOBzMi", "l5ab8q5skbB"),
@@ -221,14 +230,14 @@ class RequestParamsMapperTest {
     OrderCriteria order2 = OrderCriteria.of("createdAt", SortDirection.DESC);
     requestParams.setOrder(List.of(order1, order2));
 
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertEquals(List.of(order1, order2), params.getOrders());
   }
 
   @Test
   void testMappingOrderParamsNoOrder() throws BadRequestException {
-    TrackedEntityOperationParams params = mapper.map(requestParams, user);
+    TrackedEntityOperationParams params = mapper.map(requestParams, user, List.of());
 
     assertIsEmpty(params.getOrders());
   }
@@ -238,7 +247,7 @@ class RequestParamsMapperTest {
     requestParams.setOrgUnit("IsdLBTOBzMi");
     requestParams.setOrgUnits(Set.of(UID.of("IsdLBTOBzMi")));
 
-    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user, List.of()));
   }
 
   @Test
@@ -246,6 +255,6 @@ class RequestParamsMapperTest {
     requestParams.setTrackedEntity("IsdLBTOBzMi");
     requestParams.setTrackedEntities(Set.of(UID.of("IsdLBTOBzMi")));
 
-    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user));
+    assertThrows(BadRequestException.class, () -> mapper.map(requestParams, user, List.of()));
   }
 }

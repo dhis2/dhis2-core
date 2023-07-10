@@ -28,8 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,8 +35,6 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -60,7 +56,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 @Data
 @NoArgsConstructor
 class RequestParams extends PagingAndSortingCriteriaAdapter {
-  static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
   /** Query filter for attributes */
   private String query;
@@ -82,10 +77,10 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   private String orgUnit;
 
   @OpenApi.Property({UID[].class, OrganisationUnit.class})
-  private Set<UID> orgUnits = new HashSet<>();
+  private Set<UID> orgUnits;
 
   /** Selection mode for the specified organisation units, default is ACCESSIBLE. */
-  private OrganisationUnitSelectionMode ouMode = OrganisationUnitSelectionMode.DESCENDANTS;
+  private OrganisationUnitSelectionMode ouMode;
 
   /** a Program UID for which instances in the response must be enrolled in. */
   @OpenApi.Property({UID.class, Program.class})
@@ -135,7 +130,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   private String trackedEntity;
 
   @OpenApi.Property({UID[].class, TrackedEntity.class})
-  private Set<UID> trackedEntities = new HashSet<>();
+  private Set<UID> trackedEntities;
 
   /** Selection mode for user assignment of events. */
   private AssignedUserSelectionMode assignedUserMode;
@@ -150,7 +145,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
   private String assignedUser;
 
   @OpenApi.Property({UID[].class, User.class})
-  private Set<UID> assignedUsers = new HashSet<>();
+  private Set<UID> assignedUsers;
 
   /** Program Stage UID, used for filtering TEIs based on the selected Program Stage */
   @OpenApi.Property({UID.class, ProgramStage.class})
@@ -179,7 +174,4 @@ class RequestParams extends PagingAndSortingCriteriaAdapter {
    * potentialDuplicate or not
    */
   private Boolean potentialDuplicate;
-
-  @OpenApi.Property(value = String[].class)
-  private List<FieldPath> fields = FieldFilterParser.parse(DEFAULT_FIELDS_PARAM);
 }

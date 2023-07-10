@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -62,7 +63,7 @@ public class RequestParamUtils {
       Set<UID> newParamUids)
       throws BadRequestException {
     Set<String> deprecatedParamParsedUids = parseUids(deprecatedParamUids);
-    if (!deprecatedParamParsedUids.isEmpty() && !newParamUids.isEmpty()) {
+    if (!deprecatedParamParsedUids.isEmpty() && !CollectionUtils.isEmpty(newParamUids)) {
       throw new BadRequestException(
           String.format(
               "Only one parameter of '%s' (deprecated; semicolon separated UIDs) and '%s' (comma separated UIDs) must be specified. Prefer '%s' as '%s' will be removed.",
@@ -71,7 +72,7 @@ public class RequestParamUtils {
 
     return !deprecatedParamParsedUids.isEmpty()
         ? deprecatedParamParsedUids.stream().map(UID::of).collect(Collectors.toSet())
-        : newParamUids;
+        : SetUtils.emptyIfNull(newParamUids);
   }
 
   /**
