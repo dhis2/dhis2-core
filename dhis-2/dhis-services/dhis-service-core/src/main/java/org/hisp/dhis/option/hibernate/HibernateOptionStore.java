@@ -75,7 +75,7 @@ public class HibernateOptionStore extends HibernateIdentifiableObjectStore<Optio
       hql += "and lower(option.name) like lower('%" + key + "%') ";
     }
 
-        hql += "order by option.sortOrder";
+    hql += "order by option.sortOrder";
 
     Query<Option> query = getQuery(hql);
     query.setParameter("optionSetId", optionSetId);

@@ -97,12 +97,11 @@ public class Preheat {
   private Map<Class<? extends IdentifiableObject>, Map<String, Attribute>>
       attributesByTargetObjectType = new HashMap<>();
 
-    /**
-     * Map of all properties which are
-     * {@link org.hisp.dhis.common.SortableObject} mapped by class type. Value
-     * is a set of Property names.
-     */
-    private Map<Class<?>, Set<String>> mapSortableObjectProperties = new HashMap<>();
+  /**
+   * Map of all properties which are {@link org.hisp.dhis.common.SortableObject} mapped by class
+   * type. Value is a set of Property names.
+   */
+  private Map<Class<?>, Set<String>> mapSortableObjectProperties = new HashMap<>();
 
   public Preheat() {
     for (PreheatIdentifier identifier : PreheatIdentifier.values()) {
@@ -450,18 +449,17 @@ public class Preheat {
         .collect(Collectors.toUnmodifiableSet());
   }
 
-    /**
-     * Get Set of Sortable properties of given klass. If not found, return
-     * defaultSupplier.get().
-     *
-     * @param klass Class to be used for querying.
-     * @param defaultSupplier Supplier to be used if not found.
-     * @return Set of Sortable properties of given klass.
-     */
-    public Set<String> getSortablePropertiesByClass( Class<?> klass, Supplier<Set<String>> defaultSupplier )
-    {
-        return mapSortableObjectProperties.computeIfAbsent( klass, k -> defaultSupplier.get() );
-    }
+  /**
+   * Get Set of Sortable properties of given klass. If not found, return defaultSupplier.get().
+   *
+   * @param klass Class to be used for querying.
+   * @param defaultSupplier Supplier to be used if not found.
+   * @return Set of Sortable properties of given klass.
+   */
+  public Set<String> getSortablePropertiesByClass(
+      Class<?> klass, Supplier<Set<String>> defaultSupplier) {
+    return mapSortableObjectProperties.computeIfAbsent(klass, k -> defaultSupplier.get());
+  }
 
   /*
    * For use in unit tests only (package private)

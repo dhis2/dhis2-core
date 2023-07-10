@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.common;
 
-public interface SortableObject
-{
-    Integer getSortOrder();
+public interface SortableObject {
+  Integer getSortOrder();
 
-    void setSortOrder( Integer sortOrder );
+  void setSortOrder(Integer sortOrder);
 }

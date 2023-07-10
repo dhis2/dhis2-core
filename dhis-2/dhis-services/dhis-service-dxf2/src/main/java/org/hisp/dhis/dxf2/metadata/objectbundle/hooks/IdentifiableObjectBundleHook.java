@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
@@ -77,55 +76,63 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
       baseIdentifiableObject.getSharing().setOwner(baseIdentifiableObject.getCreatedBy());
     }
 
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
-        handleAttributeValues( identifiableObject, bundle, schema );
-        handleSkipSharing( identifiableObject, bundle );
-        handleSkipTranslation( identifiableObject, bundle );
-        handleSortOrder( identifiableObject, bundle, schema );
-    }
+    Schema schema =
+        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(identifiableObject));
+    handleAttributeValues(identifiableObject, bundle, schema);
+    handleSkipSharing(identifiableObject, bundle);
+    handleSkipTranslation(identifiableObject, bundle);
+    handleSortOrder(identifiableObject, bundle, schema);
+  }
 
-    private void handleSortOrder( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        findSortableProperty( bundle.getPreheat(), schema )
-            .forEach( propertyName -> {
-                List<IdentifiableObject> collection = ListUtils.emptyIfNull(
-                    ReflectionUtils.invokeGetterMethod( propertyName, identifiableObject ) );
+  private void handleSortOrder(
+      IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema) {
+    findSortableProperty(bundle.getPreheat(), schema)
+        .forEach(
+            propertyName -> {
+              List<IdentifiableObject> collection =
+                  ListUtils.emptyIfNull(
+                      ReflectionUtils.invokeGetterMethod(propertyName, identifiableObject));
 
-                boolean hasSortOrder = collection.stream()
-                    .anyMatch( item -> ((SortableObject) item).getSortOrder() != null );
-                int sortOrder = 0;
-                int max = collection.size();
-                for ( IdentifiableObject item : collection )
-                {
-                    SortableObject sortableItem = (SortableObject) bundle.getPreheat()
-                        .get( bundle.getPreheatIdentifier(), item );
-                    if ( ((SortableObject) item).getSortOrder() == null )
-                    {
-                        sortableItem.setSortOrder( hasSortOrder ? sortOrder++ : ++max );
-                    }
-
-                    bundle.getPreheat().put( bundle.getPreheatIdentifier(), item );
+              boolean hasSortOrder =
+                  collection.stream()
+                      .anyMatch(item -> ((SortableObject) item).getSortOrder() != null);
+              int sortOrder = 0;
+              int max = collection.size();
+              for (IdentifiableObject item : collection) {
+                SortableObject sortableItem =
+                    (SortableObject) bundle.getPreheat().get(bundle.getPreheatIdentifier(), item);
+                if (((SortableObject) item).getSortOrder() == null) {
+                  sortableItem.setSortOrder(hasSortOrder ? sortOrder++ : ++max);
                 }
-            } );
-    }
 
-    /**
-     * Get Set of property names that are sortable of given class from Preheat.
-     * If not found, find them and put them to Preheat.
-     *
-     * @param preheat Preheat
-     * @param schema Schema
-     * @return Set of property names that are sortable
-     */
-    private Set<String> findSortableProperty( Preheat preheat, Schema schema )
-    {
-        return preheat.getSortablePropertiesByClass( schema.getKlass(),
-            () -> schema.getPersistedProperties().values().stream()
-                .filter( p -> List.class.isAssignableFrom( p.getKlass() )
-                    && SortableObject.class.isAssignableFrom( p.getItemKlass() )
-                    && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )
-                .map( Property::getFieldName ).collect( Collectors.toSet() ) );
-    }
+                bundle.getPreheat().put(bundle.getPreheatIdentifier(), item);
+              }
+            });
+  }
+
+  /**
+   * Get Set of property names that are sortable of given class from Preheat. If not found, find
+   * them and put them to Preheat.
+   *
+   * @param preheat Preheat
+   * @param schema Schema
+   * @return Set of property names that are sortable
+   */
+  private Set<String> findSortableProperty(Preheat preheat, Schema schema) {
+    return preheat.getSortablePropertiesByClass(
+        schema.getKlass(),
+        () ->
+            schema.getPersistedProperties().values().stream()
+                .filter(
+                    p ->
+                        List.class.isAssignableFrom(p.getKlass())
+                            && SortableObject.class.isAssignableFrom(p.getItemKlass())
+                            && schemaService
+                                .getDynamicSchema(p.getItemKlass())
+                                .hasPersistedProperty("sortOrder"))
+                .map(Property::getFieldName)
+                .collect(Collectors.toSet()));
+  }
 
   @Override
   public void preUpdate(

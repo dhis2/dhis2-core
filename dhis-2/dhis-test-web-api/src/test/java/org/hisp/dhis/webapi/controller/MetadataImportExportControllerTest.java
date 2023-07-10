@@ -243,30 +243,27 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6004));
   }
 
-    /**
-     * Import OptionSet with two Options, sort orders are 2 and 3.
-     */
-    @Test
-    void testImportOptionSetWithOptions()
-    {
-        POST( "/metadata", "{\"optionSets\":\n" +
-            "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
-            +
-            "\"options\":\n" +
-            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
-            +
-            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-            .content( HttpStatus.OK );
+  /** Import OptionSet with two Options, sort orders are 2 and 3. */
+  @Test
+  void testImportOptionSetWithOptions() {
+    POST(
+            "/metadata",
+            "{\"optionSets\":\n"
+                + "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
+                + "\"options\":\n"
+                + "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+                + "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
+        .content(HttpStatus.OK);
 
     JsonObject response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
-        assertEquals( 2, response.getObject( "options" ).size() );
-        assertEquals( 3, response.getNumber( "options[0].sortOrder" ).intValue() );
-        assertEquals( 5, response.getNumber( "options[1].sortOrder" ).intValue() );
-        assertEquals( "Uh4HvjK6zg3", response.getString( "options[0].id" ).string() );
-        assertEquals( "BQMei56UBl6", response.getString( "options[1].id" ).string() );
-    }
+    assertEquals(2, response.getObject("options").size());
+    assertEquals(3, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals(5, response.getNumber("options[1].sortOrder").intValue());
+    assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
+    assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
+  }
 
   /** Import OptionSet with two Options, one has sortOrder and the other doesn't */
   @Test
@@ -303,32 +300,34 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     JsonObject response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
-        assertEquals( 2, response.getObject( "options" ).size() );
-        assertEquals( "Uh4HvjK6zg3", response.getString( "options[0].id" ).string() );
-        assertEquals( "BQMei56UBl6", response.getString( "options[1].id" ).string() );
-    }
+    assertEquals(2, response.getObject("options").size());
+    assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
+    assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
+  }
 
-    @Test
-    void testImportOptionSetWithTwoOptionsNoSortOrder()
-    {
-        POST( "/optionSets",
-            "    {\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}" )
-            .content( HttpStatus.CREATED );
+  @Test
+  void testImportOptionSetWithTwoOptionsNoSortOrder() {
+    POST(
+            "/optionSets",
+            "    {\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}")
+        .content(HttpStatus.CREATED);
 
-        POST( "/options",
-            "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}" )
-            .content( HttpStatus.CREATED );
+    POST(
+            "/options",
+            "    {\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}")
+        .content(HttpStatus.CREATED);
 
-        POST( "/options",
-            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}" )
-            .content( HttpStatus.CREATED );
+    POST(
+            "/options",
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}")
+        .content(HttpStatus.CREATED);
 
-        JsonObject response = GET( "/optionSets/{uid}", "RHqFlB1Wm4d" ).content();
+    JsonObject response = GET("/optionSets/{uid}", "RHqFlB1Wm4d").content();
 
-        assertEquals( 2, response.getObject( "options" ).size() );
-        assertEquals( "BQMei56UBl6", response.getString( "options[0].id" ).string() );
-        assertEquals( "Uh4HvjK6zg3", response.getString( "options[1].id" ).string() );
-    }
+    assertEquals(2, response.getObject("options").size());
+    assertEquals("BQMei56UBl6", response.getString("options[0].id").string());
+    assertEquals("Uh4HvjK6zg3", response.getString("options[1].id").string());
+  }
 
   /** Import OptionSet with two Options, both have same sortOrder */
   @Test

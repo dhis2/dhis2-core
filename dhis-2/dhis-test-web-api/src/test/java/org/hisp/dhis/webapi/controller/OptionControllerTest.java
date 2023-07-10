@@ -54,10 +54,10 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
     JsonObject response =
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
-        // sortOrder is 1 and 2
-        assertEquals( 2, response.getObject( "options" ).size() );
-        assertEquals( 3, response.getNumber( "options[0].sortOrder" ).intValue() );
-        assertEquals( 2, response.getNumber( "options[1].sortOrder" ).intValue() );
+    // sortOrder is 1 and 2
+    assertEquals(2, response.getObject("options").size());
+    assertEquals(3, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals(2, response.getNumber("options[1].sortOrder").intValue());
 
     // Update option sortOrder 2 to 20
     POST(
@@ -66,13 +66,13 @@ class OptionControllerTest extends DhisControllerConvenienceTest {
                 + "[{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 20,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}")
         .content(HttpStatus.OK);
 
-        response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
-        assertEquals( 2, response.getObject( "options" ).size() );
-        assertEquals( 1, response.getNumber( "options[0].sortOrder" ).intValue() );
-        // sortOrder 20 should be saved as 2.
-        assertEquals( "Uh4HvjK6zg3", response.getString( "options[1].id" ).string() );
-        assertEquals( 20, response.getNumber( "options[1].sortOrder" ).intValue() );
-    }
+    response = GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
+    assertEquals(2, response.getObject("options").size());
+    assertEquals(1, response.getNumber("options[0].sortOrder").intValue());
+    // sortOrder 20 should be saved as 2.
+    assertEquals("Uh4HvjK6zg3", response.getString("options[1].id").string());
+    assertEquals(20, response.getNumber("options[1].sortOrder").intValue());
+  }
 
   @Test
   void testOptionSetsWithDescription() {
