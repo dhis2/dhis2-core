@@ -92,11 +92,11 @@ class TrackedEntityOperationParamsMapper {
 
     User user = operationParams.getUser();
     Set<OrganisationUnit> orgUnits =
-        validateOrgUnits(user, operationParams.getOrganisationUnits(), program);
-    if (operationParams.getOrganisationUnitMode() == OrganisationUnitSelectionMode.CAPTURE
-        && user != null) {
-      orgUnits.addAll(user.getOrganisationUnits());
-    }
+        validateOrgUnits(
+            user,
+            operationParams.getOrganisationUnits(),
+            program,
+            operationParams.getOrganisationUnitMode());
 
     QueryFilter queryFilter = operationParams.getQuery();
 
@@ -191,7 +191,8 @@ class TrackedEntityOperationParamsMapper {
         .collect(Collectors.toSet());
   }
 
-  private Set<OrganisationUnit> validateOrgUnits(User user, Set<String> orgUnitIds, Program program)
+  private Set<OrganisationUnit> validateOrgUnits(
+      User user, Set<String> orgUnitIds, Program program, OrganisationUnitSelectionMode orgUnitMode)
       throws BadRequestException, ForbiddenException {
     Set<OrganisationUnit> orgUnits = new HashSet<>();
     for (String orgUnitUid : orgUnitIds) {
@@ -207,6 +208,10 @@ class TrackedEntityOperationParamsMapper {
       }
 
       orgUnits.add(orgUnit);
+    }
+
+    if (orgUnitMode == OrganisationUnitSelectionMode.CAPTURE && user != null) {
+      orgUnits.addAll(user.getOrganisationUnits());
     }
 
     return orgUnits;

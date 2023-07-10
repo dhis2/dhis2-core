@@ -36,7 +36,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -53,8 +52,7 @@ public class TrackedEntityOperationParams {
 
   public static final int DEFAULT_PAGE_SIZE = 50;
 
-  @Builder.Default @Setter
-  private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
+  @Builder.Default private TrackedEntityParams trackedEntityParams = TrackedEntityParams.FALSE;
 
   /** Query value, will apply to all relevant attributes. */
   private QueryFilter query;
