@@ -273,7 +273,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     void testImportOptionSetWithTwoOptionsNoSortOrder()
     {
         POST( "/optionSets",
-            "    {\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}")
+            "    {\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\"}" )
             .content( HttpStatus.CREATED );
 
         POST( "/options",

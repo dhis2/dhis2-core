@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
@@ -117,7 +116,8 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     }
 
     /**
-     * Get Set of property names that are sortable of given class from Preheat. If not found, find them and put them to Preheat.
+     * Get Set of property names that are sortable of given class from Preheat.
+     * If not found, find them and put them to Preheat.
      *
      * @param preheat Preheat
      * @param schema Schema
@@ -125,12 +125,12 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
      */
     private Set<String> findSortableProperty( Preheat preheat, Schema schema )
     {
-        return preheat.getSortablePropertiesByClass( schema.getKlass(), () ->
-            schema.getPersistedProperties().values().stream()
-            .filter( p -> List.class.isAssignableFrom( p.getKlass() )
-                && SortableObject.class.isAssignableFrom( p.getItemKlass() )
-                && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )
-            .map( Property::getFieldName ).collect( Collectors.toSet() ) ) ;
+        return preheat.getSortablePropertiesByClass( schema.getKlass(),
+            () -> schema.getPersistedProperties().values().stream()
+                .filter( p -> List.class.isAssignableFrom( p.getKlass() )
+                    && SortableObject.class.isAssignableFrom( p.getItemKlass() )
+                    && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )
+                .map( Property::getFieldName ).collect( Collectors.toSet() ) );
     }
 
     @Override

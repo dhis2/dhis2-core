@@ -511,7 +511,9 @@ public class Preheat
     }
 
     /**
-     * Get Set of Sortable properties of given klass. If not found, return defaultSupplier.get().
+     * Get Set of Sortable properties of given klass. If not found, return
+     * defaultSupplier.get().
+     *
      * @param klass Class to be used for querying.
      * @param defaultSupplier Supplier to be used if not found.
      * @return Set of Sortable properties of given klass.
