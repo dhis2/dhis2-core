@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.hisp.dhis</groupId>
@@ -126,13 +124,6 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.0.0-M6</version>
-          <dependencies>
-            <dependency>
-              <groupId>me.fabriciorby</groupId>
-              <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
-              <version>0.1.0</version>
-            </dependency>
-          </dependencies>
           <configuration>
             <reportFormat>plain</reportFormat>
             <consoleOutputReporter>
@@ -140,6 +131,13 @@
             </consoleOutputReporter>
             <statelessTestsetInfoReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5StatelessTestsetInfoTreeReporter"/>
           </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>me.fabriciorby</groupId>
+              <artifactId>maven-surefire-junit5-tree-reporter</artifactId>
+              <version>0.1.0</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>com.diffplug.spotless</groupId>
@@ -150,12 +148,23 @@
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
-              <googleJavaFormat />
-              <trimTrailingWhitespace />
+              <googleJavaFormat/>
+              <trimTrailingWhitespace/>
               <licenseHeader>
                 <file>${rootDir}/license-header</file>
               </licenseHeader>
             </java>
+            <pom>
+              <toggleOffOn>
+                <off>formatter:off</off><on>formatter:on</on>
+              </toggleOffOn>
+              <includes>
+                <include>pom.xml</include>
+              </includes>
+              <sortPom>
+                <expandEmptyElements>false</expandEmptyElements>
+              </sortPom>
+            </pom>
             <lineEndings>UNIX</lineEndings>
           </configuration>
         </plugin>

@@ -1,5 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -12,81 +12,9 @@
   <packaging>jar</packaging>
   <name>DHIS Web API Test</name>
 
-  <build>
-    <finalName>dhis-test-web-api</finalName>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>doc</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemProperties>
-                <property>
-                  <name>org.hisp.dhis.test</name>
-                  <value>true</value>
-                </property>
-              </systemProperties>
-              <argLine>-Xmx256m</argLine>
-              <includes>
-                <include>**/*Documentation.java</include>
-              </includes>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.asciidoctor</groupId>
-            <artifactId>asciidoctor-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>generate-docs</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>process-asciidoc</goal>
-                </goals>
-                <configuration>
-                  <backend>html5</backend>
-                  <sourceHighlighter>highlightjs</sourceHighlighter>
-                  <doctype>book</doctype>
-                  <preserveDirectories>false</preserveDirectories>
-                  <attributes>
-                    <snippets>${snippetsDirectory}</snippets>
-                  </attributes>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <artifactId>maven-resources-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>copy-resources</id>
-                <phase>prepare-package</phase>
-                <goals>
-                  <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                  <outputDirectory>
-                    ${project.build.outputDirectory}/static/docs
-                  </outputDirectory>
-                  <resources>
-                    <resource>
-                      <directory>
-                        ${project.build.directory}/generated-docs
-                      </directory>
-                    </resource>
-                  </resources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+  <properties>
+    <rootDir>../</rootDir>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -209,7 +137,75 @@
     </dependency>
   </dependencies>
 
-  <properties>
-    <rootDir>../</rootDir>
-  </properties>
+  <build>
+    <finalName>dhis-test-web-api</finalName>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>doc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <systemProperties>
+                <property>
+                  <name>org.hisp.dhis.test</name>
+                  <value>true</value>
+                </property>
+              </systemProperties>
+              <argLine>-Xmx256m</argLine>
+              <includes>
+                <include>**/*Documentation.java</include>
+              </includes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctor-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate-docs</id>
+                <goals>
+                  <goal>process-asciidoc</goal>
+                </goals>
+                <phase>package</phase>
+                <configuration>
+                  <backend>html5</backend>
+                  <sourceHighlighter>highlightjs</sourceHighlighter>
+                  <doctype>book</doctype>
+                  <preserveDirectories>false</preserveDirectories>
+                  <attributes>
+                    <snippets>${snippetsDirectory}</snippets>
+                  </attributes>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-resources</id>
+                <goals>
+                  <goal>copy-resources</goal>
+                </goals>
+                <phase>prepare-package</phase>
+                <configuration>
+                  <outputDirectory>${project.build.outputDirectory}/static/docs</outputDirectory>
+                  <resources>
+                    <resource>
+                      <directory>${project.build.directory}/generated-docs</directory>
+                    </resource>
+                  </resources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
