@@ -70,7 +70,6 @@ class EachTest {
 
   @Test
   void testCallsValidatorForEachItemInCollection() {
-    // @formatter:off
     Validator<Enrollment> validator =
         each(Enrollment::getNotes, (r, b, n) -> addError(r, n.getNote()));
 
