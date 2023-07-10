@@ -54,6 +54,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,19 +138,108 @@ class AbstractAnalyticsServiceTest {
     assertThat(headers, is(notNullValue()));
     assertThat(headers, hasSize(4));
 
-    assertHeader(headers.get(0), "ou", "ouA", ValueType.TEXT, String.class.getName());
-    assertHeader(
+    assertHeaderWithColumn(headers.get(0), "ou", "ouA", ValueType.TEXT, String.class.getName());
+    assertHeaderWithColumn(
         headers.get(1), deA.getUid(), deA.getName(), ValueType.TEXT, String.class.getName());
-    assertHeader(
+    assertHeaderWithColumn(
         headers.get(2), deB.getUid(), deB.getName(), ValueType.COORDINATE, Point.class.getName());
-    assertHeader(
+    assertHeaderWithColumn(
         headers.get(3), deC.getUid(), deC.getName(), ValueType.NUMBER, Double.class.getName());
   }
 
-  private void assertHeader(
+  @Test
+  void verifyHeaderCreationBasedOnQueryItemsAndDimensionsWithSameNamesMultiStage() {
+    ProgramStage psA = new ProgramStage("ps", new Program());
+    psA.setUid("psA12345678");
+
+    ProgramStage psB = new ProgramStage("ps", new Program());
+    psB.setUid("psB12345678");
+
+    DataElement deD = createDataElement('D', ValueType.NUMBER, AggregationType.COUNT);
+    deD.setName("same");
+
+    DataElement deE = createDataElement('E', ValueType.NUMBER, AggregationType.COUNT);
+    deE.setName("same");
+
+    DataElement deF = createDataElement('F', ValueType.NUMBER, AggregationType.COUNT);
+    deF.setName("unique");
+
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, List.of(peA));
+
+    DimensionalObject orgUnits =
+        new BaseDimensionalObject(
+            DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
+
+    QueryItem qiD = new QueryItem(deD, null, deD.getValueType(), deD.getAggregationType(), null);
+    qiD.setProgramStage(psA);
+
+    QueryItem qiE = new QueryItem(deE, null, deE.getValueType(), deE.getAggregationType(), null);
+    qiE.setProgramStage(psB);
+
+    QueryItem qiF = new QueryItem(deF, null, deF.getValueType(), deF.getAggregationType(), null);
+    qiF.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(orgUnits)
+            .addItem(qiD)
+            .addItem(qiE)
+            .addItem(qiF)
+            .withCoordinateFields(List.of(deB.getUid()))
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .withApiVersion(DhisApiVersion.V33)
+            .build();
+
+    when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+
+    Grid grid = dummyAnalyticsService.getGrid(params);
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertThat(headers, is(notNullValue()));
+    assertThat(headers, hasSize(4));
+
+    assertHeaderWithColumn(headers.get(0), "ou", "ouA", ValueType.TEXT, String.class.getName());
+
+    // Same item names with different program stages.
+    assertHeaderWithDisplayColumn(
+        headers.get(1),
+        psA.getUid() + "." + deD.getUid(),
+        deD.getName(),
+        deD.getName() + " - " + psA.getName(),
+        ValueType.NUMBER,
+        Double.class.getName());
+    assertHeaderWithDisplayColumn(
+        headers.get(2),
+        psB.getUid() + "." + deE.getUid(),
+        deE.getName(),
+        deE.getName() + " - " + psB.getName(),
+        ValueType.NUMBER,
+        Double.class.getName());
+  }
+
+  private void assertHeaderWithColumn(
       GridHeader expected, String name, String column, ValueType valueType, String type) {
     assertThat("Header name does not match", expected.getName(), is(name));
     assertThat("Header column name does not match", expected.getColumn(), is(column));
+    assertThat("Header value type does not match", expected.getValueType(), is(valueType));
+    assertThat("Header type does not match", expected.getType(), is(type));
+  }
+
+  private void assertHeaderWithDisplayColumn(
+      GridHeader expected,
+      String name,
+      String column,
+      String displayColumn,
+      ValueType valueType,
+      String type) {
+    assertThat("Header name does not match", expected.getName(), is(name));
+    assertThat("Header column name does not match", expected.getColumn(), is(column));
+    assertThat(
+        "Header displayColumn name does not match", expected.getDisplayColumn(), is(displayColumn));
     assertThat("Header value type does not match", expected.getValueType(), is(valueType));
     assertThat("Header type does not match", expected.getType(), is(type));
   }
