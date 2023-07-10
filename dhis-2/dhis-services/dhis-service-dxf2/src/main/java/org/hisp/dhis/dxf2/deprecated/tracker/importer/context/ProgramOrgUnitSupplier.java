@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -48,67 +47,59 @@ import org.springframework.stereotype.Component;
 /**
  * @author Luciano Fiandesio
  */
-@Component( "workContextProgramOrgUnitsSupplier" )
-public class ProgramOrgUnitSupplier extends AbstractSupplier<Map<Long, List<Long>>>
-{
-    public ProgramOrgUnitSupplier( NamedParameterJdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
+@Component("workContextProgramOrgUnitsSupplier")
+public class ProgramOrgUnitSupplier extends AbstractSupplier<Map<Long, List<Long>>> {
+  public ProgramOrgUnitSupplier(NamedParameterJdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
+
+  public Map<Long, List<Long>> get(
+      ImportOptions importOptions, List<Event> events, Map<String, OrganisationUnit> orgUniMap) {
+    if (events == null) {
+      return new HashMap<>();
     }
 
-    public Map<Long, List<Long>> get( ImportOptions importOptions, List<Event> events,
-        Map<String, OrganisationUnit> orgUniMap )
-    {
-        if ( events == null )
-        {
-            return new HashMap<>();
-        }
+    //
+    // Collect all the org unit IDs to pass as SQL query
+    // argument
+    //
+    final Set<Long> orgUnitIds =
+        orgUniMap.values().stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
 
-        //
-        // Collect all the org unit IDs to pass as SQL query
-        // argument
-        //
-        final Set<Long> orgUnitIds = orgUniMap.values().stream().map( IdentifiableObject::getId )
-            .collect( Collectors.toSet() );
+    if (isEmpty(orgUnitIds)) {
+      return new HashMap<>();
+    }
 
-        if ( isEmpty( orgUnitIds ) )
-        {
-            return new HashMap<>();
-        }
+    final String sql =
+        "select programid, organisationunitid from program_organisationunits where organisationunitid in ( :ids )";
 
-        final String sql = "select programid, organisationunitid from program_organisationunits where organisationunitid in ( :ids )";
+    MapSqlParameterSource parameters = new MapSqlParameterSource();
+    parameters.addValue("ids", orgUnitIds);
 
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "ids", orgUnitIds );
+    return jdbcTemplate.query(
+        sql,
+        parameters,
+        rs -> {
+          Map<Long, List<Long>> map = new HashMap<>();
+          while (rs.next()) {
+            final Long pid = rs.getLong("programid");
+            final Long ouid = rs.getLong("organisationunitid");
 
-        return jdbcTemplate.query( sql, parameters, rs -> {
-
-            Map<Long, List<Long>> map = new HashMap<>();
-            while ( rs.next() )
-            {
-                final Long pid = rs.getLong( "programid" );
-                final Long ouid = rs.getLong( "organisationunitid" );
-
-                if ( map.containsKey( pid ) )
-                {
-                    map.get( pid ).add( ouid );
-                }
-                else
-                {
-                    List<Long> ouids = new ArrayList<>();
-                    ouids.add( ouid );
-                    map.put( pid, ouids );
-                }
+            if (map.containsKey(pid)) {
+              map.get(pid).add(ouid);
+            } else {
+              List<Long> ouids = new ArrayList<>();
+              ouids.add(ouid);
+              map.put(pid, ouids);
             }
+          }
 
-            return map;
-        } );
+          return map;
+        });
+  }
 
-    }
-
-    @Override
-    public Map<Long, List<Long>> get( ImportOptions importOptions, List<Event> events )
-    {
-        throw new NotImplementedException( "Use other get method" );
-    }
+  @Override
+  public Map<Long, List<Long>> get(ImportOptions importOptions, List<Event> events) {
+    throw new NotImplementedException("Use other get method");
+  }
 }

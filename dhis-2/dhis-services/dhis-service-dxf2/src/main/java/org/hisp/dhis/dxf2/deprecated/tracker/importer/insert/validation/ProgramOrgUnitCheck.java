@@ -32,7 +32,6 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
@@ -46,32 +45,28 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramOrgUnitCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
+public class ProgramOrgUnitCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    Enrollment enrollment = ctx.getProgramInstanceMap().get(event.getUid());
 
-        final Map<Long, List<Long>> programWithOrgUnitsMap = ctx.getProgramWithOrgUnitsMap();
-        final Map<String, OrganisationUnit> organisationUnitMap = ctx.getOrganisationUnitMap();
+    final Map<Long, List<Long>> programWithOrgUnitsMap = ctx.getProgramWithOrgUnitsMap();
+    final Map<String, OrganisationUnit> organisationUnitMap = ctx.getOrganisationUnitMap();
 
-        if ( enrollment != null )
-        {
-            final OrganisationUnit organisationUnit = organisationUnitMap.get( event.getUid() );
-            final Program program = enrollment.getProgram();
+    if (enrollment != null) {
+      final OrganisationUnit organisationUnit = organisationUnitMap.get(event.getUid());
+      final Program program = enrollment.getProgram();
 
-            if ( organisationUnit != null && program != null )
-            {
-                List<Long> ouList = programWithOrgUnitsMap.get( program.getId() );
-                if ( ouList == null || !ouList.contains( organisationUnit.getId() ) )
-                {
-                    return error( "Program is not assigned to this Organisation Unit: " + event.getOrgUnit(),
-                        event.getEvent() );
-                }
-            }
+      if (organisationUnit != null && program != null) {
+        List<Long> ouList = programWithOrgUnitsMap.get(program.getId());
+        if (ouList == null || !ouList.contains(organisationUnit.getId())) {
+          return error(
+              "Program is not assigned to this Organisation Unit: " + event.getOrgUnit(),
+              event.getEvent());
         }
-
-        return success();
+      }
     }
+
+    return success();
+  }
 }

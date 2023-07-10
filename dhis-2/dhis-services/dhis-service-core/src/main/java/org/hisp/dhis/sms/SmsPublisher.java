@@ -28,33 +28,28 @@
 package org.hisp.dhis.sms;
 
 import java.util.concurrent.ScheduledFuture;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.sms.SmsPublisher" )
-public class SmsPublisher
-{
-    private final MessageQueue messageQueue;
+@Component("org.hisp.dhis.sms.SmsPublisher")
+public class SmsPublisher {
+  private final MessageQueue messageQueue;
 
-    private final SmsConsumerThread smsConsumer;
+  private final SmsConsumerThread smsConsumer;
 
-    private final TaskScheduler taskScheduler;
+  private final TaskScheduler taskScheduler;
 
-    private ScheduledFuture<?> future;
+  private ScheduledFuture<?> future;
 
-    public void start()
-    {
-        messageQueue.initialize();
+  public void start() {
+    messageQueue.initialize();
 
-        future = taskScheduler.scheduleWithFixedDelay( smsConsumer::spawnSmsConsumer, 5000 );
-    }
+    future = taskScheduler.scheduleWithFixedDelay(smsConsumer::spawnSmsConsumer, 5000);
+  }
 
-    public void stop()
-    {
-        future.cancel( true );
-    }
+  public void stop() {
+    future.cancel(true);
+  }
 }

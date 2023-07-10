@@ -31,29 +31,24 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
- * This annotation is used for indicating that a property of an object is
- * translatable. It must be applied to the getDisplay*() methods. See
- * {@link BaseIdentifiableObject#getDisplayName()} for example.
+ * This annotation is used for indicating that a property of an object is translatable. It must be
+ * applied to the getDisplay*() methods. See {@link BaseIdentifiableObject#getDisplayName()} for
+ * example.
  */
-@Target( { ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface Translatable
-{
-    /**
-     * Property name for enabling translation
-     */
-    @Nonnull
-    String propertyName();
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Translatable {
+  /** Property name for enabling translation */
+  @Nonnull
+  String propertyName();
 
-    /**
-     * Translation key for storing translation in json format. If not defined
-     * then property name is used as the key.
-     */
-    String key() default "";
+  /**
+   * Translation key for storing translation in json format. If not defined then property name is
+   * used as the key.
+   */
+  String key() default "";
 }

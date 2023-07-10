@@ -34,23 +34,20 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Dusan Bernat
  */
-public class ExpressionDimensionItemSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "expressionDimensionItem";
+public class ExpressionDimensionItemSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "expressionDimensionItem";
 
-    public static final String PLURAL = "expressionDimensionItems";
+  public static final String PLURAL = "expressionDimensionItems";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ExpressionDimensionItem.class, SINGULAR, PLURAL );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(ExpressionDimensionItem.class, SINGULAR, PLURAL);
 
-        schema.setOrder( 1000 );
-        schema.setDefaultPrivate( true );
+    schema.setOrder(1000);
+    schema.setDefaultPrivate(true);
 
-        return schema;
-    }
+    return schema;
+  }
 }

@@ -37,9 +37,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.Getter;
-
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.common.DisplayProperty;
 
@@ -47,131 +45,118 @@ import org.hisp.dhis.common.DisplayProperty;
  * @author Lars Helge Overland
  */
 @Getter
-public enum UserSettingKey
-{
-    STYLE( "keyStyle", UserSettings::getStyle ),
-    MESSAGE_EMAIL_NOTIFICATION( "keyMessageEmailNotification", UserSettings::getMessageEmailNotification, true,
-        Boolean.class ),
-    MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", UserSettings::getMessageSmsNotification, true,
-        Boolean.class ),
-    UI_LOCALE( "keyUiLocale", UserSettings::getUiLocale, Locale.class ),
-    DB_LOCALE( "keyDbLocale", UserSettings::getDbLocale, Locale.class ),
-    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", UserSettings::getAnalysisDisplayProperty,
-        DisplayProperty.class ),
-    TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout", UserSettings::getTrackerDashboardLayout );
+public enum UserSettingKey {
+  STYLE("keyStyle", UserSettings::getStyle),
+  MESSAGE_EMAIL_NOTIFICATION(
+      "keyMessageEmailNotification",
+      UserSettings::getMessageEmailNotification,
+      true,
+      Boolean.class),
+  MESSAGE_SMS_NOTIFICATION(
+      "keyMessageSmsNotification", UserSettings::getMessageSmsNotification, true, Boolean.class),
+  UI_LOCALE("keyUiLocale", UserSettings::getUiLocale, Locale.class),
+  DB_LOCALE("keyDbLocale", UserSettings::getDbLocale, Locale.class),
+  ANALYSIS_DISPLAY_PROPERTY(
+      "keyAnalysisDisplayProperty",
+      UserSettings::getAnalysisDisplayProperty,
+      DisplayProperty.class),
+  TRACKER_DASHBOARD_LAYOUT("keyTrackerDashboardLayout", UserSettings::getTrackerDashboardLayout);
 
-    private final String name;
+  private final String name;
 
-    private Function<UserSettings, ? extends Serializable> getter;
+  private Function<UserSettings, ? extends Serializable> getter;
 
-    private final Serializable defaultValue;
+  private final Serializable defaultValue;
 
-    private final Class<?> clazz;
+  private final Class<?> clazz;
 
-    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() )
-        .filter( k -> k.getDefaultValue() != null )
-        .collect( Collectors.toMap( UserSettingKey::getName, UserSettingKey::getDefaultValue ) );
+  private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP =
+      Stream.of(UserSettingKey.values())
+          .filter(k -> k.getDefaultValue() != null)
+          .collect(Collectors.toMap(UserSettingKey::getName, UserSettingKey::getDefaultValue));
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    UserSettingKey( String name, Function<UserSettings, String> getter )
-    {
-        this( name, getter, null, String.class );
+  UserSettingKey(String name, Function<UserSettings, String> getter) {
+    this(name, getter, null, String.class);
+  }
+
+  <T extends Serializable> UserSettingKey(
+      String name, Function<UserSettings, T> getter, Class<T> clazz) {
+    this(name, getter, null, clazz);
+  }
+
+  <T extends Serializable> UserSettingKey(
+      String name, Function<UserSettings, T> getter, T defaultValue, Class<T> clazz) {
+    this.name = name;
+    this.getter = getter;
+    this.defaultValue = defaultValue;
+    this.clazz = clazz;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public boolean hasDefaultValue() {
+    return defaultValue != null;
+  }
+
+  public static Optional<UserSettingKey> getByName(String name) {
+    for (UserSettingKey setting : UserSettingKey.values()) {
+      if (setting.getName().equals(name)) {
+        return Optional.of(setting);
+      }
     }
 
-    <T extends Serializable> UserSettingKey( String name, Function<UserSettings, T> getter, Class<T> clazz )
-    {
-        this( name, getter, null, clazz );
+    return Optional.empty();
+  }
+
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public static Serializable getAsRealClass(String name, String value) {
+    Optional<UserSettingKey> setting = getByName(name);
+
+    if (setting.isPresent()) {
+      Class<?> settingClazz = setting.get().getClazz();
+
+      if (Double.class.isAssignableFrom(settingClazz)) {
+        return Double.valueOf(value);
+      } else if (Integer.class.isAssignableFrom(settingClazz)) {
+        return Integer.valueOf(value);
+      } else if (Boolean.class.isAssignableFrom(settingClazz)) {
+        return Boolean.valueOf(value);
+      } else if (Locale.class.isAssignableFrom(settingClazz)) {
+        return LocaleUtils.toLocale(value);
+      } else if (Enum.class.isAssignableFrom(settingClazz)) {
+        return Enum.valueOf((Class<? extends Enum>) settingClazz, value.toUpperCase());
+      }
+
+      // TODO handle Dates
     }
 
-    <T extends Serializable> UserSettingKey( String name, Function<UserSettings, T> getter, T defaultValue,
-        Class<T> clazz )
-    {
-        this.name = name;
-        this.getter = getter;
-        this.defaultValue = defaultValue;
-        this.clazz = clazz;
-    }
+    return value;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters
+  // -------------------------------------------------------------------------
 
-    public boolean hasDefaultValue()
-    {
-        return defaultValue != null;
-    }
+  public static Map<String, Serializable> getDefaultUserSettingsMap() {
+    return new HashMap<>(DEFAULT_USER_SETTINGS_MAP);
+  }
 
-    public static Optional<UserSettingKey> getByName( String name )
-    {
-        for ( UserSettingKey setting : UserSettingKey.values() )
-        {
-            if ( setting.getName().equals( name ) )
-            {
-                return Optional.of( setting );
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public static Serializable getAsRealClass( String name, String value )
-    {
-        Optional<UserSettingKey> setting = getByName( name );
-
-        if ( setting.isPresent() )
-        {
-            Class<?> settingClazz = setting.get().getClazz();
-
-            if ( Double.class.isAssignableFrom( settingClazz ) )
-            {
-                return Double.valueOf( value );
-            }
-            else if ( Integer.class.isAssignableFrom( settingClazz ) )
-            {
-                return Integer.valueOf( value );
-            }
-            else if ( Boolean.class.isAssignableFrom( settingClazz ) )
-            {
-                return Boolean.valueOf( value );
-            }
-            else if ( Locale.class.isAssignableFrom( settingClazz ) )
-            {
-                return LocaleUtils.toLocale( value );
-            }
-            else if ( Enum.class.isAssignableFrom( settingClazz ) )
-            {
-                return Enum.valueOf( (Class<? extends Enum>) settingClazz, value.toUpperCase() );
-            }
-
-            // TODO handle Dates
-        }
-
-        return value;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters
-    // -------------------------------------------------------------------------
-
-    public static Map<String, Serializable> getDefaultUserSettingsMap()
-    {
-        return new HashMap<>( DEFAULT_USER_SETTINGS_MAP );
-    }
-
-    public static Set<UserSetting> getDefaultUserSettings( User user )
-    {
-        Set<UserSetting> defaultUserSettings = new HashSet<>();
-        DEFAULT_USER_SETTINGS_MAP.forEach( ( key, value ) -> {
-            UserSetting userSetting = new UserSetting();
-            userSetting.setName( key );
-            userSetting.setValue( value );
-            userSetting.setUser( user );
-            defaultUserSettings.add( userSetting );
-        } );
-        return defaultUserSettings;
-    }
+  public static Set<UserSetting> getDefaultUserSettings(User user) {
+    Set<UserSetting> defaultUserSettings = new HashSet<>();
+    DEFAULT_USER_SETTINGS_MAP.forEach(
+        (key, value) -> {
+          UserSetting userSetting = new UserSetting();
+          userSetting.setName(key);
+          userSetting.setValue(value);
+          userSetting.setUser(user);
+          defaultUserSettings.add(userSetting);
+        });
+    return defaultUserSettings;
+  }
 }

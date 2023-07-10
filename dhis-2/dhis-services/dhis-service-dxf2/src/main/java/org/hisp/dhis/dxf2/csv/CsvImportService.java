@@ -29,14 +29,11 @@ package org.hisp.dhis.dxf2.csv;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.hisp.dhis.dxf2.metadata.Metadata;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CsvImportService
-{
-    Metadata fromCsv( InputStream input, CsvImportOptions options )
-        throws IOException;
+public interface CsvImportService {
+  Metadata fromCsv(InputStream input, CsvImportOptions options) throws IOException;
 }

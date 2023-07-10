@@ -38,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -47,76 +46,72 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class ProgramIndicatorTest
-{
+class ProgramIndicatorTest {
 
-    @Test
-    void testHasFilter()
-    {
-        ProgramIndicator pi = new ProgramIndicator();
-        assertFalse( pi.hasFilter() );
-        pi.setFilter( "true" );
-        assertTrue( pi.hasFilter() );
-    }
+  @Test
+  void testHasFilter() {
+    ProgramIndicator pi = new ProgramIndicator();
+    assertFalse(pi.hasFilter());
+    pi.setFilter("true");
+    assertTrue(pi.hasFilter());
+  }
 
-    @Test
-    void testCopyOf()
-    {
-        Program programOriginal = getNewProgram();
-        Program programCopy = Program.shallowCopy( programOriginal, Map.of() );
-        ProgramIndicator original = getNewProgramIndicator( programOriginal );
-        ProgramIndicator copy = ProgramIndicator.copyOf( original, programCopy, Map.of() );
+  @Test
+  void testCopyOf() {
+    Program programOriginal = getNewProgram();
+    Program programCopy = Program.shallowCopy(programOriginal, Map.of());
+    ProgramIndicator original = getNewProgramIndicator(programOriginal);
+    ProgramIndicator copy = ProgramIndicator.copyOf(original, programCopy, Map.of());
 
-        assertNotEquals( original, copy );
-        assertNotEquals( original.getUid(), copy.getUid() );
-        assertNotEquals( original.getProgram().getUid(), copy.getProgram().getUid() );
-        assertNotSame( original, copy );
+    assertNotEquals(original, copy);
+    assertNotEquals(original.getUid(), copy.getUid());
+    assertNotEquals(original.getProgram().getUid(), copy.getProgram().getUid());
+    assertNotSame(original, copy);
 
-        assertEquals( original.getDecimals(), copy.getDecimals() );
-        assertEquals( DEFAULT_PREFIX + original.getName(), copy.getName() );
-        assertEquals( DEFAULT_PREFIX + original.getShortName(), copy.getShortName() );
-    }
+    assertEquals(original.getDecimals(), copy.getDecimals());
+    assertEquals(DEFAULT_PREFIX + original.getName(), copy.getName());
+    assertEquals(DEFAULT_PREFIX + original.getShortName(), copy.getShortName());
+  }
 
-    @Test
-    void testCopyOfWithPrefix()
-    {
-        String customPrefix = "use this ";
-        Program programOriginal = getNewProgram();
-        Program programCopy = Program.shallowCopy( programOriginal, Map.of() );
-        ProgramIndicator original = getNewProgramIndicator( programOriginal );
-        ProgramIndicator copy = ProgramIndicator.copyOf( original, programCopy, Map.of( PREFIX_KEY, customPrefix ) );
+  @Test
+  void testCopyOfWithPrefix() {
+    String customPrefix = "use this ";
+    Program programOriginal = getNewProgram();
+    Program programCopy = Program.shallowCopy(programOriginal, Map.of());
+    ProgramIndicator original = getNewProgramIndicator(programOriginal);
+    ProgramIndicator copy =
+        ProgramIndicator.copyOf(original, programCopy, Map.of(PREFIX_KEY, customPrefix));
 
-        assertNotEquals( original, copy );
-        assertNotEquals( original.getUid(), copy.getUid() );
-        assertNotEquals( original.getProgram().getUid(), copy.getProgram().getUid() );
-        assertNotSame( original, copy );
+    assertNotEquals(original, copy);
+    assertNotEquals(original.getUid(), copy.getUid());
+    assertNotEquals(original.getProgram().getUid(), copy.getProgram().getUid());
+    assertNotSame(original, copy);
 
-        assertEquals( original.getDecimals(), copy.getDecimals() );
-        assertEquals( customPrefix + original.getName(), copy.getName() );
-        assertEquals( customPrefix + original.getShortName(), copy.getShortName() );
-    }
+    assertEquals(original.getDecimals(), copy.getDecimals());
+    assertEquals(customPrefix + original.getName(), copy.getName());
+    assertEquals(customPrefix + original.getShortName(), copy.getShortName());
+  }
 
-    private ProgramIndicator getNewProgramIndicator( Program program )
-    {
-        ProgramIndicator pi = new ProgramIndicator();
-        pi.setAutoFields();
-        pi.setProgram( program );
-        pi.setName( "indicator 1" );
-        pi.setAccess( new Access() );
-        pi.setDecimals( 2 );
-        pi.setPublicAccess( "rw------" );
-        pi.setAttributeValues( Set.of() );
-        pi.setSharing( new Sharing() );
-        pi.setTranslations( Set.of() );
-        pi.setExpression( "expression" );
-        pi.setFilter( "filter" );
-        pi.setFormName( "form name" );
-        pi.setOrgUnitField( "org unit field" );
-        pi.setDisplayInForm( true );
-        pi.setAnalyticsPeriodBoundaries( Set.of() );
-        pi.setStyle( new ObjectStyle() );
-        pi.setShortName( "short name" );
-        pi.setDescription( "description" );
-        return pi;
-    }
+  static ProgramIndicator getNewProgramIndicator(Program program) {
+    ProgramIndicator pi = new ProgramIndicator();
+    pi.setAutoFields();
+    pi.setProgram(program);
+    pi.setName("indicator 1");
+    pi.setAccess(new Access());
+    pi.setDecimals(2);
+    pi.setPublicAccess("rw------");
+    pi.setAttributeValues(Set.of());
+    pi.setSharing(new Sharing());
+    pi.setTranslations(Set.of());
+    pi.setExpression("expression");
+    pi.setFilter("filter");
+    pi.setFormName("form name");
+    pi.setOrgUnitField("org unit field");
+    pi.setDisplayInForm(true);
+    pi.setAnalyticsPeriodBoundaries(Set.of());
+    pi.setStyle(new ObjectStyle());
+    pi.setShortName("short name");
+    pi.setDescription("description");
+    return pi;
+  }
 }

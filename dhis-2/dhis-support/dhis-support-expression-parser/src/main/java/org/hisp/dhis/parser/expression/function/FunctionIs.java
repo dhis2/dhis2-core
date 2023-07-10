@@ -32,7 +32,6 @@ import static org.hisp.dhis.antlr.AntlrParserUtils.compare;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import java.util.List;
-
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 
@@ -41,60 +40,47 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class FunctionIs
-    implements ExpressionItem
-{
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        Object arg0 = visitor.visit( ctx.expr( 0 ) );
+public class FunctionIs implements ExpressionItem {
+  @Override
+  public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    Object arg0 = visitor.visit(ctx.expr(0));
 
-        for ( int i = 1; i < ctx.expr().size(); i++ )
-        {
-            Object argN = visitor.visit( ctx.expr( i ) );
+    for (int i = 1; i < ctx.expr().size(); i++) {
+      Object argN = visitor.visit(ctx.expr(i));
 
-            if ( compare( arg0, argN ) == 0 )
-            {
-                return true;
-            }
-        }
-
-        return false;
+      if (compare(arg0, argN) == 0) {
+        return true;
+      }
     }
 
-    @Override
-    public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        List<Object> values = ctx.expr().stream()
-            .map( visitor::visit )
-            .collect( toList() );
+    return false;
+  }
 
-        Object arg0 = values.get( 0 );
+  @Override
+  public Object evaluateAllPaths(ExprContext ctx, CommonExpressionVisitor visitor) {
+    List<Object> values = ctx.expr().stream().map(visitor::visit).collect(toList());
 
-        for ( int i = 1; i < values.size(); i++ )
-        {
-            Object argN = values.get( i );
+    Object arg0 = values.get(0);
 
-            if ( compare( arg0, argN ) == 0 )
-            {
-                return true;
-            }
-        }
+    for (int i = 1; i < values.size(); i++) {
+      Object argN = values.get(i);
 
-        return false;
+      if (compare(arg0, argN) == 0) {
+        return true;
+      }
     }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        List<String> args = ctx.expr().stream()
-            .map( visitor::castStringVisit )
-            .collect( toList() );
+    return false;
+  }
 
-        String arg0 = args.get( 0 );
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    List<String> args = ctx.expr().stream().map(visitor::castStringVisit).collect(toList());
 
-        String others = String.join( ",", args.subList( 1, args.size() ) );
+    String arg0 = args.get(0);
 
-        return arg0 + " in (" + others + ")";
-    }
+    String others = String.join(",", args.subList(1, args.size()));
+
+    return arg0 + " in (" + others + ")";
+  }
 }

@@ -33,144 +33,121 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
-
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class JacksonObjectMapperConfigTest
-{
+class JacksonObjectMapperConfigTest {
 
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+  private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
-    void testIsoDateSupport()
-    {
-        assertParsedAsDate( DateUtils.parseDate( "2019" ), "2019" );
-        assertParsedAsDate( DateUtils.parseDate( "2019-01" ), "2019-01" );
-        assertParsedAsDate( DateUtils.parseDate( "2019-01-01" ), "2019-01-01" );
-        assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55" ), "2019-01-01T11:55" );
-        assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55:01.444Z" ), "2019-01-01T11:55:01.444Z" );
-        assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55:01.4444" ), "2019-01-01T11:55:01.4444" );
-        Date expected = DateUtils.parseDate( "2019-01-01T11:55:01.4444Z" );
-        assertParsedAsDate( expected, "2019-01-01T11:55:01.4444Z" );
-        assertParsedAsDate( expected, DateTimeFormatter.ISO_LOCAL_DATE_TIME
-            .format( expected.toInstant().atZone( systemDefault() ).toLocalDateTime() ) );
+  @Test
+  void testIsoDateSupport() {
+    assertParsedAsDate(DateUtils.parseDate("2019"), "2019");
+    assertParsedAsDate(DateUtils.parseDate("2019-01"), "2019-01");
+    assertParsedAsDate(DateUtils.parseDate("2019-01-01"), "2019-01-01");
+    assertParsedAsDate(DateUtils.parseDate("2019-01-01T11:55"), "2019-01-01T11:55");
+    assertParsedAsDate(DateUtils.parseDate("2019-01-01T11:55:01.444Z"), "2019-01-01T11:55:01.444Z");
+    assertParsedAsDate(DateUtils.parseDate("2019-01-01T11:55:01.4444"), "2019-01-01T11:55:01.4444");
+    Date expected = DateUtils.parseDate("2019-01-01T11:55:01.4444Z");
+    assertParsedAsDate(expected, "2019-01-01T11:55:01.4444Z");
+    assertParsedAsDate(
+        expected,
+        DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
+            expected.toInstant().atZone(systemDefault()).toLocalDateTime()));
+  }
+
+  @Test
+  void testUnixEpochTimestamp() {
+    assertParsedAsDate(new Date(1575118800000L), "1575118800000");
+    assertParsedAsDate(new Date(1575118800000L), 1575118800000L);
+  }
+
+  @Test
+  void testNullDate() {
+    assertParsedAsDate(null, null);
+  }
+
+  @Test
+  void testNaNDate() {
+    assertNotParsedAsDate("NaN");
+  }
+
+  @Test
+  void testRubbishDate() {
+    assertNotParsedAsDate("NaN NaN NaN");
+  }
+
+  @Test
+  void testUnclearDate() {
+    assertNotParsedAsDate("999999999");
+  }
+
+  // DHIS2-8582
+  @Test
+  void testSerializerUserWithUser() throws JsonProcessingException {
+    User user = new User();
+    user.setAutoFields();
+    user.setCreatedBy(user);
+    user.setLastUpdatedBy(user);
+    String payload = jsonMapper.writeValueAsString(user);
+    User testUser = jsonMapper.readValue(payload, User.class);
+    assertNotNull(user.getCreatedBy());
+    assertNotNull(user.getLastUpdatedBy());
+    assertEquals(user.getUid(), testUser.getUid());
+    assertEquals(user.getUid(), user.getCreatedBy().getUid());
+    assertEquals(user.getUid(), user.getLastUpdatedBy().getUid());
+  }
+
+  private String createDateString(String str) {
+    if (str == null) {
+      return "{\"date\": null }";
     }
+    return String.format("{\"date\": \"%s\"}", str);
+  }
 
-    @Test
-    void testUnixEpochTimestamp()
-    {
-        assertParsedAsDate( new Date( 1575118800000L ), "1575118800000" );
-        assertParsedAsDate( new Date( 1575118800000L ), 1575118800000L );
-    }
+  private String createUnixEpochTest(long ts) {
+    return String.format("{\"date\": %d}", ts);
+  }
 
-    @Test
-    void testNullDate()
-    {
-        assertParsedAsDate( null, null );
-    }
+  private static class DateMapTypeReference extends TypeReference<Map<String, Date>> {}
 
-    @Test
-    void testNaNDate()
-    {
-        assertNotParsedAsDate( "NaN" );
-    }
+  private void assertNotParsedAsDate(String value) {
+    Exception ex = assertThrows(IOException.class, () -> parseAsDate(value));
+    assertEquals(
+        "Unexpected IOException (of type java.io.IOException): Invalid date format '"
+            + value
+            + "', only ISO format or UNIX Epoch timestamp is supported.",
+        ex.getMessage());
+  }
 
-    @Test
-    void testRubbishDate()
-    {
-        assertNotParsedAsDate( "NaN NaN NaN" );
+  private void assertParsedAsDate(Date expected, Object value) {
+    try {
+      assertEquals(expected, parseAsDate(value).get("date"));
+    } catch (Exception e) {
+      fail(e.getMessage());
     }
+  }
 
-    @Test
-    void testUnclearDate()
-    {
-        assertNotParsedAsDate( "999999999" );
+  private Map<String, Date> parseAsDate(Object value) throws Exception {
+    String json;
+    if (value instanceof Long) {
+      json = createUnixEpochTest((Long) value);
+    } else if (value instanceof String || value == null) {
+      json = createDateString((String) value);
+    } else {
+      throw new UnsupportedOperationException("Value type not supported: " + value);
     }
-
-    // DHIS2-8582
-    @Test
-    void testSerializerUserWithUser()
-        throws JsonProcessingException
-    {
-        User user = new User();
-        user.setAutoFields();
-        user.setCreatedBy( user );
-        user.setLastUpdatedBy( user );
-        String payload = jsonMapper.writeValueAsString( user );
-        User testUser = jsonMapper.readValue( payload, User.class );
-        assertNotNull( user.getCreatedBy() );
-        assertNotNull( user.getLastUpdatedBy() );
-        assertEquals( user.getUid(), testUser.getUid() );
-        assertEquals( user.getUid(), user.getCreatedBy().getUid() );
-        assertEquals( user.getUid(), user.getLastUpdatedBy().getUid() );
-    }
-
-    private String createDateString( String str )
-    {
-        if ( str == null )
-        {
-            return "{\"date\": null }";
-        }
-        return String.format( "{\"date\": \"%s\"}", str );
-    }
-
-    private String createUnixEpochTest( long ts )
-    {
-        return String.format( "{\"date\": %d}", ts );
-    }
-
-    private static class DateMapTypeReference extends TypeReference<Map<String, Date>>
-    {
-    }
-
-    private void assertNotParsedAsDate( String value )
-    {
-        Exception ex = assertThrows( IOException.class, () -> parseAsDate( value ) );
-        assertEquals( "Unexpected IOException (of type java.io.IOException): Invalid date format '" + value
-            + "', only ISO format or UNIX Epoch timestamp is supported.", ex.getMessage() );
-    }
-
-    private void assertParsedAsDate( Date expected, Object value )
-    {
-        try
-        {
-            assertEquals( expected, parseAsDate( value ).get( "date" ) );
-        }
-        catch ( Exception e )
-        {
-            fail( e.getMessage() );
-        }
-    }
-
-    private Map<String, Date> parseAsDate( Object value )
-        throws Exception
-    {
-        String json;
-        if ( value instanceof Long )
-        {
-            json = createUnixEpochTest( (Long) value );
-        }
-        else if ( value instanceof String || value == null )
-        {
-            json = createDateString( (String) value );
-        }
-        else
-        {
-            throw new UnsupportedOperationException( "Value type not supported: " + value );
-        }
-        return jsonMapper.readValue( json, new DateMapTypeReference() );
-    }
+    return jsonMapper.readValue(json, new DateMapTypeReference());
+  }
 }

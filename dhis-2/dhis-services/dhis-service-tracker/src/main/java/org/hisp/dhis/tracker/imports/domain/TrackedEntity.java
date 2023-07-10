@@ -27,19 +27,16 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.locationtech.jts.geom.Geometry;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,72 +45,48 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackedEntity
-    implements TrackerDto
-{
-    @JsonProperty
-    private String trackedEntity;
+public class TrackedEntity implements TrackerDto {
+  @JsonProperty private String trackedEntity;
 
-    @JsonProperty
-    private MetadataIdentifier trackedEntityType;
+  @JsonProperty private MetadataIdentifier trackedEntityType;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant createdAtClient;
+  @JsonProperty private Instant createdAtClient;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private Instant updatedAtClient;
+  @JsonProperty private Instant updatedAtClient;
 
-    @JsonProperty
-    private MetadataIdentifier orgUnit;
+  @JsonProperty private MetadataIdentifier orgUnit;
 
-    @JsonProperty
-    private boolean inactive;
+  @JsonProperty private boolean inactive;
 
-    @JsonProperty
-    private boolean deleted;
+  @JsonProperty private boolean deleted;
 
-    @JsonProperty
-    private boolean potentialDuplicate;
+  @JsonProperty private boolean potentialDuplicate;
 
-    @JsonProperty
-    private Geometry geometry;
+  @JsonProperty private Geometry geometry;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private User createdBy;
+  @JsonProperty private User createdBy;
 
-    @JsonProperty
-    private User updatedBy;
+  @JsonProperty private User updatedBy;
 
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<Attribute> attributes = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<Enrollment> enrollments = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Enrollment> enrollments = new ArrayList<>();
 
-    @Override
-    public String getUid()
-    {
-        return this.trackedEntity;
-    }
+  @Override
+  public String getUid() {
+    return this.trackedEntity;
+  }
 
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.TRACKED_ENTITY;
-    }
+  @Override
+  public TrackerType getTrackerType() {
+    return TrackerType.TRACKED_ENTITY;
+  }
 }

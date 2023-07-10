@@ -34,77 +34,69 @@ import static org.hisp.dhis.webapi.controller.event.webrequest.PagingCriteria.DE
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * Class responsible for encapsulating all paging request params.
- */
+/** Class responsible for encapsulating all paging request params. */
 @Getter
-@Builder( toBuilder = true )
-public class AnalyticsPagingParams implements IdentifiableKey
-{
-    private Integer page;
+@Builder(toBuilder = true)
+public class AnalyticsPagingParams implements IdentifiableKey {
+  private Integer page;
 
-    private Integer pageSize;
+  private Integer pageSize;
 
-    private Boolean paging;
+  private Boolean paging;
 
-    private final Boolean totalPages;
+  private final Boolean totalPages;
 
-    private final Boolean unlimited;
+  private final Boolean unlimited;
 
-    public boolean isEmpty()
-    {
-        return page == null && pageSize == null && paging == null && totalPages == null && unlimited == null;
-    }
+  public boolean isEmpty() {
+    return page == null
+        && pageSize == null
+        && paging == null
+        && totalPages == null
+        && unlimited == null;
+  }
 
-    public boolean showTotalPages()
-    {
-        return toBooleanDefaultIfNull( paging, true ) && toBooleanDefaultIfNull( totalPages, false );
-    }
+  public boolean showTotalPages() {
+    return toBooleanDefaultIfNull(paging, true) && toBooleanDefaultIfNull(totalPages, false);
+  }
 
-    public boolean isPaging()
-    {
-        return toBooleanDefaultIfNull( paging, true );
-    }
+  public boolean isPaging() {
+    return toBooleanDefaultIfNull(paging, true);
+  }
 
-    public boolean isUnlimited()
-    {
-        return toBooleanDefaultIfNull( unlimited, false );
-    }
+  public boolean isUnlimited() {
+    return toBooleanDefaultIfNull(unlimited, false);
+  }
 
-    public int getPageWithDefault()
-    {
-        return page != null && page > 0 ? page : DEFAULT_PAGE;
-    }
+  public int getPageWithDefault() {
+    return page != null && page > 0 ? page : DEFAULT_PAGE;
+  }
 
-    public int getPageSizeWithDefault()
-    {
-        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-    }
+  public int getPageSizeWithDefault() {
+    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+  }
 
-    public int getOffset()
-    {
-        return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-    }
+  public int getOffset() {
+    return (getPageWithDefault() - 1) * getPageSizeWithDefault();
+  }
 
-    /**
-     * Simply returns the current page size + 1. This is used in cases where
-     * need to know if there are more results in the next page.
-     *
-     * @return the current page size incremented by 1.
-     */
-    public int getPageSizePlusOne()
-    {
-        return getPageSizeWithDefault() + 1;
-    }
+  /**
+   * Simply returns the current page size + 1. This is used in cases where need to know if there are
+   * more results in the next page.
+   *
+   * @return the current page size incremented by 1.
+   */
+  public int getPageSizePlusOne() {
+    return getPageSizeWithDefault() + 1;
+  }
 
-    public String getKey()
-    {
-        StringBuilder key = new StringBuilder();
-        key.append( isPaging() )
-            .append( showTotalPages() )
-            .append( getPageWithDefault() )
-            .append( getPageSizeWithDefault() );
+  public String getKey() {
+    StringBuilder key = new StringBuilder();
+    key.append(isPaging())
+        .append(showTotalPages())
+        .append(getPageWithDefault())
+        .append(getPageSizeWithDefault());
 
-        return key.toString();
-    }
+    return key.toString();
+  }
 }

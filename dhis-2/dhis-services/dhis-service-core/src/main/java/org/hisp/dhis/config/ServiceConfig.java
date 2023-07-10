@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
@@ -51,49 +50,46 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "coreServiceConfig" )
-public class ServiceConfig
-{
-    @Bean( "taskScheduler" )
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler()
-    {
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize( 25 );
-        return threadPoolTaskScheduler;
-    }
+@Configuration("coreServiceConfig")
+public class ServiceConfig {
+  @Bean("taskScheduler")
+  public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
+    ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+    threadPoolTaskScheduler.setPoolSize(25);
+    return threadPoolTaskScheduler;
+  }
 
-    @Bean( "org.hisp.dhis.setting.StyleManager" )
-    public StyleManager styleManager( SystemSettingManager systemSettingManager, UserSettingService userSettingService,
-        I18nManager i18nManager )
-    {
-        SortedMap<String, String> styles = new TreeMap<>();
-        styles.put( "light_blue", "light_blue/light_blue.css" );
-        styles.put( "green", "green/green.css" );
-        styles.put( "myanmar", "myanmar/myanmar.css" );
-        styles.put( "vietnam", "vietnam/vietnam.css" );
-        styles.put( "india", "india/india.css" );
+  @Bean("org.hisp.dhis.setting.StyleManager")
+  public StyleManager styleManager(
+      SystemSettingManager systemSettingManager,
+      UserSettingService userSettingService,
+      I18nManager i18nManager) {
+    SortedMap<String, String> styles = new TreeMap<>();
+    styles.put("light_blue", "light_blue/light_blue.css");
+    styles.put("green", "green/green.css");
+    styles.put("myanmar", "myanmar/myanmar.css");
+    styles.put("vietnam", "vietnam/vietnam.css");
+    styles.put("india", "india/india.css");
 
-        return new DefaultStyleManager( systemSettingManager, userSettingService, styles, i18nManager );
-    }
+    return new DefaultStyleManager(systemSettingManager, userSettingService, styles, i18nManager);
+  }
 
-    @Bean( "org.hisp.dhis.outboundmessage.OutboundMessageService" )
-    public DefaultOutboundMessageBatchService defaultOutboundMessageBatchService( SmsMessageSender smsMessageSender,
-        EmailMessageSender emailMessageSender )
-    {
-        Map<DeliveryChannel, MessageSender> channels = new HashMap<>();
-        channels.put( DeliveryChannel.SMS, smsMessageSender );
-        channels.put( DeliveryChannel.EMAIL, emailMessageSender );
+  @Bean("org.hisp.dhis.outboundmessage.OutboundMessageService")
+  public DefaultOutboundMessageBatchService defaultOutboundMessageBatchService(
+      SmsMessageSender smsMessageSender, EmailMessageSender emailMessageSender) {
+    Map<DeliveryChannel, MessageSender> channels = new HashMap<>();
+    channels.put(DeliveryChannel.SMS, smsMessageSender);
+    channels.put(DeliveryChannel.EMAIL, emailMessageSender);
 
-        DefaultOutboundMessageBatchService service = new DefaultOutboundMessageBatchService();
+    DefaultOutboundMessageBatchService service = new DefaultOutboundMessageBatchService();
 
-        service.setMessageSenders( channels );
+    service.setMessageSenders(channels);
 
-        return service;
-    }
+    return service;
+  }
 
-    @Bean( "org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager" )
-    public ResourceBundleManager resourceBundleManager()
-    {
-        return new DefaultResourceBundleManager();
-    }
+  @Bean("org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager")
+  public ResourceBundleManager resourceBundleManager() {
+    return new DefaultResourceBundleManager();
+  }
 }

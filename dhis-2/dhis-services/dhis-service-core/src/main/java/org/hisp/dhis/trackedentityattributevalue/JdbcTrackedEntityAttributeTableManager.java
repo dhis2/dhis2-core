@@ -28,55 +28,54 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * This class implements the administrative/maintenance tasks of tracked entity
- * attribute value table.
+ * This class implements the administrative/maintenance tasks of tracked entity attribute value
+ * table.
  *
  * @author Ameen Mohamed
  */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager" )
-public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager
-{
-    private static final String TRIGRAM_INDEX_CREATE_QUERY = "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
-        + "trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
+@Component("org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager")
+public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager {
+  private static final String TRIGRAM_INDEX_CREATE_QUERY =
+      "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
+          + "trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
 
-    private static final String TRIGRAM_INDEX_DROP_QUERY = "DROP INDEX IF EXISTS in_gin_teavalue_%d";
+  private static final String TRIGRAM_INDEX_DROP_QUERY = "DROP INDEX IF EXISTS in_gin_teavalue_%d";
 
-    private static final String LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY = "SELECT cast(substring(indexname from 'in_gin_teavalue_(.*)') as bigint) as teaid FROM  pg_indexes"
-        + " WHERE   indexname like 'in_gin_teavalue_%' and tablename = 'trackedentityattributevalue'";
+  private static final String LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY =
+      "SELECT cast(substring(indexname from 'in_gin_teavalue_(.*)') as bigint) as teaid FROM  pg_indexes"
+          + " WHERE   indexname like 'in_gin_teavalue_%' and tablename = 'trackedentityattributevalue'";
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        String query = String.format( TRIGRAM_INDEX_CREATE_QUERY, trackedEntityAttribute.getId(),
-            trackedEntityAttribute.getId() );
-        jdbcTemplate.execute( query );
-    }
+  @Override
+  public void createTrigramIndex(TrackedEntityAttribute trackedEntityAttribute) {
+    String query =
+        String.format(
+            TRIGRAM_INDEX_CREATE_QUERY,
+            trackedEntityAttribute.getId(),
+            trackedEntityAttribute.getId());
+    jdbcTemplate.execute(query);
+  }
 
-    @Override
-    public void dropTrigramIndex( Long teaId )
-    {
-        String query = String.format( TRIGRAM_INDEX_DROP_QUERY, teaId );
-        jdbcTemplate.execute( query );
-    }
+  @Override
+  public void dropTrigramIndex(Long teaId) {
+    String query = String.format(TRIGRAM_INDEX_DROP_QUERY, teaId);
+    jdbcTemplate.execute(query);
+  }
 
-    @Override
-    public List<Long> getAttributeIdsWithTrigramIndex()
-    {
-        return jdbcTemplate.queryForList( LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY, Long.class );
-    }
+  @Override
+  public List<Long> getAttributeIdsWithTrigramIndex() {
+    return jdbcTemplate.queryForList(LIST_TRIGRAM_INDEXED_ATTRIBUTE_ID_QUERY, Long.class);
+  }
 }

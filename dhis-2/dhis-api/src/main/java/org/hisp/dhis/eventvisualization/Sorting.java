@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.eventvisualization;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-import org.junit.jupiter.api.Test;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.Serializable;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.SortOrder;
 
-import io.debezium.connector.postgresql.PostgresConnector;
+/** This class is responsible for the encapsulation of objects and attributes related to sorting. */
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor
+public class Sorting implements Serializable {
+  @EqualsAndHashCode.Include
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String dimension;
 
-/**
- * Test to make sure that the Debezium Postgres connector is available. It is
- * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
- *
- * @author Jim Grace
- */
-class DebeziumPostgresConnectorTest
-{
-    @Test
-    void testDebeziumPostgresConnectorPresent()
-    {
-        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
-    }
+  @JsonProperty(required = true)
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private SortOrder direction;
 }

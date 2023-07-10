@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering it before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-@Component
-public class HibernateFlushListener implements FlushEventListener
-{
-    @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
+@Slf4j
+@Service
+@Profile({"!test-postgres", "!test", "!test-h2", "!cache-invalidation-test"})
+@Conditional(value = CacheInvalidationEnabledConditionNotTestable.class)
+public class CacheInvalidationSubscriptionService {
+  @Autowired private CacheInvalidationListener cacheInvalidationListener;
 
-    @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
-    {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
+  @Autowired
+  @Qualifier("pubSubConnection")
+  private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
-    }
+  public void start() {
+    log.info("CacheInvalidationSubscriptionService starting...");
+
+    pubSubConnection.addListener(cacheInvalidationListener);
+
+    RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+    async.subscribe(CacheInvalidationConfiguration.CHANNEL_NAME);
+
+    log.debug("Subscribed to channel: " + CacheInvalidationConfiguration.CHANNEL_NAME);
+  }
 }

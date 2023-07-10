@@ -35,86 +35,75 @@ import java.net.URI;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface FileResourceService
-{
-    FileResource getFileResource( String uid );
+public interface FileResourceService {
+  FileResource getFileResource(String uid);
 
-    /**
-     * Lookup a {@link FileResource} by uid and {@link FileResourceDomain}.
-     *
-     * @param uid file resource uid to lookup
-     * @param domain file resource domain to lookup
-     * @return the {@link FileResource} associated with the given uid and domain
-     */
-    Optional<FileResource> getFileResource( String uid, FileResourceDomain domain );
+  /**
+   * Lookup a {@link FileResource} by uid and {@link FileResourceDomain}.
+   *
+   * @param uid file resource uid to lookup
+   * @param domain file resource domain to lookup
+   * @return the {@link FileResource} associated with the given uid and domain
+   */
+  Optional<FileResource> getFileResource(String uid, FileResourceDomain domain);
 
-    List<FileResource> getFileResources( @Nonnull List<String> uids );
+  List<FileResource> getFileResources(@Nonnull List<String> uids);
 
-    List<FileResource> getOrphanedFileResources();
+  List<FileResource> getOrphanedFileResources();
 
-    /**
-     * Lookup a {@link FileResource} by storage key property.
-     *
-     * @param storageKey key to look up
-     * @return the {@link FileResource} associated with the given storage key
-     */
-    Optional<FileResource> findByStorageKey( @CheckForNull String storageKey );
+  /**
+   * Lookup a {@link FileResource} by storage key property.
+   *
+   * @param storageKey key to look up
+   * @return the {@link FileResource} associated with the given storage key
+   */
+  Optional<FileResource> findByStorageKey(@CheckForNull String storageKey);
 
-    /**
-     * Reverse lookup the objects associated with a {@link FileResource} by the
-     * storage key property.
-     *
-     * @param storageKey key to look up
-     * @return list of objects that are associated with the {@link FileResource}
-     *         of the given storage key. This is either none, most often one,
-     *         but in theory can also be more than one. For example when the
-     *         same data value would be associated with the same file resource
-     *         value.
-     */
-    List<FileResourceOwner> findOwnersByStorageKey( @CheckForNull String storageKey );
+  /**
+   * Reverse lookup the objects associated with a {@link FileResource} by the storage key property.
+   *
+   * @param storageKey key to look up
+   * @return list of objects that are associated with the {@link FileResource} of the given storage
+   *     key. This is either none, most often one, but in theory can also be more than one. For
+   *     example when the same data value would be associated with the same file resource value.
+   */
+  List<FileResourceOwner> findOwnersByStorageKey(@CheckForNull String storageKey);
 
-    void saveFileResource( FileResource fileResource, File file );
+  void saveFileResource(FileResource fileResource, File file);
 
-    String saveFileResource( FileResource fileResource, byte[] bytes );
+  String saveFileResource(FileResource fileResource, byte[] bytes);
 
-    void deleteFileResource( String uid );
+  void deleteFileResource(String uid);
 
-    void deleteFileResource( FileResource fileResource );
+  void deleteFileResource(FileResource fileResource);
 
-    InputStream getFileResourceContent( FileResource fileResource );
+  InputStream getFileResourceContent(FileResource fileResource);
 
-    /**
-     * Copy fileResource content to outputStream and Return File content length
-     */
-    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
-        throws IOException,
-        NoSuchElementException;
+  /** Copy fileResource content to outputStream and Return File content length */
+  void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
+      throws IOException, NoSuchElementException;
 
-    /**
-     * Copy fileResource content to a byte array
-     */
-    byte[] copyFileResourceContent( FileResource fileResource )
-        throws IOException,
-        NoSuchElementException;
+  /** Copy fileResource content to a byte array */
+  byte[] copyFileResourceContent(FileResource fileResource)
+      throws IOException, NoSuchElementException;
 
-    boolean fileResourceExists( String uid );
+  boolean fileResourceExists(String uid);
 
-    void updateFileResource( FileResource fileResource );
+  void updateFileResource(FileResource fileResource);
 
-    URI getSignedGetFileResourceContentUri( String uid );
+  URI getSignedGetFileResourceContentUri(String uid);
 
-    URI getSignedGetFileResourceContentUri( FileResource fileResource );
+  URI getSignedGetFileResourceContentUri(FileResource fileResource);
 
-    List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+  List<FileResource> getExpiredFileResources(FileResourceRetentionStrategy retentionStrategy);
 
-    List<FileResource> getAllUnProcessedImagesFiles();
+  List<FileResource> getAllUnProcessedImagesFiles();
 
-    long getFileResourceContentLength( FileResource fileResource );
+  long getFileResourceContentLength(FileResource fileResource);
 }

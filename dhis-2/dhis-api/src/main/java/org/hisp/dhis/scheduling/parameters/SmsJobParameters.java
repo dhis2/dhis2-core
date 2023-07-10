@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Henning Håkonsen
@@ -44,21 +41,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SmsJobParameters implements JobParameters
-{
-    @JsonProperty
-    private String smsSubject;
+public class SmsJobParameters implements JobParameters {
+  @JsonProperty private String smsSubject;
 
-    @JsonProperty
-    private List<String> recipientsList = new ArrayList<>();
+  @JsonProperty private List<String> recipientsList = new ArrayList<>();
 
-    @JsonProperty
-    private String message;
+  @JsonProperty private String message;
 
-    public SmsJobParameters( String smsSubject, String message, List<String> recipientsList )
-    {
-        this.smsSubject = smsSubject;
-        this.recipientsList = recipientsList;
-        this.message = message;
-    }
+  public SmsJobParameters(String smsSubject, String message, List<String> recipientsList) {
+    this.smsSubject = smsSubject;
+    this.recipientsList = recipientsList;
+    this.message = message;
+  }
 }

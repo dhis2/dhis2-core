@@ -40,77 +40,73 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- *
- * Tests for dashboards which do not have any content
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_empty.yaml
+ * Tests for dashboards which do not have any content {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_empty.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityDashboardsEmptyControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-    @Autowired
-    private DashboardService dashboardService;
+  @Autowired private DashboardService dashboardService;
 
-    @Autowired
-    private VisualizationService visualizationService;
+  @Autowired private VisualizationService visualizationService;
 
-    private static final String check = "dashboards_no_items";
+  private static final String check = "dashboards_no_items";
 
-    private static final String dashboard_uid = BASE_UID + "1";
+  private static final String dashboard_uid = BASE_UID + "1";
 
-    private static final String viz_uid = BASE_UID + "2";
+  private static final String viz_uid = BASE_UID + "2";
 
-    private static final String detailsIdType = "dashboards";
+  private static final String detailsIdType = "dashboards";
 
-    @Test
-    void testUnusedDashboardExist()
-    {
+  @Test
+  void testUnusedDashboardExist() {
 
-        Dashboard dashboardA = new Dashboard();
-        dashboardA.setName( "Test Dashboard" );
-        dashboardA.setUid( dashboard_uid );
-        dashboardService.saveDashboard( dashboardA );
-        dbmsManager.clearSession();
+    Dashboard dashboardA = new Dashboard();
+    dashboardA.setName("Test Dashboard");
+    dashboardA.setUid(dashboard_uid);
+    dashboardService.saveDashboard(dashboardA);
+    dbmsManager.clearSession();
 
-        JsonDataIntegrityCheck thisCheck = GET( "/dataIntegrity/?checks=" + check ).content()
-            .asList( JsonDataIntegrityCheck.class ).get( 0 );
-        String detailsType = thisCheck.getIssuesIdType();
-        assertEquals( detailsIdType, detailsType );
+    JsonDataIntegrityCheck thisCheck =
+        GET("/dataIntegrity/?checks=" + check)
+            .content()
+            .asList(JsonDataIntegrityCheck.class)
+            .get(0);
+    String detailsType = thisCheck.getIssuesIdType();
+    assertEquals(detailsIdType, detailsType);
 
-        assertNamedMetadataObjectExists( detailsIdType, "Test Dashboard" );
-        assertHasDataIntegrityIssues( detailsIdType, check, 100, dashboard_uid, "Test Dashboard", null, true );
-    }
+    assertNamedMetadataObjectExists(detailsIdType, "Test Dashboard");
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 100, dashboard_uid, "Test Dashboard", null, true);
+  }
 
-    @Test
-    void testDashboardsWithItemsExist()
-    {
+  @Test
+  void testDashboardsWithItemsExist() {
 
-        Visualization viz = new Visualization( "myviz" );
-        viz.setUid( viz_uid );
-        viz.setType( VisualizationType.SINGLE_VALUE );
-        visualizationService.save( viz );
+    Visualization viz = new Visualization("myviz");
+    viz.setUid(viz_uid);
+    viz.setType(VisualizationType.SINGLE_VALUE);
+    visualizationService.save(viz);
 
-        DashboardItem diA = new DashboardItem();
-        diA.setAutoFields();
-        diA.setVisualization( viz );
+    DashboardItem diA = new DashboardItem();
+    diA.setAutoFields();
+    diA.setVisualization(viz);
 
-        Dashboard dashboardA = new Dashboard();
-        dashboardA.setName( "Test Dashboard" );
-        dashboardA.setUid( dashboard_uid );
-        dashboardA.setAutoFields();
-        dashboardA.getItems().add( diA );
-        dashboardService.saveDashboard( dashboardA );
-        dbmsManager.clearSession();
+    Dashboard dashboardA = new Dashboard();
+    dashboardA.setName("Test Dashboard");
+    dashboardA.setUid(dashboard_uid);
+    dashboardA.setAutoFields();
+    dashboardA.getItems().add(diA);
+    dashboardService.saveDashboard(dashboardA);
+    dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testUnusedDashboardsRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
-
+  @Test
+  void testUnusedDashboardsRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

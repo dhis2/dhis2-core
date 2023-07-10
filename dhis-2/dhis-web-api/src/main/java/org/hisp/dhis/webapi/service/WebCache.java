@@ -39,7 +39,6 @@ import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
 
 import java.util.Date;
-
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
@@ -48,121 +47,100 @@ import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Component;
 
 /**
- * This component encapsulates the caching settings and object definitions
- * related to the caching at the HTTP level.
+ * This component encapsulates the caching settings and object definitions related to the caching at
+ * the HTTP level.
  */
 @Component
-public class WebCache
-{
-    private final SystemSettingManager systemSettingManager;
+public class WebCache {
+  private final SystemSettingManager systemSettingManager;
 
-    private final AnalyticsCacheSettings analyticsCacheSettings;
+  private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    public WebCache( SystemSettingManager systemSettingManager,
-        final AnalyticsCacheSettings analyticsCacheSettings )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( analyticsCacheSettings );
+  public WebCache(
+      SystemSettingManager systemSettingManager,
+      final AnalyticsCacheSettings analyticsCacheSettings) {
+    checkNotNull(systemSettingManager);
+    checkNotNull(analyticsCacheSettings);
 
-        this.systemSettingManager = systemSettingManager;
-        this.analyticsCacheSettings = analyticsCacheSettings;
+    this.systemSettingManager = systemSettingManager;
+    this.analyticsCacheSettings = analyticsCacheSettings;
+  }
+
+  /**
+   * Defines and return a CacheControl object with the correct expiration time and cacheability
+   * based on the internal system settings defined by the user. The expiration time is defined
+   * through the Enum {@link CacheStrategy}
+   *
+   * @param cacheStrategy
+   * @return a CacheControl object configured based on current system settings.
+   */
+  public CacheControl getCacheControlFor(CacheStrategy cacheStrategy) {
+    CacheControl cacheControl;
+
+    if (RESPECT_SYSTEM_SETTING == cacheStrategy) {
+      cacheStrategy = systemSettingManager.getSystemSetting(CACHE_STRATEGY, CacheStrategy.class);
     }
 
-    /**
-     * Defines and return a CacheControl object with the correct expiration time
-     * and cacheability based on the internal system settings defined by the
-     * user. The expiration time is defined through the Enum
-     * {@link CacheStrategy}
-     *
-     * @param cacheStrategy
-     *
-     * @return a CacheControl object configured based on current system
-     *         settings.
-     */
-    public CacheControl getCacheControlFor( CacheStrategy cacheStrategy )
-    {
-        CacheControl cacheControl;
+    boolean cacheStrategyHasExpirationTimeSet = cacheStrategy != null && cacheStrategy != NO_CACHE;
 
-        if ( RESPECT_SYSTEM_SETTING == cacheStrategy )
-        {
-            cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY, CacheStrategy.class );
-        }
+    if (cacheStrategyHasExpirationTimeSet) {
+      cacheControl = maxAge(cacheStrategy.toSeconds(), SECONDS);
 
-        boolean cacheStrategyHasExpirationTimeSet = cacheStrategy != null && cacheStrategy != NO_CACHE;
-
-        if ( cacheStrategyHasExpirationTimeSet )
-        {
-            cacheControl = maxAge( cacheStrategy.toSeconds(), SECONDS );
-
-            setCacheabilityFor( cacheControl );
-        }
-        else
-        {
-            cacheControl = noCache();
-        }
-
-        return cacheControl;
+      setCacheabilityFor(cacheControl);
+    } else {
+      cacheControl = noCache();
     }
 
-    /**
-     * Defines and return a CacheControl object with the correct expiration time
-     * and cacheability, based on a provided date, in SECONDS.
-     *
-     * @param latestEndDate
-     *
-     * @return a CacheControl object configured based on current cacheability
-     *         settings and the provided time to live.
-     */
-    public CacheControl getCacheControlFor( Date latestEndDate )
-    {
-        CacheControl cacheControl;
+    return cacheControl;
+  }
 
-        long timeToLive = analyticsCacheSettings.progressiveExpirationTimeOrDefault( latestEndDate );
+  /**
+   * Defines and return a CacheControl object with the correct expiration time and cacheability,
+   * based on a provided date, in SECONDS.
+   *
+   * @param latestEndDate
+   * @return a CacheControl object configured based on current cacheability settings and the
+   *     provided time to live.
+   */
+  public CacheControl getCacheControlFor(Date latestEndDate) {
+    CacheControl cacheControl;
 
-        if ( timeToLive > 0 )
-        {
-            cacheControl = maxAge( timeToLive, SECONDS );
+    long timeToLive = analyticsCacheSettings.progressiveExpirationTimeOrDefault(latestEndDate);
 
-            setCacheabilityFor( cacheControl );
-        }
-        else
-        {
-            cacheControl = noCache();
-        }
+    if (timeToLive > 0) {
+      cacheControl = maxAge(timeToLive, SECONDS);
 
-        return cacheControl;
+      setCacheabilityFor(cacheControl);
+    } else {
+      cacheControl = noCache();
     }
 
-    /**
-     * See {@link AnalyticsCacheSettings#isProgressiveCachingEnabled()}
-     *
-     * @return true if progressive caching is enabled, false otherwise
-     */
-    public boolean isProgressiveCachingEnabled()
-    {
-        return analyticsCacheSettings.isProgressiveCachingEnabled();
-    }
+    return cacheControl;
+  }
 
-    /**
-     * Sets the cacheability (defined as system setting) into the given
-     * CacheControl.
-     *
-     * @see org.hisp.dhis.setting.SettingKey#CACHEABILITY
-     *
-     * @param cacheControl where cacheability will be set.
-     */
-    private void setCacheabilityFor( CacheControl cacheControl )
-    {
-        Cacheability cacheability = systemSettingManager.getSystemSetting( CACHEABILITY,
-            Cacheability.class );
+  /**
+   * See {@link AnalyticsCacheSettings#isProgressiveCachingEnabled()}
+   *
+   * @return true if progressive caching is enabled, false otherwise
+   */
+  public boolean isProgressiveCachingEnabled() {
+    return analyticsCacheSettings.isProgressiveCachingEnabled();
+  }
 
-        if ( PUBLIC == cacheability )
-        {
-            cacheControl.cachePublic();
-        }
-        else if ( PRIVATE == cacheability )
-        {
-            cacheControl.cachePrivate();
-        }
+  /**
+   * Sets the cacheability (defined as system setting) into the given CacheControl.
+   *
+   * @see org.hisp.dhis.setting.SettingKey#CACHEABILITY
+   * @param cacheControl where cacheability will be set.
+   */
+  private void setCacheabilityFor(CacheControl cacheControl) {
+    Cacheability cacheability =
+        systemSettingManager.getSystemSetting(CACHEABILITY, Cacheability.class);
+
+    if (PUBLIC == cacheability) {
+      cacheControl.cachePublic();
+    } else if (PRIVATE == cacheability) {
+      cacheControl.cachePrivate();
     }
+  }
 }

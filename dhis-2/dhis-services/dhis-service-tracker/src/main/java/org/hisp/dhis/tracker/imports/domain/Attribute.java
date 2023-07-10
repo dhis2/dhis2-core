@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.ValueType;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,29 +42,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Attribute
-{
-    @JsonProperty
-    private MetadataIdentifier attribute;
+public class Attribute {
+  @JsonProperty private MetadataIdentifier attribute;
 
-    @JsonProperty
-    private String code;
+  @JsonProperty private String code;
 
-    @JsonProperty
-    private String displayName;
+  @JsonProperty private String displayName;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private ValueType valueType;
+  @JsonProperty private ValueType valueType;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Startup routine responsible for starting the Debezium engine service. The
- * {@link DebeziumPreStartupRoutine} is called first so that the
- * {@link TableNameToEntityMapping} is already been initialized, see
- * {@link TableNameToEntityMapping#init}
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
-{
-    @Autowired
-    private DebeziumService debeziumService;
-
-    @Override
-    public void execute()
-        throws InterruptedException
-    {
-        debeziumService.startDebeziumEngine();
+public class CacheInvalidationEnabledConditionNotTestable
+    extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
+      return false;
     }
+
+    return getConfiguration().isEnabled(ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED);
+  }
+
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
+  }
 }

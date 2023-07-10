@@ -41,62 +41,59 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-class LimitStatementTest
-{
+class LimitStatementTest {
 
-    @Test
-    void testMaxLimitWhenItIsPresentInParameters()
-    {
-        // Given
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( MAX_LIMIT, 20 );
-        final String expectedStatement = " limit :" + MAX_LIMIT;
-        // When
-        final String actualStatement = maxLimit( theParameterSource );
-        // Then
-        assertThat( actualStatement, is( expectedStatement ) );
-    }
+  @Test
+  void testMaxLimitWhenItIsPresentInParameters() {
+    // Given
+    final MapSqlParameterSource theParameterSource =
+        new MapSqlParameterSource().addValue(MAX_LIMIT, 20);
+    final String expectedStatement = " limit :" + MAX_LIMIT;
+    // When
+    final String actualStatement = maxLimit(theParameterSource);
+    // Then
+    assertThat(actualStatement, is(expectedStatement));
+  }
 
-    @Test
-    void testMaxLimitWhenItIsNotPresentInParameters()
-    {
-        // Given
-        final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
-        // When
-        final String actualStatement = maxLimit( noParameterSource );
-        // Then
-        assertThat( actualStatement, is( EMPTY ) );
-    }
+  @Test
+  void testMaxLimitWhenItIsNotPresentInParameters() {
+    // Given
+    final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
+    // When
+    final String actualStatement = maxLimit(noParameterSource);
+    // Then
+    assertThat(actualStatement, is(EMPTY));
+  }
 
-    @Test
-    void testMaxLimitWhenParameterSourceIsNull()
-    {
-        // Given
-        final MapSqlParameterSource nullParameterSource = new MapSqlParameterSource();
-        // When
-        final String actualStatement = maxLimit( nullParameterSource );
-        // Then
-        assertThat( actualStatement, is( EMPTY ) );
-    }
+  @Test
+  void testMaxLimitWhenParameterSourceIsNull() {
+    // Given
+    final MapSqlParameterSource nullParameterSource = new MapSqlParameterSource();
+    // When
+    final String actualStatement = maxLimit(nullParameterSource);
+    // Then
+    assertThat(actualStatement, is(EMPTY));
+  }
 
-    @Test
-    void testMaxLimitWhenItIsSetToNull()
-    {
-        // Given
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( MAX_LIMIT, null );
-        // When
-        final String actualStatement = maxLimit( theParameterSource );
-        // Then
-        assertThat( actualStatement, is( EMPTY ) );
-    }
+  @Test
+  void testMaxLimitWhenItIsSetToNull() {
+    // Given
+    final MapSqlParameterSource theParameterSource =
+        new MapSqlParameterSource().addValue(MAX_LIMIT, null);
+    // When
+    final String actualStatement = maxLimit(theParameterSource);
+    // Then
+    assertThat(actualStatement, is(EMPTY));
+  }
 
-    @Test
-    void testMaxLimitWhenItIsSetToEmpty()
-    {
-        // Given
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( MAX_LIMIT, "" );
-        // When
-        final String actualStatement = maxLimit( theParameterSource );
-        // Then
-        assertThat( actualStatement, is( EMPTY ) );
-    }
+  @Test
+  void testMaxLimitWhenItIsSetToEmpty() {
+    // Given
+    final MapSqlParameterSource theParameterSource =
+        new MapSqlParameterSource().addValue(MAX_LIMIT, "");
+    // When
+    final String actualStatement = maxLimit(theParameterSource);
+    // Then
+    assertThat(actualStatement, is(EMPTY));
+  }
 }

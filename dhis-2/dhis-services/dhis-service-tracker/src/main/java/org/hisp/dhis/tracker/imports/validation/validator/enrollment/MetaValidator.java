@@ -42,21 +42,20 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class MetaValidator
-    implements Validator<Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
-    {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
-        reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
+class MetaValidator implements Validator<Enrollment> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    OrganisationUnit organisationUnit =
+        bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
+    reporter.addErrorIfNull(organisationUnit, enrollment, E1070, enrollment.getOrgUnit());
 
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
+    Program program = bundle.getPreheat().getProgram(enrollment.getProgram());
+    reporter.addErrorIfNull(program, enrollment, E1069, enrollment.getProgram());
 
-        reporter.addErrorIf( () -> !trackedEntityExists( bundle, enrollment.getTrackedEntity() ),
-            enrollment,
-            E1068, enrollment.getTrackedEntity() );
-    }
-
+    reporter.addErrorIf(
+        () -> !trackedEntityExists(bundle, enrollment.getTrackedEntity()),
+        enrollment,
+        E1068,
+        enrollment.getTrackedEntity());
+  }
 }

@@ -29,9 +29,9 @@ package org.hisp.dhis.sms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsStore;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
@@ -44,63 +44,56 @@ import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-class IncomingSmsStoreTest extends SingleSetupIntegrationTestBase
-{
+class IncomingSmsStoreTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private IncomingSmsStore incomingSmsStore;
+  @Autowired private IncomingSmsStore incomingSmsStore;
 
-    @Autowired
-    private OutboundSmsStore outboundSmsStore;
+  @Autowired private OutboundSmsStore outboundSmsStore;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private User user;
+  private User user;
 
-    @Override
-    public void setUpTest()
-    {
-        this.userService = _userService;
-        user = makeUser( "A" );
-        userService.addUser( user );
-    }
+  @Override
+  public void setUpTest() {
+    this.userService = _userService;
+    user = makeUser("A");
+    userService.addUser(user);
+  }
 
-    @Test
-    void testGetIncomingSms()
-    {
-        IncomingSms sms = new IncomingSms();
-        sms.setText( "testMessage" );
-        sms.setOriginator( "474000000" );
-        sms.setGatewayId( "testGateway" );
-        sms.setCreatedBy( user );
-        sms.setSentDate( new Date() );
-        sms.setReceivedDate( new Date() );
-        incomingSmsStore.save( sms );
-        List<IncomingSms> incomingSmsList = incomingSmsStore.getSmsByStatus( SmsMessageStatus.INCOMING, "474" );
-        assertEquals( 1, incomingSmsList.size() );
-        assertEquals( "testMessage", incomingSmsList.get( 0 ).getText() );
-        assertEquals( 1, incomingSmsStore.getSmsByStatus( SmsMessageStatus.INCOMING, "474", 0, 10, false ).size() );
-        assertEquals( 1, incomingSmsStore.getSmsByOriginator( "474000000" ).size() );
-    }
+  @Test
+  void testGetIncomingSms() {
+    IncomingSms sms = new IncomingSms();
+    sms.setText("testMessage");
+    sms.setOriginator("474000000");
+    sms.setGatewayId("testGateway");
+    sms.setCreatedBy(user);
+    sms.setSentDate(new Date());
+    sms.setReceivedDate(new Date());
+    incomingSmsStore.save(sms);
+    List<IncomingSms> incomingSmsList =
+        incomingSmsStore.getSmsByStatus(SmsMessageStatus.INCOMING, "474");
+    assertEquals(1, incomingSmsList.size());
+    assertEquals("testMessage", incomingSmsList.get(0).getText());
+    assertEquals(
+        1, incomingSmsStore.getSmsByStatus(SmsMessageStatus.INCOMING, "474", 0, 10, false).size());
+    assertEquals(1, incomingSmsStore.getSmsByOriginator("474000000").size());
+  }
 
-    @Test
-    void testOutboundSms()
-    {
-        OutboundSms outboundSms = new OutboundSms();
-        outboundSms.setDate( new Date() );
-        outboundSms.setMessage( "testMessage" );
-        outboundSms.setSender( "testSender" );
-        outboundSms.setStatus( OutboundSmsStatus.OUTBOUND );
-        outboundSms.setSubject( "testSubject" );
-        outboundSms.setRecipients( Sets.newHashSet( "testRecipient" ) );
-        outboundSmsStore.saveOutboundSms( outboundSms );
-        assertEquals( 1, outboundSmsStore.get( OutboundSmsStatus.OUTBOUND ).size() );
-        assertEquals( 1, outboundSmsStore.get( OutboundSmsStatus.OUTBOUND, 0, 10, false ).size() );
-    }
+  @Test
+  void testOutboundSms() {
+    OutboundSms outboundSms = new OutboundSms();
+    outboundSms.setDate(new Date());
+    outboundSms.setMessage("testMessage");
+    outboundSms.setSender("testSender");
+    outboundSms.setStatus(OutboundSmsStatus.OUTBOUND);
+    outboundSms.setSubject("testSubject");
+    outboundSms.setRecipients(Sets.newHashSet("testRecipient"));
+    outboundSmsStore.saveOutboundSms(outboundSms);
+    assertEquals(1, outboundSmsStore.get(OutboundSmsStatus.OUTBOUND).size());
+    assertEquals(1, outboundSmsStore.get(OutboundSmsStatus.OUTBOUND, 0, 10, false).size());
+  }
 }

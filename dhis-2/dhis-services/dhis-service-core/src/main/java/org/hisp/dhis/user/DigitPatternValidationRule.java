@@ -31,18 +31,14 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_DIGI
 
 import java.util.regex.Pattern;
 
-/**
- * Created by zubair on 08.03.17.
- */
-public class DigitPatternValidationRule implements PasswordValidationRule
-{
-    private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
+/** Created by zubair on 08.03.17. */
+public class DigitPatternValidationRule implements PasswordValidationRule {
+  private static final Pattern DIGIT_PATTERN = Pattern.compile(".*\\d.*");
 
-    @Override
-    public PasswordValidationResult validate( CredentialsInfo credentials )
-    {
-        return !DIGIT_PATTERN.matcher( credentials.getPassword() ).matches()
-            ? new PasswordValidationResult( PASSWORD_MUST_HAVE_DIGIT )
-            : PasswordValidationResult.VALID;
-    }
+  @Override
+  public PasswordValidationResult validate(CredentialsInfo credentials) {
+    return !DIGIT_PATTERN.matcher(credentials.getPassword()).matches()
+        ? new PasswordValidationResult(PASSWORD_MUST_HAVE_DIGIT)
+        : PasswordValidationResult.VALID;
+  }
 }

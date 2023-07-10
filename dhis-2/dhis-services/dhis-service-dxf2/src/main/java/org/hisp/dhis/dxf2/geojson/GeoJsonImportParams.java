@@ -31,30 +31,28 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.user.User;
 
-@Builder( toBuilder = true )
+@Builder(toBuilder = true)
 @Getter
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class GeoJsonImportParams
-{
-    /**
-     * If true the import is validated and processed without actually modifying
-     * any organisation unit or storing GeoJSON data.
-     */
-    private final boolean dryRun;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class GeoJsonImportParams {
+  /**
+   * If true the import is validated and processed without actually modifying any organisation unit
+   * or storing GeoJSON data.
+   */
+  private final boolean dryRun;
 
-    private final String orgUnitIdProperty;
+  private final String orgUnitIdProperty;
 
-    private final IdentifiableProperty idType;
+  private final IdentifiableProperty idType;
 
-    /**
-     * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute}
-     * for which the geometry is stored.
-     */
-    private final String attributeId;
+  /**
+   * Optional UID that refers to an {@link org.hisp.dhis.attribute.Attribute} for which the geometry
+   * is stored.
+   */
+  private final String attributeId;
 
-    private final User user;
+  private final User user;
 }

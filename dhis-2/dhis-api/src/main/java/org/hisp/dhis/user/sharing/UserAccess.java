@@ -27,57 +27,48 @@
  */
 package org.hisp.dhis.user.sharing;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.User;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-public class UserAccess
-    extends AccessObject
-{
-    //------------------------------------------------------------------------------------------
-    // Constructors
-    //------------------------------------------------------------------------------------------
+@JacksonXmlRootElement(localName = "userAccess", namespace = DxfNamespaces.DXF_2_0)
+public class UserAccess extends AccessObject {
+  // ------------------------------------------------------------------------------------------
+  // Constructors
+  // ------------------------------------------------------------------------------------------
 
-    public UserAccess( String access, String id )
-    {
-        super( access, id );
-    }
+  public UserAccess(String access, String id) {
+    super(access, id);
+  }
 
-    public UserAccess( User user, String access )
-    {
-        super( access, user.getUid() );
-    }
+  public UserAccess(User user, String access) {
+    super(access, user.getUid());
+  }
 
-    //------------------------------------------------------------------------------------------
-    // Helpers
-    //------------------------------------------------------------------------------------------
+  // ------------------------------------------------------------------------------------------
+  // Helpers
+  // ------------------------------------------------------------------------------------------
 
-    public void setUser( User user )
-    {
-        setId( user.getUid() );
-    }
+  public void setUser(User user) {
+    setId(user.getUid());
+  }
 
-    @JsonIgnore
-    public User getUser()
-    {
-        User user = new User();
-        user.setUid( this.id );
-        return user;
-    }
+  @JsonIgnore
+  public User getUser() {
+    User user = new User();
+    user.setUid(this.id);
+    return user;
+  }
 
-    @Override
-    public UserAccess copy()
-    {
-        return new UserAccess( this.access, this.id );
-    }
+  @Override
+  public UserAccess copy() {
+    return new UserAccess(this.access, this.id);
+  }
 }

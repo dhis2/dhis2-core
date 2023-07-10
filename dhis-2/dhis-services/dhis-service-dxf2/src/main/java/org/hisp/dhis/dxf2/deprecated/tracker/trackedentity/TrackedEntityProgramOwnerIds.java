@@ -25,27 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.redis;
+package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
+public class TrackedEntityProgramOwnerIds {
+  private final String trackedEntityUid;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class StartupRedisCacheInvalidationServiceRoutine extends AbstractStartupRoutine
-{
-    @Autowired
-    private RedisCacheInvalidationSubscriptionService subscriptionService;
+  private final String programUid;
 
-    @Override
-    public void execute()
-        throws InterruptedException
-    {
-        subscriptionService.start();
-    }
+  private final String orgUnitUid;
+
+  public TrackedEntityProgramOwnerIds(
+      String trackedEntityUid, String programUid, String orgUnitUid) {
+    this.trackedEntityUid = trackedEntityUid;
+    this.programUid = programUid;
+    this.orgUnitUid = orgUnitUid;
+  }
+
+  public String getTrackedEntityUid() {
+    return trackedEntityUid;
+  }
+
+  public String getProgramUid() {
+    return programUid;
+  }
+
+  public String getOrgUnitUid() {
+    return orgUnitUid;
+  }
 }

@@ -33,36 +33,33 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.junit.jupiter.api.Test;
 
-class DhisConfigurationProviderTest
-{
+class DhisConfigurationProviderTest {
 
-    @Test
-    void isOn()
-    {
-        assertTrue( DhisConfigurationProvider.isOn( "on" ) );
-        assertTrue( DhisConfigurationProvider.isOn( "ON" ) );
-        assertTrue( DhisConfigurationProvider.isOn( "true" ) );
-        assertTrue( DhisConfigurationProvider.isOn( "TRUE" ) );
-        assertFalse( DhisConfigurationProvider.isOn( "off" ) );
-        assertFalse( DhisConfigurationProvider.isOn( "OFF" ) );
-        assertFalse( DhisConfigurationProvider.isOn( "false" ) );
-        assertFalse( DhisConfigurationProvider.isOn( "FALSE" ) );
-        assertFalse( DhisConfigurationProvider.isOn( "" ) );
-        assertFalse( DhisConfigurationProvider.isOn( null ) );
-    }
+  @Test
+  void isOn() {
+    assertTrue(DhisConfigurationProvider.isOn("on"));
+    assertTrue(DhisConfigurationProvider.isOn("ON"));
+    assertTrue(DhisConfigurationProvider.isOn("true"));
+    assertTrue(DhisConfigurationProvider.isOn("TRUE"));
+    assertFalse(DhisConfigurationProvider.isOn("off"));
+    assertFalse(DhisConfigurationProvider.isOn("OFF"));
+    assertFalse(DhisConfigurationProvider.isOn("false"));
+    assertFalse(DhisConfigurationProvider.isOn("FALSE"));
+    assertFalse(DhisConfigurationProvider.isOn(""));
+    assertFalse(DhisConfigurationProvider.isOn(null));
+  }
 
-    @Test
-    void isEnabled()
-    {
-        System.setProperty( "dhis2.home", "src/test/resources" );
-        DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
-        locationManager.init();
-        DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
-        configProvider.init();
-        assertFalse( configProvider.isEnabled( ConfigurationKey.REDIS_ENABLED ) );
-        assertFalse( configProvider.isEnabled( ConfigurationKey.MONITORING_API_ENABLED ) );
-        assertTrue( configProvider.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) );
-        assertTrue( configProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING ) );
-        assertFalse( configProvider.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED ) );
-    }
+  @Test
+  void isEnabled() {
+    System.setProperty("dhis2.home", "src/test/resources");
+    DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+    locationManager.init();
+    DefaultDhisConfigurationProvider configProvider =
+        new DefaultDhisConfigurationProvider(locationManager);
+    configProvider.init();
+    assertFalse(configProvider.isEnabled(ConfigurationKey.REDIS_ENABLED));
+    assertFalse(configProvider.isEnabled(ConfigurationKey.MONITORING_API_ENABLED));
+    assertTrue(configProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING));
+    assertFalse(configProvider.isEnabled(ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED));
+  }
 }

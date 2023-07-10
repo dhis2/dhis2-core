@@ -38,126 +38,115 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Helper to convert date fields from controller's Criteria into a plain string
- * that can be merged into PE dimension.
+ * Helper to convert date fields from controller's Criteria into a plain string that can be merged
+ * into PE dimension.
  */
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class CustomDateHelper
-{
-    public static String getCustomDateFilters( Predicate<AnalyticsDateFilter> appliesTo,
-        Function<AnalyticsDateFilter, Function<Object, String>> function, Object criteria )
-    {
-        return Arrays.stream( AnalyticsDateFilter.values() )
-            .filter( appliesTo )
-            .filter( analyticsDateFilter -> function.apply( analyticsDateFilter ).apply( criteria ) != null )
-            .map( analyticsDateFilter -> String.join( DIMENSION_NAME_SEP,
-                handleMultiOptions(
-                    function.apply( analyticsDateFilter ).apply( criteria ),
-                    analyticsDateFilter.getTimeField().name() ) ) )
-            .collect( Collectors.joining( OPTION_SEP ) );
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class CustomDateHelper {
+  public static String getCustomDateFilters(
+      Predicate<AnalyticsDateFilter> appliesTo,
+      Function<AnalyticsDateFilter, Function<Object, String>> function,
+      Object criteria) {
+    return Arrays.stream(AnalyticsDateFilter.values())
+        .filter(appliesTo)
+        .filter(analyticsDateFilter -> function.apply(analyticsDateFilter).apply(criteria) != null)
+        .map(
+            analyticsDateFilter ->
+                String.join(
+                    DIMENSION_NAME_SEP,
+                    handleMultiOptions(
+                        function.apply(analyticsDateFilter).apply(criteria),
+                        analyticsDateFilter.getTimeField().name())))
+        .collect(Collectors.joining(OPTION_SEP));
+  }
+
+  private static String handleMultiOptions(String values, String timeField) {
+    return Arrays.stream(withOptionSeparator(values).split(OPTION_SEP))
+        .map(aValue -> String.join(DIMENSION_NAME_SEP, aValue, timeField))
+        .collect(Collectors.joining(OPTION_SEP));
+  }
+
+  private static String withOptionSeparator(String options) {
+    return joinOnOptionSeparator(splitOnMultiOptionSeparator(options));
+  }
+
+  private static String joinOnOptionSeparator(String[] strings) {
+    return StringUtils.join(strings, OPTION_SEP);
+  }
+
+  private static String[] splitOnMultiOptionSeparator(String s) {
+    return StringUtils.split(s, MULTI_CHOICES_OPTION_SEP);
+  }
+
+  /**
+   * Given existing dimensions from controller and the time filters passed, returns a new collection
+   * of dimensions with proper period dimension set
+   */
+  public static Set<String> getDimensionsWithRefactoredPeDimension(
+      Set<String> dimensions, String customDateFilters) {
+    if (customDateFilters.isEmpty()) {
+      return dimensions;
     }
 
-    private static String handleMultiOptions( String values, String timeField )
-    {
-        return Arrays.stream( withOptionSeparator( values ).split( OPTION_SEP ) )
-            .map( aValue -> String.join( DIMENSION_NAME_SEP,
-                aValue, timeField ) )
-            .collect( Collectors.joining( OPTION_SEP ) );
-    }
+    return dimensions.stream()
+        .filter(CustomDateHelper::isPeDimension)
+        .findFirst()
+        // if PE dimensions already exists, return dimensions, with
+        // existing PE+customDateFilters
+        .map(peDimension -> dimensionsWithRefactoredPe(dimensions, customDateFilters, peDimension))
+        // if PE dimensions didn't exist, returns dimensions with a new
+        // PE dimension,
+        // represented by customDateFilters
+        .orElseGet(
+            () ->
+                dimensionsWithNewPe(
+                    dimensions, String.join(DIMENSION_NAME_SEP, PERIOD_DIM_ID, customDateFilters)));
+  }
 
-    private static String withOptionSeparator( String options )
-    {
-        return joinOnOptionSeparator( splitOnMultiOptionSeparator( options ) );
-    }
+  private static Set<String> dimensionsWithNewPe(Set<String> dimension, String peDimension) {
+    dimension.add(peDimension);
+    return dimension;
+  }
 
-    private static String joinOnOptionSeparator( String[] strings )
-    {
-        return StringUtils.join( strings, OPTION_SEP );
-    }
+  /**
+   * concatenate existing dimensions (but PE one) with a new pe dimension, represented by existing
+   * PE+customDateFilters
+   */
+  private static Set<String> dimensionsWithRefactoredPe(
+      Set<String> dimension, String customDateFilters, String peDimension) {
+    return Stream.concat(
+            dimension.stream().filter(d -> !isPeDimension(d)),
+            Stream.of(String.join(OPTION_SEP, withoutTimeField(peDimension), customDateFilters)))
+        .collect(Collectors.toSet());
+  }
 
-    private static String[] splitOnMultiOptionSeparator( String s )
-    {
-        return StringUtils.split( s, MULTI_CHOICES_OPTION_SEP );
-    }
+  /**
+   * "sanitize" legacy pe dimension, in case it is passed along with time field specification.
+   * Example pe:TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE -> pe:TODAY;LAST_WEEK
+   */
+  private static String withoutTimeField(String dimension) {
+    dimension = dimension.replaceFirst(PERIOD_DIM_ID + DIMENSION_NAME_SEP, "");
+    return String.join(
+        DIMENSION_NAME_SEP,
+        PERIOD_DIM_ID,
+        Arrays.stream(dimension.split(OPTION_SEP))
+            .map(CustomDateHelper::removeTimeField)
+            .collect(Collectors.joining(OPTION_SEP)));
+  }
 
-    /**
-     * Given existing dimensions from controller and the time filters passed,
-     * returns a new collection of dimensions with proper period dimension set
-     */
-    public static Set<String> getDimensionsWithRefactoredPeDimension( Set<String> dimensions, String customDateFilters )
-    {
-        if ( customDateFilters.isEmpty() )
-        {
-            return dimensions;
-        }
+  private static String removeTimeField(String dimensionItem) {
+    String[] splitDimension = dimensionItem.split(DIMENSION_NAME_SEP);
+    if (splitDimension.length > 1) {
+      return splitDimension[0];
+    } else return dimensionItem;
+  }
 
-        return dimensions.stream()
-            .filter( CustomDateHelper::isPeDimension )
-            .findFirst()
-            // if PE dimensions already exists, return dimensions, with
-            // existing PE+customDateFilters
-            .map( peDimension -> dimensionsWithRefactoredPe( dimensions, customDateFilters, peDimension ) )
-            // if PE dimensions didn't exist, returns dimensions with a new
-            // PE dimension,
-            // represented by customDateFilters
-            .orElseGet( () -> dimensionsWithNewPe( dimensions,
-                String.join( DIMENSION_NAME_SEP, PERIOD_DIM_ID, customDateFilters ) ) );
-
-    }
-
-    private static Set<String> dimensionsWithNewPe( Set<String> dimension, String peDimension )
-    {
-        dimension.add( peDimension );
-        return dimension;
-    }
-
-    /**
-     * concatenate existing dimensions (but PE one) with a new pe dimension,
-     * represented by existing PE+customDateFilters
-     */
-    private static Set<String> dimensionsWithRefactoredPe( Set<String> dimension, String customDateFilters,
-        String peDimension )
-    {
-        return Stream.concat(
-            dimension.stream().filter( d -> !isPeDimension( d ) ),
-            Stream.of( String.join( OPTION_SEP, withoutTimeField( peDimension ), customDateFilters ) ) )
-            .collect( Collectors.toSet() );
-    }
-
-    /**
-     * "sanitize" legacy pe dimension, in case it is passed along with time
-     * field specification. Example
-     * pe:TODAY:LAST_UPDATED;LAST_WEEK:INCIDENT_DATE -> pe:TODAY;LAST_WEEK
-     */
-    private static String withoutTimeField( String dimension )
-    {
-        dimension = dimension.replaceFirst( PERIOD_DIM_ID + DIMENSION_NAME_SEP, "" );
-        return String.join( DIMENSION_NAME_SEP, PERIOD_DIM_ID,
-            Arrays.stream( dimension.split( OPTION_SEP ) )
-                .map( CustomDateHelper::removeTimeField )
-                .collect( Collectors.joining( OPTION_SEP ) ) );
-    }
-
-    private static String removeTimeField( String dimensionItem )
-    {
-        String[] splitDimension = dimensionItem.split( DIMENSION_NAME_SEP );
-        if ( splitDimension.length > 1 )
-        {
-            return splitDimension[0];
-        }
-        else
-            return dimensionItem;
-    }
-
-    public static boolean isPeDimension( String dimension )
-    {
-        return dimension.startsWith( PERIOD_DIM_ID + DIMENSION_NAME_SEP );
-    }
+  public static boolean isPeDimension(String dimension) {
+    return dimension.startsWith(PERIOD_DIM_ID + DIMENSION_NAME_SEP);
+  }
 }

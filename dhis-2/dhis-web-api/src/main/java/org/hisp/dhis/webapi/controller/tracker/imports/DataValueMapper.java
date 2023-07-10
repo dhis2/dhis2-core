@@ -34,14 +34,13 @@ import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    InstantMapper.class,
-    UserMapper.class,
-    MetadataIdentifierMapper.class
-} )
-public interface DataValueMapper extends DomainMapper<DataValue, org.hisp.dhis.tracker.imports.domain.DataValue>
-{
-    @Mapping( target = "dataElement", source = "dataElement", qualifiedByName = "dataElementToMetadataIdentifier" )
-    org.hisp.dhis.tracker.imports.domain.DataValue from( DataValue dataValue,
-        @Context TrackerIdSchemeParams idSchemeParams );
+@Mapper(uses = {InstantMapper.class, UserMapper.class, MetadataIdentifierMapper.class})
+public interface DataValueMapper
+    extends DomainMapper<DataValue, org.hisp.dhis.tracker.imports.domain.DataValue> {
+  @Mapping(
+      target = "dataElement",
+      source = "dataElement",
+      qualifiedByName = "dataElementToMetadataIdentifier")
+  org.hisp.dhis.tracker.imports.domain.DataValue from(
+      DataValue dataValue, @Context TrackerIdSchemeParams idSchemeParams);
 }

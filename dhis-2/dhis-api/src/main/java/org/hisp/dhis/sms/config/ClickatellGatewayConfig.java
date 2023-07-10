@@ -33,22 +33,17 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@JsonTypeName( "clickatell" )
-public class ClickatellGatewayConfig
-    extends SmsGatewayConfig
-{
-    private static final long serialVersionUID = -4286107769356591957L;
+@JsonTypeName("clickatell")
+public class ClickatellGatewayConfig extends SmsGatewayConfig {
+  private static final long serialVersionUID = -4286107769356591957L;
 
-    @JsonProperty
-    private String authToken;
+  @JsonProperty private String authToken;
 
-    public String getAuthToken()
-    {
-        return authToken;
-    }
+  public String getAuthToken() {
+    return authToken;
+  }
 
-    public void setAuthToken( String authToken )
-    {
-        this.authToken = authToken;
-    }
+  public void setAuthToken(String authToken) {
+    this.authToken = authToken;
+  }
 }

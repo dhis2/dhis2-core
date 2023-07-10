@@ -34,21 +34,19 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DataEntryFormSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "dataEntryForm";
+public class DataEntryFormSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "dataEntryForm";
 
-    public static final String PLURAL = "dataEntryForms";
+  public static final String PLURAL = "dataEntryForms";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( DataEntryForm.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1300 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(DataEntryForm.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1300);
 
-        return schema;
-    }
+    return schema;
+  }
 }

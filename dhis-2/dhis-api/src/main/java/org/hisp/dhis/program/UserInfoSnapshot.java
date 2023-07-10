@@ -27,102 +27,85 @@
  */
 package org.hisp.dhis.program;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.Optional;
-
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.notification.template.snapshot.IdentifiableObjectSnapshot;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * Data structure to hold user information during save/update of events,
- * enrollments and comments
+ * Data structure to hold user information during save/update of events, enrollments and comments
  *
  * @author Giuseppe Nespolino
  */
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfoSnapshot extends IdentifiableObjectSnapshot
-{
-    private String username;
+public class UserInfoSnapshot extends IdentifiableObjectSnapshot {
+  private String username;
 
-    private String firstName;
+  private String firstName;
 
-    private String surname;
+  private String surname;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Override
-    public String getUid()
-    {
-        return super.getUid();
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Override
+  public String getUid() {
+    return super.getUid();
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUsername()
-    {
-        return username;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getUsername() {
+    return username;
+  }
 
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFirstName()
-    {
-        return firstName;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getFirstName() {
+    return firstName;
+  }
 
-    public void setFirstName( String firstName )
-    {
-        this.firstName = firstName;
-    }
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getSurname()
-    {
-        return surname;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getSurname() {
+    return surname;
+  }
 
-    public void setSurname( String surname )
-    {
-        this.surname = surname;
-    }
+  public void setSurname(String surname) {
+    this.surname = surname;
+  }
 
-    public static UserInfoSnapshot from( User user )
-    {
-        return Optional.ofNullable( user )
-            .map( UserInfoSnapshot::toUserInfoSnapshot )
-            .orElse( null );
-    }
+  public static UserInfoSnapshot from(User user) {
+    return Optional.ofNullable(user).map(UserInfoSnapshot::toUserInfoSnapshot).orElse(null);
+  }
 
-    private static UserInfoSnapshot toUserInfoSnapshot( User user )
-    {
-        UserInfoSnapshot eventUserInfo = new UserInfoSnapshot( user.getUsername(),
-            user.getFirstName(), user.getSurname() );
-        eventUserInfo.setId( user.getId() );
-        eventUserInfo.setCode( user.getCode() );
-        eventUserInfo.setUid( user.getUid() );
-        return eventUserInfo;
-    }
+  private static UserInfoSnapshot toUserInfoSnapshot(User user) {
+    UserInfoSnapshot eventUserInfo =
+        new UserInfoSnapshot(user.getUsername(), user.getFirstName(), user.getSurname());
+    eventUserInfo.setId(user.getId());
+    eventUserInfo.setCode(user.getCode());
+    eventUserInfo.setUid(user.getUid());
+    return eventUserInfo;
+  }
 
-    public static UserInfoSnapshot of( long id, String code, String uid, String username, String firstName,
-        String surname )
-    {
-        UserInfoSnapshot eventUserInfo = new UserInfoSnapshot( username, firstName, surname );
-        eventUserInfo.setId( id );
-        eventUserInfo.setCode( code );
-        eventUserInfo.setUid( uid );
-        return eventUserInfo;
-    }
+  public static UserInfoSnapshot of(
+      long id, String code, String uid, String username, String firstName, String surname) {
+    UserInfoSnapshot eventUserInfo = new UserInfoSnapshot(username, firstName, surname);
+    eventUserInfo.setId(id);
+    eventUserInfo.setCode(code);
+    eventUserInfo.setUid(uid);
+    return eventUserInfo;
+  }
 }

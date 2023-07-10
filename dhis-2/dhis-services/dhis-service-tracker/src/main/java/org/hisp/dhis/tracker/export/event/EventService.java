@@ -27,24 +27,18 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface EventService
-{
-    Event getEvent( String uid, EventParams eventParams )
-        throws NotFoundException,
-        ForbiddenException;
+public interface EventService {
+  Event getEvent(String uid, EventParams eventParams) throws NotFoundException, ForbiddenException;
 
-    Event getEvent( Event event, EventParams eventParams )
-        throws ForbiddenException;
+  Event getEvent(Event event, EventParams eventParams) throws ForbiddenException;
 
-    Events getEvents( EventSearchParams params );
-
-    void validate( EventSearchParams params, User user );
+  Events getEvents(EventOperationParams params) throws BadRequestException, ForbiddenException;
 }

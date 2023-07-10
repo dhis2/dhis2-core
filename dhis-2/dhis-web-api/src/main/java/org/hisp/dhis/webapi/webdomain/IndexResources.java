@@ -27,27 +27,23 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Data;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
-@JsonRootName( value = "resources", namespace = DxfNamespaces.DXF_2_0 )
-public class IndexResources
-{
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "resource", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlElementWrapper( localName = "resource", useWrapping = false )
-    private final List<IndexResource> resources = new ArrayList<>();
+@JsonRootName(value = "resources", namespace = DxfNamespaces.DXF_2_0)
+public class IndexResources {
+  @JsonProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "resource", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlElementWrapper(localName = "resource", useWrapping = false)
+  private final List<IndexResource> resources = new ArrayList<>();
 }

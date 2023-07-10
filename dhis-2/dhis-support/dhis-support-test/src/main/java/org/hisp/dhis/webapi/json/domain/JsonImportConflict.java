@@ -40,36 +40,29 @@ import org.hisp.dhis.jsontree.JsonString;
  *
  * @author Jan Bernitt
  */
-public interface JsonImportConflict extends JsonObject
-{
-    default String getObject()
-    {
-        return getString( "object" ).string();
-    }
+public interface JsonImportConflict extends JsonObject {
+  default String getObject() {
+    return getString("object").string();
+  }
 
-    default JsonMap<JsonString> getObjects()
-    {
-        return getMap( "objects", JsonString.class );
-    }
+  default JsonMap<JsonString> getObjects() {
+    return getMap("objects", JsonString.class);
+  }
 
-    @Expected
-    default String getValue()
-    {
-        return getString( "value" ).string();
-    }
+  @Expected
+  default String getValue() {
+    return getString("value").string();
+  }
 
-    default ErrorCode getErrorCode()
-    {
-        return getString( "errorCode" ).parsed( ErrorCode::valueOf );
-    }
+  default ErrorCode getErrorCode() {
+    return getString("errorCode").parsed(ErrorCode::valueOf);
+  }
 
-    default String getProperty()
-    {
-        return getString( "property" ).string();
-    }
+  default String getProperty() {
+    return getString("property").string();
+  }
 
-    default JsonList<JsonNumber> getIndexes()
-    {
-        return getList( "indexes", JsonNumber.class );
-    }
+  default JsonList<JsonNumber> getIndexes() {
+    return getList("indexes", JsonNumber.class);
+  }
 }

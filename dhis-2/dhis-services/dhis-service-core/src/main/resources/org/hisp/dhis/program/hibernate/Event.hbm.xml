@@ -4,9 +4,9 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.Event" table="programstageinstance">
+  <class name="org.hisp.dhis.program.Event" table="event">
 
-    <id name="id" column="programstageinstanceid">
+    <id name="id" column="eventid">
       <generator class="sequence">
         <param name="sequence_name">programstageinstance_sequence</param>
       </generator>
@@ -51,8 +51,8 @@
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_programstageinstance_organisationunitid" index="programstageinstance_organisationunitid" />
 
-    <list name="messageConversations" table="programstageinstance_messageconversation">
-      <key column="programstageinstanceid" />
+    <list name="messageConversations" table="event_messageconversation">
+      <key column="eventid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.message.MessageConversation"
         column="messageconversationid" />
@@ -71,15 +71,15 @@
 
     <property name="eventDataValues" type="jsbEventDataValues" />
 
-    <list name="comments" table="programstageinstancecomments" cascade="all-delete-orphan">
-      <key column="programstageinstanceid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
+    <list name="comments" table="eventcomments" cascade="all-delete-orphan">
+      <key column="eventid" foreign-key="fk_programstageinstancecomments_programstageinstanceid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" column="trackedentitycommentid"
         unique="true" foreign-key="fk_programstageinstancecomments_trackedentitycommentid" />
     </list>
 
     <set name="relationshipItems" inverse="true">
-      <key column="programstageinstanceid" />
+      <key column="eventid" />
       <one-to-many class="org.hisp.dhis.relationship.RelationshipItem" />
     </set>
 

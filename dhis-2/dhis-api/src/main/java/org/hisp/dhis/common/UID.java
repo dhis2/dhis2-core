@@ -30,16 +30,13 @@ package org.hisp.dhis.common;
 import lombok.NoArgsConstructor;
 
 /**
- * A "virtual" UID type that is "context-sensitive" and points to a UID of the
- * current {@code Api.Endpoint}'s
- * {@link org.hisp.dhis.common.OpenApi.EntityType}.
- * <p>
- * In other words by using this type in {@link OpenApi.Param#value()} the
- * annotated parameter becomes a UID string of the controllers' entity type.
+ * A "virtual" UID type that is "context-sensitive" and points to a UID of the current {@code
+ * Api.Endpoint}'s {@link org.hisp.dhis.common.OpenApi.EntityType}.
+ *
+ * <p>In other words by using this type in {@link OpenApi.Param#value()} the annotated parameter
+ * becomes a UID string of the controllers' entity type.
  *
  * @author Jan Bernitt
  */
 @NoArgsConstructor
-public final class UID
-{
-}
+public final class UID {}

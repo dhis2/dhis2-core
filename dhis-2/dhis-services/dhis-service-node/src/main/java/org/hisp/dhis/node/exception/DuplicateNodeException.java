@@ -30,10 +30,8 @@ package org.hisp.dhis.node.exception;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DuplicateNodeException extends RuntimeException
-{
-    public DuplicateNodeException()
-    {
-        super( "A node with that name already exists in the child list." );
-    }
+public class DuplicateNodeException extends RuntimeException {
+  public DuplicateNodeException() {
+    super("A node with that name already exists in the child list.");
+  }
 }

@@ -28,9 +28,7 @@
 package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
@@ -45,25 +43,33 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.category.CategoryComboStore" )
-public class HibernateCategoryComboStore
-    extends HibernateIdentifiableObjectStore<CategoryCombo>
-    implements CategoryComboStore
-{
-    public HibernateCategoryComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryCombo.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.category.CategoryComboStore")
+public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStore<CategoryCombo>
+    implements CategoryComboStore {
+  public HibernateCategoryComboStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        CategoryCombo.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<CategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<CategoryCombo> getCategoryCombosByDimensionType(DataDimensionType dataDimensionType) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataDimensionType" ), dataDimensionType ) )
-            .addPredicate( root -> builder.equal( root.get( "name" ), "default" ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("dataDimensionType"), dataDimensionType))
+            .addPredicate(root -> builder.equal(root.get("name"), "default")));
+  }
 }

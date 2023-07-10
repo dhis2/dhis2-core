@@ -27,21 +27,20 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
-public class Users
-{
-    public static final String USER_1 = "oZZ43IHxuUM";
+public class Users {
+  public static final String USER_1 = "oZZ43IHxuUM";
 
-    public static final String USER_2 = "MbkW4Bhfw7o";
+  public static final String USER_2 = "MbkW4Bhfw7o";
 
-    public static final String USER_3 = "fY22f5N1xSy";
+  public static final String USER_3 = "fY22f5N1xSy";
 
-    public static final String USER_4 = "iAji3gyZYQL";
+  public static final String USER_4 = "iAji3gyZYQL";
 
-    public static final String USER_5 = "oajYcE7VMBs";
+  public static final String USER_5 = "oajYcE7VMBs";
 
-    public static final String USER_6 = "VfaA5WwHLdP";
+  public static final String USER_6 = "VfaA5WwHLdP";
 
-    public static final String USER_7 = "E5AiPnHG3t5";
+  public static final String USER_7 = "E5AiPnHG3t5";
 
-    public static final String USER_8 = "xbgFeL0l3Ap";
+  public static final String USER_8 = "xbgFeL0l3Ap";
 }

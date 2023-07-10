@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -37,45 +38,38 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webapi.webdomain.datavalue.DataValueCategoryDto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Lars Helge Overland
  */
 @Data
 @OpenApi.Shared
-public class DataValueFollowUpRequest
-{
-    @JsonProperty
-    @OpenApi.Property( { UID.class, DataSet.class } )
-    private String dataElement;
+public class DataValueFollowUpRequest {
+  @JsonProperty
+  @OpenApi.Property({UID.class, DataSet.class})
+  private String dataElement;
 
-    @JsonProperty
-    @OpenApi.Property( { Period.class } )
-    private String period;
+  @JsonProperty
+  @OpenApi.Property({Period.class})
+  private String period;
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private String orgUnit;
+  @JsonProperty
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String orgUnit;
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
-    private String categoryOptionCombo;
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String categoryOptionCombo;
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
-    private String attributeOptionCombo;
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String attributeOptionCombo;
 
-    @JsonProperty
-    private DataValueCategoryDto attribute;
+  @JsonProperty private DataValueCategoryDto attribute;
 
-    @JsonProperty
-    private Boolean followup;
+  @JsonProperty private Boolean followup;
 
-    @JsonIgnore
-    public boolean hasAttribute()
-    {
-        return attribute != null;
-    }
+  @JsonIgnore
+  public boolean hasAttribute() {
+    return attribute != null;
+  }
 }

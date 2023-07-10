@@ -27,45 +27,53 @@
  */
 package org.hisp.dhis.schema;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
-{
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
+@JacksonXmlRootElement(localName = "propertyType", namespace = DxfNamespaces.DXF_2_0)
+public enum PropertyType {
+  IDENTIFIER,
+  TEXT,
+  NUMBER,
+  INTEGER,
+  BOOLEAN,
+  USERNAME,
+  EMAIL,
+  PASSWORD,
+  URL,
+  DATE,
+  PHONENUMBER,
+  GEOLOCATION,
+  COLOR,
+  CONSTANT,
 
-    COMPLEX,
-    COLLECTION,
-    REFERENCE,
+  COMPLEX,
+  COLLECTION,
+  REFERENCE,
 
-    /**
-     * Special value that signals that the detected property type should be used
-     * and no override will be done.
-     */
-    DEFAULT;
+  /**
+   * Special value that signals that the detected property type should be used and no override will
+   * be done.
+   */
+  DEFAULT;
 
-    public boolean isSimple()
-    {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || BOOLEAN == this
-            || USERNAME == this || EMAIL == this || PASSWORD == this || URL == this || DATE == this
-            || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
-    }
+  public boolean isSimple() {
+    return IDENTIFIER == this
+        || TEXT == this
+        || NUMBER == this
+        || INTEGER == this
+        || BOOLEAN == this
+        || USERNAME == this
+        || EMAIL == this
+        || PASSWORD == this
+        || URL == this
+        || DATE == this
+        || PHONENUMBER == this
+        || GEOLOCATION == this
+        || COLOR == this
+        || CONSTANT == this;
+  }
 }

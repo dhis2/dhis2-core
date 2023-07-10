@@ -34,18 +34,14 @@ import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-public interface CsvEventService<T>
-{
-    void writeEvents( OutputStream outputStream, List<T> events, boolean withHeader )
-        throws IOException;
+@Deprecated(since = "2.41")
+public interface CsvEventService<T> {
+  void writeEvents(OutputStream outputStream, List<T> events, boolean withHeader)
+      throws IOException;
 
-    List<T> readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException,
-        org.locationtech.jts.io.ParseException;
+  List<T> readEvents(InputStream inputStream, boolean skipFirst)
+      throws IOException, org.locationtech.jts.io.ParseException;
 }

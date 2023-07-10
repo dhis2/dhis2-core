@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import io.lettuce.core.api.StatefulRedisConnection;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DebeziumCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
+@Slf4j
+@Service
+@Profile({"!test-postgres", "!test", "!test-h2", "!cache-invalidation-test"})
+@Conditional(value = CacheInvalidationEnabledConditionNotTestable.class)
+public class RedisMessagePublisher implements CacheInvalidationMessagePublisher {
+  @Autowired
+  @Qualifier("redisConnection")
+  private StatefulRedisConnection<String, String> redisConnection;
 
-        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
-    }
-
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
+  @Override
+  public void publish(String channel, String message) {
+    redisConnection.async().publish(CacheInvalidationConfiguration.CHANNEL_NAME, message);
+    log.debug("Published message: " + message);
+  }
 }

@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -55,122 +55,112 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-@MockitoSettings( strictness = Strictness.LENIENT ) // common setup
-@ExtendWith( MockitoExtension.class )
-class EnrollmentRequestParamsMapperTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT) // common setup
+@ExtendWith(MockitoExtension.class)
+class EnrollmentRequestParamsMapperTest {
 
-    private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
+  private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
-    private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
+  private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
 
-    private static final String PROGRAM_UID = "XhBYIraw7sv";
+  private static final String PROGRAM_UID = "XhBYIraw7sv";
 
-    private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
+  private static final String TRACKED_ENTITY_TYPE_UID = "Dp8baZYrLtr";
 
-    private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
+  private static final String TRACKED_ENTITY_UID = "DGbr8GHG4li";
 
-    @Mock
-    private EnrollmentFieldsParamMapper fieldsParamMapper;
+  @Mock private EnrollmentFieldsParamMapper fieldsParamMapper;
 
-    @InjectMocks
-    private EnrollmentRequestParamsMapper mapper;
+  @InjectMocks private EnrollmentRequestParamsMapper mapper;
 
-    @BeforeEach
-    void setUp()
-    {
-        when(fieldsParamMapper.map(anyList())).thenReturn(EnrollmentParams.FALSE);
-    }
+  @BeforeEach
+  void setUp() {
+    when(fieldsParamMapper.map(anyList())).thenReturn(EnrollmentParams.FALSE);
+  }
 
-    @Test
-    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
-    {
-        RequestParams requestParams = new RequestParams();
+  @Test
+  void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
 
-        mapper.map( requestParams );
+    mapper.map(requestParams);
 
-        verify( fieldsParamMapper, times( 1 ) ).map( FieldFilterParser.parse( DEFAULT_FIELDS_PARAM ) );
-    }
+    verify(fieldsParamMapper, times(1)).map(FieldFilterParser.parse(DEFAULT_FIELDS_PARAM));
+  }
 
-    @Test
-    void testMappingOrgUnit()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
-        requestParams.setProgram( UID.of( PROGRAM_UID ) );
+  @Test
+  void testMappingOrgUnit() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnit(ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID);
+    requestParams.setProgram(UID.of(PROGRAM_UID));
 
-        EnrollmentOperationParams params = mapper.map( requestParams );
+    EnrollmentOperationParams params = mapper.map(requestParams);
 
-        assertContainsOnly( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ), params.getOrgUnitUids() );
-    }
+    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
+  }
 
-    @Test
-    void testMappingOrgUnits()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ), UID.of( ORG_UNIT_2_UID ) ) );
-        requestParams.setProgram( UID.of( PROGRAM_UID ) );
+  @Test
+  void testMappingOrgUnits() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setOrgUnits(Set.of(UID.of(ORG_UNIT_1_UID), UID.of(ORG_UNIT_2_UID)));
+    requestParams.setProgram(UID.of(PROGRAM_UID));
 
-        EnrollmentOperationParams params = mapper.map( requestParams );
+    EnrollmentOperationParams params = mapper.map(requestParams);
 
-        assertContainsOnly( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ), params.getOrgUnitUids() );
-    }
+    assertContainsOnly(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), params.getOrgUnitUids());
+  }
 
-    @Test
-    void testMappingProgram()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setProgram( UID.of( PROGRAM_UID ) );
+  @Test
+  void testMappingProgram() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setProgram(UID.of(PROGRAM_UID));
 
-        EnrollmentOperationParams params = mapper.map( requestParams );
+    EnrollmentOperationParams params = mapper.map(requestParams);
 
-        assertEquals( PROGRAM_UID, params.getProgramUid() );
-    }
+    assertEquals(PROGRAM_UID, params.getProgramUid());
+  }
 
-    @Test
-    void testMappingTrackedEntityType()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
+  @Test
+  void testMappingTrackedEntityType() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setTrackedEntityType(UID.of(TRACKED_ENTITY_TYPE_UID));
 
-        EnrollmentOperationParams params = mapper.map( requestParams );
+    EnrollmentOperationParams params = mapper.map(requestParams);
 
-        assertEquals( TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityTypeUid() );
-    }
+    assertEquals(TRACKED_ENTITY_TYPE_UID, params.getTrackedEntityTypeUid());
+  }
 
-    @Test
-    void testMappingTrackedEntity()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setTrackedEntity( UID.of( TRACKED_ENTITY_UID ) );
+  @Test
+  void testMappingTrackedEntity() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    requestParams.setTrackedEntity(UID.of(TRACKED_ENTITY_UID));
 
-        EnrollmentOperationParams params = mapper.map( requestParams );
+    EnrollmentOperationParams params = mapper.map(requestParams);
 
-        assertEquals( TRACKED_ENTITY_UID, params.getTrackedEntityUid() );
-    }
+    assertEquals(TRACKED_ENTITY_UID, params.getTrackedEntityUid());
+  }
 
-    @Test
-    void testMappingOrderParams()
-    {
-        RequestParams requestParams = new RequestParams();
-        OrderCriteria order1 = OrderCriteria.of( "field1", SortDirection.ASC );
-        OrderCriteria order2 = OrderCriteria.of( "field2", SortDirection.DESC );
-        requestParams.setOrder( List.of( order1, order2 ) );
+  @Test
+  void testMappingOrderParams() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
+    OrderCriteria order1 = OrderCriteria.of("field1", SortDirection.ASC);
+    OrderCriteria order2 = OrderCriteria.of("field2", SortDirection.DESC);
+    requestParams.setOrder(List.of(order1, order2));
 
-        EnrollmentOperationParams params = mapper.map( requestParams );
+    EnrollmentOperationParams params = mapper.map(requestParams);
 
-        assertEquals( List.of(
-            new OrderParam( "field1", SortDirection.ASC ),
-            new OrderParam( "field2", SortDirection.DESC ) ), params.getOrder() );
-    }
+    assertEquals(
+        List.of(
+            new OrderParam("field1", SortDirection.ASC),
+            new OrderParam("field2", SortDirection.DESC)),
+        params.getOrder());
+  }
 
-    @Test
-    void testMappingOrderParamsNoOrder()
-    {
-        RequestParams requestParams = new RequestParams();
+  @Test
+  void testMappingOrderParamsNoOrder() throws BadRequestException {
+    RequestParams requestParams = new RequestParams();
 
-        EnrollmentOperationParams params = mapper.map( requestParams );
+    EnrollmentOperationParams params = mapper.map(requestParams);
 
-        assertIsEmpty( params.getOrder() );
-    }
+    assertIsEmpty(params.getOrder());
+  }
 }

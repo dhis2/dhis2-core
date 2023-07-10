@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -46,41 +45,45 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class DuplicateIdsCheck implements ObjectValidationCheck
-{
+public class DuplicateIdsCheck implements ObjectValidationCheck {
 
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
-    {
-        if ( persistedObjects.isEmpty() && nonPersistedObjects.isEmpty() )
-        {
-            return;
-        }
-
-        Map<Class<?>, String> idMap = new HashMap<>();
-        run( bundle, persistedObjects, idMap, ctx, addReports );
-        run( bundle, nonPersistedObjects, idMap, ctx, addReports );
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    if (persistedObjects.isEmpty() && nonPersistedObjects.isEmpty()) {
+      return;
     }
 
-    private void run( ObjectBundle bundle, Iterable<? extends IdentifiableObject> list,
-        Map<Class<?>, String> idMap, ValidationContext context, Consumer<ObjectReport> addReports )
-    {
-        for ( IdentifiableObject object : list )
-        {
-            if ( idMap.containsKey( object.getClass() ) && idMap.get( object.getClass() ).equals( object.getUid() ) )
-            {
-                ErrorReport errorReport = new ErrorReport( object.getClass(), ErrorCode.E5004, object.getUid(),
-                    object.getClass() ).setMainId( object.getUid() ).setErrorProperty( "id" );
+    Map<Class<?>, String> idMap = new HashMap<>();
+    run(bundle, persistedObjects, idMap, ctx, addReports);
+    run(bundle, nonPersistedObjects, idMap, ctx, addReports);
+  }
 
-                addReports.accept( createObjectReport( errorReport, object, bundle ) );
-                context.markForRemoval( object );
-            }
-            else
-            {
-                idMap.put( object.getClass(), object.getUid() );
-            }
-        }
+  private void run(
+      ObjectBundle bundle,
+      Iterable<? extends IdentifiableObject> list,
+      Map<Class<?>, String> idMap,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports) {
+    for (IdentifiableObject object : list) {
+      if (idMap.containsKey(object.getClass())
+          && idMap.get(object.getClass()).equals(object.getUid())) {
+        ErrorReport errorReport =
+            new ErrorReport(object.getClass(), ErrorCode.E5004, object.getUid(), object.getClass())
+                .setMainId(object.getUid())
+                .setErrorProperty("id");
+
+        addReports.accept(createObjectReport(errorReport, object, bundle));
+        context.markForRemoval(object);
+      } else {
+        idMap.put(object.getClass(), object.getUid());
+      }
     }
+  }
 }

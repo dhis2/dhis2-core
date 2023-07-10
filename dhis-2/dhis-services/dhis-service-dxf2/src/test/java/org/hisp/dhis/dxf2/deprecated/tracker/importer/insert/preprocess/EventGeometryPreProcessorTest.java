@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.io.IOException;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.system.util.GeoUtils;
@@ -41,25 +40,21 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class EventGeometryPreProcessorTest
-{
+class EventGeometryPreProcessorTest {
 
-    private EventGeometryPreProcessor subject;
+  private EventGeometryPreProcessor subject;
 
-    @BeforeEach
-    void setUp()
-    {
-        this.subject = new EventGeometryPreProcessor();
-    }
+  @BeforeEach
+  void setUp() {
+    this.subject = new EventGeometryPreProcessor();
+  }
 
-    @Test
-    void verifyEventGeometryGetCorrectSRID()
-        throws IOException
-    {
-        Event event = new Event();
-        event.setGeometry( GeoUtils.getGeoJsonPoint( 20.0, 30.0 ) );
-        event.getGeometry().setSRID( 0 );
-        subject.process( event, WorkContext.builder().build() );
-        assertThat( event.getGeometry().getSRID(), is( GeoUtils.SRID ) );
-    }
+  @Test
+  void verifyEventGeometryGetCorrectSRID() throws IOException {
+    Event event = new Event();
+    event.setGeometry(GeoUtils.getGeoJsonPoint(20.0, 30.0));
+    event.getGeometry().setSRID(0);
+    subject.process(event, WorkContext.builder().build());
+    assertThat(event.getGeometry().getSRID(), is(GeoUtils.SRID));
+  }
 }

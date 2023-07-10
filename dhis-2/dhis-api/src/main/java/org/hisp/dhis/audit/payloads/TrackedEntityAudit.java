@@ -27,163 +27,139 @@
  */
 package org.hisp.dhis.audit.payloads;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
-
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * This class is deprecated.
  *
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@JacksonXmlRootElement( localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityAudit
-    implements Serializable
-{
-    private static final long serialVersionUID = 4260110537887403524L;
+@JacksonXmlRootElement(localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0)
+public class TrackedEntityAudit implements Serializable {
+  private static final long serialVersionUID = 4260110537887403524L;
 
-    private long id;
+  private long id;
 
-    private String trackedEntity;
+  private String trackedEntity;
 
-    private String comment;
+  private String comment;
 
-    private Date created;
+  private Date created;
 
-    private String accessedBy;
+  private String accessedBy;
 
-    private AuditType auditType;
+  private AuditType auditType;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public TrackedEntityAudit()
-    {
+  public TrackedEntityAudit() {}
+
+  public TrackedEntityAudit(String trackedEntity, String accessedBy, AuditType auditType) {
+    this.trackedEntity = trackedEntity;
+    this.accessedBy = accessedBy;
+    this.created = new Date();
+    this.auditType = auditType;
+  }
+
+  public TrackedEntityAudit(
+      String trackedEntity, String comment, Date created, String accessedBy, AuditType auditType) {
+    this(trackedEntity, accessedBy, auditType);
+    this.comment = comment;
+    this.created = created;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(trackedEntity, comment, created, accessedBy, auditType);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public TrackedEntityAudit( String trackedEntity, String accessedBy, AuditType auditType )
-    {
-        this.trackedEntity = trackedEntity;
-        this.accessedBy = accessedBy;
-        this.created = new Date();
-        this.auditType = auditType;
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
 
-    public TrackedEntityAudit( String trackedEntity, String comment, Date created, String accessedBy,
-        AuditType auditType )
-    {
-        this( trackedEntity, accessedBy, auditType );
-        this.comment = comment;
-        this.created = created;
-    }
+    final TrackedEntityAudit other = (TrackedEntityAudit) obj;
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( trackedEntity, comment, created, accessedBy, auditType );
-    }
+    return Objects.equals(this.trackedEntity, other.trackedEntity)
+        && Objects.equals(this.comment, other.comment)
+        && Objects.equals(this.created, other.created)
+        && Objects.equals(this.accessedBy, other.accessedBy)
+        && Objects.equals(this.auditType, other.auditType);
+  }
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
+  public long getId() {
+    return id;
+  }
 
-        final TrackedEntityAudit other = (TrackedEntityAudit) obj;
+  public void setId(long id) {
+    this.id = id;
+  }
 
-        return Objects.equals( this.trackedEntity, other.trackedEntity )
-            && Objects.equals( this.comment, other.comment )
-            && Objects.equals( this.created, other.created )
-            && Objects.equals( this.accessedBy, other.accessedBy )
-            && Objects.equals( this.auditType, other.auditType );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getTrackedEntity() {
+    return trackedEntity;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  public void setTrackedEntity(String trackedEntity) {
+    this.trackedEntity = trackedEntity;
+  }
 
-    public long getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getComment() {
+    return comment;
+  }
 
-    public void setId( long id )
-    {
-        this.id = id;
-    }
+  public void setComment(String comment) {
+    this.comment = comment;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTrackedEntity()
-    {
-        return trackedEntity;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getCreated() {
+    return created;
+  }
 
-    public void setTrackedEntity( String trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
+  public void setCreated(Date created) {
+    this.created = created;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getComment()
-    {
-        return comment;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAccessedBy() {
+    return accessedBy;
+  }
 
-    public void setComment( String comment )
-    {
-        this.comment = comment;
-    }
+  public void setAccessedBy(String accessedBy) {
+    this.accessedBy = accessedBy;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getCreated()
-    {
-        return created;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AuditType getAuditType() {
+    return auditType;
+  }
 
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAccessedBy()
-    {
-        return accessedBy;
-    }
-
-    public void setAccessedBy( String accessedBy )
-    {
-        this.accessedBy = accessedBy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AuditType getAuditType()
-    {
-        return auditType;
-    }
-
-    public void setAuditType( AuditType auditType )
-    {
-        this.auditType = auditType;
-    }
+  public void setAuditType(AuditType auditType) {
+    this.auditType = auditType;
+  }
 }

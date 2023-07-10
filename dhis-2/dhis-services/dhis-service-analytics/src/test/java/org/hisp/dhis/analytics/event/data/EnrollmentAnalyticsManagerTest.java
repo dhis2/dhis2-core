@@ -54,7 +54,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -92,616 +91,759 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class EnrollmentAnalyticsManagerTest
-    extends
-    EventAnalyticsTest
-{
-    private JdbcEnrollmentAnalyticsManager subject;
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
+  private JdbcEnrollmentAnalyticsManager subject;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private ExecutionPlanStore executionPlanStore;
+  @Mock private ExecutionPlanStore executionPlanStore;
 
-    @Mock
-    private SqlRowSet rowSet;
+  @Mock private SqlRowSet rowSet;
 
-    @Mock
-    private ProgramIndicatorService programIndicatorService;
+  @Mock private ProgramIndicatorService programIndicatorService;
 
-    @Captor
-    private ArgumentCaptor<String> sql;
+  @Captor private ArgumentCaptor<String> sql;
 
-    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,"
-        + "createdbydisplayname" + "," + "lastupdatedbydisplayname"
-        + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
+  private String DEFAULT_COLUMNS =
+      "pi,tei,enrollmentdate,incidentdate,storedby,"
+          + "createdbydisplayname"
+          + ","
+          + "lastupdatedbydisplayname"
+          + ",lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus";
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @BeforeEach
-    public void setUp()
-    {
-        when( jdbcTemplate.queryForRowSet( anyString() ) )
-            .thenReturn( this.rowSet );
+  @BeforeEach
+  public void setUp() {
+    when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
 
-        StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
-            programIndicatorService );
+    StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
+    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+        new DefaultProgramIndicatorSubqueryBuilder(programIndicatorService);
 
-        subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, programIndicatorService,
-            programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ),
-            executionPlanStore );
-    }
+    subject =
+        new JdbcEnrollmentAnalyticsManager(
+            jdbcTemplate,
+            programIndicatorService,
+            programIndicatorSubqueryBuilder,
+            new EnrollmentTimeFieldSqlRenderer(statementBuilder),
+            executionPlanStore);
+  }
 
-    @Test
-    void verifyWithProgramAndStartEndDate()
-    {
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withStartDate( getDate( 2017, 1, 1 ) )
-            .withEndDate( getDate( 2017, 12, 31 ) )
+  @Test
+  void verifyWithProgramAndStartEndDate() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withStartDate(getDate(2017, 1, 1))
+            .withEndDate(getDate(2017, 12, 31))
             .build();
 
-        Grid grid = new ListGrid();
-        int unlimited = 0;
+    Grid grid = new ListGrid();
+    int unlimited = 0;
 
-        subject.getEnrollments( params, grid, unlimited );
+    subject.getEnrollments(params, grid, unlimited);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+    String expected =
+        "ax.\"monthly\",ax.\"ou\"  from "
+            + getTable(programA.getUid())
             + " as ax where ((enrollmentdate >= '2017-01-01' and enrollmentdate < '2018-01-01'))and (ax.\"uidlevel1\" = 'ouabcdefghA' ) ";
 
-        assertSql( sql.getValue(), expected );
-        assertTrue( grid.hasLastDataRow() );
-    }
+    assertSql(sql.getValue(), expected);
+    assertTrue(grid.hasLastDataRow());
+  }
 
-    @Test
-    void verifyWithLastUpdatedTimeField()
-    {
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
-            .withStartDate( getDate( 2017, 1, 1 ) )
-            .withEndDate( getDate( 2017, 12, 31 ) )
-            .withTimeField( TimeField.LAST_UPDATED.name() )
+  @Test
+  void verifyWithLastUpdatedTimeField() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withStartDate(getDate(2017, 1, 1))
+            .withEndDate(getDate(2017, 12, 31))
+            .withTimeField(TimeField.LAST_UPDATED.name())
             .build();
 
-        subject.getEnrollments( params, new ListGrid(), 10000 );
+    subject.getEnrollments(params, new ListGrid(), 10000);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+    String expected =
+        "ax.\"monthly\",ax.\"ou\"  from "
+            + getTable(programA.getUid())
             + " as ax where ((lastupdated >= '2017-01-01' and lastupdated < '2018-01-01'))and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 10001";
 
-        assertSql( sql.getValue(), expected );
-    }
+    assertSql(sql.getValue(), expected);
+  }
 
-    @Test
-    void verifyWithRepeatableProgramStageAndNumericDataElement()
-    {
-        verifyWithRepeatableProgramStageAndDataElement( ValueType.NUMBER );
-    }
+  @Test
+  void verifyWithRepeatableProgramStageAndNumericDataElement() {
+    verifyWithRepeatableProgramStageAndDataElement(ValueType.NUMBER);
+  }
 
-    @Test
-    void verifyWithRepeatableProgramStageAndTextDataElement()
-    {
-        verifyWithRepeatableProgramStageAndDataElement( ValueType.TEXT );
-    }
+  @Test
+  void verifyWithRepeatableProgramStageAndTextDataElement() {
+    verifyWithRepeatableProgramStageAndDataElement(ValueType.TEXT);
+  }
 
-    @Test
-    void verifyWithProgramStageAndTextDataElement()
-    {
-        verifyWithProgramStageAndDataElement( ValueType.TEXT );
-    }
+  @Test
+  void verifyWithProgramStageAndTextDataElement() {
+    verifyWithProgramStageAndDataElement(ValueType.TEXT);
+  }
 
-    @Test
-    void verifyWithProgramStageAndNumericDataElement()
-    {
-        verifyWithProgramStageAndDataElement( ValueType.NUMBER );
-    }
+  @Test
+  void verifyWithProgramStageAndNumericDataElement() {
+    verifyWithProgramStageAndDataElement(ValueType.NUMBER);
+  }
 
-    private void verifyWithProgramStageAndDataElement( ValueType valueType )
-    {
-        EventQueryParams params = createRequestParams( this.programStage, valueType );
+  private void verifyWithProgramStageAndDataElement(ValueType valueType) {
+    EventQueryParams params = createRequestParams(this.programStage, valueType);
 
-        subject.getEnrollments( params, new ListGrid(), 100 );
+    subject.getEnrollments(params, new ListGrid(), 100);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
-            + " where analytics_event_" + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
-
-        if ( valueType == ValueType.NUMBER )
-        {
-            subSelect = subSelect + " as \"fWIAEtYVEGk\"";
-        }
-        String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) " + "and ps = '"
-            + programStage.getUid() + "' limit 101";
-
-        assertSql( sql.getValue(), expected );
-    }
-
-    private void verifyWithRepeatableProgramStageAndDataElement( ValueType valueType )
-    {
-        EventQueryParams params = createRequestParams( repeatableProgramStage, valueType );
-
-        subject.getEnrollments( params, new ListGrid(), 100 );
-
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
-
-        String programUid = repeatableProgramStage.getProgram().getUid();
-
-        String programStageUid = repeatableProgramStage.getUid();
-
-        String dataElementUid = dataElementA.getUid();
-
-        String expected = "select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,"
-            +
-            "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"monthly\",ax.\"ou\"," +
-            "(select \"" + dataElementUid + "\" from analytics_event_" + programUid + " " +
-            "where analytics_event_" + programUid + ".pi = ax.pi and ps = '" + repeatableProgramStage.getUid()
-            + "' order by executiondate desc offset 1 limit 1 ) " +
-            "as \"" + programStageUid + "[-1]." + dataElementUid + "\", exists ((select \"" + dataElementUid + "\" " +
-            "from analytics_event_" + programUid + " " +
-            "where analytics_event_" + programUid + ".pi = ax.pi and ps = '" + programStageUid
-            + "' order by executiondate desc offset 1 limit 1 )) " +
-            "as \"" + programStageUid + "[-1]." + dataElementUid + ".exists\"  " +
-            "from analytics_enrollment_" + programUid
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) " +
-            "and ps = '" + programStageUid + "' limit 101";
-
-        assertEquals( expected, sql.getValue() );
-    }
-
-    @Test
-    void verifyWithProgramStageAndTextualDataElementAndFilter()
-    {
-        EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.TEXT );
-
-        subject.getEnrollments( params, new ListGrid(), 10000 );
-
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
-
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
             + " where analytics_event_"
-            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
 
-        String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
-            + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
-            + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
-
-        assertSql( sql.getValue(), expected );
+    if (valueType == ValueType.NUMBER) {
+      subSelect = subSelect + " as \"fWIAEtYVEGk\"";
     }
+    String expected =
+        "ax.\"monthly\",ax.\"ou\","
+            + subSelect
+            + "  from "
+            + getTable(programA.getUid())
+            + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + "and ps = '"
+            + programStage.getUid()
+            + "' limit 101";
 
-    @Test
-    void verifyGetEventsWithProgramStatusParam()
-    {
-        mockEmptyRowSet();
+    assertSql(sql.getValue(), expected);
+  }
 
-        EventQueryParams params = createRequestParamsWithStatuses();
+  private void verifyWithRepeatableProgramStageAndDataElement(ValueType valueType) {
+    EventQueryParams params = createRequestParams(repeatableProgramStage, valueType);
 
-        subject.getEnrollments( params, new ListGrid(), 10000 );
+    subject.getEnrollments(params, new ListGrid(), 100);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+    String programUid = repeatableProgramStage.getProgram().getUid();
+
+    String programStageUid = repeatableProgramStage.getUid();
+
+    String dataElementUid = dataElementA.getUid();
+
+    String expected =
+        "select pi,tei,enrollmentdate,incidentdate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,"
+            + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"monthly\",ax.\"ou\","
+            + "(select \""
+            + dataElementUid
+            + "\" from analytics_event_"
+            + programUid
+            + " "
+            + "where analytics_event_"
+            + programUid
+            + ".pi = ax.pi and ps = '"
+            + repeatableProgramStage.getUid()
+            + "' order by executiondate desc offset 1 limit 1 ) "
+            + "as \""
+            + programStageUid
+            + "[-1]."
+            + dataElementUid
+            + "\", exists ((select \""
+            + dataElementUid
+            + "\" "
+            + "from analytics_event_"
+            + programUid
+            + " "
+            + "where analytics_event_"
+            + programUid
+            + ".pi = ax.pi and ps = '"
+            + programStageUid
+            + "' order by executiondate desc offset 1 limit 1 )) "
+            + "as \""
+            + programStageUid
+            + "[-1]."
+            + dataElementUid
+            + ".exists\"  "
+            + "from analytics_enrollment_"
+            + programUid
+            + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + "and ps = '"
+            + programStageUid
+            + "' limit 101";
+
+    assertEquals(expected, sql.getValue());
+  }
+
+  @Test
+  void verifyWithProgramStageAndTextualDataElementAndFilter() {
+    EventQueryParams params = createRequestParamsWithFilter(programStage, ValueType.TEXT);
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
+            + " where analytics_event_"
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
+
+    String expected =
+        "ax.\"monthly\",ax.\"ou\","
+            + subSelect
+            + "  from "
+            + getTable(programA.getUid())
+            + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
+            + "and ps = '"
+            + programStage.getUid()
+            + "' and "
+            + subSelect
+            + " > '10' limit 10001";
+
+    assertSql(sql.getValue(), expected);
+  }
+
+  @Test
+  void verifyGetEventsWithProgramStatusParam() {
+    mockEmptyRowSet();
+
+    EventQueryParams params = createRequestParamsWithStatuses();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String expected =
+        "ax.\"monthly\",ax.\"ou\"  from "
+            + getTable(programA.getUid())
             + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' )"
             + " and enrollmentstatus in ('ACTIVE','COMPLETED') limit 10001";
 
-        assertSql( sql.getValue(), expected );
-    }
+    assertSql(sql.getValue(), expected);
+  }
 
-    @Test
-    void verifyWithProgramStageAndNumericDataElementAndFilter2()
-    {
-        EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.NUMBER );
+  @Test
+  void verifyWithProgramStageAndNumericDataElementAndFilter2() {
+    EventQueryParams params = createRequestParamsWithFilter(programStage, ValueType.NUMBER);
 
-        subject.getEnrollments( params, new ListGrid(), 10000 );
+    subject.getEnrollments(params, new ListGrid(), 10000);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
             + " where analytics_event_"
-            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
 
-        String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect
-            + " as \"fWIAEtYVEGk\"" + "  from "
-            + getTable( programA.getUid() )
+    String expected =
+        "ax.\"monthly\",ax.\"ou\","
+            + subSelect
+            + " as \"fWIAEtYVEGk\""
+            + "  from "
+            + getTable(programA.getUid())
             + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) "
-            + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
+            + "and ps = '"
+            + programStage.getUid()
+            + "' and "
+            + subSelect
+            + " > '10' limit 10001";
 
-        assertSql( sql.getValue(), expected );
-    }
+    assertSql(sql.getValue(), expected);
+  }
 
-    @Test
-    void verifyGetEnrollmentsWithMissingValueEqFilter()
-    {
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+  @Test
+  void verifyGetEnrollmentsWithMissingValueEqFilter() {
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
             + " where analytics_event_"
-            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
 
-        String expected = subSelect + " is null";
+    String expected = subSelect + " is null";
 
-        testIt( EQ, NV, Collections.singleton(
-            ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
-    }
+    testIt(
+        EQ,
+        NV,
+        Collections.singleton((capturedSql) -> assertThat(capturedSql, containsString(expected))));
+  }
 
-    @Test
-    void verifyGetEnrollmentsWithMissingValueNeqFilter()
-    {
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+  @Test
+  void verifyGetEnrollmentsWithMissingValueNeqFilter() {
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
             + " where analytics_event_"
-            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
 
-        String expected = subSelect + " is not null";
-        testIt( NEQ, NV, Collections.singleton(
-            ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
-    }
+    String expected = subSelect + " is not null";
+    testIt(
+        NEQ,
+        NV,
+        Collections.singleton((capturedSql) -> assertThat(capturedSql, containsString(expected))));
+  }
 
-    @Test
-    void verifyGetEnrollmentsWithMissingValueAndNumericValuesInFilter()
-    {
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+  @Test
+  void verifyGetEnrollmentsWithMissingValueAndNumericValuesInFilter() {
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
             + " where analytics_event_"
-            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
 
-        String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
-        String expected = "(" + subSelect + " in (" + String.join( ",", numericValues.split( OPTION_SEP ) )
-            + ") or " + subSelect + " is null )";
-        testIt( IN,
-            numericValues + OPTION_SEP + NV,
-            Collections.singleton( ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
-    }
+    String numericValues = String.join(OPTION_SEP, "10", "11", "12");
+    String expected =
+        "("
+            + subSelect
+            + " in ("
+            + String.join(",", numericValues.split(OPTION_SEP))
+            + ") or "
+            + subSelect
+            + " is null )";
+    testIt(
+        IN,
+        numericValues + OPTION_SEP + NV,
+        Collections.singleton((capturedSql) -> assertThat(capturedSql, containsString(expected))));
+  }
 
-    @Test
-    void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter()
-    {
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+  @Test
+  void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter() {
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
             + " where analytics_event_"
-            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
 
-        String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
-        String expected = subSelect + " in (" + String.join( ",", numericValues.split( OPTION_SEP ) ) + ")";
-        testIt( IN,
-            numericValues,
-            Collections.singleton( ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ) ) );
-    }
+    String numericValues = String.join(OPTION_SEP, "10", "11", "12");
+    String expected = subSelect + " in (" + String.join(",", numericValues.split(OPTION_SEP)) + ")";
+    testIt(
+        IN,
+        numericValues,
+        Collections.singleton((capturedSql) -> assertThat(capturedSql, containsString(expected))));
+  }
 
-    @Test
-    void verifyGetEnrollmentsWithOnlyMissingValueInFilter()
-    {
-        String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
+  @Test
+  void verifyGetEnrollmentsWithOnlyMissingValueInFilter() {
+    String subSelect =
+        "(select \"fWIAEtYVEGk\" from analytics_event_"
+            + programA.getUid()
             + " where analytics_event_"
-            + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-            + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()
+            + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid()
+            + "' order by executiondate desc limit 1 )";
 
-        String expected = subSelect + " is null";
-        String unexpected = "(" + subSelect + " in (";
-        testIt( IN, NV, List.of(
-            ( capturedSql ) -> assertThat( capturedSql, containsString( expected ) ),
-            ( capturedSql ) -> assertThat( capturedSql, not( containsString( unexpected ) ) ) ) );
-    }
+    String expected = subSelect + " is null";
+    String unexpected = "(" + subSelect + " in (";
+    testIt(
+        IN,
+        NV,
+        List.of(
+            (capturedSql) -> assertThat(capturedSql, containsString(expected)),
+            (capturedSql) -> assertThat(capturedSql, not(containsString(unexpected)))));
+  }
 
-    private void testIt( QueryOperator operator, String filter, Collection<Consumer<String>> assertions )
-    {
-        subject.getEnrollments(
-            createRequestParamsWithFilter( programStage, ValueType.INTEGER, operator, filter ),
-            new ListGrid(),
-            10000 );
+  private void testIt(
+      QueryOperator operator, String filter, Collection<Consumer<String>> assertions) {
+    subject.getEnrollments(
+        createRequestParamsWithFilter(programStage, ValueType.INTEGER, operator, filter),
+        new ListGrid(),
+        10000);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        assertions.forEach( consumer -> consumer.accept( sql.getValue() ) );
-    }
+    assertions.forEach(consumer -> consumer.accept(sql.getValue()));
+  }
 
-    @Test
-    void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei()
-    {
-        Date startDate = getDate( 2015, 1, 1 );
-        Date endDate = getDate( 2017, 4, 8 );
+  @Test
+  void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei() {
+    Date startDate = getDate(2015, 1, 1);
+    Date endDate = getDate(2017, 4, 8);
 
-        String piSubquery = "distinct psi";
+    String piSubquery = "distinct psi";
 
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
 
-        RelationshipType relationshipTypeA = createRelationshipType();
+    RelationshipType relationshipTypeA = createRelationshipType();
 
-        EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( programIndicatorA, relationshipTypeA ) )
-            .withStartDate( startDate )
-            .withEndDate( endDate );
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(programIndicatorA, relationshipTypeA))
+            .withStartDate(startDate)
+            .withEndDate(endDate);
 
-        when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
-            getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
+    when(programIndicatorService.getAnalyticsSql(
+            "", NUMERIC, programIndicatorA, getDate(2000, 1, 1), getDate(2017, 4, 8), "subax"))
+        .thenReturn(piSubquery);
 
-        subject.getEnrollments( params.build(), new ListGrid(), 100 );
+    subject.getEnrollments(params.build(), new ListGrid(), 100);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
-            + programA.getUid().toLowerCase() + " as subax WHERE  "
-            + "subax.tei in (select tei.uid from trackedentityinstance tei " +
-            "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
-            "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
-            "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
-            "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
-            "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
-            "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId()
+    String expected =
+        "ax.\"monthly\",ax.\"ou\",(SELECT avg ("
+            + piSubquery
+            + ") FROM analytics_event_"
+            + programA.getUid().toLowerCase()
+            + " as subax WHERE  "
+            + "subax.tei in (select tei.uid from trackedentityinstance tei "
+            + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
+            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
+            + "WHERE rty.relationshiptypeid = "
+            + relationshipTypeA.getId()
             + " AND tei.uid = ax.tei )) as \""
             + programIndicatorA.getUid()
-            + "\"  " + "from analytics_enrollment_" + programA.getUid()
+            + "\"  "
+            + "from analytics_enrollment_"
+            + programA.getUid()
             + " as ax where ((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
-        assertSql( sql.getValue(), expected );
-    }
+    assertSql(sql.getValue(), expected);
+  }
 
-    @Test
-    void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint()
-    {
-        Date startDate = getDate( 2015, 1, 1 );
-        Date endDate = getDate( 2017, 4, 8 );
+  @Test
+  void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint() {
+    Date startDate = getDate(2015, 1, 1);
+    Date endDate = getDate(2017, 4, 8);
 
-        String piSubquery = "distinct psi";
+    String piSubquery = "distinct psi";
 
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
 
-        RelationshipType relationshipTypeA = createRelationshipType(
-            RelationshipEntity.PROGRAM_INSTANCE );
+    RelationshipType relationshipTypeA =
+        createRelationshipType(RelationshipEntity.PROGRAM_INSTANCE);
 
-        EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( programIndicatorA, relationshipTypeA ) )
-            .withStartDate( startDate )
-            .withEndDate( endDate );
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(programIndicatorA, relationshipTypeA))
+            .withStartDate(startDate)
+            .withEndDate(endDate);
 
-        when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
-            getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
+    when(programIndicatorService.getAnalyticsSql(
+            "", NUMERIC, programIndicatorA, getDate(2000, 1, 1), getDate(2017, 4, 8), "subax"))
+        .thenReturn(piSubquery);
 
-        subject.getEnrollments( params.build(), new ListGrid(), 100 );
+    subject.getEnrollments(params.build(), new ListGrid(), 100);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
-            + programA.getUid().toLowerCase() + " as subax WHERE "
+    String expected =
+        "ax.\"monthly\",ax.\"ou\",(SELECT avg ("
+            + piSubquery
+            + ") FROM analytics_event_"
+            + programA.getUid().toLowerCase()
+            + " as subax WHERE "
             + " subax.tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
-            +
-            "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
-            "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
-            "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
-            "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid "
-            +
-            "= " + relationshipTypeA.getId() + " AND pi.uid = ax.pi ))" + " as \""
-            + programIndicatorA.getUid() + "\"  "
-            + "from analytics_enrollment_" + programA.getUid()
+            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid "
+            + "= "
+            + relationshipTypeA.getId()
+            + " AND pi.uid = ax.pi ))"
+            + " as \""
+            + programIndicatorA.getUid()
+            + "\"  "
+            + "from analytics_enrollment_"
+            + programA.getUid()
             + " as ax where ((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
-        assertSql( sql.getValue(), expected );
-    }
+    assertSql(sql.getValue(), expected);
+  }
 
-    @Override
-    String getTableName()
-    {
-        return "analytics_enrollment";
-    }
+  @Override
+  String getTableName() {
+    return "analytics_enrollment";
+  }
 
-    private RelationshipType createRelationshipType( RelationshipEntity toConstraint )
-    {
-        RelationshipType relationshipTypeA = rnd.nextObject( RelationshipType.class );
+  private RelationshipType createRelationshipType(RelationshipEntity toConstraint) {
+    RelationshipType relationshipTypeA = rnd.nextObject(RelationshipType.class);
 
-        RelationshipConstraint from = new RelationshipConstraint();
-        from.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+    RelationshipConstraint from = new RelationshipConstraint();
+    from.setRelationshipEntity(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
 
-        RelationshipConstraint to = new RelationshipConstraint();
-        to.setRelationshipEntity( toConstraint );
+    RelationshipConstraint to = new RelationshipConstraint();
+    to.setRelationshipEntity(toConstraint);
 
-        relationshipTypeA.setFromConstraint( from );
-        relationshipTypeA.setToConstraint( to );
-        return relationshipTypeA;
-    }
+    relationshipTypeA.setFromConstraint(from);
+    relationshipTypeA.setToConstraint(to);
+    return relationshipTypeA;
+  }
 
-    private RelationshipType createRelationshipType()
-    {
-        return createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-    }
+  private RelationshipType createRelationshipType() {
+    return createRelationshipType(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+  }
 
-    private void assertSql( String actual, String expected )
-    {
-        assertThat( actual, is( "select " + DEFAULT_COLUMNS + "," + expected ) );
-    }
+  private void assertSql(String actual, String expected) {
+    assertThat(actual, is("select " + DEFAULT_COLUMNS + "," + expected));
+  }
 
-    @Test
-    void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2()
-    {
-        Date startDate = getDate( 2015, 1, 1 );
-        Date endDate = getDate( 2017, 4, 8 );
-        Program programB = createProgram( 'B' );
-        String piSubquery = "distinct psi";
+  @Test
+  void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2() {
+    Date startDate = getDate(2015, 1, 1);
+    Date endDate = getDate(2017, 4, 8);
+    Program programB = createProgram('B');
+    String piSubquery = "distinct psi";
 
-        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programB, "", "" );
+    ProgramIndicator programIndicatorA = createProgramIndicator('A', programB, "", "");
 
-        RelationshipType relationshipTypeA = createRelationshipType();
+    RelationshipType relationshipTypeA = createRelationshipType();
 
-        EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( programIndicatorA, relationshipTypeA ) )
-            .withStartDate( startDate )
-            .withEndDate( endDate );
+    EventQueryParams.Builder params =
+        new EventQueryParams.Builder(createRequestParams(programIndicatorA, relationshipTypeA))
+            .withStartDate(startDate)
+            .withEndDate(endDate);
 
-        when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
-            getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
+    when(programIndicatorService.getAnalyticsSql(
+            "", NUMERIC, programIndicatorA, getDate(2000, 1, 1), getDate(2017, 4, 8), "subax"))
+        .thenReturn(piSubquery);
 
-        subject.getEnrollments( params.build(), new ListGrid(), 100 );
+    subject.getEnrollments(params.build(), new ListGrid(), 100);
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
-            + programB.getUid().toLowerCase() + " as subax WHERE  "
-            + "subax.tei in (select tei.uid from trackedentityinstance tei " +
-            "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
-            "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
-            "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
-            "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
-            "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
-            "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId()
+    String expected =
+        "ax.\"monthly\",ax.\"ou\",(SELECT avg ("
+            + piSubquery
+            + ") FROM analytics_event_"
+            + programB.getUid().toLowerCase()
+            + " as subax WHERE  "
+            + "subax.tei in (select tei.uid from trackedentityinstance tei "
+            + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
+            + "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+            + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid "
+            + "WHERE rty.relationshiptypeid = "
+            + relationshipTypeA.getId()
             + " AND tei.uid = ax.tei )) as \""
             + programIndicatorA.getUid()
-            + "\"  " + "from analytics_enrollment_" + programA.getUid()
+            + "\"  "
+            + "from analytics_enrollment_"
+            + programA.getUid()
             + " as ax where ((enrollmentdate >= '2015-01-01' and enrollmentdate < '2017-04-09'))and (ax.\"uidlevel1\" = 'ouabcdefghA' ) limit 101";
 
-        assertSql( sql.getValue(), expected );
-    }
+    assertSql(sql.getValue(), expected);
+  }
 
-    @Test
-    void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetColumnOfTypeCoordinateAndNoProgramStages() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.COORDINATE );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.COORDINATE);
 
-        String columnSql = subject.getColumn( item );
+    String columnSql = subject.getColumn(item);
 
-        assertThat( columnSql, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
-    }
+    assertThat(columnSql, is("ax.\"" + dataElementA.getUid() + "\""));
+  }
 
-    @Test
-    void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetColumnOfTypeCoordinateAndWithProgramStages() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.COORDINATE );
-        item.setProgramStage( programStage );
-        item.setProgram( programA );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.COORDINATE);
+    item.setProgramStage(programStage);
+    item.setProgram(programA);
 
-        String columnSql = subject.getColumn( item );
+    String columnSql = subject.getColumn(item);
 
-        assertThat( columnSql,
-            is( "(select \"" + dataElementA.getUid()
-                + "\" from analytics_event_" + programA.getUid() + " where analytics_event_" + programA.getUid()
-                + ".pi = ax.pi and \"" + dataElementA.getUid() + "\" is not null and ps = '" + programStage.getUid()
-                + "' order by executiondate desc limit 1 )" ) );
-    }
+    assertThat(
+        columnSql,
+        is(
+            "(select \""
+                + dataElementA.getUid()
+                + "\" from analytics_event_"
+                + programA.getUid()
+                + " where analytics_event_"
+                + programA.getUid()
+                + ".pi = ax.pi and \""
+                + dataElementA.getUid()
+                + "\" is not null and ps = '"
+                + programStage.getUid()
+                + "' order by executiondate desc limit 1 )"));
+  }
 
-    @Test
-    void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithReferenceTypeValue() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.COORDINATE );
-        item.setProgramStage( repeatableProgramStage );
-        item.setProgram( programB );
-        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.COORDINATE);
+    item.setProgramStage(repeatableProgramStage);
+    item.setProgram(programB);
+    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
-        repeatableStageParams.setStartIndex( 0 );
-        repeatableStageParams.setCount( 100 );
-        repeatableStageParams.setStartDate( DateUtils.parseDate( "2022-01-01" ) );
-        repeatableStageParams.setEndDate( DateUtils.parseDate( "2022-01-31" ) );
-        item.setRepeatableStageParams( repeatableStageParams );
+    repeatableStageParams.setStartIndex(0);
+    repeatableStageParams.setCount(100);
+    repeatableStageParams.setStartDate(DateUtils.parseDate("2022-01-01"));
+    repeatableStageParams.setEndDate(DateUtils.parseDate("2022-01-31"));
+    item.setRepeatableStageParams(repeatableStageParams);
 
-        String columnSql = subject.getColumn( item );
+    String columnSql = subject.getColumn(item);
 
-        assertThat( columnSql,
-            is( "(select json_agg(t1) from (select \"" + dataElementA.getUid()
-                + "\", incidentdate, duedate, executiondate  from analytics_event_" + programB.getUid()
-                + " where analytics_event_" + programB.getUid()
+    assertThat(
+        columnSql,
+        is(
+            "(select json_agg(t1) from (select \""
+                + dataElementA.getUid()
+                + "\", incidentdate, duedate, executiondate  from analytics_event_"
+                + programB.getUid()
+                + " where analytics_event_"
+                + programB.getUid()
                 + ".pi = ax.pi and ps = '"
                 + repeatableProgramStage.getUid()
-                + "' and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)" ) );
-    }
+                + "' and executiondate >= '2022-01-01'  and executiondate <= '2022-01-31' order by executiondate desc LIMIT 100 ) as t1)"));
+  }
 
-    @Test
-    void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetColumnOfTypeCoordinateAndWithProgramStagesAndParamsWithNumberTypeValue() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.COORDINATE );
-        item.setProgramStage( repeatableProgramStage );
-        item.setProgram( programB );
-        RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.COORDINATE);
+    item.setProgramStage(repeatableProgramStage);
+    item.setProgram(programB);
+    RepeatableStageParams repeatableStageParams = new RepeatableStageParams();
 
-        repeatableStageParams.setStartIndex( 0 );
-        repeatableStageParams.setCount( 1 );
-        item.setRepeatableStageParams( repeatableStageParams );
+    repeatableStageParams.setStartIndex(0);
+    repeatableStageParams.setCount(1);
+    item.setRepeatableStageParams(repeatableStageParams);
 
-        String columnSql = subject.getColumn( item );
+    String columnSql = subject.getColumn(item);
 
-        assertThat( columnSql,
-            is( "(select \"" + dataElementA.getUid()
-                + "\" from analytics_event_" + programB.getUid() + " where analytics_event_" + programB.getUid()
+    assertThat(
+        columnSql,
+        is(
+            "(select \""
+                + dataElementA.getUid()
+                + "\" from analytics_event_"
+                + programB.getUid()
+                + " where analytics_event_"
+                + programB.getUid()
                 + ".pi = ax.pi and ps = '"
                 + repeatableProgramStage.getUid()
-                + "' order by executiondate desc limit 1 )" ) );
-    }
+                + "' order by executiondate desc limit 1 )"));
+  }
 
-    @Test
-    void verifyGetCoordinateColumnAndNoProgramStage()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetCoordinateColumnAndNoProgramStage() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.COORDINATE );
-        item.setProgram( programA );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.COORDINATE);
+    item.setProgram(programA);
 
-        String columnSql = subject.getCoordinateColumn( item ).asSql();
+    String columnSql = subject.getCoordinateColumn(item).asSql();
 
-        String colName = quote( item.getItemName() );
-        String eventTableName = "analytics_event_" + item.getProgram().getUid();
+    String colName = quote(item.getItemName());
+    String eventTableName = "analytics_event_" + item.getProgram().getUid();
 
-        assertThat( columnSql,
-            is( "(select " +
-                "'[' || round(ST_X((" + colName + "))::numeric, 6) || ',' || round(ST_Y((" + colName
-                + "))::numeric, 6) || ']' as " + colName +
-                " from " + eventTableName +
-                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " +
-                "order by executiondate " + "desc limit 1 )" ) );
-    }
+    assertThat(
+        columnSql,
+        is(
+            "(select "
+                + "'[' || round(ST_X(("
+                + colName
+                + "))::numeric, 6) || ',' || round(ST_Y(("
+                + colName
+                + "))::numeric, 6) || ']' as "
+                + colName
+                + " from "
+                + eventTableName
+                + " where "
+                + eventTableName
+                + ".pi = "
+                + ANALYTICS_TBL_ALIAS
+                + ".pi "
+                + "and "
+                + colName
+                + " is not null "
+                + "order by executiondate "
+                + "desc limit 1 )"));
+  }
 
-    @Test
-    void verifyGetCoordinateColumnWithProgramStage()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetCoordinateColumnWithProgramStage() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.COORDINATE );
-        item.setProgramStage( programStage );
-        item.setProgram( programA );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.COORDINATE);
+    item.setProgramStage(programStage);
+    item.setProgram(programA);
 
-        String columnSql = subject.getCoordinateColumn( item ).asSql();
+    String columnSql = subject.getCoordinateColumn(item).asSql();
 
-        String colName = quote( item.getItemName() );
-        String eventTableName = "analytics_event_" + item.getProgram().getUid();
+    String colName = quote(item.getItemName());
+    String eventTableName = "analytics_event_" + item.getProgram().getUid();
 
-        assertThat( columnSql,
-            is( "(select " +
-                "'[' || round(ST_X((" + colName + "))::numeric, 6) || ',' || round(ST_Y((" + colName
-                + "))::numeric, 6) || ']' as " + colName + " from " + eventTableName +
-                " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() +
-                "' order by executiondate " + "desc limit 1 )" ) );
-    }
+    assertThat(
+        columnSql,
+        is(
+            "(select "
+                + "'[' || round(ST_X(("
+                + colName
+                + "))::numeric, 6) || ',' || round(ST_Y(("
+                + colName
+                + "))::numeric, 6) || ']' as "
+                + colName
+                + " from "
+                + eventTableName
+                + " where "
+                + eventTableName
+                + ".pi = "
+                + ANALYTICS_TBL_ALIAS
+                + ".pi "
+                + "and "
+                + colName
+                + " is not null "
+                + "and ps = '"
+                + item.getProgramStage().getUid()
+                + "' order by executiondate "
+                + "desc limit 1 )"));
+  }
 
-    @Test
-    void verifyGetCoordinateColumnWithNoProgram()
-    {
-        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+  @Test
+  void verifyGetCoordinateColumnWithNoProgram() {
+    DimensionalItemObject dio = new BaseDimensionalItemObject(dataElementA.getUid());
 
-        QueryItem item = new QueryItem( dio );
-        item.setValueType( ValueType.COORDINATE );
-        item.setProgramStage( programStage );
+    QueryItem item = new QueryItem(dio);
+    item.setValueType(ValueType.COORDINATE);
+    item.setProgramStage(programStage);
 
-        String columnSql = subject.getCoordinateColumn( item ).asSql();
+    String columnSql = subject.getCoordinateColumn(item).asSql();
 
-        assertThat( columnSql, is( EMPTY ) );
-    }
+    assertThat(columnSql, is(EMPTY));
+  }
 }

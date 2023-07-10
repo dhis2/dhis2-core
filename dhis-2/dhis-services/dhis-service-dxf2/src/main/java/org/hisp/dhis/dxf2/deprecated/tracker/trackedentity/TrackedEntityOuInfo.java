@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.redis;
+package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class RedisCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
-
-        return getConfiguration().isEnabled( ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED );
-    }
-
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
-}
+public record TrackedEntityOuInfo(Long trackerEntityId, String trackedEntityUid, Long orgUnitId) {}

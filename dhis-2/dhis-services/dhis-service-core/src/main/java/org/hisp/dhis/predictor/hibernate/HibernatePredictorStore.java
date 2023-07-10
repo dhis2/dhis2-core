@@ -30,7 +30,6 @@ package org.hisp.dhis.predictor.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.period.PeriodService;
@@ -45,41 +44,47 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Ken Haase
  */
-@Repository( "org.hisp.dhis.predictor.PredictorStore" )
-public class HibernatePredictorStore
-    extends HibernateIdentifiableObjectStore<Predictor>
-    implements PredictorStore
-{
-    private final PeriodService periodService;
+@Repository("org.hisp.dhis.predictor.PredictorStore")
+public class HibernatePredictorStore extends HibernateIdentifiableObjectStore<Predictor>
+    implements PredictorStore {
+  private final PeriodService periodService;
 
-    public HibernatePredictorStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        PeriodService periodService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Predictor.class, currentUserService, aclService, false );
+  public HibernatePredictorStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService,
+      PeriodService periodService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Predictor.class,
+        currentUserService,
+        aclService,
+        false);
 
-        checkNotNull( periodService );
+    checkNotNull(periodService);
 
-        this.periodService = periodService;
-    }
+    this.periodService = periodService;
+  }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void save( @Nonnull Predictor predictor )
-    {
-        predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
+  @Override
+  public void save(@Nonnull Predictor predictor) {
+    predictor.setPeriodType(periodService.reloadPeriodType(predictor.getPeriodType()));
 
-        super.save( predictor );
-    }
+    super.save(predictor);
+  }
 
-    @Override
-    public void update( @Nonnull Predictor predictor )
-    {
-        predictor.setPeriodType( periodService.reloadPeriodType( predictor.getPeriodType() ) );
+  @Override
+  public void update(@Nonnull Predictor predictor) {
+    predictor.setPeriodType(periodService.reloadPeriodType(predictor.getPeriodType()));
 
-        super.update( predictor );
-    }
+    super.update(predictor);
+  }
 }

@@ -32,24 +32,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Lars Helge Overland
  */
-public enum DisplayProperty
-{
-    @JsonProperty( "name" )
-    NAME("name" ),
+public enum DisplayProperty {
+  @JsonProperty("name")
+  NAME("name"),
 
-    @JsonProperty( "shortName" )
-    SHORTNAME("shortName" );
+  @JsonProperty("shortName")
+  SHORTNAME("shortName");
 
-    private String display;
+  private String display;
 
-    DisplayProperty( String display )
-    {
-        this.display = display;
-    }
+  DisplayProperty(String display) {
+    this.display = display;
+  }
 
-    @Override
-    public String toString()
-    {
-        return display;
-    }
+  @Override
+  public String toString() {
+    return display;
+  }
 }

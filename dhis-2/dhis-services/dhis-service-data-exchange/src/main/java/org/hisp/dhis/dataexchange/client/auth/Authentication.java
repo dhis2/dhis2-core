@@ -34,13 +34,12 @@ import org.springframework.http.HttpHeaders;
  *
  * @author Lars Helge Overland
  */
-public interface Authentication
-{
-    /**
-     * Sets HTTP authentication headers for the given {@link HttpHeaders}.
-     *
-     * @param headers the {@link HttpHeaders}.
-     * @return the {@link HttpHeaders}.
-     */
-    HttpHeaders withAuthentication( HttpHeaders headers );
+public interface Authentication {
+  /**
+   * Sets HTTP authentication headers for the given {@link HttpHeaders}.
+   *
+   * @param headers the {@link HttpHeaders}.
+   * @return the {@link HttpHeaders}.
+   */
+  HttpHeaders withAuthentication(HttpHeaders headers);
 }

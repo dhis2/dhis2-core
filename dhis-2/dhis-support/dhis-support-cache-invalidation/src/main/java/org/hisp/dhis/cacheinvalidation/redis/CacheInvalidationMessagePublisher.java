@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-public class TrackedEntityProgramOwnerIds
-{
-    private final String trackedEntityId;
-
-    private final String programId;
-
-    private final String orgUnitUid;
-
-    public TrackedEntityProgramOwnerIds( String trackedEntityId, String programId, String orgUnitUid )
-    {
-        this.trackedEntityId = trackedEntityId;
-        this.programId = programId;
-        this.orgUnitUid = orgUnitUid;
-    }
-
-    public String getTrackedEntityId()
-    {
-        return trackedEntityId;
-    }
-
-    public String getProgramId()
-    {
-        return programId;
-    }
-
-    public String getOrgUnitUid()
-    {
-        return orgUnitUid;
-    }
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public interface CacheInvalidationMessagePublisher {
+  void publish(String channel, String message);
 }

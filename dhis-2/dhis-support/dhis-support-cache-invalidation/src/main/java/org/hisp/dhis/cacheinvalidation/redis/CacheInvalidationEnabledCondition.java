@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,31 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
-@Service
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class RedisCacheInvalidationSubscriptionService
-{
-    @Autowired
-    private CacheInvalidationListener cacheInvalidationListener;
-
-    @Autowired
-    @Qualifier( "pubSubConnection" )
-    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
-
-    public void start()
-    {
-        log.info( "RedisCacheInvalidationSubscriptionService starting" );
-
-        pubSubConnection.addListener( cacheInvalidationListener );
-
-        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
-        async.subscribe( RedisCacheInvalidationConfiguration.CHANNEL_NAME );
-
-        log.debug( "Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME );
+public class CacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition {
+  @Override
+  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    if (SystemUtils.isCacheInvalidationInTest(context.getEnvironment().getActiveProfiles())) {
+      return true;
     }
+
+    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
+      return false;
+    }
+
+    return getConfiguration().isEnabled(ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED);
+  }
+
+  @Override
+  public ConfigurationPhase getConfigurationPhase() {
+    return ConfigurationPhase.PARSE_CONFIGURATION;
+  }
 }

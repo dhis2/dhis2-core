@@ -29,13 +29,16 @@ package org.hisp.dhis.deprecated.tracker;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.ListUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.LoginActions;
@@ -54,375 +57,370 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
 /**
  * @author Stian Sandvold
  */
-public class TrackedEntityInstanceAclReadTests
-    extends DeprecatedTrackerApiTest
-{
-    private static final String _DATAREAD = "..r.*";
+public class TrackedEntityInstanceAclReadTests extends DeprecatedTrackerApiTest {
+  private static final String _DATAREAD = "..r.*";
 
-    private MetadataActions metadataActions;
+  private MetadataActions metadataActions;
 
-    private UserActions userActions;
+  private UserActions userActions;
 
-    private static final List<User> users = new ArrayList<>();
+  private static final List<User> users = new ArrayList<>();
 
-    @BeforeAll
-    public void before()
-        throws Exception
-    {
-        metadataActions = new MetadataActions();
-        userActions = new UserActions();
+  @BeforeAll
+  public void before() throws Exception {
+    metadataActions = new MetadataActions();
+    userActions = new UserActions();
 
-        // Setup as SuperUser
-        new LoginActions().loginAsDefaultUser();
+    // Setup as SuperUser
+    new LoginActions().loginAsDefaultUser();
 
-        // Set up metadata (Import twice to connect all references)
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
+    // Set up metadata (Import twice to connect all references)
+    metadataActions.importAndValidateMetadata(
+        new File("src/test/resources/tracker/acl/metadata.json"));
+    metadataActions.importAndValidateMetadata(
+        new File("src/test/resources/tracker/acl/metadata.json"));
 
-        // Import test data
-        trackedEntityInstancesAction.postFile( new File( "src/test/resources/tracker/acl/data.json" ) );
+    // Import test data
+    trackedEntityInstancesAction.postFile(new File("src/test/resources/tracker/acl/data.json"));
 
-        // Set up all users for testing
-        users.add( new User( "User A", "O2PajOxjJSa", "UauosA!123" ) );
-        users.add( new User( "User B", "aDy67f9ijOe", "UauosB!123" ) );
-        users.add( new User( "User C", "CKrrGm5Be8O", "UauosC!123" ) );
-        users.add( new User( "User D", "Lpa5INiC3Qf", "UauosD!123" ) );
-        users.add( new User( "User ALL", "GTqb3WOZMop", "UauosALL!123" ) );
+    // Set up all users for testing
+    users.add(new User("User A", "O2PajOxjJSa", "UauosA!123"));
+    users.add(new User("User B", "aDy67f9ijOe", "UauosB!123"));
+    users.add(new User("User C", "CKrrGm5Be8O", "UauosC!123"));
+    users.add(new User("User D", "Lpa5INiC3Qf", "UauosD!123"));
+    users.add(new User("User ALL", "GTqb3WOZMop", "UauosALL!123"));
 
-        // Update passwords, so we can log in as them
-        // Set AllAuth if user has it and ou scopes.
-        // Map metadata and data sharing
-        users.forEach( this::setupUser );
-    }
+    // Update passwords, so we can log in as them
+    // Set AllAuth if user has it and ou scopes.
+    // Map metadata and data sharing
+    users.forEach(this::setupUser);
+  }
 
-    /**
-     * Takes a User object and retrieves information about the users from the
-     * api. Updates the password of the user to allow access.
-     *
-     * @param user to setup
-     */
-    private void setupUser( User user )
-    {
-        userActions.updateUserPassword( user.getUid(), user.getPassword() );
+  /**
+   * Takes a User object and retrieves information about the users from the api. Updates the
+   * password of the user to allow access.
+   *
+   * @param user to setup
+   */
+  private void setupUser(User user) {
+    userActions.updateUserPassword(user.getUid(), user.getPassword());
 
-        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
+    new LoginActions().loginAsUser(user.getUsername(), user.getPassword());
 
-        // Get User information from /me
-        ApiResponse apiResponse = new RestApiActions( "/me" ).get();
-        String asString = apiResponse.getAsString();
-        Me me = apiResponse.as( Me.class );
+    // Get User information from /me
+    ApiResponse apiResponse = new RestApiActions("/me").get();
+    String asString = apiResponse.getAsString();
+    Me me = apiResponse.as(Me.class);
 
-        // Add userGroups
-        user.setGroups( me.getUserGroups().stream().map( UserGroup::getId ).collect( Collectors.toList() ) );
+    // Add userGroups
+    user.setGroups(me.getUserGroups().stream().map(UserGroup::getId).collect(Collectors.toList()));
 
-        // Add search-scope ous
-        user.setSearchScope(
-            me.getTeiSearchOrganisationUnits().stream().map( OrgUnit::getId ).collect( Collectors.toList() ) );
+    // Add search-scope ous
+    user.setSearchScope(
+        me.getTeiSearchOrganisationUnits().stream()
+            .map(OrgUnit::getId)
+            .collect(Collectors.toList()));
 
-        // Add capture-scope ous
-        user.setCaptureScope(
-            me.getOrganisationUnits().stream().map( OrgUnit::getId ).collect( Collectors.toList() ) );
+    // Add capture-scope ous
+    user.setCaptureScope(
+        me.getOrganisationUnits().stream().map(OrgUnit::getId).collect(Collectors.toList()));
 
-        // Add hasAllAuthority if user has ALL authority
-        user.setAllAuthority( me.getAuthorities().contains( "ALL" ) );
+    // Add hasAllAuthority if user has ALL authority
+    user.setAllAuthority(me.getAuthorities().contains("ALL"));
 
-        // Setup map to decide what data can and cannot be read.
-        setupAccessMap( user );
-    }
+    // Setup map to decide what data can and cannot be read.
+    setupAccessMap(user);
+  }
 
-    /**
-     * Finds metadata a user has access to and determines what data can be read
-     * or not based on sharing.
-     *
-     * @param user the user to setup
-     */
-    private void setupAccessMap( User user )
-    {
-        Map<String, List<String>> dataRead = new HashMap<>();
+  /**
+   * Finds metadata a user has access to and determines what data can be read or not based on
+   * sharing.
+   *
+   * @param user the user to setup
+   */
+  private void setupAccessMap(User user) {
+    Map<String, List<String>> dataRead = new HashMap<>();
 
-        // Configure params to only return metadata we care about
-        String params = (new QueryParamsBuilder())
-            .add( "trackedEntityTypes=true" )
-            .add( "dataElements=true" )
-            .add( "relationshipTypes=true" )
-            .add( "programs=true" )
-            .add( "trackedEntityAttributes=true" )
-            .add( "programStages=true" )
-            .add( "fields=id,sharing" )
+    // Configure params to only return metadata we care about
+    String params =
+        (new QueryParamsBuilder())
+            .add("trackedEntityTypes=true")
+            .add("dataElements=true")
+            .add("relationshipTypes=true")
+            .add("programs=true")
+            .add("trackedEntityAttributes=true")
+            .add("programStages=true")
+            .add("fields=id,sharing")
             .build();
 
-        ApiResponse response = metadataActions.get( params );
+    ApiResponse response = metadataActions.get(params);
 
-        // Build map
-        response.getBody().entrySet().forEach( ( entry ) -> {
+    // Build map
+    response
+        .getBody()
+        .entrySet()
+        .forEach(
+            (entry) -> {
 
-            // Skip the System property.
-            if ( !entry.getKey().equals( "system" ) )
-            {
-                dataRead.put( entry.getKey(), new ArrayList<>() );
+              // Skip the System property.
+              if (!entry.getKey().equals("system")) {
+                dataRead.put(entry.getKey(), new ArrayList<>());
 
-                for ( JsonElement element : entry.getValue().getAsJsonArray() )
-                {
-                    JsonObject object = element.getAsJsonObject();
+                for (JsonElement element : entry.getValue().getAsJsonArray()) {
+                  JsonObject object = element.getAsJsonObject();
 
-                    final Sharing sharing = new Sharing( object );
+                  final Sharing sharing = new Sharing(object);
 
-                    if ( sharing == null )
-                    {
-                        continue;
-                    }
+                  if (sharing == null) {
+                    continue;
+                  }
 
-                    if ( hasPublicAccess( sharing, _DATAREAD ) || hasUserAccess( user, sharing, _DATAREAD )
-                        || hasUserGroupAccess( user, sharing,
-                            _DATAREAD ) )
-                    {
-                        dataRead.get( entry.getKey() ).add( object.get( "id" ).getAsString() );
-                    }
+                  if (hasPublicAccess(sharing, _DATAREAD)
+                      || hasUserAccess(user, sharing, _DATAREAD)
+                      || hasUserGroupAccess(user, sharing, _DATAREAD)) {
+                    dataRead.get(entry.getKey()).add(object.get("id").getAsString());
+                  }
                 }
-            }
-        } );
+              }
+            });
 
-        user.setDataRead( dataRead );
-    }
+    user.setDataRead(dataRead);
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop" } )
-    public void testUserDataAndOrgUnitScopeReadAccess( String userUid )
-    {
-        User user = users.stream()
-            .filter( _user -> _user.getUid().equals( userUid ) )
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"O2PajOxjJSa", "aDy67f9ijOe", "CKrrGm5Be8O", "Lpa5INiC3Qf", "GTqb3WOZMop"})
+  public void testUserDataAndOrgUnitScopeReadAccess(String userUid) {
+    User user =
+        users.stream()
+            .filter(_user -> _user.getUid().equals(userUid))
             .findFirst()
-            .orElseThrow( () -> new RuntimeException( "User UID not found for test" ) );
+            .orElseThrow(() -> new RuntimeException("User UID not found for test"));
 
-        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
+    new LoginActions().loginAsUser(user.getUsername(), user.getPassword());
 
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "filter=pyNnf3UaOOg:NE:zz", "trackedEntityType=YDzXLdCvV4h", "ouMode=ACCESSIBLE",
-            "fields=*" );
-        ApiResponse response = trackedEntityInstancesAction.get( "/", queryParamsBuilder );
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(
+        "filter=pyNnf3UaOOg:NE:zz",
+        "trackedEntityType=YDzXLdCvV4h",
+        "ouMode=ACCESSIBLE",
+        "fields=*");
+    ApiResponse response = trackedEntityInstancesAction.get("/", queryParamsBuilder);
 
-        response.validate().statusCode( 200 );
+    response.validate().statusCode(200);
 
-        response.validate().body( "trackedEntityInstances", Matchers.not( Matchers.emptyArray() ) );
+    response.validate().body("trackedEntityInstances", Matchers.not(Matchers.emptyArray()));
 
-        JsonObject json = response.getBody();
+    JsonObject json = response.getBody();
 
-        json.getAsJsonArray( "trackedEntityInstances" ).iterator()
-            .forEachRemaining( ( teiJson ) -> assertTrackedEntity( user, teiJson.getAsJsonObject() ) );
+    json.getAsJsonArray("trackedEntityInstances")
+        .iterator()
+        .forEachRemaining((teiJson) -> assertTrackedEntity(user, teiJson.getAsJsonObject()));
+  }
 
+  @Test
+  void shouldReturnEventsWhenExplicitFieldsAreProvided() {
+    User user =
+        users.stream()
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("User UID not found for test"));
+    new LoginActions().loginAsUser(user.getUsername(), user.getPassword());
+
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(
+        "trackedEntityInstance=VROP0n2v145", "fields=enrollments[events[dueDate]]");
+
+    ApiResponse response = trackedEntityInstancesAction.get("/", queryParamsBuilder);
+
+    response.validate().statusCode(200);
+    response.validate().body("trackedEntityInstances", Matchers.not(Matchers.emptyArray()));
+
+    JsonObject tei =
+        response.getBody().getAsJsonArray("trackedEntityInstances").get(0).getAsJsonObject();
+    assertTrue(tei.has("enrollments"));
+
+    JsonArray enrollmentsArray = tei.getAsJsonArray("enrollments");
+    assertEquals(1, enrollmentsArray.size());
+    assertTrue(enrollmentsArray.get(0).getAsJsonObject().has("events"));
+
+    JsonArray eventsArray = enrollmentsArray.get(0).getAsJsonObject().getAsJsonArray("events");
+    assertEquals(2, eventsArray.size());
+    assertTrue(eventsArray.get(0).getAsJsonObject().has("dueDate"));
+    assertEquals(
+        "2020-04-24T00:00:00.000",
+        eventsArray.get(0).getAsJsonObject().get("dueDate").getAsString());
+    assertTrue(eventsArray.get(1).getAsJsonObject().has("dueDate"));
+    assertEquals(
+        "2020-04-24T00:00:00.000",
+        eventsArray.get(1).getAsJsonObject().get("dueDate").getAsString());
+  }
+
+  /* Helper methods */
+
+  /**
+   * Asserts that the trackedEntity follows the expectations.
+   *
+   * @param user the user(username) we are testing as
+   * @param tei the trackedEntity we are testing
+   */
+  private void assertTrackedEntity(User user, JsonObject tei) {
+    String trackedEntityType = tei.get("trackedEntityType").getAsString();
+    List<String> ous = Lists.newArrayList(tei.getAsJsonObject().get("orgUnit").getAsString());
+    tei.getAsJsonObject()
+        .getAsJsonArray("programOwners")
+        .forEach(
+            (programOwner) ->
+                ous.add(programOwner.getAsJsonObject().get("ownerOrgUnit").getAsString()));
+
+    if (!user.hasAllAuthority()) {
+      assertStringIsInWhitelist(user.getDataRead().get("trackedEntityTypes"), trackedEntityType);
+    }
+    assertWithinOuScope(user.getScopes(), ous);
+    assertNotDeleted(tei);
+
+    assertTrue(tei.has("enrollments"));
+
+    tei.getAsJsonArray("enrollments")
+        .forEach(enrollmentJson -> assertEnrollment(user, enrollmentJson.getAsJsonObject(), tei));
+  }
+
+  /**
+   * Asserts that the enrollment follows the expectations.
+   *
+   * @param user the user(username) we are testing as
+   * @param enrollment the enrollment we are testing
+   * @param tei the tei wrapped around the enrollment
+   */
+  private void assertEnrollment(User user, JsonObject enrollment, JsonObject tei) {
+    String program = enrollment.get("program").getAsString();
+    String orgUnit = enrollment.get("orgUnit").getAsString();
+
+    if (!user.hasAllAuthority()) {
+      assertStringIsInWhitelist(user.getDataRead().get("programs"), program);
+    }
+    assertSameValueForProperty(tei, enrollment, "trackedEntityInstance");
+    assertWithinOuScope(user.getScopes(), Lists.newArrayList(orgUnit));
+    assertNotDeleted(enrollment);
+
+    assertTrue(enrollment.has("events"));
+
+    enrollment
+        .get("events")
+        .getAsJsonArray()
+        .forEach(eventJson -> assertEvent(user, eventJson.getAsJsonObject(), enrollment));
+  }
+
+  /**
+   * Asserts that the event follows the expectations.
+   *
+   * @param user the user(username) we are testing as
+   * @param event the event we are testing
+   * @param enrollment the enrollment wrapped around the event
+   */
+  private void assertEvent(User user, JsonObject event, JsonObject enrollment) {
+    String programStage = event.get("programStage").getAsString();
+    String orgUnit = event.get("orgUnit").getAsString();
+
+    if (!user.hasAllAuthority()) {
+      assertStringIsInWhitelist(user.getDataRead().get("programStages"), programStage);
+    }
+    assertWithinOuScope(user.getScopes(), Lists.newArrayList(orgUnit));
+    assertSameValueForProperty(enrollment, event, "enrollment");
+    assertSameValueForProperty(enrollment, event, "trackedEntityInstance");
+    assertNotDeleted(event);
+  }
+
+  /**
+   * Asserts that the given JsonObject does not have a property "deleted" that is true.
+   *
+   * @param object the object to check
+   */
+  private void assertNotDeleted(JsonObject object) {
+    assertTrue(
+        object.has("deleted") && !object.get("deleted").getAsBoolean(),
+        String.format("Deleted object found: '%s'", object));
+  }
+
+  /**
+   * Asserts that two JsonObject share the same value for a given property
+   *
+   * @param a First JsonObject to test
+   * @param b Second JsonObject to test
+   * @param property The property to test
+   */
+  private void assertSameValueForProperty(JsonObject a, JsonObject b, String property) {
+    assertTrue(
+        a.has(property) && b.has(property),
+        String.format("Property '%s' is not not present in both objects.", property));
+    assertEquals(
+        a.get(property),
+        b.get(property),
+        String.format(
+            "Property '%s' expected to be the same, but is different: %s != %s",
+            property, a.get(property), b.get(property)));
+  }
+
+  /**
+   * Assert that a list, other, of OrgUnit uids contains at least one Uid matching the inScope list
+   * of OrgUnit uids.
+   *
+   * @param inScope OrgUnit uids in the scope
+   * @param other OrgUnits to test
+   */
+  private void assertWithinOuScope(List<String> inScope, List<String> other) {
+    assertFalse(
+        ListUtils.intersection(inScope, other).isEmpty(),
+        String.format(
+            "OrganisationUnit [%s] is not within user's capture or search scope [%s]",
+            String.join(",", other), String.join(",", inScope)));
+  }
+
+  /**
+   * Assert that a given String, str, is part of a whitelist.
+   *
+   * @param whitelist list of strings we allow
+   * @param str the string to test
+   */
+  private void assertStringIsInWhitelist(List<String> whitelist, String str) {
+    assertTrue(
+        whitelist.contains(str),
+        String.format("User should not have access to data based on metadata with uid '%s'", str));
+  }
+
+  private boolean hasUserAccess(User user, Sharing sharing, String access) {
+    if (!sharing.hasUsers()) {
+      return false;
     }
 
-    @Test
-    void shouldReturnEventsWhenExplicitFieldsAreProvided()
-    {
-        User user = users.stream().findFirst()
-            .orElseThrow( () -> new RuntimeException( "User UID not found for test" ) );
-        new LoginActions().loginAsUser( user.getUsername(), user.getPassword() );
-
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "trackedEntityInstance=VROP0n2v145", "fields=enrollments[events[dueDate]]" );
-
-        ApiResponse response = trackedEntityInstancesAction.get( "/", queryParamsBuilder );
-
-        response.validate().statusCode( 200 );
-        response.validate().body( "trackedEntityInstances", Matchers.not( Matchers.emptyArray() ) );
-
-        JsonObject tei = response.getBody().getAsJsonArray( "trackedEntityInstances" ).get( 0 ).getAsJsonObject();
-        assertTrue( tei.has( "enrollments" ) );
-
-        JsonArray enrollmentsArray = tei.getAsJsonArray( "enrollments" );
-        assertEquals( 1, enrollmentsArray.size() );
-        assertTrue( enrollmentsArray.get( 0 ).getAsJsonObject().has( "events" ) );
-
-        JsonArray eventsArray = enrollmentsArray.get( 0 ).getAsJsonObject().getAsJsonArray( "events" );
-        assertEquals( 2, eventsArray.size() );
-        assertTrue( eventsArray.get( 0 ).getAsJsonObject().has( "dueDate" ) );
-        assertEquals( "2020-04-24T00:00:00.000",
-            eventsArray.get( 0 ).getAsJsonObject().get( "dueDate" ).getAsString() );
-        assertTrue( eventsArray.get( 1 ).getAsJsonObject().has( "dueDate" ) );
-        assertEquals( "2020-04-24T00:00:00.000",
-            eventsArray.get( 1 ).getAsJsonObject().get( "dueDate" ).getAsString() );
+    for (String userId : sharing.getUsers().keySet()) {
+      if (userId.equals(user.getUid()) && sharing.getUsers().get(userId).matches(access)) {
+        return true;
+      }
     }
 
-    /* Helper methods */
+    return false;
+  }
 
-    /**
-     * Asserts that the trackedEntity follows the expectations.
-     *
-     * @param user the user(username) we are testing as
-     * @param tei the trackedEntity we are testing
-     */
-    private void assertTrackedEntity( User user, JsonObject tei )
-    {
-        String trackedEntityType = tei.get( "trackedEntityType" ).getAsString();
-        List<String> ous = Lists.newArrayList( tei.getAsJsonObject().get( "orgUnit" ).getAsString() );
-        tei.getAsJsonObject().getAsJsonArray( "programOwners" )
-            .forEach(
-                ( programOwner ) -> ous.add( programOwner.getAsJsonObject().get( "ownerOrgUnit" ).getAsString() ) );
-
-        if ( !user.hasAllAuthority() )
-        {
-            assertStringIsInWhitelist( user.getDataRead().get( "trackedEntityTypes" ), trackedEntityType );
-        }
-        assertWithinOuScope( user.getScopes(), ous );
-        assertNotDeleted( tei );
-
-        assertTrue( tei.has( "enrollments" ) );
-
-        tei.getAsJsonArray( "enrollments" )
-            .forEach( enrollmentJson -> assertEnrollment( user, enrollmentJson.getAsJsonObject(), tei ) );
+  private boolean hasUserGroupAccess(User user, Sharing sharing, String access) {
+    if (!sharing.hasUserGroups()) {
+      return false;
     }
 
-    /**
-     * Asserts that the enrollment follows the expectations.
-     *
-     * @param user the user(username) we are testing as
-     * @param enrollment the enrollment we are testing
-     * @param tei the tei wrapped around the enrollment
-     */
-    private void assertEnrollment( User user, JsonObject enrollment, JsonObject tei )
-    {
-        String program = enrollment.get( "program" ).getAsString();
-        String orgUnit = enrollment.get( "orgUnit" ).getAsString();
-
-        if ( !user.hasAllAuthority() )
-        {
-            assertStringIsInWhitelist( user.getDataRead().get( "programs" ), program );
-        }
-        assertSameValueForProperty( tei, enrollment, "trackedEntityInstance" );
-        assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
-        assertNotDeleted( enrollment );
-
-        assertTrue( enrollment.has( "events" ) );
-
-        enrollment.get( "events" ).getAsJsonArray()
-            .forEach( eventJson -> assertEvent( user, eventJson.getAsJsonObject(), enrollment ) );
+    for (String userGroupId : sharing.getUserGroups().keySet()) {
+      if (user.getGroups().contains(userGroupId)
+          && sharing.getUserGroups().get(userGroupId) != null
+          && sharing.getUserGroups().get(userGroupId).matches(access)) {
+        return true;
+      }
     }
 
-    /**
-     * Asserts that the event follows the expectations.
-     *
-     * @param user the user(username) we are testing as
-     * @param event the event we are testing
-     * @param enrollment the enrollment wrapped around the event
-     */
-    private void assertEvent( User user, JsonObject event, JsonObject enrollment )
-    {
-        String programStage = event.get( "programStage" ).getAsString();
-        String orgUnit = event.get( "orgUnit" ).getAsString();
+    return false;
+  }
 
-        if ( !user.hasAllAuthority() )
-        {
-            assertStringIsInWhitelist( user.getDataRead().get( "programStages" ), programStage );
-        }
-        assertWithinOuScope( user.getScopes(), Lists.newArrayList( orgUnit ) );
-        assertSameValueForProperty( enrollment, event, "enrollment" );
-        assertSameValueForProperty( enrollment, event, "trackedEntityInstance" );
-        assertNotDeleted( event );
-    }
-
-    /**
-     * Asserts that the given JsonObject does not have a property "deleted" that
-     * is true.
-     *
-     * @param object the object to check
-     */
-    private void assertNotDeleted( JsonObject object )
-    {
-        assertTrue( object.has( "deleted" ) && !object.get( "deleted" ).getAsBoolean(),
-            String.format( "Deleted object found: '%s'", object ) );
-    }
-
-    /**
-     * Asserts that two JsonObject share the same value for a given property
-     *
-     * @param a First JsonObject to test
-     * @param b Second JsonObject to test
-     * @param property The property to test
-     */
-    private void assertSameValueForProperty( JsonObject a, JsonObject b, String property )
-    {
-        assertTrue( a.has( property ) && b.has( property ),
-            String.format( "Property '%s' is not not present in both objects.", property ) );
-        assertEquals( a.get( property ), b.get( property ), String
-            .format( "Property '%s' expected to be the same, but is different: %s != %s", property, a.get( property ),
-                b.get( property ) ) );
-    }
-
-    /**
-     * Assert that a list, other, of OrgUnit uids contains at least one Uid
-     * matching the inScope list of OrgUnit uids.
-     *
-     * @param inScope OrgUnit uids in the scope
-     * @param other OrgUnits to test
-     */
-    private void assertWithinOuScope( List<String> inScope, List<String> other )
-    {
-        assertFalse( ListUtils.intersection( inScope, other ).isEmpty(),
-            String.format( "OrganisationUnit [%s] is not within user's capture or search scope [%s]",
-                String.join( ",", other ), String.join( ",", inScope ) ) );
-    }
-
-    /**
-     * Assert that a given String, str, is part of a whitelist.
-     *
-     * @param whitelist list of strings we allow
-     * @param str the string to test
-     */
-    private void assertStringIsInWhitelist( List<String> whitelist, String str )
-    {
-        assertTrue( whitelist.contains( str ),
-            String.format( "User should not have access to data based on metadata with uid '%s'", str ) );
-    }
-
-    private boolean hasUserAccess( User user, Sharing sharing, String access )
-    {
-        if ( !sharing.hasUsers() )
-        {
-            return false;
-        }
-
-        for ( String userId : sharing.getUsers().keySet() )
-        {
-            if ( userId.equals( user.getUid() ) &&
-                sharing.getUsers().get( userId ).matches( access ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean hasUserGroupAccess( User user, Sharing sharing, String access )
-    {
-        if ( !sharing.hasUserGroups() )
-        {
-            return false;
-        }
-
-        for ( String userGroupId : sharing.getUserGroups().keySet() )
-        {
-            if ( user.getGroups().contains( userGroupId ) && sharing.getUserGroups().get( userGroupId ) != null &&
-                sharing.getUserGroups().get( userGroupId ).matches( access ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private boolean hasPublicAccess( Sharing sharing, String access )
-    {
-        return sharing.getPublicAccess() != null && sharing.getPublicAccess().matches( access );
-    }
+  private boolean hasPublicAccess(Sharing sharing, String access) {
+    return sharing.getPublicAccess() != null && sharing.getPublicAccess().matches(access);
+  }
 }

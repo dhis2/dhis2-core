@@ -27,125 +27,114 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import java.util.Date;
-
-import lombok.Setter;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import lombok.Setter;
+import org.hisp.dhis.common.DxfNamespaces;
 
 @Setter
-@JacksonXmlRootElement( localName = "dataApprovalPermissions", namespace = DxfNamespaces.DXF_2_0 )
-public class DataApprovalPermissions
-{
-    private boolean mayApprove;
+@JacksonXmlRootElement(localName = "dataApprovalPermissions", namespace = DxfNamespaces.DXF_2_0)
+public class DataApprovalPermissions {
+  private boolean mayApprove;
 
-    private boolean mayUnapprove;
+  private boolean mayUnapprove;
 
-    private boolean mayAccept;
+  private boolean mayAccept;
 
-    private boolean mayUnaccept;
+  private boolean mayUnaccept;
 
-    private boolean mayReadData;
+  private boolean mayReadData;
 
-    private boolean mayReadAcceptedBy;
+  private boolean mayReadAcceptedBy;
 
-    private String state;
+  private String state;
 
-    private String approvedBy;
+  private String approvedBy;
 
-    private Date approvedAt;
+  private Date approvedAt;
 
-    private String acceptedBy;
+  private String acceptedBy;
 
-    private Date acceptedAt;
+  private Date acceptedAt;
 
-    @JsonProperty
-    public boolean isMayApprove()
-    {
-        return mayApprove;
-    }
+  @JsonProperty
+  public boolean isMayApprove() {
+    return mayApprove;
+  }
 
-    @JsonProperty
-    public boolean isMayUnapprove()
-    {
-        return mayUnapprove;
-    }
+  @JsonProperty
+  public boolean isMayUnapprove() {
+    return mayUnapprove;
+  }
 
-    @JsonProperty
-    public boolean isMayAccept()
-    {
-        return mayAccept;
-    }
+  @JsonProperty
+  public boolean isMayAccept() {
+    return mayAccept;
+  }
 
-    @JsonProperty
-    public boolean isMayUnaccept()
-    {
-        return mayUnaccept;
-    }
+  @JsonProperty
+  public boolean isMayUnaccept() {
+    return mayUnaccept;
+  }
 
-    @JsonProperty
-    public boolean isMayReadData()
-    {
-        return mayReadData;
-    }
+  @JsonProperty
+  public boolean isMayReadData() {
+    return mayReadData;
+  }
 
-    /**
-     * OBS! Note that this field is intentionally not serialised to JSON as the
-     * user should not know if he can or can't read.
-     *
-     * @return whether the user can read who accepted the DA
-     */
-    public boolean isMayReadAcceptedBy()
-    {
-        return mayReadAcceptedBy;
-    }
+  /**
+   * OBS! Note that this field is intentionally not serialised to JSON as the user should not know
+   * if he can or can't read.
+   *
+   * @return whether the user can read who accepted the DA
+   */
+  public boolean isMayReadAcceptedBy() {
+    return mayReadAcceptedBy;
+  }
 
-    @JsonProperty
-    public String getState()
-    {
-        return state;
-    }
+  @JsonProperty
+  public String getState() {
+    return state;
+  }
 
-    @JsonProperty
-    public String getApprovedBy()
-    {
-        return approvedBy;
-    }
+  @JsonProperty
+  public String getApprovedBy() {
+    return approvedBy;
+  }
 
-    @JsonProperty
-    public Date getApprovedAt()
-    {
-        return approvedAt;
-    }
+  @JsonProperty
+  public Date getApprovedAt() {
+    return approvedAt;
+  }
 
-    @JsonProperty
-    public String getAcceptedBy()
-    {
-        return acceptedBy;
-    }
+  @JsonProperty
+  public String getAcceptedBy() {
+    return acceptedBy;
+  }
 
-    @JsonProperty
-    public Date getAcceptedAt()
-    {
-        return acceptedAt;
-    }
+  @JsonProperty
+  public Date getAcceptedAt() {
+    return acceptedAt;
+  }
 
-    // ----------------------------------------------------------------------
-    // toString
-    // ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
+  // toString
+  // ----------------------------------------------------------------------
 
-    @Override
-    public String toString()
-    {
-        return "DataApprovalPermissions{" +
-            "mayApprove=" + mayApprove +
-            ", mayUnapprove=" + mayUnapprove +
-            ", mayAccept=" + mayAccept +
-            ", mayUnaccept=" + mayUnaccept +
-            ", mayReadData=" + mayReadData +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "DataApprovalPermissions{"
+        + "mayApprove="
+        + mayApprove
+        + ", mayUnapprove="
+        + mayUnapprove
+        + ", mayAccept="
+        + mayAccept
+        + ", mayUnaccept="
+        + mayUnaccept
+        + ", mayReadData="
+        + mayReadData
+        + '}';
+  }
 }

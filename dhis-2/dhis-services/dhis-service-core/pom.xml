@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -12,15 +11,9 @@
   <artifactId>dhis-service-core</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Core API Implementations</name>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
+  <properties>
+    <rootDir>../../</rootDir>
+  </properties>
 
   <dependencies>
 
@@ -78,13 +71,8 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-artemis</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-cache-invalidation</artifactId>
-    </dependency>
 
     <!-- Other -->
-
     <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
@@ -375,7 +363,13 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <properties>
-    <rootDir>../../</rootDir>
-  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
 </project>

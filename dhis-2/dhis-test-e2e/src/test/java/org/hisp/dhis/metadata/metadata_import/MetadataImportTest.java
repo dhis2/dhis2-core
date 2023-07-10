@@ -31,11 +31,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
@@ -54,301 +55,322 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataImportTest
-    extends ApiTest
-{
-    private MetadataActions metadataActions;
+public class MetadataImportTest extends ApiTest {
+  private MetadataActions metadataActions;
 
-    private SystemActions systemActions;
+  private SystemActions systemActions;
 
-    @BeforeAll
-    public void before()
-    {
-        metadataActions = new MetadataActions();
-        systemActions = new SystemActions();
+  @BeforeAll
+  public void before() {
+    metadataActions = new MetadataActions();
+    systemActions = new SystemActions();
 
-        new LoginActions().loginAsSuperUser();
-    }
+    new LoginActions().loginAsSuperUser();
+  }
 
-    @ParameterizedTest( name = "withImportStrategy[{0}]" )
-    @CsvSource( { "CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200" } )
-    public void shouldUpdateExistingMetadata( String importStrategy, String expected, int expectedStatusCode )
-    {
-        // arrange
-        JsonObject exported = metadataActions.get().getBody();
+  @ParameterizedTest(name = "withImportStrategy[{0}]")
+  @CsvSource({"CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200"})
+  public void shouldUpdateExistingMetadata(
+      String importStrategy, String expected, int expectedStatusCode) {
+    // arrange
+    JsonObject exported = metadataActions.get().getBody();
 
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "async=false", "importReportMode=FULL", "importStrategy=" + importStrategy );
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(
+        "async=false", "importReportMode=FULL", "importStrategy=" + importStrategy);
 
-        // act
-        ApiResponse response = metadataActions.post( exported, queryParamsBuilder );
+    // act
+    ApiResponse response = metadataActions.post(exported, queryParamsBuilder);
 
-        // assert
-        response.validate()
-            .statusCode( expectedStatusCode )
-            .rootPath( "response" )
-            .body( "stats", notNullValue() )
-            .rootPath( "response.stats" )
-            .body( "total", greaterThan( 0 ) )
-            .body( "created", Matchers.equalTo( 0 ) )
-            .body( "deleted", Matchers.equalTo( 0 ) )
-            .body( "total", equalTo( response.extract( "response.stats." + expected ) ) );
+    // assert
+    response
+        .validate()
+        .statusCode(expectedStatusCode)
+        .rootPath("response")
+        .body("stats", notNullValue())
+        .rootPath("response.stats")
+        .body("total", greaterThan(0))
+        .body("created", Matchers.equalTo(0))
+        .body("deleted", Matchers.equalTo(0))
+        .body("total", equalTo(response.extract("response.stats." + expected)));
 
-        List<Map<?, ?>> typeReports = response.extractList( "response.typeReports.stats" );
+    List<Map<?, ?>> typeReports = response.extractList("response.typeReports.stats");
 
-        typeReports.forEach( x -> {
-            assertEquals( x.get( expected ), x.get( "total" ), expected + " for " + x + " not equals to total" );
-        } );
-    }
+    typeReports.forEach(
+        x -> {
+          assertEquals(
+              x.get(expected), x.get("total"), expected + " for " + x + " not equals to total");
+        });
+  }
 
-    @Test
-    public void shouldImportUniqueMetadataAndReturnObjectReports()
-        throws Exception
-    {
-        // arrange
-        JsonObject object = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
+  @Test
+  public void shouldImportUniqueMetadataAndReturnObjectReports() throws Exception {
+    // arrange
+    JsonObject object =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/metadata/uniqueMetadata.json"));
 
-        // act
-        ApiResponse response = metadataActions
-            .post( object,
-                new QueryParamsBuilder().addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE" ) );
+    // act
+    ApiResponse response =
+        metadataActions.post(
+            object,
+            new QueryParamsBuilder()
+                .addAll("async=false", "importReportMode=DEBUG", "importStrategy=CREATE"));
 
-        // assert
-        response.validate()
-            .statusCode( 200 )
-            .rootPath( "response" )
-            .body( "stats", notNullValue() )
-            .body( "stats.total", greaterThan( 0 ) )
-            .body( "typeReports", notNullValue() )
-            .body( "typeReports.stats", notNullValue() )
-            .body( "typeReports.objectReports", Matchers.notNullValue() );
+    // assert
+    response
+        .validate()
+        .statusCode(200)
+        .rootPath("response")
+        .body("stats", notNullValue())
+        .body("stats.total", greaterThan(0))
+        .body("typeReports", notNullValue())
+        .body("typeReports.stats", notNullValue())
+        .body("typeReports.objectReports", Matchers.notNullValue());
 
-        List<Map<?, ?>> stats = response.extractList( "response.typeReports.stats" );
+    List<Map<?, ?>> stats = response.extractList("response.typeReports.stats");
 
-        stats.forEach( x -> {
-            assertEquals( x.get( "total" ), x.get( "created" ) );
-        } );
+    stats.forEach(
+        x -> {
+          assertEquals(x.get("total"), x.get("created"));
+        });
 
-        List<ObjectReport> objectReports = getObjectReports( response.getTypeReports() );
+    List<ObjectReport> objectReports = getObjectReports(response.getTypeReports());
 
-        assertNotNull( objectReports );
-        validateCreatedEntities( objectReports );
-    }
+    assertNotNull(objectReports);
+    validateCreatedEntities(objectReports);
+  }
 
-    @Test
-    public void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse()
-        throws Exception
-    {
-        // arrange
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE",
-            "atomicMode=NONE" );
+  @Test
+  public void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse()
+      throws Exception {
+    // arrange
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(
+        "async=false", "importReportMode=DEBUG", "importStrategy=CREATE", "atomicMode=NONE");
 
-        JsonObject object = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
+    JsonObject object =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/metadata/uniqueMetadata.json"));
 
-        // act
-        ApiResponse response = metadataActions.post( object, queryParamsBuilder );
-        response.validate().statusCode( 200 );
+    // act
+    ApiResponse response = metadataActions.post(object, queryParamsBuilder);
+    response.validate().statusCode(200);
 
-        JsonObject newObj = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
+    JsonObject newObj =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/metadata/uniqueMetadata.json"));
 
-        // add one of the orgunits from already imported metadata to get it
-        // ignored
-        newObj.get( "organisationUnits" )
-            .getAsJsonArray()
-            .add( object.get( "organisationUnits" ).getAsJsonArray().get( 0 ) );
+    // add one of the orgunits from already imported metadata to get it
+    // ignored
+    newObj
+        .get("organisationUnits")
+        .getAsJsonArray()
+        .add(object.get("organisationUnits").getAsJsonArray().get(0));
 
-        response = metadataActions.post( newObj, queryParamsBuilder );
+    response = metadataActions.post(newObj, queryParamsBuilder);
 
-        // assert
-        response.validate()
-            .statusCode( 409 )
-            .rootPath( "response" )
-            .body( "stats", notNullValue() )
-            .body( "stats.total", greaterThan( 1 ) )
-            .body( "stats.ignored", equalTo( 1 ) )
-            .body( "stats.created", equalTo( (Integer) response.extract( "response.stats.total" ) - 1 ) );
+    // assert
+    response
+        .validate()
+        .statusCode(409)
+        .rootPath("response")
+        .body("stats", notNullValue())
+        .body("stats.total", greaterThan(1))
+        .body("stats.ignored", equalTo(1))
+        .body("stats.created", equalTo((Integer) response.extract("response.stats.total") - 1));
 
-        int total = (int) response.extract( "response.stats.total" );
+    int total = (int) response.extract("response.stats.total");
 
-        List<ObjectReport> objectReports = getObjectReports( response.getTypeReports() );
+    List<ObjectReport> objectReports = getObjectReports(response.getTypeReports());
 
-        assertNotNull( objectReports );
-        validateCreatedEntities( objectReports );
+    assertNotNull(objectReports);
+    validateCreatedEntities(objectReports);
 
-        assertThat( objectReports, hasItems( hasProperty( "errorReports", notNullValue() ) ) );
-        assertEquals( total, objectReports.size(), "Not all imported entities had object reports" );
-    }
+    assertThat(objectReports, hasItems(hasProperty("errorReports", notNullValue())));
+    assertEquals(total, objectReports.size(), "Not all imported entities had object reports");
+  }
 
-    @Test
-    public void shouldReturnImportSummariesWhenImportingInvalidMetadataAsync()
-        throws Exception
-    {
-        // arrange
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder
-            .addAll( "async=true", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE" );
+  @Test
+  public void shouldReturnImportSummariesWhenImportingInvalidMetadataAsync() throws Exception {
+    // arrange
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(
+        "async=true",
+        "importReportMode=DEBUG",
+        "importStrategy=CREATE_AND_UPDATE",
+        "atomicMode=NONE");
 
-        JsonObject metadata = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
+    JsonObject metadata =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/metadata/uniqueMetadata.json"));
 
-        metadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
-            .addProperty( "shortName", RandomStringUtils.random( 51 ) );
+    metadata
+        .getAsJsonArray("organisationUnits")
+        .get(0)
+        .getAsJsonObject()
+        .addProperty("shortName", RandomStringUtils.random(51));
 
-        // act
-        ApiResponse response = metadataActions.post( metadata, queryParamsBuilder );
-        response.validate()
-            .statusCode( 200 )
-            .body( notNullValue() )
-            .body( "response.name", equalTo( "metadataImport" ) )
-            .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
+    // act
+    ApiResponse response = metadataActions.post(metadata, queryParamsBuilder);
+    response
+        .validate()
+        .statusCode(200)
+        .body(notNullValue())
+        .body("response.name", equalTo("metadataImport"))
+        .body("response.jobType", equalTo("METADATA_IMPORT"));
 
-        String taskId = response.extractString( "response.id" );
+    String taskId = response.extractString("response.id");
 
-        // Validate that job was successful
+    // Validate that job was successful
 
-        systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId )
-            .validate()
-            .body( "message", hasItem( containsString( "Import:Start" ) ) )
-            .body( "message", hasItem( containsString( "Import:Done" ) ) );
+    systemActions
+        .waitUntilTaskCompleted("METADATA_IMPORT", taskId)
+        .validate()
+        .body("message", hasItem(containsString("Import:Start")))
+        .body("message", hasItem(containsString("Import:Done")));
 
-        // validate task summaries were created
-        systemActions.waitForTaskSummaries( "METADATA_IMPORT", taskId )
-            .validate()
-            .body( notNullValue() )
-            .body( "status", equalTo( "WARNING" ) )
-            .body( "typeReports", notNullValue() )
-            .rootPath( "typeReports" )
-            .body( "stats.total", everyItem( greaterThan( 0 ) ) )
-            .body( "stats.ignored", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "objectReports", notNullValue() )
-            .body( "objectReports", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "objectReports.errorReports", notNullValue() );
-    }
+    // validate task summaries were created
+    systemActions
+        .waitForTaskSummaries("METADATA_IMPORT", taskId)
+        .validate()
+        .body(notNullValue())
+        .body("status", equalTo("WARNING"))
+        .body("typeReports", notNullValue())
+        .rootPath("typeReports")
+        .body("stats.total", everyItem(greaterThan(0)))
+        .body("stats.ignored", hasSize(greaterThanOrEqualTo(1)))
+        .body("objectReports", notNullValue())
+        .body("objectReports", hasSize(greaterThanOrEqualTo(1)))
+        .body("objectReports.errorReports", notNullValue());
+  }
 
-    @Test
-    public void shouldImportMetadataAsync()
-        throws Exception
-    {
-        JsonObject object = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
-        // arrange
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder
-            .addAll( "async=false", "importReportMode=DEBUG", "importStrategy=CREATE_AND_UPDATE", "atomicMode=NONE" );
+  @Test
+  public void shouldImportMetadataAsync() throws Exception {
+    JsonObject object =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(new File("src/test/resources/metadata/uniqueMetadata.json"));
+    // arrange
+    QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+    queryParamsBuilder.addAll(
+        "async=false",
+        "importReportMode=DEBUG",
+        "importStrategy=CREATE_AND_UPDATE",
+        "atomicMode=NONE");
 
-        // import metadata so that we have references and can clean up
+    // import metadata so that we have references and can clean up
 
-        // act
-        ApiResponse response = metadataActions.post( object, queryParamsBuilder );
+    // act
+    ApiResponse response = metadataActions.post(object, queryParamsBuilder);
 
-        // send async request
-        queryParamsBuilder.add( "async=true" );
+    // send async request
+    queryParamsBuilder.add("async=true");
 
-        response = metadataActions.post( object, queryParamsBuilder );
+    response = metadataActions.post(object, queryParamsBuilder);
 
-        response.validate()
-            .statusCode( 200 )
-            .body( "response", notNullValue() )
-            .body( "response.name", equalTo( "metadataImport" ) )
-            .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
+    response
+        .validate()
+        .statusCode(200)
+        .body("response", notNullValue())
+        .body("response.name", equalTo("metadataImport"))
+        .body("response.jobType", equalTo("METADATA_IMPORT"));
 
-        String taskId = response.extractString( "response.id" );
-        assertNotNull( taskId, "Task id was not returned" );
-        // Validate that job was successful
+    String taskId = response.extractString("response.id");
+    assertNotNull(taskId, "Task id was not returned");
+    // Validate that job was successful
 
-        systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId )
-            .validate()
-            .body( "message", notNullValue() )
-            .body( "message", hasItem( containsString( "Import:Start" ) ) )
-            .body( "message", hasItem( containsString( "Import:Done" ) ) );
+    systemActions
+        .waitUntilTaskCompleted("METADATA_IMPORT", taskId)
+        .validate()
+        .body("message", notNullValue())
+        .body("message", hasItem(containsString("Import:Start")))
+        .body("message", hasItem(containsString("Import:Done")));
 
-        // validate task summaries were created
-        systemActions.waitForTaskSummaries( "METADATA_IMPORT", taskId )
-            .validate()
-            .body( notNullValue() )
-            .body( "status", equalTo( "OK" ) )
-            .body( "typeReports", notNullValue() )
-            .rootPath( "typeReports" )
-            .body( "stats", notNullValue() )
-            .body( "stats.total", everyItem( greaterThan( 0 ) ) )
-            .body( "objectReports", hasSize( greaterThan( 0 ) ) );
-    }
+    // validate task summaries were created
+    systemActions
+        .waitForTaskSummaries("METADATA_IMPORT", taskId)
+        .validate()
+        .body(notNullValue())
+        .body("status", equalTo("OK"))
+        .body("typeReports", notNullValue())
+        .rootPath("typeReports")
+        .body("stats", notNullValue())
+        .body("stats.total", everyItem(greaterThan(0)))
+        .body("objectReports", hasSize(greaterThan(0)));
+  }
 
-    @Test
-    public void shouldNotSkipSharing()
-    {
-        JsonObject object = generateMetadataObjectWithInvalidSharing();
+  @Test
+  public void shouldNotSkipSharing() {
+    JsonObject object = generateMetadataObjectWithInvalidSharing();
 
-        ApiResponse response = metadataActions.post( object, new QueryParamsBuilder().add( "skipSharing=false" ) );
+    ApiResponse response =
+        metadataActions.post(object, new QueryParamsBuilder().add("skipSharing=false"));
 
-        response.validate().statusCode( 409 )
-            .rootPath( "response" )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "stats.created", equalTo( 0 ) )
-            .body( "typeReports[0].objectReports[0].errorReports[0].message",
-                stringContainsInOrder( "Invalid reference", "for association `userGroupAccesses`" ) );
-    }
+    response
+        .validate()
+        .statusCode(409)
+        .rootPath("response")
+        .body("status", equalTo("ERROR"))
+        .body("stats.created", equalTo(0))
+        .body(
+            "typeReports[0].objectReports[0].errorReports[0].message",
+            stringContainsInOrder("Invalid reference", "for association `userGroupAccesses`"));
+  }
 
-    @Test
-    public void shouldSkipSharing()
-    {
-        JsonObject metadata = generateMetadataObjectWithInvalidSharing();
+  @Test
+  public void shouldSkipSharing() {
+    JsonObject metadata = generateMetadataObjectWithInvalidSharing();
 
-        ApiResponse response = metadataActions.post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ) );
+    ApiResponse response =
+        metadataActions.post(metadata, new QueryParamsBuilder().add("skipSharing=true"));
 
-        response.validate().statusCode( 200 )
-            .rootPath( "response" )
-            .body( "status", is( oneOf( "SUCCESS", "OK" ) ) )
-            .body( "stats.created", equalTo( 1 ) );
+    response
+        .validate()
+        .statusCode(200)
+        .rootPath("response")
+        .body("status", is(oneOf("SUCCESS", "OK")))
+        .body("stats.created", equalTo(1));
+  }
 
-    }
+  private JsonObject generateMetadataObjectWithInvalidSharing() {
+    JsonObject dataElementGroup = DataGenerator.generateObjectForEndpoint("/dataElementGroup");
 
-    private JsonObject generateMetadataObjectWithInvalidSharing()
-    {
-        JsonObject dataElementGroup = DataGenerator.generateObjectForEndpoint( "/dataElementGroup" );
+    dataElementGroup.add(
+        "sharing",
+        SharingUtils.createSharingObject(
+            null, "rw------", Map.of(), Map.of("non-existing-id", "rwrw----")));
 
-        dataElementGroup.add( "sharing",
-            SharingUtils.createSharingObject( null, "rw------", Map.of(), Map.of( "non-existing-id", "rwrw----" ) ) );
+    JsonArray array = new JsonArray();
+    array.add(dataElementGroup);
 
-        JsonArray array = new JsonArray();
-        array.add( dataElementGroup );
+    JsonObject metadata = new JsonObject();
+    metadata.add("dataElementGroups", array);
 
-        JsonObject metadata = new JsonObject();
-        metadata.add( "dataElementGroups", array );
+    return metadata;
+  }
 
-        return metadata;
-    }
+  private List<ObjectReport> getObjectReports(List<TypeReport> typeReports) {
+    List<ObjectReport> objectReports = new ArrayList<>();
 
-    private List<ObjectReport> getObjectReports( List<TypeReport> typeReports )
-    {
-        List<ObjectReport> objectReports = new ArrayList<>();
+    typeReports.stream()
+        .forEach(
+            typeReport -> {
+              objectReports.addAll(typeReport.getObjectReports());
+            });
 
-        typeReports.stream().forEach( typeReport -> {
-            objectReports.addAll( typeReport.getObjectReports() );
-        } );
+    return objectReports;
+  }
 
-        return objectReports;
-    }
-
-    private void validateCreatedEntities( List<ObjectReport> objectReports )
-    {
-        objectReports.forEach(
-            report -> {
-                assertNotEquals( "", report.getUid() );
-                assertNotEquals( "", report.getKlass() );
-                assertNotEquals( "", report.getIndex() );
-                assertNotEquals( "", report.getDisplayName() );
-            } );
-    }
-
+  private void validateCreatedEntities(List<ObjectReport> objectReports) {
+    objectReports.forEach(
+        report -> {
+          assertNotEquals("", report.getUid());
+          assertNotEquals("", report.getKlass());
+          assertNotEquals("", report.getIndex());
+          assertNotEquals("", report.getDisplayName());
+        });
+  }
 }

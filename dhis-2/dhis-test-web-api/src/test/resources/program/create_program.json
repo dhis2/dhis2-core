@@ -6,6 +6,16 @@
       "shortName": "test program",
       "description": "program description",
       "programType": "WITH_REGISTRATION",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI"
+      },
+      "organisationUnits": [
+        {
+          "id": "Orgunit1000"
+        }
+      ],
       "programStages": [
         {
           "id": "PSzMWi7rBga"
@@ -30,6 +40,9 @@
       "programIndicators": [
         {
           "id": "PInmWi7rBga"
+        },
+        {
+          "id": "PInmWi7rBgb"
         }
       ],
       "programTrackedEntityAttributes": [
@@ -152,6 +165,25 @@
       "program": {
         "id": "PrZMWi7rBga"
       }
+    }
+  ],
+  "organisationUnits": [
+    {
+      "featureType": "NONE",
+      "uuid": "eb380b08-6cc6-4aca-9b67-e1247e02db33",
+      "lastUpdated": "2016-03-17T01:51:39.609+0000",
+      "shortName": "Country",
+      "attributeValues": [],
+      "openingDate": "2016-03-17",
+      "id": "Orgunit1000",
+      "description": "org desc",
+      "programs": [
+        {
+          "id": "PrZMWi7rBga"
+        }
+      ],
+      "name": "Country",
+      "created": "2016-03-17T01:51:39.597+0000"
     }
   ]
 }

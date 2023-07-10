@@ -33,7 +33,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -54,43 +53,37 @@ import org.springframework.core.env.Environment;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class PeriodTypeSupplierTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class PeriodTypeSupplierTest {
 
-    private PeriodTypeSupplier supplier;
+  private PeriodTypeSupplier supplier;
 
-    @Mock
-    private PeriodStore periodStore;
+  @Mock private PeriodStore periodStore;
 
-    @Mock
-    private DhisConfigurationProvider conf;
+  @Mock private DhisConfigurationProvider conf;
 
-    @Mock
-    private Environment env;
+  @Mock private Environment env;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @BeforeEach
-    public void setUp()
-    {
-        final PreheatCacheService cache = new DefaultPreheatCacheService();
-        supplier = new PeriodTypeSupplier( periodStore, cache );
-        when( env.getActiveProfiles() ).thenReturn( new String[] {} );
-    }
+  @BeforeEach
+  public void setUp() {
+    final PreheatCacheService cache = new DefaultPreheatCacheService();
+    supplier = new PeriodTypeSupplier(periodStore, cache);
+    when(env.getActiveProfiles()).thenReturn(new String[] {});
+  }
 
-    @Test
-    void verifySupplier()
-    {
-        final List<Period> periods = rnd.objects( Period.class, 20 ).collect( Collectors.toList() );
-        when( periodStore.getAll() ).thenReturn( periods );
+  @Test
+  void verifySupplier() {
+    final List<Period> periods = rnd.objects(Period.class, 20).collect(Collectors.toList());
+    when(periodStore.getAll()).thenReturn(periods);
 
-        final TrackerImportParams params = TrackerImportParams.builder().build();
+    final TrackerImportParams params = TrackerImportParams.builder().build();
 
-        TrackerPreheat preheat = new TrackerPreheat();
-        this.supplier.preheatAdd( params, preheat );
+    TrackerPreheat preheat = new TrackerPreheat();
+    this.supplier.preheatAdd(params, preheat);
 
-        assertThat( preheat.getPeriodMap().values(), hasSize( 20 ) );
-    }
+    assertThat(preheat.getPeriodMap().values(), hasSize(20));
+  }
 }

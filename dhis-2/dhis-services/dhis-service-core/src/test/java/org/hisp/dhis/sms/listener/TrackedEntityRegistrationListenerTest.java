@@ -40,6 +40,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
@@ -73,188 +74,183 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Zubair Asghar.
  */
-@ExtendWith( MockitoExtension.class )
-class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
-{
-    private static final String TEI_REGISTRATION_COMMAND = "tei";
+@ExtendWith(MockitoExtension.class)
+class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest {
+  private static final String TEI_REGISTRATION_COMMAND = "tei";
 
-    private static final String ATTRIBUTE_VALUE = "TEST";
+  private static final String ATTRIBUTE_VALUE = "TEST";
 
-    private static final String SMS_TEXT = TEI_REGISTRATION_COMMAND + " " + "attr=sample";
+  private static final String SMS_TEXT = TEI_REGISTRATION_COMMAND + " " + "attr=sample";
 
-    private static final String ORIGINATOR = "47400000";
+  private static final String ORIGINATOR = "47400000";
 
-    private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
+  private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
 
-    @Mock
-    private EnrollmentService enrollmentService;
+  @Mock private EnrollmentService enrollmentService;
 
-    @Mock
-    private CategoryService dataElementCategoryService;
+  @Mock private CategoryService dataElementCategoryService;
 
-    @Mock
-    private EventService eventService;
+  @Mock private EventService eventService;
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private IncomingSmsService incomingSmsService;
+  @Mock private IncomingSmsService incomingSmsService;
 
-    @Mock
-    private MessageSender smsSender;
+  @Mock private MessageSender smsSender;
 
-    @Mock
-    private SMSCommandService smsCommandService;
+  @Mock private SMSCommandService smsCommandService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private TrackedEntityService trackedEntityService;
+  @Mock private TrackedEntityService trackedEntityService;
 
-    @Mock
-    private ProgramService programService;
+  @Mock private ProgramService programService;
 
-    private TrackedEntityRegistrationSMSListener subject;
+  private TrackedEntityRegistrationSMSListener subject;
 
-    private TrackedEntityType trackedEntityType;
+  private TrackedEntityType trackedEntityType;
 
-    private TrackedEntity trackedEntity;
+  private TrackedEntity trackedEntity;
 
-    private TrackedEntityAttribute trackedEntityAttribute;
+  private TrackedEntityAttribute trackedEntityAttribute;
 
-    private TrackedEntityAttributeValue trackedEntityAttributeValue;
+  private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
-    private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
+  private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
 
-    private Program program;
+  private Program program;
 
-    private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-    private User user;
+  private User user;
 
-    private SMSCommand teiRegistrationCommand;
+  private SMSCommand teiRegistrationCommand;
 
-    private SMSCode smsCode;
+  private SMSCode smsCode;
 
-    private IncomingSms incomingSms;
+  private IncomingSms incomingSms;
 
-    private IncomingSms updatedIncomingSms;
+  private IncomingSms updatedIncomingSms;
 
-    private OutboundMessageResponse response = new OutboundMessageResponse();
+  private OutboundMessageResponse response = new OutboundMessageResponse();
 
-    private String message = "";
+  private String message = "";
 
-    @BeforeEach
-    public void initTest()
-    {
-        subject = new TrackedEntityRegistrationSMSListener( programService, enrollmentService,
+  @BeforeEach
+  public void initTest() {
+    subject =
+        new TrackedEntityRegistrationSMSListener(
+            programService,
+            enrollmentService,
             dataElementCategoryService,
-            eventService, userService, currentUserService, incomingSmsService, smsSender,
+            eventService,
+            userService,
+            currentUserService,
+            incomingSmsService,
+            smsSender,
             smsCommandService,
-            trackedEntityTypeService, trackedEntityService );
+            trackedEntityTypeService,
+            trackedEntityService);
 
-        setUpInstances();
+    setUpInstances();
 
-        // Mock for smsCommandService
-        when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( teiRegistrationCommand );
+    // Mock for smsCommandService
+    when(smsCommandService.getSMSCommand(anyString(), any())).thenReturn(teiRegistrationCommand);
 
-        // Mock for userService
-        when( userService.getUser( anyString() ) ).thenReturn( user );
+    // Mock for userService
+    when(userService.getUser(anyString())).thenReturn(user);
 
-        // Mock for smsSender
-        when( smsSender.isConfigured() ).thenReturn( true );
+    // Mock for smsSender
+    when(smsSender.isConfigured()).thenReturn(true);
 
-        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
-            message = (String) invocation.getArguments()[1];
-            return response;
-        } );
+    when(smsSender.sendMessage(any(), any(), anyString()))
+        .thenAnswer(
+            invocation -> {
+              message = (String) invocation.getArguments()[1];
+              return response;
+            });
 
-        when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( false );
-    }
+    when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(false);
+  }
 
-    @Test
-    void testTeiRegistration()
-    {
-        // Mock for trackedEntityService
-        when( trackedEntityService.createTrackedEntity( any(), any() ) ).thenReturn( 1L );
-        when( trackedEntityService.getTrackedEntity( anyLong() ) ).thenReturn( trackedEntity );
-        when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( true );
+  @Test
+  void testTeiRegistration() {
+    // Mock for trackedEntityService
+    when(trackedEntityService.createTrackedEntity(any(), any())).thenReturn(1L);
+    when(trackedEntityService.getTrackedEntity(anyLong())).thenReturn(trackedEntity);
+    when(programService.hasOrgUnit(program, organisationUnit)).thenReturn(true);
 
-        // Mock for incomingSmsService
-        doAnswer( invocation -> {
-            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
-            return updatedIncomingSms;
-        } ).when( incomingSmsService ).update( any() );
+    // Mock for incomingSmsService
+    doAnswer(
+            invocation -> {
+              updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+              return updatedIncomingSms;
+            })
+        .when(incomingSmsService)
+        .update(any());
 
-        subject.receive( incomingSms );
+    subject.receive(incomingSms);
 
-        assertNotNull( updatedIncomingSms );
-        assertTrue( updatedIncomingSms.isParsed() );
-        assertEquals( SUCCESS_MESSAGE, message );
+    assertNotNull(updatedIncomingSms);
+    assertTrue(updatedIncomingSms.isParsed());
+    assertEquals(SUCCESS_MESSAGE, message);
 
-        verify( incomingSmsService, times( 1 ) ).update( any() );
-    }
+    verify(incomingSmsService, times(1)).update(any());
+  }
 
-    @Test
-    void testIfProgramHasNoOu()
-    {
-        Program programA = createProgram( 'P' );
+  @Test
+  void testIfProgramHasNoOu() {
+    Program programA = createProgram('P');
 
-        teiRegistrationCommand.setProgram( programA );
+    teiRegistrationCommand.setProgram(programA);
 
-        assertThrows( SMSParserException.class,
-            () -> subject.receive( incomingSms ) );
+    assertThrows(SMSParserException.class, () -> subject.receive(incomingSms));
 
-        verify( trackedEntityTypeService, never() ).getTrackedEntityByName( anyString() );
-    }
+    verify(trackedEntityTypeService, never()).getTrackedEntityByName(anyString());
+  }
 
-    private void setUpInstances()
-    {
-        trackedEntityType = createTrackedEntityType( 'T' );
-        organisationUnit = createOrganisationUnit( 'O' );
-        program = createProgram( 'P' );
+  private void setUpInstances() {
+    trackedEntityType = createTrackedEntityType('T');
+    organisationUnit = createOrganisationUnit('O');
+    program = createProgram('P');
 
-        user = makeUser( "U" );
-        user.setPhoneNumber( ORIGINATOR );
-        user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
+    user = makeUser("U");
+    user.setPhoneNumber(ORIGINATOR);
+    user.setOrganisationUnits(Sets.newHashSet(organisationUnit));
 
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( program, trackedEntityAttribute );
-        trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
-        program.getProgramAttributes().add( programTrackedEntityAttribute );
-        program.getOrganisationUnits().add( organisationUnit );
-        program.setTrackedEntityType( trackedEntityType );
+    programTrackedEntityAttribute =
+        createProgramTrackedEntityAttribute(program, trackedEntityAttribute);
+    trackedEntityAttribute = createTrackedEntityAttribute('A', ValueType.TEXT);
+    program.getProgramAttributes().add(programTrackedEntityAttribute);
+    program.getOrganisationUnits().add(organisationUnit);
+    program.setTrackedEntityType(trackedEntityType);
 
-        trackedEntity = createTrackedEntity( organisationUnit );
-        trackedEntity.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
-        trackedEntity.setOrganisationUnit( organisationUnit );
+    trackedEntity = createTrackedEntity(organisationUnit);
+    trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
+    trackedEntity.setOrganisationUnit(organisationUnit);
 
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntity,
-            trackedEntityAttribute );
-        trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
+    trackedEntityAttributeValue =
+        createTrackedEntityAttributeValue('A', trackedEntity, trackedEntityAttribute);
+    trackedEntityAttributeValue.setValue(ATTRIBUTE_VALUE);
 
-        smsCode = new SMSCode();
-        smsCode.setCode( "attr" );
-        smsCode.setTrackedEntityAttribute( trackedEntityAttribute );
+    smsCode = new SMSCode();
+    smsCode.setCode("attr");
+    smsCode.setTrackedEntityAttribute(trackedEntityAttribute);
 
-        teiRegistrationCommand = new SMSCommand();
-        teiRegistrationCommand.setName( TEI_REGISTRATION_COMMAND );
-        teiRegistrationCommand.setParserType( ParserType.TRACKED_ENTITY_REGISTRATION_PARSER );
-        teiRegistrationCommand.setProgram( program );
-        teiRegistrationCommand.setCodes( Sets.newHashSet( smsCode ) );
+    teiRegistrationCommand = new SMSCommand();
+    teiRegistrationCommand.setName(TEI_REGISTRATION_COMMAND);
+    teiRegistrationCommand.setParserType(ParserType.TRACKED_ENTITY_REGISTRATION_PARSER);
+    teiRegistrationCommand.setProgram(program);
+    teiRegistrationCommand.setCodes(Sets.newHashSet(smsCode));
 
-        incomingSms = new IncomingSms();
-        incomingSms.setText( SMS_TEXT );
-        incomingSms.setOriginator( ORIGINATOR );
-        incomingSms.setCreatedBy( user );
-    }
+    incomingSms = new IncomingSms();
+    incomingSms.setText(SMS_TEXT);
+    incomingSms.setOriginator(ORIGINATOR);
+    incomingSms.setCreatedBy(user);
+  }
 }

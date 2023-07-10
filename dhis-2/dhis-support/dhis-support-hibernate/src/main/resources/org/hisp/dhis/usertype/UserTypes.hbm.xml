@@ -65,6 +65,10 @@
     <param name="clazz">org.hisp.dhis.eventvisualization.EventRepetition</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblSorting">
+    <param name="clazz">org.hisp.dhis.eventvisualization.Sorting</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblDashboardLayout">
     <param name="clazz">org.hisp.dhis.dashboard.design.Layout</param>
   </typedef>

@@ -30,9 +30,8 @@ package org.hisp.dhis.common;
 /**
  * @author Lars Helge Overland
  */
-public enum DigitGroupSeparator
-{
-    COMMA,
-    SPACE,
-    NONE
+public enum DigitGroupSeparator {
+  COMMA,
+  SPACE,
+  NONE
 }

@@ -38,48 +38,42 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}.
- */
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.enrollment.EnrollmentValidator" )
-public class EnrollmentValidator implements Validator<TrackerBundle>
-{
-    private final Validator<TrackerBundle> validator;
+/** Validator to validate all {@link Enrollment}s in the {@link TrackerBundle}. */
+@Component("org.hisp.dhis.tracker.imports.validation.validator.enrollment.EnrollmentValidator")
+public class EnrollmentValidator implements Validator<TrackerBundle> {
+  private final Validator<TrackerBundle> validator;
 
-    public EnrollmentValidator( SecurityOwnershipValidator securityOwnershipValidator,
-        AttributeValidator attributeValidator )
-    {
-        // @formatter:off
-        validator = each( TrackerBundle::getEnrollments,
-                        seq(
-                                new UidValidator(),
-                                new ExistenceValidator(),
-                                new MandatoryFieldsValidator(),
-                                new MetaValidator(),
-                                new UpdatableFieldsValidator(),
-                                new DataRelationsValidator(),
-                                securityOwnershipValidator,
-                                all(
-                                        new NoteValidator(),
-                                        new ExistingEnrollmentValidator(),
-                                        new GeoValidator(),
-                                        new DateValidator(),
-                                        attributeValidator
-                                )
-                        )
-        );
-        // @formatter:on
-    }
+  public EnrollmentValidator(
+      SecurityOwnershipValidator securityOwnershipValidator,
+      AttributeValidator attributeValidator) {
+    // @formatter:off
+    validator =
+        each(
+            TrackerBundle::getEnrollments,
+            seq(
+                new UidValidator(),
+                new ExistenceValidator(),
+                new MandatoryFieldsValidator(),
+                new MetaValidator(),
+                new UpdatableFieldsValidator(),
+                new DataRelationsValidator(),
+                securityOwnershipValidator,
+                all(
+                    new NoteValidator(),
+                    new ExistingEnrollmentValidator(),
+                    new GeoValidator(),
+                    new DateValidator(),
+                    attributeValidator)));
+    // @formatter:on
+  }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
-    {
-        validator.validate( reporter, bundle, input );
-    }
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+    validator.validate(reporter, bundle, input);
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // this main validator should always run
+  }
 }

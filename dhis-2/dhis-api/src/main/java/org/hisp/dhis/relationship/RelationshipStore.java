@@ -28,7 +28,6 @@
 package org.hisp.dhis.relationship;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
@@ -38,58 +37,51 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 /**
  * @author Abyot Asalefew
  */
-public interface RelationshipStore
-    extends IdentifiableObjectStore<Relationship>
-{
-    String ID = RelationshipStore.class.getName();
+public interface RelationshipStore extends IdentifiableObjectStore<Relationship> {
+  String ID = RelationshipStore.class.getName();
 
-    default List<Relationship> getByTrackedEntity( TrackedEntity trackedEntity )
-    {
-        return getByTrackedEntity( trackedEntity, null );
-    }
+  default List<Relationship> getByTrackedEntity(TrackedEntity trackedEntity) {
+    return getByTrackedEntity(trackedEntity, null);
+  }
 
-    List<Relationship> getByTrackedEntity( TrackedEntity tei,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByTrackedEntity(
+      TrackedEntity tei, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-    default List<Relationship> getByEnrollment( Enrollment enrollment )
-    {
-        return getByEnrollment( enrollment, null );
-    }
+  default List<Relationship> getByEnrollment(Enrollment enrollment) {
+    return getByEnrollment(enrollment, null);
+  }
 
-    List<Relationship> getByEnrollment( Enrollment enrollment,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByEnrollment(
+      Enrollment enrollment, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-    default List<Relationship> getByEvent( Event event )
-    {
-        return getByEvent( event, null );
-    }
+  default List<Relationship> getByEvent(Event event) {
+    return getByEvent(event, null);
+  }
 
-    List<Relationship> getByEvent( Event event,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
+  List<Relationship> getByEvent(
+      Event event, PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter);
 
-    List<Relationship> getByRelationshipType( RelationshipType relationshipType );
+  List<Relationship> getByRelationshipType(RelationshipType relationshipType);
 
-    /**
-     * Fetches a {@link Relationship} based on a relationship identifying
-     * attributes: - relationship type - from - to
-     *
-     * @param relationship A valid Relationship
-     *
-     * @return a {@link Relationship} or null if no Relationship is found
-     *         matching the identifying criterias
-     */
-    Relationship getByRelationship( Relationship relationship );
+  /**
+   * Fetches a {@link Relationship} based on a relationship identifying attributes: - relationship
+   * type - from - to
+   *
+   * @param relationship A valid Relationship
+   * @return a {@link Relationship} or null if no Relationship is found matching the identifying
+   *     criterias
+   */
+  Relationship getByRelationship(Relationship relationship);
 
-    /**
-     * Checks if relationship for given UID exists (including deleted
-     * relationships).
-     *
-     * @param uid Relationship UID to check for.
-     * @return return true if relationship exists, false otherwise.
-     */
-    boolean existsIncludingDeleted( String uid );
+  /**
+   * Checks if relationship for given UID exists (including deleted relationships).
+   *
+   * @param uid Relationship UID to check for.
+   * @return return true if relationship exists, false otherwise.
+   */
+  boolean existsIncludingDeleted(String uid);
 
-    List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList );
+  List<String> getUidsByRelationshipKeys(List<String> relationshipKeyList);
 
-    List<Relationship> getByUidsIncludeDeleted( List<String> uids );
+  List<Relationship> getByUidsIncludeDeleted(List<String> uids);
 }

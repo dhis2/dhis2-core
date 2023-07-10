@@ -27,43 +27,34 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * Domain entity representing a data exchange between a source instance and
- * target instance of DHIS 2.
+ * Domain entity representing a data exchange between a source instance and target instance of DHIS
+ * 2.
  *
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@Accessors( chain = true )
-@JacksonXmlRootElement( localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0 )
-public class AggregateDataExchange
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    /**
-     * Data exchange source.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Source source;
+@Accessors(chain = true)
+@JacksonXmlRootElement(localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0)
+public class AggregateDataExchange extends BaseIdentifiableObject implements MetadataObject {
+  /** Data exchange source. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Source source;
 
-    /**
-     * Data exchange target.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private Target target;
+  /** Data exchange target. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private Target target;
 }

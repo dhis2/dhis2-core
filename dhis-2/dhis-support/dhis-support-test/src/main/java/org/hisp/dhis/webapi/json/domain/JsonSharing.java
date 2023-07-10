@@ -35,30 +35,24 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonSharing extends JsonObject
-{
-    default String getOwner()
-    {
-        return getString( "owner" ).string();
-    }
+public interface JsonSharing extends JsonObject {
+  default String getOwner() {
+    return getString("owner").string();
+  }
 
-    default JsonAccess getPublic()
-    {
-        return get( "public", JsonAccess.class );
-    }
+  default JsonAccess getPublic() {
+    return get("public", JsonAccess.class);
+  }
 
-    default boolean isExternal()
-    {
-        return getBoolean( "external" ).booleanValue();
-    }
+  default boolean isExternal() {
+    return getBoolean("external").booleanValue();
+  }
 
-    default JsonMap<JsonObjectAccess> getUsers()
-    {
-        return getMap( "users", JsonObjectAccess.class );
-    }
+  default JsonMap<JsonObjectAccess> getUsers() {
+    return getMap("users", JsonObjectAccess.class);
+  }
 
-    default JsonMap<JsonObjectAccess> getUserGroups()
-    {
-        return getMap( "userGroups", JsonObjectAccess.class );
-    }
+  default JsonMap<JsonObjectAccess> getUserGroups() {
+    return getMap("userGroups", JsonObjectAccess.class);
+  }
 }

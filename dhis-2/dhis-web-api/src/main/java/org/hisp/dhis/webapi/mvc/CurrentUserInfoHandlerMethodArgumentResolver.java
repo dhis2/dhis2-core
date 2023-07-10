@@ -40,27 +40,26 @@ import org.springframework.web.method.support.ModelAndViewContainer;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver
-{
-    private final CurrentUserService currentUserService;
+public class CurrentUserInfoHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
+  private final CurrentUserService currentUserService;
 
-    public CurrentUserInfoHandlerMethodArgumentResolver( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
+  public CurrentUserInfoHandlerMethodArgumentResolver(CurrentUserService currentUserService) {
+    this.currentUserService = currentUserService;
+  }
 
-    @Override
-    public boolean supportsParameter( MethodParameter parameter )
-    {
-        return "currentUser".equals( parameter.getParameterName() )
-            && User.class.isAssignableFrom( parameter.getParameterType() );
-    }
+  @Override
+  public boolean supportsParameter(MethodParameter parameter) {
+    return "currentUser".equals(parameter.getParameterName())
+        && User.class.isAssignableFrom(parameter.getParameterType());
+  }
 
-    @Override
-    public Object resolveArgument( MethodParameter parameter, ModelAndViewContainer mavContainer,
-        NativeWebRequest webRequest, WebDataBinderFactory binderFactory )
-        throws Exception
-    {
-        return currentUserService.getCurrentUser();
-    }
+  @Override
+  public Object resolveArgument(
+      MethodParameter parameter,
+      ModelAndViewContainer mavContainer,
+      NativeWebRequest webRequest,
+      WebDataBinderFactory binderFactory)
+      throws Exception {
+    return currentUserService.getCurrentUser();
+  }
 }

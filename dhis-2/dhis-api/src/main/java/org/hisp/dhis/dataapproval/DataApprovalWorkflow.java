@@ -27,13 +27,18 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -45,190 +50,153 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * Identifies types of data to be approved, and the set of approval levels by
- * which it is approved.
- * <p>
- * The types of data to be approved are identified by data sets (for aggregate
- * data) and or programs (for event/tracker data) that are related to a
- * workflow.
+ * Identifies types of data to be approved, and the set of approval levels by which it is approved.
+ *
+ * <p>The types of data to be approved are identified by data sets (for aggregate data) and or
+ * programs (for event/tracker data) that are related to a workflow.
  *
  * @author Jim Grace
  */
-@JacksonXmlRootElement( localName = "dataApprovalWorkflow", namespace = DxfNamespaces.DXF_2_0 )
-public class DataApprovalWorkflow
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    /**
-     * The period type for approving data with this workflow.
-     */
-    private PeriodType periodType;
+@JacksonXmlRootElement(localName = "dataApprovalWorkflow", namespace = DxfNamespaces.DXF_2_0)
+public class DataApprovalWorkflow extends BaseIdentifiableObject implements MetadataObject {
+  /** The period type for approving data with this workflow. */
+  private PeriodType periodType;
 
-    /**
-     * The category combination for approving data with this workflow.
-     */
-    private CategoryCombo categoryCombo;
+  /** The category combination for approving data with this workflow. */
+  private CategoryCombo categoryCombo;
 
-    /**
-     * The data approval levels used in this workflow.
-     */
-    private Set<DataApprovalLevel> levels = new HashSet<>();
+  /** The data approval levels used in this workflow. */
+  private Set<DataApprovalLevel> levels = new HashSet<>();
 
-    /**
-     * The data sets part of this workflow. Inverse side.
-     */
-    private Set<DataSet> dataSets = new HashSet<>();
+  /** The data sets part of this workflow. Inverse side. */
+  private Set<DataSet> dataSets = new HashSet<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public DataApprovalWorkflow()
-    {
-    }
+  public DataApprovalWorkflow() {}
 
-    public DataApprovalWorkflow( String name )
-    {
-        this.name = name;
-    }
+  public DataApprovalWorkflow(String name) {
+    this.name = name;
+  }
 
-    public DataApprovalWorkflow( String name, PeriodType periodType, Set<DataApprovalLevel> levels )
-    {
-        this.name = name;
-        this.periodType = periodType;
-        this.levels = levels;
-    }
+  public DataApprovalWorkflow(String name, PeriodType periodType, Set<DataApprovalLevel> levels) {
+    this.name = name;
+    this.periodType = periodType;
+    this.levels = levels;
+  }
 
-    public DataApprovalWorkflow( String name, PeriodType periodType,
-        CategoryCombo categoryCombo, Set<DataApprovalLevel> levels )
-    {
-        this.name = name;
-        this.periodType = periodType;
-        this.categoryCombo = categoryCombo;
-        this.levels = levels;
-    }
+  public DataApprovalWorkflow(
+      String name,
+      PeriodType periodType,
+      CategoryCombo categoryCombo,
+      Set<DataApprovalLevel> levels) {
+    this.name = name;
+    this.periodType = periodType;
+    this.categoryCombo = categoryCombo;
+    this.levels = levels;
+  }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    /**
-     * Returns the DataApprovalLevels for this workflow sorted by level.
-     *
-     * @return DataApprovalLevels sorted by level
-     */
-    public List<DataApprovalLevel> getSortedLevels()
-    {
-        Comparator<DataApprovalLevel> orderByLevelNumber = ( DataApprovalLevel dal1,
-            DataApprovalLevel dal2 ) -> dal1.getLevel() - dal2.getLevel();
+  /**
+   * Returns the DataApprovalLevels for this workflow sorted by level.
+   *
+   * @return DataApprovalLevels sorted by level
+   */
+  public List<DataApprovalLevel> getSortedLevels() {
+    Comparator<DataApprovalLevel> orderByLevelNumber =
+        (DataApprovalLevel dal1, DataApprovalLevel dal2) -> dal1.getLevel() - dal2.getLevel();
 
-        List<DataApprovalLevel> sortedLevels = new ArrayList<>( levels );
+    List<DataApprovalLevel> sortedLevels = new ArrayList<>(levels);
 
-        Collections.sort( sortedLevels, orderByLevelNumber );
+    Collections.sort(sortedLevels, orderByLevelNumber);
 
-        return sortedLevels;
-    }
+    return sortedLevels;
+  }
 
-    /**
-     * Returns the SQL fragment to extend the category option end dates for this
-     * data approval workflow. This will be based on the dataset belonging to
-     * this workflow with the longest category option end date extension (if
-     * any).
-     *
-     * @return the SQL to extend the category option end dates, or an empty
-     *         string if there is no such extension.
-     */
-    public String getSqlCoEndDateExtension()
-    {
-        String extension = "";
-        int maxDays = 0;
+  /**
+   * Returns the SQL fragment to extend the category option end dates for this data approval
+   * workflow. This will be based on the dataset belonging to this workflow with the longest
+   * category option end date extension (if any).
+   *
+   * @return the SQL to extend the category option end dates, or an empty string if there is no such
+   *     extension.
+   */
+  public String getSqlCoEndDateExtension() {
+    String extension = "";
+    int maxDays = 0;
 
-        for ( DataSet ds : getDataSets() )
-        {
-            if ( ds.getOpenPeriodsAfterCoEndDate() != 0 )
-            {
-                PeriodType pt = ds.getPeriodType();
+    for (DataSet ds : getDataSets()) {
+      if (ds.getOpenPeriodsAfterCoEndDate() != 0) {
+        PeriodType pt = ds.getPeriodType();
 
-                int periods = ds.getOpenPeriodsAfterCoEndDate();
+        int periods = ds.getOpenPeriodsAfterCoEndDate();
 
-                if ( periods * pt.getFrequencyOrder() > maxDays )
-                {
-                    maxDays = periods * pt.getFrequencyOrder();
+        if (periods * pt.getFrequencyOrder() > maxDays) {
+          maxDays = periods * pt.getFrequencyOrder();
 
-                    extension = " + " + periods +
-                        " * INTERVAL '+ " + pt.getSqlInterval() + "'";
-                }
-            }
+          extension = " + " + periods + " * INTERVAL '+ " + pt.getSqlInterval() + "'";
         }
-
-        return extension;
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and Setters
-    // -------------------------------------------------------------------------
+    return extension;
+  }
 
-    @JsonProperty
-    @JsonSerialize( using = JacksonPeriodTypeSerializer.class )
-    @JsonDeserialize( using = JacksonPeriodTypeDeserializer.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.TEXT )
-    public PeriodType getPeriodType()
-    {
-        return periodType;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and Setters
+  // -------------------------------------------------------------------------
 
-    public void setPeriodType( PeriodType periodType )
-    {
-        this.periodType = periodType;
-    }
+  @JsonProperty
+  @JsonSerialize(using = JacksonPeriodTypeSerializer.class)
+  @JsonDeserialize(using = JacksonPeriodTypeDeserializer.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(PropertyType.TEXT)
+  public PeriodType getPeriodType() {
+    return periodType;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getCategoryCombo()
-    {
-        return categoryCombo;
-    }
+  public void setPeriodType(PeriodType periodType) {
+    this.periodType = periodType;
+  }
 
-    public void setCategoryCombo( CategoryCombo categoryCombo )
-    {
-        this.categoryCombo = categoryCombo;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getCategoryCombo() {
+    return categoryCombo;
+  }
 
-    @JsonProperty( "dataApprovalLevels" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataApprovalLevels", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataApprovalLevel", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataApprovalLevel> getLevels()
-    {
-        return levels;
-    }
+  public void setCategoryCombo(CategoryCombo categoryCombo) {
+    this.categoryCombo = categoryCombo;
+  }
 
-    public void setLevels( Set<DataApprovalLevel> levels )
-    {
-        this.levels = levels;
-    }
+  @JsonProperty("dataApprovalLevels")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "dataApprovalLevels", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "dataApprovalLevel", namespace = DxfNamespaces.DXF_2_0)
+  public Set<DataApprovalLevel> getLevels() {
+    return levels;
+  }
 
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "dataSets", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "dataSet", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<DataSet> getDataSets()
-    {
-        return dataSets;
-    }
+  public void setLevels(Set<DataApprovalLevel> levels) {
+    this.levels = levels;
+  }
 
-    public void setDataSets( Set<DataSet> dataSets )
-    {
-        this.dataSets = dataSets;
-    }
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "dataSets", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "dataSet", namespace = DxfNamespaces.DXF_2_0)
+  public Set<DataSet> getDataSets() {
+    return dataSets;
+  }
+
+  public void setDataSets(Set<DataSet> dataSets) {
+    this.dataSets = dataSets;
+  }
 }

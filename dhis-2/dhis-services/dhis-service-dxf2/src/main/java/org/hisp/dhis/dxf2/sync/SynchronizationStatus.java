@@ -30,8 +30,7 @@ package org.hisp.dhis.dxf2.sync;
 /**
  * @author David Katuscak
  */
-public enum SynchronizationStatus
-{
-    SUCCESS,
-    FAILURE;
+public enum SynchronizationStatus {
+  SUCCESS,
+  FAILURE;
 }

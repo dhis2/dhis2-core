@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.webapi.webdomain.user;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Wrapper DTO for a list of UserLookups.
@@ -42,13 +40,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @NoArgsConstructor
-public class UserLookups
-{
-    @JsonProperty
-    private List<UserLookup> users = new ArrayList<>();
+public class UserLookups {
+  @JsonProperty private List<UserLookup> users = new ArrayList<>();
 
-    public UserLookups( List<UserLookup> users )
-    {
-        this.users = users;
-    }
+  public UserLookups(List<UserLookup> users) {
+    this.users = users;
+  }
 }

@@ -27,39 +27,31 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Exposes a static method to fetch an Executor for the Aggregates operations
  *
  * @author Luciano Fiandesio
  */
-public class ThreadPoolManager
-{
-    // Thread factory that sets a user-defined thread name (useful for debugging
-    // purposes)
-    private ThreadPoolManager()
-    {
-        throw new IllegalStateException( "only used for its static fields" );
-    }
+public class ThreadPoolManager {
+  // Thread factory that sets a user-defined thread name (useful for debugging
+  // purposes)
+  private ThreadPoolManager() {
+    throw new IllegalStateException("only used for its static fields");
+  }
 
-    private static final ThreadFactory threadFactory = new ThreadFactoryBuilder()
-        .setNameFormat( "TRACKER-TEI-FETCH-%d" )
-        .setDaemon( true )
-        .build();
+  private static final ThreadFactory threadFactory =
+      new ThreadFactoryBuilder().setNameFormat("TRACKER-TEI-FETCH-%d").setDaemon(true).build();
 
-    /**
-     * Cached thread pool: not bound to a size, but can reuse existing threads.
-     */
-    private static final Executor AGGREGATE_THREAD_POOL = Executors.newCachedThreadPool( threadFactory );
+  /** Cached thread pool: not bound to a size, but can reuse existing threads. */
+  private static final Executor AGGREGATE_THREAD_POOL =
+      Executors.newCachedThreadPool(threadFactory);
 
-    static Executor getPool()
-    {
-        return AGGREGATE_THREAD_POOL;
-    }
-
+  static Executor getPool() {
+    return AGGREGATE_THREAD_POOL;
+  }
 }

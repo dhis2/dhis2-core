@@ -28,19 +28,15 @@
 package org.hisp.dhis.dataset.notifications;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 
-/**
- * Created by zubair@dhis2.org on 13.07.17.
- */
+/** Created by zubair@dhis2.org on 13.07.17. */
 public interface DataSetNotificationTemplateStore
-    extends IdentifiableObjectStore<DataSetNotificationTemplate>
-{
-    List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet,
-        DataSetNotificationTrigger trigger );
+    extends IdentifiableObjectStore<DataSetNotificationTemplate> {
+  List<DataSetNotificationTemplate> getNotificationsByTriggerType(
+      DataSet dataSet, DataSetNotificationTrigger trigger);
 
-    List<DataSetNotificationTemplate> getScheduledNotifications( NotificationTrigger trigger );
+  List<DataSetNotificationTemplate> getScheduledNotifications(NotificationTrigger trigger);
 }

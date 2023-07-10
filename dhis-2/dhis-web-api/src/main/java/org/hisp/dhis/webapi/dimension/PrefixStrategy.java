@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.dimension;
 
 import org.hisp.dhis.common.PrefixedDimension;
 
-public interface PrefixStrategy
-{
-    String apply( PrefixedDimension pDimension );
+public interface PrefixStrategy {
+  String apply(PrefixedDimension pDimension);
 }

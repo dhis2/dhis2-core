@@ -37,35 +37,24 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
- */
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.event.EventRuleEngineValidator" )
-public class EventRuleEngineValidator implements Validator<TrackerBundle>
-{
-    private final Validator<TrackerBundle> validator;
+/** Validator to validate all {@link Event}s in the {@link TrackerBundle}. */
+@Component("org.hisp.dhis.tracker.imports.validation.validator.event.EventRuleEngineValidator")
+public class EventRuleEngineValidator implements Validator<TrackerBundle> {
+  private final Validator<TrackerBundle> validator;
 
-    public EventRuleEngineValidator( RuleEngineValidator ruleEngineValidator )
-    {
-        // @formatter:off
-        validator = each(TrackerBundle::getEvents,
-                        all(
-                                ruleEngineValidator,
-                                new DataValuesValidator()
-                        )
-        );
-        // @formatter:on
-    }
+  public EventRuleEngineValidator(RuleEngineValidator ruleEngineValidator) {
+    // @formatter:off
+    validator = each(TrackerBundle::getEvents, all(ruleEngineValidator, new DataValuesValidator()));
+    // @formatter:on
+  }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
-    {
-        validator.validate( reporter, bundle, input );
-    }
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+    validator.validate(reporter, bundle, input);
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // this main validator should always run
+  }
 }

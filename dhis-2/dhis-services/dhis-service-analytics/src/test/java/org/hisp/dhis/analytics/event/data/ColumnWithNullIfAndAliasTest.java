@@ -31,33 +31,32 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-class ColumnWithNullIfAndAliasTest
-{
-    private static final String COLUMN = "column";
+class ColumnWithNullIfAndAliasTest {
+  private static final String COLUMN = "column";
 
-    private static final String ALIAS = "alias";
+  private static final String ALIAS = "alias";
 
-    @Test
-    void testAsSqlReturnsRightInstance()
-    {
-        // given
-        // when
-        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+  @Test
+  void testAsSqlReturnsRightInstance() {
+    // given
+    // when
+    ColumnAndAlias columnAndAlias =
+        ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias(COLUMN, ALIAS);
 
-        // then
-        assertEquals( COLUMN, columnAndAlias.getColumn() );
+    // then
+    assertEquals(COLUMN, columnAndAlias.getColumn());
 
-        assertEquals( ALIAS, columnAndAlias.getAlias() );
-    }
+    assertEquals(ALIAS, columnAndAlias.getAlias());
+  }
 
-    @Test
-    void testAsSqlReturnsRightSqlSnippetWhenCalled()
-    {
-        // given
-        // when
-        ColumnAndAlias columnAndAlias = ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias( COLUMN, ALIAS );
+  @Test
+  void testAsSqlReturnsRightSqlSnippetWhenCalled() {
+    // given
+    // when
+    ColumnAndAlias columnAndAlias =
+        ColumnWithNullIfAndAlias.ofColumnWithNullIfAndAlias(COLUMN, ALIAS);
 
-        // then
-        assertEquals( "nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql() );
-    }
+    // then
+    assertEquals("nullif(" + COLUMN + ",'') as \"" + ALIAS + "\"", columnAndAlias.asSql());
+  }
 }

@@ -32,19 +32,18 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-public interface StyleManager
-{
-    String ID = StyleManager.class.getName();
+public interface StyleManager {
+  String ID = StyleManager.class.getName();
 
-    void setSystemStyle( String file );
+  void setSystemStyle(String file);
 
-    void setUserStyle( String style );
+  void setUserStyle(String style);
 
-    String getCurrentStyle();
+  String getCurrentStyle();
 
-    String getSystemStyle();
+  String getSystemStyle();
 
-    String getCurrentStyleDirectory();
+  String getCurrentStyleDirectory();
 
-    List<StyleObject> getStyles();
+  List<StyleObject> getStyles();
 }

@@ -41,12 +41,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryCombo;
@@ -68,199 +68,249 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
-{
-    @BeforeEach
-    public void setUp()
-    {
-        Map<String, Object> aggregatedValues = new HashMap<>();
-        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-            .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
-    }
+class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest {
+  @BeforeEach
+  public void setUp() {
+    Map<String, Object> aggregatedValues = new HashMap<>();
+    when(analyticsManager.getAggregatedDataValues(
+            any(DataQueryParams.class), eq(AnalyticsTableType.DATA_VALUE), eq(0)))
+        .thenReturn(CompletableFuture.completedFuture(aggregatedValues));
+  }
 
-    @SuppressWarnings( "unchecked" )
-    @Test
-    void metadataContainsOuLevelData()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
+  @SuppressWarnings("unchecked")
+  @Test
+  void metadataContainsOuLevelData() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
             // PERIOD
-            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
+            .withPeriod(new Period(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
             // DATA ELEMENTS
-            .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) )
-            .withIgnoreLimit( true )
+            .withDataElements(List.of(createDataElement('A', new CategoryCombo())))
+            .withIgnoreLimit(true)
             // FILTERS (OU)
-            .withFilters( List.of(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    List.of(
-                        new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
-                    new DimensionItemKeywords(
+            .withFilters(
+                List.of(
+                    new BaseDimensionalObject(
+                        "ou",
+                        DimensionType.ORGANISATION_UNIT,
+                        null,
+                        DISPLAY_NAME_ORGUNIT,
+                        List.of(
+                            new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"),
+                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")),
+                        new DimensionItemKeywords(
+                            Lists.newArrayList(
+                                buildOrgUnitLevel(2, "wjP19dkFeIk", "District", null),
+                                buildOrgUnitLevel(1, "tTUf91fCytl", "Chiefdom", "OU_12345"))))))
+            .build();
+
+    initMock(params);
+
+    Grid grid = target.getAggregatedDataValueGrid(params);
+
+    Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
+    assertThat(
+        items.get("wjP19dkFeIk"),
+        allOf(
+            hasProperty("name", is("District")),
+            hasProperty("uid", is("wjP19dkFeIk")),
+            hasProperty("code", is(nullValue()))));
+    assertThat(
+        items.get("tTUf91fCytl"),
+        allOf(
+            hasProperty("name", is("Chiefdom")),
+            hasProperty("uid", is("tTUf91fCytl")),
+            hasProperty("code", is("OU_12345"))));
+  }
+
+  @SuppressWarnings("unchecked")
+  @Test
+  void metadataContainsIndicatorGroupMetadata() {
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
+
+    IndicatorGroup indicatorGroup = new IndicatorGroup("ANC");
+    indicatorGroup.setCode("COD_1000");
+    indicatorGroup.setUid("wjP19dkFeIk");
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            // DATA ELEMENTS
+            .withDimensions(
+                Lists.newArrayList(
+                    new BaseDimensionalObject("pe", DimensionType.PERIOD, periods),
+                    new BaseDimensionalObject(
+                        "dx",
+                        DimensionType.DATA_X,
+                        DISPLAY_NAME_DATA_X,
+                        "display name",
                         Lists.newArrayList(
-                            buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
-                            buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
-
-                    ) ) ) )
+                            new Indicator(),
+                            new Indicator(),
+                            createDataElement('A', new CategoryCombo()),
+                            createDataElement('B', new CategoryCombo())),
+                        new DimensionItemKeywords(List.of(indicatorGroup)))))
+            .withFilters(
+                List.of(
+                    new BaseDimensionalObject(
+                        "ou",
+                        DimensionType.ORGANISATION_UNIT,
+                        null,
+                        DISPLAY_NAME_ORGUNIT,
+                        List.of(
+                            new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"),
+                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")))))
+            .withIgnoreLimit(true)
+            .withSkipData(true)
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
+    Grid grid = target.getAggregatedDataValueGrid(params);
+    Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
 
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-        assertThat( items.get( "wjP19dkFeIk" ), allOf(
-            hasProperty( "name", is( "District" ) ),
-            hasProperty( "uid", is( "wjP19dkFeIk" ) ),
-            hasProperty( "code", is( nullValue() ) ) ) );
-        assertThat( items.get( "tTUf91fCytl" ), allOf(
-            hasProperty( "name", is( "Chiefdom" ) ),
-            hasProperty( "uid", is( "tTUf91fCytl" ) ),
-            hasProperty( "code", is( "OU_12345" ) ) ) );
-    }
+    assertThat(
+        items.get(indicatorGroup.getUid()),
+        allOf(
+            hasProperty("name", is(indicatorGroup.getName())),
+            hasProperty("uid", is(indicatorGroup.getUid())),
+            hasProperty("code", is(indicatorGroup.getCode()))));
+  }
 
-    @SuppressWarnings( "unchecked" )
-    @Test
-    void metadataContainsIndicatorGroupMetadata()
-    {
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
-
-        IndicatorGroup indicatorGroup = new IndicatorGroup( "ANC" );
-        indicatorGroup.setCode( "COD_1000" );
-        indicatorGroup.setUid( "wjP19dkFeIk" );
-        DataQueryParams params = DataQueryParams.newBuilder()
-            // DATA ELEMENTS
-            .withDimensions( Lists.newArrayList(
-                new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
-                        createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionItemKeywords( List.of( indicatorGroup ) ) ) ) )
-            .withFilters( List.of( new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null,
-                DISPLAY_NAME_ORGUNIT, List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                    new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
-            .withIgnoreLimit( true )
-            .withSkipData( true )
-            .build();
-
-        initMock( params );
-
-        Grid grid = target.getAggregatedDataValueGrid( params );
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-
-        assertThat( items.get( indicatorGroup.getUid() ),
-            allOf(
-                hasProperty( "name", is( indicatorGroup.getName() ) ),
-                hasProperty( "uid", is( indicatorGroup.getUid() ) ),
-                hasProperty( "code", is( indicatorGroup.getCode() ) ) ) );
-    }
-
-    @SuppressWarnings( "unchecked" )
-    @Test
-    void metadataContainsOuGroupData()
-    {
-        DataQueryParams params = DataQueryParams.newBuilder()
+  @SuppressWarnings("unchecked")
+  @Test
+  void metadataContainsOuGroupData() {
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
             // PERIOD
-            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
+            .withPeriod(new Period(YearlyPeriodType.getPeriodFromIsoString("2017W10")))
             // DATA ELEMENTS
-            .withDataElements( List.of( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
+            .withDataElements(List.of(createDataElement('A', new CategoryCombo())))
+            .withIgnoreLimit(true)
             // FILTERS (OU)
-            .withFilters( List.of(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
-                    new DimensionItemKeywords(
-                        Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ) ) ) )
+            .withFilters(
+                List.of(
+                    new BaseDimensionalObject(
+                        "ou",
+                        DimensionType.ORGANISATION_UNIT,
+                        null,
+                        DISPLAY_NAME_ORGUNIT,
+                        List.of(
+                            new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1"),
+                            new OrganisationUnit("bbb", "bbb", "OU_2", null, null, "c2")),
+                        new DimensionItemKeywords(
+                            Lists.newArrayList(
+                                new BaseNameableObject("tTUf91fCytl", "OU_12345", "Chiefdom"))))))
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
+    Grid grid = target.getAggregatedDataValueGrid(params);
 
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-        assertThat( items.get( "tTUf91fCytl" ), allOf( hasProperty( "name", is( "Chiefdom" ) ),
-            hasProperty( "uid", is( "tTUf91fCytl" ) ), hasProperty( "code", is( "OU_12345" ) ) ) );
-    }
+    Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
+    assertThat(
+        items.get("tTUf91fCytl"),
+        allOf(
+            hasProperty("name", is("Chiefdom")),
+            hasProperty("uid", is("tTUf91fCytl")),
+            hasProperty("code", is("OU_12345"))));
+  }
 
-    @SuppressWarnings( "unchecked" )
-    @Test
-    void metadataContainsDataElementGroupMetadata()
-    {
-        List<DimensionalItemObject> periods = new ArrayList<>();
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
+  @SuppressWarnings("unchecked")
+  @Test
+  void metadataContainsDataElementGroupMetadata() {
+    List<DimensionalItemObject> periods = new ArrayList<>();
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
 
-        DataElementGroup dataElementGroup = new DataElementGroup( "ANC" );
-        dataElementGroup.setCode( "COD_1000" );
-        dataElementGroup.setUid( "wjP19dkFeIk" );
-        DataQueryParams params = DataQueryParams.newBuilder()
+    DataElementGroup dataElementGroup = new DataElementGroup("ANC");
+    dataElementGroup.setCode("COD_1000");
+    dataElementGroup.setUid("wjP19dkFeIk");
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
             // DATA ELEMENTS
-            .withDimensions( List.of(
-                new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    List.of(
-                        createDataElement( 'A', new CategoryCombo() ),
-                        createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionItemKeywords( List.of( dataElementGroup ) ) ) ) )
-            .withFilters( List.of(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    List.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
-            .withIgnoreLimit( true )
-            .withSkipData( true )
+            .withDimensions(
+                List.of(
+                    new BaseDimensionalObject("pe", DimensionType.PERIOD, periods),
+                    new BaseDimensionalObject(
+                        "dx",
+                        DimensionType.DATA_X,
+                        DISPLAY_NAME_DATA_X,
+                        "display name",
+                        List.of(
+                            createDataElement('A', new CategoryCombo()),
+                            createDataElement('B', new CategoryCombo())),
+                        new DimensionItemKeywords(List.of(dataElementGroup)))))
+            .withFilters(
+                List.of(
+                    new BaseDimensionalObject(
+                        "ou",
+                        DimensionType.ORGANISATION_UNIT,
+                        null,
+                        DISPLAY_NAME_ORGUNIT,
+                        List.of(new OrganisationUnit("aaa", "aaa", "OU_1", null, null, "c1")))))
+            .withIgnoreLimit(true)
+            .withSkipData(true)
             .build();
 
-        initMock( params );
+    initMock(params);
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
+    Grid grid = target.getAggregatedDataValueGrid(params);
+    Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
 
-        assertThat( items.get( dataElementGroup.getUid() ),
-            allOf(
-                hasProperty( "name", is( dataElementGroup.getName() ) ),
-                hasProperty( "uid", is( dataElementGroup.getUid() ) ),
-                hasProperty( "code", is( dataElementGroup.getCode() ) ) ) );
-    }
+    assertThat(
+        items.get(dataElementGroup.getUid()),
+        allOf(
+            hasProperty("name", is(dataElementGroup.getName())),
+            hasProperty("uid", is(dataElementGroup.getUid())),
+            hasProperty("code", is(dataElementGroup.getCode()))));
+  }
 
-    @SuppressWarnings( "unchecked" )
-    @Test
-    void metadataContainsRelativePeriodItem()
-    {
+  @SuppressWarnings("unchecked")
+  @Test
+  void metadataContainsRelativePeriodItem() {
 
-        List<DimensionalItemObject> periods = new ArrayList<>();
+    List<DimensionalItemObject> periods = new ArrayList<>();
 
-        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
+    periods.add(new MonthlyPeriodType().createPeriod(new DateTime(2014, 4, 1, 0, 0).toDate()));
 
-        BaseDimensionalObject periodDimension = new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods );
+    BaseDimensionalObject periodDimension =
+        new BaseDimensionalObject("pe", DimensionType.PERIOD, periods);
 
-        DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
-        dimensionalKeywords.addKeyword( THIS_QUARTER.name(), "This quarter" );
-        periodDimension.setDimensionalKeywords( dimensionalKeywords );
+    DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
+    dimensionalKeywords.addKeyword(THIS_QUARTER.name(), "This quarter");
+    periodDimension.setDimensionalKeywords(dimensionalKeywords);
 
-        DataQueryParams params = DataQueryParams.newBuilder()
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
             // DATA ELEMENTS
-            .withDimensions( Lists.newArrayList( periodDimension,
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
-            .withSkipData( true ).build();
+            .withDimensions(
+                Lists.newArrayList(
+                    periodDimension,
+                    new BaseDimensionalObject(
+                        "dx",
+                        DimensionType.DATA_X,
+                        DISPLAY_NAME_DATA_X,
+                        "display name",
+                        Lists.newArrayList(
+                            createDataElement('A', new CategoryCombo()),
+                            createDataElement('B', new CategoryCombo())))))
+            .withSkipData(true)
+            .build();
 
-        initMock( params );
+    initMock(params);
 
-        Grid grid = target.getAggregatedDataValueGrid( params );
+    Grid grid = target.getAggregatedDataValueGrid(params);
 
-        Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-        assertTrue( items.containsKey( THIS_QUARTER.name() ) );
-    }
+    Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get("items");
+    assertTrue(items.containsKey(THIS_QUARTER.name()));
+  }
 
-    private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
-    {
-        OrganisationUnitLevel oul = new OrganisationUnitLevel( level, name );
-        oul.setUid( uid );
-        oul.setCode( code );
-        return oul;
-    }
+  private OrganisationUnitLevel buildOrgUnitLevel(int level, String uid, String name, String code) {
+    OrganisationUnitLevel oul = new OrganisationUnitLevel(level, name);
+    oul.setUid(uid);
+    oul.setCode(code);
+    return oul;
+  }
 }

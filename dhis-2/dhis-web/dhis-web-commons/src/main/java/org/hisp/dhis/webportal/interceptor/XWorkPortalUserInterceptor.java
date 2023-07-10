@@ -27,61 +27,48 @@
  */
 package org.hisp.dhis.webportal.interceptor;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.hisp.dhis.user.CurrentUserService;
-
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.Interceptor;
+import java.util.HashMap;
+import java.util.Map;
+import org.hisp.dhis.user.CurrentUserService;
 
 /**
  * @author Torgeir Lorange Ostby
  */
-public class XWorkPortalUserInterceptor
-    implements Interceptor
-{
-    /**
-     * Determines if a de-serialized file is compatible with this class.
-     */
-    private static final long serialVersionUID = 2809606672626282043L;
+public class XWorkPortalUserInterceptor implements Interceptor {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 2809606672626282043L;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private CurrentUserService currentUserService;
+  private CurrentUserService currentUserService;
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
+  public void setCurrentUserService(CurrentUserService currentUserService) {
+    this.currentUserService = currentUserService;
+  }
 
-    // -------------------------------------------------------------------------
-    // Interceptor implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Interceptor implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public void destroy()
-    {
-    }
+  @Override
+  public void destroy() {}
 
-    @Override
-    public void init()
-    {
-    }
+  @Override
+  public void init() {}
 
-    @Override
-    public String intercept( ActionInvocation invocation )
-        throws Exception
-    {
-        Map<String, Object> map = new HashMap<>( 3 );
+  @Override
+  public String intercept(ActionInvocation invocation) throws Exception {
+    Map<String, Object> map = new HashMap<>(3);
 
-        map.put( "currentUsername", currentUserService.getCurrentUsername() );
-        map.put( "currentUser", currentUserService.getCurrentUser() );
+    map.put("currentUsername", currentUserService.getCurrentUsername());
+    map.put("currentUser", currentUserService.getCurrentUser());
 
-        invocation.getStack().push( map );
+    invocation.getStack().push(map);
 
-        return invocation.invoke();
-    }
+    return invocation.invoke();
+  }
 }

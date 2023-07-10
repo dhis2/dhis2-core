@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.CHANNEL_NAME;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.EXCLUDE_LIST;
 
 import java.io.Serializable;
-
 import lombok.extern.slf4j.Slf4j;
-
-import org.hibernate.event.spi.*;
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
+import org.hibernate.event.spi.PostCommitInsertEventListener;
+import org.hibernate.event.spi.PostCommitUpdateEventListener;
+import org.hibernate.event.spi.PostDeleteEvent;
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,175 +55,146 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import io.lettuce.core.api.StatefulRedisConnection;
-
 /**
- * It listens for events from Hibernate and publishes a message to Redis when an
- * event occurs
+ * It listens for events from Hibernate and publishes a message to Redis when an event occurs
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Component
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+@Profile({"!test", "!test-h2"})
+@Conditional(value = CacheInvalidationEnabledCondition.class)
 public class PostCacheEventPublisher
     implements PostCommitUpdateEventListener,
-    PostCommitInsertEventListener,
-    PostCommitDeleteEventListener
-{
+        PostCommitInsertEventListener,
+        PostCommitDeleteEventListener {
 
-    @Autowired
-    protected IdentifiableObjectManager idObjectManager;
+  @Autowired protected IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    protected PeriodService periodService;
+  @Autowired protected PeriodService periodService;
 
-    @Autowired
-    protected TrackedEntityAttributeService trackedEntityAttributeService;
+  @Autowired protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    protected TrackedEntityService trackedEntityService;
+  @Autowired protected TrackedEntityService trackedEntityService;
 
-    @Autowired
-    @Qualifier( "cacheInvalidationServerId" )
-    private String serverInstanceId;
+  @Autowired private CacheInvalidationMessagePublisher messagePublisher;
 
-    @Autowired
-    @Qualifier( "redisConnection" )
-    private transient StatefulRedisConnection<String, String> redisConnection;
+  @Autowired
+  @Qualifier("cacheInvalidationServerId")
+  private String serverInstanceId;
 
-    @Override
-    public void onPostUpdate( PostUpdateEvent postUpdateEvent )
-    {
-        log.debug( "onPostUpdate" );
-        handleMessage( CacheEventOperation.UPDATE, postUpdateEvent.getEntity(), postUpdateEvent.getId() );
+  public CacheInvalidationMessagePublisher getMessagePublisher() {
+    return messagePublisher;
+  }
+
+  @Override
+  public void onPostUpdate(PostUpdateEvent postUpdateEvent) {
+    handleMessage(CacheEventOperation.UPDATE, postUpdateEvent.getEntity(), postUpdateEvent.getId());
+  }
+
+  @Override
+  public void onPostInsert(PostInsertEvent postInsertEvent) {
+    handleMessage(CacheEventOperation.INSERT, postInsertEvent.getEntity(), postInsertEvent.getId());
+  }
+
+  @Override
+  public void onPostDelete(PostDeleteEvent postDeleteEvent) {
+    handleMessage(CacheEventOperation.DELETE, postDeleteEvent.getEntity(), postDeleteEvent.getId());
+  }
+
+  private void handleMessage(CacheEventOperation operation, Object entity, Serializable id) {
+    Class<?> realClass = HibernateProxyUtils.getRealClass(entity);
+
+    if (entity instanceof DataValue) {
+      id = getDataValueId(entity);
+    } else if (entity instanceof TrackedEntityAttributeValue) {
+      id = getTrackedEntityAttributeValueId(entity);
+    } else if (entity instanceof CompleteDataSetRegistration) {
+      id = getCompleteDataSetRegistrationId(entity);
+    } else if (entity instanceof DataStatisticsEvent) {
+      DataStatisticsEvent dataStatisticsEvent = (DataStatisticsEvent) entity;
+      id = dataStatisticsEvent.getId();
+    } else if (entity instanceof IdentifiableObject) {
+      IdentifiableObject identifiableObject = (IdentifiableObject) entity;
+      id = identifiableObject.getId();
     }
 
-    @Override
-    public void onPostInsert( PostInsertEvent postInsertEvent )
-    {
-        log.debug( "onPostInsert" );
-        handleMessage( CacheEventOperation.INSERT, postInsertEvent.getEntity(), postInsertEvent.getId() );
+    String op = operation.name().toLowerCase();
+    String message = serverInstanceId + ":" + op + ":" + realClass.getName() + ":" + id;
+
+    publishMessage(realClass, message);
+  }
+
+  private void publishMessage(Class<?> realClass, String message) {
+    if (!EXCLUDE_LIST.contains(realClass)) {
+      messagePublisher.publish(CHANNEL_NAME, message);
+    } else {
+      log.debug("Ignoring excluded class: " + realClass.getName());
     }
+  }
 
-    @Override
-    public void onPostDelete( PostDeleteEvent postDeleteEvent )
-    {
-        log.debug( "onPostDelete" );
-        handleMessage( CacheEventOperation.DELETE, postDeleteEvent.getEntity(), postDeleteEvent.getId() );
-    }
+  private Serializable getDataValueId(Object entity) {
+    DataValue dataValue = (DataValue) entity;
 
-    private void handleMessage( CacheEventOperation operation, Object entity, Serializable id )
-    {
-        Class<?> realClass = HibernateProxyUtils.getRealClass( entity );
+    long dataElementId = dataValue.getDataElement().getId();
+    long periodId = dataValue.getPeriod().getId();
+    long organisationUnitId = dataValue.getSource().getId();
+    long categoryOptionComboId = dataValue.getAttributeOptionCombo().getId();
+    long attributeOptionComboId = dataValue.getAttributeOptionCombo().getId();
 
-        if ( entity instanceof DataValue )
-        {
-            id = getDataValueId( entity );
-        }
-        else if ( entity instanceof TrackedEntityAttributeValue )
-        {
-            id = getTrackedEntityAttributeValueId( entity );
-        }
-        else if ( entity instanceof CompleteDataSetRegistration )
-        {
-            id = getCompleteDataSetRegistrationId( entity );
-        }
-        else if ( entity instanceof DataStatisticsEvent )
-        {
-            DataStatisticsEvent dataStatisticsEvent = (DataStatisticsEvent) entity;
-            id = dataStatisticsEvent.getId();
-        }
-        else if ( entity instanceof IdentifiableObject )
-        {
-            IdentifiableObject identifiableObject = (IdentifiableObject) entity;
-            id = identifiableObject.getId();
-        }
+    return dataElementId
+        + ";"
+        + periodId
+        + ";"
+        + organisationUnitId
+        + ";"
+        + categoryOptionComboId
+        + ";"
+        + attributeOptionComboId;
+  }
 
-        String op = operation.name().toLowerCase();
-        String message = serverInstanceId + ":" + op + ":" + realClass.getName() + ":" + id;
+  private Serializable getTrackedEntityAttributeValueId(Object entity) {
+    TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity;
 
-        publishMessage( realClass, message );
-    }
+    long trackedEntityAttributeId = trackedEntityAttributeValue.getAttribute().getId();
+    long entityInstanceId = trackedEntityAttributeValue.getTrackedEntity().getId();
 
-    private void publishMessage( Class<?> realClass, String message )
-    {
-        if ( !EXCLUDE_LIST.contains( realClass ) )
-        {
-            redisConnection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+    return trackedEntityAttributeId + ";" + entityInstanceId;
+  }
 
-            log.debug( "Published message: " + message );
-        }
-        else
-        {
-            log.debug( "Ignoring excluded class: " + realClass.getName() );
-        }
-    }
+  private Serializable getCompleteDataSetRegistrationId(Object entity) {
+    CompleteDataSetRegistration completeDataSetRegistration = (CompleteDataSetRegistration) entity;
 
-    private Serializable getDataValueId( Object entity )
-    {
-        DataValue dataValue = (DataValue) entity;
+    long dataSetId = completeDataSetRegistration.getDataSet().getId();
+    long periodId = completeDataSetRegistration.getPeriod().getId();
+    long organisationUnitId = completeDataSetRegistration.getSource().getId();
+    long categoryOptionComboId = completeDataSetRegistration.getAttributeOptionCombo().getId();
 
-        long dataElementId = dataValue.getDataElement().getId();
-        long periodId = dataValue.getPeriod().getId();
-        long organisationUnitId = dataValue.getSource().getId();
-        long categoryOptionComboId = dataValue.getAttributeOptionCombo().getId();
-        long attributeOptionComboId = dataValue.getAttributeOptionCombo().getId();
+    return dataSetId + ";" + periodId + ";" + organisationUnitId + ";" + categoryOptionComboId;
+  }
 
-        return dataElementId + ";" + periodId + ";" + organisationUnitId + ";" + categoryOptionComboId + ";"
-            + attributeOptionComboId;
-    }
+  @Override
+  public boolean requiresPostCommitHanding(EntityPersister entityPersister) {
+    return true;
+  }
 
-    private Serializable getTrackedEntityAttributeValueId( Object entity )
-    {
-        TrackedEntityAttributeValue trackedEntityAttributeValue = (TrackedEntityAttributeValue) entity;
+  @Override
+  public boolean requiresPostCommitHandling(EntityPersister persister) {
+    return PostCommitUpdateEventListener.super.requiresPostCommitHandling(persister);
+  }
 
-        long trackedEntityAttributeId = trackedEntityAttributeValue.getAttribute().getId();
-        long entityInstanceId = trackedEntityAttributeValue.getTrackedEntity().getId();
+  @Override
+  public void onPostUpdateCommitFailed(PostUpdateEvent event) {
+    log.debug("onPostUpdateCommitFailed: " + event);
+  }
 
-        return trackedEntityAttributeId + ";" + entityInstanceId;
-    }
+  @Override
+  public void onPostInsertCommitFailed(PostInsertEvent event) {
+    log.debug("onPostInsertCommitFailed: " + event);
+  }
 
-    private Serializable getCompleteDataSetRegistrationId( Object entity )
-    {
-        CompleteDataSetRegistration completeDataSetRegistration = (CompleteDataSetRegistration) entity;
-
-        long dataSetId = completeDataSetRegistration.getDataSet().getId();
-        long periodId = completeDataSetRegistration.getPeriod().getId();
-        long organisationUnitId = completeDataSetRegistration.getSource().getId();
-        long categoryOptionComboId = completeDataSetRegistration.getAttributeOptionCombo().getId();
-
-        return dataSetId + ";" + periodId + ";" + organisationUnitId + ";" + categoryOptionComboId;
-    }
-
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return true;
-    }
-
-    @Override
-    public boolean requiresPostCommitHandling( EntityPersister persister )
-    {
-        return PostCommitUpdateEventListener.super.requiresPostCommitHandling( persister );
-    }
-
-    @Override
-    public void onPostUpdateCommitFailed( PostUpdateEvent event )
-    {
-        log.debug( "onPostUpdateCommitFailed: " + event );
-    }
-
-    @Override
-    public void onPostInsertCommitFailed( PostInsertEvent event )
-    {
-        log.debug( "onPostInsertCommitFailed: " + event );
-    }
-
-    @Override
-    public void onPostDeleteCommitFailed( PostDeleteEvent event )
-    {
-        log.debug( "onPostDeleteCommitFailed: " + event );
-    }
+  @Override
+  public void onPostDeleteCommitFailed(PostDeleteEvent event) {
+    log.debug("onPostDeleteCommitFailed: " + event);
+  }
 }

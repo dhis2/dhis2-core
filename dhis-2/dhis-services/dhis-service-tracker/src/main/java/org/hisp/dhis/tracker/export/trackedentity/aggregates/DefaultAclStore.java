@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import java.util.List;
-
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,81 +39,94 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Luciano Fiandesio
  */
-@Repository( "org.hisp.dhis.tracker.trackedentity.aggregates.AclStore" )
-public class DefaultAclStore
-    implements
-    AclStore
-{
-    private final NamedParameterJdbcTemplate jdbcTemplate;
+@Repository("org.hisp.dhis.tracker.trackedentity.aggregates.AclStore")
+public class DefaultAclStore implements AclStore {
+  private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private static final String USER_SQL_PARAM_NAME = "userId";
+  private static final String USER_SQL_PARAM_NAME = "userId";
 
-    private static final String USER_GROUP_SQL_PARAM_NAME = "userGroupUIDs";
+  private static final String USER_GROUP_SQL_PARAM_NAME = "userGroupUIDs";
 
-    private static final String PUBLIC_ACCESS_CONDITION = "sharing->>'public' LIKE '__r%' OR sharing->>'public' IS NULL";
+  private static final String PUBLIC_ACCESS_CONDITION =
+      "sharing->>'public' LIKE '__r%' OR sharing->>'public' IS NULL";
 
-    private static final String USERACCESS_CONDITION = "sharing->'users'->:" + USER_SQL_PARAM_NAME
-        + "->>'access' LIKE '__r%'";
+  private static final String USERACCESS_CONDITION =
+      "sharing->'users'->:" + USER_SQL_PARAM_NAME + "->>'access' LIKE '__r%'";
 
-    private static final String USERGROUPACCESS_CONDITION = JsonbFunctions.HAS_USER_GROUP_IDS + "( sharing, :"
-        + USER_GROUP_SQL_PARAM_NAME + ") = true " +
-        "and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "(sharing, '__r%', :" + USER_GROUP_SQL_PARAM_NAME
-        + ") = true";
+  private static final String USERGROUPACCESS_CONDITION =
+      JsonbFunctions.HAS_USER_GROUP_IDS
+          + "( sharing, :"
+          + USER_GROUP_SQL_PARAM_NAME
+          + ") = true "
+          + "and "
+          + JsonbFunctions.CHECK_USER_GROUPS_ACCESS
+          + "(sharing, '__r%', :"
+          + USER_GROUP_SQL_PARAM_NAME
+          + ") = true";
 
-    private static final String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "
-        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
+  private static final String GET_TEI_TYPE_ACL =
+      "SELECT trackedentitytypeid FROM trackedentitytype "
+          + " WHERE "
+          + PUBLIC_ACCESS_CONDITION
+          + " OR "
+          + USERACCESS_CONDITION;
 
-    static final String GET_PROGRAM_ACL = "SELECT p.programid FROM program p "
-        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
+  static final String GET_PROGRAM_ACL =
+      "SELECT p.programid FROM program p "
+          + " WHERE "
+          + PUBLIC_ACCESS_CONDITION
+          + " OR "
+          + USERACCESS_CONDITION;
 
-    static final String GET_PROGRAMSTAGE_ACL = "SELECT ps.programstageid FROM programstage ps "
-        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
+  static final String GET_PROGRAMSTAGE_ACL =
+      "SELECT ps.programstageid FROM programstage ps "
+          + " WHERE "
+          + PUBLIC_ACCESS_CONDITION
+          + " OR "
+          + USERACCESS_CONDITION;
 
-    private static final String GET_RELATIONSHIPTYPE_ACL = "SELECT rs.relationshiptypeid "
-        + "FROM relationshiptype rs"
-        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
+  private static final String GET_RELATIONSHIPTYPE_ACL =
+      "SELECT rs.relationshiptypeid "
+          + "FROM relationshiptype rs"
+          + " WHERE "
+          + PUBLIC_ACCESS_CONDITION
+          + " OR "
+          + USERACCESS_CONDITION;
 
-    public DefaultAclStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
+  public DefaultAclStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    this.jdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+  }
+
+  @Override
+  public List<Long> getAccessibleTrackedEntityTypes(String userUID, List<String> userGroupUIDs) {
+    return executeAclQuery(userUID, userGroupUIDs, GET_TEI_TYPE_ACL, "trackedentitytypeid");
+  }
+
+  @Override
+  public List<Long> getAccessiblePrograms(String userUID, List<String> userGroupUIDs) {
+    return executeAclQuery(userUID, userGroupUIDs, GET_PROGRAM_ACL, "programid");
+  }
+
+  @Override
+  public List<Long> getAccessibleProgramStages(String userUID, List<String> userGroupUIDs) {
+    return executeAclQuery(userUID, userGroupUIDs, GET_PROGRAMSTAGE_ACL, "programstageid");
+  }
+
+  @Override
+  public List<Long> getAccessibleRelationshipTypes(String userUID, List<String> userGroupUIDs) {
+    return executeAclQuery(userUID, userGroupUIDs, GET_RELATIONSHIPTYPE_ACL, "relationshiptypeid");
+  }
+
+  private List<Long> executeAclQuery(
+      String userUID, List<String> userGroupUIDs, String sql, String primaryKey) {
+    MapSqlParameterSource parameterMap = new MapSqlParameterSource();
+    parameterMap.addValue(USER_SQL_PARAM_NAME, userUID);
+
+    if (!CollectionUtils.isEmpty(userGroupUIDs)) {
+      sql += " OR " + USERGROUPACCESS_CONDITION;
+      parameterMap.addValue(USER_GROUP_SQL_PARAM_NAME, "{" + String.join(",", userGroupUIDs) + "}");
     }
 
-    @Override
-    public List<Long> getAccessibleTrackedEntityTypes( String userUID, List<String> userGroupUIDs )
-    {
-        return executeAclQuery( userUID, userGroupUIDs, GET_TEI_TYPE_ACL, "trackedentitytypeid" );
-    }
-
-    @Override
-    public List<Long> getAccessiblePrograms( String userUID, List<String> userGroupUIDs )
-    {
-        return executeAclQuery( userUID, userGroupUIDs, GET_PROGRAM_ACL, "programid" );
-    }
-
-    @Override
-    public List<Long> getAccessibleProgramStages( String userUID, List<String> userGroupUIDs )
-    {
-        return executeAclQuery( userUID, userGroupUIDs, GET_PROGRAMSTAGE_ACL, "programstageid" );
-    }
-
-    @Override
-    public List<Long> getAccessibleRelationshipTypes( String userUID, List<String> userGroupUIDs )
-    {
-        return executeAclQuery( userUID, userGroupUIDs, GET_RELATIONSHIPTYPE_ACL, "relationshiptypeid" );
-    }
-
-    private List<Long> executeAclQuery( String userUID, List<String> userGroupUIDs, String sql, String primaryKey )
-    {
-        MapSqlParameterSource parameterMap = new MapSqlParameterSource();
-        parameterMap.addValue( USER_SQL_PARAM_NAME, userUID );
-
-        if ( !CollectionUtils.isEmpty( userGroupUIDs ) )
-        {
-            sql += " OR " + USERGROUPACCESS_CONDITION;
-            parameterMap.addValue( USER_GROUP_SQL_PARAM_NAME, "{" + String.join( ",", userGroupUIDs ) + "}" );
-        }
-
-        return jdbcTemplate.query( sql, parameterMap, ( rs, i ) -> rs.getLong( primaryKey ) );
-    }
-
+    return jdbcTemplate.query(sql, parameterMap, (rs, i) -> rs.getLong(primaryKey));
+  }
 }

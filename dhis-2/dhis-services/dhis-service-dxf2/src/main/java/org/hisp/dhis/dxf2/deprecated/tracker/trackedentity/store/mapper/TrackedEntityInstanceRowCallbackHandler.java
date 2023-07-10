@@ -47,7 +47,6 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.system.util.GeoUtils;
@@ -58,56 +57,49 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceRowCallbackHandler
-    implements
-    RowCallbackHandler
-{
-    private Map<String, TrackedEntityInstance> items;
+public class TrackedEntityInstanceRowCallbackHandler implements RowCallbackHandler {
+  private Map<String, TrackedEntityInstance> items;
 
-    public TrackedEntityInstanceRowCallbackHandler()
-    {
-        this.items = new LinkedHashMap<>();
+  public TrackedEntityInstanceRowCallbackHandler() {
+    this.items = new LinkedHashMap<>();
+  }
+
+  private TrackedEntityInstance getTei(ResultSet rs) throws SQLException {
+
+    TrackedEntityInstance tei = new TrackedEntityInstance();
+
+    tei.setTrackedEntityInstance(rs.getString(getColumnName(UID)));
+    tei.setOrgUnit(rs.getString(getColumnName(ORGUNIT_UID)));
+    tei.setTrackedEntityType(rs.getString(getColumnName(TYPE_UID)));
+    tei.setCreated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATED))));
+    tei.setCreatedAtClient(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(CREATEDCLIENT))));
+    JsonbToObjectHelper.setUserInfoSnapshot(
+        rs, getColumnName(CREATED_BY), tei::setCreatedByUserInfo);
+    tei.setLastUpdated(DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATED))));
+    tei.setLastUpdatedAtClient(
+        DateUtils.getIso8601NoTz(rs.getTimestamp(getColumnName(UPDATEDCLIENT))));
+    JsonbToObjectHelper.setUserInfoSnapshot(
+        rs, getColumnName(LAST_UPDATED_BY), tei::setLastUpdatedByUserInfo);
+    tei.setInactive(rs.getBoolean(getColumnName(INACTIVE)));
+    tei.setDeleted(rs.getBoolean(getColumnName(DELETED)));
+    tei.setPotentialDuplicate(rs.getBoolean(getColumnName(POTENTIALDUPLICATE)));
+
+    Optional<Geometry> geo = MapperGeoUtils.resolveGeometry(rs.getBytes(getColumnName(GEOMETRY)));
+    if (geo.isPresent()) {
+      tei.setGeometry(geo.get());
+      tei.setFeatureType(FeatureType.getTypeFromName(geo.get().getGeometryType()));
+      tei.setCoordinates(GeoUtils.getCoordinatesFromGeometry(geo.get()));
     }
 
-    private TrackedEntityInstance getTei( ResultSet rs )
-        throws SQLException
-    {
+    return tei;
+  }
 
-        TrackedEntityInstance tei = new TrackedEntityInstance();
+  @Override
+  public void processRow(ResultSet rs) throws SQLException {
+    this.items.put(rs.getString("tei_uid"), getTei(rs));
+  }
 
-        tei.setTrackedEntityInstance( rs.getString( getColumnName( UID ) ) );
-        tei.setOrgUnit( rs.getString( getColumnName( ORGUNIT_UID ) ) );
-        tei.setTrackedEntityType( rs.getString( getColumnName( TYPE_UID ) ) );
-        tei.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
-        tei.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATEDCLIENT ) ) ) );
-        JsonbToObjectHelper.setUserInfoSnapshot( rs, getColumnName( CREATED_BY ), tei::setCreatedByUserInfo );
-        tei.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
-        tei.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATEDCLIENT ) ) ) );
-        JsonbToObjectHelper.setUserInfoSnapshot( rs, getColumnName( LAST_UPDATED_BY ), tei::setLastUpdatedByUserInfo );
-        tei.setInactive( rs.getBoolean( getColumnName( INACTIVE ) ) );
-        tei.setDeleted( rs.getBoolean( getColumnName( DELETED ) ) );
-        tei.setPotentialDuplicate( rs.getBoolean( getColumnName( POTENTIALDUPLICATE ) ) );
-
-        Optional<Geometry> geo = MapperGeoUtils.resolveGeometry( rs.getBytes( getColumnName( GEOMETRY ) ) );
-        if ( geo.isPresent() )
-        {
-            tei.setGeometry( geo.get() );
-            tei.setFeatureType( FeatureType.getTypeFromName( geo.get().getGeometryType() ) );
-            tei.setCoordinates( GeoUtils.getCoordinatesFromGeometry( geo.get() ) );
-        }
-
-        return tei;
-    }
-
-    @Override
-    public void processRow( ResultSet rs )
-        throws SQLException
-    {
-        this.items.put( rs.getString( "tei_uid" ), getTei( rs ) );
-    }
-
-    public Map<String, TrackedEntityInstance> getItems()
-    {
-        return this.items;
-    }
+  public Map<String, TrackedEntityInstance> getItems() {
+    return this.items;
+  }
 }

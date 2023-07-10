@@ -45,64 +45,81 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class QueryPlannerUtilsTest
-{
-    private final AnalyticsAggregationType SUM_SUM = new AnalyticsAggregationType( AggregationType.SUM,
-        AggregationType.SUM );
+class QueryPlannerUtilsTest {
+  private final AnalyticsAggregationType SUM_SUM =
+      new AnalyticsAggregationType(AggregationType.SUM, AggregationType.SUM);
 
-    private final AnalyticsAggregationType SUM_AVG = new AnalyticsAggregationType( AggregationType.SUM,
-        AggregationType.AVERAGE );
+  private final AnalyticsAggregationType SUM_AVG =
+      new AnalyticsAggregationType(AggregationType.SUM, AggregationType.AVERAGE);
 
-    @Test
-    void testGetAggregationType()
-    {
-        AnalyticsAggregationType typeA = new AnalyticsAggregationType(
-            AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
-        AnalyticsAggregationType typeB = new AnalyticsAggregationType(
-            AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.NUMERIC, true );
-        assertEquals( typeA,
-            QueryPlannerUtils.getAggregationType(
-                new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), ValueType.INTEGER,
-                new QuarterlyPeriodType(), new YearlyPeriodType() ) );
-        assertEquals( typeB,
-            QueryPlannerUtils.getAggregationType(
-                new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE ), ValueType.INTEGER,
-                new QuarterlyPeriodType(), new YearlyPeriodType() ) );
-    }
+  @Test
+  void testGetAggregationType() {
+    AnalyticsAggregationType typeA =
+        new AnalyticsAggregationType(
+            AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true);
+    AnalyticsAggregationType typeB =
+        new AnalyticsAggregationType(
+            AggregationType.AVERAGE, AggregationType.AVERAGE, DataType.NUMERIC, true);
+    assertEquals(
+        typeA,
+        QueryPlannerUtils.getAggregationType(
+            new AnalyticsAggregationType(AggregationType.SUM, AggregationType.AVERAGE),
+            ValueType.INTEGER,
+            new QuarterlyPeriodType(),
+            new YearlyPeriodType()));
+    assertEquals(
+        typeB,
+        QueryPlannerUtils.getAggregationType(
+            new AnalyticsAggregationType(AggregationType.AVERAGE, AggregationType.AVERAGE),
+            ValueType.INTEGER,
+            new QuarterlyPeriodType(),
+            new YearlyPeriodType()));
+  }
 
-    @Test
-    void testIsDisaggregation()
-    {
-        assertTrue( QueryPlannerUtils.isDisaggregation(
-            SUM_AVG, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
-        assertTrue( QueryPlannerUtils.isDisaggregation(
-            SUM_AVG, new MonthlyPeriodType(), new YearlyPeriodType() ) );
-        assertTrue( QueryPlannerUtils.isDisaggregation(
-            SUM_AVG, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
-        assertTrue( QueryPlannerUtils.isDisaggregation(
-            SUM_AVG, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation(
-            SUM_SUM, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation(
-            SUM_SUM, new MonthlyPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation(
-            SUM_SUM, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation(
-            SUM_SUM, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation(
-            SUM_AVG, new YearlyPeriodType(), new QuarterlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation(
-            SUM_AVG, new YearlyPeriodType(), new YearlyPeriodType() ) );
-        assertFalse( QueryPlannerUtils.isDisaggregation(
-            SUM_SUM, new YearlyPeriodType(), new YearlyPeriodType() ) );
-    }
+  @Test
+  void testIsDisaggregation() {
+    assertTrue(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new QuarterlyPeriodType(), new YearlyPeriodType()));
+    assertTrue(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new MonthlyPeriodType(), new YearlyPeriodType()));
+    assertTrue(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new FinancialAprilPeriodType(), new YearlyPeriodType()));
+    assertTrue(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new FinancialOctoberPeriodType(), new YearlyPeriodType()));
+    assertFalse(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new QuarterlyPeriodType(), new YearlyPeriodType()));
+    assertFalse(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new MonthlyPeriodType(), new YearlyPeriodType()));
+    assertFalse(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new FinancialAprilPeriodType(), new YearlyPeriodType()));
+    assertFalse(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new FinancialOctoberPeriodType(), new YearlyPeriodType()));
+    assertFalse(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new YearlyPeriodType(), new QuarterlyPeriodType()));
+    assertFalse(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_AVG, new YearlyPeriodType(), new YearlyPeriodType()));
+    assertFalse(
+        QueryPlannerUtils.isDisaggregation(
+            SUM_SUM, new YearlyPeriodType(), new YearlyPeriodType()));
+  }
 
-    @Test
-    void testFromAggregationType()
-    {
-        assertEquals( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM ),
-            AnalyticsAggregationType.fromAggregationType( AggregationType.SUM ) );
-        assertEquals( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ),
-            AnalyticsAggregationType.fromAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT ) );
-    }
+  @Test
+  void testFromAggregationType() {
+    assertEquals(
+        new AnalyticsAggregationType(AggregationType.SUM, AggregationType.SUM),
+        AnalyticsAggregationType.fromAggregationType(AggregationType.SUM));
+    assertEquals(
+        new AnalyticsAggregationType(AggregationType.SUM, AggregationType.AVERAGE),
+        AnalyticsAggregationType.fromAggregationType(AggregationType.AVERAGE_SUM_ORG_UNIT));
+  }
 }

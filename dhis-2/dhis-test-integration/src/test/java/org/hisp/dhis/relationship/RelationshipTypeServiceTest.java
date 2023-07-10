@@ -33,22 +33,19 @@ import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class RelationshipTypeServiceTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private RelationshipTypeService relationshipTypeService;
+class RelationshipTypeServiceTest extends SingleSetupIntegrationTestBase {
+  @Autowired private RelationshipTypeService relationshipTypeService;
 
-    @Test
-    void testAllRelationshipTypeFieldsAreSavedAndRetrieved()
-    {
-        RelationshipType relationshipType = createRelationshipType( 'A' );
-        relationshipType.setReferral( true );
-        relationshipType.setBidirectional( true );
-        relationshipTypeService.addRelationshipType( relationshipType );
+  @Test
+  void testAllRelationshipTypeFieldsAreSavedAndRetrieved() {
+    RelationshipType relationshipType = createRelationshipType('A');
+    relationshipType.setReferral(true);
+    relationshipType.setBidirectional(true);
+    relationshipTypeService.addRelationshipType(relationshipType);
 
-        RelationshipType retrievedRelationshipType = relationshipTypeService
-            .getRelationshipType( relationshipType.getUid() );
+    RelationshipType retrievedRelationshipType =
+        relationshipTypeService.getRelationshipType(relationshipType.getUid());
 
-        assertEquals( relationshipType, retrievedRelationshipType );
-    }
+    assertEquals(relationshipType, retrievedRelationshipType);
+  }
 }

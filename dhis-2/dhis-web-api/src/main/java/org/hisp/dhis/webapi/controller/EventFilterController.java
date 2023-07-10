@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -42,36 +41,30 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags("tracker")
 @RestController
-@RequestMapping( value = EventFilterSchemaDescriptor.API_ENDPOINT )
-@ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
-public class EventFilterController extends AbstractCrudController<EventFilter>
-{
-    private final EventFilterService eventFilterService;
+@RequestMapping(value = EventFilterSchemaDescriptor.API_ENDPOINT)
+@ApiVersion(include = {DhisApiVersion.ALL, DhisApiVersion.DEFAULT})
+public class EventFilterController extends AbstractCrudController<EventFilter> {
+  private final EventFilterService eventFilterService;
 
-    public EventFilterController( EventFilterService eventFilterService )
-    {
-        this.eventFilterService = eventFilterService;
-    }
+  public EventFilterController(EventFilterService eventFilterService) {
+    this.eventFilterService = eventFilterService;
+  }
 
-    @Override
-    public void preCreateEntity( EventFilter eventFilter )
-    {
-        List<String> errors = eventFilterService.validate( eventFilter );
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
+  @Override
+  public void preCreateEntity(EventFilter eventFilter) {
+    List<String> errors = eventFilterService.validate(eventFilter);
+    if (!errors.isEmpty()) {
+      throw new IllegalQueryException(errors.toString());
     }
+  }
 
-    @Override
-    public void preUpdateEntity( EventFilter oldEventFilter, EventFilter newEventFilter )
-    {
-        List<String> errors = eventFilterService.validate( newEventFilter );
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
+  @Override
+  public void preUpdateEntity(EventFilter oldEventFilter, EventFilter newEventFilter) {
+    List<String> errors = eventFilterService.validate(newEventFilter);
+    if (!errors.isEmpty()) {
+      throw new IllegalQueryException(errors.toString());
     }
+  }
 }

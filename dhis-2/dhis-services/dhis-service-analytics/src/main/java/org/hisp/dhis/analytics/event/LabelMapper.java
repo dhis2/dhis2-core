@@ -33,85 +33,71 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Specific component responsible mapping custom labels for specific cases where
- * the user is able to customize them.
+ * Specific component responsible mapping custom labels for specific cases where the user is able to
+ * customize them.
  *
  * @author maikel arabori
  */
-public class LabelMapper
-{
-    private LabelMapper()
-    {
-        throw new UnsupportedOperationException();
+public class LabelMapper {
+  private LabelMapper() {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Returns a custom label for the event date if it exists, otherwise the given default label.
+   *
+   * @param programStage the {@link ProgramStage}.
+   * @param defaultLabel the default label.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getEventDateLabel(ProgramStage programStage, String defaultLabel) {
+    if (programStage != null && isNotBlank(programStage.getDisplayExecutionDateLabel())) {
+      return programStage.getDisplayExecutionDateLabel();
     }
 
-    /**
-     * Returns a custom label for the event date if it exists, otherwise the
-     * given default label.
-     *
-     * @param programStage the {@link ProgramStage}.
-     * @param defaultLabel the default label.
-     * @return the custom label, otherwise the default label.
-     */
-    public static String getEventDateLabel( ProgramStage programStage, String defaultLabel )
-    {
-        if ( programStage != null && isNotBlank( programStage.getDisplayExecutionDateLabel() ) )
-        {
-            return programStage.getDisplayExecutionDateLabel();
-        }
+    return defaultLabel;
+  }
 
-        return defaultLabel;
+  /**
+   * Returns a custom label for the scheduled date if it exists, otherwise the given default label.
+   *
+   * @param programStage the {@link ProgramStage}.
+   * @param defaultLabel the default label.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getScheduledDateLabel(ProgramStage programStage, String defaultLabel) {
+    if (programStage != null && isNotBlank(programStage.getDisplayDueDateLabel())) {
+      return programStage.getDisplayDueDateLabel();
     }
 
-    /**
-     * Returns a custom label for the scheduled date if it exists, otherwise the
-     * given default label.
-     *
-     * @param programStage the {@link ProgramStage}.
-     * @param defaultLabel the default label.
-     * @return the custom label, otherwise the default label.
-     */
-    public static String getScheduledDateLabel( ProgramStage programStage, String defaultLabel )
-    {
-        if ( programStage != null && isNotBlank( programStage.getDisplayDueDateLabel() ) )
-        {
-            return programStage.getDisplayDueDateLabel();
-        }
+    return defaultLabel;
+  }
 
-        return defaultLabel;
+  /**
+   * Returns a custom label for enrollment date if one exists, otherwise the given default label.
+   *
+   * @param program the {@link Program}.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getEnrollmentDateLabel(Program program, String defaultLabel) {
+    if (program != null && isNotBlank(program.getDisplayEnrollmentDateLabel())) {
+      return program.getDisplayEnrollmentDateLabel();
     }
 
-    /**
-     * Returns a custom label for enrollment date if one exists, otherwise the
-     * given default label.
-     *
-     * @param program the {@link Program}.
-     * @return the custom label, otherwise the default label.
-     */
-    public static String getEnrollmentDateLabel( Program program, String defaultLabel )
-    {
-        if ( program != null && isNotBlank( program.getDisplayEnrollmentDateLabel() ) )
-        {
-            return program.getDisplayEnrollmentDateLabel();
-        }
+    return defaultLabel;
+  }
 
-        return defaultLabel;
+  /**
+   * Returns a custom label for incident date if one exists, otherwise the given default label.
+   *
+   * @param program the {@link Program}.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getIncidentDateLabel(Program program, String defaultLabel) {
+    if (program != null && isNotBlank(program.getDisplayIncidentDateLabel())) {
+      return program.getDisplayIncidentDateLabel();
     }
 
-    /**
-     * Returns a custom label for incident date if one exists, otherwise the
-     * given default label.
-     *
-     * @param program the {@link Program}.
-     * @return the custom label, otherwise the default label.
-     */
-    public static String getIncidentDateLabel( Program program, String defaultLabel )
-    {
-        if ( program != null && isNotBlank( program.getDisplayIncidentDateLabel() ) )
-        {
-            return program.getDisplayIncidentDateLabel();
-        }
-
-        return defaultLabel;
-    }
+    return defaultLabel;
+  }
 }

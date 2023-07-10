@@ -27,24 +27,18 @@
  */
 package org.hisp.dhis.tracker.imports.job;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.webmessage.WebMessageResponse;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
 @Builder
-public class TrackerJobWebMessageResponse
-    implements WebMessageResponse
-{
-    @JsonProperty
-    private final String id;
+public class TrackerJobWebMessageResponse implements WebMessageResponse {
+  @JsonProperty private final String id;
 
-    @JsonProperty
-    private final String location;
+  @JsonProperty private final String location;
 }
