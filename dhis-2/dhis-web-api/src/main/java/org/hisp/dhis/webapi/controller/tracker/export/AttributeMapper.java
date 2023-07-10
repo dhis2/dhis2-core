@@ -34,16 +34,14 @@ import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = InstantMapper.class )
-public interface AttributeMapper
-    extends ViewMapper<TrackedEntityAttributeValue, Attribute>
-{
-    @Mapping( target = "attribute", source = "attribute.uid" )
-    @Mapping( target = "code", source = "attribute.code" )
-    @Mapping( target = "displayName", source = "attribute.displayName" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "valueType", source = "attribute.valueType" )
-    @Override
-    Attribute from( TrackedEntityAttributeValue attribute );
+@Mapper(uses = InstantMapper.class)
+public interface AttributeMapper extends ViewMapper<TrackedEntityAttributeValue, Attribute> {
+  @Mapping(target = "attribute", source = "attribute.uid")
+  @Mapping(target = "code", source = "attribute.code")
+  @Mapping(target = "displayName", source = "attribute.displayName")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "valueType", source = "attribute.valueType")
+  @Override
+  Attribute from(TrackedEntityAttributeValue attribute);
 }

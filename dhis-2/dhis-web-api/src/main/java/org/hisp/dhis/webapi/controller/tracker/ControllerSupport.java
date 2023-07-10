@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker;
 
-public class ControllerSupport
-{
-    private ControllerSupport()
-    {
-        throw new IllegalStateException( "Utility class" );
-    }
+public class ControllerSupport {
+  private ControllerSupport() {
+    throw new IllegalStateException("Utility class");
+  }
 
-    public static final String RESOURCE_PATH = "/tracker";
+  public static final String RESOURCE_PATH = "/tracker";
 }

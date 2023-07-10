@@ -28,33 +28,29 @@
 package org.hisp.dhis.system.notification;
 
 import javax.annotation.Nonnull;
-
 import org.slf4j.Logger;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class NotificationLoggerUtil
-{
-    public static void log( Logger logger, @Nonnull NotificationLevel level, String message )
-    {
-        switch ( level )
-        {
-        case LOOP:
-        case DEBUG:
-            logger.debug( message );
-            break;
-        case INFO:
-            logger.info( message );
-            break;
-        case WARN:
-            logger.warn( message );
-            break;
-        case ERROR:
-            logger.error( message );
-            break;
-        case OFF:
-            break;
-        }
+public class NotificationLoggerUtil {
+  public static void log(Logger logger, @Nonnull NotificationLevel level, String message) {
+    switch (level) {
+      case LOOP:
+      case DEBUG:
+        logger.debug(message);
+        break;
+      case INFO:
+        logger.info(message);
+        break;
+      case WARN:
+        logger.warn(message);
+        break;
+      case ERROR:
+        logger.error(message);
+        break;
+      case OFF:
+        break;
     }
+  }
 }

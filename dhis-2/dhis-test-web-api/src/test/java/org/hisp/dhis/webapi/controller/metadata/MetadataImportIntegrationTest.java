@@ -40,70 +40,75 @@ import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-class MetadataImportIntegrationTest extends DhisControllerIntegrationTest
-{
-    @Test
-    @DisplayName( "Should return error when import program with inaccessible programStage" )
-    void testImportInaccessibleReference()
-    {
-        JsonImportSummary response = POST( "/metadata",
-            Body( "metadata/test_user.json" ) ).content( HttpStatus.OK ).as( JsonImportSummary.class );
-        User user = userService.getUser( "HvbPAQEyXSD" );
-        assertNotNull( user );
-        switchContextToUser( user );
-        response = POST( "/metadata",
-            Body( "metadata/program_with_inaccessible_programStage.json" ) ).content( HttpStatus.CONFLICT )
-            .as( JsonImportSummary.class );
-        JsonErrorReport errorReport = response.find( JsonErrorReport.class,
-            error -> error.getErrorCode() == ErrorCode.E5008 );
-        assertNotNull( errorReport );
-        assertEquals(
-            "READ access is required for reference [LloQNgtkrbt] (ProgramStage) on object test [SkV0iNXNJ2S] (Program) for association `programStage`",
-            errorReport.getMessage() );
-    }
+class MetadataImportIntegrationTest extends DhisControllerIntegrationTest {
+  @Test
+  @DisplayName("Should return error when import program with inaccessible programStage")
+  void testImportInaccessibleReference() {
+    JsonImportSummary response =
+        POST("/metadata", Body("metadata/test_user.json"))
+            .content(HttpStatus.OK)
+            .as(JsonImportSummary.class);
+    User user = userService.getUser("HvbPAQEyXSD");
+    assertNotNull(user);
+    switchContextToUser(user);
+    response =
+        POST("/metadata", Body("metadata/program_with_inaccessible_programStage.json"))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonImportSummary.class);
+    JsonErrorReport errorReport =
+        response.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E5008);
+    assertNotNull(errorReport);
+    assertEquals(
+        "READ access is required for reference [LloQNgtkrbt] (ProgramStage) on object test [SkV0iNXNJ2S] (Program) for association `programStage`",
+        errorReport.getMessage());
+  }
 
-    @Test
-    @DisplayName( "Should return error when import program with inaccessible DataElement which is referenced by a ProgramStageDataElement" )
-    void testImportInaccessibleEmbeddedReference()
-    {
-        POST( "/metadata",
-            Body( "metadata/test_user.json" ) ).content( HttpStatus.OK ).as( JsonImportSummary.class );
-        User user = userService.getUser( "HvbPAQEyXSD" );
-        assertNotNull( user );
-        switchContextToUser( user );
-        JsonImportSummary response = POST( "/metadata",
-            Body( "metadata/program_with_inaccessible_dataelement.json" ) ).content( HttpStatus.CONFLICT )
-            .as( JsonImportSummary.class );
-        JsonErrorReport errorReport = response.find( JsonErrorReport.class,
-            error -> error.getErrorCode() == ErrorCode.E5008 );
-        assertNotNull( errorReport );
-        assertEquals(
-            "READ access is required for reference [rFQNCGMYud2] (DataElement) on object [m69ZMmIJctI] (ProgramStageDataElement) for association `dataElement`",
-            errorReport.getMessage() );
-    }
+  @Test
+  @DisplayName(
+      "Should return error when import program with inaccessible DataElement which is referenced by a ProgramStageDataElement")
+  void testImportInaccessibleEmbeddedReference() {
+    POST("/metadata", Body("metadata/test_user.json"))
+        .content(HttpStatus.OK)
+        .as(JsonImportSummary.class);
+    User user = userService.getUser("HvbPAQEyXSD");
+    assertNotNull(user);
+    switchContextToUser(user);
+    JsonImportSummary response =
+        POST("/metadata", Body("metadata/program_with_inaccessible_dataelement.json"))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonImportSummary.class);
+    JsonErrorReport errorReport =
+        response.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E5008);
+    assertNotNull(errorReport);
+    assertEquals(
+        "READ access is required for reference [rFQNCGMYud2] (DataElement) on object [m69ZMmIJctI] (ProgramStageDataElement) for association `dataElement`",
+        errorReport.getMessage());
+  }
 
-    @Test
-    @DisplayName( "Should return error when update Program with non-writable ProgramStage" )
-    void testUpdateInaccessibleReference()
-    {
-        JsonImportSummary response = POST( "/metadata",
-            Body( "metadata/test_user.json" ) ).content( HttpStatus.OK ).as( JsonImportSummary.class );
-        User user = userService.getUser( "HvbPAQEyXSD" );
-        assertNotNull( user );
-        switchContextToUser( user );
-        POST( "/metadata",
-            Body( "metadata/program_with_readable_programStage.json" ) ).content( HttpStatus.OK )
-            .as( JsonImportSummary.class );
+  @Test
+  @DisplayName("Should return error when update Program with non-writable ProgramStage")
+  void testUpdateInaccessibleReference() {
+    JsonImportSummary response =
+        POST("/metadata", Body("metadata/test_user.json"))
+            .content(HttpStatus.OK)
+            .as(JsonImportSummary.class);
+    User user = userService.getUser("HvbPAQEyXSD");
+    assertNotNull(user);
+    switchContextToUser(user);
+    POST("/metadata", Body("metadata/program_with_readable_programStage.json"))
+        .content(HttpStatus.OK)
+        .as(JsonImportSummary.class);
 
-        response = POST( "/metadata",
-            Body( "metadata/update_program_with_non_writtable_programStage.json" ) ).content( HttpStatus.CONFLICT )
-            .as( JsonImportSummary.class );
+    response =
+        POST("/metadata", Body("metadata/update_program_with_non_writtable_programStage.json"))
+            .content(HttpStatus.CONFLICT)
+            .as(JsonImportSummary.class);
 
-        JsonErrorReport errorReport = response.find( JsonErrorReport.class,
-            error -> error.getErrorCode() == ErrorCode.E3001 );
-        assertNotNull( errorReport );
-        assertEquals(
-            "User `test User testuser [HvbPAQEyXSD] (User)` is not allowed to update object `test [LloQNgtkrbt] (ProgramStage)`",
-            errorReport.getMessage() );
-    }
+    JsonErrorReport errorReport =
+        response.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3001);
+    assertNotNull(errorReport);
+    assertEquals(
+        "User `test User testuser [HvbPAQEyXSD] (User)` is not allowed to update object `test [LloQNgtkrbt] (ProgramStage)`",
+        errorReport.getMessage());
+  }
 }

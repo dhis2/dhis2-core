@@ -29,16 +29,14 @@ package org.hisp.dhis.analytics.common.query;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class IsNullConditionRenderer extends BaseRenderable
-{
-    private final Renderable left;
+@RequiredArgsConstructor(staticName = "of")
+public class IsNullConditionRenderer extends BaseRenderable {
+  private final Renderable left;
 
-    private final boolean isNull;
+  private final boolean isNull;
 
-    @Override
-    public String render()
-    {
-        return left.render() + (isNull ? " is null" : " is not null");
-    }
+  @Override
+  public String render() {
+    return left.render() + (isNull ? " is null" : " is not null");
+  }
 }

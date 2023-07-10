@@ -37,21 +37,19 @@ import org.junit.jupiter.api.Test;
  *
  * @author Volker Schmidt
  */
-class ComplexNodeTest
-{
+class ComplexNodeTest {
 
-    @Test
-    void createSingleChild()
-    {
-        final Property property = new Property( AbstractNodeTest.TestClass.class );
-        property.setName( "tests" );
-        property.setNamespace( "testUri" );
-        final SimpleNode simpleNode = new SimpleNode( "id", "My Test" );
-        final ComplexNode testNode = new ComplexNode( property, simpleNode );
-        Assertions.assertEquals( "tests", testNode.getName() );
-        Assertions.assertEquals( "testUri", testNode.getNamespace() );
-        Assertions.assertEquals( AbstractNodeTest.TestClass.class, testNode.getProperty().getKlass() );
-        Assertions.assertEquals( 1, testNode.getUnorderedChildren().size() );
-        Assertions.assertSame( simpleNode, testNode.getUnorderedChildren().get( 0 ) );
-    }
+  @Test
+  void createSingleChild() {
+    final Property property = new Property(AbstractNodeTest.TestClass.class);
+    property.setName("tests");
+    property.setNamespace("testUri");
+    final SimpleNode simpleNode = new SimpleNode("id", "My Test");
+    final ComplexNode testNode = new ComplexNode(property, simpleNode);
+    Assertions.assertEquals("tests", testNode.getName());
+    Assertions.assertEquals("testUri", testNode.getNamespace());
+    Assertions.assertEquals(AbstractNodeTest.TestClass.class, testNode.getProperty().getKlass());
+    Assertions.assertEquals(1, testNode.getUnorderedChildren().size());
+    Assertions.assertSame(simpleNode, testNode.getUnorderedChildren().get(0));
+  }
 }

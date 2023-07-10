@@ -33,19 +33,15 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@JsonTypeName("bulksms")
+public class BulkSmsGatewayConfig extends SmsGatewayConfig {
+  private static final long serialVersionUID = 5249703354480948250L;
 
-@JsonTypeName( "bulksms" )
-public class BulkSmsGatewayConfig
-    extends SmsGatewayConfig
-{
-    private static final long serialVersionUID = 5249703354480948250L;
+  private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
 
-    private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
-
-    @Override
-    @JsonProperty( value = "urlTemplate" )
-    public String getUrlTemplate()
-    {
-        return this.JSON_API_URL;
-    }
+  @Override
+  @JsonProperty(value = "urlTemplate")
+  public String getUrlTemplate() {
+    return this.JSON_API_URL;
+  }
 }

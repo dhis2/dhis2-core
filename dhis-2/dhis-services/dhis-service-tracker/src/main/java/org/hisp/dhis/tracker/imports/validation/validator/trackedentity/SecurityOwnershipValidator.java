@@ -35,9 +35,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporter
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
@@ -57,109 +55,105 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  * @author Ameen <ameen@dhis2.org>
  */
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.SecurityOwnershipValidator" )
+@Component(
+    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.SecurityOwnershipValidator")
 @RequiredArgsConstructor
 class SecurityOwnershipValidator
-    implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
-{
-    @Nonnull
-    private final AclService aclService;
+    implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
+  @Nonnull private final AclService aclService;
 
-    @Nonnull
-    private final OrganisationUnitService organisationUnitService;
+  @Nonnull private final OrganisationUnitService organisationUnitService;
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity )
-    {
-        TrackerImportStrategy strategy = bundle.getStrategy( trackedEntity );
-        User user = bundle.getUser();
+  @Override
+  public void validate(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
+    TrackerImportStrategy strategy = bundle.getStrategy(trackedEntity);
+    User user = bundle.getUser();
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(trackedEntity, TRACKED_ENTITY_CANT_BE_NULL);
 
-        TrackedEntityType trackedEntityType = strategy.isUpdateOrDelete()
-            ? bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() ).getTrackedEntityType()
-            : bundle.getPreheat()
-                .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+    TrackedEntityType trackedEntityType =
+        strategy.isUpdateOrDelete()
+            ? bundle
+                .getPreheat()
+                .getTrackedEntity(trackedEntity.getTrackedEntity())
+                .getTrackedEntityType()
+            : bundle.getPreheat().getTrackedEntityType(trackedEntity.getTrackedEntityType());
 
-        OrganisationUnit organisationUnit = strategy.isUpdateOrDelete()
-            ? bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() ).getOrganisationUnit()
-            : bundle.getPreheat().getOrganisationUnit( trackedEntity.getOrgUnit() );
+    OrganisationUnit organisationUnit =
+        strategy.isUpdateOrDelete()
+            ? bundle
+                .getPreheat()
+                .getTrackedEntity(trackedEntity.getTrackedEntity())
+                .getOrganisationUnit()
+            : bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
 
-        // If trackedEntity is newly created, or going to be deleted, capture
-        // scope has to be checked
-        if ( strategy.isCreate() || strategy.isDelete() )
-        {
-            checkOrgUnitInCaptureScope( reporter, bundle, trackedEntity, organisationUnit );
-        }
-        // if its to update trackedEntity, search scope has to be checked
-        else
-        {
-            checkOrgUnitInSearchScope( reporter, bundle, trackedEntity, organisationUnit );
-        }
-
-        if ( strategy.isDelete() )
-        {
-            TrackedEntity tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
-
-            if ( tei.getEnrollments().stream().anyMatch( e -> !e.isDeleted() )
-                && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
-            {
-                reporter.addError( trackedEntity, E1100, user, tei );
-            }
-        }
-
-        checkTeiTypeWriteAccess( reporter, bundle, trackedEntity, trackedEntityType );
+    // If trackedEntity is newly created, or going to be deleted, capture
+    // scope has to be checked
+    if (strategy.isCreate() || strategy.isDelete()) {
+      checkOrgUnitInCaptureScope(reporter, bundle, trackedEntity, organisationUnit);
+    }
+    // if its to update trackedEntity, search scope has to be checked
+    else {
+      checkOrgUnitInSearchScope(reporter, bundle, trackedEntity, organisationUnit);
     }
 
-    private void checkTeiTypeWriteAccess( Reporter reporter, TrackerBundle bundle,
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
-        TrackedEntityType trackedEntityType )
-    {
-        User user = bundle.getUser();
+    if (strategy.isDelete()) {
+      TrackedEntity tei = bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-
-        if ( !aclService.canDataWrite( user, trackedEntityType ) )
-        {
-            reporter.addError( trackedEntity, ValidationCode.E1001, user, trackedEntityType );
-        }
+      if (tei.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
+          && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.getAuthority())) {
+        reporter.addError(trackedEntity, E1100, user, tei);
+      }
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true;
+    checkTeiTypeWriteAccess(reporter, bundle, trackedEntity, trackedEntityType);
+  }
+
+  private void checkTeiTypeWriteAccess(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
+      TrackedEntityType trackedEntityType) {
+    User user = bundle.getUser();
+
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(trackedEntityType, TRACKED_ENTITY_TYPE_CANT_BE_NULL);
+
+    if (!aclService.canDataWrite(user, trackedEntityType)) {
+      reporter.addError(trackedEntity, ValidationCode.E1001, user, trackedEntityType);
     }
+  }
 
-    private void checkOrgUnitInCaptureScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
-        OrganisationUnit orgUnit )
-    {
-        User user = bundle.getUser();
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+  private void checkOrgUnitInCaptureScope(
+      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
+    User user = bundle.getUser();
 
-        if ( !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
-        {
-            reporter.addError( dto, ValidationCode.E1000, user, orgUnit );
-        }
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
+
+    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
+      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
+  }
 
-    private void checkOrgUnitInSearchScope( Reporter reporter, TrackerBundle bundle, TrackerDto dto,
-        OrganisationUnit orgUnit )
-    {
-        User user = bundle.getUser();
+  private void checkOrgUnitInSearchScope(
+      Reporter reporter, TrackerBundle bundle, TrackerDto dto, OrganisationUnit orgUnit) {
+    User user = bundle.getUser();
 
-        checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+    checkNotNull(user, USER_CANT_BE_NULL);
+    checkNotNull(orgUnit, ORGANISATION_UNIT_CANT_BE_NULL);
 
-        if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
-        {
-            reporter.addError( dto, ValidationCode.E1003, orgUnit, user );
-        }
+    if (!organisationUnitService.isInUserSearchHierarchyCached(user, orgUnit)) {
+      reporter.addError(dto, ValidationCode.E1003, orgUnit, user);
     }
-
+  }
 }

@@ -31,11 +31,10 @@ package org.hisp.dhis.system.database;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public interface DatabaseInfoProvider
-{
-    String ID = DatabaseInfoProvider.class.getName();
+public interface DatabaseInfoProvider {
+  String ID = DatabaseInfoProvider.class.getName();
 
-    DatabaseInfo getDatabaseInfo();
+  DatabaseInfo getDatabaseInfo();
 
-    boolean isInMemory();
+  boolean isInMemory();
 }

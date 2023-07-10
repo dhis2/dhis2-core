@@ -39,35 +39,30 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-class MandatoryFieldsValidator
-    implements Validator<Event>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
-    {
-        reporter.addErrorIf( () -> event.getOrgUnit().isBlank(), event, E1123, "orgUnit" );
-        reporter.addErrorIf( () -> event.getProgramStage().isBlank(), event, E1123, "programStage" );
+class MandatoryFieldsValidator implements Validator<Event> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    reporter.addErrorIf(() -> event.getOrgUnit().isBlank(), event, E1123, "orgUnit");
+    reporter.addErrorIf(() -> event.getProgramStage().isBlank(), event, E1123, "programStage");
 
-        // TODO remove if once metadata import is fixed
-        ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        if ( programStage != null )
-        {
-            // Program stages should always have a program! Due to how metadata
-            // import is currently implemented
-            // it's possible that users run into the edge case that a program
-            // stage does not have an associated
-            // program. Tell the user it's an issue with the metadata and not
-            // the event itself. This should be
-            // fixed in the metadata import. For more see
-            // https://jira.dhis2.org/browse/DHIS2-12123
-            reporter.addErrorIfNull( programStage.getProgram(), event, E1008, event.getProgramStage() );
-            // return since program is not a required field according to our API
-            // and the issue is with the missing reference in
-            // the DB entry of the program stage and not the payload itself
-            return;
-        }
-
-        reporter.addErrorIf( event.getProgram()::isBlank, event, E1123, "program" );
+    // TODO remove if once metadata import is fixed
+    ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+    if (programStage != null) {
+      // Program stages should always have a program! Due to how metadata
+      // import is currently implemented
+      // it's possible that users run into the edge case that a program
+      // stage does not have an associated
+      // program. Tell the user it's an issue with the metadata and not
+      // the event itself. This should be
+      // fixed in the metadata import. For more see
+      // https://jira.dhis2.org/browse/DHIS2-12123
+      reporter.addErrorIfNull(programStage.getProgram(), event, E1008, event.getProgramStage());
+      // return since program is not a required field according to our API
+      // and the issue is with the missing reference in
+      // the DB entry of the program stage and not the payload itself
+      return;
     }
 
+    reporter.addErrorIf(event.getProgram()::isBlank, event, E1123, "program");
+  }
 }

@@ -32,25 +32,18 @@ import org.hisp.dhis.common.ValueType;
 /**
  * @author Lars Helge Overland
  */
-public enum DataType
-{
-    NUMERIC,
-    BOOLEAN,
-    TEXT;
+public enum DataType {
+  NUMERIC,
+  BOOLEAN,
+  TEXT;
 
-    public static DataType fromValueType( ValueType valueType )
-    {
-        if ( valueType != null && valueType.isNumeric() )
-        {
-            return DataType.NUMERIC;
-        }
-        else if ( valueType != null && valueType.isBoolean() )
-        {
-            return DataType.BOOLEAN;
-        }
-        else
-        {
-            return DataType.TEXT;
-        }
+  public static DataType fromValueType(ValueType valueType) {
+    if (valueType != null && valueType.isNumeric()) {
+      return DataType.NUMERIC;
+    } else if (valueType != null && valueType.isBoolean()) {
+      return DataType.BOOLEAN;
+    } else {
+      return DataType.TEXT;
     }
+  }
 }

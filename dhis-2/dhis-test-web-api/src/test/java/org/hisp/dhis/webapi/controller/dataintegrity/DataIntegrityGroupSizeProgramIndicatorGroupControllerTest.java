@@ -28,110 +28,101 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import java.util.Set;
-
 import org.hisp.dhis.program.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Minimal test for program indicator groups which contain less than two
- * members.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_program_indicator_groups.yaml}
+ * Minimal test for program indicator groups which contain less than two members. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/groups/group_size_program_indicator_groups.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "program_indicator_groups_scarce";
+class DataIntegrityGroupSizeProgramIndicatorGroupControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "program_indicator_groups_scarce";
 
-    private static final String detailsIdType = "programIndicatorGroups";
+  private static final String detailsIdType = "programIndicatorGroups";
 
-    @Autowired
-    private ProgramIndicatorService programIndicatorService;
+  @Autowired private ProgramIndicatorService programIndicatorService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    private ProgramIndicator testPIb;
+  private ProgramIndicator testPIb;
 
-    @Test
-    void testProgramIndicatorGroupsTooSmall()
-    {
+  @Test
+  void testProgramIndicatorGroupsTooSmall() {
 
-        setUpTest();
+    setUpTest();
 
-        //Add a group with one indicator
-        ProgramIndicatorGroup programIndicatorGroupB = new ProgramIndicatorGroup( "Test PI Group B" );
-        programIndicatorGroupB.setAutoFields();
-        programIndicatorGroupB.addProgramIndicator( testPIb );
-        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupB );
+    // Add a group with one indicator
+    ProgramIndicatorGroup programIndicatorGroupB = new ProgramIndicatorGroup("Test PI Group B");
+    programIndicatorGroupB.setAutoFields();
+    programIndicatorGroupB.addProgramIndicator(testPIb);
+    programIndicatorService.addProgramIndicatorGroup(programIndicatorGroupB);
 
-        //Add a group with zero program indicators
-        ProgramIndicatorGroup programIndicatorGroupC = new ProgramIndicatorGroup( "Test PI Group C" );
-        programIndicatorGroupC.setAutoFields();
-        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupC );
-        dbmsManager.clearSession();
+    // Add a group with zero program indicators
+    ProgramIndicatorGroup programIndicatorGroupC = new ProgramIndicatorGroup("Test PI Group C");
+    programIndicatorGroupC.setAutoFields();
+    programIndicatorService.addProgramIndicatorGroup(programIndicatorGroupC);
+    dbmsManager.clearSession();
 
-        Set<String> expected_uids = Set.of( programIndicatorGroupC.getUid(), programIndicatorGroupB.getUid() );
-        Set<String> expected_names = Set.of( programIndicatorGroupC.getName(), programIndicatorGroupB.getName() );
+    Set<String> expected_uids =
+        Set.of(programIndicatorGroupC.getUid(), programIndicatorGroupB.getUid());
+    Set<String> expected_names =
+        Set.of(programIndicatorGroupC.getName(), programIndicatorGroupB.getName());
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66, expected_uids, expected_names,
-            Set.of( "0", "1" ), true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 66, expected_uids, expected_names, Set.of("0", "1"), true);
+  }
 
-    @Test
-    void testProgramIndicatorGroupSizeOK()
-    {
+  @Test
+  void testProgramIndicatorGroupSizeOK() {
 
-        setUpTest();
+    setUpTest();
 
-        dbmsManager.clearSession();
+    dbmsManager.clearSession();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    }
+  @Test
+  void testProgramIndicatorGroupSizeRuns() {
 
-    @Test
-    void testProgramIndicatorGroupSizeRuns()
-    {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
+  public void setUpTest() {
 
-    }
+    Program programA = new Program();
+    programA.setName("Program A");
+    programA.setShortName("Program A");
+    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    categoryService.getCategoryCombo(getDefaultCatCombo());
+    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
+    programService.addProgram(programA);
 
-    public void setUpTest()
-    {
+    ProgramIndicatorGroup programIndicatorGroupA = new ProgramIndicatorGroup("Test PI Group A");
+    programIndicatorGroupA.setAutoFields();
+    programIndicatorService.addProgramIndicatorGroup(programIndicatorGroupA);
 
-        Program programA = new Program();
-        programA.setName( "Program A" );
-        programA.setShortName( "Program A" );
-        programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        categoryService.getCategoryCombo( getDefaultCatCombo() );
-        programA.setCategoryCombo( categoryService.getCategoryCombo( getDefaultCatCombo() ) );
-        programService.addProgram( programA );
+    ProgramIndicator testPIa = new ProgramIndicator();
+    testPIa.setAutoFields();
+    testPIa.setName("Test PI A");
+    testPIa.setShortName("Test PI A");
+    testPIa.setProgram(programA);
+    programIndicatorService.addProgramIndicator(testPIa);
 
-        ProgramIndicatorGroup programIndicatorGroupA = new ProgramIndicatorGroup( "Test PI Group A" );
-        programIndicatorGroupA.setAutoFields();
-        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
+    testPIb = new ProgramIndicator();
+    testPIb.setAutoFields();
+    testPIb.setName("Test PI B");
+    testPIb.setShortName("Test PI B");
+    testPIb.setProgram(programA);
+    programIndicatorService.addProgramIndicator(testPIb);
 
-        ProgramIndicator testPIa = new ProgramIndicator();
-        testPIa.setAutoFields();
-        testPIa.setName( "Test PI A" );
-        testPIa.setShortName( "Test PI A" );
-        testPIa.setProgram( programA );
-        programIndicatorService.addProgramIndicator( testPIa );
-
-        testPIb = new ProgramIndicator();
-        testPIb.setAutoFields();
-        testPIb.setName( "Test PI B" );
-        testPIb.setShortName( "Test PI B" );
-        testPIb.setProgram( programA );
-        programIndicatorService.addProgramIndicator( testPIb );
-
-        //Add two indicators to this group
-        programIndicatorGroupA.addProgramIndicator( testPIa );
-        programIndicatorGroupA.addProgramIndicator( testPIb );
-        programIndicatorService.addProgramIndicatorGroup( programIndicatorGroupA );
-
-    }
+    // Add two indicators to this group
+    programIndicatorGroupA.addProgramIndicator(testPIa);
+    programIndicatorGroupA.addProgramIndicator(testPIb);
+    programIndicatorService.addProgramIndicatorGroup(programIndicatorGroupA);
+  }
 }

@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.imports;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.util.function.Consumer;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -47,132 +47,139 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ImportStrategyTests
-    extends TrackerApiTest
-{
-    @BeforeAll
-    public void beforeAll()
-    {
-        loginActions.loginAsSuperUser();
-    }
+public class ImportStrategyTests extends TrackerApiTest {
+  @BeforeAll
+  public void beforeAll() {
+    loginActions.loginAsSuperUser();
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = {
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
         "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json",
         "src/test/resources/tracker/importer/teis/teiAndEnrollment.json",
         "src/test/resources/tracker/importer/teis/teis.json",
         "src/test/resources/tracker/importer/events/events.json"
-    } )
-    public void shouldDeleteWithDeleteStrategy( String fileName )
-        throws Exception
-    {
-        // arrange
-        JsonObject teiBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( fileName ) );
+      })
+  public void shouldDeleteWithDeleteStrategy(String fileName) throws Exception {
+    // arrange
+    JsonObject teiBody = new FileReaderUtils().readJsonAndGenerateData(new File(fileName));
 
-        trackerImportExportActions.postAndGetJobReport( teiBody ).validateSuccessfulImport();
+    trackerImportExportActions.postAndGetJobReport(teiBody).validateSuccessfulImport();
 
-        // act
-        ApiResponse response = trackerImportExportActions
-            .postAndGetJobReport( teiBody, new QueryParamsBuilder().add( "importStrategy=DELETE" ) );
+    // act
+    ApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(
+            teiBody, new QueryParamsBuilder().add("importStrategy=DELETE"));
 
-        // assert
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "OK" ) )
-            .body( "stats.deleted", Matchers.greaterThanOrEqualTo( 1 ) );
-    }
+    // assert
+    response
+        .validate()
+        .statusCode(200)
+        .body("status", equalTo("OK"))
+        .body("stats.deleted", Matchers.greaterThanOrEqualTo(1));
+  }
 
-    @Test
-    public void shouldDeleteReferencingDataWhenTeiIsDeleted()
-        throws Exception
-    {
-        // arrange
-        JsonObject body = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) );
+  @Test
+  public void shouldDeleteReferencingDataWhenTeiIsDeleted() throws Exception {
+    // arrange
+    JsonObject body =
+        new FileReaderUtils()
+            .readJsonAndGenerateData(
+                new File("src/test/resources/tracker/importer/teis/teiAndEnrollment.json"));
 
-        TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport( body ).validateSuccessfulImport();
-        String teiId = response.extractImportedTeis().get( 0 );
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(body).validateSuccessfulImport();
+    String teiId = response.extractImportedTeis().get(0);
+    String enrollmentId = response.extractImportedEnrollments().get(0);
 
-        body.remove( "enrollments" );
+    body.remove("enrollments");
 
-        // act
-        response = trackerImportExportActions
-            .postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
+    // act
+    response =
+        trackerImportExportActions
+            .postAndGetJobReport(body, new QueryParamsBuilder().add("importStrategy=DELETE"))
             .validateSuccessfulImport();
 
-        // assert
-        response.validateSuccessfulImport()
-            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+    // assert
+    response.validateSuccessfulImport().validate().body("stats.deleted", Matchers.equalTo(1));
 
-        trackerImportExportActions.getTrackedEntity( teiId )
-            .validate().statusCode( 404 );
-        trackerImportExportActions.get( "/enrollments/" + enrollmentId )
-            .validate().statusCode( 404 );
-    }
+    trackerImportExportActions.getTrackedEntity(teiId).validate().statusCode(404);
+    trackerImportExportActions.get("/enrollments/" + enrollmentId).validate().statusCode(404);
+  }
 
-    @Test
-    public void shouldDeleteReferencingEventsWhenEnrollmentIsDeleted()
-    {
-        // arrange
-        JsonObject body = new TeiDataBuilder()
-            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0],
+  @Test
+  public void shouldDeleteReferencingEventsWhenEnrollmentIsDeleted() {
+    // arrange
+    JsonObject body =
+        new TeiDataBuilder()
+            .buildWithEnrollmentAndEvent(
+                Constants.TRACKED_ENTITY_TYPE,
+                Constants.ORG_UNIT_IDS[0],
                 Constants.TRACKER_PROGRAM_ID,
-                "PaOOjwLVW23" );
+                "PaOOjwLVW23");
 
-        TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport( body ).validateSuccessfulImport();
-        String teiId = response.extractImportedTeis().get( 0 );
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
-        String eventId1 = response.extractImportedEvents().get( 0 );
+    TrackerApiResponse response =
+        trackerImportExportActions.postAndGetJobReport(body).validateSuccessfulImport();
+    String teiId = response.extractImportedTeis().get(0);
+    String enrollmentId = response.extractImportedEnrollments().get(0);
+    String eventId1 = response.extractImportedEvents().get(0);
 
-        body = trackerImportExportActions.getEnrollment( enrollmentId ).validateStatus( 200 ).getBodyAsJsonBuilder()
-            .wrapIntoArray( "enrollments" );
+    body =
+        trackerImportExportActions
+            .getEnrollment(enrollmentId)
+            .validateStatus(200)
+            .getBodyAsJsonBuilder()
+            .wrapIntoArray("enrollments");
 
-        // act
-        response = trackerImportExportActions
-            .postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
+    // act
+    response =
+        trackerImportExportActions
+            .postAndGetJobReport(body, new QueryParamsBuilder().add("importStrategy=DELETE"))
             .validateSuccessfulImport();
 
-        // assert
-        response.validateSuccessfulImport()
-            .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+    // assert
+    response.validateSuccessfulImport().validate().body("stats.deleted", Matchers.equalTo(1));
 
-        trackerImportExportActions.getTrackedEntity( teiId + "?fields=*" )
-            .validate().statusCode( 200 )
-            .body( "enrollments", hasSize( 0 ) );
+    trackerImportExportActions
+        .getTrackedEntity(teiId + "?fields=*")
+        .validate()
+        .statusCode(200)
+        .body("enrollments", hasSize(0));
 
-        trackerImportExportActions.get( "/enrollments/" + enrollmentId )
-            .validate().statusCode( 404 );
-        trackerImportExportActions.get( "/events/" + eventId1 )
-            .validate().statusCode( 404 );
-    }
+    trackerImportExportActions.get("/enrollments/" + enrollmentId).validate().statusCode(404);
+    trackerImportExportActions.get("/events/" + eventId1).validate().statusCode(404);
+  }
 
-    @Test
-    public void shouldDeleteWithOnlyIdInThePayload()
-        throws Exception
-    {
-        TrackerApiResponse response = super.importTeisWithEnrollmentAndEvent();
+  @Test
+  public void shouldDeleteWithOnlyIdInThePayload() throws Exception {
+    TrackerApiResponse response = super.importTeisWithEnrollmentAndEvent();
 
-        String eventId = response.extractImportedEvents().get( 0 );
-        String enrollmentId = response.extractImportedEnrollments().get( 0 );
-        String teiId = response.extractImportedTeis().get( 0 );
+    String eventId = response.extractImportedEvents().get(0);
+    String enrollmentId = response.extractImportedEnrollments().get(0);
+    String teiId = response.extractImportedTeis().get(0);
 
-        Consumer<JsonObject> deleteAndValidate = ( payload ) -> {
-            trackerImportExportActions
-                .postAndGetJobReport( payload, new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
-                .validateSuccessfulImport()
-                .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
+    Consumer<JsonObject> deleteAndValidate =
+        (payload) -> {
+          trackerImportExportActions
+              .postAndGetJobReport(payload, new QueryParamsBuilder().add("importStrategy=DELETE"))
+              .validateSuccessfulImport()
+              .validate()
+              .body("stats.deleted", Matchers.equalTo(1));
         };
 
-        deleteAndValidate.accept( new JsonObjectBuilder().addProperty( "event", eventId ).wrapIntoArray( "events" ) );
-        deleteAndValidate
-            .accept( new JsonObjectBuilder().addProperty( "enrollment", enrollmentId ).wrapIntoArray( "enrollments" ) );
-        deleteAndValidate
-            .accept( new JsonObjectBuilder().addProperty( "trackedEntity", teiId ).wrapIntoArray( "trackedEntities" ) );
-    }
+    deleteAndValidate.accept(
+        new JsonObjectBuilder().addProperty("event", eventId).wrapIntoArray("events"));
+    deleteAndValidate.accept(
+        new JsonObjectBuilder()
+            .addProperty("enrollment", enrollmentId)
+            .wrapIntoArray("enrollments"));
+    deleteAndValidate.accept(
+        new JsonObjectBuilder()
+            .addProperty("trackedEntity", teiId)
+            .wrapIntoArray("trackedEntities"));
+  }
 }

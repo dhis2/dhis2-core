@@ -35,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -49,62 +48,55 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class ConfigurationServiceTest extends SingleSetupIntegrationTestBase
-{
+class ConfigurationServiceTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private UserGroupService userGroupService;
+  @Autowired private UserGroupService userGroupService;
 
-    @Autowired
-    private ConfigurationService configurationService;
+  @Autowired private ConfigurationService configurationService;
 
-    @Test
-    void testConfiguration()
-    {
-        User userA = makeUser( "A" );
-        User userB = makeUser( "B" );
-        UserGroup group = new UserGroup( "UserGroupA" );
-        group.getMembers().add( userA );
-        group.getMembers().add( userB );
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userGroupService.addUserGroup( group );
-        OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
-        idObjectManager.save( groupSet );
-        Configuration config = configurationService.getConfiguration();
-        assertNull( config.getFeedbackRecipients() );
-        assertNull( config.getFacilityOrgUnitGroupSet() );
-        config.setFeedbackRecipients( group );
-        config.setFacilityOrgUnitGroupSet( groupSet );
-        configurationService.setConfiguration( config );
-        config = configurationService.getConfiguration();
-        assertNotNull( config.getFeedbackRecipients() );
-        assertNotNull( config.getFacilityOrgUnitGroupSet() );
-        assertEquals( group, config.getFeedbackRecipients() );
-        assertEquals( groupSet, config.getFacilityOrgUnitGroupSet() );
-    }
+  @Test
+  void testConfiguration() {
+    User userA = makeUser("A");
+    User userB = makeUser("B");
+    UserGroup group = new UserGroup("UserGroupA");
+    group.getMembers().add(userA);
+    group.getMembers().add(userB);
+    userService.addUser(userA);
+    userService.addUser(userB);
+    userGroupService.addUserGroup(group);
+    OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet('A');
+    idObjectManager.save(groupSet);
+    Configuration config = configurationService.getConfiguration();
+    assertNull(config.getFeedbackRecipients());
+    assertNull(config.getFacilityOrgUnitGroupSet());
+    config.setFeedbackRecipients(group);
+    config.setFacilityOrgUnitGroupSet(groupSet);
+    configurationService.setConfiguration(config);
+    config = configurationService.getConfiguration();
+    assertNotNull(config.getFeedbackRecipients());
+    assertNotNull(config.getFacilityOrgUnitGroupSet());
+    assertEquals(group, config.getFeedbackRecipients());
+    assertEquals(groupSet, config.getFacilityOrgUnitGroupSet());
+  }
 
-    @Test
-    void testCorsWhitelist()
-    {
-        Configuration config = configurationService.getConfiguration();
-        Set<String> cors = new HashSet<>();
-        cors.add( "http://localhost:3000/" );
-        cors.add( "http://*.local.tld:3000/" );
-        cors.add( "*.remote.tld/" );
-        config.setCorsWhitelist( cors );
-        configurationService.setConfiguration( config );
-        assertTrue( configurationService.isCorsWhitelisted( "http://localhost:3000/" ) );
-        assertTrue( configurationService.isCorsWhitelisted( "http://foobar.local.tld:3000/" ) );
-        assertTrue( configurationService.isCorsWhitelisted( "http://magic.remote.tld/" ) );
-        assertFalse( configurationService.isCorsWhitelisted( "http://localhost:9000/" ) );
-        assertFalse( configurationService.isCorsWhitelisted( "http://another.local.tld/" ) );
-        assertFalse( configurationService.isCorsWhitelisted( "http://some.other.tld/" ) );
-    }
+  @Test
+  void testCorsWhitelist() {
+    Configuration config = configurationService.getConfiguration();
+    Set<String> cors = new HashSet<>();
+    cors.add("http://localhost:3000/");
+    cors.add("http://*.local.tld:3000/");
+    cors.add("*.remote.tld/");
+    config.setCorsWhitelist(cors);
+    configurationService.setConfiguration(config);
+    assertTrue(configurationService.isCorsWhitelisted("http://localhost:3000/"));
+    assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000/"));
+    assertTrue(configurationService.isCorsWhitelisted("http://magic.remote.tld/"));
+    assertFalse(configurationService.isCorsWhitelisted("http://localhost:9000/"));
+    assertFalse(configurationService.isCorsWhitelisted("http://another.local.tld/"));
+    assertFalse(configurationService.isCorsWhitelisted("http://some.other.tld/"));
+  }
 }

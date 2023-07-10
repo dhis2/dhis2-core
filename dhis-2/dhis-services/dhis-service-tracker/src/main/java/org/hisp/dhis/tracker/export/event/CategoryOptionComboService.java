@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.export.event;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -49,141 +48,128 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-class CategoryOptionComboService
-{
-    private final Cache<Long> attrOptionComboIdCache;
+class CategoryOptionComboService {
+  private final Cache<Long> attrOptionComboIdCache;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    public CategoryOptionComboService( CategoryService categoryService, IdentifiableObjectManager idObjectManager,
-        CacheProvider cacheProvider )
-    {
-        this.categoryService = categoryService;
-        this.idObjectManager = idObjectManager;
-        this.attrOptionComboIdCache = cacheProvider.createAttrOptionComboIdCache();
+  public CategoryOptionComboService(
+      CategoryService categoryService,
+      IdentifiableObjectManager idObjectManager,
+      CacheProvider cacheProvider) {
+    this.categoryService = categoryService;
+    this.idObjectManager = idObjectManager;
+    this.attrOptionComboIdCache = cacheProvider.createAttrOptionComboIdCache();
+  }
+
+  /**
+   * Validates and retrieves the attribute option combo. 409 conflict as status code along with a
+   * textual message will be set on the response in case of invalid input. The response is cached.
+   *
+   * @param cc the category combo identifier.
+   * @param cp the category and option query string.
+   * @param skipFallback whether to skip fallback to default option combo if attribute option combo
+   *     is not found.
+   * @return the attribute option combo identified from the given input, or null if the input was
+   *     invalid.
+   */
+  public CategoryOptionCombo getAttributeOptionCombo(String cc, String cp, boolean skipFallback) {
+    Set<String> options = TextUtils.splitToSet(cp, TextUtils.SEMICOLON);
+
+    return getAttributeOptionCombo(cc, options, skipFallback);
+  }
+
+  public CategoryOptionCombo getAttributeOptionCombo(
+      String cc, Set<String> options, boolean skipFallback) {
+    String cacheKey =
+        TextUtils.joinHyphen(cc, TextUtils.joinHyphen(options), String.valueOf(skipFallback));
+
+    Long id = attrOptionComboIdCache.getIfPresent(cacheKey).orElse(null);
+
+    if (id != null) {
+      return categoryService.getCategoryOptionCombo(id);
+    } else {
+      CategoryOptionCombo aoc = getAttributeOptionComboInternal(cc, options, skipFallback);
+
+      if (aoc != null) {
+        attrOptionComboIdCache.put(cacheKey, aoc.getId());
+      }
+
+      return aoc;
+    }
+  }
+
+  private CategoryOptionCombo getAttributeOptionComboInternal(
+      String cc, Set<String> options, boolean skipFallback) {
+    // ---------------------------------------------------------------------
+    // Attribute category combo validation
+    // ---------------------------------------------------------------------
+
+    if ((cc == null && !CollectionUtils.isEmpty(options))
+        || (cc != null && CollectionUtils.isEmpty(options))) {
+      throw new IllegalQueryException(ErrorCode.E2040);
     }
 
-    /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input. The response is cached.
-     *
-     * @param cc the category combo identifier.
-     * @param cp the category and option query string.
-     * @param skipFallback whether to skip fallback to default option combo if
-     *        attribute option combo is not found.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
-     */
-    public CategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
-    {
-        Set<String> options = TextUtils.splitToSet( cp, TextUtils.SEMICOLON );
+    CategoryCombo categoryCombo = null;
 
-        return getAttributeOptionCombo( cc, options, skipFallback );
+    if (cc != null && (categoryCombo = idObjectManager.get(CategoryCombo.class, cc)) == null) {
+      throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1110, cc));
     }
 
-    public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
-    {
-        String cacheKey = TextUtils.joinHyphen( cc, TextUtils.joinHyphen( options ), String.valueOf( skipFallback ) );
+    if (categoryCombo == null) {
+      if (skipFallback) {
+        return null;
+      }
 
-        Long id = attrOptionComboIdCache.getIfPresent( cacheKey ).orElse( null );
-
-        if ( id != null )
-        {
-            return categoryService.getCategoryOptionCombo( id );
-        }
-        else
-        {
-            CategoryOptionCombo aoc = getAttributeOptionComboInternal( cc, options, skipFallback );
-
-            if ( aoc != null )
-            {
-                attrOptionComboIdCache.put( cacheKey, aoc.getId() );
-            }
-
-            return aoc;
-        }
+      categoryCombo = categoryService.getDefaultCategoryCombo();
     }
 
-    private CategoryOptionCombo getAttributeOptionComboInternal( String cc, Set<String> options, boolean skipFallback )
-    {
-        // ---------------------------------------------------------------------
-        // Attribute category combo validation
-        // ---------------------------------------------------------------------
+    return getAttributeOptionCombo(categoryCombo, options);
+  }
 
-        if ( (cc == null && !CollectionUtils.isEmpty( options )) || (cc != null && CollectionUtils.isEmpty( options )) )
-        {
-            throw new IllegalQueryException( ErrorCode.E2040 );
-        }
-
-        CategoryCombo categoryCombo = null;
-
-        if ( cc != null && (categoryCombo = idObjectManager.get( CategoryCombo.class, cc )) == null )
-        {
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1110, cc ) );
-        }
-
-        if ( categoryCombo == null )
-        {
-            if ( skipFallback )
-            {
-                return null;
-            }
-
-            categoryCombo = categoryService.getDefaultCategoryCombo();
-        }
-
-        return getAttributeOptionCombo( categoryCombo, options );
+  private CategoryOptionCombo getAttributeOptionCombo(
+      CategoryCombo categoryCombo, Set<String> options) {
+    if (categoryCombo == null) {
+      throw new IllegalQueryException("Illegal category combo");
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, Set<String> options )
-    {
-        if ( categoryCombo == null )
-        {
-            throw new IllegalQueryException( "Illegal category combo" );
+    // ---------------------------------------------------------------------
+    // Attribute category options validation
+    // ---------------------------------------------------------------------
+
+    CategoryOptionCombo attrOptCombo = null;
+
+    if (options != null) {
+      Set<CategoryOption> categoryOptions = new HashSet<>();
+
+      for (String option : options) {
+        CategoryOption categoryOption =
+            idObjectManager.getObject(CategoryOption.class, IdScheme.UID, option);
+
+        if (categoryOption == null) {
+          throw new IllegalQueryException(new ErrorMessage(ErrorCode.E1111, option));
         }
 
-        // ---------------------------------------------------------------------
-        // Attribute category options validation
-        // ---------------------------------------------------------------------
+        categoryOptions.add(categoryOption);
+      }
 
-        CategoryOptionCombo attrOptCombo = null;
+      attrOptCombo = categoryService.getCategoryOptionCombo(categoryCombo, categoryOptions);
 
-        if ( options != null )
-        {
-            Set<CategoryOption> categoryOptions = new HashSet<>();
-
-            for ( String option : options )
-            {
-                CategoryOption categoryOption = idObjectManager.getObject( CategoryOption.class, IdScheme.UID, option );
-
-                if ( categoryOption == null )
-                {
-                    throw new IllegalQueryException( new ErrorMessage( ErrorCode.E1111, option ) );
-                }
-
-                categoryOptions.add( categoryOption );
-            }
-
-            attrOptCombo = categoryService.getCategoryOptionCombo( categoryCombo, categoryOptions );
-
-            if ( attrOptCombo == null )
-            {
-                throw new IllegalQueryException( ErrorCode.E2041 );
-            }
-        }
-
-        // ---------------------------------------------------------------------
-        // Fall back to default category option combination
-        // ---------------------------------------------------------------------
-
-        if ( attrOptCombo == null )
-        {
-            attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
-        }
-
-        return attrOptCombo;
+      if (attrOptCombo == null) {
+        throw new IllegalQueryException(ErrorCode.E2041);
+      }
     }
+
+    // ---------------------------------------------------------------------
+    // Fall back to default category option combination
+    // ---------------------------------------------------------------------
+
+    if (attrOptCombo == null) {
+      attrOptCombo = categoryService.getDefaultCategoryOptionCombo();
+    }
+
+    return attrOptCombo;
+  }
 }

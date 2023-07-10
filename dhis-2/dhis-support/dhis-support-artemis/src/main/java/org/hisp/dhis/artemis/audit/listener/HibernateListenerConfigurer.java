@@ -31,9 +31,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -48,85 +46,76 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**
- * This component configures the Hibernate Auditing listeners. The listeners are
- * responsible for "intercepting" Hibernate-managed objects after a save/update
- * operation and pass them to the Auditing sub-system.
- * <p>
- * This bean is not active during tests.
+ * This component configures the Hibernate Auditing listeners. The listeners are responsible for
+ * "intercepting" Hibernate-managed objects after a save/update operation and pass them to the
+ * Auditing sub-system.
+ *
+ * <p>This bean is not active during tests.
  *
  * @author Luciano Fiandesio
  */
 @Component
-@DependsOn( "auditMatrix" )
+@DependsOn("auditMatrix")
 @RequiredArgsConstructor
-public class HibernateListenerConfigurer
-    implements ApplicationContextAware
-{
-    private ApplicationContext applicationContext;
+public class HibernateListenerConfigurer implements ApplicationContextAware {
+  private ApplicationContext applicationContext;
 
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-        throws BeansException
-    {
-        this.applicationContext = applicationContext;
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    this.applicationContext = applicationContext;
+  }
+
+  @PersistenceUnit private EntityManagerFactory emf;
+
+  @Nonnull private final PostInsertAuditListener postInsertAuditListener;
+
+  @Nonnull private final PostUpdateAuditListener postUpdateEventListener;
+
+  @Nonnull private final PostDeleteAuditListener postDeleteEventListener;
+
+  @Nonnull private final PostLoadAuditListener postLoadEventListener;
+
+  @Nonnull private final AuditMatrix auditMatrix;
+
+  @Nonnull private DhisConfigurationProvider config;
+
+  @PostConstruct
+  protected void init() {
+    boolean auditEnabled = config.isEnabled(ConfigurationKey.AUDIT_ENABLED);
+
+    boolean isTestAndNotAuditTest = isTestRun() && !isAuditTest();
+
+    if (!auditEnabled || isTestAndNotAuditTest) {
+      return;
     }
 
-    @PersistenceUnit
-    private EntityManagerFactory emf;
+    SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
 
-    @Nonnull
-    private final PostInsertAuditListener postInsertAuditListener;
+    EventListenerRegistry registry =
+        sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
 
-    @Nonnull
-    private final PostUpdateAuditListener postUpdateEventListener;
+    registry
+        .getEventListenerGroup(EventType.POST_COMMIT_INSERT)
+        .appendListener(postInsertAuditListener);
 
-    @Nonnull
-    private final PostDeleteAuditListener postDeleteEventListener;
+    registry
+        .getEventListenerGroup(EventType.POST_COMMIT_UPDATE)
+        .appendListener(postUpdateEventListener);
 
-    @Nonnull
-    private final PostLoadAuditListener postLoadEventListener;
+    registry
+        .getEventListenerGroup(EventType.POST_COMMIT_DELETE)
+        .appendListener(postDeleteEventListener);
 
-    @Nonnull
-    private final AuditMatrix auditMatrix;
-
-    @Nonnull
-    private DhisConfigurationProvider config;
-
-    @PostConstruct
-    protected void init()
-    {
-        boolean auditEnabled = config.isEnabled( ConfigurationKey.AUDIT_ENABLED );
-
-        boolean isTestAndNotAuditTest = isTestRun() && !isAuditTest();
-
-        if ( !auditEnabled || isTestAndNotAuditTest )
-        {
-            return;
-        }
-
-        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
-
-        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-
-        registry.getEventListenerGroup( EventType.POST_COMMIT_INSERT ).appendListener( postInsertAuditListener );
-
-        registry.getEventListenerGroup( EventType.POST_COMMIT_UPDATE ).appendListener( postUpdateEventListener );
-
-        registry.getEventListenerGroup( EventType.POST_COMMIT_DELETE ).appendListener( postDeleteEventListener );
-
-        if ( auditMatrix.isReadEnabled() )
-        {
-            registry.getEventListenerGroup( EventType.POST_LOAD ).appendListener( postLoadEventListener );
-        }
+    if (auditMatrix.isReadEnabled()) {
+      registry.getEventListenerGroup(EventType.POST_LOAD).appendListener(postLoadEventListener);
     }
+  }
 
-    protected boolean isTestRun()
-    {
-        return SystemUtils.isTestRun( applicationContext.getEnvironment().getActiveProfiles() );
-    }
+  protected boolean isTestRun() {
+    return SystemUtils.isTestRun(applicationContext.getEnvironment().getActiveProfiles());
+  }
 
-    protected boolean isAuditTest()
-    {
-        return SystemUtils.isAuditTest( applicationContext.getEnvironment().getActiveProfiles() );
-    }
+  protected boolean isAuditTest() {
+    return SystemUtils.isAuditTest(applicationContext.getEnvironment().getActiveProfiles());
+  }
 }

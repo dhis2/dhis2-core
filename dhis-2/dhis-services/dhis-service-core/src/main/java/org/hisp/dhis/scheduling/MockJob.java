@@ -32,27 +32,20 @@ import org.springframework.stereotype.Component;
 /**
  * @author Henning Håkonsen
  */
-@Component( "mockJob" )
-public class MockJob implements Job
-{
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.MOCK;
-    }
+@Component("mockJob")
+public class MockJob implements Job {
+  @Override
+  public JobType getJobType() {
+    return JobType.MOCK;
+  }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        try
-        {
-            Thread.sleep( 10000 );
-        }
-        catch ( InterruptedException ex )
-        {
-            Thread.currentThread().interrupt();
-            ex.printStackTrace();
-        }
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    try {
+      Thread.sleep(10000);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      ex.printStackTrace();
     }
-
+  }
 }

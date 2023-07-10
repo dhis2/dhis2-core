@@ -32,11 +32,8 @@ import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -52,28 +49,27 @@ import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
  * a condition renderable for status dimension. will render to one of these:
  * "program".enrollmentstatus in (...) "program.programstage".status in (...)
  */
-@RequiredArgsConstructor( staticName = "of" )
-public class StatusCondition extends BaseRenderable
-{
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+@RequiredArgsConstructor(staticName = "of")
+public class StatusCondition extends BaseRenderable {
+  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    private final QueryContext queryContext;
+  private final QueryContext queryContext;
 
-    @Nonnull
-    @Override
-    public String render()
-    {
-        return InConditionRenderer.of(
-            Field.ofUnquoted( doubleQuote( getPrefix( dimensionIdentifier ) ),
+  @Nonnull
+  @Override
+  public String render() {
+    return InConditionRenderer.of(
+            Field.ofUnquoted(
+                doubleQuote(getPrefix(dimensionIdentifier)),
                 () -> dimensionIdentifier.getDimension().getStaticDimension().getColumnName(),
-                StringUtils.EMPTY ),
+                StringUtils.EMPTY),
             ConstantValuesRenderer.of(
                 dimensionIdentifier.getDimension().getItems().stream()
-                    .map( DimensionParamItem::getValues )
-                    .flatMap( Collection::stream )
-                    .collect( Collectors.toList() ),
+                    .map(DimensionParamItem::getValues)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()),
                 ValueTypeMapping.TEXT,
-                queryContext ) )
-            .render();
-    }
+                queryContext))
+        .render();
+  }
 }

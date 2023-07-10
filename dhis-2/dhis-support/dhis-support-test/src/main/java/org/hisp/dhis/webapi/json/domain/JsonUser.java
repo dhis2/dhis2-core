@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
 
@@ -37,50 +36,40 @@ import org.hisp.dhis.jsontree.JsonList;
  *
  * @author Jan Bernitt
  */
-public interface JsonUser extends JsonIdentifiableObject
-{
-    default String getUsername()
-    {
-        return getString( "username" ).string();
-    }
+public interface JsonUser extends JsonIdentifiableObject {
+  default String getUsername() {
+    return getString("username").string();
+  }
 
-    default String getSurname()
-    {
-        return getString( "surname" ).string();
-    }
+  default String getSurname() {
+    return getString("surname").string();
+  }
 
-    default String getFirstName()
-    {
-        return getString( "firstName" ).string();
-    }
+  default String getFirstName() {
+    return getString("firstName").string();
+  }
 
-    default JsonList<JsonUserGroup> getUserGroups()
-    {
-        return getList( "userGroups", JsonUserGroup.class );
-    }
+  default JsonList<JsonUserGroup> getUserGroups() {
+    return getList("userGroups", JsonUserGroup.class);
+  }
 
-    default JsonList<JsonOrganisationUnit> getOrganisationUnits()
-    {
-        return getList( "organisationUnits", JsonOrganisationUnit.class );
-    }
+  default JsonList<JsonOrganisationUnit> getOrganisationUnits() {
+    return getList("organisationUnits", JsonOrganisationUnit.class);
+  }
 
-    default JsonList<JsonOrganisationUnit> getDataViewOrganisationUnits()
-    {
-        return getList( "dataViewOrganisationUnits", JsonOrganisationUnit.class );
-    }
+  default JsonList<JsonOrganisationUnit> getDataViewOrganisationUnits() {
+    return getList("dataViewOrganisationUnits", JsonOrganisationUnit.class);
+  }
 
-    default JsonList<JsonOrganisationUnit> getTeiSearchOrganisationUnits()
-    {
-        return getList( "teiSearchOrganisationUnits", JsonOrganisationUnit.class );
-    }
+  default JsonList<JsonOrganisationUnit> getTeiSearchOrganisationUnits() {
+    return getList("teiSearchOrganisationUnits", JsonOrganisationUnit.class);
+  }
 
-    default LocalDateTime getLastLogin()
-    {
-        return get( "lastLogin", JsonDate.class ).date();
-    }
+  default LocalDateTime getLastLogin() {
+    return get("lastLogin", JsonDate.class).date();
+  }
 
-    default LocalDateTime getAccountExpiry()
-    {
-        return get( "accountExpiry", JsonDate.class ).date();
-    }
+  default LocalDateTime getAccountExpiry() {
+    return get("accountExpiry", JsonDate.class).date();
+  }
 }

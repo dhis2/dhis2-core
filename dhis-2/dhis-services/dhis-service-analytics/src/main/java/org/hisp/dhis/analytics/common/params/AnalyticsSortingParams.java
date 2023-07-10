@@ -29,38 +29,31 @@ package org.hisp.dhis.analytics.common.params;
 
 import lombok.Builder;
 import lombok.Data;
-
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 
-/**
- * This class represents the sorting parameters for analytics.
- */
+/** This class represents the sorting parameters for analytics. */
 @Data
 @Builder
-public class AnalyticsSortingParams implements IdentifiableKey
-{
-    private final DimensionIdentifier<DimensionParam> orderBy;
+public class AnalyticsSortingParams implements IdentifiableKey {
+  private final DimensionIdentifier<DimensionParam> orderBy;
 
-    private final SortDirection sortDirection;
+  private final SortDirection sortDirection;
 
-    private final long index;
+  private final long index;
 
-    public String getKey()
-    {
-        StringBuilder key = new StringBuilder();
+  public String getKey() {
+    StringBuilder key = new StringBuilder();
 
-        if ( orderBy != null && orderBy.getDimension() != null )
-        {
-            key.append( orderBy.getDimension().getUid() );
-        }
-
-        if ( sortDirection != null )
-        {
-            key.append( sortDirection.getValue() );
-        }
-
-        return key.toString();
+    if (orderBy != null && orderBy.getDimension() != null) {
+      key.append(orderBy.getDimension().getUid());
     }
+
+    if (sortDirection != null) {
+      key.append(sortDirection.getValue());
+    }
+
+    return key.toString();
+  }
 }

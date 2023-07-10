@@ -33,31 +33,26 @@ import org.hisp.dhis.commons.util.Encoder;
 /**
  * @author Torgeir Lorange Ostby
  */
-public class EncoderVelocityContext
-    extends VelocityContext
-{
-    public static final String KEY = "encoder";
+public class EncoderVelocityContext extends VelocityContext {
+  public static final String KEY = "encoder";
 
-    private static final Encoder ENCODER = new Encoder();
+  private static final Encoder ENCODER = new Encoder();
 
-    // -------------------------------------------------------------------------
-    // Override VelocityContext methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Override VelocityContext methods
+  // -------------------------------------------------------------------------
 
-    @Override
-    public Object internalGet( String key )
-    {
-        if ( KEY.equals( key ) )
-        {
-            return ENCODER;
-        }
-
-        return super.internalGet( key );
+  @Override
+  public Object internalGet(String key) {
+    if (KEY.equals(key)) {
+      return ENCODER;
     }
 
-    @Override
-    public boolean containsKey( Object key )
-    {
-        return KEY.equals( key ) || super.containsKey( key );
-    }
+    return super.internalGet(key);
+  }
+
+  @Override
+  public boolean containsKey(Object key) {
+    return KEY.equals(key) || super.containsKey(key);
+  }
 }

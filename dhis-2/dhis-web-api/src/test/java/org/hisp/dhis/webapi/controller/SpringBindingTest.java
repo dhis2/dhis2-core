@@ -33,10 +33,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 import java.util.Date;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,122 +45,125 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-class SpringBindingTest
-{
-    private final static String ENDPOINT = "/binding";
+class SpringBindingTest {
+  private static final String ENDPOINT = "/binding";
 
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @BeforeEach
-    public void setUp()
-    {
-        mockMvc = MockMvcBuilders.standaloneSetup( new BindingController() )
-            .setControllerAdvice( new CrudControllerAdvice() )
+  @BeforeEach
+  public void setUp() {
+    mockMvc =
+        MockMvcBuilders.standaloneSetup(new BindingController())
+            .setControllerAdvice(new CrudControllerAdvice())
             .build();
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenInvalidValueForEnumIsPassedAsParameter() throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT).param("simpleEnum", "INVALID"))
+        .andExpect(content().string(containsString("Bad Request")))
+        .andExpect(
+            content()
+                .string(
+                    containsString(
+                        "Value 'INVALID' is not valid for parameter simpleEnum. Valid values are: [YES, NO]")));
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenInvalidValueForEnumInBindingObjectIsPassedAsParameter()
+      throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/criteria").param("simpleEnumInCriteria", "INVALID"))
+        .andExpect(content().string(containsString("Bad Request")))
+        .andExpect(
+            content()
+                .string(
+                    containsString(
+                        "Value 'INVALID' is not valid for parameter simpleEnumInCriteria. Valid values are: [YES, NO]")));
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenInvalidValueForDoubleInBindingObjectIsPassedAsParameter()
+      throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/criteria").param("doubleNumber", "INVALID"))
+        .andExpect(content().string(containsString("Bad Request")))
+        .andExpect(
+            content()
+                .string(
+                    containsString(
+                        "Value 'INVALID' is not valid for parameter doubleNumber. It should be of type double")));
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenInvalidValueForIntegerInBindingObjectIsPassedAsParameter()
+      throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/criteria").param("integerNumber", "10.5"))
+        .andExpect(content().string(containsString("Bad Request")))
+        .andExpect(
+            content()
+                .string(
+                    containsString(
+                        "Value '10.5' is not valid for parameter integerNumber. For input string: \"10.5\"")));
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenInvalidValueForDateInBindingObjectIsPassedAsParameter()
+      throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/criteria").param("date", "INVALID"))
+        .andExpect(content().string(containsString("Bad Request")))
+        .andExpect(
+            content()
+                .string(
+                    containsString(
+                        "Value 'INVALID' is not valid for parameter date. Invalid format: \"INVALID\"")));
+  }
+
+  @Test
+  void shouldReturnABadRequestWhenInvalidValueForBooleanInBindingObjectIsPassedAsParameter()
+      throws Exception {
+    mockMvc
+        .perform(get(ENDPOINT + "/criteria").param("booleanValue", "INVALID"))
+        .andExpect(content().string(containsString("Bad Request")))
+        .andExpect(
+            content()
+                .string(
+                    containsString(
+                        "Value 'INVALID' is not valid for parameter booleanValue. Invalid boolean value [INVALID]")));
+  }
+
+  @Controller
+  private class BindingController extends CrudControllerAdvice {
+    @GetMapping(value = ENDPOINT)
+    public @ResponseBody WebMessage getValue(@RequestParam SimpleEnum simpleEnum) {
+      return ok(simpleEnum.name());
     }
 
-    @Test
-    void shouldReturnABadRequestWhenInvalidValueForEnumIsPassedAsParameter()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT )
-            .param( "simpleEnum", "INVALID" ) )
-            .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content()
-                .string( containsString(
-                    "Value 'INVALID' is not valid for parameter simpleEnum. Valid values are: [YES, NO]" ) ) );
+    @GetMapping(value = ENDPOINT + "/criteria")
+    public @ResponseBody WebMessage getValue(Criteria criteria) {
+      return ok(criteria.toString());
     }
+  }
 
-    @Test
-    void shouldReturnABadRequestWhenInvalidValueForEnumInBindingObjectIsPassedAsParameter()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/criteria" )
-            .param( "simpleEnumInCriteria", "INVALID" ) )
-            .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string(
-                containsString(
-                    "Value 'INVALID' is not valid for parameter simpleEnumInCriteria. Valid values are: [YES, NO]" ) ) );
-    }
+  @NoArgsConstructor
+  @Data
+  private class Criteria {
+    private SimpleEnum simpleEnumInCriteria;
 
-    @Test
-    void shouldReturnABadRequestWhenInvalidValueForDoubleInBindingObjectIsPassedAsParameter()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/criteria" )
-            .param( "doubleNumber", "INVALID" ) )
-            .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string( containsString(
-                "Value 'INVALID' is not valid for parameter doubleNumber. It should be of type double" ) ) );
-    }
+    private Date date;
 
-    @Test
-    void shouldReturnABadRequestWhenInvalidValueForIntegerInBindingObjectIsPassedAsParameter()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/criteria" )
-            .param( "integerNumber", "10.5" ) )
-            .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string( containsString(
-                "Value '10.5' is not valid for parameter integerNumber. For input string: \"10.5\"" ) ) );
-    }
+    private double doubleNumber;
 
-    @Test
-    void shouldReturnABadRequestWhenInvalidValueForDateInBindingObjectIsPassedAsParameter()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/criteria" )
-            .param( "date", "INVALID" ) )
-            .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string(
-                containsString( "Value 'INVALID' is not valid for parameter date. Invalid format: \"INVALID\"" ) ) );
-    }
+    private Integer integerNumber;
 
-    @Test
-    void shouldReturnABadRequestWhenInvalidValueForBooleanInBindingObjectIsPassedAsParameter()
-        throws Exception
-    {
-        mockMvc.perform( get( ENDPOINT + "/criteria" )
-            .param( "booleanValue", "INVALID" ) )
-            .andExpect( content().string( containsString( "Bad Request" ) ) )
-            .andExpect( content().string( containsString(
-                "Value 'INVALID' is not valid for parameter booleanValue. Invalid boolean value [INVALID]" ) ) );
-    }
+    private Boolean booleanValue;
+  }
 
-    @Controller
-    private class BindingController extends CrudControllerAdvice
-    {
-        @GetMapping( value = ENDPOINT )
-        public @ResponseBody WebMessage getValue( @RequestParam SimpleEnum simpleEnum )
-        {
-            return ok( simpleEnum.name() );
-        }
-
-        @GetMapping( value = ENDPOINT + "/criteria" )
-        public @ResponseBody WebMessage getValue( Criteria criteria )
-        {
-            return ok( criteria.toString() );
-        }
-    }
-
-    @NoArgsConstructor
-    @Data
-    private class Criteria
-    {
-        private SimpleEnum simpleEnumInCriteria;
-
-        private Date date;
-
-        private double doubleNumber;
-
-        private Integer integerNumber;
-
-        private Boolean booleanValue;
-    }
-
-    private enum SimpleEnum
-    {
-        YES,
-        NO
-    }
+  private enum SimpleEnum {
+    YES,
+    NO
+  }
 }

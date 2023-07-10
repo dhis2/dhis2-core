@@ -39,20 +39,18 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class AttributeStoreTest
-{
-    @Test
-    void testGetSupportedClasses()
-    {
-        Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
-        attribute.setDataElementAttribute( true );
-        assertEquals( 1, attribute.getSupportedClasses().size() );
-        assertTrue( attribute.getSupportedClasses().contains( DataElement.class ) );
-        attribute.setDataElementAttribute( false );
-        attribute.setIndicatorAttribute( true );
-        attribute.setIndicatorGroupAttribute( true );
-        assertEquals( 2, attribute.getSupportedClasses().size() );
-        assertTrue( attribute.getSupportedClasses().contains( Indicator.class ) );
-        assertTrue( attribute.getSupportedClasses().contains( IndicatorGroup.class ) );
-    }
+class AttributeStoreTest {
+  @Test
+  void testGetSupportedClasses() {
+    Attribute attribute = new Attribute("AttributeName", ValueType.TEXT);
+    attribute.setDataElementAttribute(true);
+    assertEquals(1, attribute.getSupportedClasses().size());
+    assertTrue(attribute.getSupportedClasses().contains(DataElement.class));
+    attribute.setDataElementAttribute(false);
+    attribute.setIndicatorAttribute(true);
+    attribute.setIndicatorGroupAttribute(true);
+    assertEquals(2, attribute.getSupportedClasses().size());
+    assertTrue(attribute.getSupportedClasses().contains(Indicator.class));
+    assertTrue(attribute.getSupportedClasses().contains(IndicatorGroup.class));
+  }
 }

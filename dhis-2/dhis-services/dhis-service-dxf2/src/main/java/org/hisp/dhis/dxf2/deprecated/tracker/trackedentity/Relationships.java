@@ -27,42 +27,32 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Stian Sandvold
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-@JacksonXmlRootElement( localName = "relationships", namespace = DxfNamespaces.DXF_2_0 )
-public class Relationships
-{
-    private List<Relationship> relationships = new ArrayList<>();
+@Deprecated(since = "2.41")
+@JacksonXmlRootElement(localName = "relationships", namespace = DxfNamespaces.DXF_2_0)
+public class Relationships {
+  private List<Relationship> relationships = new ArrayList<>();
 
-    public Relationships()
-    {
+  public Relationships() {}
 
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public List<Relationship> getRelationships() {
+    return relationships;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Relationship> getRelationships()
-    {
-        return relationships;
-    }
-
-    public void setRelationships( List<Relationship> relationships )
-    {
-        this.relationships = relationships;
-    }
+  public void setRelationships(List<Relationship> relationships) {
+    this.relationships = relationships;
+  }
 }

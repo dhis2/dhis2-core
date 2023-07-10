@@ -32,9 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
@@ -61,83 +59,76 @@ import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ShowWarning
 import org.hisp.dhis.tracker.imports.programrule.executor.enrollment.ShowWarningOnCompleteExecutor;
 import org.springframework.stereotype.Service;
 
-@Service( "org.hisp.dhis.tracker.imports.programrule.RuleActionEnrollmentMapper" )
+@Service("org.hisp.dhis.tracker.imports.programrule.RuleActionEnrollmentMapper")
 @RequiredArgsConstructor
-class RuleActionEnrollmentMapper
-{
-    private final SystemSettingManager systemSettingManager;
+class RuleActionEnrollmentMapper {
+  private final SystemSettingManager systemSettingManager;
 
-    public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects( List<RuleEffects> ruleEffects,
-        TrackerBundle bundle )
-    {
-        return ruleEffects
-            .stream()
-            .filter( RuleEffects::isEnrollment )
-            .filter( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).isPresent() )
-            .collect( Collectors.toMap( e -> bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(),
-                e -> mapRuleEffects( bundle.findEnrollmentByUid( e.getTrackerObjectUid() ).get(), e,
-                    bundle ) ) );
+  public Map<Enrollment, List<RuleActionExecutor<Enrollment>>> mapRuleEffects(
+      List<RuleEffects> ruleEffects, TrackerBundle bundle) {
+    return ruleEffects.stream()
+        .filter(RuleEffects::isEnrollment)
+        .filter(e -> bundle.findEnrollmentByUid(e.getTrackerObjectUid()).isPresent())
+        .collect(
+            Collectors.toMap(
+                e -> bundle.findEnrollmentByUid(e.getTrackerObjectUid()).get(),
+                e ->
+                    mapRuleEffects(
+                        bundle.findEnrollmentByUid(e.getTrackerObjectUid()).get(), e, bundle)));
+  }
+
+  private List<RuleActionExecutor<Enrollment>> mapRuleEffects(
+      Enrollment enrollment, RuleEffects ruleEffects, TrackerBundle bundle) {
+    List<Attribute> payloadTeiAttributes =
+        bundle
+            .findTrackedEntityByUid(enrollment.getTrackedEntity())
+            .map(TrackedEntity::getAttributes)
+            .orElse(Collections.emptyList());
+    List<Attribute> attributes = ListUtils.union(enrollment.getAttributes(), payloadTeiAttributes);
+
+    return ruleEffects.getRuleEffects().stream()
+        .map(
+            effect ->
+                buildEnrollmentRuleActionExecutor(
+                    effect.ruleId(), effect.data(), effect.ruleAction(), attributes))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
+
+  private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor(
+      String ruleId, String data, RuleAction ruleAction, List<Attribute> attributes) {
+    if (ruleAction instanceof RuleActionAssign) {
+      RuleActionAssign action = (RuleActionAssign) ruleAction;
+      return new AssignAttributeExecutor(
+          systemSettingManager, ruleId, data, action.field(), attributes);
     }
-
-    private List<RuleActionExecutor<Enrollment>> mapRuleEffects( Enrollment enrollment, RuleEffects ruleEffects,
-        TrackerBundle bundle )
-    {
-        List<Attribute> payloadTeiAttributes = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() )
-            .map( TrackedEntity::getAttributes )
-            .orElse( Collections.emptyList() );
-        List<Attribute> attributes = ListUtils.union( enrollment.getAttributes(), payloadTeiAttributes );
-
-        return ruleEffects
-            .getRuleEffects()
-            .stream()
-            .map( effect -> buildEnrollmentRuleActionExecutor( effect.ruleId(), effect.data(),
-                effect.ruleAction(), attributes ) )
-            .filter( Objects::nonNull )
-            .collect( Collectors.toList() );
+    if (ruleAction instanceof RuleActionSetMandatoryField) {
+      RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
+      return new SetMandatoryFieldExecutor(ruleId, action.field());
     }
-
-    private RuleActionExecutor<Enrollment> buildEnrollmentRuleActionExecutor( String ruleId, String data,
-        RuleAction ruleAction,
-        List<Attribute> attributes )
-    {
-        if ( ruleAction instanceof RuleActionAssign )
-        {
-            RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignAttributeExecutor( systemSettingManager, ruleId, data, action.field(), attributes );
-        }
-        if ( ruleAction instanceof RuleActionSetMandatoryField )
-        {
-            RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
-            return new SetMandatoryFieldExecutor( ruleId, action.field() );
-        }
-        if ( ruleAction instanceof RuleActionShowError )
-        {
-            RuleActionShowError action = (RuleActionShowError) ruleAction;
-            return new ShowErrorExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionShowWarning )
-        {
-            RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
-            return new ShowWarningExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionErrorOnCompletion )
-        {
-            RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
-            return new ShowErrorOnCompleteExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionWarningOnCompletion )
-        {
-            RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
-            return new ShowWarningOnCompleteExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
-        }
-        if ( ruleAction instanceof RuleActionError )
-        {
-            return new RuleEngineErrorExecutor( ruleId, data );
-        }
-        return null;
+    if (ruleAction instanceof RuleActionShowError) {
+      RuleActionShowError action = (RuleActionShowError) ruleAction;
+      return new ShowErrorExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
     }
+    if (ruleAction instanceof RuleActionShowWarning) {
+      RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
+      return new ShowWarningExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+    }
+    if (ruleAction instanceof RuleActionErrorOnCompletion) {
+      RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
+      return new ShowErrorOnCompleteExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+    }
+    if (ruleAction instanceof RuleActionWarningOnCompletion) {
+      RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
+      return new ShowWarningOnCompleteExecutor(
+          new ValidationRuleAction(ruleId, data, action.field(), action.content()));
+    }
+    if (ruleAction instanceof RuleActionError) {
+      return new RuleEngineErrorExecutor(ruleId, data);
+    }
+    return null;
+  }
 }

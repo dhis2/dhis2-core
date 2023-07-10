@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.hisp.dhis.organisationunit.CoordinatesTuple;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,65 +41,59 @@ import org.locationtech.jts.io.geojson.GeoJsonWriter;
 /**
  * @author Henning Håkonsen
  */
-public class CoordinateUtils
-{
-    private static final Pattern JSON_POINT_PATTERN = Pattern.compile( "(\\[.*?])" );
+public class CoordinateUtils {
+  private static final Pattern JSON_POINT_PATTERN = Pattern.compile("(\\[.*?])");
 
-    private static final Pattern JSON_COORDINATE_PATTERN = Pattern.compile( "(\\[{3}.*?]{3})" );
+  private static final Pattern JSON_COORDINATE_PATTERN = Pattern.compile("(\\[{3}.*?]{3})");
 
-    private static final Pattern COORDINATE_PATTERN = Pattern.compile( "([\\-0-9.]+,[\\-0-9.]+)" );
+  private static final Pattern COORDINATE_PATTERN = Pattern.compile("([\\-0-9.]+,[\\-0-9.]+)");
 
-    public static boolean hasDescendantsWithCoordinates( Set<OrganisationUnit> organisationUnits )
-    {
-        return organisationUnits.stream().anyMatch( OrganisationUnit::hasCoordinates );
-    }
+  public static boolean hasDescendantsWithCoordinates(Set<OrganisationUnit> organisationUnits) {
+    return organisationUnits.stream().anyMatch(OrganisationUnit::hasCoordinates);
+  }
 
-    public static boolean isPolygon( FeatureType featureType )
-    {
-        return featureType != null && featureType.isPolygon();
-    }
+  public static boolean isPolygon(FeatureType featureType) {
+    return featureType != null && featureType.isPolygon();
+  }
 
-    public static boolean isPoint( FeatureType featureType )
-    {
-        return featureType != null && featureType == FeatureType.POINT;
-    }
+  public static boolean isPoint(FeatureType featureType) {
+    return featureType != null && featureType == FeatureType.POINT;
+  }
 
-    public static List<CoordinatesTuple> getCoordinatesAsList( String coordinates, FeatureType featureType )
-    {
-        List<CoordinatesTuple> list = new ArrayList<>();
+  public static List<CoordinatesTuple> getCoordinatesAsList(
+      String coordinates, FeatureType featureType) {
+    List<CoordinatesTuple> list = new ArrayList<>();
 
-        if ( coordinates != null && !coordinates.trim().isEmpty() )
-        {
-            Matcher jsonMatcher = isPoint( featureType ) ? JSON_POINT_PATTERN.matcher( coordinates )
-                : JSON_COORDINATE_PATTERN.matcher( coordinates );
+    if (coordinates != null && !coordinates.trim().isEmpty()) {
+      Matcher jsonMatcher =
+          isPoint(featureType)
+              ? JSON_POINT_PATTERN.matcher(coordinates)
+              : JSON_COORDINATE_PATTERN.matcher(coordinates);
 
-            while ( jsonMatcher.find() )
-            {
-                CoordinatesTuple tuple = new CoordinatesTuple();
+      while (jsonMatcher.find()) {
+        CoordinatesTuple tuple = new CoordinatesTuple();
 
-                Matcher matcher = COORDINATE_PATTERN.matcher( jsonMatcher.group() );
+        Matcher matcher = COORDINATE_PATTERN.matcher(jsonMatcher.group());
 
-                while ( matcher.find() )
-                {
-                    tuple.addCoordinates( matcher.group() );
-                }
-
-                list.add( tuple );
-            }
+        while (matcher.find()) {
+          tuple.addCoordinates(matcher.group());
         }
 
-        return list;
+        list.add(tuple);
+      }
     }
 
-    public static String getCoordinatesFromGeometry( Geometry geometry )
-    {
-        String coordinatesKey = "\"coordinates\":";
-        String crsKey = ",\"crs\":";
+    return list;
+  }
 
-        GeoJsonWriter gjw = new GeoJsonWriter();
-        String geojson = gjw.write( geometry ).trim();
+  public static String getCoordinatesFromGeometry(Geometry geometry) {
+    String coordinatesKey = "\"coordinates\":";
+    String crsKey = ",\"crs\":";
 
-        return geojson.substring( geojson.indexOf( coordinatesKey ) + coordinatesKey.length(),
-            geojson.indexOf( crsKey ) );
-    }
+    GeoJsonWriter gjw = new GeoJsonWriter();
+    String geojson = gjw.write(geometry).trim();
+
+    return geojson.substring(
+        geojson.indexOf(coordinatesKey) + coordinatesKey.length(), geojson.indexOf(crsKey));
+  }
 }

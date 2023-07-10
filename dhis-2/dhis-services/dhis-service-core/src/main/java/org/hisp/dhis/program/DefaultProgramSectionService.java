@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 
 /**
@@ -36,14 +35,11 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultProgramSectionService
-    implements ProgramSectionService
-{
-    private final ProgramSectionStore programSectionStore;
+public class DefaultProgramSectionService implements ProgramSectionService {
+  private final ProgramSectionStore programSectionStore;
 
-    @Override
-    public void addProgramSection( ProgramSection programSection )
-    {
-        programSectionStore.save( programSection );
-    }
+  @Override
+  public void addProgramSection(ProgramSection programSection) {
+    programSectionStore.save(programSection);
+  }
 }

@@ -57,9 +57,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-
 import javax.sql.DataSource;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsExportSettings;
 import org.hisp.dhis.analytics.AnalyticsTable;
@@ -96,253 +94,241 @@ import org.springframework.jdbc.core.RowCallbackHandler;
  *
  * @author Jim Grace
  */
-@ExtendWith( MockitoExtension.class )
-class JdbcOwnershipAnalyticsTableManagerTest
-    extends DhisConvenienceTest
-{
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+@ExtendWith(MockitoExtension.class)
+class JdbcOwnershipAnalyticsTableManagerTest extends DhisConvenienceTest {
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private CategoryService categoryService;
+  @Mock private CategoryService categoryService;
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
+  @Mock private SystemSettingManager systemSettingManager;
 
-    @Mock
-    private DataApprovalLevelService dataApprovalLevelService;
+  @Mock private DataApprovalLevelService dataApprovalLevelService;
 
-    @Mock
-    private ResourceTableService resourceTableService;
+  @Mock private ResourceTableService resourceTableService;
 
-    @Mock
-    private AnalyticsTableHookService tableHookService;
+  @Mock private AnalyticsTableHookService tableHookService;
 
-    @Mock
-    private StatementBuilder statementBuilder;
+  @Mock private StatementBuilder statementBuilder;
 
-    @Mock
-    private PartitionManager partitionManager;
+  @Mock private PartitionManager partitionManager;
 
-    @Mock
-    private DatabaseInfo databaseInfo;
+  @Mock private DatabaseInfo databaseInfo;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private JdbcConfiguration jdbcConfiguration;
+  @Mock private JdbcConfiguration jdbcConfiguration;
 
-    @Mock
-    private DataSource dataSource;
+  @Mock private DataSource dataSource;
 
-    @Mock
-    private Connection connection;
+  @Mock private Connection connection;
 
-    @Mock
-    private Statement statement;
+  @Mock private Statement statement;
 
-    @Mock
-    private JdbcOwnershipWriter writer;
+  @Mock private JdbcOwnershipWriter writer;
 
-    @Mock
-    private AnalyticsExportSettings analyticsExportSettings;
+  @Mock private AnalyticsExportSettings analyticsExportSettings;
 
-    @Mock
-    private PeriodDataProvider periodDataProvider;
+  @Mock private PeriodDataProvider periodDataProvider;
 
-    private static final Program programA = createProgram( 'A' );
+  private static final Program programA = createProgram('A');
 
-    private static final Program programB = createProgramWithoutRegistration( 'B' );
+  private static final Program programB = createProgramWithoutRegistration('B');
 
-    private static AnalyticsTable tableA;
+  private static AnalyticsTable tableA;
 
-    private static AnalyticsTable tableB;
+  private static AnalyticsTable tableB;
 
-    private static AnalyticsTablePartition partitionA;
+  private static AnalyticsTablePartition partitionA;
 
-    private JdbcOwnershipAnalyticsTableManager target;
+  private JdbcOwnershipAnalyticsTableManager target;
 
-    @BeforeEach
-    public void setUp()
-    {
-        target = new JdbcOwnershipAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
-            systemSettingManager, dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder,
-            partitionManager, databaseInfo, jdbcTemplate, jdbcConfiguration, analyticsExportSettings,
-            periodDataProvider );
+  @BeforeEach
+  public void setUp() {
+    target =
+        new JdbcOwnershipAnalyticsTableManager(
+            idObjectManager,
+            organisationUnitService,
+            categoryService,
+            systemSettingManager,
+            dataApprovalLevelService,
+            resourceTableService,
+            tableHookService,
+            statementBuilder,
+            partitionManager,
+            databaseInfo,
+            jdbcTemplate,
+            jdbcConfiguration,
+            analyticsExportSettings,
+            periodDataProvider);
 
-        tableA = new AnalyticsTable( AnalyticsTableType.OWNERSHIP, target.getFixedColumns(),
-            emptyList(), programA );
+    tableA =
+        new AnalyticsTable(
+            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programA);
 
-        tableB = new AnalyticsTable( AnalyticsTableType.OWNERSHIP, target.getFixedColumns(),
-            emptyList(), programB );
+    tableB =
+        new AnalyticsTable(
+            AnalyticsTableType.OWNERSHIP, target.getFixedColumns(), emptyList(), programB);
 
-        partitionA = new AnalyticsTablePartition( tableA, 1, new Date(), new Date(), true );
-    }
+    partitionA = new AnalyticsTablePartition(tableA, 1, new Date(), new Date(), true);
+  }
 
-    @Test
-    void testGetAnalyticsTableType()
-    {
-        assertEquals( AnalyticsTableType.OWNERSHIP, target.getAnalyticsTableType() );
-    }
+  @Test
+  void testGetAnalyticsTableType() {
+    assertEquals(AnalyticsTableType.OWNERSHIP, target.getAnalyticsTableType());
+  }
 
-    @Test
-    void testGetAnalyticsTables()
-    {
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( programA, programB ) );
+  @Test
+  void testGetAnalyticsTables() {
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(programA, programB));
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+    AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
+
+    assertEquals(List.of(tableA, tableB), target.getAnalyticsTables(params));
+
+    params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .withLastYears(AnalyticsTablePartition.LATEST_PARTITION)
             .build();
 
-        assertEquals( List.of( tableA, tableB ), target.getAnalyticsTables( params ) );
+    assertEquals(emptyList(), target.getAnalyticsTables(params));
+  }
 
-        params = AnalyticsTableUpdateParams.newBuilder()
-            .withLastYears( AnalyticsTablePartition.LATEST_PARTITION )
-            .build();
+  @Test
+  void testGetPartitionChecks() {
+    assertEquals(emptyList(), target.getPartitionChecks(partitionA));
+  }
 
-        assertEquals( emptyList(), target.getAnalyticsTables( params ) );
+  @Test
+  void testPopulateTable() throws SQLException {
+    String tei1 = "teiUid00001";
+    String tei2 = "teiUid00002";
+
+    String ou1 = "orgUnit0001";
+    String ou2 = "orgUnit0002";
+
+    Date start1 = new GregorianCalendar(2022, JANUARY, 1).getTime();
+    Date end1 = new GregorianCalendar(2022, JANUARY, 31).getTime();
+    Date start2 = new GregorianCalendar(2022, FEBRUARY, 1).getTime();
+    Date end2 = new GregorianCalendar(2022, FEBRUARY, 28).getTime();
+    Date start3 = new GregorianCalendar(2022, MARCH, 1).getTime();
+    Date end3 = new GregorianCalendar(2022, MARCH, 31).getTime();
+
+    when(jdbcConfiguration.getDialect()).thenReturn(StatementDialect.POSTGRESQL);
+    when(jdbcConfiguration.getDataSource()).thenReturn(dataSource);
+    when(dataSource.getConnection()).thenReturn(connection);
+    when(connection.createStatement()).thenReturn(statement);
+
+    // Mock the jdbcTemplate callback handler to return the mocked ResultSet
+    // object:
+
+    ResultSet resultSet1 = mock(ResultSet.class);
+    ResultSet resultSet2 = mock(ResultSet.class);
+    ResultSet resultSet3 = mock(ResultSet.class);
+
+    doAnswer(
+            invocation -> {
+              RowCallbackHandler callbackHandler = invocation.getArgument(1);
+              callbackHandler.processRow(resultSet1);
+              callbackHandler.processRow(resultSet2);
+              callbackHandler.processRow(resultSet3);
+              return null;
+            })
+        .when(jdbcTemplate)
+        .query(anyString(), any(RowCallbackHandler.class));
+
+    // TEI uid:
+    when(resultSet1.getObject(1)).thenReturn(tei1);
+    when(resultSet2.getObject(1)).thenReturn(tei2);
+    when(resultSet3.getObject(1)).thenReturn(tei2);
+
+    // Start date:
+    when(resultSet1.getObject(2)).thenReturn(start1);
+    when(resultSet2.getObject(2)).thenReturn(start2);
+    when(resultSet3.getObject(2)).thenReturn(start3);
+
+    // End date (always null):
+    when(resultSet1.getObject(3)).thenReturn(end1);
+    when(resultSet2.getObject(3)).thenReturn(end2);
+    when(resultSet3.getObject(3)).thenReturn(end3);
+
+    // OrgUnit:
+    when(resultSet1.getObject(4)).thenReturn(ou1);
+    when(resultSet2.getObject(4)).thenReturn(ou2);
+    when(resultSet3.getObject(4)).thenReturn(ou2);
+
+    AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
+
+    try (MockedStatic<JdbcOwnershipWriter> mocked = mockStatic(JdbcOwnershipWriter.class)) {
+      mocked.when(() -> JdbcOwnershipWriter.getInstance(any())).thenReturn(writer);
+
+      target.populateTable(params, partitionA);
     }
 
-    @Test
-    void testGetPartitionChecks()
-    {
-        assertEquals( emptyList(), target.getPartitionChecks( partitionA ) );
-    }
+    List<Invocation> jdbcInvocations = getInvocations(jdbcTemplate);
+    assertEquals(1, jdbcInvocations.size());
+    assertEquals("query", jdbcInvocations.get(0).getMethod().getName());
 
-    @Test
-    void testPopulateTable()
-        throws SQLException
-    {
-        String tei1 = "teiUid00001";
-        String tei2 = "teiUid00002";
+    String sql = jdbcInvocations.get(0).getArgument(0);
+    String sqlMasked =
+        sql.replaceAll(
+            "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
+            "lastupdated <= 'yyyy-mm-ddThh:mm:ss'");
+    assertEquals(
+        "select tei.uid,a.startdate,a.enddate,ou.uid from ("
+            + "select h.trackedentityinstanceid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid "
+            + "from programownershiphistory h "
+            + "where h.programid=0 and h.organisationunitid is not null "
+            + "union "
+            + "select o.trackedentityinstanceid, '2002-02-02' as startdate, null as enddate, o.organisationunitid "
+            + "from trackedentityprogramowner o "
+            + "where o.programid=0 "
+            + "and exists (select 1 from programownershiphistory p "
+            + "where o.trackedentityinstanceid = p.trackedentityinstanceid "
+            + "and p.programid=0 and p.organisationunitid is not null)"
+            + ") a "
+            + "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid "
+            + "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid "
+            + "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid "
+            + "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid "
+            + "order by tei.uid, a.startdate, a.enddate",
+        sqlMasked);
 
-        String ou1 = "orgUnit0001";
-        String ou2 = "orgUnit0002";
+    List<Invocation> writerInvocations = getInvocations(writer);
+    assertEquals(3, writerInvocations.size());
 
-        Date start1 = new GregorianCalendar( 2022, JANUARY, 1 ).getTime();
-        Date end1 = new GregorianCalendar( 2022, JANUARY, 31 ).getTime();
-        Date start2 = new GregorianCalendar( 2022, FEBRUARY, 1 ).getTime();
-        Date end2 = new GregorianCalendar( 2022, FEBRUARY, 28 ).getTime();
-        Date start3 = new GregorianCalendar( 2022, MARCH, 1 ).getTime();
-        Date end3 = new GregorianCalendar( 2022, MARCH, 31 ).getTime();
+    assertEquals("write", writerInvocations.get(0).getMethod().getName());
+    assertEquals("write", writerInvocations.get(1).getMethod().getName());
+    assertEquals("write", writerInvocations.get(2).getMethod().getName());
 
-        when( jdbcConfiguration.getDialect() ).thenReturn( StatementDialect.POSTGRESQL );
-        when( jdbcConfiguration.getDataSource() ).thenReturn( dataSource );
-        when( dataSource.getConnection() ).thenReturn( connection );
-        when( connection.createStatement() ).thenReturn( statement );
+    Map<String, Object> map0 = writerInvocations.get(0).getArgument(0);
+    Map<String, Object> map1 = writerInvocations.get(1).getArgument(0);
+    Map<String, Object> map2 = writerInvocations.get(2).getArgument(0);
 
-        // Mock the jdbcTemplate callback handler to return the mocked ResultSet
-        // object:
+    assertEquals(Map.of(TEIUID, tei1, STARTDATE, start1, ENDDATE, end1, OU, ou1), map0);
+    assertEquals(Map.of(TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2), map1);
+    assertEquals(Map.of(TEIUID, tei2, STARTDATE, start3, ENDDATE, end3, OU, ou2), map2);
+  }
 
-        ResultSet resultSet1 = mock( ResultSet.class );
-        ResultSet resultSet2 = mock( ResultSet.class );
-        ResultSet resultSet3 = mock( ResultSet.class );
+  @Test
+  void testGetFixedColumns() {
+    List<AnalyticsTableColumn> expected =
+        List.of(
+            new AnalyticsTableColumn(quote("teiuid"), CHARACTER_11, "tei.uid"),
+            new AnalyticsTableColumn(quote("startdate"), DATE, "a.startdate"),
+            new AnalyticsTableColumn(quote("enddate"), DATE, "a.enddate"),
+            new AnalyticsTableColumn(quote("ou"), CHARACTER_11, NOT_NULL, "ou.uid"));
 
-        doAnswer( invocation -> {
-            RowCallbackHandler callbackHandler = invocation.getArgument( 1 );
-            callbackHandler.processRow( resultSet1 );
-            callbackHandler.processRow( resultSet2 );
-            callbackHandler.processRow( resultSet3 );
-            return null;
-        } ).when( jdbcTemplate ).query( anyString(), any( RowCallbackHandler.class ) );
+    assertEquals(expected, target.getFixedColumns());
+  }
 
-        // TEI uid:
-        when( resultSet1.getObject( 1 ) ).thenReturn( tei1 );
-        when( resultSet2.getObject( 1 ) ).thenReturn( tei2 );
-        when( resultSet3.getObject( 1 ) ).thenReturn( tei2 );
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
 
-        // Start date:
-        when( resultSet1.getObject( 2 ) ).thenReturn( start1 );
-        when( resultSet2.getObject( 2 ) ).thenReturn( start2 );
-        when( resultSet3.getObject( 2 ) ).thenReturn( start3 );
-
-        // End date (always null):
-        when( resultSet1.getObject( 3 ) ).thenReturn( end1 );
-        when( resultSet2.getObject( 3 ) ).thenReturn( end2 );
-        when( resultSet3.getObject( 3 ) ).thenReturn( end3 );
-
-        // OrgUnit:
-        when( resultSet1.getObject( 4 ) ).thenReturn( ou1 );
-        when( resultSet2.getObject( 4 ) ).thenReturn( ou2 );
-        when( resultSet3.getObject( 4 ) ).thenReturn( ou2 );
-
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
-            .build();
-
-        try ( MockedStatic<JdbcOwnershipWriter> mocked = mockStatic( JdbcOwnershipWriter.class ) )
-        {
-            mocked.when( () -> JdbcOwnershipWriter.getInstance( any() ) )
-                .thenReturn( writer );
-
-            target.populateTable( params, partitionA );
-        }
-
-        List<Invocation> jdbcInvocations = getInvocations( jdbcTemplate );
-        assertEquals( 1, jdbcInvocations.size() );
-        assertEquals( "query", jdbcInvocations.get( 0 ).getMethod().getName() );
-
-        String sql = jdbcInvocations.get( 0 ).getArgument( 0 );
-        String sqlMasked = sql.replaceAll( "lastupdated <= '\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}'",
-            "lastupdated <= 'yyyy-mm-ddThh:mm:ss'" );
-        assertEquals( "select tei.uid,a.startdate,a.enddate,ou.uid from (" +
-            "select h.trackedentityinstanceid, '1001-01-01' as startdate, h.enddate as enddate, h.organisationunitid " +
-            "from programownershiphistory h " +
-            "where h.programid=0 and h.organisationunitid is not null " +
-            "union " +
-            "select o.trackedentityinstanceid, '2002-02-02' as startdate, null as enddate, o.organisationunitid " +
-            "from trackedentityprogramowner o " +
-            "where o.programid=0 " +
-            "and exists (select 1 from programownershiphistory p " +
-            "where o.trackedentityinstanceid = p.trackedentityinstanceid " +
-            "and p.programid=0 and p.organisationunitid is not null)" +
-            ") a " +
-            "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid " +
-            "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid " +
-            "left join _orgunitstructure ous on a.organisationunitid = ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on a.organisationunitid = ougs.organisationunitid " +
-            "order by tei.uid, a.startdate, a.enddate",
-            sqlMasked );
-
-        List<Invocation> writerInvocations = getInvocations( writer );
-        assertEquals( 3, writerInvocations.size() );
-
-        assertEquals( "write", writerInvocations.get( 0 ).getMethod().getName() );
-        assertEquals( "write", writerInvocations.get( 1 ).getMethod().getName() );
-        assertEquals( "write", writerInvocations.get( 2 ).getMethod().getName() );
-
-        Map<String, Object> map0 = writerInvocations.get( 0 ).getArgument( 0 );
-        Map<String, Object> map1 = writerInvocations.get( 1 ).getArgument( 0 );
-        Map<String, Object> map2 = writerInvocations.get( 2 ).getArgument( 0 );
-
-        assertEquals( Map.of( TEIUID, tei1, STARTDATE, start1, ENDDATE, end1, OU, ou1 ), map0 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start2, ENDDATE, end2, OU, ou2 ), map1 );
-        assertEquals( Map.of( TEIUID, tei2, STARTDATE, start3, ENDDATE, end3, OU, ou2 ), map2 );
-    }
-
-    @Test
-    void testGetFixedColumns()
-    {
-        List<AnalyticsTableColumn> expected = List.of(
-            new AnalyticsTableColumn( quote( "teiuid" ), CHARACTER_11, "tei.uid" ),
-            new AnalyticsTableColumn( quote( "startdate" ), DATE, "a.startdate" ),
-            new AnalyticsTableColumn( quote( "enddate" ), DATE, "a.enddate" ),
-            new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
-
-        assertEquals( expected, target.getFixedColumns() );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets a list of invocations of a mocked object
-     */
-    private List<Invocation> getInvocations( Object mock )
-    {
-        return new ArrayList<>( mockingDetails( mock ).getInvocations() );
-    }
+  /** Gets a list of invocations of a mocked object */
+  private List<Invocation> getInvocations(Object mock) {
+    return new ArrayList<>(mockingDetails(mock).getInvocations());
+  }
 }

@@ -30,9 +30,10 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jsontree.JsonList;
@@ -47,183 +48,216 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * This Integration test using Postgres is necessary as the H2 DB doesn't work
- * with {@link JdbcOrgUnitAssociationsStore#checkOrganisationUnitsAssociations}.
- * A ClassCastException is thrown. H2 uses a different object type for its
- * result set which doesn't allow the cast to String[] when creating the orgUnit
- * <-> program relationship map.
+ * This Integration test using Postgres is necessary as the H2 DB doesn't work with {@link
+ * JdbcOrgUnitAssociationsStore#checkOrganisationUnitsAssociations}. A ClassCastException is thrown.
+ * H2 uses a different object type for its result set which doesn't allow the cast to String[] when
+ * creating the orgUnit <-> program relationship map.
  *
  * @author David Mackessy
  */
+class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest {
 
-class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest
-{
+  @Autowired private ObjectMapper jsonMapper;
 
-    @Autowired
-    private ObjectMapper jsonMapper;
+  public static final String PROGRAM_UID = "PrZMWi7rBga";
 
-    public static final String PROGRAM_UID = "PrZMWi7rBga";
+  public static final String ORG_UNIT_UID = "Orgunit1000";
 
-    public static final String ORG_UNIT_UID = "Orgunit1000";
+  @BeforeEach
+  public void testSetup() throws JsonProcessingException {
+    DataElement dataElement1 = createDataElement('a');
+    DataElement dataElement2 = createDataElement('b');
+    dataElement1.setUid("deabcdefgha");
+    dataElement2.setUid("deabcdefghb");
+    TrackedEntityAttribute tea1 = createTrackedEntityAttribute('a');
+    TrackedEntityAttribute tea2 = createTrackedEntityAttribute('b');
+    tea1.setUid("TEA1nnnnnaa");
+    tea2.setUid("TEA1nnnnnab");
+    POST("/dataElements", jsonMapper.writeValueAsString(dataElement1)).content(HttpStatus.CREATED);
+    POST("/dataElements", jsonMapper.writeValueAsString(dataElement2)).content(HttpStatus.CREATED);
+    POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea1))
+        .content(HttpStatus.CREATED);
+    POST("/trackedEntityAttributes", jsonMapper.writeValueAsString(tea2))
+        .content(HttpStatus.CREATED);
 
-    @BeforeEach
-    public void testSetup()
-        throws JsonProcessingException
-    {
-        DataElement dataElement1 = createDataElement( 'a' );
-        DataElement dataElement2 = createDataElement( 'b' );
-        dataElement1.setUid( "deabcdefgha" );
-        dataElement2.setUid( "deabcdefghb" );
-        TrackedEntityAttribute tea1 = createTrackedEntityAttribute( 'a' );
-        TrackedEntityAttribute tea2 = createTrackedEntityAttribute( 'b' );
-        tea1.setUid( "TEA1nnnnnaa" );
-        tea2.setUid( "TEA1nnnnnab" );
-        POST( "/dataElements", jsonMapper.writeValueAsString( dataElement1 ) )
-            .content( HttpStatus.CREATED );
-        POST( "/dataElements", jsonMapper.writeValueAsString( dataElement2 ) )
-            .content( HttpStatus.CREATED );
-        POST( "/trackedEntityAttributes", jsonMapper.writeValueAsString( tea1 ) )
-            .content( HttpStatus.CREATED );
-        POST( "/trackedEntityAttributes", jsonMapper.writeValueAsString( tea2 ) )
-            .content( HttpStatus.CREATED );
+    POST("/metadata", WebClient.Body("program/create_program.json")).content(HttpStatus.OK);
+  }
 
-        POST( "/metadata", WebClient.Body( "program/create_program.json" ) )
-            .content( HttpStatus.OK );
-    }
-
-    @Test
-    void testCopyProgramEnrollments()
-    {
-        assertStatus( HttpStatus.CREATED, POST( "/trackedEntityTypes",
-            "{'description': 'add TET for Enrollment test','id':'TEType10000','name':'Tracked Entity Type 1'}" ) );
-
-        assertStatus( HttpStatus.CREATED, POST( "/trackedEntityAttributes/",
-            "{'name':'attrA', 'id':'TEAttr10000','shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}" ) );
-
-        String teiId = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances", "{\n" +
-            "  'trackedEntityType': 'TEType10000',\n" +
-            "  'program': 'PrZMWi7rBga',\n" +
-            "  'status': 'ACTIVE',\n" +
-            "  'orgUnit': '" + ORG_UNIT_UID + "',\n" +
-            "  'enrollmentDate': '2023-06-16',\n" +
-            "  'incidentDate': '2023-06-16'\n" +
-            "}" ) );
-
-        POST( "/enrollments", "{\n" +
-            "  'trackedEntityInstance': '" + teiId + "',\n" +
-            "  'program': 'PrZMWi7rBga',\n" +
-            "  'status': 'ACTIVE',\n" +
-            "  'orgUnit': '" + ORG_UNIT_UID + "',\n" +
-            "  'enrollmentDate': '2023-06-16',\n" +
-            "  'incidentDate': '2023-06-16'\n" +
-            "}" ).content( HttpStatus.CREATED );
-
+  @Test
+  void testCopyProgramEnrollments() {
+    assertStatus(
+        HttpStatus.CREATED,
         POST(
-            "/programs/%s/copy".formatted( PROGRAM_UID ) )
-            .content( HttpStatus.CREATED )
-            .as( JsonWebMessage.class );
+            "/trackedEntityTypes",
+            "{'description': 'add TET for Enrollment test','id':'TEType10000','name':'Tracked Entity Type 1'}"));
 
-        JsonWebMessage enrollmentsForOrgUnit = GET( "/tracker/enrollments?orgUnit=%s".formatted( ORG_UNIT_UID ) )
-            .content( HttpStatus.OK )
-            .as( JsonWebMessage.class );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/trackedEntityAttributes/",
+            "{'name':'attrA', 'id':'TEAttr10000','shortName':'attrA', 'valueType':'TEXT', 'aggregationType':'NONE'}"));
 
-        JsonList<JsonEnrollment> enrollments = enrollmentsForOrgUnit.getList( "instances", JsonEnrollment.class );
-        Set<JsonEnrollment> originalProgramEnrollments = enrollments.stream()
-            .filter( enrollment -> enrollment.getProgram().equals( PROGRAM_UID ) )
-            .collect( Collectors.toSet() );
+    String teiId =
+        assertStatus(
+            HttpStatus.OK,
+            POST(
+                "/trackedEntityInstances",
+                "{\n"
+                    + "  'trackedEntityType': 'TEType10000',\n"
+                    + "  'program': 'PrZMWi7rBga',\n"
+                    + "  'status': 'ACTIVE',\n"
+                    + "  'orgUnit': '"
+                    + ORG_UNIT_UID
+                    + "',\n"
+                    + "  'enrollmentDate': '2023-06-16',\n"
+                    + "  'incidentDate': '2023-06-16'\n"
+                    + "}"));
 
-        assertEquals( 2, enrollments.size() );
-        assertEquals( 1, originalProgramEnrollments.size() );
-    }
+    POST(
+            "/enrollments",
+            "{\n"
+                + "  'trackedEntityInstance': '"
+                + teiId
+                + "',\n"
+                + "  'program': 'PrZMWi7rBga',\n"
+                + "  'status': 'ACTIVE',\n"
+                + "  'orgUnit': '"
+                + ORG_UNIT_UID
+                + "',\n"
+                + "  'enrollmentDate': '2023-06-16',\n"
+                + "  'incidentDate': '2023-06-16'\n"
+                + "}")
+        .content(HttpStatus.CREATED);
 
-    @Test
-    void testCopyProgramWithNoPublicSharingWithUserAdded()
-    {
-        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
-            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+    POST("/programs/%s/copy".formatted(PROGRAM_UID))
+        .content(HttpStatus.CREATED)
+        .as(JsonWebMessage.class);
 
-        switchToSuperuser();
-        manager.save( userWithPublicAuths );
-        PUT( "/programs/" + PROGRAM_UID, "{\n" +
-            "    'id': '" + PROGRAM_UID + "',\n" +
-            "    'name': 'test program',\n" +
-            "    'shortName': 'test program',\n" +
-            "    'programType': 'WITH_REGISTRATION',\n" +
-            "    'sharing': {\n" +
-            "        'public': '--------',\n" +
-            "        'users': {\n" +
-            "           '" + userWithPublicAuths.getUid() + "': {\n" +
-            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
-            "              'access': 'rw------'\n" +
-            "        }\n" +
-            "     }\n" +
-            "    }\n" +
-            "}" ).content( HttpStatus.OK );
+    JsonWebMessage enrollmentsForOrgUnit =
+        GET("/tracker/enrollments?orgUnit=%s".formatted(ORG_UNIT_UID))
+            .content(HttpStatus.OK)
+            .as(JsonWebMessage.class);
 
-        switchContextToUser( userWithPublicAuths );
+    JsonList<JsonEnrollment> enrollments =
+        enrollmentsForOrgUnit.getList("instances", JsonEnrollment.class);
+    Set<JsonEnrollment> originalProgramEnrollments =
+        enrollments.stream()
+            .filter(enrollment -> enrollment.getProgram().equals(PROGRAM_UID))
+            .collect(Collectors.toSet());
 
-        assertStatus( HttpStatus.CREATED, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
-    }
+    assertEquals(2, enrollments.size());
+    assertEquals(1, originalProgramEnrollments.size());
+  }
 
-    @Test
-    void testCopyProgramWithNoPublicSharingWithUserAddedWithWriteOnlyAccess()
-    {
-        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
-            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+  @Test
+  void testCopyProgramWithNoPublicSharingWithUserAdded() {
+    User userWithPublicAuths =
+        switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-        switchToSuperuser();
-        manager.save( userWithPublicAuths );
-        PUT( "/programs/" + PROGRAM_UID, "{\n" +
-            "    'id': '" + PROGRAM_UID + "',\n" +
-            "    'name': 'test program',\n" +
-            "    'shortName': 'test program',\n" +
-            "    'programType': 'WITH_REGISTRATION',\n" +
-            "    'sharing': {\n" +
-            "        'public': '--------',\n" +
-            "        'users': {\n" +
-            "           '" + userWithPublicAuths.getUid() + "': {\n" +
-            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
-            "              'access': '-w------'\n" +
-            "        }\n" +
-            "     }\n" +
-            "    }\n" +
-            "}" ).content( HttpStatus.OK );
+    switchToSuperuser();
+    manager.save(userWithPublicAuths);
+    PUT(
+            "/programs/" + PROGRAM_UID,
+            "{\n"
+                + "    'id': '"
+                + PROGRAM_UID
+                + "',\n"
+                + "    'name': 'test program',\n"
+                + "    'shortName': 'test program',\n"
+                + "    'programType': 'WITH_REGISTRATION',\n"
+                + "    'sharing': {\n"
+                + "        'public': '--------',\n"
+                + "        'users': {\n"
+                + "           '"
+                + userWithPublicAuths.getUid()
+                + "': {\n"
+                + "              'id': '"
+                + userWithPublicAuths.getUid()
+                + "',\n"
+                + "              'access': 'rw------'\n"
+                + "        }\n"
+                + "     }\n"
+                + "    }\n"
+                + "}")
+        .content(HttpStatus.OK);
 
-        switchContextToUser( userWithPublicAuths );
+    switchContextToUser(userWithPublicAuths);
 
-        assertStatus( HttpStatus.NOT_FOUND, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
-    }
+    assertStatus(HttpStatus.CREATED, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
+  }
 
-    @Test
-    void testCopyProgramWithNoPublicSharingWithUserAddedWithReadOnlyAccess()
-    {
-        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
-            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+  @Test
+  void testCopyProgramWithNoPublicSharingWithUserAddedWithWriteOnlyAccess() {
+    User userWithPublicAuths =
+        switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
-        switchToSuperuser();
-        manager.save( userWithPublicAuths );
-        PUT( "/programs/" + PROGRAM_UID, "{\n" +
-            "    'id': '" + PROGRAM_UID + "',\n" +
-            "    'name': 'test program',\n" +
-            "    'shortName': 'test program',\n" +
-            "    'programType': 'WITH_REGISTRATION',\n" +
-            "    'sharing': {\n" +
-            "        'public': '--------',\n" +
-            "        'users': {\n" +
-            "           '" + userWithPublicAuths.getUid() + "': {\n" +
-            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
-            "              'access': 'r-------'\n" +
-            "        }\n" +
-            "     }\n" +
-            "    }\n" +
-            "}" ).content( HttpStatus.OK );
+    switchToSuperuser();
+    manager.save(userWithPublicAuths);
+    PUT(
+            "/programs/" + PROGRAM_UID,
+            "{\n"
+                + "    'id': '"
+                + PROGRAM_UID
+                + "',\n"
+                + "    'name': 'test program',\n"
+                + "    'shortName': 'test program',\n"
+                + "    'programType': 'WITH_REGISTRATION',\n"
+                + "    'sharing': {\n"
+                + "        'public': '--------',\n"
+                + "        'users': {\n"
+                + "           '"
+                + userWithPublicAuths.getUid()
+                + "': {\n"
+                + "              'id': '"
+                + userWithPublicAuths.getUid()
+                + "',\n"
+                + "              'access': '-w------'\n"
+                + "        }\n"
+                + "     }\n"
+                + "    }\n"
+                + "}")
+        .content(HttpStatus.OK);
 
-        switchContextToUser( userWithPublicAuths );
+    switchContextToUser(userWithPublicAuths);
 
-        assertStatus( HttpStatus.FORBIDDEN, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
-    }
+    assertStatus(HttpStatus.NOT_FOUND, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
+  }
+
+  @Test
+  void testCopyProgramWithNoPublicSharingWithUserAddedWithReadOnlyAccess() {
+    User userWithPublicAuths =
+        switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
+
+    switchToSuperuser();
+    manager.save(userWithPublicAuths);
+    PUT(
+            "/programs/" + PROGRAM_UID,
+            "{\n"
+                + "    'id': '"
+                + PROGRAM_UID
+                + "',\n"
+                + "    'name': 'test program',\n"
+                + "    'shortName': 'test program',\n"
+                + "    'programType': 'WITH_REGISTRATION',\n"
+                + "    'sharing': {\n"
+                + "        'public': '--------',\n"
+                + "        'users': {\n"
+                + "           '"
+                + userWithPublicAuths.getUid()
+                + "': {\n"
+                + "              'id': '"
+                + userWithPublicAuths.getUid()
+                + "',\n"
+                + "              'access': 'r-------'\n"
+                + "        }\n"
+                + "     }\n"
+                + "    }\n"
+                + "}")
+        .content(HttpStatus.OK);
+
+    switchContextToUser(userWithPublicAuths);
+
+    assertStatus(HttpStatus.FORBIDDEN, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
+  }
 }

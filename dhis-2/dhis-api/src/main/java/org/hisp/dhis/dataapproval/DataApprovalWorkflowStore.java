@@ -34,8 +34,4 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  *
  * @author Jim Grace
  */
-
-public interface DataApprovalWorkflowStore
-    extends IdentifiableObjectStore<DataApprovalWorkflow>
-{
-}
+public interface DataApprovalWorkflowStore extends IdentifiableObjectStore<DataApprovalWorkflow> {}

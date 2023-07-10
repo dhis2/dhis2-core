@@ -31,63 +31,59 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.ToString;
 
 /**
- * Simple class for caching of object type. Mainly for usage in speeding up
- * Operator type lookup.
+ * Simple class for caching of object type. Mainly for usage in speeding up Operator type lookup.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
 @ToString
-public final class Type
-{
-    private final boolean isString;
+public final class Type {
+  private final boolean isString;
 
-    private final boolean isChar;
+  private final boolean isChar;
 
-    private final boolean isByte;
+  private final boolean isByte;
 
-    private final boolean isNumber;
+  private final boolean isNumber;
 
-    private final boolean isInteger;
+  private final boolean isInteger;
 
-    private final boolean isFloat;
+  private final boolean isFloat;
 
-    private final boolean isDouble;
+  private final boolean isDouble;
 
-    private final boolean isBoolean;
+  private final boolean isBoolean;
 
-    private final boolean isEnum;
+  private final boolean isEnum;
 
-    private final boolean isDate;
+  private final boolean isDate;
 
-    private final boolean isCollection;
+  private final boolean isCollection;
 
-    private final boolean isList;
+  private final boolean isList;
 
-    private final boolean isSet;
+  private final boolean isSet;
 
-    private final boolean isNull;
+  private final boolean isNull;
 
-    public Type( Object object )
-    {
-        isNull = object == null;
-        isString = object instanceof String;
-        isChar = object instanceof Character;
-        isByte = object instanceof Byte;
-        isNumber = object instanceof Number;
-        isInteger = object instanceof Integer;
-        isFloat = object instanceof Float;
-        isDouble = object instanceof Double;
-        isBoolean = object instanceof Boolean;
-        isEnum = object instanceof Enum;
-        isDate = object instanceof Date;
-        isCollection = object instanceof Collection;
-        isList = object instanceof List;
-        isSet = object instanceof Set;
-    }
+  public Type(Object object) {
+    isNull = object == null;
+    isString = object instanceof String;
+    isChar = object instanceof Character;
+    isByte = object instanceof Byte;
+    isNumber = object instanceof Number;
+    isInteger = object instanceof Integer;
+    isFloat = object instanceof Float;
+    isDouble = object instanceof Double;
+    isBoolean = object instanceof Boolean;
+    isEnum = object instanceof Enum;
+    isDate = object instanceof Date;
+    isCollection = object instanceof Collection;
+    isList = object instanceof List;
+    isSet = object instanceof Set;
+  }
 }

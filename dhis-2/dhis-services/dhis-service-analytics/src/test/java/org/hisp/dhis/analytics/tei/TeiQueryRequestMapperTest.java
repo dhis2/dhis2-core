@@ -33,7 +33,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
@@ -46,100 +45,94 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TeiQueryRequestMapperTest
-{
-    private final TrackedEntityTypeService trackedEntityTypeService = mock( TrackedEntityTypeService.class );
+class TeiQueryRequestMapperTest {
+  private final TrackedEntityTypeService trackedEntityTypeService =
+      mock(TrackedEntityTypeService.class);
 
-    private final ProgramService programService = mock( ProgramService.class );
+  private final ProgramService programService = mock(ProgramService.class);
 
-    private TeiQueryRequestMapper teiQueryRequestMapper;
+  private TeiQueryRequestMapper teiQueryRequestMapper;
 
-    @BeforeEach
-    public void setUp()
-    {
-        teiQueryRequestMapper = new TeiQueryRequestMapper(
-            mock( CommonQueryRequestMapper.class ),
+  @BeforeEach
+  public void setUp() {
+    teiQueryRequestMapper =
+        new TeiQueryRequestMapper(
+            mock(CommonQueryRequestMapper.class),
             trackedEntityTypeService,
-            mock( Processor.class ),
-            programService );
-    }
+            mock(Processor.class),
+            programService);
+  }
 
-    @Test
-    void testOneProgramFailing()
-    {
-        testValidateTrackedEntityType( "T1",
-            "Program(s) `[nameB (B)]` are not defined on Tracked Entity Type `nameT1 (T1)`" );
-    }
+  @Test
+  void testOneProgramFailing() {
+    testValidateTrackedEntityType(
+        "T1", "Program(s) `[nameB (B)]` are not defined on Tracked Entity Type `nameT1 (T1)`");
+  }
 
-    @Test
-    void testTwoProgramsFailing()
-    {
-        testValidateTrackedEntityType( "T3",
-            "Program(s) `[nameA (A), nameB (B)]` are not defined on Tracked Entity Type `nameT3 (T3)`" );
-    }
+  @Test
+  void testTwoProgramsFailing() {
+    testValidateTrackedEntityType(
+        "T3",
+        "Program(s) `[nameA (A), nameB (B)]` are not defined on Tracked Entity Type `nameT3 (T3)`");
+  }
 
-    void testValidateTrackedEntityType( String trackedEntityTypeUid, String expectedMessage )
-    {
-        Program programA = stubProgram( "A", "T1" );
-        Program programB = stubProgram( "B", "T2" );
+  void testValidateTrackedEntityType(String trackedEntityTypeUid, String expectedMessage) {
+    Program programA = stubProgram("A", "T1");
+    Program programB = stubProgram("B", "T2");
 
-        TrackedEntityType trackedEntityType = stubTrackedEntityType( trackedEntityTypeUid );
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .request( new TeiQueryRequest( trackedEntityTypeUid ) )
-            .commonQueryRequest( new CommonQueryRequest()
-                .withProgram( Set.of( "A", "B" ) ) )
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder()
+            .request(new TeiQueryRequest(trackedEntityTypeUid))
+            .commonQueryRequest(new CommonQueryRequest().withProgram(Set.of("A", "B")))
             .build();
 
-        when( trackedEntityTypeService.getTrackedEntityType( trackedEntityTypeUid ) )
-            .thenReturn( trackedEntityType );
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
 
-        when( programService.getPrograms( Set.of( "A", "B" ) ) )
-            .thenReturn( Set.of( programA, programB ) );
+    when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> teiQueryRequestMapper.map( queryRequest ) );
+    final IllegalQueryException thrown =
+        assertThrows(IllegalQueryException.class, () -> teiQueryRequestMapper.map(queryRequest));
 
-        assertEquals( expectedMessage, thrown.getMessage() );
-    }
+    assertEquals(expectedMessage, thrown.getMessage());
+  }
 
-    @Test
-    void testOK()
-    {
-        String trackedEntityTypeUid = "T1";
+  @Test
+  void testOK() {
+    String trackedEntityTypeUid = "T1";
 
-        Program programA = stubProgram( "A", "T1" );
-        Program programB = stubProgram( "B", "T1" );
+    Program programA = stubProgram("A", "T1");
+    Program programB = stubProgram("B", "T1");
 
-        TrackedEntityType trackedEntityType = stubTrackedEntityType( trackedEntityTypeUid );
+    TrackedEntityType trackedEntityType = stubTrackedEntityType(trackedEntityTypeUid);
 
-        QueryRequest<TeiQueryRequest> queryRequest = QueryRequest.<TeiQueryRequest> builder()
-            .request( new TeiQueryRequest( trackedEntityTypeUid ) )
-            .commonQueryRequest( new CommonQueryRequest()
-                .withProgram( Set.of( "A", "B" ) ) )
+    QueryRequest<TeiQueryRequest> queryRequest =
+        QueryRequest.<TeiQueryRequest>builder()
+            .request(new TeiQueryRequest(trackedEntityTypeUid))
+            .commonQueryRequest(new CommonQueryRequest().withProgram(Set.of("A", "B")))
             .build();
 
-        when( trackedEntityTypeService.getTrackedEntityType( trackedEntityTypeUid ) )
-            .thenReturn( trackedEntityType );
+    when(trackedEntityTypeService.getTrackedEntityType(trackedEntityTypeUid))
+        .thenReturn(trackedEntityType);
 
-        when( programService.getPrograms( Set.of( "A", "B" ) ) )
-            .thenReturn( Set.of( programA, programB ) );
+    when(programService.getPrograms(Set.of("A", "B"))).thenReturn(Set.of(programA, programB));
 
-        TeiQueryParams mapped = teiQueryRequestMapper.map( queryRequest );
-    }
+    TeiQueryParams mapped = teiQueryRequestMapper.map(queryRequest);
+  }
 
-    private Program stubProgram( String uid, String tetUid )
-    {
-        Program program = new Program( "name" + uid, "description" + uid );
-        program.setUid( uid );
-        program.setTrackedEntityType( stubTrackedEntityType( tetUid ) );
-        return program;
-    }
+  private Program stubProgram(String uid, String tetUid) {
+    Program program = new Program("name" + uid, "description" + uid);
+    program.setUid(uid);
+    program.setTrackedEntityType(stubTrackedEntityType(tetUid));
+    return program;
+  }
 
-    private TrackedEntityType stubTrackedEntityType( String tetUid )
-    {
-        TrackedEntityType trackedEntityType = new TrackedEntityType( "name" + tetUid, "description" + tetUid );
-        trackedEntityType.setUid( tetUid );
-        return trackedEntityType;
-    }
+  private TrackedEntityType stubTrackedEntityType(String tetUid) {
+    TrackedEntityType trackedEntityType =
+        new TrackedEntityType("name" + tetUid, "description" + tetUid);
+    trackedEntityType.setUid(tetUid);
+    return trackedEntityType;
+  }
 }

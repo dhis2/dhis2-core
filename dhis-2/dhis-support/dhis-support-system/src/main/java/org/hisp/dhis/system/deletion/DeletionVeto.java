@@ -30,49 +30,39 @@ package org.hisp.dhis.system.deletion;
 /**
  * @author Jan Bernitt
  */
-public final class DeletionVeto
-{
+public final class DeletionVeto {
 
-    /**
-     * Deletion is not vetoed but accepted
-     */
-    public static final DeletionVeto ACCEPT = new DeletionVeto( "" );
+  /** Deletion is not vetoed but accepted */
+  public static final DeletionVeto ACCEPT = new DeletionVeto("");
 
-    private final String message;
+  private final String message;
 
-    public DeletionVeto( Class<?> parent, Class<?> vetoed )
-    {
-        this( parent.getSimpleName() + "." + vetoed.getSimpleName() );
-    }
+  public DeletionVeto(Class<?> parent, Class<?> vetoed) {
+    this(parent.getSimpleName() + "." + vetoed.getSimpleName());
+  }
 
-    public DeletionVeto( Class<?> vetoed, String hint )
-    {
-        this( vetoed.getSimpleName() + " (" + hint + ")" );
-    }
+  public DeletionVeto(Class<?> vetoed, String hint) {
+    this(vetoed.getSimpleName() + " (" + hint + ")");
+  }
 
-    public DeletionVeto( Class<?> vetoed )
-    {
-        this( vetoed.getSimpleName() );
-    }
+  public DeletionVeto(Class<?> vetoed) {
+    this(vetoed.getSimpleName());
+  }
 
-    private DeletionVeto( String message )
-    {
-        this.message = message;
-    }
+  private DeletionVeto(String message) {
+    this.message = message;
+  }
 
-    public boolean isVetoed()
-    {
-        return this != ACCEPT;
-    }
+  public boolean isVetoed() {
+    return this != ACCEPT;
+  }
 
-    public String getMessage()
-    {
-        return message;
-    }
+  public String getMessage() {
+    return message;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "DeletionVeto{" + "message='" + message + '\'' + '}';
-    }
+  @Override
+  public String toString() {
+    return "DeletionVeto{" + "message='" + message + '\'' + '}';
+  }
 }

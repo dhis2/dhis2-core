@@ -31,7 +31,6 @@ import static java.util.Collections.emptyList;
 
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -43,592 +42,408 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.user.User;
 
-public class PlotData
-{
-    private EventChart eventChart;
+public class PlotData {
+  private EventChart eventChart;
 
-    private Visualization visualization;
+  private Visualization visualization;
 
-    private EventVisualization eventVisualization;
+  private EventVisualization eventVisualization;
 
-    public PlotData( final EventChart eventChart )
-    {
-        this.eventChart = eventChart;
+  public PlotData(final EventChart eventChart) {
+    this.eventChart = eventChart;
+  }
+
+  public PlotData(final Visualization visualization) {
+    this.visualization = visualization;
+  }
+
+  public PlotData(final EventVisualization eventVisualization) {
+    this.eventVisualization = eventVisualization;
+  }
+
+  public EventChart getEventChart() {
+    return eventChart;
+  }
+
+  public Visualization getVisualization() {
+    return visualization;
+  }
+
+  public EventVisualization getEventVisualization() {
+    return eventVisualization;
+  }
+
+  public boolean hasOrganisationUnitLevels() {
+    if (eventChart != null) {
+      return eventChart.hasOrganisationUnitLevels();
+    } else if (visualization != null) {
+      return visualization.hasOrganisationUnitLevels();
+    } else if (eventVisualization != null) {
+      return eventVisualization.hasOrganisationUnitLevels();
     }
 
-    public PlotData( final Visualization visualization )
-    {
-        this.visualization = visualization;
+    return false;
+  }
+
+  public boolean hasItemOrganisationUnitGroups() {
+    if (eventChart != null) {
+      return eventChart.hasItemOrganisationUnitGroups();
+    } else if (visualization != null) {
+      return visualization.hasItemOrganisationUnitGroups();
+    } else if (eventVisualization != null) {
+      return eventVisualization.hasItemOrganisationUnitGroups();
     }
 
-    public PlotData( final EventVisualization eventVisualization )
-    {
-        this.eventVisualization = eventVisualization;
+    return false;
+  }
+
+  public void init(
+      User user,
+      Date date,
+      OrganisationUnit organisationUnit,
+      List<OrganisationUnit> atLevels,
+      List<OrganisationUnit> inGroups,
+      I18nFormat format) {
+    if (eventChart != null) {
+      eventChart.init(user, date, organisationUnit, atLevels, inGroups, format);
+    } else if (visualization != null) {
+      visualization.init(user, date, organisationUnit, atLevels, inGroups, format);
+    } else if (eventVisualization != null) {
+      eventVisualization.init(user, date, organisationUnit, atLevels, inGroups, format);
+    }
+  }
+
+  public void clearTransientState() {
+    if (eventChart != null) {
+      eventChart.clearTransientState();
+    } else if (visualization != null) {
+      visualization.clearTransientState();
+    } else if (eventVisualization != null) {
+      eventVisualization.clearTransientState();
+    }
+  }
+
+  public List<Integer> getOrganisationUnitLevels() {
+    if (eventChart != null) {
+      return eventChart.getOrganisationUnitLevels();
+    } else if (visualization != null) {
+      return visualization.getOrganisationUnitLevels();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getOrganisationUnitLevels();
     }
 
-    public EventChart getEventChart()
-    {
-        return eventChart;
+    return emptyList();
+  }
+
+  public List<OrganisationUnit> getOrganisationUnits() {
+    if (eventChart != null) {
+      return eventChart.getOrganisationUnits();
+    } else if (visualization != null) {
+      return visualization.getOrganisationUnits();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getOrganisationUnits();
     }
 
-    public Visualization getVisualization()
-    {
-        return visualization;
+    return emptyList();
+  }
+
+  public List<OrganisationUnitGroup> getItemOrganisationUnitGroups() {
+    if (eventChart != null) {
+      return eventChart.getItemOrganisationUnitGroups();
+    } else if (visualization != null) {
+      return visualization.getItemOrganisationUnitGroups();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getItemOrganisationUnitGroups();
     }
 
-    public EventVisualization getEventVisualization()
-    {
-        return eventVisualization;
+    return emptyList();
+  }
+
+  public boolean isAggregate() {
+    if (visualization != null) {
+      return true;
     }
 
-    public boolean hasOrganisationUnitLevels()
-    {
-        if ( eventChart != null )
-        {
-            return eventChart.hasOrganisationUnitLevels();
-        }
-        else if ( visualization != null )
-        {
-            return visualization.hasOrganisationUnitLevels();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.hasOrganisationUnitLevels();
-        }
+    return false;
+  }
 
-        return false;
+  public void setGrid(final Grid grid) {
+    if (eventChart != null) {
+      eventChart.setDataItemGrid(grid);
+    } else if (eventVisualization != null) {
+      eventVisualization.setDataItemGrid(grid);
+    }
+  }
+
+  public AnalyticsType getAnalyticsType() {
+    if (visualization != null) {
+      return AnalyticsType.AGGREGATE;
     }
 
-    public boolean hasItemOrganisationUnitGroups()
-    {
-        if ( eventChart != null )
-        {
-            return eventChart.hasItemOrganisationUnitGroups();
-        }
-        else if ( visualization != null )
-        {
-            return visualization.hasItemOrganisationUnitGroups();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.hasItemOrganisationUnitGroups();
-        }
+    return AnalyticsType.EVENT;
+  }
 
-        return false;
+  public boolean isRegression() {
+    if (visualization != null) {
+      return visualization.isRegression();
+    } else if (eventChart != null) {
+      return eventChart.isRegression();
+    } else if (eventVisualization != null) {
+      return eventVisualization.isRegression();
     }
 
-    public void init( User user, Date date, OrganisationUnit organisationUnit, List<OrganisationUnit> atLevels,
-        List<OrganisationUnit> inGroups, I18nFormat format )
-    {
-        if ( eventChart != null )
-        {
-            eventChart.init( user, date, organisationUnit, atLevels, inGroups, format );
-        }
-        else if ( visualization != null )
-        {
-            visualization.init( user, date, organisationUnit, atLevels, inGroups, format );
-        }
-        else if ( eventVisualization != null )
-        {
-            eventVisualization.init( user, date, organisationUnit, atLevels, inGroups, format );
-        }
+    return false;
+  }
+
+  public boolean hasSortOrder() {
+    if (visualization != null) {
+      return visualization.hasSortOrder();
+    } else if (eventChart != null) {
+      return eventChart.hasSortOrder();
+    } else if (eventVisualization != null) {
+      return eventVisualization.hasSortOrder();
     }
 
-    public void clearTransientState()
-    {
-        if ( eventChart != null )
-        {
-            eventChart.clearTransientState();
-        }
-        else if ( visualization != null )
-        {
-            visualization.clearTransientState();
-        }
-        else if ( eventVisualization != null )
-        {
-            eventVisualization.clearTransientState();
-        }
+    return false;
+  }
+
+  public List<DimensionalItemObject> category() {
+    if (visualization != null) {
+      return visualization.chartCategory();
+    } else if (eventChart != null) {
+      return eventChart.category();
+    } else if (eventVisualization != null) {
+      return eventVisualization.category();
     }
 
-    public List<Integer> getOrganisationUnitLevels()
-    {
-        if ( eventChart != null )
-        {
-            return eventChart.getOrganisationUnitLevels();
-        }
-        else if ( visualization != null )
-        {
-            return visualization.getOrganisationUnitLevels();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getOrganisationUnitLevels();
-        }
+    return emptyList();
+  }
 
-        return emptyList();
+  public List<DimensionalItemObject> series() {
+    if (visualization != null) {
+      return visualization.chartSeries();
+    } else if (eventChart != null) {
+      return eventChart.series();
+    } else if (eventVisualization != null) {
+      return eventVisualization.series();
     }
 
-    public List<OrganisationUnit> getOrganisationUnits()
-    {
-        if ( eventChart != null )
-        {
-            return eventChart.getOrganisationUnits();
-        }
-        else if ( visualization != null )
-        {
-            return visualization.getOrganisationUnits();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getOrganisationUnits();
-        }
+    return emptyList();
+  }
 
-        return emptyList();
+  public boolean isType(String type) {
+    if (visualization != null) {
+      return StringUtils.trimToEmpty(type).equals(visualization.getType().name());
+    } else if (eventChart != null) {
+      return StringUtils.trimToEmpty(type).equals(eventChart.getType().name());
+    } else if (eventVisualization != null) {
+      return StringUtils.trimToEmpty(type).equals(eventVisualization.getType().name());
     }
 
-    public List<OrganisationUnitGroup> getItemOrganisationUnitGroups()
-    {
-        if ( eventChart != null )
-        {
-            return eventChart.getItemOrganisationUnitGroups();
-        }
-        else if ( visualization != null )
-        {
-            return visualization.getItemOrganisationUnitGroups();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getItemOrganisationUnitGroups();
-        }
+    return false;
+  }
 
-        return emptyList();
+  public String getType() {
+    if (visualization != null) {
+      return visualization.getType().name();
+    } else if (eventChart != null) {
+      return eventChart.getType().name();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getType().name();
     }
 
-    public boolean isAggregate()
-    {
-        if ( visualization != null )
-        {
-            return true;
-        }
+    return StringUtils.EMPTY;
+  }
 
-        return false;
+  public boolean hasTitle() {
+    if (visualization != null) {
+      return visualization.hasTitle();
+    } else if (eventChart != null) {
+      return eventChart.hasTitle();
+    } else if (eventVisualization != null) {
+      return eventVisualization.hasTitle();
     }
 
-    public void setGrid( final Grid grid )
-    {
-        if ( eventChart != null )
-        {
-            eventChart.setDataItemGrid( grid );
-        }
-        else if ( eventVisualization != null )
-        {
-            eventVisualization.setDataItemGrid( grid );
-        }
+    return false;
+  }
+
+  public String getDisplayTitle() {
+    if (visualization != null) {
+      return visualization.getDisplayTitle();
+    } else if (eventChart != null) {
+      return eventChart.getDisplayTitle();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getDisplayTitle();
     }
 
-    public AnalyticsType getAnalyticsType()
-    {
-        if ( visualization != null )
-        {
-            return AnalyticsType.AGGREGATE;
-        }
+    return StringUtils.EMPTY;
+  }
 
-        return AnalyticsType.EVENT;
+  public String generateTitle() {
+    if (visualization != null) {
+      return visualization.generateTitle();
+    } else if (eventChart != null) {
+      return eventChart.generateTitle();
+    } else if (eventVisualization != null) {
+      return eventVisualization.generateTitle();
     }
 
-    public boolean isRegression()
-    {
-        if ( visualization != null )
-        {
-            return visualization.isRegression();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.isRegression();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.isRegression();
-        }
+    return StringUtils.EMPTY;
+  }
 
-        return false;
+  public boolean isHideTitle() {
+    if (visualization != null) {
+      return visualization.isHideTitle();
+    } else if (eventChart != null) {
+      return eventChart.isHideTitle();
+    } else if (eventVisualization != null) {
+      return eventVisualization.isHideTitle();
     }
 
-    public boolean hasSortOrder()
-    {
-        if ( visualization != null )
-        {
-            return visualization.hasSortOrder();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.hasSortOrder();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.hasSortOrder();
-        }
+    return false;
+  }
 
-        return false;
+  public String getName() {
+    if (visualization != null) {
+      return visualization.getName();
+    } else if (eventChart != null) {
+      return eventChart.getName();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getName();
     }
 
-    public List<DimensionalItemObject> category()
-    {
-        if ( visualization != null )
-        {
-            return visualization.chartCategory();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.category();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.category();
-        }
+    return StringUtils.EMPTY;
+  }
 
-        return emptyList();
+  public boolean isHideLegend() {
+    if (visualization != null) {
+      return visualization.isHideLegend();
+    } else if (eventChart != null) {
+      return eventChart.isHideLegend();
+    } else if (eventVisualization != null) {
+      return eventVisualization.isHideLegend();
     }
 
-    public List<DimensionalItemObject> series()
-    {
-        if ( visualization != null )
-        {
-            return visualization.chartSeries();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.series();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.series();
-        }
+    return false;
+  }
 
-        return emptyList();
+  public String getDomainAxisLabel() {
+    if (visualization != null) {
+      return visualization.getDomainAxisLabel();
+    } else if (eventChart != null) {
+      return eventChart.getDomainAxisLabel();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getDomainAxisLabel();
     }
 
-    public boolean isType( String type )
-    {
-        if ( visualization != null )
-        {
-            return StringUtils.trimToEmpty( type ).equals( visualization.getType().name() );
-        }
-        else if ( eventChart != null )
-        {
-            return StringUtils.trimToEmpty( type ).equals( eventChart.getType().name() );
-        }
-        else if ( eventVisualization != null )
-        {
-            return StringUtils.trimToEmpty( type ).equals( eventVisualization.getType().name() );
-        }
+    return StringUtils.EMPTY;
+  }
 
-        return false;
+  public String getRangeAxisLabel() {
+    if (visualization != null) {
+      return visualization.getRangeAxisLabel();
+    } else if (eventChart != null) {
+      return eventChart.getRangeAxisLabel();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getRangeAxisLabel();
     }
 
-    public String getType()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getType().name();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getType().name();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getType().name();
-        }
+    return StringUtils.EMPTY;
+  }
 
-        return StringUtils.EMPTY;
+  public boolean isTargetLine() {
+    if (visualization != null) {
+      return visualization.isTargetLine();
+    } else if (eventChart != null) {
+      return eventChart.isTargetLine();
+    } else if (eventVisualization != null) {
+      return eventVisualization.isTargetLine();
     }
 
-    public boolean hasTitle()
-    {
-        if ( visualization != null )
-        {
-            return visualization.hasTitle();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.hasTitle();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.hasTitle();
-        }
+    return false;
+  }
 
-        return false;
+  public boolean isBaseLine() {
+    if (visualization != null) {
+      return visualization.isBaseLine();
+    } else if (eventChart != null) {
+      return eventChart.isBaseLine();
+    } else if (eventVisualization != null) {
+      return eventVisualization.isBaseLine();
     }
 
-    public String getDisplayTitle()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getDisplayTitle();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getDisplayTitle();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getDisplayTitle();
-        }
+    return false;
+  }
 
-        return StringUtils.EMPTY;
+  public boolean isHideSubtitle() {
+    if (visualization != null) {
+      return visualization.isHideSubtitle();
+    } else if (eventChart != null) {
+      return eventChart.isHideSubtitle();
+    } else if (eventVisualization != null) {
+      return eventVisualization.isHideSubtitle();
     }
 
-    public String generateTitle()
-    {
-        if ( visualization != null )
-        {
-            return visualization.generateTitle();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.generateTitle();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.generateTitle();
-        }
+    return false;
+  }
 
-        return StringUtils.EMPTY;
+  public int getSortOrder() {
+    if (visualization != null) {
+      return visualization.getSortOrder();
+    } else if (eventChart != null) {
+      return eventChart.getSortOrder();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getSortOrder();
     }
 
-    public boolean isHideTitle()
-    {
-        if ( visualization != null )
-        {
-            return visualization.isHideTitle();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.isHideTitle();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.isHideTitle();
-        }
+    return 0;
+  }
 
-        return false;
+  public Double getTargetLineValue() {
+    if (visualization != null) {
+      return visualization.getTargetLineValue();
+    } else if (eventChart != null) {
+      return eventChart.getTargetLineValue();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getTargetLineValue();
     }
 
-    public String getName()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getName();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getName();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getName();
-        }
+    return 0d;
+  }
 
-        return StringUtils.EMPTY;
+  public Double getBaseLineValue() {
+    if (visualization != null) {
+      return visualization.getBaseLineValue();
+    } else if (eventChart != null) {
+      return eventChart.getBaseLineValue();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getBaseLineValue();
     }
 
-    public boolean isHideLegend()
-    {
-        if ( visualization != null )
-        {
-            return visualization.isHideLegend();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.isHideLegend();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.isHideLegend();
-        }
+    return 0d;
+  }
 
-        return false;
+  public String getTargetLineLabel() {
+    if (visualization != null) {
+      return visualization.getTargetLineLabel();
+    } else if (eventChart != null) {
+      return eventChart.getTargetLineLabel();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getTargetLineLabel();
     }
 
-    public String getDomainAxisLabel()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getDomainAxisLabel();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getDomainAxisLabel();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getDomainAxisLabel();
-        }
+    return StringUtils.EMPTY;
+  }
 
-        return StringUtils.EMPTY;
+  public String getBaseLineLabel() {
+    if (visualization != null) {
+      return visualization.getBaseLineLabel();
+    } else if (eventChart != null) {
+      return eventChart.getBaseLineLabel();
+    } else if (eventVisualization != null) {
+      return eventVisualization.getBaseLineLabel();
     }
 
-    public String getRangeAxisLabel()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getRangeAxisLabel();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getRangeAxisLabel();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getRangeAxisLabel();
-        }
-
-        return StringUtils.EMPTY;
-    }
-
-    public boolean isTargetLine()
-    {
-        if ( visualization != null )
-        {
-            return visualization.isTargetLine();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.isTargetLine();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.isTargetLine();
-        }
-
-        return false;
-    }
-
-    public boolean isBaseLine()
-    {
-        if ( visualization != null )
-        {
-            return visualization.isBaseLine();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.isBaseLine();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.isBaseLine();
-        }
-
-        return false;
-    }
-
-    public boolean isHideSubtitle()
-    {
-        if ( visualization != null )
-        {
-            return visualization.isHideSubtitle();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.isHideSubtitle();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.isHideSubtitle();
-        }
-
-        return false;
-    }
-
-    public int getSortOrder()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getSortOrder();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getSortOrder();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getSortOrder();
-        }
-
-        return 0;
-    }
-
-    public Double getTargetLineValue()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getTargetLineValue();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getTargetLineValue();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getTargetLineValue();
-        }
-
-        return 0d;
-    }
-
-    public Double getBaseLineValue()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getBaseLineValue();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getBaseLineValue();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getBaseLineValue();
-        }
-
-        return 0d;
-    }
-
-    public String getTargetLineLabel()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getTargetLineLabel();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getTargetLineLabel();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getTargetLineLabel();
-        }
-
-        return StringUtils.EMPTY;
-    }
-
-    public String getBaseLineLabel()
-    {
-        if ( visualization != null )
-        {
-            return visualization.getBaseLineLabel();
-        }
-        else if ( eventChart != null )
-        {
-            return eventChart.getBaseLineLabel();
-        }
-        else if ( eventVisualization != null )
-        {
-            return eventVisualization.getBaseLineLabel();
-        }
-
-        return StringUtils.EMPTY;
-    }
+    return StringUtils.EMPTY;
+  }
 }

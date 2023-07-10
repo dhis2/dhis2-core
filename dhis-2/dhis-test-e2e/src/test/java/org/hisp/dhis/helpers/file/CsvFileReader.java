@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.helpers.file;
 
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriterBuilder;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,94 +36,76 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
-
 import org.hisp.dhis.actions.IdGenerator;
-
-import com.opencsv.CSVReader;
-import com.opencsv.CSVWriterBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class CsvFileReader
-    implements org.hisp.dhis.helpers.file.FileReader
-{
-    private List<String[]> csvTable;
+public class CsvFileReader implements org.hisp.dhis.helpers.file.FileReader {
+  private List<String[]> csvTable;
 
-    private CSVReader reader;
+  private CSVReader reader;
 
-    public CsvFileReader( File file )
-        throws IOException
-    {
-        reader = new CSVReader( new FileReader( file ) );
-        csvTable = reader.readAll();
+  public CsvFileReader(File file) throws IOException {
+    reader = new CSVReader(new FileReader(file));
+    csvTable = reader.readAll();
+  }
+
+  @Override
+  public org.hisp.dhis.helpers.file.FileReader read(File file) throws IOException {
+    return new CsvFileReader(file);
+  }
+
+  @Override
+  public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesWithIds(String propertyName) {
+    return replacePropertyValuesWith(propertyName, "uniqueid");
+  }
+
+  @Override
+  public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesWith(
+      String propertyName, String replacedValue) {
+    int columnIndex = Arrays.asList(csvTable.get(0)).indexOf(propertyName);
+
+    String lastColumnOriginalValue = "";
+    String lastColumnReplacedValue = "";
+    for (String[] row : csvTable) {
+      if (row[columnIndex].equals(propertyName)) {
+        continue;
+      }
+      if (row[columnIndex].equals(lastColumnOriginalValue)) {
+        row[columnIndex] = lastColumnReplacedValue;
+        continue;
+      }
+
+      lastColumnOriginalValue = row[columnIndex];
+
+      lastColumnReplacedValue = replacedValue;
+
+      if (replacedValue.equalsIgnoreCase("uniqueid")) {
+        lastColumnReplacedValue = new IdGenerator().generateUniqueId();
+      }
+
+      row[columnIndex] = lastColumnReplacedValue;
     }
 
-    @Override
-    public org.hisp.dhis.helpers.file.FileReader read( File file )
-        throws IOException
-    {
-        return new CsvFileReader( file );
-    }
+    return this;
+  }
 
-    @Override
-    public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesWithIds( String propertyName )
-    {
-        return replacePropertyValuesWith( propertyName, "uniqueid" );
-    }
+  @Override
+  public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesRecursivelyWith(
+      String propertyName, String replacedValue) {
+    return null;
+  }
 
-    @Override
-    public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesWith( String propertyName, String replacedValue )
-    {
-        int columnIndex = Arrays.asList( csvTable.get( 0 ) ).indexOf( propertyName );
+  @Override
+  public org.hisp.dhis.helpers.file.FileReader replace(Function<Object, Object> function) {
+    return null;
+  }
 
-        String lastColumnOriginalValue = "";
-        String lastColumnReplacedValue = "";
-        for ( String[] row : csvTable )
-        {
-            if ( row[columnIndex].equals( propertyName ) )
-            {
-                continue;
-            }
-            if ( row[columnIndex].equals( lastColumnOriginalValue ) )
-            {
-                row[columnIndex] = lastColumnReplacedValue;
-                continue;
-            }
+  public String get() {
+    StringWriter writer = new StringWriter();
+    new CSVWriterBuilder(writer).build().writeAll(csvTable);
 
-            lastColumnOriginalValue = row[columnIndex];
-
-            lastColumnReplacedValue = replacedValue;
-
-            if ( replacedValue.equalsIgnoreCase( "uniqueid" ) )
-            {
-                lastColumnReplacedValue = new IdGenerator().generateUniqueId();
-            }
-
-            row[columnIndex] = lastColumnReplacedValue;
-        }
-
-        return this;
-    }
-
-    @Override
-    public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesRecursivelyWith( String propertyName,
-        String replacedValue )
-    {
-        return null;
-    }
-
-    @Override
-    public org.hisp.dhis.helpers.file.FileReader replace( Function<Object, Object> function )
-    {
-        return null;
-    }
-
-    public String get()
-    {
-        StringWriter writer = new StringWriter();
-        new CSVWriterBuilder( writer ).build().writeAll( csvTable );
-
-        return writer.toString();
-    }
+    return writer.toString();
+  }
 }

@@ -28,10 +28,8 @@
 package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import java.util.Date;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -43,33 +41,32 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
  */
 @Data
 @NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String ou;
+public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter {
+  private String ou;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private String program;
+  private String program;
 
-    private ProgramStatus programStatus;
+  private ProgramStatus programStatus;
 
-    private Boolean followUp;
+  private Boolean followUp;
 
-    private Date lastUpdated;
+  private Date lastUpdated;
 
-    private String lastUpdatedDuration;
+  private String lastUpdatedDuration;
 
-    private Date programStartDate;
+  private Date programStartDate;
 
-    private Date programEndDate;
+  private Date programEndDate;
 
-    private String trackedEntityType;
+  private String trackedEntityType;
 
-    private String trackedEntityInstance;
+  private String trackedEntityInstance;
 
-    private String enrollment;
+  private String enrollment;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    private Boolean paging;
+  private Boolean paging;
 }

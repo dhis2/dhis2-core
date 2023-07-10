@@ -30,49 +30,45 @@ package org.hisp.dhis.visualization;
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
- * Interface responsible for providing CRUD and business methods related to a
- * Visualization object.
+ * Interface responsible for providing CRUD and business methods related to a Visualization object.
  */
-public interface VisualizationService
-    extends
-    AnalyticalObjectService<Visualization>
-{
-    /**
-     * Saves a Visualization.
-     *
-     * @param visualization the Visualization to save.
-     * @return the generated identifier.
-     */
-    long save( Visualization visualization );
+public interface VisualizationService extends AnalyticalObjectService<Visualization> {
+  /**
+   * Saves a Visualization.
+   *
+   * @param visualization the Visualization to save.
+   * @return the generated identifier.
+   */
+  long save(Visualization visualization);
 
-    /**
-     * Retrieves the Visualization with the given id.
-     *
-     * @param id the id of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualization( long id );
+  /**
+   * Retrieves the Visualization with the given id.
+   *
+   * @param id the id of the Visualization to retrieve.
+   * @return the Visualization.
+   */
+  Visualization getVisualization(long id);
 
-    /**
-     * Retrieves the Visualization with the given uid.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualization( String uid );
+  /**
+   * Retrieves the Visualization with the given uid.
+   *
+   * @param uid the uid of the Visualization to retrieve.
+   * @return the Visualization.
+   */
+  Visualization getVisualization(String uid);
 
-    /**
-     * Deletes a Visualization.
-     *
-     * @param visualization the Visualization to delete.
-     */
-    void delete( Visualization visualization );
+  /**
+   * Deletes a Visualization.
+   *
+   * @param visualization the Visualization to delete.
+   */
+  void delete(Visualization visualization);
 
-    /**
-     * Retrieves the Visualization with the given uid. Bypasses the ACL system.
-     *
-     * @param uid the uid of the Visualization to retrieve.
-     * @return the Visualization.
-     */
-    Visualization getVisualizationNoAcl( String uid );
+  /**
+   * Retrieves the Visualization with the given uid. Bypasses the ACL system.
+   *
+   * @param uid the uid of the Visualization to retrieve.
+   * @return the Visualization.
+   */
+  Visualization getVisualizationNoAcl(String uid);
 }

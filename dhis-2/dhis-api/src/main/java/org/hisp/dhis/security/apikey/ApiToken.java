@@ -27,137 +27,116 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Getter
 @Setter
-@Builder( toBuilder = true )
-@JacksonXmlRootElement( localName = "apiToken", namespace = DxfNamespaces.DXF_2_0 )
-public class ApiToken extends BaseIdentifiableObject implements MetadataObject
-{
-    public ApiToken()
-    {
+@Builder(toBuilder = true)
+@JacksonXmlRootElement(localName = "apiToken", namespace = DxfNamespaces.DXF_2_0)
+public class ApiToken extends BaseIdentifiableObject implements MetadataObject {
+  public ApiToken() {}
+
+  public ApiToken(
+      String key,
+      Integer version,
+      ApiTokenType type,
+      Long expire,
+      List<ApiTokenAttribute> attributes) {
+    this.key = key;
+    this.version = version;
+    this.type = type;
+    this.expire = expire;
+    this.attributes = attributes;
+  }
+
+  @JsonIgnore private String key;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(PropertyType.INTEGER)
+  private Integer version;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private ApiTokenType type;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(PropertyType.NUMBER)
+  private Long expire;
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  private List<ApiTokenAttribute> attributes = new ArrayList<>();
+
+  private ApiTokenAttribute findApiTokenAttribute(
+      Class<? extends ApiTokenAttribute> attributeClass) {
+    for (ApiTokenAttribute attribute : getAttributes()) {
+      if (attribute.getClass().equals(attributeClass)) {
+        return attribute;
+      }
     }
+    return null;
+  }
 
-    public ApiToken( String key, Integer version, ApiTokenType type, Long expire,
-        List<ApiTokenAttribute> attributes )
-    {
-        this.key = key;
-        this.version = version;
-        this.type = type;
-        this.expire = expire;
-        this.attributes = attributes;
+  public void addIpToAllowedList(String ipAddress) {
+    IpAllowedList allowedIps = getIpAllowedList();
+
+    if (allowedIps == null) {
+      allowedIps = IpAllowedList.of(ipAddress);
+      attributes.add(allowedIps);
+    } else {
+      allowedIps.getAllowedIps().add(ipAddress);
     }
+  }
 
-    @JsonIgnore
-    private String key;
+  public IpAllowedList getIpAllowedList() {
+    return (IpAllowedList) findApiTokenAttribute(IpAllowedList.class);
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.INTEGER )
-    private Integer version;
+  public void addMethodToAllowedList(String methodName) {
+    MethodAllowedList allowedMethods = getMethodAllowedList();
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private ApiTokenType type;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.NUMBER )
-    private Long expire;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private List<ApiTokenAttribute> attributes = new ArrayList<>();
-
-    private ApiTokenAttribute findApiTokenAttribute( Class<? extends ApiTokenAttribute> attributeClass )
-    {
-        for ( ApiTokenAttribute attribute : getAttributes() )
-        {
-            if ( attribute.getClass().equals( attributeClass ) )
-            {
-                return attribute;
-            }
-        }
-        return null;
+    if (allowedMethods == null) {
+      allowedMethods = MethodAllowedList.of(methodName);
+      attributes.add(allowedMethods);
+    } else {
+      allowedMethods.getAllowedMethods().add(methodName);
     }
+  }
 
-    public void addIpToAllowedList( String ipAddress )
-    {
-        IpAllowedList allowedIps = getIpAllowedList();
+  public MethodAllowedList getMethodAllowedList() {
+    return (MethodAllowedList) findApiTokenAttribute(MethodAllowedList.class);
+  }
 
-        if ( allowedIps == null )
-        {
-            allowedIps = IpAllowedList.of( ipAddress );
-            attributes.add( allowedIps );
-        }
-        else
-        {
-            allowedIps.getAllowedIps().add( ipAddress );
-        }
+  public void addReferrerToAllowedList(String referrer) {
+    RefererAllowedList allowedReferrers = getRefererAllowedList();
+
+    if (allowedReferrers == null) {
+      allowedReferrers = RefererAllowedList.of(referrer);
+      attributes.add(allowedReferrers);
+    } else {
+      allowedReferrers.getAllowedReferrers().add(referrer);
     }
+  }
 
-    public IpAllowedList getIpAllowedList()
-    {
-        return (IpAllowedList) findApiTokenAttribute( IpAllowedList.class );
-    }
-
-    public void addMethodToAllowedList( String methodName )
-    {
-        MethodAllowedList allowedMethods = getMethodAllowedList();
-
-        if ( allowedMethods == null )
-        {
-            allowedMethods = MethodAllowedList.of( methodName );
-            attributes.add( allowedMethods );
-        }
-        else
-        {
-            allowedMethods.getAllowedMethods().add( methodName );
-        }
-    }
-
-    public MethodAllowedList getMethodAllowedList()
-    {
-        return (MethodAllowedList) findApiTokenAttribute( MethodAllowedList.class );
-    }
-
-    public void addReferrerToAllowedList( String referrer )
-    {
-        RefererAllowedList allowedReferrers = getRefererAllowedList();
-
-        if ( allowedReferrers == null )
-        {
-            allowedReferrers = RefererAllowedList.of( referrer );
-            attributes.add( allowedReferrers );
-        }
-        else
-        {
-            allowedReferrers.getAllowedReferrers().add( referrer );
-        }
-    }
-
-    public RefererAllowedList getRefererAllowedList()
-    {
-        return (RefererAllowedList) findApiTokenAttribute( RefererAllowedList.class );
-    }
+  public RefererAllowedList getRefererAllowedList() {
+    return (RefererAllowedList) findApiTokenAttribute(RefererAllowedList.class);
+  }
 }

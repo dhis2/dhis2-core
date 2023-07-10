@@ -33,21 +33,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "trackedEntityTypeAttribute";
+public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "trackedEntityTypeAttribute";
 
-    public static final String PLURAL = "trackedEntityTypeAttributes";
+  public static final String PLURAL = "trackedEntityTypeAttributes";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
-        schema.setOrder( 1500 );
-        return schema;
-    }
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(TrackedEntityTypeAttribute.class, SINGULAR, PLURAL);
+    schema.setOrder(1500);
+    return schema;
+  }
 }

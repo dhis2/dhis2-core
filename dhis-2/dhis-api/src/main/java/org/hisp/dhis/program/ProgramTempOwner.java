@@ -27,164 +27,139 @@
  */
 package org.hisp.dhis.program;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
-@JacksonXmlRootElement( localName = "programTempOwner", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramTempOwner implements Serializable
-{
+@JacksonXmlRootElement(localName = "programTempOwner", namespace = DxfNamespaces.DXF_2_0)
+public class ProgramTempOwner implements Serializable {
 
-    /**
-     *
-     */
-    private static final long serialVersionUID = -2030234810482111257L;
+  /** */
+  private static final long serialVersionUID = -2030234810482111257L;
 
-    private long id;
+  private long id;
 
-    private Program program;
+  private Program program;
 
-    private String reason;
+  private String reason;
 
-    private Date validTill;
+  private Date validTill;
 
-    private User user;
+  private User user;
 
-    private TrackedEntity trackedEntity;
+  private TrackedEntity trackedEntity;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public ProgramTempOwner()
-    {
+  public ProgramTempOwner() {}
+
+  public ProgramTempOwner(
+      Program program, TrackedEntity trackedEntity, String reason, User user, int hoursToExpire) {
+    this.program = program;
+    this.reason = reason;
+    this.user = user;
+    this.validTill = addHoursToJavaUtilDate(new Date(), hoursToExpire);
+    this.trackedEntity = trackedEntity;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(program, trackedEntity, reason, validTill, user);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
 
-    public ProgramTempOwner( Program program, TrackedEntity trackedEntity, String reason,
-        User user, int hoursToExpire )
-    {
-        this.program = program;
-        this.reason = reason;
-        this.user = user;
-        this.validTill = addHoursToJavaUtilDate( new Date(), hoursToExpire );
-        this.trackedEntity = trackedEntity;
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
     }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( program, trackedEntity, reason, validTill, user );
-    }
+    final ProgramTempOwner other = (ProgramTempOwner) obj;
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
+    return Objects.equals(this.program, other.program)
+        && Objects.equals(this.reason, other.reason)
+        && Objects.equals(this.validTill, other.validTill)
+        && Objects.equals(this.user, other.user)
+        && Objects.equals(this.trackedEntity, other.trackedEntity);
+  }
 
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-        final ProgramTempOwner other = (ProgramTempOwner) obj;
+  public long getId() {
+    return id;
+  }
 
-        return Objects.equals( this.program, other.program )
-            && Objects.equals( this.reason, other.reason ) && Objects.equals( this.validTill, other.validTill )
-            && Objects.equals( this.user, other.user ) && Objects.equals( this.trackedEntity, other.trackedEntity );
-    }
+  public void setId(long id) {
+    this.id = id;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  public Program getProgram() {
+    return program;
+  }
 
-    public long getId()
-    {
-        return id;
-    }
+  public void setProgram(Program program) {
+    this.program = program;
+  }
 
-    public void setId( long id )
-    {
-        this.id = id;
-    }
+  public TrackedEntity getTrackedEntity() {
+    return trackedEntity;
+  }
 
-    public Program getProgram()
-    {
-        return program;
-    }
+  public void setTrackedEntity(TrackedEntity trackedEntity) {
+    this.trackedEntity = trackedEntity;
+  }
 
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getReason() {
+    return reason;
+  }
 
-    public TrackedEntity getTrackedEntity()
-    {
-        return trackedEntity;
-    }
+  public void setReason(String reason) {
+    this.reason = reason;
+  }
 
-    public void setTrackedEntity( TrackedEntity trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Date getValidTill() {
+    return validTill;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getReason()
-    {
-        return reason;
-    }
+  public void setValidTill(Date accessedAt) {
+    this.validTill = accessedAt;
+  }
 
-    public void setReason( String reason )
-    {
-        this.reason = reason;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public User getUser() {
+    return user;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getValidTill()
-    {
-        return validTill;
-    }
+  public void setUser(User user) {
+    this.user = user;
+  }
 
-    public void setValidTill( Date accessedAt )
-    {
-        this.validTill = accessedAt;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getUser()
-    {
-        return user;
-    }
-
-    public void setUser( User user )
-    {
-        this.user = user;
-    }
-
-    public Date addHoursToJavaUtilDate( Date date, int hours )
-    {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime( date );
-        calendar.add( Calendar.HOUR_OF_DAY, hours );
-        return calendar.getTime();
-    }
-
+  public Date addHoursToJavaUtilDate(Date date, int hours) {
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTime(date);
+    calendar.add(Calendar.HOUR_OF_DAY, hours);
+    return calendar.getTime();
+  }
 }

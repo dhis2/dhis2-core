@@ -27,58 +27,49 @@
  */
 package org.hisp.dhis.oust.action;
 
+import com.opensymphony.xwork2.Action;
 import java.util.Collection;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
 
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Tran Thanh Tri
  */
-public class SelectAllOrganisationUnitAction
-    implements Action
-{
+public class SelectAllOrganisationUnitAction implements Action {
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
+  private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
+  public void setOrganisationUnitService(OrganisationUnitService organisationUnitService) {
+    this.organisationUnitService = organisationUnitService;
+  }
 
-    private SelectionTreeManager selectionTreeManager;
+  private SelectionTreeManager selectionTreeManager;
 
-    public void setSelectionTreeManager( SelectionTreeManager selectionTreeManager )
-    {
-        this.selectionTreeManager = selectionTreeManager;
-    }
+  public void setSelectionTreeManager(SelectionTreeManager selectionTreeManager) {
+    this.selectionTreeManager = selectionTreeManager;
+  }
 
-    // -------------------------------------------------------------------------
-    // Input/output
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Input/output
+  // -------------------------------------------------------------------------
 
-    private Collection<OrganisationUnit> selectedUnits;
+  private Collection<OrganisationUnit> selectedUnits;
 
-    public Collection<OrganisationUnit> getSelectedUnits()
-    {
-        return selectedUnits;
-    }
+  public Collection<OrganisationUnit> getSelectedUnits() {
+    return selectedUnits;
+  }
 
-    @Override
-    public String execute()
-        throws Exception
-    {
-        selectedUnits = organisationUnitService.getAllOrganisationUnits();
+  @Override
+  public String execute() throws Exception {
+    selectedUnits = organisationUnitService.getAllOrganisationUnits();
 
-        selectionTreeManager.setSelectedOrganisationUnits( selectedUnits );
+    selectionTreeManager.setSelectedOrganisationUnits(selectedUnits);
 
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

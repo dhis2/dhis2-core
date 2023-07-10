@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,49 +35,42 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Chau Thu Tran
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramStageSectionService" )
-public class DefaultProgramStageSectionService
-    implements ProgramStageSectionService
-{
-    private final ProgramStageSectionStore programStageSectionStore;
+@Service("org.hisp.dhis.program.ProgramStageSectionService")
+public class DefaultProgramStageSectionService implements ProgramStageSectionService {
+  private final ProgramStageSectionStore programStageSectionStore;
 
-    // -------------------------------------------------------------------------
-    // ProgramStageSection implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // ProgramStageSection implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long saveProgramStageSection( ProgramStageSection programStageSection )
-    {
-        programStageSectionStore.save( programStageSection );
-        return programStageSection.getId();
-    }
+  @Override
+  @Transactional
+  public long saveProgramStageSection(ProgramStageSection programStageSection) {
+    programStageSectionStore.save(programStageSection);
+    return programStageSection.getId();
+  }
 
-    @Override
-    @Transactional
-    public void deleteProgramStageSection( ProgramStageSection programStageSection )
-    {
-        programStageSectionStore.delete( programStageSection );
-    }
+  @Override
+  @Transactional
+  public void deleteProgramStageSection(ProgramStageSection programStageSection) {
+    programStageSectionStore.delete(programStageSection);
+  }
 
-    @Override
-    @Transactional
-    public void updateProgramStageSection( ProgramStageSection programStageSection )
-    {
-        programStageSectionStore.update( programStageSection );
-    }
+  @Override
+  @Transactional
+  public void updateProgramStageSection(ProgramStageSection programStageSection) {
+    programStageSectionStore.update(programStageSection);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramStageSection getProgramStageSection( long id )
-    {
-        return programStageSectionStore.get( id );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramStageSection getProgramStageSection(long id) {
+    return programStageSectionStore.get(id);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramStageSection getProgramStageSection( String uid )
-    {
-        return programStageSectionStore.getByUid( uid );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramStageSection getProgramStageSection(String uid) {
+    return programStageSectionStore.getByUid(uid);
+  }
 }

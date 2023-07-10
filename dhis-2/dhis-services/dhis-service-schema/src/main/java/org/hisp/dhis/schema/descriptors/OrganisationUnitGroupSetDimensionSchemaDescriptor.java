@@ -34,17 +34,15 @@ import org.hisp.dhis.schema.SchemaDescriptor;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OrganisationUnitGroupSetDimensionSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "organisationUnitGroupSetDimension";
+public class OrganisationUnitGroupSetDimensionSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "organisationUnitGroupSetDimension";
 
-    public static final String PLURAL = "organisationUnitGroupSetDimensions";
+  public static final String PLURAL = "organisationUnitGroupSetDimensions";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( OrganisationUnitGroupSetDimension.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(OrganisationUnitGroupSetDimension.class, SINGULAR, PLURAL);
+  }
 }

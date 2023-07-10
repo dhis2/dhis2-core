@@ -27,39 +27,32 @@
  */
 package org.hisp.dhis.common;
 
-/**
- * Enum for description of repeatable stage value
- */
-public enum ValueStatus
-{
-    //repeating of the repeatable stage does not exist
-    NOT_DEFINED( "ND" ),
+/** Enum for description of repeatable stage value */
+public enum ValueStatus {
+  // repeating of the repeatable stage does not exist
+  NOT_DEFINED("ND"),
 
-    //value is not set
-    NOT_SET( "NS" ),
+  // value is not set
+  NOT_SET("NS"),
 
-    //value is set
-    SET( "S" );
+  // value is set
+  SET("S");
 
-    private final String value;
+  private final String value;
 
-    ValueStatus( String value )
-    {
-        this.value = value;
+  ValueStatus(String value) {
+    this.value = value;
+  }
+
+  public static ValueStatus of(boolean isDefined, boolean isSet) {
+    if (!isDefined) {
+      return ValueStatus.NOT_DEFINED;
     }
 
-    public static ValueStatus of( boolean isDefined, boolean isSet )
-    {
-        if ( !isDefined )
-        {
-            return ValueStatus.NOT_DEFINED;
-        }
+    return isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
+  }
 
-        return isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

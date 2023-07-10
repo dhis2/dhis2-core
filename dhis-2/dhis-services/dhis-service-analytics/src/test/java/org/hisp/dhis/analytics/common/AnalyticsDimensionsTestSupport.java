@@ -33,49 +33,47 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 
-public class AnalyticsDimensionsTestSupport
-{
-    public static TrackedEntityType trackedEntityType()
-    {
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setTrackedEntityTypeAttributes(
-            allValueTypeTEAs().stream()
-                .map( trackedEntityAttribute -> new TrackedEntityTypeAttribute( trackedEntityType,
-                    trackedEntityAttribute ) )
-                .collect( Collectors.toList() ) );
-        return trackedEntityType;
-    }
+public class AnalyticsDimensionsTestSupport {
+  public static TrackedEntityType trackedEntityType() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setTrackedEntityTypeAttributes(
+        allValueTypeTEAs().stream()
+            .map(
+                trackedEntityAttribute ->
+                    new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute))
+            .collect(Collectors.toList()));
+    return trackedEntityType;
+  }
 
-    public static List<TrackedEntityAttribute> allValueTypeTEAs()
-    {
-        return buildWithAllValueTypes( valueType -> {
-            TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-            trackedEntityAttribute.setUid( "uid" + valueType.name() );
-            trackedEntityAttribute.setValueType( valueType );
-            return trackedEntityAttribute;
-        } ).collect( Collectors.toList() );
-    }
+  public static List<TrackedEntityAttribute> allValueTypeTEAs() {
+    return buildWithAllValueTypes(
+            valueType -> {
+              TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+              trackedEntityAttribute.setUid("uid" + valueType.name());
+              trackedEntityAttribute.setValueType(valueType);
+              return trackedEntityAttribute;
+            })
+        .collect(Collectors.toList());
+  }
 
-    public static Set<DataElement> allValueTypeDataElements()
-    {
-        return buildWithAllValueTypes( valueType -> {
-            DataElement dataElement = new DataElement();
-            dataElement.setUid( "uid" + valueType.name() );
-            dataElement.setValueType( valueType );
-            return dataElement;
-        } ).collect( Collectors.toSet() );
-    }
+  public static Set<DataElement> allValueTypeDataElements() {
+    return buildWithAllValueTypes(
+            valueType -> {
+              DataElement dataElement = new DataElement();
+              dataElement.setUid("uid" + valueType.name());
+              dataElement.setValueType(valueType);
+              return dataElement;
+            })
+        .collect(Collectors.toSet());
+  }
 
-    public static <T> Stream<T> buildWithAllValueTypes( Function<ValueType, T> mapper )
-    {
-        return Arrays.stream( ValueType.values() )
-            .map( mapper );
-    }
+  public static <T> Stream<T> buildWithAllValueTypes(Function<ValueType, T> mapper) {
+    return Arrays.stream(ValueType.values()).map(mapper);
+  }
 }

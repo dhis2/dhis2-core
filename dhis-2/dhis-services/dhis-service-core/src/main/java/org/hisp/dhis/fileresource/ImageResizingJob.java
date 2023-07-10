@@ -36,10 +36,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -47,85 +45,69 @@ import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
 /**
- * Job will fetch all the image FileResources with flag hasMultiple set to
- * false. It will process those image FileResources create three images files
- * for each of them. Once created, images will be stored at EWS and flag
- * hasMultiple is set to true.
+ * Job will fetch all the image FileResources with flag hasMultiple set to false. It will process
+ * those image FileResources create three images files for each of them. Once created, images will
+ * be stored at EWS and flag hasMultiple is set to true.
  *
  * @author Zubair Asghar.
  */
 @Slf4j
 @Component
 @AllArgsConstructor
-public class ImageResizingJob implements Job
-{
-    private final FileResourceContentStore fileResourceContentStore;
+public class ImageResizingJob implements Job {
+  private final FileResourceContentStore fileResourceContentStore;
 
-    private final FileResourceService fileResourceService;
+  private final FileResourceService fileResourceService;
 
-    private final ImageProcessingService imageProcessingService;
+  private final ImageProcessingService imageProcessingService;
 
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.IMAGE_PROCESSING;
+  @Override
+  public JobType getJobType() {
+    return JobType.IMAGE_PROCESSING;
+  }
+
+  @Override
+  public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
+    progress.startingProcess("Resizing image resources");
+
+    List<FileResource> images = fileResourceService.getAllUnProcessedImagesFiles();
+    progress.startingStage("Creating and storing images", images.size(), SKIP_ITEM_OUTLIER);
+    progress.runStage(images, FileResource::getStorageKey, this::storeImageFiles);
+
+    progress.completedProcess(format("Number of FileResources processed: %d", images.size()));
+  }
+
+  private void storeImageFiles(FileResource image) {
+    String key = image.getStorageKey();
+
+    if (!fileResourceContentStore.fileResourceContentExists(image.getStorageKey())) {
+      throw new IllegalStateException(
+          "The referenced file could not be found for FileResource: " + image.getUid());
     }
 
-    @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
-    {
-        progress.startingProcess( "Resizing image resources" );
+    File tmpFile = new File(UUID.randomUUID().toString());
 
-        List<FileResource> images = fileResourceService.getAllUnProcessedImagesFiles();
-        progress.startingStage( "Creating and storing images", images.size(), SKIP_ITEM_OUTLIER );
-        progress.runStage( images, FileResource::getStorageKey, this::storeImageFiles );
+    try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)) {
+      fileResourceContentStore.copyContent(key, fileOutputStream);
 
-        progress.completedProcess( format( "Number of FileResources processed: %d", images.size() ) );
+      String storageKey =
+          fileResourceContentStore.saveFileResourceContent(
+              image, imageProcessingService.createImages(image, tmpFile));
+
+      if (storageKey != null) {
+        image.setHasMultipleStorageFiles(true);
+        fileResourceService.updateFileResource(image);
+      } else {
+        throw new RuntimeException("File upload failed");
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      try {
+        Files.deleteIfExists(tmpFile.toPath());
+      } catch (IOException ioe) {
+        log.warn(format("Temporary file '%s' could not be deleted.", tmpFile.toPath()), ioe);
+      }
     }
-
-    private void storeImageFiles( FileResource image )
-    {
-        String key = image.getStorageKey();
-
-        if ( !fileResourceContentStore.fileResourceContentExists( image.getStorageKey() ) )
-        {
-            throw new IllegalStateException(
-                "The referenced file could not be found for FileResource: " + image.getUid() );
-        }
-
-        File tmpFile = new File( UUID.randomUUID().toString() );
-
-        try ( FileOutputStream fileOutputStream = new FileOutputStream( tmpFile ) )
-        {
-            fileResourceContentStore.copyContent( key, fileOutputStream );
-
-            String storageKey = fileResourceContentStore.saveFileResourceContent( image,
-                imageProcessingService.createImages( image, tmpFile ) );
-
-            if ( storageKey != null )
-            {
-                image.setHasMultipleStorageFiles( true );
-                fileResourceService.updateFileResource( image );
-            }
-            else
-            {
-                throw new RuntimeException( "File upload failed" );
-            }
-        }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( e );
-        }
-        finally
-        {
-            try
-            {
-                Files.deleteIfExists( tmpFile.toPath() );
-            }
-            catch ( IOException ioe )
-            {
-                log.warn( format( "Temporary file '%s' could not be deleted.", tmpFile.toPath() ), ioe );
-            }
-        }
-    }
+  }
 }

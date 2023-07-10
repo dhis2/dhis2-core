@@ -27,114 +27,104 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Pager;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.Pager;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
-@Deprecated( since = "2.41" )
-@JacksonXmlRootElement( localName = "events", namespace = DxfNamespaces.DXF_2_0 )
-public class Events
-{
-    private String program;
+@Deprecated(since = "2.41")
+@JacksonXmlRootElement(localName = "events", namespace = DxfNamespaces.DXF_2_0)
+public class Events {
+  private String program;
 
-    private String programInstance;
+  private String programInstance;
 
-    private List<Event> events = new ArrayList<>();
+  private List<Event> events = new ArrayList<>();
 
-    private Map<Object, Object> metaData;
+  private Map<Object, Object> metaData;
 
-    private Pager pager;
+  private Pager pager;
 
-    public Events()
-    {
-    }
+  public Events() {}
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getProgram()
-    {
-        return program;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getProgram() {
+    return program;
+  }
 
-    public void setProgram( String program )
-    {
-        this.program = program;
-    }
+  public void setProgram(String program) {
+    this.program = program;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getProgramInstance()
-    {
-        return programInstance;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getProgramInstance() {
+    return programInstance;
+  }
 
-    public void setProgramInstance( String programInstance )
-    {
-        this.programInstance = programInstance;
-    }
+  public void setProgramInstance(String programInstance) {
+    this.programInstance = programInstance;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "events", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "event", namespace = DxfNamespaces.DXF_2_0 )
-    public List<Event> getEvents()
-    {
-        return events;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(
+      localName = "events",
+      useWrapping = false,
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "event", namespace = DxfNamespaces.DXF_2_0)
+  public List<Event> getEvents() {
+    return events;
+  }
 
-    public void setEvents( List<Event> events )
-    {
-        this.events = events;
-    }
+  public void setEvents(List<Event> events) {
+    this.events = events;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Map<Object, Object> getMetaData()
-    {
-        return metaData;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Map<Object, Object> getMetaData() {
+    return metaData;
+  }
 
-    @JsonIgnore
-    public void setMetaData( Map<Object, Object> metaData )
-    {
-        this.metaData = metaData;
-    }
+  @JsonIgnore
+  public void setMetaData(Map<Object, Object> metaData) {
+    this.metaData = metaData;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Pager getPager()
-    {
-        return pager;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Pager getPager() {
+    return pager;
+  }
 
-    @JsonIgnore
-    public void setPager( Pager pager )
-    {
-        this.pager = pager;
-    }
+  @JsonIgnore
+  public void setPager(Pager pager) {
+    this.pager = pager;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "Events{" +
-            "program='" + program + '\'' +
-            ", programInstance='" + programInstance + '\'' +
-            ", events=" + events +
-            '}';
-    }
+  @Override
+  public String toString() {
+    return "Events{"
+        + "program='"
+        + program
+        + '\''
+        + ", programInstance='"
+        + programInstance
+        + '\''
+        + ", events="
+        + events
+        + '}';
+  }
 }

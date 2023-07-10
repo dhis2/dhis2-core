@@ -19,7 +19,7 @@
                      column="programinstanceid" foreign-key="fk_programstagenotification_pi" not-null="false"/>
 
         <many-to-one name="event" class="org.hisp.dhis.program.Event"
-                     column="programstageinstanceid" foreign-key="fk_programstagenotification_psi" not-null="false"/>
+                     column="eventid" foreign-key="fk_programstagenotification_psi" not-null="false"/>
 
         <property name="programNotificationTemplateSnapshot" type="jbProgramNotificationTemplateSnapshot" column="programnotificationtemplatesnapshot" />
 

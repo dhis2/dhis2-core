@@ -27,50 +27,46 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import com.google.common.collect.Multimap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
-public interface EventStore
-{
-    /**
-     * Key: enrollment uid -> Value: Event
-     *
-     * @param enrollmentsId a List of Enrollment Primary Keys
-     * @param ctx the {@see Context}
-     * @return A Map, where the key is a Enrollment Primary Key, and the value
-     *         is a List of {@see Event}
-     */
-    Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, Context ctx );
+public interface EventStore {
+  /**
+   * Key: enrollment uid -> Value: Event
+   *
+   * @param enrollmentsId a List of Enrollment Primary Keys
+   * @param ctx the {@see Context}
+   * @return A Map, where the key is a Enrollment Primary Key, and the value is a List of {@see
+   *     Event}
+   */
+  Multimap<String, Event> getEventsByEnrollmentIds(List<Long> enrollmentsId, Context ctx);
 
-    /**
-     *
-     * Key: event uid -> Value: List<DataValue>
-     *
-     * @param eventIds a List of event primary keys
-     * @return A Map, where the key is an event primary key, and the value is a
-     *         List of {@see DataValue}
-     */
-    Map<String, List<EventDataValue>> getDataValues( List<Long> eventIds );
+  /**
+   * Key: event uid -> Value: List<DataValue>
+   *
+   * @param eventIds a List of event primary keys
+   * @return A Map, where the key is an event primary key, and the value is a List of {@see
+   *     DataValue}
+   */
+  Map<String, List<EventDataValue>> getDataValues(List<Long> eventIds);
 
-    /**
-     * Fetches all the relationships having the Program Stage Instance id
-     * specified in the arg as "left" or "right" relationship
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the value a
-     *         List of {@see Relationship} objects
-     */
-    Multimap<String, RelationshipItem> getRelationships( List<Long> ids, Context ctx );
+  /**
+   * Fetches all the relationships having the Program Stage Instance id specified in the arg as
+   * "left" or "right" relationship
+   *
+   * @param ids a list of {@see Enrollment} Primary Keys
+   * @return a MultiMap where key is a {@see Enrollment} uid and the value a List of {@see
+   *     Relationship} objects
+   */
+  Multimap<String, RelationshipItem> getRelationships(List<Long> ids, Context ctx);
 
-    Multimap<String, TrackedEntityComment> getNotes( List<Long> eventIds );
+  Multimap<String, TrackedEntityComment> getNotes(List<Long> eventIds);
 }

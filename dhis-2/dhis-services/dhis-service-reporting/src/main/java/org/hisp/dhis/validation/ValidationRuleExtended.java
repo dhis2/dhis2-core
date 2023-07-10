@@ -29,71 +29,63 @@ package org.hisp.dhis.validation;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
- * Holds information for each validation rule that is needed during a validation
- * run (either interactive or a scheduled run).
+ * Holds information for each validation rule that is needed during a validation run (either
+ * interactive or a scheduled run).
  *
- * By computing these values once at the start of a validation run, we avoid the
- * overhead of having to compute them during the processing of every
- * organisation unit. For some of these properties this is also important
- * because they should be copied from Hibernate lazy collections before the
- * multi-threaded part of the run starts, otherwise the threads may not be able
- * to access these values.
+ * <p>By computing these values once at the start of a validation run, we avoid the overhead of
+ * having to compute them during the processing of every organisation unit. For some of these
+ * properties this is also important because they should be copied from Hibernate lazy collections
+ * before the multi-threaded part of the run starts, otherwise the threads may not be able to access
+ * these values.
  *
  * @author Jim Grace
  */
-public class ValidationRuleExtended
-{
-    private ValidationRule rule;
+public class ValidationRuleExtended {
+  private ValidationRule rule;
 
-    private Set<Integer> organisationUnitLevels;
+  private Set<Integer> organisationUnitLevels;
 
-    private boolean leftSlidingWindow;
+  private boolean leftSlidingWindow;
 
-    private boolean rightSlidingWindow;
+  private boolean rightSlidingWindow;
 
-    public ValidationRuleExtended( ValidationRule rule )
-    {
-        this.rule = rule;
-        this.organisationUnitLevels = new HashSet<>( rule.getOrganisationUnitLevels() );
-        this.leftSlidingWindow = rule.getLeftSide().getSlidingWindow();
-        this.rightSlidingWindow = rule.getRightSide().getSlidingWindow();
-    }
+  public ValidationRuleExtended(ValidationRule rule) {
+    this.rule = rule;
+    this.organisationUnitLevels = new HashSet<>(rule.getOrganisationUnitLevels());
+    this.leftSlidingWindow = rule.getLeftSide().getSlidingWindow();
+    this.rightSlidingWindow = rule.getRightSide().getSlidingWindow();
+  }
 
-    public String toString()
-    {
-        return new ToStringBuilder( this, ToStringStyle.SHORT_PREFIX_STYLE )
-            .append( "rule", rule )
-            .append( "organisationUnitLevels", organisationUnitLevels )
-            .append( "leftSlidingWindow", leftSlidingWindow )
-            .append( "rightSlidingWindow", rightSlidingWindow ).toString();
-    }
+  public String toString() {
+    return new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE)
+        .append("rule", rule)
+        .append("organisationUnitLevels", organisationUnitLevels)
+        .append("leftSlidingWindow", leftSlidingWindow)
+        .append("rightSlidingWindow", rightSlidingWindow)
+        .toString();
+  }
 
-    // -------------------------------------------------------------------------
-    // Set and get methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Set and get methods
+  // -------------------------------------------------------------------------
 
-    public ValidationRule getRule()
-    {
-        return rule;
-    }
+  public ValidationRule getRule() {
+    return rule;
+  }
 
-    public Set<Integer> getOrganisationUnitLevels()
-    {
-        return organisationUnitLevels;
-    }
+  public Set<Integer> getOrganisationUnitLevels() {
+    return organisationUnitLevels;
+  }
 
-    public boolean getLeftSlidingWindow()
-    {
-        return leftSlidingWindow;
-    }
+  public boolean getLeftSlidingWindow() {
+    return leftSlidingWindow;
+  }
 
-    public boolean getRightSlidingWindow()
-    {
-        return rightSlidingWindow;
-    }
+  public boolean getRightSlidingWindow() {
+    return rightSlidingWindow;
+  }
 }

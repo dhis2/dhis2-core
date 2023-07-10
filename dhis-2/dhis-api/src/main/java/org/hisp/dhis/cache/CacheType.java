@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.cache;
 
-public enum CacheType
-{
-    NONE,
-    IN_MEMORY,
-    REDIS;
+public enum CacheType {
+  NONE,
+  IN_MEMORY,
+  REDIS;
 }

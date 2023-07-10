@@ -27,20 +27,17 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Henning Håkonsen
@@ -48,27 +45,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AnalyticsJobParameters implements JobParameters
-{
-    @JsonProperty
-    private Integer lastYears;
+public class AnalyticsJobParameters implements JobParameters {
+  @JsonProperty private Integer lastYears;
 
-    @JsonProperty
-    private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
+  @JsonProperty private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, Program.class } )
-    private Set<String> skipPrograms = new HashSet<>();
+  @JsonProperty
+  @OpenApi.Property({UID[].class, Program.class})
+  private Set<String> skipPrograms = new HashSet<>();
 
-    @JsonProperty
-    private boolean skipResourceTables = false;
+  @JsonProperty private boolean skipResourceTables = false;
 
-    public AnalyticsJobParameters( Integer lastYears, Set<AnalyticsTableType> skipTableTypes,
-        Set<String> skipPrograms, boolean skipResourceTables )
-    {
-        this.lastYears = lastYears;
-        this.skipTableTypes = skipTableTypes;
-        this.skipPrograms = skipPrograms;
-        this.skipResourceTables = skipResourceTables;
-    }
+  public AnalyticsJobParameters(
+      Integer lastYears,
+      Set<AnalyticsTableType> skipTableTypes,
+      Set<String> skipPrograms,
+      boolean skipResourceTables) {
+    this.lastYears = lastYears;
+    this.skipTableTypes = skipTableTypes;
+    this.skipPrograms = skipPrograms;
+    this.skipResourceTables = skipResourceTables;
+  }
 }

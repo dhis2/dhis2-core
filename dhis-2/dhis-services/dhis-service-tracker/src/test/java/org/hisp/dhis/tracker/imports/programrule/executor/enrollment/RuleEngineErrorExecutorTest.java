@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
@@ -45,48 +44,38 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class RuleEngineErrorExecutorTest extends DhisConvenienceTest
-{
-    private final static String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
+@ExtendWith(MockitoExtension.class)
+class RuleEngineErrorExecutorTest extends DhisConvenienceTest {
+  private static final String RULE_ENROLLMENT_ID = "Rule_enrollment_id";
 
-    private final static String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
+  private static final String ENROLLMENT_ERROR_MESSAGE = "Enrollment error message";
 
-    private final static String ENROLLMENT_ID = "EnrollmentUid";
+  private static final String ENROLLMENT_ID = "EnrollmentUid";
 
-    private final static String TEI_ID = "TeiId";
+  private static final String TEI_ID = "TeiId";
 
-    private final RuleEngineErrorExecutor executor = new RuleEngineErrorExecutor( RULE_ENROLLMENT_ID,
-        ENROLLMENT_ERROR_MESSAGE );
+  private final RuleEngineErrorExecutor executor =
+      new RuleEngineErrorExecutor(RULE_ENROLLMENT_ID, ENROLLMENT_ERROR_MESSAGE);
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @Mock
-    private TrackerPreheat preheat;
+  @Mock private TrackerPreheat preheat;
 
-    @BeforeEach
-    void setUpTest()
-    {
-        bundle = TrackerBundle.builder().build();
-        bundle.setPreheat( preheat );
-    }
+  @BeforeEach
+  void setUpTest() {
+    bundle = TrackerBundle.builder().build();
+    bundle.setPreheat(preheat);
+  }
 
-    @Test
-    void shouldReturnAWarningWhenThereIsSyntaxErrorInRule()
-    {
-        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle,
-            getEnrollment() );
+  @Test
+  void shouldReturnAWarningWhenThereIsSyntaxErrorInRule() {
+    Optional<ProgramRuleIssue> warning = executor.executeRuleAction(bundle, getEnrollment());
 
-        assertTrue( warning.isPresent() );
-        assertEquals( warning( RULE_ENROLLMENT_ID, E1300, ENROLLMENT_ERROR_MESSAGE ), warning.get() );
+    assertTrue(warning.isPresent());
+    assertEquals(warning(RULE_ENROLLMENT_ID, E1300, ENROLLMENT_ERROR_MESSAGE), warning.get());
+  }
 
-    }
-
-    private Enrollment getEnrollment()
-    {
-        return Enrollment.builder()
-            .enrollment( ENROLLMENT_ID )
-            .trackedEntity( TEI_ID )
-            .build();
-    }
+  private Enrollment getEnrollment() {
+    return Enrollment.builder().enrollment(ENROLLMENT_ID).trackedEntity(TEI_ID).build();
+  }
 }

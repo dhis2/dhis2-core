@@ -27,36 +27,28 @@
  */
 package org.hisp.dhis.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class Dhis2Info
-{
-    @JsonProperty
-    private String version;
+public class Dhis2Info {
+  @JsonProperty private String version;
 
-    @JsonProperty
-    private String revision;
+  @JsonProperty private String revision;
 
-    @JsonProperty
-    private Date buildTime;
+  @JsonProperty private Date buildTime;
 
-    @JsonProperty
-    private String systemId;
+  @JsonProperty private String systemId;
 
-    @JsonProperty
-    private Date serverDate;
+  @JsonProperty private Date serverDate;
 }

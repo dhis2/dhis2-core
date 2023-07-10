@@ -30,9 +30,7 @@ package org.hisp.dhis.cache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.cacheinvalidation.redis.PostCacheEventPublisher;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,98 +46,92 @@ import org.springframework.test.context.ActiveProfiles;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@ActiveProfiles( { "test-postgres", "cache-invalidation-test" } )
-class CacheInvalidationMessagePublisherTest extends IntegrationTestBase
-{
-    @Autowired
-    private PostCacheEventPublisher postCacheEventPublisher;
+@ActiveProfiles({"test-postgres", "cache-invalidation-test"})
+class CacheInvalidationMessagePublisherTest extends IntegrationTestBase {
+  @Autowired private PostCacheEventPublisher postCacheEventPublisher;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private TestableMessagePublisher messagePublisher;
+  private TestableMessagePublisher messagePublisher;
 
-    @BeforeEach
-    void setUp()
-    {
-        userService = _userService;
-        messagePublisher = (TestableMessagePublisher) postCacheEventPublisher.getMessagePublisher();
-    }
+  @BeforeEach
+  void setUp() {
+    userService = _userService;
+    messagePublisher = (TestableMessagePublisher) postCacheEventPublisher.getMessagePublisher();
+  }
 
-    @Test
-    void testReadPublishedMessages()
-    {
-        User peter = createUserWithAuth( "peter" );
-        peter.setUsername( "peterpan" );
-        userService.updateUser( peter );
+  @Test
+  void testReadPublishedMessages() {
+    User peter = createUserWithAuth("peter");
+    peter.setUsername("peterpan");
+    userService.updateUser(peter);
 
-        List<String> messages = messagePublisher.getMessages();
+    List<String> messages = messagePublisher.getMessages();
 
-        assertEquals( 3, messages.size() );
+    assertEquals(3, messages.size());
 
-        String messageA = messages.get( 0 );
-        String[] partsA = messageA.split( ":" );
-        assertEquals( "insert", partsA[1] );
-        assertEquals( "org.hisp.dhis.user.UserRole", partsA[2] );
-        assertEquals( peter.getUserRoles().stream().toList().get( 0 ).getId(), Long.parseLong( partsA[3] ) );
+    String messageA = messages.get(0);
+    String[] partsA = messageA.split(":");
+    assertEquals("insert", partsA[1]);
+    assertEquals("org.hisp.dhis.user.UserRole", partsA[2]);
+    assertEquals(peter.getUserRoles().stream().toList().get(0).getId(), Long.parseLong(partsA[3]));
 
-        String messageB = messages.get( 1 );
-        String[] partsB = messageB.split( ":" );
-        assertEquals( "insert", partsB[1] );
-        assertEquals( "org.hisp.dhis.user.User", partsB[2] );
-        assertEquals( peter.getId(), Long.parseLong( partsB[3] ) );
+    String messageB = messages.get(1);
+    String[] partsB = messageB.split(":");
+    assertEquals("insert", partsB[1]);
+    assertEquals("org.hisp.dhis.user.User", partsB[2]);
+    assertEquals(peter.getId(), Long.parseLong(partsB[3]));
 
-        String messageC = messages.get( 2 );
-        String[] partsC = messageC.split( ":" );
-        assertEquals( "update", partsC[1] );
-        assertEquals( "org.hisp.dhis.user.User", partsC[2] );
-        assertEquals( peter.getId(), Long.parseLong( partsC[3] ) );
+    String messageC = messages.get(2);
+    String[] partsC = messageC.split(":");
+    assertEquals("update", partsC[1]);
+    assertEquals("org.hisp.dhis.user.User", partsC[2]);
+    assertEquals(peter.getId(), Long.parseLong(partsC[3]));
 
-        OrganisationUnit orgA = createOrganisationUnit( "org1" );
-        manager.save( orgA );
+    OrganisationUnit orgA = createOrganisationUnit("org1");
+    manager.save(orgA);
 
-        String messageD = messages.get( 3 );
-        String[] partsD = messageD.split( ":" );
-        assertEquals( "insert", partsD[1] );
-        assertEquals( "org.hisp.dhis.organisationunit.OrganisationUnit", partsD[2] );
-        assertEquals( orgA.getId(), Long.parseLong( partsD[3] ) );
+    String messageD = messages.get(3);
+    String[] partsD = messageD.split(":");
+    assertEquals("insert", partsD[1]);
+    assertEquals("org.hisp.dhis.organisationunit.OrganisationUnit", partsD[2]);
+    assertEquals(orgA.getId(), Long.parseLong(partsD[3]));
 
-        orgA.setCode( "orgA_A" );
-        manager.update( orgA );
+    orgA.setCode("orgA_A");
+    manager.update(orgA);
 
-        String messageE = messages.get( 4 );
-        String[] partsE = messageE.split( ":" );
-        assertEquals( "update", partsE[1] );
-        assertEquals( "org.hisp.dhis.organisationunit.OrganisationUnit", partsE[2] );
-        assertEquals( orgA.getId(), Long.parseLong( partsE[3] ) );
+    String messageE = messages.get(4);
+    String[] partsE = messageE.split(":");
+    assertEquals("update", partsE[1]);
+    assertEquals("org.hisp.dhis.organisationunit.OrganisationUnit", partsE[2]);
+    assertEquals(orgA.getId(), Long.parseLong(partsE[3]));
 
-        manager.delete( orgA );
+    manager.delete(orgA);
 
-        String messageF = messages.get( 5 );
-        String[] partsF = messageF.split( ":" );
-        assertEquals( "delete", partsF[1] );
-        assertEquals( "org.hisp.dhis.organisationunit.OrganisationUnit", partsF[2] );
-        assertEquals( orgA.getId(), Long.parseLong( partsF[3] ) );
+    String messageF = messages.get(5);
+    String[] partsF = messageF.split(":");
+    assertEquals("delete", partsF[1]);
+    assertEquals("org.hisp.dhis.organisationunit.OrganisationUnit", partsF[2]);
+    assertEquals(orgA.getId(), Long.parseLong(partsF[3]));
 
-        peter.getUserRoles().removeAll( peter.getUserRoles() );
-        userService.updateUser( peter );
+    peter.getUserRoles().removeAll(peter.getUserRoles());
+    userService.updateUser(peter);
 
-        assertEquals( 8, messages.size() );
+    assertEquals(8, messages.size());
 
-        String messageG = messages.get( 6 );
-        String[] partsG = messageG.split( ":" );
-        assertEquals( "collection", partsG[1] );
-        assertEquals( "org.hisp.dhis.user.User", partsG[2] );
-        assertEquals( "org.hisp.dhis.user.User.userRoles", partsG[3] );
-        assertEquals( peter.getId(), Long.parseLong( partsG[4] ) );
+    String messageG = messages.get(6);
+    String[] partsG = messageG.split(":");
+    assertEquals("collection", partsG[1]);
+    assertEquals("org.hisp.dhis.user.User", partsG[2]);
+    assertEquals("org.hisp.dhis.user.User.userRoles", partsG[3]);
+    assertEquals(peter.getId(), Long.parseLong(partsG[4]));
 
-        String messageH = messages.get( 7 );
-        String[] partsH = messageH.split( ":" );
-        assertEquals( "update", partsH[1] );
-        assertEquals( "org.hisp.dhis.user.User", partsH[2] );
-        assertEquals( peter.getId(), Long.parseLong( partsH[3] ) );
-    }
+    String messageH = messages.get(7);
+    String[] partsH = messageH.split(":");
+    assertEquals("update", partsH[1]);
+    assertEquals("org.hisp.dhis.user.User", partsH[2]);
+    assertEquals(peter.getId(), Long.parseLong(partsH[3]));
+  }
 }

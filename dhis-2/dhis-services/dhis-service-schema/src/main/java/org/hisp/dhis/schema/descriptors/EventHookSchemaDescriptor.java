@@ -28,7 +28,6 @@
 package org.hisp.dhis.schema.descriptors;
 
 import java.util.List;
-
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -38,26 +37,23 @@ import org.hisp.dhis.security.AuthorityType;
 /**
  * @author Morten Olav Hansen
  */
-public class EventHookSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "eventHook";
+public class EventHookSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "eventHook";
 
-    public static final String PLURAL = "eventHooks";
+  public static final String PLURAL = "eventHooks";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( EventHook.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1900 );
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(EventHook.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1900);
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, List.of( "F_EVENT_HOOK_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, List.of( "F_EVENT_HOOK_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_EVENT_HOOK_DELETE" ) ) );
+    schema.add(new Authority(AuthorityType.CREATE_PUBLIC, List.of("F_EVENT_HOOK_PUBLIC_ADD")));
+    schema.add(new Authority(AuthorityType.CREATE_PRIVATE, List.of("F_EVENT_HOOK_PRIVATE_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, List.of("F_EVENT_HOOK_DELETE")));
 
-        return schema;
-    }
+    return schema;
+  }
 }

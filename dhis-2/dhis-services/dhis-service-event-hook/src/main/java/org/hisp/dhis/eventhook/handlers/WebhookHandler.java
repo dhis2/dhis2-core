@@ -28,7 +28,6 @@
 package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.hisp.dhis.eventhook.Event;
@@ -47,62 +46,56 @@ import org.springframework.web.client.RestTemplate;
  * @author Morten Olav Hansen
  */
 @Slf4j
-public class WebhookHandler implements Handler
-{
-    private final WebhookTarget webhookTarget;
+public class WebhookHandler implements Handler {
+  private final WebhookTarget webhookTarget;
 
-    private final RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
-    public WebhookHandler( WebhookTarget target )
-    {
-        this.webhookTarget = target;
-        this.restTemplate = new RestTemplate();
-        configure( this.restTemplate );
+  public WebhookHandler(WebhookTarget target) {
+    this.webhookTarget = target;
+    this.restTemplate = new RestTemplate();
+    configure(this.restTemplate);
+  }
+
+  @Override
+  public void run(EventHook eventHook, Event event, String payload) {
+    HttpHeaders httpHeaders = new HttpHeaders();
+    httpHeaders.setContentType(MediaType.parseMediaType(webhookTarget.getContentType()));
+    httpHeaders.setAll(webhookTarget.getHeaders());
+
+    if (webhookTarget.getAuth() != null) {
+      webhookTarget.getAuth().apply(httpHeaders);
     }
 
-    @Override
-    public void run( EventHook eventHook, Event event, String payload )
-    {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType( MediaType.parseMediaType( webhookTarget.getContentType() ) );
-        httpHeaders.setAll( webhookTarget.getHeaders() );
+    HttpEntity<String> httpEntity = new HttpEntity<>(payload, httpHeaders);
 
-        if ( webhookTarget.getAuth() != null )
-        {
-            webhookTarget.getAuth().apply( httpHeaders );
-        }
+    try {
+      ResponseEntity<String> response =
+          restTemplate.postForEntity(webhookTarget.getUrl(), httpEntity, String.class);
 
-        HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
-
-        try
-        {
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                webhookTarget.getUrl(), httpEntity, String.class );
-
-            log.info( "EventHook '{}' response status '{}' and body: {}",
-                eventHook.getUid(), response.getStatusCode().name(), response.getBody() );
-        }
-        catch ( RestClientException ex )
-        {
-            log.error( ex.getMessage() );
-        }
+      log.info(
+          "EventHook '{}' response status '{}' and body: {}",
+          eventHook.getUid(),
+          response.getStatusCode().name(),
+          response.getBody());
+    } catch (RestClientException ex) {
+      log.error(ex.getMessage());
     }
+  }
 
-    private void configure( RestTemplate template )
-    {
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+  private void configure(RestTemplate template) {
+    HttpComponentsClientHttpRequestFactory requestFactory =
+        new HttpComponentsClientHttpRequestFactory();
 
-        requestFactory.setConnectionRequestTimeout( 1_000 );
-        requestFactory.setConnectTimeout( 5_000 );
-        requestFactory.setReadTimeout( 10_000 );
-        requestFactory.setBufferRequestBody( true );
+    requestFactory.setConnectionRequestTimeout(1_000);
+    requestFactory.setConnectTimeout(5_000);
+    requestFactory.setReadTimeout(10_000);
+    requestFactory.setBufferRequestBody(true);
 
-        HttpClient httpClient = HttpClientBuilder.create()
-            .disableCookieManagement()
-            .build();
+    HttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
 
-        requestFactory.setHttpClient( httpClient );
+    requestFactory.setHttpClient(httpClient);
 
-        template.setRequestFactory( requestFactory );
-    }
+    template.setRequestFactory(requestFactory);
+  }
 }

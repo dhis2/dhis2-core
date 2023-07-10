@@ -28,26 +28,23 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import java.util.List;
-
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityAttributeMapper.class
-} )
-public interface ProgramTrackedEntityAttributeMapper extends PreheatMapper<ProgramTrackedEntityAttribute>
-{
-    ProgramTrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( ProgramTrackedEntityAttributeMapper.class );
+@Mapper(uses = {DebugMapper.class, TrackedEntityAttributeMapper.class})
+public interface ProgramTrackedEntityAttributeMapper
+    extends PreheatMapper<ProgramTrackedEntityAttribute> {
+  ProgramTrackedEntityAttributeMapper INSTANCE =
+      Mappers.getMapper(ProgramTrackedEntityAttributeMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "mandatory" )
-    @Mapping( target = "attribute" )
-    ProgramTrackedEntityAttribute map( ProgramTrackedEntityAttribute programTrackedEntityAttribute );
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "mandatory")
+  @Mapping(target = "attribute")
+  ProgramTrackedEntityAttribute map(ProgramTrackedEntityAttribute programTrackedEntityAttribute);
 
-    List<ProgramTrackedEntityAttribute> mapProgramAttributes(
-        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes );
+  List<ProgramTrackedEntityAttribute> mapProgramAttributes(
+      List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes);
 }

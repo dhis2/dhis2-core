@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.validation.BaseValidationTest;
@@ -46,30 +45,29 @@ import org.mockito.quality.Strictness;
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramStageCheckTest extends BaseValidationTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+class ProgramStageCheckTest extends BaseValidationTest {
 
-    private ProgramStageCheck rule;
+  private ProgramStageCheck rule;
 
-    @BeforeEach
-    void setUp()
-    {
-        rule = new ProgramStageCheck();
-    }
+  @BeforeEach
+  void setUp() {
+    rule = new ProgramStageCheck();
+  }
 
-    @Test
-    void failOnNullProgramStage()
-    {
-        Program program = new Program();
-        program.setUid( CodeGenerator.generateUid() );
-        program.setProgramType( ProgramType.WITH_REGISTRATION );
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( program.getUid(), program );
-        event.setProgram( program.getUid() );
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event,
-            "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );
-    }
+  @Test
+  void failOnNullProgramStage() {
+    Program program = new Program();
+    program.setUid(CodeGenerator.generateUid());
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(program.getUid(), program);
+    event.setProgram(program.getUid());
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertHasError(
+        summary,
+        event,
+        "Event.programStage does not point to a valid programStage: " + event.getProgramStage());
+  }
 }

@@ -33,63 +33,64 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Checks for organisation units with coordinates close to Null Island (0 N, 0
- * E).
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunit_null_island.yaml}
+ * Checks for organisation units with coordinates close to Null Island (0 N, 0 E). {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunit_null_island.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitNullIslandControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOrganisationUnitNullIslandControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private String nullIsland;
+  private String nullIsland;
 
-    private static final String check = "orgunits_null_island";
+  private static final String check = "orgunits_null_island";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrgUnitNullIsland()
-    {
+  @Test
+  void testOrgUnitNullIsland() {
 
-        nullIsland = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }" ) );
+    nullIsland =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 0.001, 0.004]} }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Not Null Island', 'shortName': 'Null Island', "
+                + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 50, nullIsland,
-            "Null Island", null, true );
+    assertHasDataIntegrityIssues(detailsIdType, check, 50, nullIsland, "Null Island", null, true);
+  }
 
-    }
+  @Test
+  void testOrgUnitNotNullIsland() {
 
-    @Test
-    void testOrgUnitNotNullIsland()
-    {
+    nullIsland =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Null Island', 'shortName': 'Null Island', "
+                    + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 5,6]} }"));
 
-        nullIsland = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 5,6]} }" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/organisationUnits",
+            "{ 'name': 'Not Null Island', 'shortName': 'Null Island', "
+                + "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Not Null Island', 'shortName': 'Null Island', " +
-                    "'openingDate' : '2022-01-01', 'geometry' : {'type' : 'Point', 'coordinates' : [ 10.2, 13.2]} }" ) );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-
-    }
-
-    @Test
-    void testOrgUnitNotNullIslandZeroCase()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-
-    }
-
+  @Test
+  void testOrgUnitNotNullIslandZeroCase() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

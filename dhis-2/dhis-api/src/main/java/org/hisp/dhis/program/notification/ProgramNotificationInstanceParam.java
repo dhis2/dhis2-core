@@ -28,13 +28,11 @@
 package org.hisp.dhis.program.notification;
 
 import java.util.Date;
-
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 
@@ -43,38 +41,38 @@ import org.hisp.dhis.program.Event;
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = false )
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public class ProgramNotificationInstanceParam extends BaseNotificationParam
-{
-    @Builder
-    public ProgramNotificationInstanceParam( Integer page, Integer pageSize, boolean skipPaging,
-        Enrollment enrollment, Event event, Date scheduledAt )
-    {
-        super( page, pageSize, skipPaging );
-        this.enrollment = enrollment;
-        this.event = event;
-        this.scheduledAt = scheduledAt;
-    }
+public class ProgramNotificationInstanceParam extends BaseNotificationParam {
+  @Builder
+  public ProgramNotificationInstanceParam(
+      Integer page,
+      Integer pageSize,
+      boolean skipPaging,
+      Enrollment enrollment,
+      Event event,
+      Date scheduledAt) {
+    super(page, pageSize, skipPaging);
+    this.enrollment = enrollment;
+    this.event = event;
+    this.scheduledAt = scheduledAt;
+  }
 
-    private Enrollment enrollment;
+  private Enrollment enrollment;
 
-    private Event event;
+  private Event event;
 
-    private Date scheduledAt;
+  private Date scheduledAt;
 
-    public boolean hasEnrollment()
-    {
-        return enrollment != null;
-    }
+  public boolean hasEnrollment() {
+    return enrollment != null;
+  }
 
-    public boolean hasEvent()
-    {
-        return event != null;
-    }
+  public boolean hasEvent() {
+    return event != null;
+  }
 
-    public boolean hasScheduledAt()
-    {
-        return scheduledAt != null;
-    }
+  public boolean hasScheduledAt() {
+    return scheduledAt != null;
+  }
 }

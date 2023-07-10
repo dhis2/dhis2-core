@@ -34,10 +34,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.OpenApi;
@@ -64,108 +62,117 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
-@OpenApi.Tags( "tracker" )
+/** Zubair <rajazubair.asghar@gmail.com> */
+@OpenApi.Tags("tracker")
 @RestController
-@RequestMapping( value = "/messages" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ProgramMessageController
-    extends AbstractCrudController<ProgramMessage>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+@RequestMapping(value = "/messages")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ProgramMessageController extends AbstractCrudController<ProgramMessage> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramMessageService programMessageService;
+  @Autowired private ProgramMessageService programMessageService;
 
-    @Autowired
-    private RenderService renderService;
+  @Autowired private RenderService renderService;
 
-    @Autowired
-    @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-    private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+  @Autowired
+  @Qualifier("org.hisp.dhis.program.notification.ProgramNotificationInstanceStore")
+  private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
 
-    // -------------------------------------------------------------------------
-    // GET
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // GET
+  // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public List<ProgramMessage> getProgramMessages( @RequestParam( required = false ) Set<String> ou,
-        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programInstance,
-        @RequestParam( required = false ) UID enrollment,
-        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programStageInstance,
-        @RequestParam( required = false ) UID event,
-        @RequestParam( required = false ) ProgramMessageStatus messageStatus,
-        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Date beforeDate,
-        @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize )
-        throws BadRequestException,
-        ConflictException
-    {
-        UID enrollmentUid = validateDeprecatedUidParameter( "programInstance",
-            programInstance, "enrollment", enrollment );
-        UID eventUid = validateDeprecatedUidParameter( "programStageInstance",
-            programStageInstance, "event", event );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public List<ProgramMessage> getProgramMessages(
+      @RequestParam(required = false) Set<String> ou,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @RequestParam(required = false) UID enrollment,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @RequestParam(required = false) UID event,
+      @RequestParam(required = false) ProgramMessageStatus messageStatus,
+      @RequestParam(required = false) Date afterDate,
+      @RequestParam(required = false) Date beforeDate,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize)
+      throws BadRequestException, ConflictException {
+    UID enrollmentUid =
+        validateDeprecatedUidParameter(
+            "programInstance", programInstance, "enrollment", enrollment);
+    UID eventUid =
+        validateDeprecatedUidParameter(
+            "programStageInstance", programStageInstance, "event", event);
 
-        if ( enrollmentUid == null && eventUid == null )
-        {
-            throw new ConflictException( "Enrollment or Event must be specified." );
-        }
+    if (enrollmentUid == null && eventUid == null) {
+      throw new ConflictException("Enrollment or Event must be specified.");
+    }
 
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( ou,
+    ProgramMessageQueryParams params =
+        programMessageService.getFromUrl(
+            ou,
             enrollmentUid == null ? null : enrollmentUid.getValue(),
             eventUid == null ? null : eventUid.getValue(),
-            messageStatus, page, pageSize, afterDate, beforeDate );
+            messageStatus,
+            page,
+            pageSize,
+            afterDate,
+            beforeDate);
 
-        return programMessageService.getProgramMessages( params );
-    }
+    return programMessageService.getProgramMessages(params);
+  }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @GetMapping( value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public List<ProgramMessage> getScheduledSentMessage(
-        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programInstance,
-        @RequestParam( required = false ) UID enrollment,
-        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programStageInstance,
-        @RequestParam( required = false ) UID event,
-        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize )
-        throws BadRequestException
-    {
-        UID enrollmentUid = validateDeprecatedUidParameter( "programInstance",
-            programInstance, "enrollment", enrollment );
-        UID eventUid = validateDeprecatedUidParameter( "programStageInstance",
-            programStageInstance, "event", event );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')")
+  @GetMapping(value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public List<ProgramMessage> getScheduledSentMessage(
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programInstance,
+      @RequestParam(required = false) UID enrollment,
+      @Deprecated(since = "2.41") @RequestParam(required = false) UID programStageInstance,
+      @RequestParam(required = false) UID event,
+      @RequestParam(required = false) Date afterDate,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize)
+      throws BadRequestException {
+    UID enrollmentUid =
+        validateDeprecatedUidParameter(
+            "programInstance", programInstance, "enrollment", enrollment);
+    UID eventUid =
+        validateDeprecatedUidParameter(
+            "programStageInstance", programStageInstance, "event", event);
 
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( null,
+    ProgramMessageQueryParams params =
+        programMessageService.getFromUrl(
+            null,
             enrollmentUid == null ? null : enrollmentUid.getValue(),
             eventUid == null ? null : eventUid.getValue(),
-            null, page, pageSize, afterDate, null );
+            null,
+            page,
+            pageSize,
+            afterDate,
+            null);
 
-        return programMessageService.getProgramMessages( params );
+    return programMessageService.getProgramMessages(params);
+  }
+
+  // -------------------------------------------------------------------------
+  // POST
+  // -------------------------------------------------------------------------
+
+  @PreAuthorize("hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')")
+  @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public BatchResponseStatus saveMessages(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    ProgramMessageBatch batch =
+        renderService.fromJson(request.getInputStream(), ProgramMessageBatch.class);
+
+    for (ProgramMessage programMessage : batch.getProgramMessages()) {
+      programMessageService.validatePayload(programMessage);
     }
 
-    // -------------------------------------------------------------------------
-    // POST
-    // -------------------------------------------------------------------------
-
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS') or hasRole('F_SEND_EMAIL')" )
-    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public BatchResponseStatus saveMessages( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        ProgramMessageBatch batch = renderService.fromJson( request.getInputStream(), ProgramMessageBatch.class );
-
-        for ( ProgramMessage programMessage : batch.getProgramMessages() )
-        {
-            programMessageService.validatePayload( programMessage );
-        }
-
-        return programMessageService.sendMessages( batch.getProgramMessages() );
-    }
+    return programMessageService.sendMessages(batch.getProgramMessages());
+  }
 }

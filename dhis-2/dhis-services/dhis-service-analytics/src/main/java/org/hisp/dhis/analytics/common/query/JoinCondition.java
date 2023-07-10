@@ -29,20 +29,24 @@ package org.hisp.dhis.analytics.common.query;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class JoinCondition implements Renderable
-{
-    private final Renderable firstTable;
+@RequiredArgsConstructor(staticName = "of")
+public class JoinCondition implements Renderable {
+  private final Renderable firstTable;
 
-    private final Renderable secondTable;
+  private final Renderable secondTable;
 
-    private final String firstField;
+  private final String firstField;
 
-    private final String secondField;
+  private final String secondField;
 
-    @Override
-    public String render()
-    {
-        return firstTable.render() + "." + firstField + " = " + secondTable.render() + "." + secondField;
-    }
+  @Override
+  public String render() {
+    return firstTable.render()
+        + "."
+        + firstField
+        + " = "
+        + secondTable.render()
+        + "."
+        + secondField;
+  }
 }

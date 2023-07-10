@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -43,81 +42,64 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T>
-{
-    @Autowired
-    protected IdentifiableObjectManager manager;
+public class AbstractObjectBundleHook<T> implements ObjectBundleHook<T> {
+  @Autowired protected IdentifiableObjectManager manager;
 
-    @Autowired
-    protected PreheatService preheatService;
+  @Autowired protected PreheatService preheatService;
 
-    @Autowired
-    protected SessionFactory sessionFactory;
+  @Autowired protected SessionFactory sessionFactory;
 
-    @Autowired
-    protected SchemaService schemaService;
+  @Autowired protected SchemaService schemaService;
 
-    @Autowired
-    protected MergeService mergeService;
+  @Autowired protected MergeService mergeService;
 
-    @Override
-    public void validate( T object, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        // by default nothing to validate
-    }
+  @Override
+  public void validate(T object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    // by default nothing to validate
+  }
 
-    @Override
-    public void preCommit( ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public void preCommit(ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public void postCommit( ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public void postCommit(ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public <E extends T> void preTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public <E extends T> void preTypeImport(Class<E> klass, List<E> objects, ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public <E extends T> void postTypeImport( Class<E> klass, List<E> objects, ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public <E extends T> void postTypeImport(Class<E> klass, List<E> objects, ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public void preCreate( T object, ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public void preCreate(T object, ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public void postCreate( T persistedObject, ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public void postCreate(T persistedObject, ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public void preUpdate( T object, T persistedObject, ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public void preUpdate(T object, T persistedObject, ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public void postUpdate( T persistedObject, ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public void postUpdate(T persistedObject, ObjectBundle bundle) {
+    // by default nothing to do
+  }
 
-    @Override
-    public void preDelete( T persistedObject, ObjectBundle bundle )
-    {
-        // by default nothing to do
-    }
+  @Override
+  public void preDelete(T persistedObject, ObjectBundle bundle) {
+    // by default nothing to do
+  }
 }

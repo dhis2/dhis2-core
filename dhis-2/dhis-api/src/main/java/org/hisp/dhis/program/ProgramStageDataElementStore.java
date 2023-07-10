@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 
@@ -38,27 +37,25 @@ import org.hisp.dhis.dataelement.DataElement;
  * @author Viet Nguyen
  */
 public interface ProgramStageDataElementStore
-    extends IdentifiableObjectStore<ProgramStageDataElement>
-{
-    String ID = EventStore.class.getName();
+    extends IdentifiableObjectStore<ProgramStageDataElement> {
+  String ID = EventStore.class.getName();
 
-    /**
-     * Retrieve ProgramStageDataElement list on a program stage and a data
-     * element
-     *
-     * @param programStage ProgramStage
-     * @param dataElement DataElement
-     * @return ProgramStageDataElement
-     */
-    ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement );
+  /**
+   * Retrieve ProgramStageDataElement list on a program stage and a data element
+   *
+   * @param programStage ProgramStage
+   * @param dataElement DataElement
+   * @return ProgramStageDataElement
+   */
+  ProgramStageDataElement get(ProgramStage programStage, DataElement dataElement);
 
-    /**
-     * Returns Map of ProgramStages containing Set of DataElements (together
-     * ProgramStageDataElements) that have skipSynchronization flag set to true
-     *
-     * @return Map<String, Set<String>>
-     */
-    Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  /**
+   * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements)
+   * that have skipSynchronization flag set to true
+   *
+   * @return Map<String, Set<String>>
+   */
+  Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 
-    List<ProgramStageDataElement> getProgramStageDataElements( DataElement dataElement );
+  List<ProgramStageDataElement> getProgramStageDataElements(DataElement dataElement);
 }

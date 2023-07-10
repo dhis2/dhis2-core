@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.validation.validator;
 import static org.hisp.dhis.tracker.imports.validation.validator.All.all;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -41,40 +40,30 @@ import org.hisp.dhis.tracker.imports.validation.validator.relationship.Relations
 import org.hisp.dhis.tracker.imports.validation.validator.trackedentity.TrackedEntityValidator;
 import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate the {@link TrackerBundle}.
- */
+/** Validator to validate the {@link TrackerBundle}. */
 @RequiredArgsConstructor
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.DefaultValidator" )
-public class DefaultValidator implements Validator<TrackerBundle>
-{
+@Component("org.hisp.dhis.tracker.imports.validation.validator.DefaultValidator")
+public class DefaultValidator implements Validator<TrackerBundle> {
 
-    private final TrackedEntityValidator trackedEntityValidator;
+  private final TrackedEntityValidator trackedEntityValidator;
 
-    private final EnrollmentValidator enrollmentValidator;
+  private final EnrollmentValidator enrollmentValidator;
 
-    private final EventValidator eventValidator;
+  private final EventValidator eventValidator;
 
-    private final RelationshipValidator relationshipValidator;
+  private final RelationshipValidator relationshipValidator;
 
-    private Validator<TrackerBundle> bundleValidator()
-    {
-        // @formatter:off
-        return all(
-                trackedEntityValidator,
-                enrollmentValidator,
-                eventValidator,
-                relationshipValidator
-        );
-    }
+  private Validator<TrackerBundle> bundleValidator() {
+    return all(trackedEntityValidator, enrollmentValidator, eventValidator, relationshipValidator);
+  }
 
-    @Override
-    public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-        bundleValidator().validate(reporter, bundle, input);
-    }
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+    bundleValidator().validate(reporter, bundle, input);
+  }
 
-    @Override
-    public boolean needsToRun(TrackerImportStrategy strategy) {
-        return true; // this main validator should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // this main validator should always run
+  }
 }

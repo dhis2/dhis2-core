@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset;
 
 import java.util.Date;
 import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,92 +37,92 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Lars Helge Overland
  */
-public interface CompleteDataSetRegistrationService
-{
-    /**
-     * Saves a CompleteDataSetRegistration.
-     *
-     * @param registration the CompleteDataSetRegistration to save.
-     */
-    void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration );
+public interface CompleteDataSetRegistrationService {
+  /**
+   * Saves a CompleteDataSetRegistration.
+   *
+   * @param registration the CompleteDataSetRegistration to save.
+   */
+  void saveCompleteDataSetRegistration(CompleteDataSetRegistration registration);
 
-    /**
-     * Updates a CompleteDataSetRegistration.
-     *
-     * @param registration the CompleteDataSetRegistration to update.
-     */
-    void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration );
+  /**
+   * Updates a CompleteDataSetRegistration.
+   *
+   * @param registration the CompleteDataSetRegistration to update.
+   */
+  void updateCompleteDataSetRegistration(CompleteDataSetRegistration registration);
 
-    /**
-     * Retrieves the CompleteDataSetRegistration for the given DataSet, Period
-     * and Source.
-     *
-     * @param dataSet the DataSet.
-     * @param period the Period.
-     * @param source the Source.
-     * @param attributeOptionCombo the attribute option combo.
-     * @return the CompleteDataSetRegistration.
-     */
-    CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
+  /**
+   * Retrieves the CompleteDataSetRegistration for the given DataSet, Period and Source.
+   *
+   * @param dataSet the DataSet.
+   * @param period the Period.
+   * @param source the Source.
+   * @param attributeOptionCombo the attribute option combo.
+   * @return the CompleteDataSetRegistration.
+   */
+  CompleteDataSetRegistration getCompleteDataSetRegistration(
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit source,
+      CategoryOptionCombo attributeOptionCombo);
 
-    /**
-     * Deletes a CompleteDataSetRegistration.
-     *
-     * @param registration the CompleteDataSetRegistration to delete.
-     */
-    void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration );
+  /**
+   * Deletes a CompleteDataSetRegistration.
+   *
+   * @param registration the CompleteDataSetRegistration to delete.
+   */
+  void deleteCompleteDataSetRegistration(CompleteDataSetRegistration registration);
 
-    /**
-     * Deletes multiple CompleteDataSetRegistration.
-     *
-     * @param registrations the list of CompleteDataSetRegistration to delete.
-     */
-    void deleteCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations );
+  /**
+   * Deletes multiple CompleteDataSetRegistration.
+   *
+   * @param registrations the list of CompleteDataSetRegistration to delete.
+   */
+  void deleteCompleteDataSetRegistrations(List<CompleteDataSetRegistration> registrations);
 
-    /**
-     * Retrieves all CompleteDataSetRegistrations.
-     *
-     * @return a list of CompleteDataSetRegistrations.
-     */
-    List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations();
+  /**
+   * Retrieves all CompleteDataSetRegistrations.
+   *
+   * @return a list of CompleteDataSetRegistrations.
+   */
+  List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations();
 
-    /**
-     * Deletes the CompleteDataSetRegistrations associated with the given
-     * DataSet.
-     *
-     * @param dataSet the DataSet.
-     */
-    void deleteCompleteDataSetRegistrations( DataSet dataSet );
+  /**
+   * Deletes the CompleteDataSetRegistrations associated with the given DataSet.
+   *
+   * @param dataSet the DataSet.
+   */
+  void deleteCompleteDataSetRegistrations(DataSet dataSet);
 
-    /**
-     * Deletes the CompleteDataSetRegistrations associated with the given
-     * OrganisationUnit.
-     *
-     * @param unit the OrganisationUnit.
-     */
-    void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
+  /**
+   * Deletes the CompleteDataSetRegistrations associated with the given OrganisationUnit.
+   *
+   * @param unit the OrganisationUnit.
+   */
+  void deleteCompleteDataSetRegistrations(OrganisationUnit unit);
 
-    /**
-     * Checks for missing compulsory fields of the data set to be completed
-     *
-     * @param dataSet the DataSet.
-     * @param period the Period.
-     * @param source the Source.
-     * @param attributeOptionCombo the attribute option combo.
-     * @return list of missing compulsory fields, null if all are filled.
-     */
+  /**
+   * Checks for missing compulsory fields of the data set to be completed
+   *
+   * @param dataSet the DataSet.
+   * @param period the Period.
+   * @param source the Source.
+   * @param attributeOptionCombo the attribute option combo.
+   * @return list of missing compulsory fields, null if all are filled.
+   */
+  List<DataElementOperand> getMissingCompulsoryFields(
+      DataSet dataSet,
+      Period period,
+      OrganisationUnit source,
+      CategoryOptionCombo attributeOptionCombo);
 
-    List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
-
-    /**
-     * Returns the number of Complete DataSets which have been updated at or
-     * after the given date time.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @return the number of completed DataSets.
-     */
-    int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated );
+  /**
+   * Returns the number of Complete DataSets which have been updated at or after the given date
+   * time.
+   *
+   * @param lastUpdated specifies the date to filter complete data sets last updated after
+   * @return the number of completed DataSets.
+   */
+  int getCompleteDataSetCountLastUpdatedAfter(Date lastUpdated);
 }

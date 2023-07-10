@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import org.awaitility.Awaitility;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,100 +45,99 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class DeletedObjectServiceTest extends IntegrationTestBase
-{
+class DeletedObjectServiceTest extends IntegrationTestBase {
 
-    @Autowired
-    private DeletedObjectService deletedObjectService;
+  @Autowired private DeletedObjectService deletedObjectService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+  @Autowired private IdentifiableObjectManager manager;
 
-    private DeletedObject elementA = new DeletedObject( createDataElement( 'A' ) );
+  private DeletedObject elementA = new DeletedObject(createDataElement('A'));
 
-    private DeletedObject elementB = new DeletedObject( createDataElement( 'B' ) );
+  private DeletedObject elementB = new DeletedObject(createDataElement('B'));
 
-    private DeletedObject elementC = new DeletedObject( createDataElement( 'C' ) );
+  private DeletedObject elementC = new DeletedObject(createDataElement('C'));
 
-    private DeletedObject elementD = new DeletedObject( createDataElement( 'D' ) );
+  private DeletedObject elementD = new DeletedObject(createDataElement('D'));
 
-    private DeletedObject elementE = new DeletedObject( createDataElement( 'E' ) );
+  private DeletedObject elementE = new DeletedObject(createDataElement('E'));
 
-    @Test
-    void testAddDeletedObject()
-    {
-        deletedObjectService.addDeletedObject( elementA );
-        deletedObjectService.addDeletedObject( elementB );
-        deletedObjectService.addDeletedObject( elementC );
-        assertEquals( 3, deletedObjectService.countDeletedObjects() );
-    }
+  @Test
+  void testAddDeletedObject() {
+    deletedObjectService.addDeletedObject(elementA);
+    deletedObjectService.addDeletedObject(elementB);
+    deletedObjectService.addDeletedObject(elementC);
+    assertEquals(3, deletedObjectService.countDeletedObjects());
+  }
 
-    @Test
-    void testGetDeletedObject()
-    {
-        DeletedObjectQuery deletedObjectQuery = new DeletedObjectQuery();
-        deletedObjectQuery.setTotal( 5 );
-        deletedObjectQuery.setPageSize( 2 );
-        deletedObjectService.addDeletedObject( elementA );
-        deletedObjectService.addDeletedObject( elementB );
-        deletedObjectService.addDeletedObject( elementC );
-        deletedObjectService.addDeletedObject( elementD );
-        deletedObjectService.addDeletedObject( elementE );
-        deletedObjectQuery.setPage( 1 );
-        List<DeletedObject> firstPageDeletedObjects = deletedObjectService.getDeletedObjects( deletedObjectQuery );
-        deletedObjectQuery.setPage( 2 );
-        List<DeletedObject> secondPageDeletedObjects = deletedObjectService.getDeletedObjects( deletedObjectQuery );
-        deletedObjectQuery.setPage( 3 );
-        List<DeletedObject> thirdPageDeletedObjects = deletedObjectService.getDeletedObjects( deletedObjectQuery );
-        assertEquals( 5, deletedObjectService.countDeletedObjects() );
-        assertEquals( 2, firstPageDeletedObjects.size() );
-        assertEquals( 2, secondPageDeletedObjects.size() );
-        assertEquals( 1, thirdPageDeletedObjects.size() );
-        assertThat( firstPageDeletedObjects, contains( elementA, elementB ) );
-        assertThat( secondPageDeletedObjects, contains( elementC, elementD ) );
-        assertThat( thirdPageDeletedObjects, contains( elementE ) );
-    }
+  @Test
+  void testGetDeletedObject() {
+    DeletedObjectQuery deletedObjectQuery = new DeletedObjectQuery();
+    deletedObjectQuery.setTotal(5);
+    deletedObjectQuery.setPageSize(2);
+    deletedObjectService.addDeletedObject(elementA);
+    deletedObjectService.addDeletedObject(elementB);
+    deletedObjectService.addDeletedObject(elementC);
+    deletedObjectService.addDeletedObject(elementD);
+    deletedObjectService.addDeletedObject(elementE);
+    deletedObjectQuery.setPage(1);
+    List<DeletedObject> firstPageDeletedObjects =
+        deletedObjectService.getDeletedObjects(deletedObjectQuery);
+    deletedObjectQuery.setPage(2);
+    List<DeletedObject> secondPageDeletedObjects =
+        deletedObjectService.getDeletedObjects(deletedObjectQuery);
+    deletedObjectQuery.setPage(3);
+    List<DeletedObject> thirdPageDeletedObjects =
+        deletedObjectService.getDeletedObjects(deletedObjectQuery);
+    assertEquals(5, deletedObjectService.countDeletedObjects());
+    assertEquals(2, firstPageDeletedObjects.size());
+    assertEquals(2, secondPageDeletedObjects.size());
+    assertEquals(1, thirdPageDeletedObjects.size());
+    assertThat(firstPageDeletedObjects, contains(elementA, elementB));
+    assertThat(secondPageDeletedObjects, contains(elementC, elementD));
+    assertThat(thirdPageDeletedObjects, contains(elementE));
+  }
 
-    @Test
-    void testSearchForKlass()
-    {
-        deletedObjectService.addDeletedObject( elementA );
-        deletedObjectService.addDeletedObject( elementB );
-        deletedObjectService.addDeletedObject( elementC );
-        deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'A' ) ) );
-        deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'B' ) ) );
-        deletedObjectService.addDeletedObject( new DeletedObject( createOrganisationUnit( 'C' ) ) );
-        assertEquals( 6, deletedObjectService.countDeletedObjects() );
-        assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
-        assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
-        assertTrue( deletedObjectService.getDeletedObjectsByKlass( "Indicator" ).isEmpty() );
-    }
+  @Test
+  void testSearchForKlass() {
+    deletedObjectService.addDeletedObject(elementA);
+    deletedObjectService.addDeletedObject(elementB);
+    deletedObjectService.addDeletedObject(elementC);
+    deletedObjectService.addDeletedObject(new DeletedObject(createOrganisationUnit('A')));
+    deletedObjectService.addDeletedObject(new DeletedObject(createOrganisationUnit('B')));
+    deletedObjectService.addDeletedObject(new DeletedObject(createOrganisationUnit('C')));
+    assertEquals(6, deletedObjectService.countDeletedObjects());
+    assertEquals(3, deletedObjectService.getDeletedObjectsByKlass("DataElement").size());
+    assertEquals(3, deletedObjectService.getDeletedObjectsByKlass("OrganisationUnit").size());
+    assertTrue(deletedObjectService.getDeletedObjectsByKlass("Indicator").isEmpty());
+  }
 
-    @Test
-    void testDeleteDataElement()
-    {
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-        OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
-        OrganisationUnit organisationUnitB = createOrganisationUnit( 'B' );
-        transactionTemplate.execute( status -> {
-            manager.save( dataElementA );
-            manager.save( dataElementB );
-            manager.save( dataElementC );
-            manager.save( organisationUnitA );
-            manager.save( organisationUnitB );
-            manager.delete( dataElementA );
-            manager.delete( dataElementB );
-            manager.delete( dataElementC );
-            manager.delete( organisationUnitA );
-            manager.delete( organisationUnitB );
-            dbmsManager.clearSession();
-            return null;
-        } );
-        Awaitility.await().atMost( 10, TimeUnit.SECONDS ).until( () -> deletedObjectService.countDeletedObjects() > 0 );
-        assertEquals( 5, deletedObjectService.countDeletedObjects() );
-        assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
-        assertEquals( 2, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
-    }
+  @Test
+  void testDeleteDataElement() {
+    DataElement dataElementA = createDataElement('A');
+    DataElement dataElementB = createDataElement('B');
+    DataElement dataElementC = createDataElement('C');
+    OrganisationUnit organisationUnitA = createOrganisationUnit('A');
+    OrganisationUnit organisationUnitB = createOrganisationUnit('B');
+    transactionTemplate.execute(
+        status -> {
+          manager.save(dataElementA);
+          manager.save(dataElementB);
+          manager.save(dataElementC);
+          manager.save(organisationUnitA);
+          manager.save(organisationUnitB);
+          manager.delete(dataElementA);
+          manager.delete(dataElementB);
+          manager.delete(dataElementC);
+          manager.delete(organisationUnitA);
+          manager.delete(organisationUnitB);
+          dbmsManager.clearSession();
+          return null;
+        });
+    Awaitility.await()
+        .atMost(10, TimeUnit.SECONDS)
+        .until(() -> deletedObjectService.countDeletedObjects() > 0);
+    assertEquals(5, deletedObjectService.countDeletedObjects());
+    assertEquals(3, deletedObjectService.getDeletedObjectsByKlass("DataElement").size());
+    assertEquals(2, deletedObjectService.getDeletedObjectsByKlass("OrganisationUnit").size());
+  }
 }

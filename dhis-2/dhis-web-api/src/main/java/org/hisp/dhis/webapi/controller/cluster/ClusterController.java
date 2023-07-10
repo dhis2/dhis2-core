@@ -45,36 +45,31 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Ameen Mohamed
  */
-@OpenApi.Tags( "system" )
+@OpenApi.Tags("system")
 @RestController
-@RequestMapping( "/cluster" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ClusterController
-{
+@RequestMapping("/cluster")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ClusterController {
 
-    @Autowired
-    private LeaderManager leaderManager;
+  @Autowired private LeaderManager leaderManager;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
-    // -------------------------------------------------------------------------
-    // Resources
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Resources
+  // -------------------------------------------------------------------------
 
-    @GetMapping( value = "/leader" )
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SERVER_INFO')" )
-    public @ResponseBody LeaderNodeInfo getLeaderInfo()
-        throws WebMessageException
-    {
-        LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
+  @GetMapping(value = "/leader")
+  @PreAuthorize("hasRole('ALL') or hasRole('F_VIEW_SERVER_INFO')")
+  public @ResponseBody LeaderNodeInfo getLeaderInfo() throws WebMessageException {
+    LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
 
-        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
-        leaderInfo.setLeaderNodeUuid( leaderManager.getLeaderNodeUuid() );
-        leaderInfo.setLeader( leaderManager.isLeader() );
-        leaderInfo.setCurrentNodeUuid( leaderManager.getCurrentNodeUuid() );
-        leaderInfo.setCurrentNodeId( dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID ) );
+    leaderInfo.setLeaderNodeId(leaderManager.getLeaderNodeId());
+    leaderInfo.setLeaderNodeUuid(leaderManager.getLeaderNodeUuid());
+    leaderInfo.setLeader(leaderManager.isLeader());
+    leaderInfo.setCurrentNodeUuid(leaderManager.getCurrentNodeUuid());
+    leaderInfo.setCurrentNodeId(dhisConfigurationProvider.getProperty(ConfigurationKey.NODE_ID));
 
-        return leaderInfo;
-    }
+    return leaderInfo;
+  }
 }

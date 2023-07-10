@@ -34,12 +34,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-public class JwtConfigProviderConfiguration
-{
-    @Bean( name = "dhisConfigurationProvider" )
-    @Primary
-    public DhisConfigurationProvider dhisConfigurationProvider()
-    {
-        return new H2DhisConfigurationProvider( "h2TestConfigWithJWTAuth.conf" );
-    }
+public class JwtConfigProviderConfiguration {
+  @Bean(name = "dhisConfigurationProvider")
+  @Primary
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    return new H2DhisConfigurationProvider("h2TestConfigWithJWTAuth.conf");
+  }
 }

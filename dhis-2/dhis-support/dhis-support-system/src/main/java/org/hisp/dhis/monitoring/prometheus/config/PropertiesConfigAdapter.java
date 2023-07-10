@@ -29,7 +29,6 @@ package org.hisp.dhis.monitoring.prometheus.config;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
-
 import org.springframework.util.Assert;
 
 /**
@@ -39,35 +38,30 @@ import org.springframework.util.Assert;
  * @author Phillip Webb
  * @author Nikolay Rybak
  */
-public class PropertiesConfigAdapter<T>
-{
+public class PropertiesConfigAdapter<T> {
 
-    private T properties;
+  private T properties;
 
-    /**
-     * Create a new {@link PropertiesConfigAdapter} instance.
-     *
-     * @param properties the source properties
-     */
-    public PropertiesConfigAdapter( T properties )
-    {
-        Assert.notNull( properties, "Properties must not be null" );
-        this.properties = properties;
-    }
+  /**
+   * Create a new {@link PropertiesConfigAdapter} instance.
+   *
+   * @param properties the source properties
+   */
+  public PropertiesConfigAdapter(T properties) {
+    Assert.notNull(properties, "Properties must not be null");
+    this.properties = properties;
+  }
 
-    /**
-     * Get the value from the properties or use a fallback from the
-     * {@code defaults}.
-     *
-     * @param getter the getter for the properties
-     * @param fallback the fallback method, usually super interface method
-     *        reference
-     * @param <V> the value type
-     * @return the property or fallback value
-     */
-    protected final <V> V get( Function<T, V> getter, Supplier<V> fallback )
-    {
-        V value = getter.apply( properties );
-        return (value != null ? value : fallback.get());
-    }
+  /**
+   * Get the value from the properties or use a fallback from the {@code defaults}.
+   *
+   * @param getter the getter for the properties
+   * @param fallback the fallback method, usually super interface method reference
+   * @param <V> the value type
+   * @return the property or fallback value
+   */
+  protected final <V> V get(Function<T, V> getter, Supplier<V> fallback) {
+    V value = getter.apply(properties);
+    return (value != null ? value : fallback.get());
+  }
 }

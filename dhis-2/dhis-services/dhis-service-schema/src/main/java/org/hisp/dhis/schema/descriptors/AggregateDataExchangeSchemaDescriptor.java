@@ -27,38 +27,37 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
-import com.google.common.collect.Lists;
+public class AggregateDataExchangeSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "aggregateDataExchange";
 
-public class AggregateDataExchangeSchemaDescriptor
-    implements SchemaDescriptor
-{
-    public static final String SINGULAR = "aggregateDataExchange";
+  public static final String PLURAL = "aggregateDataExchanges";
 
-    public static final String PLURAL = "aggregateDataExchanges";
+  public static final String API_ENDPOINT = "/" + PLURAL;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+  @Override
+  public Schema getSchema() {
+    Schema schema = new Schema(AggregateDataExchange.class, SINGULAR, PLURAL);
+    schema.setRelativeApiEndpoint(API_ENDPOINT);
+    schema.setOrder(1900);
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( AggregateDataExchange.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1900 );
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PUBLIC,
+            Lists.newArrayList("F_AGGREGATE_DATA_EXCHANGE_PUBLIC_ADD")));
+    schema.add(
+        new Authority(
+            AuthorityType.CREATE_PRIVATE,
+            Lists.newArrayList("F_AGGREGATE_DATA_EXCHANGE_PRIVATE_ADD")));
+    schema.add(new Authority(AuthorityType.DELETE, List.of("F_AGGREGATE_DATA_EXCHANGE_DELETE")));
 
-        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
-            Lists.newArrayList( "F_AGGREGATE_DATA_EXCHANGE_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
-            Lists.newArrayList( "F_AGGREGATE_DATA_EXCHANGE_PRIVATE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, List.of( "F_AGGREGATE_DATA_EXCHANGE_DELETE" ) ) );
-
-        return schema;
-    }
+    return schema;
+  }
 }

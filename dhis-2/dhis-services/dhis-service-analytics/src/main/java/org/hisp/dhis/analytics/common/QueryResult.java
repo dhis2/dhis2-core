@@ -30,27 +30,25 @@ package org.hisp.dhis.analytics.common;
 import javax.annotation.Nonnull;
 
 /**
- * Represents the result of a query. It's a very simple interface that will hold
- * the result object required by the implementation class and its associated
- * metadata.
+ * Represents the result of a query. It's a very simple interface that will hold the result object
+ * required by the implementation class and its associated metadata.
  *
  * @author maikel arabori
  */
-public interface QueryResult<R, M>
-{
-    /**
-     * Holds the result object of a query.
-     *
-     * @return the result object R.
-     */
-    @Nonnull
-    R result();
+public interface QueryResult<R, M> {
+  /**
+   * Holds the result object of a query.
+   *
+   * @return the result object R.
+   */
+  @Nonnull
+  R result();
 
-    /**
-     * Returns the metadata info related to the result, if any.
-     *
-     * @return the metadata object M.
-     */
-    @Nonnull
-    M metadata();
+  /**
+   * Returns the metadata info related to the result, if any.
+   *
+   * @return the metadata object M.
+   */
+  @Nonnull
+  M metadata();
 }

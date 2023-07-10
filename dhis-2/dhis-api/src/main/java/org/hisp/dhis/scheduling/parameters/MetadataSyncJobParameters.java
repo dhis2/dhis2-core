@@ -27,75 +27,64 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
-
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 @Getter
 @Setter
-public class MetadataSyncJobParameters implements JobParameters
-{
-    @JsonProperty
-    private int trackerProgramPageSize = 20;
+public class MetadataSyncJobParameters implements JobParameters {
+  @JsonProperty private int trackerProgramPageSize = 20;
 
-    @JsonProperty
-    private int eventProgramPageSize = 60;
+  @JsonProperty private int eventProgramPageSize = 60;
 
-    @JsonProperty
-    private int dataValuesPageSize = 10000;
+  @JsonProperty private int dataValuesPageSize = 10000;
 
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( trackerProgramPageSize < TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN ||
-            trackerProgramPageSize > TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX )
-        {
-            return Optional.of(
-                new ErrorReport(
-                    this.getClass(),
-                    ErrorCode.E4008,
-                    "trackerProgramPageSize",
-                    TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
-                    TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
-                    trackerProgramPageSize ) );
-        }
-
-        if ( eventProgramPageSize < EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN ||
-            eventProgramPageSize > EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX )
-        {
-            return Optional.of(
-                new ErrorReport(
-                    this.getClass(),
-                    ErrorCode.E4008,
-                    "eventProgramPageSize",
-                    EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
-                    EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
-                    eventProgramPageSize ) );
-        }
-
-        if ( dataValuesPageSize < DataSynchronizationJobParameters.PAGE_SIZE_MIN ||
-            dataValuesPageSize > DataSynchronizationJobParameters.PAGE_SIZE_MAX )
-        {
-            return Optional.of(
-                new ErrorReport(
-                    this.getClass(),
-                    ErrorCode.E4008,
-                    "dataValuesPageSize",
-                    DataSynchronizationJobParameters.PAGE_SIZE_MIN,
-                    DataSynchronizationJobParameters.PAGE_SIZE_MAX,
-                    dataValuesPageSize ) );
-        }
-
-        return Optional.empty();
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (trackerProgramPageSize < TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN
+        || trackerProgramPageSize > TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "trackerProgramPageSize",
+              TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
+              TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
+              trackerProgramPageSize));
     }
+
+    if (eventProgramPageSize < EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN
+        || eventProgramPageSize > EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "eventProgramPageSize",
+              EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
+              EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
+              eventProgramPageSize));
+    }
+
+    if (dataValuesPageSize < DataSynchronizationJobParameters.PAGE_SIZE_MIN
+        || dataValuesPageSize > DataSynchronizationJobParameters.PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "dataValuesPageSize",
+              DataSynchronizationJobParameters.PAGE_SIZE_MIN,
+              DataSynchronizationJobParameters.PAGE_SIZE_MAX,
+              dataValuesPageSize));
+    }
+
+    return Optional.empty();
+  }
 }

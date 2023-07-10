@@ -46,94 +46,98 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DataSetControllerTest extends DhisControllerConvenienceTest
-{
+class DataSetControllerTest extends DhisControllerConvenienceTest {
 
-    private String dsId;
+  private String dsId;
 
-    @BeforeEach
-    void setUp()
-    {
-        dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly'}" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    dsId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets/", "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly'}"));
+  }
 
-    @Test
-    void testGetVersion()
-    {
-        JsonObject info = GET( "/dataSets/{id}/version", dsId ).content( HttpStatus.OK );
-        assertTrue( info.isObject() );
-        assertEquals( 1, info.size() );
-        assertEquals( 0, info.getNumber( "version" ).intValue() );
-    }
+  @Test
+  void testGetVersion() {
+    JsonObject info = GET("/dataSets/{id}/version", dsId).content(HttpStatus.OK);
+    assertTrue(info.isObject());
+    assertEquals(1, info.size());
+    assertEquals(0, info.getNumber("version").intValue());
+  }
 
-    @Test
-    void testGetFormJson()
-    {
-        String ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        JsonObject info = GET( "/dataSets/{id}/form?ou={ou}", dsId, ouId ).content( HttpStatus.OK );
-        assertTrue( info.isObject() );
-        assertTrue( info.has( "label", "options", "groups" ) );
-        assertEquals( "My data set", info.getString( "label" ).string() );
-        JsonObject options = info.getObject( "options" );
-        assertEquals( 0, options.getNumber( "openPeriodsAfterCoEndDate" ).intValue() );
-        assertEquals( 0, options.getNumber( "openFuturePeriods" ).intValue() );
-        assertEquals( 0, options.getNumber( "expiryDays" ).intValue() );
-        assertEquals( "Monthly", options.getString( "periodType" ).string() );
-        JsonArray groups = info.getArray( "groups" );
-        assertTrue( groups.isArray() );
-        assertEquals( 1, groups.size() );
-    }
+  @Test
+  void testGetFormJson() {
+    String ouId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    JsonObject info = GET("/dataSets/{id}/form?ou={ou}", dsId, ouId).content(HttpStatus.OK);
+    assertTrue(info.isObject());
+    assertTrue(info.has("label", "options", "groups"));
+    assertEquals("My data set", info.getString("label").string());
+    JsonObject options = info.getObject("options");
+    assertEquals(0, options.getNumber("openPeriodsAfterCoEndDate").intValue());
+    assertEquals(0, options.getNumber("openFuturePeriods").intValue());
+    assertEquals(0, options.getNumber("expiryDays").intValue());
+    assertEquals("Monthly", options.getString("periodType").string());
+    JsonArray groups = info.getArray("groups");
+    assertTrue(groups.isArray());
+    assertEquals(1, groups.size());
+  }
 
-    @Test
-    void testGetWithDependenciesAsZipFile()
-    {
-        HttpResponse res = GET( "/dataSets/{id}/metadata.json.zip?skipSharing=false&download=true", dsId );
-        assertEquals( HttpStatus.OK, res.status() );
-        assertEquals( "attachment; filename=metadata.json.zip", res.header( "Content-Disposition" ) );
-        assertEquals( "application/json+zip", res.header( "Content-Type" ) );
-        assertEquals( "binary", res.header( "Content-Transfer-Encoding" ) );
-    }
+  @Test
+  void testGetWithDependenciesAsZipFile() {
+    HttpResponse res =
+        GET("/dataSets/{id}/metadata.json.zip?skipSharing=false&download=true", dsId);
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals("attachment; filename=metadata.json.zip", res.header("Content-Disposition"));
+    assertEquals("application/json+zip", res.header("Content-Type"));
+    assertEquals("binary", res.header("Content-Transfer-Encoding"));
+  }
 
-    @Test
-    void testGetWithDependenciesAsUncompressedFile()
-    {
-        HttpResponse res = GET( "/dataSets/{id}/metadata.json?skipSharing=false&download=true", dsId );
-        assertEquals( HttpStatus.OK, res.status() );
-        assertEquals( "attachment; filename=metadata.json", res.header( "Content-Disposition" ) );
-        assertEquals( "application/json", res.header( "Content-Type" ) );
-    }
+  @Test
+  void testGetWithDependenciesAsUncompressedFile() {
+    HttpResponse res = GET("/dataSets/{id}/metadata.json?skipSharing=false&download=true", dsId);
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals("attachment; filename=metadata.json", res.header("Content-Disposition"));
+    assertEquals("application/json", res.header("Content-Type"));
+  }
 
-    /**
-     * When updating DataSet, compulsoryDataElementOperand should be deleted if
-     * the referenced DataElement is removed from the DataSet.
-     */
-    @Test
-    void testRemoveDataElement()
-    {
-        DataElement deA = createDataElement( 'A' );
-        deA.setUid( "cYeuwXTCPkU" );
-        DataElement deB = createDataElement( 'B' );
-        deB.setUid( "fbfJHSPpUQD" );
-        manager.save( deA );
-        manager.save( deB );
-        String dataSetId = "Tl0gpmhQOmr";
+  /**
+   * When updating DataSet, compulsoryDataElementOperand should be deleted if the referenced
+   * DataElement is removed from the DataSet.
+   */
+  @Test
+  void testRemoveDataElement() {
+    DataElement deA = createDataElement('A');
+    deA.setUid("cYeuwXTCPkU");
+    DataElement deB = createDataElement('B');
+    deB.setUid("fbfJHSPpUQD");
+    manager.save(deA);
+    manager.save(deB);
+    String dataSetId = "Tl0gpmhQOmr";
 
-        assertStatus( HttpStatus.OK,
-            POST( "/metadata/", Body( "dataset/dataset_with_compulsoryDataElementOperand.json" ) ) );
+    assertStatus(
+        HttpStatus.OK,
+        POST("/metadata/", Body("dataset/dataset_with_compulsoryDataElementOperand.json")));
 
-        DataSet dataSet = manager.get( DataSet.class, dataSetId );
+    DataSet dataSet = manager.get(DataSet.class, dataSetId);
 
-        assertEquals( 1, dataSet.getCompulsoryDataElementOperands().size() );
+    assertEquals(1, dataSet.getCompulsoryDataElementOperands().size());
 
-        assertStatus( HttpStatus.OK,
-            PUT( "/dataSets/{id}", dataSetId,
-                Body( "dataset/dataset_with_compulsoryDataElementOperand_update.json" ) ) );
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/dataSets/{id}",
+            dataSetId,
+            Body("dataset/dataset_with_compulsoryDataElementOperand_update.json")));
 
-        dataSet = manager.get( DataSet.class, dataSetId );
+    dataSet = manager.get(DataSet.class, dataSetId);
 
-        assertEquals( 0, dataSet.getCompulsoryDataElementOperands().size() );
-
-    }
+    assertEquals(0, dataSet.getCompulsoryDataElementOperands().size());
+  }
 }

@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -61,129 +60,130 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * Unit tests for {@link DefaultFieldFilterService}.
- */
-@ExtendWith( MockitoExtension.class )
-class DefaultFieldFilterServiceTest
-{
-    private FieldParser fieldParser = new DefaultFieldParser();
+/** Unit tests for {@link DefaultFieldFilterService}. */
+@ExtendWith(MockitoExtension.class)
+class DefaultFieldFilterServiceTest {
+  private FieldParser fieldParser = new DefaultFieldParser();
 
-    @Mock
-    private SchemaService schemaService;
+  @Mock private SchemaService schemaService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    CurrentUserService currentUserService;
+  @Mock CurrentUserService currentUserService;
 
-    @Mock
-    private AttributeService attributeService;
+  @Mock private AttributeService attributeService;
 
-    @Mock
-    private UserGroupService userGroupService;
+  @Mock private UserGroupService userGroupService;
 
-    @Mock
-    private UserService userService;
+  @Mock private UserService userService;
 
-    private DefaultFieldFilterService service;
+  private DefaultFieldFilterService service;
 
-    @BeforeEach
-    public void setUp()
-        throws Exception
-    {
-        CacheProvider cacheProvider = mock( CacheProvider.class );
-        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
-        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
-            attributeService, cacheProvider, userGroupService, userService, new HashSet<>() );
-    }
+  @BeforeEach
+  public void setUp() throws Exception {
+    CacheProvider cacheProvider = mock(CacheProvider.class);
+    when(cacheProvider.createPropertyTransformerCache()).thenReturn(new NoOpCache<>());
+    service =
+        new DefaultFieldFilterService(
+            fieldParser,
+            schemaService,
+            aclService,
+            currentUserService,
+            attributeService,
+            cacheProvider,
+            userGroupService,
+            userService,
+            new HashSet<>());
+  }
 
-    @Test
-    void toCollectionNodeSkipSharingNoFields()
-        throws Exception
-    {
-        final Attribute attribute = new Attribute();
-        final Map<String, Property> propertyMap = new HashMap<>();
-        addProperty( propertyMap, attribute, "dataElementAttribute" );
-        addProperty( propertyMap, attribute, "user" );
-        addProperty( propertyMap, attribute, "publicAccess" );
-        addProperty( propertyMap, attribute, "userGroupAccesses" );
-        addProperty( propertyMap, attribute, "userAccesses" );
-        addProperty( propertyMap, attribute, "externalAccess" );
+  @Test
+  void toCollectionNodeSkipSharingNoFields() throws Exception {
+    final Attribute attribute = new Attribute();
+    final Map<String, Property> propertyMap = new HashMap<>();
+    addProperty(propertyMap, attribute, "dataElementAttribute");
+    addProperty(propertyMap, attribute, "user");
+    addProperty(propertyMap, attribute, "publicAccess");
+    addProperty(propertyMap, attribute, "userGroupAccesses");
+    addProperty(propertyMap, attribute, "userAccesses");
+    addProperty(propertyMap, attribute, "externalAccess");
 
-        final Schema rootSchema = new Schema( Attribute.class, "attribute", "attributes" );
-        rootSchema.setPropertyMap( propertyMap );
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( Attribute.class ) ) ).thenReturn( rootSchema );
+    final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
+    rootSchema.setPropertyMap(propertyMap);
+    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(Attribute.class)))
+        .thenReturn(rootSchema);
 
-        final Schema booleanSchema = new Schema( boolean.class, "boolean", "booleans" );
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( boolean.class ) ) ).thenReturn( booleanSchema );
+    final Schema booleanSchema = new Schema(boolean.class, "boolean", "booleans");
+    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(boolean.class)))
+        .thenReturn(booleanSchema);
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ),
-            Collections.emptyList(), Defaults.INCLUDE, true );
+    final FieldFilterParams params =
+        new FieldFilterParams(
+            Collections.singletonList(attribute), Collections.emptyList(), Defaults.INCLUDE, true);
 
-        CollectionNode node = service.toCollectionNode( Attribute.class, params );
-        Assertions.assertEquals( 1, node.getChildren().size() );
-        Set<String> names = extractNodeNames( node.getChildren().get( 0 ).getChildren() );
-        Assertions.assertTrue( names.contains( "dataElementAttribute" ) );
-        Assertions.assertFalse( names.contains( "user" ) );
-        Assertions.assertFalse( names.contains( "publicAccess" ) );
-        Assertions.assertFalse( names.contains( "userGroupAccesses" ) );
-        Assertions.assertFalse( names.contains( "userAccesses" ) );
-        Assertions.assertFalse( names.contains( "externalAccess" ) );
-    }
+    CollectionNode node = service.toCollectionNode(Attribute.class, params);
+    Assertions.assertEquals(1, node.getChildren().size());
+    Set<String> names = extractNodeNames(node.getChildren().get(0).getChildren());
+    Assertions.assertTrue(names.contains("dataElementAttribute"));
+    Assertions.assertFalse(names.contains("user"));
+    Assertions.assertFalse(names.contains("publicAccess"));
+    Assertions.assertFalse(names.contains("userGroupAccesses"));
+    Assertions.assertFalse(names.contains("userAccesses"));
+    Assertions.assertFalse(names.contains("externalAccess"));
+  }
 
-    @Test
-    void toCollectionNodeSkipSharingOwner()
-        throws Exception
-    {
-        final Attribute attribute = new Attribute();
-        final Map<String, Property> propertyMap = new HashMap<>();
-        addProperty( propertyMap, attribute, "dataElementAttribute" );
-        Property p = addProperty( propertyMap, attribute, "dataSetAttribute" );
-        p.setOwner( true );
-        p.setPersisted( true );
-        addProperty( propertyMap, attribute, "user" );
-        addProperty( propertyMap, attribute, "publicAccess" );
-        addProperty( propertyMap, attribute, "userGroupAccesses" );
-        addProperty( propertyMap, attribute, "userAccesses" );
-        addProperty( propertyMap, attribute, "externalAccess" );
+  @Test
+  void toCollectionNodeSkipSharingOwner() throws Exception {
+    final Attribute attribute = new Attribute();
+    final Map<String, Property> propertyMap = new HashMap<>();
+    addProperty(propertyMap, attribute, "dataElementAttribute");
+    Property p = addProperty(propertyMap, attribute, "dataSetAttribute");
+    p.setOwner(true);
+    p.setPersisted(true);
+    addProperty(propertyMap, attribute, "user");
+    addProperty(propertyMap, attribute, "publicAccess");
+    addProperty(propertyMap, attribute, "userGroupAccesses");
+    addProperty(propertyMap, attribute, "userAccesses");
+    addProperty(propertyMap, attribute, "externalAccess");
 
-        final Schema rootSchema = new Schema( Attribute.class, "attribute", "attributes" );
-        rootSchema.setPropertyMap( propertyMap );
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( Attribute.class ) ) ).thenReturn( rootSchema );
+    final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
+    rootSchema.setPropertyMap(propertyMap);
+    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(Attribute.class)))
+        .thenReturn(rootSchema);
 
-        final Schema booleanSchema = new Schema( boolean.class, "boolean", "booleans" );
-        Mockito.when( schemaService.getDynamicSchema( Mockito.eq( boolean.class ) ) ).thenReturn( booleanSchema );
+    final Schema booleanSchema = new Schema(boolean.class, "boolean", "booleans");
+    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(boolean.class)))
+        .thenReturn(booleanSchema);
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ),
-            Collections.singletonList( ":owner" ), Defaults.INCLUDE, true );
+    final FieldFilterParams params =
+        new FieldFilterParams(
+            Collections.singletonList(attribute),
+            Collections.singletonList(":owner"),
+            Defaults.INCLUDE,
+            true);
 
-        CollectionNode node = service.toCollectionNode( Attribute.class, params );
-        Assertions.assertEquals( 1, node.getChildren().size() );
-        Set<String> names = extractNodeNames( node.getChildren().get( 0 ).getChildren() );
-        Assertions.assertFalse( names.contains( "dataElementAttribute" ) );
-        Assertions.assertTrue( names.contains( "dataSetAttribute" ) );
-        Assertions.assertFalse( names.contains( "user" ) );
-        Assertions.assertFalse( names.contains( "publicAccess" ) );
-        Assertions.assertFalse( names.contains( "userGroupAccesses" ) );
-        Assertions.assertFalse( names.contains( "userAccesses" ) );
-        Assertions.assertFalse( names.contains( "externalAccess" ) );
-    }
+    CollectionNode node = service.toCollectionNode(Attribute.class, params);
+    Assertions.assertEquals(1, node.getChildren().size());
+    Set<String> names = extractNodeNames(node.getChildren().get(0).getChildren());
+    Assertions.assertFalse(names.contains("dataElementAttribute"));
+    Assertions.assertTrue(names.contains("dataSetAttribute"));
+    Assertions.assertFalse(names.contains("user"));
+    Assertions.assertFalse(names.contains("publicAccess"));
+    Assertions.assertFalse(names.contains("userGroupAccesses"));
+    Assertions.assertFalse(names.contains("userAccesses"));
+    Assertions.assertFalse(names.contains("externalAccess"));
+  }
 
-    private static Set<String> extractNodeNames( Collection<Node> nodes )
-    {
-        return nodes.stream().map( Node::getName ).collect( Collectors.toSet() );
-    }
+  private static Set<String> extractNodeNames(Collection<Node> nodes) {
+    return nodes.stream().map(Node::getName).collect(Collectors.toSet());
+  }
 
-    private static Property addProperty( Map<String, Property> propertyMap, Object bean, String property )
-        throws Exception
-    {
-        PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor( bean, property );
-        Property p = new Property( pd.getPropertyType(), pd.getReadMethod(), pd.getWriteMethod() );
-        p.setName( pd.getName() );
-        p.setReadable( true );
-        propertyMap.put( pd.getName(), p );
-        return p;
-    }
+  private static Property addProperty(
+      Map<String, Property> propertyMap, Object bean, String property) throws Exception {
+    PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor(bean, property);
+    Property p = new Property(pd.getPropertyType(), pd.getReadMethod(), pd.getWriteMethod());
+    p.setName(pd.getName());
+    p.setReadable(true);
+    propertyMap.put(pd.getName(), p);
+    return p;
+  }
 }
