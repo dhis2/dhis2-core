@@ -66,12 +66,35 @@ import org.springframework.stereotype.Component;
  * This supplier builds and caches a Map of all the Programs in the system. For each Program, the
  * following additional data is retrieved:
  *
- * @formatter:off
- *     <p>Program + | +---+ Program Stage (List) | | | +---+ User Access (ACL) | | | +---+ User
- *     Group Access (ACL) | | +---+ Category Combo | | +---+ Tracked Entity Instance | | | +---+
- *     User Access (ACL) | | | +---+ User Group Access (ACL) | | | +---+ Organizational Unit (List)
- *     | +---+ User Access (ACL) | +---+ User Group Access (ACL)
- * @formatter:on
+ * <pre>
+ * Program
+ * +
+ * |
+ * +---+ Program Stage (List)
+ * |           |
+ * |           +---+ User Access (ACL)
+ * |           |
+ * |           +---+ User Group Access (ACL)
+ * |
+ * |
+ * +---+ Category Combo
+ * |
+ * |
+ * +---+ Tracked Entity Instance
+ * |           |
+ * |           +---+ User Access (ACL)
+ * |           |
+ * |           +---+ User Group Access (ACL)
+ * |
+ * |
+ * |
+ * +---+ Organizational Unit (List)
+ * |
+ * +---+ User Access (ACL)
+ * |
+ * +---+ User Group Access (ACL)
+ * </pre>
+ *
  * @author Luciano Fiandesio
  */
 @Component("workContextProgramsSupplier")

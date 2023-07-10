@@ -68,8 +68,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
-
-  // @formatter:off
   public static final String EXPIRED_GOOGLE_JWT_TOKEN =
       "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIx"
           + "M2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiO"
@@ -85,7 +83,6 @@ class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest {
           + "TBS3DWoWsHaNqXfE3rO0M7231FWl2X0vk5oO-KycNoS1vDZLAvdf6QRJVnPMkQ6Cx5XSMSYEmUmFqM3Sj2ip0Q48hAe4ydzIgRWdGbzG"
           + "nMH3euqGWr4_G_EBvVqfVPnBF0YA";
 
-  // @formatter:on
   public static final String GOOGLE_CLIENT_ID =
       "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
 

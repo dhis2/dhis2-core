@@ -243,7 +243,6 @@ public class JdbcEventStore implements EventStore {
 
   private static final List<String> INSERT_COLUMNS =
       ImmutableList.of(
-          // @formatter:off
           ID.getColumnName(), // nextval
           "programinstanceid", // 1
           "programstageid", // 2
@@ -267,13 +266,11 @@ public class JdbcEventStore implements EventStore {
           GEOMETRY.getColumnName(), // 20
           "assigneduserid", // 21
           "eventdatavalues"); // 22
-  // @formatter:on
 
   private static final String INSERT_EVENT_SQL;
 
   private static final List<String> UPDATE_COLUMNS =
       ImmutableList.of(
-          // @formatter:off
           "programInstanceId", // 1
           "programstageid", // 2
           DUE_DATE.getColumnName(), // 3
@@ -294,7 +291,6 @@ public class JdbcEventStore implements EventStore {
           "assigneduserid", // 18
           "eventdatavalues", // 19
           UID.getColumnName()); // 20
-  // @formatter:on
 
   private static final String UPDATE_EVENT_SQL;
 
@@ -1741,12 +1737,10 @@ public class JdbcEventStore implements EventStore {
                   Collectors.toMap(
                       s -> (String) s.get("uid"), s -> (Long) s.get("programstageinstanceid")));
 
-      // @formatter:off
       return batch.stream()
           .filter(psi -> persisted.containsKey(psi.getUid()))
           .peek(psi -> psi.setId(persisted.get(psi.getUid())))
           .collect(Collectors.toList());
-      // @formatter:on
     } else {
       for (int i = 0; i < eventIds.size(); i++) {
         batch.get(i).setId(eventIds.get(i));
@@ -1792,7 +1786,6 @@ public class JdbcEventStore implements EventStore {
 
   private void bindEventParamsForInsert(PreparedStatement ps, ProgramStageInstance event)
       throws SQLException, JsonProcessingException {
-    // @formatter:off
     ps.setLong(1, event.getProgramInstance().getId());
     ps.setLong(2, event.getProgramStage().getId());
     ps.setTimestamp(3, JdbcEventSupport.toTimestamp(event.getDueDate()));
@@ -1819,7 +1812,6 @@ public class JdbcEventStore implements EventStore {
       ps.setObject(21, null);
     }
     ps.setObject(22, eventDataValuesToJson(event.getEventDataValues(), this.jsonMapper));
-    // @formatter:on
   }
 
   private void bindEventParamsForUpdate(

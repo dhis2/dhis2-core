@@ -148,6 +148,10 @@
               <enabled>true</enabled>
             </upToDateChecking>
             <java>
+              <toggleOffOn>
+                <off>@formatter:off</off>
+                <on>@formatter:on</on>
+              </toggleOffOn>
               <googleJavaFormat/>
               <trimTrailingWhitespace/>
               <licenseHeader>
@@ -156,7 +160,8 @@
             </java>
             <pom>
               <toggleOffOn>
-                <off>formatter:off</off><on>formatter:on</on>
+                <off>@formatter:off</off>
+                <on>@formatter:on</on>
               </toggleOffOn>
               <includes>
                 <include>pom.xml</include>
