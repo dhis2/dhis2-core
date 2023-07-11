@@ -88,8 +88,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
   @GetMapping(value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
-      @PathVariable("uid") String uid, GistParams params)
-      throws NotFoundException {
+      @PathVariable("uid") String uid, GistParams params) throws NotFoundException {
     return gistToJsonObjectResponse(
         uid,
         createGistQuery(params, getEntityClass(), GistAutoType.L)
@@ -100,9 +99,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       value = {"/{uid}/gist", "/{uid}/gist.csv"},
       produces = "text/csv")
   public void getObjectGistAsCsv(
-      @PathVariable("uid") String uid,
-      GistParams params,
-      HttpServletResponse response)
+      @PathVariable("uid") String uid, GistParams params, HttpServletResponse response)
       throws IOException {
     gistToCsvResponse(
         response,
