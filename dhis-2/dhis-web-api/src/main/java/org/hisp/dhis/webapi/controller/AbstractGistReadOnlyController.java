@@ -33,8 +33,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -42,14 +40,12 @@ import java.util.List;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.Value;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.gist.GistAutoType;
-import org.hisp.dhis.gist.GistPager;
 import org.hisp.dhis.gist.GistParams;
 import org.hisp.dhis.gist.GistQuery;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -91,8 +87,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 
   @GetMapping(value = "/{uid}/gist", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
-      @PathVariable("uid") String uid, GistParams params)
-      throws NotFoundException {
+      @PathVariable("uid") String uid, GistParams params) throws NotFoundException {
     return gistToJsonObjectResponse(
         uid,
         createGistQuery(params, getEntityClass(), GistAutoType.L)
@@ -103,9 +98,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       value = {"/{uid}/gist", "/{uid}/gist.csv"},
       produces = "text/csv")
   public void getObjectGistAsCsv(
-      @PathVariable("uid") String uid,
-      GistParams params,
-      HttpServletResponse response)
+      @PathVariable("uid") String uid, GistParams params, HttpServletResponse response)
       throws IOException {
     gistToCsvResponse(
         response,

@@ -28,7 +28,6 @@
 package org.hisp.dhis.gist;
 
 import lombok.Data;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.query.Junction;
 
 /**
@@ -37,7 +36,6 @@ import org.hisp.dhis.query.Junction;
  * @author Jan Bernitt
  */
 @Data
-@OpenApi.Shared
 public final class GistParams {
   String locale = "";
 
