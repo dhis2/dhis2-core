@@ -40,6 +40,7 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.web.HttpStatus;
+import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -99,12 +100,11 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
     switchToGuestUser();
     JsonArray users = GET("/users/gist?headless=true").content();
     JsonObject user0 = users.getObject(0);
-    assertContainsOnly(
-        Set.of("id", "code", "surname", "firstName", "username"), user0.node().members().keySet());
+    assertContainsOnly(Set.of("id", "code", "surname", "firstName", "username"), user0.names());
     switchToSuperuser();
     users = GET("/users/gist?headless=true").content();
     user0 = users.getObject(0);
-    assertTrue(user0.node().members().keySet().size() > 4);
+    assertTrue(user0.size() > 4);
   }
 
   /*
@@ -199,5 +199,20 @@ class GistFieldsControllerTest extends AbstractGistControllerTest {
   void testField_UserNameAutomaticFromTransformation() {
     JsonArray users = GET("/users/gist?fields=id,name&headless=true").content();
     assertEquals("FirstNameadmin Surnameadmin", users.getObject(0).getString("name").string());
+  }
+
+  @Test
+  void testNestedFieldsOfListProperty() {
+    JsonArray groups =
+        GET("/userGroups/gist?fields=id,name,users[id,username]&headless=true").content();
+    assertEquals(1, groups.size());
+    JsonUserGroup group = groups.get(0, JsonUserGroup.class);
+    JsonArray members = group.getArray("users");
+    assertTrue(members.isArray());
+    assertEquals(1, members.size());
+    JsonObject member = members.getObject(0);
+    assertTrue(member.has("id", "username"));
+    assertEquals(getSuperuserUid(), member.getString("id").string());
+    assertEquals("admin", member.getString("username").string());
   }
 }

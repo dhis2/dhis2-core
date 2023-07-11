@@ -87,6 +87,10 @@
       <artifactId>cron-utils</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>json-tree</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-email</artifactId>
     </dependency>
