@@ -152,7 +152,7 @@ public class TrackedEntityQueryParams {
   private OrganisationUnitSelectionMode organisationUnitMode =
       OrganisationUnitSelectionMode.DESCENDANTS;
 
-  @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
+  private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   /** Set of tei uids to explicitly select. */
   private Set<String> trackedEntityUids = new HashSet<>();
@@ -777,6 +777,21 @@ public class TrackedEntityQueryParams {
   public TrackedEntityQueryParams setOrganisationUnitMode(
       OrganisationUnitSelectionMode organisationUnitMode) {
     this.organisationUnitMode = organisationUnitMode;
+    return this;
+  }
+
+  public AssignedUserQueryParam getAssignedUserQueryParam() {
+    return this.assignedUserQueryParam;
+  }
+
+  public TrackedEntityQueryParams setAssignedUserQueryParam(
+      AssignedUserQueryParam assignedUserQueryParam) {
+    this.assignedUserQueryParam = assignedUserQueryParam;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setUser(User user) {
+    this.user = user;
     return this;
   }
 
