@@ -214,7 +214,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     JsonNode body =
         new JsonBuilder(jsonMapper).skipNullOrEmpty().toArray(query.getFieldNames(), elements);
     if (body.isEmpty()) {
-      throw new NotFoundException(getEntityClass(), uid);
+      throw new NotFoundException(getEntityClass().getSimpleName(), uid);
     }
     return ResponseEntity.ok().cacheControl(noCache().cachePrivate()).body(body.get(0));
   }
