@@ -25,11 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.analytics.aggregate;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import org.hisp.dhis.AnalyticsApiTest;
@@ -50,6 +52,72 @@ public class AnalyticsQueryTest extends AnalyticsApiTest {
   @BeforeAll
   public void setup() {
     analyticsActions = new RestApiActions("analytics");
+  }
+
+  @Test
+  public void query1And3CoverageYearly() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:THIS_YEAR")
+            .add("skipData=false")
+            .add("includeNumDen=false")
+            .add("displayProperty=NAME")
+            .add("skipMeta=false")
+            .add("dimension=dx:Uvn6LCg7dVU;sB79w2hiLp8,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
+            .add("relativePeriodDate=2022-01-01");
+    // When
+    ApiResponse response = analyticsActions.get(params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(28)))
+        .body("height", equalTo(28))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    assertEquals(
+        response.extract("metaData").toString().replaceAll(" ", ""),
+        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, fdc6uOvgoji={name=Bombali}, ImspTQPwCqd={name=Sierra Leone}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[Uvn6LCg7dVU,sB79w2hiLp8], pe=[2022], ou=[ImspTQPwCqd,O6uvpzGd5pu,fdc6uOvgoji,lc3eMKXaEfw,jUb8gELQApl,PMa2VCrupOd,kJq2mPyFEHo,qhqAxPSTUXp,Vth0fbpFcsO,jmIPBj66vD6,TEQlaapDQoK,bL4ooGhyHRQ,eIQbndfxQMb,at6UHUQatSo], co=[]}}"
+            .replaceAll(" ", ""));
+    // Assert headers.
+    validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert rows.
+    validateRow(response, List.of("Uvn6LCg7dVU", "ImspTQPwCqd", "101.5"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "O6uvpzGd5pu", "142.3"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "fdc6uOvgoji", "82.2"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "lc3eMKXaEfw", "90.0"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "jUb8gELQApl", "81.6"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "PMa2VCrupOd", "102.9"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "kJq2mPyFEHo", "94.4"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "qhqAxPSTUXp", "67.0"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "Vth0fbpFcsO", "52.8"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "jmIPBj66vD6", "118.4"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "TEQlaapDQoK", "99.5"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "bL4ooGhyHRQ", "88.5"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "eIQbndfxQMb", "124.7"));
+    validateRow(response, List.of("Uvn6LCg7dVU", "at6UHUQatSo", "124.7"));
+    validateRow(response, List.of("sB79w2hiLp8", "ImspTQPwCqd", "65.8"));
+    validateRow(response, List.of("sB79w2hiLp8", "O6uvpzGd5pu", "92.3"));
+    validateRow(response, List.of("sB79w2hiLp8", "fdc6uOvgoji", "51.0"));
+    validateRow(response, List.of("sB79w2hiLp8", "lc3eMKXaEfw", "59.7"));
+    validateRow(response, List.of("sB79w2hiLp8", "jUb8gELQApl", "71.0"));
+    validateRow(response, List.of("sB79w2hiLp8", "PMa2VCrupOd", "65.2"));
+    validateRow(response, List.of("sB79w2hiLp8", "kJq2mPyFEHo", "86.8"));
+    validateRow(response, List.of("sB79w2hiLp8", "qhqAxPSTUXp", "38.8"));
+    validateRow(response, List.of("sB79w2hiLp8", "Vth0fbpFcsO", "36.9"));
+    validateRow(response, List.of("sB79w2hiLp8", "jmIPBj66vD6", "92.4"));
+    validateRow(response, List.of("sB79w2hiLp8", "TEQlaapDQoK", "47.8"));
+    validateRow(response, List.of("sB79w2hiLp8", "bL4ooGhyHRQ", "56.9"));
+    validateRow(response, List.of("sB79w2hiLp8", "eIQbndfxQMb", "58.7"));
+    validateRow(response, List.of("sB79w2hiLp8", "at6UHUQatSo", "72.8"));
   }
 
   @Test
