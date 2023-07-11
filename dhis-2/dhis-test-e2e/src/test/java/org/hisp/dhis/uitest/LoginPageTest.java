@@ -34,12 +34,14 @@ import java.net.URL;
 import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-public class LoginPageTest {
+@Tag("uitests")
+class LoginPageTest {
   private WebDriver driver;
 
   private LoginPage mainPage;
@@ -72,7 +74,7 @@ public class LoginPageTest {
   }
 
   @Test
-  public void login() {
+  void login() {
     mainPage.inputUsername.sendKeys("admina");
     mainPage.inputPassword.sendKeys("districtsss");
     mainPage.inputSubmit.click();
