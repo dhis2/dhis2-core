@@ -192,11 +192,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     result.setLastUpdatedByUserInfo(trackedEntity.getLastUpdatedByUserInfo());
     result.setGeometry(trackedEntity.getGeometry());
     if (params.isIncludeRelationships()) {
-      result.setRelationshipItems(
-          getRelationshipItems(trackedEntity, params, user, includeDeleted));
+      result.setRelationshipItems(getRelationshipItems(trackedEntity, user, includeDeleted));
     }
     if (params.isIncludeEnrollments()) {
-      result.setEnrollments(getEnrollments(trackedEntity, params, user, includeDeleted));
+      result.setEnrollments(getEnrollments(trackedEntity, user, includeDeleted));
     }
     if (params.isIncludeProgramOwners()) {
       result.setProgramOwners(trackedEntity.getProgramOwners());
@@ -207,7 +206,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<RelationshipItem> getRelationshipItems(
-      TrackedEntity trackedEntity, TrackedEntityParams params, User user, boolean includeDeleted) {
+      TrackedEntity trackedEntity, User user, boolean includeDeleted) {
     Set<RelationshipItem> items = new HashSet<>();
 
     for (RelationshipItem relationshipItem : trackedEntity.getRelationshipItems()) {
@@ -222,7 +221,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   private Set<Enrollment> getEnrollments(
-      TrackedEntity trackedEntity, TrackedEntityParams params, User user, boolean includeDeleted) {
+      TrackedEntity trackedEntity, User user, boolean includeDeleted) {
     Set<Enrollment> enrollments = new HashSet<>();
 
     for (Enrollment enrollment : trackedEntity.getEnrollments()) {
@@ -411,7 +410,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
             .filter(tei -> tei.getTrackedEntityType() != null)
             .filter(tei -> tetMap.get(tei.getTrackedEntityType().getUid()).isAllowAuditLog())
             .map(tei -> new TrackedEntityAudit(tei.getUid(), accessedBy, AuditType.SEARCH))
-            .collect(Collectors.toList());
+            .toList();
 
     if (!auditable.isEmpty()) {
       trackedEntityAuditService.addTrackedEntityAudit(auditable);
