@@ -994,6 +994,10 @@ public class TrackedEntityQueryParams {
       return tableAlias + "." + column;
     }
 
+    /**
+     * @return a Sql string composed by the main query alias and column. In use for the outer query
+     *     select fields and order by
+     */
     public String getSqlColumnWithMainTable() {
       return MAIN_QUERY_ALIAS + "." + column;
     }
