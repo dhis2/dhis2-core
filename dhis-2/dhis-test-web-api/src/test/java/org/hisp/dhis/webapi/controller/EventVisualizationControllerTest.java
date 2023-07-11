@@ -36,9 +36,12 @@ import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,14 +53,27 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author maikel arabori
  */
 class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
-  @Autowired private IdentifiableObjectManager manager;
+  @Autowired private ObjectMapper jsonMapper;
 
   private Program mockProgram;
 
+  private ProgramStage mockProgramStage;
+
+  private ProgramIndicator mockProgramIndicator;
+
   @BeforeEach
-  public void beforeEach() {
+  public void beforeEach() throws JsonProcessingException {
     mockProgram = createProgram('A');
-    manager.save(mockProgram);
+    POST("/programs", jsonMapper.writeValueAsString(mockProgram)).content(CREATED);
+
+    mockProgramIndicator = createProgramIndicator('A', mockProgram, "exp", "filter");
+    mockProgramIndicator.setUid("deabcdefghB");
+    POST("/programIndicators", jsonMapper.writeValueAsString(mockProgramIndicator))
+        .content(CREATED);
+
+    mockProgramStage = createProgramStage('A', mockProgram);
+    mockProgramStage.setUid("deabcdefghA");
+    POST("/programStages", jsonMapper.writeValueAsString(mockProgramStage)).content(CREATED);
   }
 
   @Test
@@ -264,6 +280,78 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testPostSortingObjectWithPrefixedColumn() {
+    // Given
+    String programStageUid = mockProgramStage.getUid();
+    String dimensionUid = mockProgramIndicator.getUid();
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + programStageUid
+            + "."
+            + dimensionUid
+            + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimensionUid
+            + "',"
+            + "'programStage': {'id':'"
+            + programStageUid
+            + "'}"
+            + "}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(
+        response.get("sorting").toString(), containsString(programStageUid + "." + dimensionUid));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostSortingObjectWithPrefixedColumnWithIndex() {
+    // Given
+    String programStageUid = mockProgramStage.getUid() + "[-2]";
+    String dimensionUid = mockProgramIndicator.getUid();
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + programStageUid
+            + "."
+            + dimensionUid
+            + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimensionUid
+            + "',"
+            + "'programStage': {'id':'"
+            + programStageUid
+            + "'}"
+            + "}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(
+        response.get("sorting").toString(), containsString(programStageUid + "." + dimensionUid));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
   void testPostMultipleSortingObject() {
     // Given
     String dimension1 = "pe";
@@ -369,7 +457,8 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     // Then
     assertEquals(
-        "Sorting must have a dimension and a direction", response.error(CONFLICT).getMessage());
+        "Sorting must have a valid dimension and a direction",
+        response.error(CONFLICT).getMessage());
   }
 
   @Test
@@ -389,6 +478,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
 
     // Then
     assertEquals(
-        "Sorting must have a dimension and a direction", response.error(CONFLICT).getMessage());
+        "Sorting must have a valid dimension and a direction",
+        response.error(CONFLICT).getMessage());
   }
 }

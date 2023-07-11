@@ -67,14 +67,12 @@ public class TrackedEntityInstanceSupplier
     if (events == null) {
       return new HashMap<>();
     }
-    // @formatter:off
     // Collect all the org unit uids to pass as SQL query argument
     Set<String> teiUids =
         events.stream()
             .filter(e -> e.getTrackedEntityInstance() != null)
             .map(Event::getTrackedEntityInstance)
             .collect(Collectors.toSet());
-    // @formatter:on
 
     if (isEmpty(teiUids)) {
       return new HashMap<>();

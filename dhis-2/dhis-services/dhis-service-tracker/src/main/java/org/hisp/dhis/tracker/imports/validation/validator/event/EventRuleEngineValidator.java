@@ -43,9 +43,7 @@ public class EventRuleEngineValidator implements Validator<TrackerBundle> {
   private final Validator<TrackerBundle> validator;
 
   public EventRuleEngineValidator(RuleEngineValidator ruleEngineValidator) {
-    // @formatter:off
     validator = each(TrackerBundle::getEvents, all(ruleEngineValidator, new DataValuesValidator()));
-    // @formatter:on
   }
 
   @Override

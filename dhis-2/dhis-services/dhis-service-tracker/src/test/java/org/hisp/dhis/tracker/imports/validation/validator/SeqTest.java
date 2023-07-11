@@ -69,7 +69,6 @@ class SeqTest {
 
   @Test
   void testSeqCallsUntilFirstError() {
-    // @formatter:off
     Validator<String> validator =
         seq(
             new MatchingValidator("V1", "one"), // no error so moving on to the next validator
@@ -85,7 +84,6 @@ class SeqTest {
 
   @Test
   void testWrappedAddErrorIfNullStopsExecutionIfGivenObjectIsNull() {
-    // @formatter:off
     Validator<String> validator =
         seq((r, b, s) -> r.addErrorIfNull(s, dummyDto(), E1011), (r, b, s) -> addError(r, "V2"));
 
@@ -97,7 +95,6 @@ class SeqTest {
   @Test
   void
       testWrappedAddErrorIfNullStopsExecutionIfGivenObjectIsNullAndNextCallInSameValidatorDoesNotAddError() {
-    // @formatter:off
     Validator<String> validator =
         seq(
             (r, b, s) -> {
@@ -113,7 +110,6 @@ class SeqTest {
 
   @Test
   void testWrappedAddErrorIfNullDoesNotStopExecutionIfGivenObjectIsNotNull() {
-    // @formatter:off
     Validator<String> validator =
         seq((r, b, s) -> r.addErrorIfNull(s, dummyDto(), E1011), (r, b, s) -> addError(r, "V2"));
 
@@ -124,7 +120,6 @@ class SeqTest {
 
   @Test
   void testWrappedAddErrorIfStopsExecutionIfGivenPredicateSucceeds() {
-    // @formatter:off
     Validator<String> validator =
         seq(
             (r, b, s) -> r.addErrorIf(() -> true, dummyDto(), E1011),
@@ -138,7 +133,6 @@ class SeqTest {
   @Test
   void
       testWrappedAddErrorIfStopsExecutionIfGivenPredicateSucceedsAndNextCallInSameValidatorDoesNotAddError() {
-    // @formatter:off
     Validator<String> validator =
         seq(
             (r, b, s) -> {
@@ -154,7 +148,6 @@ class SeqTest {
 
   @Test
   void testWrappedAddErrorIfDoesNotStopExecutionIfGivenPredicateFails() {
-    // @formatter:off
     Validator<String> validator =
         seq(
             (r, b, s) -> r.addErrorIf(() -> false, dummyDto(), E1011),
@@ -196,7 +189,6 @@ class SeqTest {
             .resolvedStrategyMap(new EnumMap<>(Map.of(TrackerType.EVENT, Map.of("event1", UPDATE))))
             .build();
 
-    // @formatter:off
     Validator<Event> validator =
         seq(
             new Validator<>() {

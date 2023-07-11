@@ -301,7 +301,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     // Periods
     // ---------------------------------------------------------------------
 
-    sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+    String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+
+    if (StringUtils.isNotBlank(timeFieldSql)) {
+      sql += hlp.whereAnd() + " " + timeFieldSql;
+    }
 
     // ---------------------------------------------------------------------
     // Organisation units
