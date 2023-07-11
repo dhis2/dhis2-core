@@ -88,7 +88,7 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.2.0</dhis-json-tree.version>
+    <dhis-json-tree.version>0.5.0</dhis-json-tree.version>
 
     <!-- Security-->
     <spring-security.version>5.8.3</spring-security.version>
