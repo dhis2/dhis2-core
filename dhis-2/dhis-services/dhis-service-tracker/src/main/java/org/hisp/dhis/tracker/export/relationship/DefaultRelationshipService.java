@@ -185,7 +185,9 @@ public class DefaultRelationshipService implements RelationshipService {
     if (item.getTrackedEntity() != null) {
       result.setTrackedEntity(
           trackedEntityService.getTrackedEntity(
-              item.getTrackedEntity(), TrackedEntityParams.TRUE.withIncludeRelationships(false)));
+              item.getTrackedEntity(),
+              TrackedEntityParams.TRUE.withIncludeRelationships(false),
+              false));
     } else if (item.getEnrollment() != null) {
       result.setEnrollment(
           enrollmentService.getEnrollment(

@@ -99,9 +99,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Luciano Fiandesio
  */
 class TrackedEntityServiceTest extends IntegrationTestBase {
-  @Autowired private TrackedEntityService trackedEntityService;
-
   @Autowired protected UserService _userService;
+
+  @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private EnrollmentService enrollmentService;
 
@@ -152,6 +152,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   private Relationship relationshipB;
 
   private Relationship relationshipC;
+
+  private static List<String> uids(Collection<? extends BaseIdentifiableObject> trackedEntities) {
+    return trackedEntities.stream()
+        .map(BaseIdentifiableObject::getUid)
+        .collect(Collectors.toList());
+  }
 
   @Override
   protected void setUpTest() throws Exception {
@@ -702,7 +708,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void shouldReturnTrackedEntityAndEnrollmentsGivenTheyShouldBeIncluded()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, false, false, false);
+        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -751,7 +757,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void shouldReturnTrackedEntityWithEventsAndNotesGivenTheyShouldBeIncluded()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, true, false, false);
+        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, true, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -783,11 +789,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params =
         new TrackedEntityParams(
-            false,
-            TrackedEntityEnrollmentParams.TRUE.withIncludeEvents(false),
-            false,
-            false,
-            false);
+            false, TrackedEntityEnrollmentParams.TRUE.withIncludeEvents(false), false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -845,7 +847,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     final Date currentTime = new Date();
     TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, false, false, false);
+        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -890,7 +892,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
       throws ForbiddenException, NotFoundException, BadRequestException {
     final Date currentTime = new Date();
     TrackedEntityParams params =
-        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, false, false, false);
+        new TrackedEntityParams(false, TrackedEntityEnrollmentParams.TRUE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -943,7 +945,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void shouldReturnTrackedEntityWithRelationshipsTei2Tei()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params =
-        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.FALSE, false, false, false);
+        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.FALSE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -969,7 +971,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void returnTrackedEntityRelationshipsWithTei2Enrollment()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params =
-        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.FALSE, false, false, false);
+        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.FALSE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -995,7 +997,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   void shouldReturnTrackedEntityRelationshipsWithTei2Event()
       throws ForbiddenException, NotFoundException, BadRequestException {
     TrackedEntityParams params =
-        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.TRUE, false, false, false);
+        new TrackedEntityParams(true, TrackedEntityEnrollmentParams.TRUE, false, false);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(orgUnitA.getUid()))
@@ -1015,12 +1017,6 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     assertAll(
         () -> assertEquals(trackedEntityA.getUid(), actual.getFrom().getTrackedEntity().getUid()),
         () -> assertEquals(eventA.getUid(), actual.getTo().getEvent().getUid()));
-  }
-
-  private static List<String> uids(Collection<? extends BaseIdentifiableObject> trackedEntities) {
-    return trackedEntities.stream()
-        .map(BaseIdentifiableObject::getUid)
-        .collect(Collectors.toList());
   }
 
   private Set<String> attributeNames(final Collection<TrackedEntityAttributeValue> attributes) {
