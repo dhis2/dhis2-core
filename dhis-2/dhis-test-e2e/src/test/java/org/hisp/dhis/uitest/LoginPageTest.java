@@ -75,8 +75,8 @@ class LoginPageTest {
 
   @Test
   void login() {
-    mainPage.inputUsername.sendKeys("admina");
-    mainPage.inputPassword.sendKeys("districtsss");
+    mainPage.inputUsername.sendKeys("admin");
+    mainPage.inputPassword.sendKeys("district");
     mainPage.inputSubmit.click();
 
     String currentUrl = driver.getCurrentUrl();
