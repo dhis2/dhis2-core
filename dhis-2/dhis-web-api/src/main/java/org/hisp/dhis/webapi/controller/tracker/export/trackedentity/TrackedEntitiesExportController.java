@@ -57,9 +57,11 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
@@ -110,16 +112,14 @@ class TrackedEntitiesExportController {
 
   @OpenApi.Response(status = Status.OK, value = OpenApiExport.ListResponse.class)
   @GetMapping(produces = APPLICATION_JSON_VALUE)
-  PagingWrapper<ObjectNode> getTrackedEntities(RequestParams requestParams)
+  PagingWrapper<ObjectNode> getTrackedEntities(
+      RequestParams requestParams, @CurrentUser User currentUser)
       throws BadRequestException, ForbiddenException, NotFoundException {
-    TrackedEntityQueryParams queryParams = paramsMapper.map(requestParams);
-
-    TrackedEntityParams trackedEntityParams =
-        fieldsMapper.map(requestParams.getFields(), requestParams.isIncludeDeleted());
+    TrackedEntityOperationParams operationParams = paramsMapper.map(requestParams, currentUser);
 
     List<TrackedEntity> trackedEntities =
         TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(queryParams, trackedEntityParams));
+            trackedEntityService.getTrackedEntities(operationParams));
 
     PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -127,11 +127,12 @@ class TrackedEntitiesExportController {
       long count = 0L;
 
       if (requestParams.isTotalPages()) {
-        count = trackedEntityService.getTrackedEntityCount(queryParams, true, true);
+        count = trackedEntityService.getTrackedEntityCount(operationParams, true, true);
       }
 
       Pager pager =
-          new Pager(queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault());
+          new Pager(
+              requestParams.getPageWithDefault(), count, requestParams.getPageSizeWithDefault());
 
       pagingWrapper = pagingWrapper.withPager(PagingWrapper.Pager.fromLegacy(requestParams, pager));
     }
@@ -152,15 +153,15 @@ class TrackedEntitiesExportController {
       RequestParams requestParams,
       HttpServletResponse response,
       HttpServletRequest request,
+      @CurrentUser User user,
       @RequestParam(required = false, defaultValue = "false") boolean skipHeader)
       throws IOException, BadRequestException, ForbiddenException, NotFoundException {
-    TrackedEntityQueryParams queryParams = paramsMapper.map(requestParams);
-    TrackedEntityParams trackedEntityParams =
-        fieldsMapper.map(CSV_FIELDS, requestParams.isIncludeDeleted());
+    TrackedEntityOperationParams operationParams =
+        paramsMapper.map(requestParams, user, CSV_FIELDS);
 
     List<TrackedEntity> trackedEntities =
         TRACKED_ENTITY_MAPPER.fromCollection(
-            trackedEntityService.getTrackedEntities(queryParams, trackedEntityParams));
+            trackedEntityService.getTrackedEntities(operationParams));
 
     OutputStream outputStream = response.getOutputStream();
 
@@ -191,14 +192,15 @@ class TrackedEntitiesExportController {
   @GetMapping(value = "/{uid}")
   ResponseEntity<ObjectNode> getTrackedEntityByUid(
       @OpenApi.Param({UID.class, TrackedEntity.class}) @PathVariable UID uid,
-      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) String program,
+      @OpenApi.Param({UID.class, Program.class}) @RequestParam(required = false) UID program,
       @OpenApi.Param(value = String[].class) @RequestParam(defaultValue = DEFAULT_FIELDS_PARAM)
           List<FieldPath> fields)
       throws ForbiddenException, NotFoundException {
     TrackedEntityParams trackedEntityParams = fieldsMapper.map(fields);
     TrackedEntity trackedEntity =
         TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity(uid.getValue(), program, trackedEntityParams));
+            trackedEntityService.getTrackedEntity(
+                uid.getValue(), program == null ? null : program.getValue(), trackedEntityParams));
 
     return ResponseEntity.ok(fieldFilterService.toObjectNode(trackedEntity, fields));
   }
