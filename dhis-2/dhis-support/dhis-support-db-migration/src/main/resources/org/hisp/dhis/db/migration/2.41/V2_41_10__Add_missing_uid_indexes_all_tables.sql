@@ -37,18 +37,25 @@ CREATE OR REPLACE FUNCTION get_tables_with_uid_column()
     RETURNS TABLE
             (
                 table_schema VARCHAR,
-                table_name   VARCHAR
+                table_name   VARCHAR,
+                table_type   VARCHAR
             )
 AS
 $$
 BEGIN
     RETURN QUERY
         SELECT c.table_schema::VARCHAR,
-               c.table_name::VARCHAR
+               c.table_name::VARCHAR,
+               t.table_type::VARCHAR
         FROM information_schema.columns c
+                 INNER JOIN information_schema.tables t
+                            ON c.table_schema = t.table_schema
+                                AND c.table_name = t.table_name
         WHERE c.column_name = 'uid'
+          AND t.table_type = 'BASE TABLE'
         GROUP BY c.table_schema,
-                 c.table_name;
+                 c.table_name,
+                 t.table_type;
 END;
 $$ LANGUAGE plpgsql;
 
