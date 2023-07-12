@@ -82,6 +82,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   @Autowired private GistService gistService;
 
   @Autowired private UserSettingService userSettingService;
+
   // --------------------------------------------------------------------------
   // GET Gist
   // --------------------------------------------------------------------------
