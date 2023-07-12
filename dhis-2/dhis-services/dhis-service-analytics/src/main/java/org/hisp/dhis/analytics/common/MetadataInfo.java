@@ -35,29 +35,25 @@ import java.util.Map;
  *
  * @author maikel arabori
  */
-public class MetadataInfo
-{
-    private final Map<String, Object> metadataRootMap = new HashMap<>();
+public class MetadataInfo {
+  private final Map<String, Object> metadataRootMap = new HashMap<>();
 
-    /**
-     * Adds a new metadata key along with its respective objet into the current
-     * instance.
-     *
-     * @param metaDataKey the key for this entry.
-     * @param metadataObject the metadata object associated with the key.
-     */
-    public void put( String metaDataKey, Object metadataObject )
-    {
-        metadataRootMap.put( metaDataKey, metadataObject );
-    }
+  /**
+   * Adds a new metadata key along with its respective objet into the current instance.
+   *
+   * @param metaDataKey the key for this entry.
+   * @param metadataObject the metadata object associated with the key.
+   */
+  public void put(String metaDataKey, Object metadataObject) {
+    metadataRootMap.put(metaDataKey, metadataObject);
+  }
 
-    /**
-     * Returns the reference of the internal map where all metadata info lives.
-     *
-     * @return the map of metadata key/objects.
-     */
-    public Map<String, Object> getMap()
-    {
-        return metadataRootMap;
-    }
+  /**
+   * Returns the reference of the internal map where all metadata info lives.
+   *
+   * @return the map of metadata key/objects.
+   */
+  public Map<String, Object> getMap() {
+    return metadataRootMap;
+  }
 }

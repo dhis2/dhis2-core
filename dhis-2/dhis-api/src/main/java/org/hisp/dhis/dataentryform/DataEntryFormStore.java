@@ -29,16 +29,14 @@ package org.hisp.dhis.dataentryform;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-public interface DataEntryFormStore
-    extends IdentifiableObjectStore<DataEntryForm>
-{
-    String ID = DataEntryFormStore.class.getName();
+public interface DataEntryFormStore extends IdentifiableObjectStore<DataEntryForm> {
+  String ID = DataEntryFormStore.class.getName();
 
-    /**
-     * Returns a DataEntryForm with the given name.
-     *
-     * @param name The name.
-     * @return A DataEntryForm with the given name.
-     */
-    DataEntryForm getDataEntryFormByName( String name );
+  /**
+   * Returns a DataEntryForm with the given name.
+   *
+   * @param name The name.
+   * @return A DataEntryForm with the given name.
+   */
+  DataEntryForm getDataEntryFormByName(String name);
 }

@@ -43,10 +43,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -77,413 +75,372 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EventOperationParams} to {@link EventSearchParams} which is used
- * to fetch enrollments from the DB.
+ * Maps {@link EventOperationParams} to {@link EventSearchParams} which is used to fetch events from
+ * the DB.
  */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class EventOperationParamsMapper
-{
+public class EventOperationParamsMapper {
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    private final TrackedEntityService trackedEntityService;
+  private final TrackedEntityService trackedEntityService;
 
-    private final AclService aclService;
+  private final AclService aclService;
 
-    private final CategoryOptionComboService categoryOptionComboService;
+  private final CategoryOptionComboService categoryOptionComboService;
 
-    private final TrackerAccessManager trackerAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    private final TrackedEntityAttributeService attributeService;
+  private final TrackedEntityAttributeService attributeService;
 
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
+  private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    private final DataElementService dataElementService;
+  private final DataElementService dataElementService;
 
-    //For now this maps to EventSearchParams. We should create a new EventQueryParams class that should be used in the persistence layer
-    @Transactional( readOnly = true )
-    public EventSearchParams map( EventOperationParams operationParams )
-        throws BadRequestException,
-        ForbiddenException
-    {
-        User user = currentUserService.getCurrentUser();
+  // For now this maps to EventSearchParams. We should create a new EventQueryParams class that
+  // should be used in the persistence layer
+  @Transactional(readOnly = true)
+  public EventSearchParams map(EventOperationParams operationParams)
+      throws BadRequestException, ForbiddenException {
+    User user = currentUserService.getCurrentUser();
 
-        Program program = validateProgram( operationParams.getProgramUid() );
-        ProgramStage programStage = validateProgramStage( operationParams.getProgramStageUid() );
-        OrganisationUnit orgUnit = validateOrgUnit( operationParams.getOrgUnitUid() );
-        validateUser( user, program, programStage, operationParams.getOrgUnitUid(), orgUnit );
-        TrackedEntity trackedEntity = validateTrackedEntity( operationParams.getTrackedEntityUid() );
+    Program program = validateProgram(operationParams.getProgramUid());
+    ProgramStage programStage = validateProgramStage(operationParams.getProgramStageUid());
+    OrganisationUnit orgUnit = validateOrgUnit(operationParams.getOrgUnitUid());
+    validateUser(user, program, programStage, operationParams.getOrgUnitUid(), orgUnit);
+    TrackedEntity trackedEntity = validateTrackedEntity(operationParams.getTrackedEntityUid());
 
-        CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
-            operationParams.getAttributeCategoryCombo() != null ? operationParams.getAttributeCategoryCombo() : null,
-            operationParams.getAttributeCategoryOptions(), true );
+    CategoryOptionCombo attributeOptionCombo =
+        categoryOptionComboService.getAttributeOptionCombo(
+            operationParams.getAttributeCategoryCombo() != null
+                ? operationParams.getAttributeCategoryCombo()
+                : null,
+            operationParams.getAttributeCategoryOptions(),
+            true);
 
-        validateAttributeOptionCombo( attributeOptionCombo, user );
+    validateAttributeOptionCombo(attributeOptionCombo, user);
 
-        validateOrgUnitSelectionMode( operationParams, user, program );
+    validateOrgUnitSelectionMode(operationParams, user, program);
 
-        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( operationParams.getAttributeOrders() );
-        List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
+    Map<String, SortDirection> attributeOrders =
+        getAttributesFromOrder(operationParams.getAttributeOrders());
+    List<OrderParam> attributeOrderParams = mapToOrderParams(attributeOrders);
 
-        List<QueryItem> filterAttributes = parseFilterAttributes( operationParams.getFilterAttributes(),
-            attributeOrderParams );
-        validateFilterAttributes( filterAttributes );
+    List<QueryItem> filterAttributes =
+        parseFilterAttributes(operationParams.getFilterAttributes(), attributeOrderParams);
+    validateFilterAttributes(filterAttributes);
 
-        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( operationParams.getOrders() );
+    Map<String, SortDirection> dataElementOrders =
+        getDataElementsFromOrder(operationParams.getOrders());
 
-        List<QueryItem> dataElements = new ArrayList<>();
-        for ( String order : dataElementOrders.keySet() )
-        {
-            dataElements.add( parseQueryItem( order, this::dataElementToQueryItem ) );
-        }
-
-        List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
-
-        List<QueryItem> filters = parseDataElementQueryItems( operationParams.getFilters(),
-            this::dataElementToQueryItem );
-
-        EventSearchParams searchParams = new EventSearchParams();
-
-        return searchParams.setProgram( program )
-            .setProgramStage( programStage )
-            .setOrgUnit( orgUnit )
-            .setTrackedEntity( trackedEntity )
-            .setProgramStatus( operationParams.getProgramStatus() )
-            .setFollowUp( operationParams.getFollowUp() )
-            .setOrgUnitSelectionMode( operationParams.getOrgUnitSelectionMode() )
-            .setAssignedUserQueryParam( new AssignedUserQueryParam( operationParams.getAssignedUserMode(), user,
-                operationParams.getAssignedUsers() ) )
-            .setStartDate( operationParams.getStartDate() )
-            .setEndDate( operationParams.getEndDate() )
-            .setScheduleAtStartDate( operationParams.getScheduledAfter() )
-            .setScheduleAtEndDate( operationParams.getScheduledBefore() )
-            .setUpdatedAtStartDate( operationParams.getUpdatedAfter() )
-            .setUpdatedAtEndDate( operationParams.getUpdatedBefore() )
-            .setUpdatedAtDuration( operationParams.getUpdatedWithin() )
-            .setEnrollmentEnrolledBefore( operationParams.getEnrollmentEnrolledBefore() )
-            .setEnrollmentEnrolledAfter( operationParams.getEnrollmentEnrolledAfter() )
-            .setEnrollmentOccurredBefore( operationParams.getEnrollmentOccurredBefore() )
-            .setEnrollmentOccurredAfter( operationParams.getEnrollmentOccurredAfter() )
-            .setEventStatus( operationParams.getEventStatus() )
-            .setCategoryOptionCombo( attributeOptionCombo )
-            .setIdSchemes( operationParams.getIdSchemes() )
-            .setPage( operationParams.getPage() )
-            .setPageSize( operationParams.getPageSize() )
-            .setTotalPages( operationParams.isTotalPages() )
-            .setSkipPaging( toBooleanDefaultIfNull( operationParams.isSkipPaging(), false ) )
-            .setSkipEventId( operationParams.getSkipEventId() )
-            .setIncludeAttributes( false )
-            .setIncludeAllDataElements( false )
-            .addDataElements( new LinkedHashSet<>( dataElements ) )
-            .addFilters( filters )
-            .addFilterAttributes( filterAttributes )
-            .addOrders( operationParams.getOrders() )
-            .addGridOrders( dataElementOrderParams )
-            .addAttributeOrders( attributeOrderParams )
-            .setEvents( operationParams.getEvents() )
-            .setEnrollments( operationParams.getEnrollments() )
-            .setIncludeDeleted( operationParams.isIncludeDeleted() );
+    List<QueryItem> dataElements = new ArrayList<>();
+    for (String order : dataElementOrders.keySet()) {
+      dataElements.add(parseQueryItem(order, this::dataElementToQueryItem));
     }
 
-    private Program validateProgram( String programUid )
-        throws BadRequestException
-    {
-        if ( programUid == null )
-        {
-            return null;
-        }
+    List<OrderParam> dataElementOrderParams = mapToOrderParams(dataElementOrders);
 
-        Program program = programService.getProgram( programUid );
-        if ( program == null )
-        {
-            throw new BadRequestException( "Program is specified but does not exist: " + programUid );
-        }
+    List<QueryItem> filters =
+        parseDataElementQueryItems(operationParams.getFilters(), this::dataElementToQueryItem);
 
-        return program;
+    EventSearchParams searchParams = new EventSearchParams();
+
+    return searchParams
+        .setProgram(program)
+        .setProgramStage(programStage)
+        .setOrgUnit(orgUnit)
+        .setTrackedEntity(trackedEntity)
+        .setProgramStatus(operationParams.getProgramStatus())
+        .setFollowUp(operationParams.getFollowUp())
+        .setOrgUnitSelectionMode(operationParams.getOrgUnitSelectionMode())
+        .setAssignedUserQueryParam(
+            new AssignedUserQueryParam(
+                operationParams.getAssignedUserMode(), user, operationParams.getAssignedUsers()))
+        .setStartDate(operationParams.getStartDate())
+        .setEndDate(operationParams.getEndDate())
+        .setScheduleAtStartDate(operationParams.getScheduledAfter())
+        .setScheduleAtEndDate(operationParams.getScheduledBefore())
+        .setUpdatedAtStartDate(operationParams.getUpdatedAfter())
+        .setUpdatedAtEndDate(operationParams.getUpdatedBefore())
+        .setUpdatedAtDuration(operationParams.getUpdatedWithin())
+        .setEnrollmentEnrolledBefore(operationParams.getEnrollmentEnrolledBefore())
+        .setEnrollmentEnrolledAfter(operationParams.getEnrollmentEnrolledAfter())
+        .setEnrollmentOccurredBefore(operationParams.getEnrollmentOccurredBefore())
+        .setEnrollmentOccurredAfter(operationParams.getEnrollmentOccurredAfter())
+        .setEventStatus(operationParams.getEventStatus())
+        .setCategoryOptionCombo(attributeOptionCombo)
+        .setIdSchemes(operationParams.getIdSchemes())
+        .setPage(operationParams.getPage())
+        .setPageSize(operationParams.getPageSize())
+        .setTotalPages(operationParams.isTotalPages())
+        .setSkipPaging(toBooleanDefaultIfNull(operationParams.isSkipPaging(), false))
+        .setSkipEventId(operationParams.getSkipEventId())
+        .setIncludeAttributes(false)
+        .setIncludeAllDataElements(false)
+        .addDataElements(new LinkedHashSet<>(dataElements))
+        .addFilters(filters)
+        .addFilterAttributes(filterAttributes)
+        .addOrders(operationParams.getOrders())
+        .addGridOrders(dataElementOrderParams)
+        .addAttributeOrders(attributeOrderParams)
+        .setEvents(operationParams.getEvents())
+        .setEnrollments(operationParams.getEnrollments())
+        .setIncludeDeleted(operationParams.isIncludeDeleted());
+  }
+
+  private Program validateProgram(String programUid) throws BadRequestException {
+    if (programUid == null) {
+      return null;
     }
 
-    private ProgramStage validateProgramStage( String programStageUid )
-        throws BadRequestException
-    {
-        if ( programStageUid == null )
-        {
-            return null;
-        }
-
-        ProgramStage programStage = programStageService.getProgramStage( programStageUid );
-        if ( programStage == null )
-        {
-            throw new BadRequestException( "Program stage is specified but does not exist: " + programStageUid );
-        }
-
-        return programStage;
+    Program program = programService.getProgram(programUid);
+    if (program == null) {
+      throw new BadRequestException("Program is specified but does not exist: " + programUid);
     }
 
-    private OrganisationUnit validateOrgUnit( String orgUnitUid )
-        throws BadRequestException
-    {
-        if ( orgUnitUid == null )
-        {
-            return null;
-        }
+    return program;
+  }
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitUid );
-        if ( orgUnit == null )
-        {
-            throw new BadRequestException( "Org unit is specified but does not exist: " + orgUnitUid );
-        }
-
-        return orgUnit;
+  private ProgramStage validateProgramStage(String programStageUid) throws BadRequestException {
+    if (programStageUid == null) {
+      return null;
     }
 
-    private void validateUser( User user, Program pr, ProgramStage ps, String orgUnitUid, OrganisationUnit orgUnit )
-        throws ForbiddenException
-    {
-        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
-        {
-            throw new ForbiddenException( "User has no access to program: " + pr.getUid() );
-        }
-
-        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
-        {
-            throw new ForbiddenException( "User has no access to program stage: " + ps.getUid() );
-        }
-
-        if ( orgUnitUid != null && !trackerAccessManager.canAccess( user, pr, orgUnit ) )
-        {
-            throw new ForbiddenException( "User does not have access to orgUnit: " + orgUnit );
-        }
+    ProgramStage programStage = programStageService.getProgramStage(programStageUid);
+    if (programStage == null) {
+      throw new BadRequestException(
+          "Program stage is specified but does not exist: " + programStageUid);
     }
 
-    private TrackedEntity validateTrackedEntity( String trackedEntityUid )
-        throws BadRequestException
-    {
-        if ( trackedEntityUid == null )
-        {
-            return null;
-        }
+    return programStage;
+  }
 
-        TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity( trackedEntityUid );
-        if ( trackedEntity == null )
-        {
-            throw new BadRequestException( "Tracked entity is specified but does not exist: " + trackedEntityUid );
-        }
-
-        return trackedEntity;
+  private OrganisationUnit validateOrgUnit(String orgUnitUid) throws BadRequestException {
+    if (orgUnitUid == null) {
+      return null;
     }
 
-    private void validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, User user )
-        throws ForbiddenException
-    {
-        if ( attributeOptionCombo != null && !user.isSuper()
-            && !aclService.canDataRead( user, attributeOptionCombo ) )
-        {
-            throw new ForbiddenException(
-                "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
-        }
+    OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid);
+    if (orgUnit == null) {
+      throw new BadRequestException("Org unit is specified but does not exist: " + orgUnitUid);
     }
 
-    private void validateOrgUnitSelectionMode( EventOperationParams params, User user, Program program )
-        throws BadRequestException
-    {
-        if ( params.getOrgUnitSelectionMode() != null )
-        {
-            String violation = getOrgUnitModeViolation( params, user, program );
-            if ( violation != null )
-            {
-                throw new BadRequestException( violation );
-            }
-        }
+    return orgUnit;
+  }
+
+  private void validateUser(
+      User user, Program pr, ProgramStage ps, String orgUnitUid, OrganisationUnit orgUnit)
+      throws ForbiddenException {
+    if (pr != null && !user.isSuper() && !aclService.canDataRead(user, pr)) {
+      throw new ForbiddenException("User has no access to program: " + pr.getUid());
     }
 
-    private String getOrgUnitModeViolation( EventOperationParams params, User user, Program program )
-    {
-        OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
-
-        return switch ( selectedOuMode )
-        {
-        case ALL -> userCanSearchOuModeALL( user ) ? null
-            : "Current user is not authorized to query across all organisation units";
-        case ACCESSIBLE -> getAccessibleScopeValidation( user, program );
-        case CAPTURE -> getCaptureScopeValidation( user );
-        case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
-            ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-            : null;
-        };
+    if (ps != null && !user.isSuper() && !aclService.canDataRead(user, ps)) {
+      throw new ForbiddenException("User has no access to program stage: " + ps.getUid());
     }
 
-    private String getCaptureScopeValidation( User user )
-    {
-        String violation = null;
+    if (orgUnitUid != null && !trackerAccessManager.canAccess(user, pr, orgUnit)) {
+      throw new ForbiddenException("User does not have access to orgUnit: " + orgUnit);
+    }
+  }
 
-        if ( user == null )
-        {
-            violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
-        }
-        else if ( user.getOrganisationUnits().isEmpty() )
-        {
-            violation = "User needs to be assigned data capture orgunits";
-        }
-
-        return violation;
+  private TrackedEntity validateTrackedEntity(String trackedEntityUid) throws BadRequestException {
+    if (trackedEntityUid == null) {
+      return null;
     }
 
-    private String getAccessibleScopeValidation( User user, Program program )
-    {
-        String violation;
-
-        if ( user == null )
-        {
-            return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
-        }
-
-        if ( program == null || program.isClosed() || program.isProtected() )
-        {
-            violation = user.getOrganisationUnits().isEmpty() ? "User needs to be assigned data capture orgunits"
-                : null;
-        }
-        else
-        {
-            violation = user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-                ? "User needs to be assigned either TEI search, data view or data capture org units"
-                : null;
-        }
-
-        return violation;
+    TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity(trackedEntityUid);
+    if (trackedEntity == null) {
+      throw new BadRequestException(
+          "Tracked entity is specified but does not exist: " + trackedEntityUid);
     }
 
-    private boolean userCanSearchOuModeALL( User user )
-    {
-        if ( user == null )
-        {
-            return false;
-        }
+    return trackedEntity;
+  }
 
-        return user.isSuper()
-            || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
+  private void validateAttributeOptionCombo(CategoryOptionCombo attributeOptionCombo, User user)
+      throws ForbiddenException {
+    if (attributeOptionCombo != null
+        && !user.isSuper()
+        && !aclService.canDataRead(user, attributeOptionCombo)) {
+      throw new ForbiddenException(
+          "User has no access to attribute category option combo: "
+              + attributeOptionCombo.getUid());
+    }
+  }
+
+  private void validateOrgUnitSelectionMode(EventOperationParams params, User user, Program program)
+      throws BadRequestException {
+    if (params.getOrgUnitSelectionMode() != null) {
+      String violation = getOrgUnitModeViolation(params, user, program);
+      if (violation != null) {
+        throw new BadRequestException(violation);
+      }
+    }
+  }
+
+  private String getOrgUnitModeViolation(EventOperationParams params, User user, Program program) {
+    OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
+
+    return switch (selectedOuMode) {
+      case ALL -> userCanSearchOuModeALL(user)
+          ? null
+          : "Current user is not authorized to query across all organisation units";
+      case ACCESSIBLE -> getAccessibleScopeValidation(user, program);
+      case CAPTURE -> getCaptureScopeValidation(user);
+      case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
+          ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
+          : null;
+    };
+  }
+
+  private String getCaptureScopeValidation(User user) {
+    String violation = null;
+
+    if (user == null) {
+      violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
+    } else if (user.getOrganisationUnits().isEmpty()) {
+      violation = "User needs to be assigned data capture orgunits";
     }
 
-    private List<QueryItem> parseFilterAttributes( String filterAttributes, List<OrderParam> attributeOrderParams )
-        throws BadRequestException
-    {
-        Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
-            .stream()
-            .collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
+    return violation;
+  }
 
-        List<QueryItem> filterItems = parseAttributeQueryItems( filterAttributes, attributes );
-        List<QueryItem> orderItems = attributeQueryItemsFromOrder( filterItems, attributes, attributeOrderParams );
+  private String getAccessibleScopeValidation(User user, Program program) {
+    String violation;
 
-        return Stream.concat( filterItems.stream(), orderItems.stream() ).toList();
+    if (user == null) {
+      return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
     }
 
-    private List<QueryItem> attributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
-        Map<String, TrackedEntityAttribute> attributes, List<OrderParam> attributeOrderParams )
-    {
-        return attributeOrderParams.stream()
-            .map( OrderParam::getField )
-            .filter( att -> !containsAttributeFilter( filterAttributes, att ) )
-            .map( attributes::get )
-            .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
-            .toList();
+    if (program == null || program.isClosed() || program.isProtected()) {
+      violation =
+          user.getOrganisationUnits().isEmpty()
+              ? "User needs to be assigned data capture orgunits"
+              : null;
+    } else {
+      violation =
+          user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
+              ? "User needs to be assigned either TEI search, data view or data capture org units"
+              : null;
     }
 
-    private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
-    {
-        for ( QueryItem item : attributeFilters )
-        {
-            if ( Objects.equals( item.getItem().getUid(), attributeUid ) )
-            {
-                return true;
-            }
-        }
-        return false;
+    return violation;
+  }
+
+  private boolean userCanSearchOuModeALL(User user) {
+    if (user == null) {
+      return false;
     }
 
-    private void validateFilterAttributes( List<QueryItem> queryItems )
-        throws BadRequestException
-    {
-        Set<String> attributes = new HashSet<>();
-        Set<String> duplicates = new HashSet<>();
-        for ( QueryItem item : queryItems )
-        {
-            if ( !attributes.add( item.getItemId() ) )
-            {
-                duplicates.add( item.getItemId() );
-            }
-        }
+    return user.isSuper()
+        || user.isAuthorized(Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name());
+  }
 
-        if ( !duplicates.isEmpty() )
-        {
-            throw new BadRequestException( String.format(
-                "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
-                String.join( ", ", duplicates ) ) );
-        }
+  private List<QueryItem> parseFilterAttributes(
+      String filterAttributes, List<OrderParam> attributeOrderParams) throws BadRequestException {
+    Map<String, TrackedEntityAttribute> attributes =
+        attributeService.getAllTrackedEntityAttributes().stream()
+            .collect(Collectors.toMap(TrackedEntityAttribute::getUid, att -> att));
+
+    List<QueryItem> filterItems = parseAttributeQueryItems(filterAttributes, attributes);
+    List<QueryItem> orderItems =
+        attributeQueryItemsFromOrder(filterItems, attributes, attributeOrderParams);
+
+    return Stream.concat(filterItems.stream(), orderItems.stream()).toList();
+  }
+
+  private List<QueryItem> attributeQueryItemsFromOrder(
+      List<QueryItem> filterAttributes,
+      Map<String, TrackedEntityAttribute> attributes,
+      List<OrderParam> attributeOrderParams) {
+    return attributeOrderParams.stream()
+        .map(OrderParam::getField)
+        .filter(att -> !containsAttributeFilter(filterAttributes, att))
+        .map(attributes::get)
+        .map(
+            at ->
+                new QueryItem(
+                    at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet()))
+        .toList();
+  }
+
+  private boolean containsAttributeFilter(List<QueryItem> attributeFilters, String attributeUid) {
+    for (QueryItem item : attributeFilters) {
+      if (Objects.equals(item.getItem().getUid(), attributeUid)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void validateFilterAttributes(List<QueryItem> queryItems) throws BadRequestException {
+    Set<String> attributes = new HashSet<>();
+    Set<String> duplicates = new HashSet<>();
+    for (QueryItem item : queryItems) {
+      if (!attributes.add(item.getItemId())) {
+        duplicates.add(item.getItemId());
+      }
     }
 
-    private Map<String, SortDirection> getAttributesFromOrder( List<OrderCriteria> allOrders )
-    {
-        if ( allOrders == null )
-        {
-            return Collections.emptyMap();
-        }
+    if (!duplicates.isEmpty()) {
+      throw new BadRequestException(
+          String.format(
+              "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
+              String.join(", ", duplicates)));
+    }
+  }
 
-        Map<String, SortDirection> attributes = new HashMap<>();
-        for ( OrderCriteria orderCriteria : allOrders )
-        {
-            TrackedEntityAttribute attribute = trackedEntityAttributeService
-                .getTrackedEntityAttribute( orderCriteria.getField() );
-            if ( attribute != null )
-            {
-                attributes.put( orderCriteria.getField(), orderCriteria.getDirection() );
-            }
-        }
-        return attributes;
+  private Map<String, SortDirection> getAttributesFromOrder(List<OrderCriteria> allOrders) {
+    if (allOrders == null) {
+      return Collections.emptyMap();
     }
 
-    private List<OrderParam> mapToOrderParams( Map<String, SortDirection> orders )
-    {
-        return orders.entrySet().stream()
-            .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
-            .toList();
+    Map<String, SortDirection> attributes = new HashMap<>();
+    for (OrderCriteria orderCriteria : allOrders) {
+      TrackedEntityAttribute attribute =
+          trackedEntityAttributeService.getTrackedEntityAttribute(orderCriteria.getField());
+      if (attribute != null) {
+        attributes.put(orderCriteria.getField(), orderCriteria.getDirection());
+      }
+    }
+    return attributes;
+  }
+
+  private List<OrderParam> mapToOrderParams(Map<String, SortDirection> orders) {
+    return orders.entrySet().stream().map(e -> new OrderParam(e.getKey(), e.getValue())).toList();
+  }
+
+  private Map<String, SortDirection> getDataElementsFromOrder(List<OrderParam> allOrders) {
+    if (allOrders == null) {
+      return Collections.emptyMap();
     }
 
-    private Map<String, SortDirection> getDataElementsFromOrder( List<OrderParam> allOrders )
-    {
-        if ( allOrders == null )
-        {
-            return Collections.emptyMap();
-        }
+    Map<String, SortDirection> dataElements = new HashMap<>();
+    for (OrderParam orderParam : allOrders) {
+      DataElement de = dataElementService.getDataElement(orderParam.getField());
+      if (de != null) {
+        dataElements.put(orderParam.getField(), orderParam.getDirection());
+      }
+    }
+    return dataElements;
+  }
 
-        Map<String, SortDirection> dataElements = new HashMap<>();
-        for ( OrderParam orderParam : allOrders )
-        {
-            DataElement de = dataElementService.getDataElement( orderParam.getField() );
-            if ( de != null )
-            {
-                dataElements.put( orderParam.getField(), orderParam.getDirection() );
-            }
-        }
-        return dataElements;
+  private QueryItem dataElementToQueryItem(String item) throws BadRequestException {
+    DataElement de = dataElementService.getDataElement(item);
+
+    if (de == null) {
+      throw new BadRequestException("Data element does not exist: " + item);
     }
 
-    private QueryItem dataElementToQueryItem( String item )
-        throws BadRequestException
-    {
-        DataElement de = dataElementService.getDataElement( item );
-
-        if ( de == null )
-        {
-            throw new BadRequestException( "Data element does not exist: " + item );
-        }
-
-        return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
-    }
+    return new QueryItem(de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet());
+  }
 }

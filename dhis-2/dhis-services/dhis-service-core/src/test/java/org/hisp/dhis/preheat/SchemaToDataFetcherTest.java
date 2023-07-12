@@ -37,11 +37,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -60,202 +60,192 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@SuppressWarnings( "unchecked" )
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class SchemaToDataFetcherTest extends DhisConvenienceTest
-{
+@SuppressWarnings("unchecked")
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class SchemaToDataFetcherTest extends DhisConvenienceTest {
 
-    private SchemaToDataFetcher subject;
+  private SchemaToDataFetcher subject;
 
-    @Mock
-    private SessionFactory sessionFactory;
+  @Mock private SessionFactory sessionFactory;
 
-    @Mock
-    private Session session;
+  @Mock private Session session;
 
-    @Mock
-    private Query query;
+  @Mock private Query query;
 
-    @BeforeEach
-    public void setUp()
-    {
-        when( sessionFactory.getCurrentSession() ).thenReturn( session );
-        subject = new SchemaToDataFetcher( sessionFactory );
-    }
+  @BeforeEach
+  public void setUp() {
+    when(sessionFactory.getCurrentSession()).thenReturn(session);
+    subject = new SchemaToDataFetcher(sessionFactory);
+  }
 
-    @Test
-    void verifyInput()
-    {
-        assertThat( subject.fetch( null ), hasSize( 0 ) );
-    }
+  @Test
+  void verifyInput() {
+    assertThat(subject.fetch(null), hasSize(0));
+  }
 
-    @Test
-    void verifyUniqueFieldsAreMappedToHibernateObject()
-    {
-        Schema schema = createSchema( DataElement.class, "dataElement",
+  @Test
+  void verifyUniqueFieldsAreMappedToHibernateObject() {
+    Schema schema =
+        createSchema(
+            DataElement.class,
+            "dataElement",
             Stream.of(
-                createUniqueProperty( Integer.class, "id", true, true ),
-                createProperty( String.class, "name", true, true ),
-                createUniqueProperty( String.class, "code", true, true ),
-                createProperty( Date.class, "created", true, true ),
-                createProperty( Date.class, "lastUpdated", true, true ),
-                createProperty( Integer.class, "int", true, true ) ).collect( toList() ) );
+                    createUniqueProperty(Integer.class, "id", true, true),
+                    createProperty(String.class, "name", true, true),
+                    createUniqueProperty(String.class, "code", true, true),
+                    createProperty(Date.class, "created", true, true),
+                    createProperty(Date.class, "lastUpdated", true, true),
+                    createProperty(Integer.class, "int", true, true))
+                .collect(toList()));
 
-        mockSession( "SELECT code,id from " + schema.getKlass().getSimpleName() );
+    mockSession("SELECT code,id from " + schema.getKlass().getSimpleName());
 
-        List<Object[]> l = new ArrayList<>();
+    List<Object[]> l = new ArrayList<>();
 
-        l.add( new Object[] { "abc", 123456 } );
-        l.add( new Object[] { "bce", 123888 } );
-        l.add( new Object[] { "def", 123999 } );
+    l.add(new Object[] {"abc", 123456});
+    l.add(new Object[] {"bce", 123888});
+    l.add(new Object[] {"def", 123999});
 
-        when( query.getResultList() ).thenReturn( l );
+    when(query.getResultList()).thenReturn(l);
 
-        List<DataElement> result = (List<DataElement>) subject.fetch( schema );
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
 
-        assertThat( result, hasSize( 3 ) );
+    assertThat(result, hasSize(3));
 
-        assertThat( result, IsIterableContainingInAnyOrder.containsInAnyOrder(
-            allOf(
-                hasProperty( "code", is( "abc" ) ),
-                hasProperty( "id", is( 123456L ) ) ),
-            allOf(
-                hasProperty( "code", is( "bce" ) ),
-                hasProperty( "id", is( 123888L ) ) ),
-            allOf(
-                hasProperty( "code", is( "def" ) ),
-                hasProperty( "id", is( 123999L ) ) ) ) );
-    }
+    assertThat(
+        result,
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            allOf(hasProperty("code", is("abc")), hasProperty("id", is(123456L))),
+            allOf(hasProperty("code", is("bce")), hasProperty("id", is(123888L))),
+            allOf(hasProperty("code", is("def")), hasProperty("id", is(123999L)))));
+  }
 
-    @Test
-    void verifyUniqueFieldsAreSkippedOnReflectionError()
-    {
-        Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
+  @Test
+  void verifyUniqueFieldsAreSkippedOnReflectionError() {
+    Schema schema =
+        createSchema(
+            DummyDataElement.class,
+            "dummyDataElement",
             Stream.of(
-                createUniqueProperty( String.class, "url", true, true ),
-                createUniqueProperty( String.class, "code", true, true ) ).collect( toList() ) );
+                    createUniqueProperty(String.class, "url", true, true),
+                    createUniqueProperty(String.class, "code", true, true))
+                .collect(toList()));
 
-        mockSession( "SELECT code,url from " + schema.getKlass().getSimpleName() );
+    mockSession("SELECT code,url from " + schema.getKlass().getSimpleName());
 
-        List<Object[]> l = new ArrayList<>();
+    List<Object[]> l = new ArrayList<>();
 
-        l.add( new Object[] { "abc", "http://ok" } );
-        l.add( new Object[] { "bce", "http://-exception" } );
-        l.add( new Object[] { "def", "http://also-ok" } );
+    l.add(new Object[] {"abc", "http://ok"});
+    l.add(new Object[] {"bce", "http://-exception"});
+    l.add(new Object[] {"def", "http://also-ok"});
 
-        when( query.getResultList() ).thenReturn( l );
+    when(query.getResultList()).thenReturn(l);
 
-        List<DataElement> result = (List<DataElement>) subject.fetch( schema );
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
 
-        assertThat( result, hasSize( 2 ) );
+    assertThat(result, hasSize(2));
 
-        assertThat( result, IsIterableContainingInAnyOrder.containsInAnyOrder(
-            allOf(
-                hasProperty( "code", is( "def" ) ),
-                hasProperty( "url", is( "http://also-ok" ) ) ),
-            allOf(
-                hasProperty( "code", is( "abc" ) ),
-                hasProperty( "url", is( "http://ok" ) ) ) ) );
-    }
+    assertThat(
+        result,
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            allOf(hasProperty("code", is("def")), hasProperty("url", is("http://also-ok"))),
+            allOf(hasProperty("code", is("abc")), hasProperty("url", is("http://ok")))));
+  }
 
-    @Test
-    void verifyUniqueFieldsAre()
-    {
-        Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
+  @Test
+  void verifyUniqueFieldsAre() {
+    Schema schema =
+        createSchema(
+            DummyDataElement.class,
+            "dummyDataElement",
             Stream.of(
-                createProperty( String.class, "name", true, true ),
-                createUniqueProperty( String.class, "url", true, true ),
-                createProperty( String.class, "code", true, true ) ).collect( toList() ) );
+                    createProperty(String.class, "name", true, true),
+                    createUniqueProperty(String.class, "url", true, true),
+                    createProperty(String.class, "code", true, true))
+                .collect(toList()));
 
-        mockSession( "SELECT url from " + schema.getKlass().getSimpleName() );
+    mockSession("SELECT url from " + schema.getKlass().getSimpleName());
 
-        List<Object> l = new ArrayList<>();
+    List<Object> l = new ArrayList<>();
 
-        l.add( "http://ok" );
-        l.add( "http://is-ok" );
-        l.add( "http://also-ok" );
+    l.add("http://ok");
+    l.add("http://is-ok");
+    l.add("http://also-ok");
 
-        when( query.getResultList() ).thenReturn( l );
+    when(query.getResultList()).thenReturn(l);
 
-        List<DataElement> result = (List<DataElement>) subject.fetch( schema );
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
 
-        assertThat( result, hasSize( 3 ) );
+    assertThat(result, hasSize(3));
 
-        assertThat( result, IsIterableContainingInAnyOrder.containsInAnyOrder(
-            allOf(
-                hasProperty( "url", is( "http://also-ok" ) ) ),
-            allOf(
-                hasProperty( "url", is( "http://ok" ) ) ),
-            allOf(
-                hasProperty( "url", is( "http://is-ok" ) ) ) ) );
+    assertThat(
+        result,
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            allOf(hasProperty("url", is("http://also-ok"))),
+            allOf(hasProperty("url", is("http://ok"))),
+            allOf(hasProperty("url", is("http://is-ok")))));
+  }
 
-    }
+  @Test
+  void verifyNoSqlWhenUniquePropertiesListIsEmpty() {
+    Schema schema = createSchema(SMSCommand.class, "smsCommand", Lists.newArrayList());
 
-    @Test
-    void verifyNoSqlWhenUniquePropertiesListIsEmpty()
-    {
-        Schema schema = createSchema( SMSCommand.class, "smsCommand", Lists.newArrayList() );
+    subject.fetch(schema);
 
-        subject.fetch( schema );
+    verify(sessionFactory, times(0)).getCurrentSession();
+  }
 
-        verify( sessionFactory, times( 0 ) ).getCurrentSession();
-    }
-
-    @Test
-    void verifyNoSqlWhenNoUniquePropertyExist()
-    {
-        Schema schema = createSchema( SMSCommand.class, "smsCommand",
+  @Test
+  void verifyNoSqlWhenNoUniquePropertyExist() {
+    Schema schema =
+        createSchema(
+            SMSCommand.class,
+            "smsCommand",
             Stream.of(
-                createProperty( String.class, "name", true, true ),
-                createProperty( String.class, "id", true, true ) ).collect( toList() ) );
+                    createProperty(String.class, "name", true, true),
+                    createProperty(String.class, "id", true, true))
+                .collect(toList()));
 
-        subject.fetch( schema );
+    subject.fetch(schema);
 
-        verify( sessionFactory, times( 0 ) ).getCurrentSession();
+    verify(sessionFactory, times(0)).getCurrentSession();
+  }
+
+  private void mockSession(String hql) {
+    when(session.createQuery(hql)).thenReturn(query);
+    when(query.setReadOnly(true)).thenReturn(query);
+  }
+
+  private Schema createSchema(
+      Class<? extends IdentifiableObject> klass, String singularName, List<Property> properties) {
+    Schema schema = new Schema(klass, singularName, singularName + "s");
+
+    for (Property property : properties) {
+      schema.addProperty(property);
     }
 
-    private void mockSession( String hql )
-    {
-        when( session.createQuery( hql ) ).thenReturn( query );
-        when( query.setReadOnly( true ) ).thenReturn( query );
-    }
+    return schema;
+  }
 
-    private Schema createSchema( Class<? extends IdentifiableObject> klass, String singularName,
-        List<Property> properties )
-    {
-        Schema schema = new Schema( klass, singularName, singularName + "s" );
+  private Property createProperty(Class<?> klazz, String name, boolean simple, boolean persisted) {
+    Property property = new Property(klazz);
+    property.setName(name);
+    property.setFieldName(name);
+    property.setSimple(simple);
+    property.setOwner(true);
+    property.setPersisted(persisted);
 
-        for ( Property property : properties )
-        {
-            schema.addProperty( property );
-        }
+    return property;
+  }
 
-        return schema;
-    }
-
-    private Property createProperty( Class<?> klazz, String name, boolean simple, boolean persisted )
-    {
-        Property property = new Property( klazz );
-        property.setName( name );
-        property.setFieldName( name );
-        property.setSimple( simple );
-        property.setOwner( true );
-        property.setPersisted( persisted );
-
-        return property;
-    }
-
-    public Property createUniqueProperty( Class<?> klazz, String name, boolean simple, boolean persisted )
-    {
-        Property property = createProperty( klazz, name, simple, persisted );
-        property.setUnique( true );
-        return property;
-    }
-
+  public Property createUniqueProperty(
+      Class<?> klazz, String name, boolean simple, boolean persisted) {
+    Property property = createProperty(klazz, name, simple, persisted);
+    property.setUnique(true);
+    return property;
+  }
 }

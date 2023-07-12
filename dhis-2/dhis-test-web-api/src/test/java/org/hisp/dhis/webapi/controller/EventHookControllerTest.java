@@ -47,110 +47,108 @@ import org.junit.jupiter.api.Test;
  *
  * @author Morten Olav Hansen
  */
-class EventHookControllerTest extends DhisControllerIntegrationTest
-{
-    @Test
-    void testGetEventHooks()
-    {
-        JsonObject eventHooks = GET( "/eventHooks" ).content( HttpStatus.OK );
-        assertTrue( eventHooks.isObject() );
-        assertTrue( eventHooks.has( "eventHooks" ) );
-        assertTrue( eventHooks.get( "eventHooks" ).isArray() );
-        assertTrue( eventHooks.getArray( "eventHooks" ).isEmpty() );
-    }
+class EventHookControllerTest extends DhisControllerIntegrationTest {
+  @Test
+  void testGetEventHooks() {
+    JsonObject eventHooks = GET("/eventHooks").content(HttpStatus.OK);
+    assertTrue(eventHooks.isObject());
+    assertTrue(eventHooks.has("eventHooks"));
+    assertTrue(eventHooks.get("eventHooks").isArray());
+    assertTrue(eventHooks.getArray("eventHooks").isEmpty());
+  }
 
-    @Test
-    void testCreateEventHookWebhookApiToken()
-    {
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/eventHooks", Body( "event-hook/webhook-api-token.json" ) ) );
-        assertEquals( "bRNvL6NMQXb", id );
+  @Test
+  void testCreateEventHookWebhookApiToken() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-api-token.json")));
+    assertEquals("bRNvL6NMQXb", id);
 
-        JsonObject eventHook = GET( "/eventHooks/{id}", id ).content( HttpStatus.OK );
-        assertTrue( eventHook.has( "id", "name", "source", "targets" ) );
-        assertEquals( "bRNvL6NMQXb", eventHook.getString( "id" ).string() );
-        assertEquals( "WebhookApiToken", eventHook.getString( "name" ).string() );
-        assertEquals( "metadata", eventHook.get( "source" ).asObject().getString( "path" ).string() );
-        assertEquals( "id,name", eventHook.get( "source" ).asObject().getString( "fields" ).string() );
+    JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
+    assertTrue(eventHook.has("id", "name", "source", "targets"));
+    assertEquals("bRNvL6NMQXb", eventHook.getString("id").string());
+    assertEquals("WebhookApiToken", eventHook.getString("name").string());
+    assertEquals("metadata", eventHook.get("source").asObject().getString("path").string());
+    assertEquals("id,name", eventHook.get("source").asObject().getString("fields").string());
 
-        JsonList<JsonObject> targets = eventHook.get( "targets" ).asList( JsonObject.class );
-        assertFalse( targets.isEmpty() );
+    JsonList<JsonObject> targets = eventHook.get("targets").asList(JsonObject.class);
+    assertFalse(targets.isEmpty());
 
-        JsonObject target = targets.get( 0 );
-        assertTrue( target.has( "type", "url", "auth" ) );
-        assertEquals( WebhookTarget.TYPE, target.getString( "type" ).string() );
+    JsonObject target = targets.get(0);
+    assertTrue(target.has("type", "url", "auth"));
+    assertEquals(WebhookTarget.TYPE, target.getString("type").string());
 
-        JsonObject auth = target.getObject( "auth" );
-        assertFalse( auth.has( "token" ) );
-        assertEquals( ApiTokenAuth.TYPE, auth.getString( "type" ).string() );
-    }
+    JsonObject auth = target.getObject("auth");
+    assertFalse(auth.has("token"));
+    assertEquals(ApiTokenAuth.TYPE, auth.getString("type").string());
+  }
 
-    @Test
-    void testCreateEventHookWebhookHttpBasic()
-    {
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/eventHooks", Body( "event-hook/webhook-http-basic.json" ) ) );
-        assertEquals( "bRNvL6NMQXb", id );
+  @Test
+  void testCreateEventHookWebhookHttpBasic() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+    assertEquals("bRNvL6NMQXb", id);
 
-        JsonObject eventHook = GET( "/eventHooks/{id}", id ).content( HttpStatus.OK );
-        assertTrue( eventHook.has( "id", "name", "source", "targets" ) );
-        assertEquals( "bRNvL6NMQXb", eventHook.getString( "id" ).string() );
-        assertEquals( "WebhookHttpBasic", eventHook.getString( "name" ).string() );
-        assertEquals( "metadata", eventHook.get( "source" ).asObject().getString( "path" ).string() );
-        assertEquals( "id,name", eventHook.get( "source" ).asObject().getString( "fields" ).string() );
+    JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
+    assertTrue(eventHook.has("id", "name", "source", "targets"));
+    assertEquals("bRNvL6NMQXb", eventHook.getString("id").string());
+    assertEquals("WebhookHttpBasic", eventHook.getString("name").string());
+    assertEquals("metadata", eventHook.get("source").asObject().getString("path").string());
+    assertEquals("id,name", eventHook.get("source").asObject().getString("fields").string());
 
-        JsonList<JsonObject> targets = eventHook.get( "targets" ).asList( JsonObject.class );
-        assertFalse( targets.isEmpty() );
+    JsonList<JsonObject> targets = eventHook.get("targets").asList(JsonObject.class);
+    assertFalse(targets.isEmpty());
 
-        JsonObject target = targets.get( 0 ).asObject();
-        assertTrue( target.has( "type", "url", "auth" ) );
-        assertEquals( WebhookTarget.TYPE, target.getString( "type" ).string() );
+    JsonObject target = targets.get(0).asObject();
+    assertTrue(target.has("type", "url", "auth"));
+    assertEquals(WebhookTarget.TYPE, target.getString("type").string());
 
-        JsonObject auth = target.getObject( "auth" );
-        assertTrue( auth.has( "type", "username" ) );
-        assertFalse( auth.has( "password" ) );
-        assertEquals( HttpBasicAuth.TYPE, auth.getString( "type" ).string() );
-        assertEquals( "admin", auth.getString( "username" ).string() );
-    }
+    JsonObject auth = target.getObject("auth");
+    assertTrue(auth.has("type", "username"));
+    assertFalse(auth.has("password"));
+    assertEquals(HttpBasicAuth.TYPE, auth.getString("type").string());
+    assertEquals("admin", auth.getString("username").string());
+  }
 
-    @Test
-    void testCreateEventHookWebhookHttpBasicDefaultEnabled()
-    {
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/eventHooks", Body( "event-hook/webhook-http-basic.json" ) ) );
-        assertEquals( "bRNvL6NMQXb", id );
+  @Test
+  void testCreateEventHookWebhookHttpBasicDefaultEnabled() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+    assertEquals("bRNvL6NMQXb", id);
 
-        JsonObject eventHook = GET( "/eventHooks/{id}", id ).content( HttpStatus.OK );
-        assertTrue( eventHook.has( "id", "name", "disabled", "source", "targets" ) );
-        assertFalse( eventHook.getBoolean( "disabled" ).bool() );
-        assertEquals( "bRNvL6NMQXb", eventHook.getString( "id" ).string() );
-        assertEquals( "WebhookHttpBasic", eventHook.getString( "name" ).string() );
-        assertEquals( "metadata", eventHook.get( "source" ).asObject().getString( "path" ).string() );
-        assertEquals( "id,name", eventHook.get( "source" ).asObject().getString( "fields" ).string() );
+    JsonObject eventHook = GET("/eventHooks/{id}", id).content(HttpStatus.OK);
+    assertTrue(eventHook.has("id", "name", "disabled", "source", "targets"));
+    assertFalse(eventHook.getBoolean("disabled").bool());
+    assertEquals("bRNvL6NMQXb", eventHook.getString("id").string());
+    assertEquals("WebhookHttpBasic", eventHook.getString("name").string());
+    assertEquals("metadata", eventHook.get("source").asObject().getString("path").string());
+    assertEquals("id,name", eventHook.get("source").asObject().getString("fields").string());
 
-        JsonList<JsonObject> targets = eventHook.get( "targets" ).asList( JsonObject.class );
-        assertFalse( targets.isEmpty() );
+    JsonList<JsonObject> targets = eventHook.get("targets").asList(JsonObject.class);
+    assertFalse(targets.isEmpty());
 
-        JsonObject target = targets.get( 0 ).asObject();
-        assertTrue( target.has( "type", "url", "auth" ) );
-        assertEquals( WebhookTarget.TYPE, target.getString( "type" ).string() );
+    JsonObject target = targets.get(0).asObject();
+    assertTrue(target.has("type", "url", "auth"));
+    assertEquals(WebhookTarget.TYPE, target.getString("type").string());
 
-        JsonObject auth = target.getObject( "auth" );
-        assertTrue( auth.has( "type", "username" ) );
-        assertFalse( auth.has( "password" ) );
-        assertEquals( HttpBasicAuth.TYPE, auth.getString( "type" ).string() );
-        assertEquals( "admin", auth.getString( "username" ).string() );
-    }
+    JsonObject auth = target.getObject("auth");
+    assertTrue(auth.has("type", "username"));
+    assertFalse(auth.has("password"));
+    assertEquals(HttpBasicAuth.TYPE, auth.getString("type").string());
+    assertEquals("admin", auth.getString("username").string());
+  }
 
-    @Test
-    void testDeleteEventHookWebhookHttpBasic()
-    {
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/eventHooks", Body( "event-hook/webhook-http-basic.json" ) ) );
-        assertEquals( "bRNvL6NMQXb", id );
+  @Test
+  void testDeleteEventHookWebhookHttpBasic() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED, POST("/eventHooks", Body("event-hook/webhook-http-basic.json")));
+    assertEquals("bRNvL6NMQXb", id);
 
-        GET( "/eventHooks/{id}", id ).content( HttpStatus.OK );
-        DELETE( "/eventHooks/{id}", (Object) id ).content( HttpStatus.OK );
-        GET( "/eventHooks/{id}", id ).content( HttpStatus.NOT_FOUND );
-    }
+    GET("/eventHooks/{id}", id).content(HttpStatus.OK);
+    DELETE("/eventHooks/{id}", (Object) id).content(HttpStatus.OK);
+    GET("/eventHooks/{id}", id).content(HttpStatus.NOT_FOUND);
+  }
 }

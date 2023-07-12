@@ -34,54 +34,53 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * @author bobj
  */
 @Slf4j
-class CodeGeneratorTest
-{
+class CodeGeneratorTest {
 
-    @Test
-    void testGetUid()
-    {
-        int numberOfCodes = 500;
-        Set<String> codes = new HashSet<>();
-        for ( int n = 0; n < numberOfCodes; ++n )
-        {
-            String code = CodeGenerator.generateUid();
-            // Test syntax
-            assertTrue( code.substring( 0, 1 ).matches( "[a-zA-Z]" ) );
-            assertTrue( code.matches( "[0-9a-zA-Z]{11}" ) );
-            // Test uniqueness
-            assertTrue( codes.add( code ) );
-        }
+  @Test
+  void testGetUid() {
+    int numberOfCodes = 500;
+    Set<String> codes = new HashSet<>();
+    for (int n = 0; n < numberOfCodes; ++n) {
+      String code = CodeGenerator.generateUid();
+      // Test syntax
+      assertTrue(code.substring(0, 1).matches("[a-zA-Z]"));
+      assertTrue(code.matches("[0-9a-zA-Z]{11}"));
+      // Test uniqueness
+      assertTrue(codes.add(code));
     }
+  }
 
-    @Test
-    void testUidIsValid()
-    {
-        assertTrue( CodeGenerator.isValidUid( "mq4jAnN6fg3" ) );
-        assertTrue( CodeGenerator.isValidUid( "QX4LpiTZmUH" ) );
-        assertTrue( CodeGenerator.isValidUid( "rT1hdSWjfDC" ) );
-        assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
-        assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
-        assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
-        assertFalse( CodeGenerator.isValidUid( "11111111111" ) );
-    }
+  @Test
+  void testUidIsValid() {
+    assertTrue(CodeGenerator.isValidUid("mq4jAnN6fg3"));
+    assertTrue(CodeGenerator.isValidUid("QX4LpiTZmUH"));
+    assertTrue(CodeGenerator.isValidUid("rT1hdSWjfDC"));
+    assertFalse(CodeGenerator.isValidUid("1T1hdSWjfDC"));
+    assertFalse(CodeGenerator.isValidUid("QX4LpiTZmUHg"));
+    assertFalse(CodeGenerator.isValidUid("1T1hdS_WjfD"));
+    assertFalse(CodeGenerator.isValidUid("11111111111"));
+  }
 
-    @Test
-    void testGetRandomUrlToken()
-    {
-        assertNotNull( CodeGenerator.getRandomSecureToken() );
-        assertNotNull( CodeGenerator.getRandomSecureToken() );
-        assertNotNull( CodeGenerator.getRandomSecureToken() );
-        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
-        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
-        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
-    }
+  @Test
+  void testGetRandomUrlToken() {
+    assertNotNull(CodeGenerator.getRandomSecureToken());
+    assertNotNull(CodeGenerator.getRandomSecureToken());
+    assertNotNull(CodeGenerator.getRandomSecureToken());
+    assertEquals(
+        CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE,
+        (CodeGenerator.getRandomSecureToken()).length());
+    assertEquals(
+        CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE,
+        (CodeGenerator.getRandomSecureToken()).length());
+    assertEquals(
+        CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE,
+        (CodeGenerator.getRandomSecureToken()).length());
+  }
 }

@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.controller.type;
 
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -41,13 +39,10 @@ import org.springframework.web.bind.annotation.PostMapping;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @OpenApi.Ignore
-@ApiVersion( DhisApiVersion.V31 )
-public abstract class BaseWithVersionController
-{
-    @PostMapping( "/{id}" )
-    public void testWithId( @PathVariable String id, HttpServletResponse response )
-        throws IOException
-    {
-        response.getWriter().println( id );
-    }
+@ApiVersion(DhisApiVersion.V31)
+public abstract class BaseWithVersionController {
+  @PostMapping("/{id}")
+  public void testWithId(@PathVariable String id, HttpServletResponse response) throws IOException {
+    response.getWriter().println(id);
+  }
 }

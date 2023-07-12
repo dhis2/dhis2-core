@@ -33,8 +33,9 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.stream.Collectors;
-
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.Legend;
@@ -42,65 +43,64 @@ import org.hisp.dhis.legend.LegendSet;
 import org.jeasy.random.EasyRandom;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * @author Luciano Fiandesio
  */
-class BaseDimensionalObjectTest
-{
+class BaseDimensionalObjectTest {
 
-    private static final EasyRandom rnd = new EasyRandom();
+  private static final EasyRandom rnd = new EasyRandom();
 
-    @Test
-    void verifyInstanceCloneObject()
-    {
-        BaseDimensionalObject target = new BaseDimensionalObject( "test-dimension" );
-        target.setUid( "uid-999999" );
-        target.setDimensionType( DimensionType.DATA_X );
-        target.setDimensionName( "test-dimension-name" );
-        target.setItems( Lists.newArrayList( buildDimensionalItemObject(), buildDimensionalItemObject() ) );
-        target.setFilter( "test-filter" );
-        target.setLegendSet(
-            new LegendSet( "legend-name", "symbolizer-test", Sets.newHashSet( buildLegend(), buildLegend() ) ) );
-        target.setAggregationType( AggregationType.AVERAGE );
-        target.setDataDimension( true );
-        target.setFixed( true );
-        target.setDimensionalKeywords( new DimensionItemKeywords(
-            rnd.objects( BaseIdentifiableObject.class, 5 ).collect( Collectors.toList() ) ) );
-        BaseDimensionalObject cloned = (BaseDimensionalObject) target.instance();
-        assertThat( cloned.getName(), is( target.getName() ) );
-        assertThat( cloned.getUid(), is( target.getUid() ) );
-        assertThat( cloned.getDimensionType(), is( target.getDimensionType() ) );
-        assertThat( cloned.getDimensionName(), is( target.getDimensionName() ) );
-        assertThat( cloned.getItems(), hasSize( 2 ) );
-        assertThat( cloned.getItems(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( target.getItems().get( 0 ).getName() ) ),
-                    hasProperty( "uid", is( target.getItems().get( 0 ).getUid() ) ),
-                    hasProperty( "code", is( target.getItems().get( 0 ).getCode() ) ) ),
-                allOf( hasProperty( "name", is( target.getItems().get( 1 ).getName() ) ),
-                    hasProperty( "uid", is( target.getItems().get( 1 ).getUid() ) ),
-                    hasProperty( "code", is( target.getItems().get( 1 ).getCode() ) ) ) ) );
-        assertThat( cloned.getFilter(), is( target.getFilter() ) );
-        assertThat( cloned.getLegendSet().getName(), is( "legend-name" ) );
-        assertThat( cloned.getLegendSet().getSymbolizer(), is( "symbolizer-test" ) );
-        assertThat( cloned.getLegendSet().getLegends(), hasSize( 2 ) );
-        assertThat( cloned.getAggregationType(), is( target.getAggregationType() ) );
-        assertThat( cloned.isDataDimension(), is( target.isDataDimension() ) );
-        assertThat( cloned.isFixed(), is( target.isFixed() ) );
-        assertThat( cloned.getDimensionItemKeywords().getKeywords(),
-            hasSize( target.getDimensionItemKeywords().getKeywords().size() ) );
-    }
+  @Test
+  void verifyInstanceCloneObject() {
+    BaseDimensionalObject target = new BaseDimensionalObject("test-dimension");
+    target.setUid("uid-999999");
+    target.setDimensionType(DimensionType.DATA_X);
+    target.setDimensionName("test-dimension-name");
+    target.setItems(Lists.newArrayList(buildDimensionalItemObject(), buildDimensionalItemObject()));
+    target.setFilter("test-filter");
+    target.setLegendSet(
+        new LegendSet(
+            "legend-name", "symbolizer-test", Sets.newHashSet(buildLegend(), buildLegend())));
+    target.setAggregationType(AggregationType.AVERAGE);
+    target.setDataDimension(true);
+    target.setFixed(true);
+    target.setDimensionalKeywords(
+        new DimensionItemKeywords(
+            rnd.objects(BaseIdentifiableObject.class, 5).collect(Collectors.toList())));
+    BaseDimensionalObject cloned = (BaseDimensionalObject) target.instance();
+    assertThat(cloned.getName(), is(target.getName()));
+    assertThat(cloned.getUid(), is(target.getUid()));
+    assertThat(cloned.getDimensionType(), is(target.getDimensionType()));
+    assertThat(cloned.getDimensionName(), is(target.getDimensionName()));
+    assertThat(cloned.getItems(), hasSize(2));
+    assertThat(
+        cloned.getItems(),
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            allOf(
+                hasProperty("name", is(target.getItems().get(0).getName())),
+                hasProperty("uid", is(target.getItems().get(0).getUid())),
+                hasProperty("code", is(target.getItems().get(0).getCode()))),
+            allOf(
+                hasProperty("name", is(target.getItems().get(1).getName())),
+                hasProperty("uid", is(target.getItems().get(1).getUid())),
+                hasProperty("code", is(target.getItems().get(1).getCode())))));
+    assertThat(cloned.getFilter(), is(target.getFilter()));
+    assertThat(cloned.getLegendSet().getName(), is("legend-name"));
+    assertThat(cloned.getLegendSet().getSymbolizer(), is("symbolizer-test"));
+    assertThat(cloned.getLegendSet().getLegends(), hasSize(2));
+    assertThat(cloned.getAggregationType(), is(target.getAggregationType()));
+    assertThat(cloned.isDataDimension(), is(target.isDataDimension()));
+    assertThat(cloned.isFixed(), is(target.isFixed()));
+    assertThat(
+        cloned.getDimensionItemKeywords().getKeywords(),
+        hasSize(target.getDimensionItemKeywords().getKeywords().size()));
+  }
 
-    private DimensionalItemObject buildDimensionalItemObject()
-    {
-        return rnd.nextObject( BaseDimensionalItemObject.class );
-    }
+  private DimensionalItemObject buildDimensionalItemObject() {
+    return rnd.nextObject(BaseDimensionalItemObject.class);
+  }
 
-    private Legend buildLegend()
-    {
-        return rnd.nextObject( Legend.class );
-    }
+  private Legend buildLegend() {
+    return rnd.nextObject(Legend.class);
+  }
 }

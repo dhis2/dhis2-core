@@ -34,21 +34,18 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
-@RequiredArgsConstructor( staticName = "of" )
-public class Table implements Renderable
-{
-    private final Renderable tableName;
+@RequiredArgsConstructor(staticName = "of")
+public class Table implements Renderable {
+  private final Renderable tableName;
 
-    private final Renderable alias;
+  private final Renderable alias;
 
-    public static Table ofStrings( String tableName, String alias )
-    {
-        return of( () -> tableName, () -> alias );
-    }
+  public static Table ofStrings(String tableName, String alias) {
+    return of(() -> tableName, () -> alias);
+  }
 
-    @Override
-    public String render()
-    {
-        return join( SPACE, tableName.render(), alias.render() );
-    }
+  @Override
+  public String render() {
+    return join(SPACE, tableName.render(), alias.render());
+  }
 }

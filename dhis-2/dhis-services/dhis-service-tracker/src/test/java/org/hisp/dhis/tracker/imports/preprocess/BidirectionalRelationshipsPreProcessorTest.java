@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.preprocess;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
@@ -41,49 +42,50 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.google.common.collect.Lists;
+@ExtendWith(MockitoExtension.class)
+class BidirectionalRelationshipsPreProcessorTest extends DhisConvenienceTest {
 
-@ExtendWith( MockitoExtension.class )
-class BidirectionalRelationshipsPreProcessorTest extends DhisConvenienceTest
-{
+  private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE";
 
-    private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE";
+  private static final String BIDIRECTIONAL_RELATIONSHIP_TYPE_UID =
+      "BIDIRECTIONAL_RELATIONSHIP_TYPE";
 
-    private static final String BIDIRECTIONAL_RELATIONSHIP_TYPE_UID = "BIDIRECTIONAL_RELATIONSHIP_TYPE";
+  private BidirectionalRelationshipsPreProcessor preProcessorToTest =
+      new BidirectionalRelationshipsPreProcessor();
 
-    private BidirectionalRelationshipsPreProcessor preProcessorToTest = new BidirectionalRelationshipsPreProcessor();
+  @Test
+  void testPreprocessorPopulateRelationshipBidirectionalFieldCorrectly() {
+    Relationship uniDirectionalRelationship = new Relationship();
+    uniDirectionalRelationship.setRelationshipType(MetadataIdentifier.ofUid(RELATIONSHIP_TYPE_UID));
+    uniDirectionalRelationship.setBidirectional(true);
+    Relationship biDirectionalRelationship = new Relationship();
+    biDirectionalRelationship.setRelationshipType(
+        MetadataIdentifier.ofUid(BIDIRECTIONAL_RELATIONSHIP_TYPE_UID));
+    biDirectionalRelationship.setBidirectional(false);
+    TrackerBundle bundle =
+        TrackerBundle.builder()
+            .relationships(
+                Lists.newArrayList(uniDirectionalRelationship, biDirectionalRelationship))
+            .preheat(getPreheat())
+            .build();
+    assertTrue(uniDirectionalRelationship.isBidirectional());
+    assertFalse(biDirectionalRelationship.isBidirectional());
+    preProcessorToTest.process(bundle);
+    assertFalse(uniDirectionalRelationship.isBidirectional());
+    assertTrue(biDirectionalRelationship.isBidirectional());
+  }
 
-    @Test
-    void testPreprocessorPopulateRelationshipBidirectionalFieldCorrectly()
-    {
-        Relationship uniDirectionalRelationship = new Relationship();
-        uniDirectionalRelationship.setRelationshipType( MetadataIdentifier.ofUid( RELATIONSHIP_TYPE_UID ) );
-        uniDirectionalRelationship.setBidirectional( true );
-        Relationship biDirectionalRelationship = new Relationship();
-        biDirectionalRelationship
-            .setRelationshipType( MetadataIdentifier.ofUid( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID ) );
-        biDirectionalRelationship.setBidirectional( false );
-        TrackerBundle bundle = TrackerBundle.builder()
-            .relationships( Lists.newArrayList( uniDirectionalRelationship, biDirectionalRelationship ) )
-            .preheat( getPreheat() ).build();
-        assertTrue( uniDirectionalRelationship.isBidirectional() );
-        assertFalse( biDirectionalRelationship.isBidirectional() );
-        preProcessorToTest.process( bundle );
-        assertFalse( uniDirectionalRelationship.isBidirectional() );
-        assertTrue( biDirectionalRelationship.isBidirectional() );
-    }
-
-    private TrackerPreheat getPreheat()
-    {
-        RelationshipType uniDirectionalRelationshipType = createRelationshipType( 'A' );
-        uniDirectionalRelationshipType.setUid( RELATIONSHIP_TYPE_UID );
-        uniDirectionalRelationshipType.setBidirectional( false );
-        RelationshipType biDirectionalRelationshipType = createRelationshipType( 'B' );
-        biDirectionalRelationshipType.setUid( BIDIRECTIONAL_RELATIONSHIP_TYPE_UID );
-        biDirectionalRelationshipType.setBidirectional( true );
-        TrackerPreheat trackerPreheat = new TrackerPreheat();
-        trackerPreheat.put( TrackerIdSchemeParam.UID,
-            Lists.newArrayList( biDirectionalRelationshipType, uniDirectionalRelationshipType ) );
-        return trackerPreheat;
-    }
+  private TrackerPreheat getPreheat() {
+    RelationshipType uniDirectionalRelationshipType = createRelationshipType('A');
+    uniDirectionalRelationshipType.setUid(RELATIONSHIP_TYPE_UID);
+    uniDirectionalRelationshipType.setBidirectional(false);
+    RelationshipType biDirectionalRelationshipType = createRelationshipType('B');
+    biDirectionalRelationshipType.setUid(BIDIRECTIONAL_RELATIONSHIP_TYPE_UID);
+    biDirectionalRelationshipType.setBidirectional(true);
+    TrackerPreheat trackerPreheat = new TrackerPreheat();
+    trackerPreheat.put(
+        TrackerIdSchemeParam.UID,
+        Lists.newArrayList(biDirectionalRelationshipType, uniDirectionalRelationshipType));
+    return trackerPreheat;
+  }
 }

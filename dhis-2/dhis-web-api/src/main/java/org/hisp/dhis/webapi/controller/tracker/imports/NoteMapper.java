@@ -33,9 +33,9 @@ import org.hisp.dhis.webapi.controller.tracker.view.Note;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface NoteMapper extends DomainMapper<Note, org.hisp.dhis.tracker.imports.domain.Note>
-{
-    org.hisp.dhis.tracker.imports.domain.Note from( org.hisp.dhis.tracker.imports.domain.Note note,
-        @Context TrackerIdSchemeParams idSchemeParams );
+@Mapper(uses = {InstantMapper.class, UserMapper.class})
+public interface NoteMapper extends DomainMapper<Note, org.hisp.dhis.tracker.imports.domain.Note> {
+  org.hisp.dhis.tracker.imports.domain.Note from(
+      org.hisp.dhis.tracker.imports.domain.Note note,
+      @Context TrackerIdSchemeParams idSchemeParams);
 }

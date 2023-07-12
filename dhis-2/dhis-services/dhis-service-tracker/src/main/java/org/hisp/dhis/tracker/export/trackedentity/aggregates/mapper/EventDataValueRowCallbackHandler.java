@@ -27,90 +27,77 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
 
+import com.google.gson.Gson;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.util.DateUtils;
 import org.postgresql.util.PGobject;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.google.gson.Gson;
-
 /**
  * @author Luciano Fiandesio
  */
-public class EventDataValueRowCallbackHandler
-    implements
-    RowCallbackHandler
+public class EventDataValueRowCallbackHandler implements RowCallbackHandler {
 
-{
-    private final Map<String, List<EventDataValue>> dataValues;
+  private final Map<String, List<EventDataValue>> dataValues;
 
-    private static final Gson gson = new Gson();
+  private static final Gson gson = new Gson();
 
-    public EventDataValueRowCallbackHandler()
-    {
-        this.dataValues = new HashMap<>();
+  public EventDataValueRowCallbackHandler() {
+    this.dataValues = new HashMap<>();
+  }
+
+  @Override
+  public void processRow(ResultSet rs) throws SQLException {
+    dataValues.put(rs.getString("key"), getDataValue(rs));
+  }
+
+  private List<EventDataValue> getDataValue(ResultSet rs) throws SQLException {
+    // TODO not sure this is the most efficient way to handle JSONB -> java
+    List<EventDataValue> result = new ArrayList<>();
+
+    PGobject values = (PGobject) rs.getObject("eventdatavalues");
+    Map<String, ?> eventDataValuesJson = gson.fromJson(values.getValue(), Map.class);
+
+    for (Map.Entry<String, ?> entry : eventDataValuesJson.entrySet()) {
+      Map<?, ?> jsonValues = (Map<?, ?>) entry.getValue();
+
+      EventDataValue value = new EventDataValue(entry.getKey(), (String) jsonValues.get("value"));
+      value.setCreated(DateUtils.parseDate((String) jsonValues.get("created")));
+      value.setLastUpdated(DateUtils.parseDate((String) jsonValues.get("lastUpdated")));
+      value.setStoredBy((String) jsonValues.get("storedBy"));
+      value.setProvidedElsewhere((Boolean) jsonValues.get("providedElsewhere"));
+      value.setCreatedByUserInfo(
+          buildUserInfoSnapshot((Map<?, ?>) jsonValues.get("createdByUserInfo")));
+      value.setLastUpdatedByUserInfo(
+          buildUserInfoSnapshot((Map<?, ?>) jsonValues.get("lastUpdatedByUserInfo")));
+
+      result.add(value);
     }
 
-    @Override
-    public void processRow( ResultSet rs )
-        throws SQLException
-    {
-        dataValues.put( rs.getString( "key" ), getDataValue( rs ) );
+    return result;
+  }
+
+  private UserInfoSnapshot buildUserInfoSnapshot(Map<?, ?> createdByUserInfo) {
+    if (createdByUserInfo == null) {
+      return null;
     }
 
-    private List<EventDataValue> getDataValue( ResultSet rs )
-        throws SQLException
-    {
-        // TODO not sure this is the most efficient way to handle JSONB -> java
-        List<EventDataValue> result = new ArrayList<>();
+    UserInfoSnapshot userInfoSnapshot = new UserInfoSnapshot();
+    userInfoSnapshot.setUid((String) createdByUserInfo.get("uid"));
+    userInfoSnapshot.setUsername((String) createdByUserInfo.get("username"));
+    userInfoSnapshot.setFirstName((String) createdByUserInfo.get("firstName"));
+    userInfoSnapshot.setSurname((String) createdByUserInfo.get("surname"));
+    return userInfoSnapshot;
+  }
 
-        PGobject values = (PGobject) rs.getObject( "eventdatavalues" );
-        Map<String, ?> eventDataValuesJson = gson.fromJson( values.getValue(), Map.class );
-
-        for ( Map.Entry<String, ?> entry : eventDataValuesJson.entrySet() )
-        {
-            Map<?, ?> jsonValues = (Map<?, ?>) entry.getValue();
-
-            EventDataValue value = new EventDataValue( entry.getKey(), (String) jsonValues.get( "value" ) );
-            value.setCreated( DateUtils.parseDate( (String) jsonValues.get( "created" ) ) );
-            value.setLastUpdated( DateUtils.parseDate( (String) jsonValues.get( "lastUpdated" ) ) );
-            value.setStoredBy( (String) jsonValues.get( "storedBy" ) );
-            value.setProvidedElsewhere( (Boolean) jsonValues.get( "providedElsewhere" ) );
-            value.setCreatedByUserInfo( buildUserInfoSnapshot( (Map<?, ?>) jsonValues.get( "createdByUserInfo" ) ) );
-            value.setLastUpdatedByUserInfo(
-                buildUserInfoSnapshot( (Map<?, ?>) jsonValues.get( "lastUpdatedByUserInfo" ) ) );
-
-            result.add( value );
-        }
-
-        return result;
-    }
-
-    private UserInfoSnapshot buildUserInfoSnapshot( Map<?, ?> createdByUserInfo )
-    {
-        if ( createdByUserInfo == null )
-        {
-            return null;
-        }
-
-        UserInfoSnapshot userInfoSnapshot = new UserInfoSnapshot();
-        userInfoSnapshot.setUid( (String) createdByUserInfo.get( "uid" ) );
-        userInfoSnapshot.setUsername( (String) createdByUserInfo.get( "username" ) );
-        userInfoSnapshot.setFirstName( (String) createdByUserInfo.get( "firstName" ) );
-        userInfoSnapshot.setSurname( (String) createdByUserInfo.get( "surname" ) );
-        return userInfoSnapshot;
-    }
-
-    public Map<String, List<EventDataValue>> getItems()
-    {
-        return this.dataValues;
-    }
+  public Map<String, List<EventDataValue>> getItems() {
+    return this.dataValues;
+  }
 }

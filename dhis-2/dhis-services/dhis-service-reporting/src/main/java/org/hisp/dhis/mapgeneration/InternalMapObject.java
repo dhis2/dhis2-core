@@ -28,7 +28,6 @@
 package org.hisp.dhis.mapgeneration;
 
 import java.awt.*;
-
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.styling.SLD;
@@ -42,283 +41,238 @@ import org.opengis.feature.simple.SimpleFeatureType;
 
 /**
  * An internal representation of a map object (feature) in a map layer.
- * <p>
- * It encapsulates all the information of an atomic object on a map, i.e. its
- * name, value, fill color, fill opacity, stroke color, stroke width, and
- * potentially its radius should it be represented as a point.
- * <p>
- * It may be the associated with an interval of an interval set and should be
- * associated with a map layer.
- * <p>
- * Finally, one should extend this class with an implementation that uses a
- * specific platform, e.g. GeoTools to draw the map.
+ *
+ * <p>It encapsulates all the information of an atomic object on a map, i.e. its name, value, fill
+ * color, fill opacity, stroke color, stroke width, and potentially its radius should it be
+ * represented as a point.
+ *
+ * <p>It may be the associated with an interval of an interval set and should be associated with a
+ * map layer.
+ *
+ * <p>Finally, one should extend this class with an implementation that uses a specific platform,
+ * e.g. GeoTools to draw the map.
  *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
-public class InternalMapObject
-{
-    private static final float LINE_STROKE_WIDTH = 0.1f;
+public class InternalMapObject {
+  private static final float LINE_STROKE_WIDTH = 0.1f;
 
-    private static final String CIRCLE = "Circle";
+  private static final String CIRCLE = "Circle";
 
-    private static final String POINT = "Point";
+  private static final String POINT = "Point";
 
-    private static final String POLYGON = "Polygon";
+  private static final String POLYGON = "Polygon";
 
-    private static final String MULTI_POLYGON = "MultiPolygon";
+  private static final String MULTI_POLYGON = "MultiPolygon";
 
-    private static final String GEOMETRIES = "geometries";
+  private static final String GEOMETRIES = "geometries";
 
-    public static final String TYPE_THEMATIC = "thematic";
+  public static final String TYPE_THEMATIC = "thematic";
 
-    public static final String TYPE_BOUNDARY = "boundary";
+  public static final String TYPE_BOUNDARY = "boundary";
 
-    protected String name;
+  protected String name;
 
-    protected double value;
+  protected double value;
 
-    protected int radius;
+  protected int radius;
 
-    protected Color fillColor;
+  protected Color fillColor;
 
-    protected float fillOpacity;
+  protected float fillOpacity;
 
-    protected Color strokeColor;
+  protected Color strokeColor;
 
-    protected InternalMapLayer mapLayer;
+  protected InternalMapLayer mapLayer;
 
-    protected Interval interval;
+  protected Interval interval;
 
-    private Geometry geometry;
+  private Geometry geometry;
 
-    private MapLayerType mapLayerType;
+  private MapLayerType mapLayerType;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public InternalMapObject()
-    {
+  public InternalMapObject() {}
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  /**
+   * Builds the GeoTools geometric primitive for a given organisation unit and sets it for this map
+   * object.
+   *
+   * <p>Quick guide to how geometry is stored in DHIS:
+   *
+   * <p>Geometry for org units is stored in the DB as [[[[0.32, -33.87], [23.99, -43.02], ...]]],
+   * and may be retrieved by calling the getCoordinates method of OrganisationUnit.
+   *
+   * <p>The coordinates vary according to feature type, which can be found with a call to
+   * getFeatureType of OrganisationUnit. It varies between the following structures (names are
+   * omitted in the actual coordinates string):
+   *
+   * <p>multipolygon = [ polygon0 = [ shell0 = [ point0 = [0.32, -33.87], point1 = [23.99, -43.02],
+   * point2 = [...]], hole0 = [...], hole1 = [...]], polygon1 = [...] polygon2 = [...]] polygon = [
+   * shell0 = [ point0 = [0.32, -33.87], point1 = [23.99, -43.02]], hole0 = [...], hole1 = [...]]
+   *
+   * <p>point = [0.32, -33.87]
+   *
+   * <p>Multi-polygons are stored as an array of polygons. Polygons are stored as an array of
+   * linear-rings, where the first linear-ring is the shell, and remaining linear-rings are the
+   * holes in the polygon. Linear-rings are stored as an array of points, which in turn is stored as
+   * an array of (two) components as a floating point type.
+   *
+   * <p>There are three types of geometry that may be stored in a DHIS org unit: point, polygon, and
+   * multi-polygon. This method supports all three.
+   *
+   * <p>NOTE However, as of writing, there is a bug in DHIS OrganisationUnit where when
+   * getFeatureType reports type Polygon, getCoordinates really returns coordinates in the format of
+   * type MultiPolygon.
+   *
+   * @param orgUnit the organisation unit
+   */
+  public void buildGeometryForOrganisationUnit(OrganisationUnit orgUnit) {
+    this.geometry = orgUnit.getGeometry();
+  }
+
+  public Style getStyle() {
+    Style style;
+
+    if (geometry instanceof Point) {
+      style = SLD.createPointStyle(CIRCLE, strokeColor, fillColor, fillOpacity, radius);
+    } else if (geometry instanceof Polygon || geometry instanceof MultiPolygon) {
+      if (MapLayerType.BOUNDARY.equals(mapLayerType)) {
+        style = SLD.createLineStyle(strokeColor, LINE_STROKE_WIDTH);
+      } else {
+        style = SLD.createPolygonStyle(strokeColor, fillColor, fillOpacity);
+      }
+    } else {
+      style = SLD.createSimpleStyle(getFeatureType());
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return style;
+  }
 
-    /**
-     * Builds the GeoTools geometric primitive for a given organisation unit and
-     * sets it for this map object.
-     * <p>
-     * Quick guide to how geometry is stored in DHIS:
-     * <p>
-     * Geometry for org units is stored in the DB as [[[[0.32, -33.87], [23.99,
-     * -43.02], ...]]], and may be retrieved by calling the getCoordinates
-     * method of OrganisationUnit.
-     * <p>
-     * The coordinates vary according to feature type, which can be found with a
-     * call to getFeatureType of OrganisationUnit. It varies between the
-     * following structures (names are omitted in the actual coordinates
-     * string):
-     * <p>
-     * multipolygon = [ polygon0 = [ shell0 = [ point0 = [0.32, -33.87], point1
-     * = [23.99, -43.02], point2 = [...]], hole0 = [...], hole1 = [...]],
-     * polygon1 = [...] polygon2 = [...]] polygon = [ shell0 = [ point0 = [0.32,
-     * -33.87], point1 = [23.99, -43.02]], hole0 = [...], hole1 = [...]]
-     * <p>
-     * point = [0.32, -33.87]
-     * <p>
-     * Multi-polygons are stored as an array of polygons. Polygons are stored as
-     * an array of linear-rings, where the first linear-ring is the shell, and
-     * remaining linear-rings are the holes in the polygon. Linear-rings are
-     * stored as an array of points, which in turn is stored as an array of
-     * (two) components as a floating point type.
-     * <p>
-     * There are three types of geometry that may be stored in a DHIS org unit:
-     * point, polygon, and multi-polygon. This method supports all three.
-     * <p>
-     * NOTE However, as of writing, there is a bug in DHIS OrganisationUnit
-     * where when getFeatureType reports type Polygon, getCoordinates really
-     * returns coordinates in the format of type MultiPolygon.
-     *
-     * @param orgUnit the organisation unit
-     */
-    public void buildGeometryForOrganisationUnit( OrganisationUnit orgUnit )
-    {
-        this.geometry = orgUnit.getGeometry();
+  /** Creates a feature type for a GeoTools geometric primitive. */
+  public SimpleFeatureType getFeatureType() {
+    String type;
+
+    if (geometry instanceof Point) {
+      type = POINT;
+    } else if (geometry instanceof Polygon) {
+      type = POLYGON;
+    } else if (geometry instanceof MultiPolygon) {
+      type = MULTI_POLYGON;
+    } else {
+      throw new IllegalArgumentException();
     }
 
-    public Style getStyle()
-    {
-        Style style;
-
-        if ( geometry instanceof Point )
-        {
-            style = SLD.createPointStyle( CIRCLE, strokeColor, fillColor,
-                fillOpacity, radius );
-        }
-        else if ( geometry instanceof Polygon || geometry instanceof MultiPolygon )
-        {
-            if ( MapLayerType.BOUNDARY.equals( mapLayerType ) )
-            {
-                style = SLD.createLineStyle( strokeColor, LINE_STROKE_WIDTH );
-            }
-            else
-            {
-                style = SLD.createPolygonStyle( strokeColor, fillColor, fillOpacity );
-            }
-        }
-        else
-        {
-            style = SLD.createSimpleStyle( getFeatureType() );
-        }
-
-        return style;
+    try {
+      return DataUtilities.createType(GEOMETRIES, "geometry:" + type + ":srid=3785");
+    } catch (SchemaException ex) {
+      throw new RuntimeException("failed to create geometry", ex);
     }
+  }
 
-    /**
-     * Creates a feature type for a GeoTools geometric primitive.
-     */
-    public SimpleFeatureType getFeatureType()
-    {
-        String type;
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-        if ( geometry instanceof Point )
-        {
-            type = POINT;
-        }
-        else if ( geometry instanceof Polygon )
-        {
-            type = POLYGON;
-        }
-        else if ( geometry instanceof MultiPolygon )
-        {
-            type = MULTI_POLYGON;
-        }
-        else
-        {
-            throw new IllegalArgumentException();
-        }
+  public String getName() {
+    return this.name;
+  }
 
-        try
-        {
-            return DataUtilities.createType( GEOMETRIES, "geometry:" + type + ":srid=3785" );
-        }
-        catch ( SchemaException ex )
-        {
-            throw new RuntimeException( "failed to create geometry", ex );
-        }
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  public double getValue() {
+    return this.value;
+  }
 
-    public String getName()
-    {
-        return this.name;
-    }
+  public void setValue(double value) {
+    this.value = value;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  public int getRadius() {
+    return this.radius;
+  }
 
-    public double getValue()
-    {
-        return this.value;
-    }
+  public void setRadius(int radius) {
+    this.radius = radius;
+  }
 
-    public void setValue( double value )
-    {
-        this.value = value;
-    }
+  public Color getFillColor() {
+    return this.fillColor;
+  }
 
-    public int getRadius()
-    {
-        return this.radius;
-    }
+  public void setFillColor(Color fillColor) {
+    this.fillColor = fillColor;
+  }
 
-    public void setRadius( int radius )
-    {
-        this.radius = radius;
-    }
+  public float getFillOpacity() {
+    return this.fillOpacity;
+  }
 
-    public Color getFillColor()
-    {
-        return this.fillColor;
-    }
+  public void setFillOpacity(float fillOpacity) {
+    this.fillOpacity = fillOpacity;
+  }
 
-    public void setFillColor( Color fillColor )
-    {
-        this.fillColor = fillColor;
-    }
+  public Color getStrokeColor() {
+    return this.strokeColor;
+  }
 
-    public float getFillOpacity()
-    {
-        return this.fillOpacity;
-    }
+  public void setStrokeColor(Color strokeColor) {
+    this.strokeColor = strokeColor;
+  }
 
-    public void setFillOpacity( float fillOpacity )
-    {
-        this.fillOpacity = fillOpacity;
-    }
+  public InternalMapLayer getMapLayer() {
+    return this.mapLayer;
+  }
 
-    public Color getStrokeColor()
-    {
-        return this.strokeColor;
-    }
+  public void setMapLayer(InternalMapLayer mapLayer) {
+    this.mapLayer = mapLayer;
+  }
 
-    public void setStrokeColor( Color strokeColor )
-    {
-        this.strokeColor = strokeColor;
-    }
+  public Interval getInterval() {
+    return this.interval;
+  }
 
-    public InternalMapLayer getMapLayer()
-    {
-        return this.mapLayer;
-    }
+  public void setInterval(Interval interval) {
+    this.interval = interval;
+    this.fillColor = interval.getColor();
+  }
 
-    public void setMapLayer( InternalMapLayer mapLayer )
-    {
-        this.mapLayer = mapLayer;
-    }
+  public Geometry getGeometry() {
+    return this.geometry;
+  }
 
-    public Interval getInterval()
-    {
-        return this.interval;
-    }
+  public void setGeometry(Geometry geometry) {
+    this.geometry = geometry;
+  }
 
-    public void setInterval( Interval interval )
-    {
-        this.interval = interval;
-        this.fillColor = interval.getColor();
-    }
+  public MapLayerType getMapLayerType() {
+    return mapLayerType;
+  }
 
-    public Geometry getGeometry()
-    {
-        return this.geometry;
-    }
+  public void setMapLayerType(MapLayerType mapLayerType) {
+    this.mapLayerType = mapLayerType;
+  }
 
-    public void setGeometry( Geometry geometry )
-    {
-        this.geometry = geometry;
-    }
-
-    public MapLayerType getMapLayerType()
-    {
-        return mapLayerType;
-    }
-
-    public void setMapLayerType( MapLayerType mapLayerType )
-    {
-        this.mapLayerType = mapLayerType;
-    }
-
-    @Override
-    public String toString()
-    {
-        return String.format( "InternalMapObject {" + " name: \"%s\"," + " value: %.2f," + " radius: %d,"
-            + " fillColor: %s," + " fillOpacity: %.2f" + " strokeColor: %s" + " }", name, value,
-            radius, fillColor, fillOpacity, strokeColor );
-    }
+  @Override
+  public String toString() {
+    return String.format(
+        "InternalMapObject {"
+            + " name: \"%s\","
+            + " value: %.2f,"
+            + " radius: %d,"
+            + " fillColor: %s,"
+            + " fillOpacity: %.2f"
+            + " strokeColor: %s"
+            + " }",
+        name, value, radius, fillColor, fillOpacity, strokeColor);
+  }
 }

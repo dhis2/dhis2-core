@@ -33,7 +33,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,85 +49,81 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class DefaultTrackedEntityServiceTest
-{
+@ExtendWith(MockitoExtension.class)
+class DefaultTrackedEntityServiceTest {
 
-    @Mock
-    private TrackedEntityStore trackedEntityStore;
+  @Mock private TrackedEntityStore trackedEntityStore;
 
-    @Mock
-    private TrackedEntityAttributeValueService attributeValueService;
+  @Mock private TrackedEntityAttributeValueService attributeValueService;
 
-    @Mock
-    private TrackedEntityAttributeService attributeService;
+  @Mock private TrackedEntityAttributeService attributeService;
 
-    @Mock
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Mock
-    private OrganisationUnitService organisationUnitService;
+  @Mock private OrganisationUnitService organisationUnitService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private AclService aclService;
+  @Mock private AclService aclService;
 
-    @Mock
-    private TrackerOwnershipManager trackerOwnershipAccessManager;
+  @Mock private TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    @Mock
-    private TrackedEntityAuditService trackedEntityAuditService;
+  @Mock private TrackedEntityAuditService trackedEntityAuditService;
 
-    @Mock
-    private TrackedEntityAttributeValueAuditService attributeValueAuditService;
+  @Mock private TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
-    private TrackedEntityQueryParams params;
+  private TrackedEntityQueryParams params;
 
-    private DefaultTrackedEntityService teiService;
+  private DefaultTrackedEntityService teiService;
 
-    @BeforeEach
-    void setup()
-    {
-        teiService = new DefaultTrackedEntityService( trackedEntityStore, attributeValueService,
-            attributeService, trackedEntityTypeService, organisationUnitService,
-            currentUserService, aclService, trackerOwnershipAccessManager, trackedEntityAuditService,
-            attributeValueAuditService );
+  @BeforeEach
+  void setup() {
+    teiService =
+        new DefaultTrackedEntityService(
+            trackedEntityStore,
+            attributeValueService,
+            attributeService,
+            trackedEntityTypeService,
+            organisationUnitService,
+            currentUserService,
+            aclService,
+            trackerOwnershipAccessManager,
+            trackedEntityAuditService,
+            attributeValueAuditService);
 
-        User user = new User();
-        user.setOrganisationUnits( Set.of( new OrganisationUnit( "A" ) ) );
-        user.setTeiSearchOrganisationUnits( Set.of( new OrganisationUnit( "B" ) ) );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
+    User user = new User();
+    user.setOrganisationUnits(Set.of(new OrganisationUnit("A")));
+    user.setTeiSearchOrganisationUnits(Set.of(new OrganisationUnit("B")));
+    when(currentUserService.getCurrentUser()).thenReturn(user);
 
-        params = new TrackedEntityQueryParams();
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
-        params.setProgram( new Program( "Test program" ) );
-        params.getProgram().setMaxTeiCountToReturn( 10 );
-        params.setTrackedEntityUids( Set.of( "1" ) );
-    }
+    params = new TrackedEntityQueryParams();
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ACCESSIBLE);
+    params.setProgram(new Program("Test program"));
+    params.getProgram().setMaxTeiCountToReturn(10);
+    params.setTrackedEntityUids(Set.of("1"));
+  }
 
-    @Test
-    void exceptionThrownWhenTeiLimitReached()
-    {
-        when( trackedEntityStore
-            .getTrackedEntityCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
-                .thenReturn( 20 );
+  @Test
+  void exceptionThrownWhenTeiLimitReached() {
+    when(trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(
+            any(TrackedEntityQueryParams.class)))
+        .thenReturn(20);
 
-        IllegalQueryException expectedException = assertThrows(
+    IllegalQueryException expectedException =
+        assertThrows(
             IllegalQueryException.class,
-            () -> teiService.validateSearchScope( params, true ), "test message" );
+            () -> teiService.validateSearchScope(params, true),
+            "test message");
 
-        assertEquals( "maxteicountreached", expectedException.getMessage() );
-    }
+    assertEquals("maxteicountreached", expectedException.getMessage());
+  }
 
-    @Test
-    void noExceptionThrownWhenTeiLimitNotReached()
-    {
-        when( trackedEntityStore
-            .getTrackedEntityCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
-                .thenReturn( 0 );
+  @Test
+  void noExceptionThrownWhenTeiLimitNotReached() {
+    when(trackedEntityStore.getTrackedEntityCountForGridWithMaxTeiLimit(
+            any(TrackedEntityQueryParams.class)))
+        .thenReturn(0);
 
-        teiService.validateSearchScope( params, true );
-    }
+    teiService.validateSearchScope(params, true);
+  }
 }

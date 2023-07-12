@@ -32,16 +32,13 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 
-public interface EnrollmentService
-{
-    Enrollment getEnrollment( String uid, EnrollmentParams params, boolean includeDeleted )
-        throws NotFoundException,
-        ForbiddenException;
+public interface EnrollmentService {
+  Enrollment getEnrollment(String uid, EnrollmentParams params, boolean includeDeleted)
+      throws NotFoundException, ForbiddenException;
 
-    Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params, boolean includeDeleted )
-        throws ForbiddenException;
+  Enrollment getEnrollment(Enrollment enrollment, EnrollmentParams params, boolean includeDeleted)
+      throws ForbiddenException;
 
-    Enrollments getEnrollments( EnrollmentOperationParams params )
-        throws ForbiddenException,
-        BadRequestException;
+  Enrollments getEnrollments(EnrollmentOperationParams params)
+      throws ForbiddenException, BadRequestException;
 }

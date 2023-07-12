@@ -38,10 +38,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
@@ -73,202 +71,175 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
- *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
- *             NEW FEATURES SHOULD BE ADDED ON TOP OF
- *             EventVisualizationController.
- *
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL. WE SHOULD AVOID
+ *     CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW FEATURES SHOULD BE ADDED ON TOP OF
+ *     EventVisualizationController.
  * @author Jan Henrik Overland
  */
 @OpenApi.Ignore
 @Deprecated
 @Controller
-@RequestMapping( value = EventChartSchemaDescriptor.API_ENDPOINT )
-public class EventChartController
-    extends AbstractCrudController<EventChart>
-{
-    @Autowired
-    private EventChartService eventChartService;
+@RequestMapping(value = EventChartSchemaDescriptor.API_ENDPOINT)
+public class EventChartController extends AbstractCrudController<EventChart> {
+  @Autowired private EventChartService eventChartService;
 
-    @Autowired
-    private ChartService chartService;
+  @Autowired private ChartService chartService;
 
-    @Autowired
-    private DimensionService dimensionService;
+  @Autowired private DimensionService dimensionService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    @Autowired
-    private ContextUtils contextUtils;
+  @Autowired private ContextUtils contextUtils;
 
-    // --------------------------------------------------------------------------
-    // CRUD
-    // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // CRUD
+  // --------------------------------------------------------------------------
 
-    // TODO: Block querying LINE_LIST and PIVOT_TABLE type.
+  // TODO: Block querying LINE_LIST and PIVOT_TABLE type.
 
-    @Override
-    protected EventChart deserializeJsonEntity( HttpServletRequest request )
-        throws IOException
-    {
-        EventChart eventChart = super.deserializeJsonEntity( request );
-        mergeEventChart( eventChart );
+  @Override
+  protected EventChart deserializeJsonEntity(HttpServletRequest request) throws IOException {
+    EventChart eventChart = super.deserializeJsonEntity(request);
+    mergeEventChart(eventChart);
 
-        applyCompatibilityConversions( eventChart );
+    applyCompatibilityConversions(eventChart);
 
-        return eventChart;
+    return eventChart;
+  }
+
+  @Override
+  protected EventChart deserializeXmlEntity(HttpServletRequest request) throws IOException {
+    EventChart eventChart = super.deserializeXmlEntity(request);
+    mergeEventChart(eventChart);
+
+    applyCompatibilityConversions(eventChart);
+
+    return eventChart;
+  }
+
+  // --------------------------------------------------------------------------
+  // Get data
+  // --------------------------------------------------------------------------
+
+  @GetMapping(value = {"/{uid}/data", "/{uid}/data.png"})
+  public void getChart(
+      @PathVariable("uid") String uid,
+      @RequestParam(value = "date", required = false) Date date,
+      @RequestParam(value = "ou", required = false) String ou,
+      @RequestParam(value = "width", defaultValue = "800", required = false) int width,
+      @RequestParam(value = "height", defaultValue = "500", required = false) int height,
+      @RequestParam(value = "attachment", required = false) boolean attachment,
+      HttpServletResponse response)
+      throws IOException, WebMessageException {
+    EventChart chart = eventChartService.getEventChart(uid); // TODO no
+    // acl?
+
+    if (chart == null) {
+      throw new WebMessageException(notFound("Event chart does not exist: " + uid));
     }
 
-    @Override
-    protected EventChart deserializeXmlEntity( HttpServletRequest request )
-        throws IOException
-    {
-        EventChart eventChart = super.deserializeXmlEntity( request );
-        mergeEventChart( eventChart );
+    OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit(ou) : null;
 
-        applyCompatibilityConversions( eventChart );
+    JFreeChart jFreeChart =
+        chartService.getJFreeChart(new PlotData(chart), date, unit, i18nManager.getI18nFormat());
 
-        return eventChart;
-    }
+    String filename = CodecUtils.filenameEncode(chart.getName()) + ".png";
 
-    // --------------------------------------------------------------------------
-    // Get data
-    // --------------------------------------------------------------------------
+    contextUtils.configureResponse(
+        response,
+        ContextUtils.CONTENT_TYPE_PNG,
+        CacheStrategy.RESPECT_SYSTEM_SETTING,
+        filename,
+        attachment);
 
-    @GetMapping( value = { "/{uid}/data", "/{uid}/data.png" } )
-    public void getChart(
-        @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "date", required = false ) Date date,
-        @RequestParam( value = "ou", required = false ) String ou,
-        @RequestParam( value = "width", defaultValue = "800", required = false ) int width,
-        @RequestParam( value = "height", defaultValue = "500", required = false ) int height,
-        @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response )
-        throws IOException,
-        WebMessageException
-    {
-        EventChart chart = eventChartService.getEventChart( uid ); // TODO no
-                                                                  // acl?
+    ChartUtils.writeChartAsPNG(response.getOutputStream(), jFreeChart, width, height);
+  }
 
-        if ( chart == null )
-        {
-            throw new WebMessageException( notFound( "Event chart does not exist: " + uid ) );
-        }
+  // --------------------------------------------------------------------------
+  // Hooks
+  // --------------------------------------------------------------------------
 
-        OrganisationUnit unit = ou != null ? organisationUnitService.getOrganisationUnit( ou ) : null;
+  /**
+   * @deprecated This is a temporary workaround to keep EventChart backward compatible with the new
+   *     EventVisualization entity. Only legacy and chart related types can be returned by this
+   *     endpoint.
+   * @param filters
+   */
+  @Deprecated
+  @Override
+  protected void forceFiltering(final WebOptions webOptions, final List<String> filters) {
+    filters.add("type:!eq:PIVOT_TABLE");
+    filters.add("type:!eq:LINE_LIST");
+    filters.add("legacy:eq:true");
+  }
 
-        JFreeChart jFreeChart = chartService.getJFreeChart( new PlotData( chart ), date, unit,
-            i18nManager.getI18nFormat() );
-
-        String filename = CodecUtils.filenameEncode( chart.getName() ) + ".png";
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,
-            filename, attachment );
-
-        ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
-    }
-
-    // --------------------------------------------------------------------------
-    // Hooks
-    // --------------------------------------------------------------------------
-
+  @Override
+  protected void preUpdateEntity(final EventChart eventChart, final EventChart newEventChart) {
     /**
-     * @deprecated This is a temporary workaround to keep EventChart backward
-     *             compatible with the new EventVisualization entity. Only
-     *             legacy and chart related types can be returned by this
-     *             endpoint.
-     *
-     * @param filters
+     * If the EventChart was already marked as non-legacy, it cannot be updated through the legacy
+     * endpoints. It can be only updated through EventVisualization endpoints.
      */
-    @Deprecated
-    @Override
-    protected void forceFiltering( final WebOptions webOptions, final List<String> filters )
-    {
-        filters.add( "type:!eq:PIVOT_TABLE" );
-        filters.add( "type:!eq:LINE_LIST" );
-        filters.add( "legacy:eq:true" );
+    if (eventChart != null && !eventChart.isLegacy()) {
+      throw new IllegalQueryException(new ErrorMessage(E7231, "chart"));
+    }
+  }
+
+  @Override
+  protected void postProcessResponseEntity(
+      EventChart eventChart, WebOptions options, Map<String, String> parameters) {
+    eventChart.populateAnalyticalProperties();
+
+    User currentUser = currentUserService.getCurrentUser();
+
+    if (currentUser != null) {
+      Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+      for (OrganisationUnit organisationUnit : eventChart.getOrganisationUnits()) {
+        eventChart
+            .getParentGraphMap()
+            .put(organisationUnit.getUid(), organisationUnit.getParentGraph(roots));
+      }
     }
 
-    @Override
-    protected void preUpdateEntity( final EventChart eventChart, final EventChart newEventChart )
-    {
-        /**
-         * If the EventChart was already marked as non-legacy, it cannot be
-         * updated through the legacy endpoints. It can be only updated through
-         * EventVisualization endpoints.
-         */
-        if ( eventChart != null && !eventChart.isLegacy() )
-        {
-            throw new IllegalQueryException( new ErrorMessage( E7231, "chart" ) );
-        }
+    I18nFormat format = i18nManager.getI18nFormat();
+
+    if (eventChart.getPeriods() != null && !eventChart.getPeriods().isEmpty()) {
+      for (Period period : eventChart.getPeriods()) {
+        period.setName(format.formatPeriod(period));
+      }
     }
+  }
 
-    @Override
-    protected void postProcessResponseEntity( EventChart eventChart, WebOptions options,
-        Map<String, String> parameters )
-    {
-        eventChart.populateAnalyticalProperties();
+  // --------------------------------------------------------------------------
+  // Supportive methods
+  // --------------------------------------------------------------------------
 
-        User currentUser = currentUserService.getCurrentUser();
+  private void mergeEventChart(EventChart chart) {
+    dimensionService.mergeAnalyticalObject(chart);
+    dimensionService.mergeEventAnalyticalObject(chart);
 
-        if ( currentUser != null )
-        {
-            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+    chart.getColumnDimensions().clear();
+    chart.getRowDimensions().clear();
+    chart.getFilterDimensions().clear();
 
-            for ( OrganisationUnit organisationUnit : eventChart.getOrganisationUnits() )
-            {
-                eventChart.getParentGraphMap().put( organisationUnit.getUid(),
-                    organisationUnit.getParentGraph( roots ) );
-            }
-        }
+    chart.getColumnDimensions().addAll(getDimensions(chart.getColumns()));
+    chart.getRowDimensions().addAll(getDimensions(chart.getRows()));
+    chart.getFilterDimensions().addAll(getDimensions(chart.getFilters()));
+  }
 
-        I18nFormat format = i18nManager.getI18nFormat();
-
-        if ( eventChart.getPeriods() != null && !eventChart.getPeriods().isEmpty() )
-        {
-            for ( Period period : eventChart.getPeriods() )
-            {
-                period.setName( format.formatPeriod( period ) );
-            }
-        }
+  /**
+   * This method encapsulated the necessary conversions to keep this object compatible with
+   * EventVisualization. This is need to enable backward compatibility during the deprecation
+   * process of the EventChart.
+   *
+   * @param eventChart
+   */
+  private void applyCompatibilityConversions(EventChart eventChart) throws IOException {
+    // Block persisting of LINE_LIST and PIVOT_TABLE types.
+    if (eventChart.getType() == LINE_LIST || eventChart.getType() == PIVOT_TABLE) {
+      throw new IOException("Cannot convert type: " + eventChart.getType());
     }
-
-    // --------------------------------------------------------------------------
-    // Supportive methods
-    // --------------------------------------------------------------------------
-
-    private void mergeEventChart( EventChart chart )
-    {
-        dimensionService.mergeAnalyticalObject( chart );
-        dimensionService.mergeEventAnalyticalObject( chart );
-
-        chart.getColumnDimensions().clear();
-        chart.getRowDimensions().clear();
-        chart.getFilterDimensions().clear();
-
-        chart.getColumnDimensions().addAll( getDimensions( chart.getColumns() ) );
-        chart.getRowDimensions().addAll( getDimensions( chart.getRows() ) );
-        chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
-    }
-
-    /**
-     * This method encapsulated the necessary conversions to keep this object
-     * compatible with EventVisualization. This is need to enable backward
-     * compatibility during the deprecation process of the EventChart.
-     *
-     * @param eventChart
-     */
-    private void applyCompatibilityConversions( EventChart eventChart )
-        throws IOException
-    {
-        // Block persisting of LINE_LIST and PIVOT_TABLE types.
-        if ( eventChart.getType() == LINE_LIST || eventChart.getType() == PIVOT_TABLE )
-        {
-            throw new IOException( "Cannot convert type: " + eventChart.getType() );
-        }
-    }
+  }
 }

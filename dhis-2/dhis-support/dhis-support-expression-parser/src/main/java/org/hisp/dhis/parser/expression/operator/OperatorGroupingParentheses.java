@@ -38,13 +38,10 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
  *
  * @author Jim Grace
  */
-public class OperatorGroupingParentheses
-    extends AntlrOperatorGroupingParentheses
-    implements ExpressionItem
-{
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return "(" + visitor.castStringVisit( ctx.expr( 0 ) ) + ")";
-    }
+public class OperatorGroupingParentheses extends AntlrOperatorGroupingParentheses
+    implements ExpressionItem {
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return "(" + visitor.castStringVisit(ctx.expr(0)) + ")";
+  }
 }

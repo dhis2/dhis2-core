@@ -28,14 +28,11 @@
 package org.hisp.dhis.webapi.security.switchuser;
 
 import java.io.IOException;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
@@ -44,36 +41,29 @@ import org.springframework.security.web.authentication.switchuser.SwitchUserFilt
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @RequiredArgsConstructor
-public class DhisSwitchUserFilter extends SwitchUserFilter
-{
-    private final DhisConfigurationProvider config;
+public class DhisSwitchUserFilter extends SwitchUserFilter {
+  private final DhisConfigurationProvider config;
 
-    @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )
-        throws IOException,
-        ServletException
-    {
-        boolean enabled = config.isEnabled( ConfigurationKey.SWITCH_USER_FEATURE_ENABLED );
-        if ( enabled && isAllowListedIp( request.getRemoteAddr() ) )
-        {
-            super.doFilter( request, response, chain );
-            return;
-        }
-
-        chain.doFilter( request, response );
+  @Override
+  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+      throws IOException, ServletException {
+    boolean enabled = config.isEnabled(ConfigurationKey.SWITCH_USER_FEATURE_ENABLED);
+    if (enabled && isAllowListedIp(request.getRemoteAddr())) {
+      super.doFilter(request, response, chain);
+      return;
     }
 
-    private boolean isAllowListedIp( String remoteAddr )
-    {
-        String property = config.getProperty( ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS );
-        for ( String ip : property.split( "," ) )
-        {
-            if ( ip.trim().equalsIgnoreCase( remoteAddr ) )
-            {
-                return true;
-            }
-        }
+    chain.doFilter(request, response);
+  }
 
-        return false;
+  private boolean isAllowListedIp(String remoteAddr) {
+    String property = config.getProperty(ConfigurationKey.SWITCH_USER_ALLOW_LISTED_IPS);
+    for (String ip : property.split(",")) {
+      if (ip.trim().equalsIgnoreCase(remoteAddr)) {
+        return true;
+      }
     }
+
+    return false;
+  }
 }

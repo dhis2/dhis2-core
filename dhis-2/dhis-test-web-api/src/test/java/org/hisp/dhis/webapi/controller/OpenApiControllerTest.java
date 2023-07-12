@@ -32,62 +32,57 @@ import static org.hisp.dhis.utils.Assertions.assertLessOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.swagger.parser.OpenAPIParser;
+import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import java.util.List;
-
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
-import io.swagger.parser.OpenAPIParser;
-import io.swagger.v3.parser.core.models.SwaggerParseResult;
-
 /**
- * Tests the {@link org.hisp.dhis.webapi.openapi.OpenApiController} with Mock
- * MVC tests.
+ * Tests the {@link org.hisp.dhis.webapi.openapi.OpenApiController} with Mock MVC tests.
  *
- * The documents returned by the controller are generated "on-the-fly" and are
- * not dependent on any database input.
+ * <p>The documents returned by the controller are generated "on-the-fly" and are not dependent on
+ * any database input.
  *
  * @author Jan Bernitt
  */
-class OpenApiControllerTest extends DhisControllerConvenienceTest
-{
-    @Test
-    void testGetOpenApiDocumentJson()
-    {
-        JsonObject doc = GET( "/openapi/openapi.json?failOnNameClash=true" ).content();
-        assertTrue( doc.isObject() );
-        assertGreaterOrEqual( 150, doc.getObject( "paths" ).size() );
-        assertGreaterOrEqual( 0, doc.getObject( "security[0].basicAuth" ).size() );
-        assertGreaterOrEqual( 1, doc.getObject( "components.securitySchemes" ).size() );
-        assertGreaterOrEqual( 200, doc.getObject( "components.schemas" ).size() );
-        assertGreaterOrEqual( 200, doc.getObject( "components.schemas" ).size() );
+class OpenApiControllerTest extends DhisControllerConvenienceTest {
+  @Test
+  void testGetOpenApiDocumentJson() {
+    JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
+    assertTrue(doc.isObject());
+    assertTrue(doc.getObject("components.schemas.PropertyNames_OrganisationUnit").isObject());
+    assertGreaterOrEqual(150, doc.getObject("paths").size());
+    assertGreaterOrEqual(0, doc.getObject("security[0].basicAuth").size());
+    assertGreaterOrEqual(1, doc.getObject("components.securitySchemes").size());
+    assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
+    assertGreaterOrEqual(200, doc.getObject("components.schemas").size());
 
-        SwaggerParseResult result = new OpenAPIParser().readContents( doc.node().getDeclaration(), null,
-            null );
-        assertEquals( List.of(), result.getMessages(), "There should not be any errors" );
-    }
+    SwaggerParseResult result =
+        new OpenAPIParser().readContents(doc.node().getDeclaration(), null, null);
+    assertEquals(List.of(), result.getMessages(), "There should not be any errors");
+  }
 
-    @Test
-    void testGetOpenApiDocument_PathFilter()
-    {
-        JsonObject doc = GET( "/openapi/openapi.json?path=/users" ).content();
-        assertTrue( doc.isObject() );
-        assertTrue(
-            doc.getObject( "paths" ).has( "/users/gist", "/users/invite", "/users/invites", "/users/sharing" ) );
-        assertLessOrEqual( 25, doc.getObject( "paths" ).size() );
-        assertLessOrEqual( 35, doc.getObject( "components.schemas" ).size() );
-    }
+  @Test
+  void testGetOpenApiDocument_PathFilter() {
+    JsonObject doc = GET("/openapi/openapi.json?path=/users").content();
+    assertTrue(doc.isObject());
+    assertTrue(
+        doc.getObject("paths")
+            .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
+    assertLessOrEqual(25, doc.getObject("paths").size());
+    assertLessOrEqual(35, doc.getObject("components.schemas").size());
+  }
 
-    @Test
-    void testGetOpenApiDocument_TagFilter()
-    {
-        JsonObject doc = GET( "/openapi/openapi.json?tag=user" ).content();
-        assertTrue( doc.isObject() );
-        assertTrue(
-            doc.getObject( "paths" ).has( "/users/gist", "/users/invite", "/users/invites", "/users/sharing" ) );
-        assertLessOrEqual( 130, doc.getObject( "paths" ).size() );
-        assertLessOrEqual( 60, doc.getObject( "components.schemas" ).size() );
-    }
-
+  @Test
+  void testGetOpenApiDocument_TagFilter() {
+    JsonObject doc = GET("/openapi/openapi.json?tag=user").content();
+    assertTrue(doc.isObject());
+    assertTrue(
+        doc.getObject("paths")
+            .has("/users/gist", "/users/invite", "/users/invites", "/users/sharing"));
+    assertLessOrEqual(130, doc.getObject("paths").size());
+    assertLessOrEqual(60, doc.getObject("components.schemas").size());
+  }
 }

@@ -30,17 +30,16 @@ package org.hisp.dhis.dashboard;
 /**
  * @author Lars Helge Overland
  */
-public enum DashboardItemType
-{
-    VISUALIZATION,
-    EVENT_VISUALIZATION,
-    EVENT_CHART,
-    MAP,
-    EVENT_REPORT,
-    USERS,
-    REPORTS,
-    RESOURCES,
-    TEXT,
-    MESSAGES,
-    APP
+public enum DashboardItemType {
+  VISUALIZATION,
+  EVENT_VISUALIZATION,
+  EVENT_CHART,
+  MAP,
+  EVENT_REPORT,
+  USERS,
+  REPORTS,
+  RESOURCES,
+  TEXT,
+  MESSAGES,
+  APP
 }

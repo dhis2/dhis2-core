@@ -28,7 +28,6 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -43,70 +42,72 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair Asghar
  */
-
 @Slf4j
 @Component
-public class ShowHideOptionGroupProgramRuleActionValidator extends BaseProgramRuleActionValidator
-{
-    @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationContext validationContext )
-    {
-        ProgramRule rule = validationContext.getProgramRule();
+public class ShowHideOptionGroupProgramRuleActionValidator extends BaseProgramRuleActionValidator {
+  @Override
+  public ProgramRuleActionValidationResult validate(
+      ProgramRuleAction programRuleAction, ProgramRuleActionValidationContext validationContext) {
+    ProgramRule rule = validationContext.getProgramRule();
 
-        // First checking the validity of DataElement and TEA
-        ProgramRuleActionValidationResult result = super.validate( programRuleAction,
-            validationContext );
+    // First checking the validity of DataElement and TEA
+    ProgramRuleActionValidationResult result = super.validate(programRuleAction, validationContext);
 
-        if ( !result.isValid() )
-        {
-            return result;
-        }
-
-        if ( !programRuleAction.hasOptionGroup() )
-        {
-            log.debug( String.format( "OptionGroup cannot be null for program rule: %s ",
-                rule.getName() ) );
-
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4040,
-                    rule.getName() ) )
-                .build();
-        }
-
-        OptionGroup optionGroup = validationContext.getOptionGroup();
-
-        if ( optionGroup == null )
-        {
-            optionGroup = validationContext.getProgramRuleActionValidationService().getOptionService()
-                .getOptionGroup( programRuleAction.getOptionGroup().getUid() );
-        }
-
-        if ( optionGroup == null )
-        {
-            log.debug( String.format( "OptionGroup: %s associated with program rule: %s does not exist",
-                programRuleAction.getOptionGroup().getUid(),
-                rule.getName() ) );
-
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport(
-                    new ErrorReport( Option.class, ErrorCode.E4043, programRuleAction.getOptionGroup().getUid(),
-                        rule.getName() ) )
-                .build();
-        }
-
-        if ( ObjectUtils.anyNotNull( programRuleAction.getOption(), programRuleAction.getProgramStage(),
-            programRuleAction.getProgramStageSection() ) )
-        {
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4058,
-                    rule.getName(), ProgramRuleActionType.HIDEOPTIONGROUP.name() ) )
-                .build();
-        }
-
-        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+    if (!result.isValid()) {
+      return result;
     }
+
+    if (!programRuleAction.hasOptionGroup()) {
+      log.debug(String.format("OptionGroup cannot be null for program rule: %s ", rule.getName()));
+
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(new ErrorReport(Option.class, ErrorCode.E4040, rule.getName()))
+          .build();
+    }
+
+    OptionGroup optionGroup = validationContext.getOptionGroup();
+
+    if (optionGroup == null) {
+      optionGroup =
+          validationContext
+              .getProgramRuleActionValidationService()
+              .getOptionService()
+              .getOptionGroup(programRuleAction.getOptionGroup().getUid());
+    }
+
+    if (optionGroup == null) {
+      log.debug(
+          String.format(
+              "OptionGroup: %s associated with program rule: %s does not exist",
+              programRuleAction.getOptionGroup().getUid(), rule.getName()));
+
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(
+              new ErrorReport(
+                  Option.class,
+                  ErrorCode.E4043,
+                  programRuleAction.getOptionGroup().getUid(),
+                  rule.getName()))
+          .build();
+    }
+
+    if (ObjectUtils.anyNotNull(
+        programRuleAction.getOption(),
+        programRuleAction.getProgramStage(),
+        programRuleAction.getProgramStageSection())) {
+      return ProgramRuleActionValidationResult.builder()
+          .valid(false)
+          .errorReport(
+              new ErrorReport(
+                  Option.class,
+                  ErrorCode.E4058,
+                  rule.getName(),
+                  ProgramRuleActionType.HIDEOPTIONGROUP.name()))
+          .build();
+    }
+
+    return ProgramRuleActionValidationResult.builder().valid(true).build();
+  }
 }

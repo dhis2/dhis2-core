@@ -38,7 +38,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOption;
@@ -58,159 +57,149 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class MessageFormatterTest
-{
+class MessageFormatterTest {
 
-    private TrackerIdSchemeParams idSchemes;
+  private TrackerIdSchemeParams idSchemes;
 
-    @BeforeEach
-    void setUp()
-    {
-        idSchemes = TrackerIdSchemeParams.builder().build();
-    }
+  @BeforeEach
+  void setUp() {
+    idSchemes = TrackerIdSchemeParams.builder().build();
+  }
 
-    @Test
-    void format()
-    {
+  @Test
+  void format() {
 
-        assertEquals( "User: `Snow`, has no write access to OrganisationUnit: `ward`.", MessageFormatter
-            .format( idSchemes, "User: `{0}`, has no write access to OrganisationUnit: `{1}`.", "Snow", "ward" ) );
-    }
+    assertEquals(
+        "User: `Snow`, has no write access to OrganisationUnit: `ward`.",
+        MessageFormatter.format(
+            idSchemes,
+            "User: `{0}`, has no write access to OrganisationUnit: `{1}`.",
+            "Snow",
+            "ward"));
+  }
 
-    @Test
-    void formatWithoutArgs()
-    {
+  @Test
+  void formatWithoutArgs() {
 
-        assertEquals( "User has no write access to OrganisationUnit.",
-            MessageFormatter.format( idSchemes, "User has no write access to OrganisationUnit." ) );
-    }
+    assertEquals(
+        "User has no write access to OrganisationUnit.",
+        MessageFormatter.format(idSchemes, "User has no write access to OrganisationUnit."));
+  }
 
-    @Test
-    void formatArgumentsShouldTurnIdentifiableObjectIntoArgument()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .idScheme( TrackerIdSchemeParam.UID )
-            .programIdScheme( TrackerIdSchemeParam.NAME )
-            .programStageIdScheme( TrackerIdSchemeParam.NAME )
-            .orgUnitIdScheme( TrackerIdSchemeParam.ofAttribute( "HpSAvRWtdDR" ) )
-            .dataElementIdScheme( TrackerIdSchemeParam.ofAttribute( "m0GpPuMUfFW" ) )
-            .categoryOptionComboIdScheme( TrackerIdSchemeParam.ofAttribute( "qAvXlaodIZ9" ) )
-            .categoryOptionIdScheme( TrackerIdSchemeParam.ofAttribute( "y0Yxr50hAbP" ) )
+  @Test
+  void formatArgumentsShouldTurnIdentifiableObjectIntoArgument() {
+    TrackerIdSchemeParams idSchemes =
+        TrackerIdSchemeParams.builder()
+            .idScheme(TrackerIdSchemeParam.UID)
+            .programIdScheme(TrackerIdSchemeParam.NAME)
+            .programStageIdScheme(TrackerIdSchemeParam.NAME)
+            .orgUnitIdScheme(TrackerIdSchemeParam.ofAttribute("HpSAvRWtdDR"))
+            .dataElementIdScheme(TrackerIdSchemeParam.ofAttribute("m0GpPuMUfFW"))
+            .categoryOptionComboIdScheme(TrackerIdSchemeParam.ofAttribute("qAvXlaodIZ9"))
+            .categoryOptionIdScheme(TrackerIdSchemeParam.ofAttribute("y0Yxr50hAbP"))
             .build();
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( "WTTYiPQDqh1" );
-        Program program = new Program( "friendship" );
-        ProgramStage programStage = new ProgramStage( "meet", program );
-        OrganisationUnit orgUnit = new OrganisationUnit();
-        orgUnit.setAttributeValues( attributeValues( "HpSAvRWtdDR", "sunshine" ) );
-        DataElement dataElement = new DataElement();
-        dataElement.setAttributeValues( attributeValues( "m0GpPuMUfFW", "ice" ) );
-        CategoryOptionCombo coc = new CategoryOptionCombo();
-        coc.setAttributeValues( attributeValues( "qAvXlaodIZ9", "wheat" ) );
-        CategoryOption co = new CategoryOption();
-        co.setAttributeValues( attributeValues( "y0Yxr50hAbP", "red" ) );
+    RelationshipType relationshipType = new RelationshipType();
+    relationshipType.setUid("WTTYiPQDqh1");
+    Program program = new Program("friendship");
+    ProgramStage programStage = new ProgramStage("meet", program);
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setAttributeValues(attributeValues("HpSAvRWtdDR", "sunshine"));
+    DataElement dataElement = new DataElement();
+    dataElement.setAttributeValues(attributeValues("m0GpPuMUfFW", "ice"));
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setAttributeValues(attributeValues("qAvXlaodIZ9", "wheat"));
+    CategoryOption co = new CategoryOption();
+    co.setAttributeValues(attributeValues("y0Yxr50hAbP", "red"));
 
-        List<String> args = MessageFormatter.formatArguments( idSchemes, relationshipType, program, programStage,
-            orgUnit, dataElement, coc, co );
+    List<String> args =
+        MessageFormatter.formatArguments(
+            idSchemes, relationshipType, program, programStage, orgUnit, dataElement, coc, co);
 
-        assertContainsOnly(
-            List.of( "WTTYiPQDqh1",
-                "friendship",
-                "meet",
-                "sunshine",
-                "ice",
-                "wheat",
-                "red" ),
-            args );
-    }
+    assertContainsOnly(
+        List.of("WTTYiPQDqh1", "friendship", "meet", "sunshine", "ice", "wheat", "red"), args);
+  }
 
-    private Set<AttributeValue> attributeValues( String uid, String value )
-    {
-        return Set.of( new AttributeValue( attribute( uid ), value ) );
-    }
+  private Set<AttributeValue> attributeValues(String uid, String value) {
+    return Set.of(new AttributeValue(attribute(uid), value));
+  }
 
-    private Attribute attribute( String attributeUid )
-    {
-        Attribute att = new Attribute();
-        att.setUid( attributeUid );
-        return att;
-    }
+  private Attribute attribute(String attributeUid) {
+    Attribute att = new Attribute();
+    att.setUid(attributeUid);
+    return att;
+  }
 
-    @Test
-    void formatArgumentsShouldTurnInstantIntoArgument()
-    {
-        final Instant now = Instant.now();
+  @Test
+  void formatArgumentsShouldTurnInstantIntoArgument() {
+    final Instant now = Instant.now();
 
-        List<String> args = MessageFormatter.formatArguments( idSchemes, now );
+    List<String> args = MessageFormatter.formatArguments(idSchemes, now);
 
-        assertThat( args.size(), is( 1 ) );
-        assertThat( args.get( 0 ), is( DateUtils.getIso8601NoTz( DateUtils.fromInstant( now ) ) ) );
-    }
+    assertThat(args.size(), is(1));
+    assertThat(args.get(0), is(DateUtils.getIso8601NoTz(DateUtils.fromInstant(now))));
+  }
 
-    @Test
-    void formatArgumentsShouldTurnDateIntoArgument()
-    {
-        final Date now = Date.from( Instant.now() );
+  @Test
+  void formatArgumentsShouldTurnDateIntoArgument() {
+    final Date now = Date.from(Instant.now());
 
-        List<String> args = MessageFormatter.formatArguments( idSchemes, now );
+    List<String> args = MessageFormatter.formatArguments(idSchemes, now);
 
-        assertThat( args.size(), is( 1 ) );
-        assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
-    }
+    assertThat(args.size(), is(1));
+    assertThat(args.get(0), is(DateFormat.getInstance().format(now)));
+  }
 
-    @Test
-    void formatArgumentsShouldTurnStringsIntoArguments()
-    {
-        List<String> args = MessageFormatter.formatArguments( idSchemes, "foo", "faa" );
+  @Test
+  void formatArgumentsShouldTurnStringsIntoArguments() {
+    List<String> args = MessageFormatter.formatArguments(idSchemes, "foo", "faa");
 
-        assertContainsOnly( List.of( "foo", "faa" ), args );
-    }
+    assertContainsOnly(List.of("foo", "faa"), args);
+  }
 
-    @Test
-    void formatArgumentsShouldTurnMetadataIdentifierIntoArguments()
-    {
-        List<String> args = MessageFormatter.formatArguments( idSchemes,
-            MetadataIdentifier.ofUid( "iB8AZpf681V" ), MetadataIdentifier.ofAttribute( "zwccdzhk5zc", "GREEN" ) );
+  @Test
+  void formatArgumentsShouldTurnMetadataIdentifierIntoArguments() {
+    List<String> args =
+        MessageFormatter.formatArguments(
+            idSchemes,
+            MetadataIdentifier.ofUid("iB8AZpf681V"),
+            MetadataIdentifier.ofAttribute("zwccdzhk5zc", "GREEN"));
 
-        assertContainsOnly( List.of( "iB8AZpf681V", "GREEN" ), args );
-    }
+    assertContainsOnly(List.of("iB8AZpf681V", "GREEN"), args);
+  }
 
-    @Test
-    void formatArgumentsShouldTurnTrackedEntityIntoArguments()
-    {
-        List<String> args = MessageFormatter.formatArguments( idSchemes,
-            TrackedEntity.builder().trackedEntity( "zwccdzhk5zc" ).build() );
+  @Test
+  void formatArgumentsShouldTurnTrackedEntityIntoArguments() {
+    List<String> args =
+        MessageFormatter.formatArguments(
+            idSchemes, TrackedEntity.builder().trackedEntity("zwccdzhk5zc").build());
 
-        assertContainsOnly( List.of( "zwccdzhk5zc" ), args );
-    }
+    assertContainsOnly(List.of("zwccdzhk5zc"), args);
+  }
 
-    @Test
-    void formatArgumentsShouldTurnEnrollmentIntoArguments()
-    {
-        List<String> args = MessageFormatter.formatArguments( idSchemes,
-            Enrollment.builder().enrollment( "zwccdzhk5zc" ).build() );
+  @Test
+  void formatArgumentsShouldTurnEnrollmentIntoArguments() {
+    List<String> args =
+        MessageFormatter.formatArguments(
+            idSchemes, Enrollment.builder().enrollment("zwccdzhk5zc").build());
 
-        assertContainsOnly( List.of( "zwccdzhk5zc" ), args );
-    }
+    assertContainsOnly(List.of("zwccdzhk5zc"), args);
+  }
 
-    @Test
-    void formatArgumentsShouldTurnEventIntoArguments()
-    {
-        List<String> args = MessageFormatter.formatArguments( idSchemes,
-            Event.builder().event( "zwccdzhk5zc" ).build() );
+  @Test
+  void formatArgumentsShouldTurnEventIntoArguments() {
+    List<String> args =
+        MessageFormatter.formatArguments(idSchemes, Event.builder().event("zwccdzhk5zc").build());
 
-        assertContainsOnly( List.of( "zwccdzhk5zc" ), args );
-    }
+    assertContainsOnly(List.of("zwccdzhk5zc"), args);
+  }
 
-    @Test
-    void formatArgumentsWithNumber()
-    {
-        assertEquals( List.of( "" ), MessageFormatter.formatArguments( idSchemes, 2 ) );
-    }
+  @Test
+  void formatArgumentsWithNumber() {
+    assertEquals(List.of(""), MessageFormatter.formatArguments(idSchemes, 2));
+  }
 
-    @Test
-    void formatArgumentsWithoutArgument()
-    {
-        assertIsEmpty( MessageFormatter.formatArguments( idSchemes ) );
-    }
+  @Test
+  void formatArgumentsWithoutArgument() {
+    assertIsEmpty(MessageFormatter.formatArguments(idSchemes));
+  }
 }

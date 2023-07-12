@@ -30,12 +30,11 @@ package org.hisp.dhis.audit;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AuditType
-{
-    CREATE,
-    READ,
-    UPDATE,
-    DELETE,
-    SEARCH,
-    SECURITY
+public enum AuditType {
+  CREATE,
+  READ,
+  UPDATE,
+  DELETE,
+  SEARCH,
+  SECURITY
 }

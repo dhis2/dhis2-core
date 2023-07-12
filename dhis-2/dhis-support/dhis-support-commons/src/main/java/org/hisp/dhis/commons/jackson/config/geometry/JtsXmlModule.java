@@ -27,37 +27,31 @@
  */
 package org.hisp.dhis.commons.jackson.config.geometry;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-
 import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
 import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 
 /**
  * @author Enrico Colasante
  */
-public class JtsXmlModule
-    extends SimpleModule
-{
-    public JtsXmlModule()
-    {
-        this( new GeometryFactory() );
-    }
+public class JtsXmlModule extends SimpleModule {
+  public JtsXmlModule() {
+    this(new GeometryFactory());
+  }
 
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public JtsXmlModule( GeometryFactory geometryFactory )
-    {
-        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
-        this.addSerializer( Geometry.class, new GeometrySerializer() );
-        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
-        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
-    }
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public JtsXmlModule(GeometryFactory geometryFactory) {
+    super("JtsXmlModule", new Version(1, 0, 0, (String) null, "org.dhis", "dhis-service-node"));
+    this.addSerializer(Geometry.class, new GeometrySerializer());
+    XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser(geometryFactory);
+    this.addDeserializer(Geometry.class, new GeometryDeserializer(genericGeometryParser));
+  }
 
-    @Override
-    public void setupModule( SetupContext context )
-    {
-        super.setupModule( context );
-    }
+  @Override
+  public void setupModule(SetupContext context) {
+    super.setupModule(context);
+  }
 }

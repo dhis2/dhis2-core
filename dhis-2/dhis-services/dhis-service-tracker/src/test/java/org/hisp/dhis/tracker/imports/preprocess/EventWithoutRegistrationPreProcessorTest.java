@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -45,61 +44,57 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class EventWithoutRegistrationPreProcessorTest
-{
+class EventWithoutRegistrationPreProcessorTest {
 
-    private EventWithoutRegistrationPreProcessor preProcessorToTest;
+  private EventWithoutRegistrationPreProcessor preProcessorToTest;
 
-    @BeforeEach
-    void setUp()
-    {
-        this.preProcessorToTest = new EventWithoutRegistrationPreProcessor();
-    }
+  @BeforeEach
+  void setUp() {
+    this.preProcessorToTest = new EventWithoutRegistrationPreProcessor();
+  }
 
-    @Test
-    void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration()
-    {
-        // Given
-        Event event = new Event();
-        event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( "enrollmentUid" );
-        Program program = new Program();
-        program.setUid( "programUid" );
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( "programStageUid" );
-        programStage.setProgram( program );
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.putEnrollmentsWithoutRegistration( "programUid", enrollment );
-        preheat.put( programStage );
-        bundle.setPreheat( preheat );
-        // When
-        preProcessorToTest.process( bundle );
-        // Then
-        assertEquals( "enrollmentUid", bundle.getEvents().get( 0 ).getEnrollment() );
-    }
+  @Test
+  void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration() {
+    // Given
+    Event event = new Event();
+    event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
+    TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid("enrollmentUid");
+    Program program = new Program();
+    program.setUid("programUid");
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("programStageUid");
+    programStage.setProgram(program);
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.putEnrollmentsWithoutRegistration("programUid", enrollment);
+    preheat.put(programStage);
+    bundle.setPreheat(preheat);
+    // When
+    preProcessorToTest.process(bundle);
+    // Then
+    assertEquals("enrollmentUid", bundle.getEvents().get(0).getEnrollment());
+  }
 
-    @Test
-    void testEnrollmentIsNotAddedIntoEventWhenItProgramStageHasNoReferenceToProgram()
-    {
-        // Given
-        Event event = new Event();
-        event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
-        Enrollment enrollment = new Enrollment();
-        enrollment.setUid( "enrollmentUid" );
-        Program program = new Program();
-        program.setUid( "programUid" );
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( "programStageUid" );
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.putEnrollmentsWithoutRegistration( "programUid", enrollment );
-        preheat.put( programStage );
-        bundle.setPreheat( preheat );
-        // When
-        preProcessorToTest.process( bundle );
-        // Then
-        assertNull( bundle.getEvents().get( 0 ).getEnrollment(), "enrollmentUid" );
-    }
+  @Test
+  void testEnrollmentIsNotAddedIntoEventWhenItProgramStageHasNoReferenceToProgram() {
+    // Given
+    Event event = new Event();
+    event.setProgramStage(MetadataIdentifier.ofUid("programStageUid"));
+    TrackerBundle bundle = TrackerBundle.builder().events(Collections.singletonList(event)).build();
+    Enrollment enrollment = new Enrollment();
+    enrollment.setUid("enrollmentUid");
+    Program program = new Program();
+    program.setUid("programUid");
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid("programStageUid");
+    TrackerPreheat preheat = new TrackerPreheat();
+    preheat.putEnrollmentsWithoutRegistration("programUid", enrollment);
+    preheat.put(programStage);
+    bundle.setPreheat(preheat);
+    // When
+    preProcessorToTest.process(bundle);
+    // Then
+    assertNull(bundle.getEvents().get(0).getEnrollment(), "enrollmentUid");
+  }
 }

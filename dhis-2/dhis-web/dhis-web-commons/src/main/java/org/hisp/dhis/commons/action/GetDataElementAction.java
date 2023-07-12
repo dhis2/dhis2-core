@@ -27,66 +27,58 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
  */
-public class GetDataElementAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetDataElementAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private DataElementService dataElementService;
+  private DataElementService dataElementService;
 
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
+  public void setDataElementService(DataElementService dataElementService) {
+    this.dataElementService = dataElementService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private DataElement dataElement;
+
+  public DataElement getDataElement() {
+    return dataElement;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(DataElement.class);
+
+    if (id != null) {
+      dataElement = dataElementService.getDataElement(id);
     }
 
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
+    canReadInstance(dataElement, currentUserService.getCurrentUser());
 
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private DataElement dataElement;
-
-    public DataElement getDataElement()
-    {
-        return dataElement;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( DataElement.class );
-
-        if ( id != null )
-        {
-            dataElement = dataElementService.getDataElement( id );
-        }
-
-        canReadInstance( dataElement, currentUserService.getCurrentUser() );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

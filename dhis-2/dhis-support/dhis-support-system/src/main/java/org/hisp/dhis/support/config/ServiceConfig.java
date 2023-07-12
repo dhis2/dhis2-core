@@ -35,18 +35,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "supportServiceConfig" )
-public class ServiceConfig
-{
-    @Bean
-    public RestTemplate restTemplate()
-    {
-        return new RestTemplate();
-    }
+@Configuration("supportServiceConfig")
+public class ServiceConfig {
+  @Bean
+  public RestTemplate restTemplate() {
+    return new RestTemplate();
+  }
 
-    @Bean
-    public UriComponentsBuilder uriComponentsBuilder()
-    {
-        return UriComponentsBuilder.newInstance();
-    }
+  @Bean
+  public UriComponentsBuilder uriComponentsBuilder() {
+    return UriComponentsBuilder.newInstance();
+  }
 }

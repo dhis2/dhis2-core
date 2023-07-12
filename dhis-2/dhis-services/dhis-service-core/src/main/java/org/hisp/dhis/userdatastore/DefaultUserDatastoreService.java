@@ -28,9 +28,7 @@
 package org.hisp.dhis.userdatastore;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,58 +38,51 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class DefaultUserDatastoreService implements UserDatastoreService
-{
-    private final UserDatastoreStore userDatastoreStore;
+public class DefaultUserDatastoreService implements UserDatastoreService {
+  private final UserDatastoreStore userDatastoreStore;
 
-    @Override
-    @Transactional( readOnly = true )
-    public UserDatastoreEntry getUserEntry( User user, String namespace, String key )
-    {
-        return userDatastoreStore.getUserKeyJsonValue( user, namespace, key );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public UserDatastoreEntry getUserEntry(User user, String namespace, String key) {
+    return userDatastoreStore.getUserKeyJsonValue(user, namespace, key);
+  }
 
-    @Override
-    @Transactional
-    public long addUserEntry( UserDatastoreEntry entry )
-    {
-        userDatastoreStore.save( entry );
-        return entry.getId();
-    }
+  @Override
+  @Transactional
+  public long addUserEntry(UserDatastoreEntry entry) {
+    userDatastoreStore.save(entry);
+    return entry.getId();
+  }
 
-    @Override
-    @Transactional
-    public void updateUserEntry( UserDatastoreEntry entry )
-    {
-        userDatastoreStore.update( entry );
-    }
+  @Override
+  @Transactional
+  public void updateUserEntry(UserDatastoreEntry entry) {
+    userDatastoreStore.update(entry);
+  }
 
-    @Override
-    @Transactional
-    public void deleteUserEntry( UserDatastoreEntry entry )
-    {
-        userDatastoreStore.delete( entry );
-    }
+  @Override
+  @Transactional
+  public void deleteUserEntry(UserDatastoreEntry entry) {
+    userDatastoreStore.delete(entry);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<String> getNamespacesByUser( User user )
-    {
-        return userDatastoreStore.getNamespacesByUser( user );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getNamespacesByUser(User user) {
+    return userDatastoreStore.getNamespacesByUser(user);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<String> getKeysByUserAndNamespace( User user, String namespace )
-    {
-        return userDatastoreStore.getKeysByUserAndNamespace( user, namespace );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<String> getKeysByUserAndNamespace(User user, String namespace) {
+    return userDatastoreStore.getKeysByUserAndNamespace(user, namespace);
+  }
 
-    @Override
-    @Transactional
-    public void deleteNamespaceFromUser( User user, String namespace )
-    {
-        userDatastoreStore.getUserKeyJsonValueByUserAndNamespace( user, namespace ).forEach(
-            userDatastoreStore::delete );
-    }
+  @Override
+  @Transactional
+  public void deleteNamespaceFromUser(User user, String namespace) {
+    userDatastoreStore
+        .getUserKeyJsonValueByUserAndNamespace(user, namespace)
+        .forEach(userDatastoreStore::delete);
+  }
 }

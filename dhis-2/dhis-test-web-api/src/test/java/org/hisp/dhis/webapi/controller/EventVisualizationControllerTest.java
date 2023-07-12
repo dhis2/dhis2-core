@@ -31,187 +31,454 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.web.HttpStatus.CONFLICT;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Controller tests for
- * {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
+ * Controller tests for {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
  *
  * @author maikel arabori
  */
-class EventVisualizationControllerTest extends DhisControllerConvenienceTest
-{
-    @Autowired
-    private IdentifiableObjectManager manager;
+class EventVisualizationControllerTest extends DhisControllerConvenienceTest {
+  @Autowired private ObjectMapper jsonMapper;
 
-    private Program mockProgram;
+  private Program mockProgram;
 
-    @BeforeEach
-    public void beforeEach()
-    {
-        mockProgram = createProgram( 'A' );
-        manager.save( mockProgram );
-    }
+  private ProgramStage mockProgramStage;
 
-    @Test
-    void testPostForSingleEventDate()
-    {
-        // Given
-        final String eventDateDimension = "eventDate";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String dimensionBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [" + dimensionBody + "]}";
+  private ProgramIndicator mockProgramIndicator;
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+  @BeforeEach
+  public void beforeEach() throws JsonProcessingException {
+    mockProgram = createProgram('A');
+    POST("/programs", jsonMapper.writeValueAsString(mockProgram)).content(CREATED);
 
-        // Then
-        final JsonObject response = GET( "/eventVisualizations/" + uid ).content();
+    mockProgramIndicator = createProgramIndicator('A', mockProgram, "exp", "filter");
+    mockProgramIndicator.setUid("deabcdefghB");
+    POST("/programIndicators", jsonMapper.writeValueAsString(mockProgramIndicator))
+        .content(CREATED);
 
-        assertThat( response.get( "simpleDimensions" ).toString(), containsString( "COLUMN" ) );
-        assertThat( response.get( "simpleDimensions" ).toString(), containsString( eventDateDimension ) );
-        assertThat( response.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( response.get( "columns" ).toString(), containsString( eventDateDimension ) );
-        assertThat( response.get( "rows" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( response.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
-    }
+    mockProgramStage = createProgramStage('A', mockProgram);
+    mockProgramStage.setUid("deabcdefghA");
+    POST("/programStages", jsonMapper.writeValueAsString(mockProgramStage)).content(CREATED);
+  }
 
-    @Test
-    void testPostForMultiEventDates()
-    {
-        // Given
-        final String eventDateDimension = "eventDate";
-        final String incidentDateDimension = "incidentDate";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String incidentDate = "2021-07-21_2021-08-01";
-        final String eventDateBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String incidentDateBody = "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '"
-            + incidentDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'rows': [" + eventDateBody + "," + incidentDateBody + "]}";
+  @Test
+  void testPostForSingleEventDate() {
+    // Given
+    String eventDateDimension = "eventDate";
+    String eventDate = "2021-07-21_2021-08-01";
+    String dimensionBody =
+        "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': ["
+            + dimensionBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final JsonObject response = GET( "/eventVisualizations/" + uid ).content();
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
 
-        assertThat( response.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
-        assertThat( response.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( response.get( "simpleDimensions" ).toString(), containsString( incidentDate ) );
-        assertThat( response.get( "rows" ).toString(), containsString( eventDateDimension ) );
-        assertThat( response.get( "rows" ).toString(), containsString( incidentDateDimension ) );
-        assertThat( response.get( "columns" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( response.get( "columns" ).toString(), not( containsString( incidentDateDimension ) ) );
-        assertThat( response.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( response.get( "filters" ).toString(), not( containsString( incidentDateDimension ) ) );
-    }
+    assertThat(response.get("simpleDimensions").toString(), containsString("COLUMN"));
+    assertThat(response.get("simpleDimensions").toString(), containsString(eventDateDimension));
+    assertThat(response.get("simpleDimensions").toString(), containsString(eventDate));
+    assertThat(response.get("columns").toString(), containsString(eventDateDimension));
+    assertThat(response.get("rows").toString(), not(containsString(eventDateDimension)));
+    assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
+  }
 
-    @Test
-    void testPostForInvalidEventDimension()
-    {
-        // Given
-        final String invalidDimension = "invalidDimension";
-        final String eventDate = "2021-07-21_2021-08-01";
-        final String dimensionBody = "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate
-            + "'}]}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [" + dimensionBody + "]}";
+  @Test
+  void testPostForMultiEventDates() {
+    // Given
+    String eventDateDimension = "eventDate";
+    String incidentDateDimension = "incidentDate";
+    String eventDate = "2021-07-21_2021-08-01";
+    String incidentDate = "2021-07-21_2021-08-01";
+    String eventDateBody =
+        "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    String incidentDateBody =
+        "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '" + incidentDate + "'}]}";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': ["
+            + eventDateBody
+            + ","
+            + incidentDateBody
+            + "]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        assertEquals( "Not a valid dimension: " + invalidDimension,
-            GET( "/eventVisualizations/" + uid ).error( BAD_REQUEST ).getMessage() );
-    }
+    // Then
+    JsonObject response = GET("/eventVisualizations/" + uid).content();
 
-    @Test
-    void testPostRepetitionForFilter()
-    {
-        // Given
-        final String dimension = "ou";
-        final String indexes = "[1,2,3,-2,-1,0]";
-        final String repetition = "'repetition': {'indexes': " + indexes + "}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'filters': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+    assertThat(response.get("simpleDimensions").toString(), containsString("ROW"));
+    assertThat(response.get("simpleDimensions").toString(), containsString(eventDate));
+    assertThat(response.get("simpleDimensions").toString(), containsString(incidentDate));
+    assertThat(response.get("rows").toString(), containsString(eventDateDimension));
+    assertThat(response.get("rows").toString(), containsString(incidentDateDimension));
+    assertThat(response.get("columns").toString(), not(containsString(eventDateDimension)));
+    assertThat(response.get("columns").toString(), not(containsString(incidentDateDimension)));
+    assertThat(response.get("filters").toString(), not(containsString(eventDateDimension)));
+    assertThat(response.get("filters").toString(), not(containsString(incidentDateDimension)));
+  }
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+  @Test
+  void testPostForInvalidEventDimension() {
+    // Given
+    String invalidDimension = "invalidDimension";
+    String eventDate = "2021-07-21_2021-08-01";
+    String dimensionBody =
+        "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate + "'}]}";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': ["
+            + dimensionBody
+            + "]}";
 
-        // Then
-        final String getParams = "?fields=:all,filters[:all,items,repetitions]";
-        final JsonObject response = GET( "/eventVisualizations/" + uid + getParams ).content();
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        assertThat( response.get( "repetitions" ).toString(), containsString( "FILTER" ) );
-        assertThat( response.get( "repetitions" ).toString(), containsString( indexes ) );
-        assertThat( response.get( "repetitions" ).toString(), containsString( dimension ) );
-        assertThat( response.get( "filters" ).toString(), containsString( indexes ) );
-        assertThat( response.get( "columns" ).toString(), not( containsString( indexes ) ) );
-        assertThat( response.get( "rows" ).toString(), not( containsString( indexes ) ) );
-    }
+    // Then
+    assertEquals(
+        "Not a valid dimension: " + invalidDimension,
+        GET("/eventVisualizations/" + uid).error(BAD_REQUEST).getMessage());
+  }
 
-    @Test
-    void testPostRepetitionForRow()
-    {
-        // Given
-        final String dimension = "pe";
-        final String indexes = "[1,2,0]";
-        final String repetition = "'repetition': {'indexes': " + indexes + "}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'rows': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+  @Test
+  void testPostRepetitionForFilter() {
+    // Given
+    String dimension = "ou";
+    String indexes = "[1,2,3,-2,-1,0]";
+    String repetition = "'repetition': {'indexes': " + indexes + "}";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'filters': [{'dimension': '"
+            + dimension
+            + "', "
+            + repetition
+            + "}]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final String getParams = "?fields=:all,rows[:all,items,repetitions]";
-        final JsonObject response = GET( "/eventVisualizations/" + uid + getParams ).content();
+    // Then
+    String getParams = "?fields=:all,filters[:all,items,repetitions]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
 
-        assertThat( response.get( "repetitions" ).toString(), containsString( "ROW" ) );
-        assertThat( response.get( "repetitions" ).toString(), containsString( indexes ) );
-        assertThat( response.get( "repetitions" ).toString(), containsString( dimension ) );
-        assertThat( response.get( "rows" ).toString(), containsString( indexes ) );
-        assertThat( response.get( "columns" ).toString(), not( containsString( indexes ) ) );
-        assertThat( response.get( "filters" ).toString(), not( containsString( indexes ) ) );
-    }
+    assertThat(response.get("repetitions").toString(), containsString("FILTER"));
+    assertThat(response.get("repetitions").toString(), containsString(indexes));
+    assertThat(response.get("repetitions").toString(), containsString(dimension));
+    assertThat(response.get("filters").toString(), containsString(indexes));
+    assertThat(response.get("columns").toString(), not(containsString(indexes)));
+    assertThat(response.get("rows").toString(), not(containsString(indexes)));
+  }
 
-    @Test
-    void testPostRepetitionForColumn()
-    {
-        // Given
-        final String dimension = "pe";
-        final String indexes = "[1,0,-1]";
-        final String repetition = "'repetition': {'indexes': " + indexes + "}";
-        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
-            + "'}, 'columns': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+  @Test
+  void testPostRepetitionForRow() {
+    // Given
+    String dimension = "pe";
+    String indexes = "[1,2,0]";
+    String repetition = "'repetition': {'indexes': " + indexes + "}";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'rows': [{'dimension': '"
+            + dimension
+            + "', "
+            + repetition
+            + "}]}";
 
-        // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
 
-        // Then
-        final String getParams = "?fields=:all,columns[:all,items,repetitions]";
-        final JsonObject response = GET( "/eventVisualizations/" + uid + getParams ).content();
+    // Then
+    String getParams = "?fields=:all,rows[:all,items,repetitions]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
 
-        assertThat( response.get( "repetitions" ).toString(), containsString( "COLUMN" ) );
-        assertThat( response.get( "repetitions" ).toString(), containsString( indexes ) );
-        assertThat( response.get( "repetitions" ).toString(), containsString( dimension ) );
-        assertThat( response.get( "columns" ).toString(), containsString( indexes ) );
-        assertThat( response.get( "rows" ).toString(), not( containsString( indexes ) ) );
-        assertThat( response.get( "filters" ).toString(), not( containsString( indexes ) ) );
-    }
+    assertThat(response.get("repetitions").toString(), containsString("ROW"));
+    assertThat(response.get("repetitions").toString(), containsString(indexes));
+    assertThat(response.get("repetitions").toString(), containsString(dimension));
+    assertThat(response.get("rows").toString(), containsString(indexes));
+    assertThat(response.get("columns").toString(), not(containsString(indexes)));
+    assertThat(response.get("filters").toString(), not(containsString(indexes)));
+  }
+
+  @Test
+  void testPostRepetitionForColumn() {
+    // Given
+    String dimension = "pe";
+    String indexes = "[1,0,-1]";
+    String repetition = "'repetition': {'indexes': " + indexes + "}";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "', "
+            + repetition
+            + "}]}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,repetitions]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(response.get("repetitions").toString(), containsString("COLUMN"));
+    assertThat(response.get("repetitions").toString(), containsString(indexes));
+    assertThat(response.get("repetitions").toString(), containsString(dimension));
+    assertThat(response.get("columns").toString(), containsString(indexes));
+    assertThat(response.get("rows").toString(), not(containsString(indexes)));
+    assertThat(response.get("filters").toString(), not(containsString(indexes)));
+  }
+
+  @Test
+  void testPostSortingObject() {
+    // Given
+    String dimension = "pe";
+    String sorting = "'sorting': [{'dimension': '" + dimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "'}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostSortingObjectWithPrefixedColumn() {
+    // Given
+    String programStageUid = mockProgramStage.getUid();
+    String dimensionUid = mockProgramIndicator.getUid();
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + programStageUid
+            + "."
+            + dimensionUid
+            + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimensionUid
+            + "',"
+            + "'programStage': {'id':'"
+            + programStageUid
+            + "'}"
+            + "}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(
+        response.get("sorting").toString(), containsString(programStageUid + "." + dimensionUid));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostSortingObjectWithPrefixedColumnWithIndex() {
+    // Given
+    String programStageUid = mockProgramStage.getUid() + "[-2]";
+    String dimensionUid = mockProgramIndicator.getUid();
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + programStageUid
+            + "."
+            + dimensionUid
+            + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimensionUid
+            + "',"
+            + "'programStage': {'id':'"
+            + programStageUid
+            + "'}"
+            + "}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(
+        response.get("sorting").toString(), containsString(programStageUid + "." + dimensionUid));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+  }
+
+  @Test
+  void testPostMultipleSortingObject() {
+    // Given
+    String dimension1 = "pe";
+    String dimension2 = "ou";
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + dimension1
+            + "', 'direction':'ASC'},"
+            + "{'dimension': '"
+            + dimension2
+            + "', 'direction':'DESC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension1
+            + "'}, {'dimension': '"
+            + dimension2
+            + "'}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+    assertThat(response.get("sorting").toString(), containsString("ou"));
+    assertThat(response.get("sorting").toString(), containsString("DESC"));
+  }
+
+  @Test
+  void testPostSortingObjectWithDuplication() {
+    // Given
+    String dimension = "pe";
+    String sorting =
+        "'sorting': [{'dimension': '"
+            + dimension
+            + "', 'direction':'ASC'},"
+            + "{'dimension': '"
+            + dimension
+            + "', 'direction':'DESC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '"
+            + dimension
+            + "'}],"
+            + sorting
+            + "}";
+
+    // When
+    String uid = assertStatus(CREATED, POST("/eventVisualizations/", body));
+
+    // Then
+    String getParams = "?fields=:all,columns[:all,items,sorting]";
+    JsonObject response = GET("/eventVisualizations/" + uid + getParams).content();
+
+    assertThat(response.get("sorting").toString(), containsString("pe"));
+    assertThat(response.get("sorting").toString(), containsString("ASC"));
+    assertThat(response.get("sorting").toString(), not(containsString("DESC")));
+  }
+
+  @Test
+  void testPostInvalidSortingObject() {
+    // Given
+    String invalidDimension = "invalidOne";
+    String sorting = "'sorting': [{'dimension': '" + invalidDimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'pe'}],"
+            + sorting
+            + "}";
+
+    // When
+    HttpResponse response = POST("/eventVisualizations/", body);
+
+    // Then
+    assertEquals(
+        "Sorting dimension ‘" + invalidDimension + "’ is not a column",
+        response.error(CONFLICT).getMessage());
+  }
+
+  @Test
+  void testPostBlankSortingObject() {
+    // Given
+    String blankDimension = " ";
+    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'pe'}],"
+            + sorting
+            + "}";
+
+    // When
+    HttpResponse response = POST("/eventVisualizations/", body);
+
+    // Then
+    assertEquals(
+        "Sorting must have a valid dimension and a direction",
+        response.error(CONFLICT).getMessage());
+  }
+
+  @Test
+  void testPostNullSortingObject() {
+    // Given
+    String blankDimension = " ";
+    String sorting = "'sorting': [{'dimension': '" + blankDimension + "', 'direction':'ASC'}]";
+    String body =
+        "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'"
+            + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': 'pe'}],"
+            + sorting
+            + "}";
+
+    // When
+    HttpResponse response = POST("/eventVisualizations/", body);
+
+    // Then
+    assertEquals(
+        "Sorting must have a valid dimension and a direction",
+        response.error(CONFLICT).getMessage());
+  }
 }

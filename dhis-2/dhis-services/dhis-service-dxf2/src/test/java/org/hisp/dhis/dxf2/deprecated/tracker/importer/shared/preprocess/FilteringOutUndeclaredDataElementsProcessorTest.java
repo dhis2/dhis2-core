@@ -33,13 +33,13 @@ import static org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.DataValueFil
 import static org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.DataValueFilteringTestSupport.getProgramMap;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
@@ -50,41 +50,52 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-class FilteringOutUndeclaredDataElementsProcessorTest
-{
+class FilteringOutUndeclaredDataElementsProcessorTest {
 
-    private FilteringOutUndeclaredDataElementsProcessor preProcessor;
+  private FilteringOutUndeclaredDataElementsProcessor preProcessor;
 
-    @BeforeEach
-    void setUp()
-    {
-        preProcessor = new FilteringOutUndeclaredDataElementsProcessor();
-    }
+  @BeforeEach
+  void setUp() {
+    preProcessor = new FilteringOutUndeclaredDataElementsProcessor();
+  }
 
-    @Test
-    void testNotLinkedDataElementsAreRemovedFromEvent()
-    {
-        Event event = new Event();
-        event.setProgramStage( PROGRAMSTAGE );
-        HashSet<DataValue> dataValues = Sets.newHashSet( new DataValue( DATA_ELEMENT_1, "whatever" ),
-            new DataValue( DATA_ELEMENT_2, "another value" ) );
-        event.setDataValues( dataValues );
-        WorkContext ctx = WorkContext.builder().importOptions( ImportOptions.getDefaultImportOptions() )
-            .programsMap( getProgramMap() )
-            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( List.of( event ),
-                Collections.emptyMap(), ImportOptions.getDefaultImportOptions() ) )
+  @Test
+  void testNotLinkedDataElementsAreRemovedFromEvent() {
+    Event event = new Event();
+    event.setProgramStage(PROGRAMSTAGE);
+    HashSet<DataValue> dataValues =
+        Sets.newHashSet(
+            new DataValue(DATA_ELEMENT_1, "whatever"),
+            new DataValue(DATA_ELEMENT_2, "another value"));
+    event.setDataValues(dataValues);
+    WorkContext ctx =
+        WorkContext.builder()
+            .importOptions(ImportOptions.getDefaultImportOptions())
+            .programsMap(getProgramMap())
+            .eventDataValueMap(
+                new EventDataValueAggregator()
+                    .aggregateDataValues(
+                        List.of(event),
+                        Collections.emptyMap(),
+                        ImportOptions.getDefaultImportOptions()))
             .build();
-        preProcessor.process( event, ctx );
-        Set<String> allowedDataValues = ctx
-            .getProgramStage( ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), PROGRAMSTAGE )
-            .getDataElements().stream().map( IdentifiableObject::getUid ).collect( Collectors.toSet() );
-        Set<String> filteredEventDataValues = ctx.getEventDataValueMap().values().stream().flatMap( Collection::stream )
-            .map( EventDataValue::getDataElement ).collect( Collectors.toSet() );
-        assertTrue( allowedDataValues.containsAll( filteredEventDataValues ) );
-    }
+    preProcessor.process(event, ctx);
+    Set<String> allowedDataValues =
+        ctx
+            .getProgramStage(
+                ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), PROGRAMSTAGE)
+            .getDataElements()
+            .stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet());
+    Set<String> filteredEventDataValues =
+        ctx.getEventDataValueMap().values().stream()
+            .flatMap(Collection::stream)
+            .map(EventDataValue::getDataElement)
+            .collect(Collectors.toSet());
+    assertTrue(allowedDataValues.containsAll(filteredEventDataValues));
+  }
 }

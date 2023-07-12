@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.dimension.mappers;
 
 import java.util.Set;
-
 import lombok.Getter;
-
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -41,22 +39,18 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.springframework.stereotype.Service;
 
 @Service
-public class BaseDimensionalObjectMapper extends BaseDimensionMapper
-{
+public class BaseDimensionalObjectMapper extends BaseDimensionMapper {
 
-    @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
-        CategoryOptionGroupSet.class,
-        Category.class );
+  @Getter
+  private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses =
+      Set.of(CategoryOptionGroupSet.class, Category.class);
 
-    /**
-     * maps base dimensional object to DimensionResponse, adding dimensionType
-     */
-    @Override
-    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
-    {
-        String dimensionType = ((BaseDimensionalObject) prefixedDimension.getItem()).getDimensionType().name();
-        return super.map( prefixedDimension, prefix )
-            .withDimensionType( dimensionTypeOrElse( prefixedDimension, dimensionType ) );
-    }
+  /** maps base dimensional object to DimensionResponse, adding dimensionType */
+  @Override
+  public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
+    String dimensionType =
+        ((BaseDimensionalObject) prefixedDimension.getItem()).getDimensionType().name();
+    return super.map(prefixedDimension, prefix)
+        .withDimensionType(dimensionTypeOrElse(prefixedDimension, dimensionType));
+  }
 }

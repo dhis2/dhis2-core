@@ -30,9 +30,14 @@ package org.hisp.dhis.eventchart;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -56,509 +61,443 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * DEPRECATED: THIS CLASS IS DEPRECATED IN FAVOUR OF THE EventVisualization
- * MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
- * FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
+ * DEPRECATED: THIS CLASS IS DEPRECATED IN FAVOUR OF THE EventVisualization MODEL. WE SHOULD AVOID
+ * CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW FEATURES SHOULD BE ADDED ON TOP OF
+ * EventVisualization.
  *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "baseChart", namespace = DxfNamespaces.DXF_2_0 )
-public abstract class BaseChart
-    extends BaseAnalyticalObject
-{
-    protected String domainAxisLabel;
+@JacksonXmlRootElement(localName = "baseChart", namespace = DxfNamespaces.DXF_2_0)
+public abstract class BaseChart extends BaseAnalyticalObject {
+  protected String domainAxisLabel;
 
-    protected String rangeAxisLabel;
+  protected String rangeAxisLabel;
 
-    protected EventVisualizationType type;
+  protected EventVisualizationType type;
 
-    protected boolean hideLegend;
+  protected boolean hideLegend;
 
-    protected boolean noSpaceBetweenColumns;
+  protected boolean noSpaceBetweenColumns;
 
-    protected RegressionType regressionType = RegressionType.NONE;
+  protected RegressionType regressionType = RegressionType.NONE;
 
-    protected Double targetLineValue;
+  protected Double targetLineValue;
 
-    protected String targetLineLabel;
+  protected String targetLineLabel;
 
-    protected Double baseLineValue;
+  protected Double baseLineValue;
 
-    protected String baseLineLabel;
+  protected String baseLineLabel;
 
-    protected boolean showData;
+  protected boolean showData;
 
-    protected HideEmptyItemStrategy hideEmptyRowItems = HideEmptyItemStrategy.NONE;
+  protected HideEmptyItemStrategy hideEmptyRowItems = HideEmptyItemStrategy.NONE;
 
-    protected boolean percentStackedValues;
+  protected boolean percentStackedValues;
 
-    protected boolean cumulativeValues;
+  protected boolean cumulativeValues;
 
-    protected Double rangeAxisMaxValue;
+  protected Double rangeAxisMaxValue;
 
-    protected Double rangeAxisMinValue;
+  protected Double rangeAxisMinValue;
 
-    protected Integer rangeAxisSteps; // Minimum 1
+  protected Integer rangeAxisSteps; // Minimum 1
 
-    protected Integer rangeAxisDecimals;
+  protected Integer rangeAxisDecimals;
 
-    protected LegendSet legendSet;
+  protected LegendSet legendSet;
 
-    protected LegendDisplayStrategy legendDisplayStrategy;
+  protected LegendDisplayStrategy legendDisplayStrategy;
 
-    private List<String> yearlySeries = new ArrayList<>();
+  private List<String> yearlySeries = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Dimensional properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dimensional properties
+  // -------------------------------------------------------------------------
 
-    protected List<String> filterDimensions = new ArrayList<>();
+  protected List<String> filterDimensions = new ArrayList<>();
 
-    // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Transient properties
+  // -------------------------------------------------------------------------
 
-    protected transient I18nFormat format;
+  protected transient I18nFormat format;
 
-    protected transient List<Period> relativePeriods = new ArrayList<>();
+  protected transient List<Period> relativePeriods = new ArrayList<>();
 
-    protected transient User relativeUser;
+  protected transient User relativeUser;
 
-    protected transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
+  protected transient List<OrganisationUnit> organisationUnitsAtLevel = new ArrayList<>();
 
-    protected transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
+  protected transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
 
-    protected transient Grid dataItemGrid = null;
+  protected transient Grid dataItemGrid = null;
 
-    // -------------------------------------------------------------------------
-    // Abstract methods
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Abstract methods
+  // -------------------------------------------------------------------------
 
-    public abstract List<DimensionalItemObject> series();
+  public abstract List<DimensionalItemObject> series();
 
-    public abstract List<DimensionalItemObject> category();
+  public abstract List<DimensionalItemObject> category();
 
-    public abstract AnalyticsType getAnalyticsType();
+  public abstract AnalyticsType getAnalyticsType();
 
-    protected abstract void clearTransientChartStateProperties();
+  protected abstract void clearTransientChartStateProperties();
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean isTargetLine()
-    {
-        return targetLineValue != null;
-    }
+  public boolean isTargetLine() {
+    return targetLineValue != null;
+  }
 
-    public boolean isBaseLine()
-    {
-        return baseLineValue != null;
-    }
+  public boolean isBaseLine() {
+    return baseLineValue != null;
+  }
 
-    public String generateTitle()
-    {
-        List<String> titleItems = new ArrayList<>();
+  public String generateTitle() {
+    List<String> titleItems = new ArrayList<>();
 
-        for ( String filter : filterDimensions )
-        {
-            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
-                organisationUnitsAtLevel, organisationUnitsInGroups, format );
+    for (String filter : filterDimensions) {
+      DimensionalObject object =
+          getDimensionalObject(
+              filter,
+              relativePeriodDate,
+              relativeUser,
+              true,
+              organisationUnitsAtLevel,
+              organisationUnitsInGroups,
+              format);
 
-            if ( object != null )
-            {
-                String item = IdentifiableObjectUtils.join( object.getItems() );
-                String filt = DimensionalObjectUtils.getPrettyFilter( object.getFilter() );
+      if (object != null) {
+        String item = IdentifiableObjectUtils.join(object.getItems());
+        String filt = DimensionalObjectUtils.getPrettyFilter(object.getFilter());
 
-                if ( item != null )
-                {
-                    titleItems.add( item );
-                }
-
-                if ( filt != null )
-                {
-                    titleItems.add( filt );
-                }
-            }
+        if (item != null) {
+          titleItems.add(item);
         }
 
-        return join( titleItems, DimensionalObjectUtils.TITLE_ITEM_SEP );
+        if (filt != null) {
+          titleItems.add(filt);
+        }
+      }
     }
 
-    public boolean isAnalyticsType( AnalyticsType type )
-    {
-        return getAnalyticsType().equals( type );
-    }
+    return join(titleItems, DimensionalObjectUtils.TITLE_ITEM_SEP);
+  }
 
-    @Override
-    protected void clearTransientStateProperties()
-    {
-        format = null;
-        relativePeriods = new ArrayList<>();
-        relativeUser = null;
-        organisationUnitsAtLevel = new ArrayList<>();
-        organisationUnitsInGroups = new ArrayList<>();
-        dataItemGrid = null;
+  public boolean isAnalyticsType(AnalyticsType type) {
+    return getAnalyticsType().equals(type);
+  }
 
-        clearTransientChartStateProperties();
-    }
+  @Override
+  protected void clearTransientStateProperties() {
+    format = null;
+    relativePeriods = new ArrayList<>();
+    relativeUser = null;
+    organisationUnitsAtLevel = new ArrayList<>();
+    organisationUnitsInGroups = new ArrayList<>();
+    dataItemGrid = null;
 
-    public boolean isRegression()
-    {
-        return regressionType == null || RegressionType.NONE != regressionType;
-    }
+    clearTransientChartStateProperties();
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters for transient properties
-    // -------------------------------------------------------------------------
+  public boolean isRegression() {
+    return regressionType == null || RegressionType.NONE != regressionType;
+  }
 
-    @JsonIgnore
-    public I18nFormat getFormat()
-    {
-        return format;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters for transient properties
+  // -------------------------------------------------------------------------
 
-    @JsonIgnore
-    public void setFormat( I18nFormat format )
-    {
-        this.format = format;
-    }
+  @JsonIgnore
+  public I18nFormat getFormat() {
+    return format;
+  }
 
-    @JsonIgnore
-    public List<Period> getRelativePeriods()
-    {
-        return relativePeriods;
-    }
+  @JsonIgnore
+  public void setFormat(I18nFormat format) {
+    this.format = format;
+  }
 
-    @JsonIgnore
-    public void setRelativePeriods( List<Period> relativePeriods )
-    {
-        this.relativePeriods = relativePeriods;
-    }
+  @JsonIgnore
+  public List<Period> getRelativePeriods() {
+    return relativePeriods;
+  }
 
-    @JsonIgnore
-    public Grid getDataItemGrid()
-    {
-        return dataItemGrid;
-    }
+  @JsonIgnore
+  public void setRelativePeriods(List<Period> relativePeriods) {
+    this.relativePeriods = relativePeriods;
+  }
 
-    @JsonIgnore
-    public void setDataItemGrid( Grid dataItemGrid )
-    {
-        this.dataItemGrid = dataItemGrid;
-    }
+  @JsonIgnore
+  public Grid getDataItemGrid() {
+    return dataItemGrid;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  @JsonIgnore
+  public void setDataItemGrid(Grid dataItemGrid) {
+    this.dataItemGrid = dataItemGrid;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDomainAxisLabel()
-    {
-        return domainAxisLabel;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public void setDomainAxisLabel( String domainAxisLabel )
-    {
-        this.domainAxisLabel = domainAxisLabel;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDomainAxisLabel() {
+    return domainAxisLabel;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "domainAxisLabel" )
-    public String getDisplayDomainAxisLabel()
-    {
-        return getTranslation( "domainAxisLabel", getDomainAxisLabel() );
-    }
+  public void setDomainAxisLabel(String domainAxisLabel) {
+    this.domainAxisLabel = domainAxisLabel;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getRangeAxisLabel()
-    {
-        return rangeAxisLabel;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "domainAxisLabel")
+  public String getDisplayDomainAxisLabel() {
+    return getTranslation("domainAxisLabel", getDomainAxisLabel());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "rangeAxisLabel" )
-    public String getDisplayRangeAxisLabel()
-    {
-        return getTranslation( "rangeAxisLabel", getRangeAxisLabel() );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getRangeAxisLabel() {
+    return rangeAxisLabel;
+  }
 
-    public void setRangeAxisLabel( String rangeAxisLabel )
-    {
-        this.rangeAxisLabel = rangeAxisLabel;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "rangeAxisLabel")
+  public String getDisplayRangeAxisLabel() {
+    return getTranslation("rangeAxisLabel", getRangeAxisLabel());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.CONSTANT, required = TRUE )
-    @PropertyRange( min = 1, max = 40 )
-    public EventVisualizationType getType()
-    {
-        return type;
-    }
+  public void setRangeAxisLabel(String rangeAxisLabel) {
+    this.rangeAxisLabel = rangeAxisLabel;
+  }
 
-    public void setType( EventVisualizationType type )
-    {
-        this.type = type;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.CONSTANT, required = TRUE)
+  @PropertyRange(min = 1, max = 40)
+  public EventVisualizationType getType() {
+    return type;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isHideLegend()
-    {
-        return hideLegend;
-    }
+  public void setType(EventVisualizationType type) {
+    this.type = type;
+  }
 
-    public void setHideLegend( boolean hideLegend )
-    {
-        this.hideLegend = hideLegend;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isHideLegend() {
+    return hideLegend;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isNoSpaceBetweenColumns()
-    {
-        return noSpaceBetweenColumns;
-    }
+  public void setHideLegend(boolean hideLegend) {
+    this.hideLegend = hideLegend;
+  }
 
-    public void setNoSpaceBetweenColumns( boolean noSpaceBetweenColumns )
-    {
-        this.noSpaceBetweenColumns = noSpaceBetweenColumns;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isNoSpaceBetweenColumns() {
+    return noSpaceBetweenColumns;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RegressionType getRegressionType()
-    {
-        return regressionType;
-    }
+  public void setNoSpaceBetweenColumns(boolean noSpaceBetweenColumns) {
+    this.noSpaceBetweenColumns = noSpaceBetweenColumns;
+  }
 
-    public void setRegressionType( RegressionType regressionType )
-    {
-        this.regressionType = regressionType;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public RegressionType getRegressionType() {
+    return regressionType;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Double getTargetLineValue()
-    {
-        return targetLineValue;
-    }
+  public void setRegressionType(RegressionType regressionType) {
+    this.regressionType = regressionType;
+  }
 
-    public void setTargetLineValue( Double targetLineValue )
-    {
-        this.targetLineValue = targetLineValue;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Double getTargetLineValue() {
+    return targetLineValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTargetLineLabel()
-    {
-        return targetLineLabel;
-    }
+  public void setTargetLineValue(Double targetLineValue) {
+    this.targetLineValue = targetLineValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "targetLineLabel" )
-    public String getDisplayTargetLineLabel()
-    {
-        return getTranslation( "targetLineLabel", getTargetLineLabel() );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getTargetLineLabel() {
+    return targetLineLabel;
+  }
 
-    public void setTargetLineLabel( String targetLineLabel )
-    {
-        this.targetLineLabel = targetLineLabel;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "targetLineLabel")
+  public String getDisplayTargetLineLabel() {
+    return getTranslation("targetLineLabel", getTargetLineLabel());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Double getBaseLineValue()
-    {
-        return baseLineValue;
-    }
+  public void setTargetLineLabel(String targetLineLabel) {
+    this.targetLineLabel = targetLineLabel;
+  }
 
-    public void setBaseLineValue( Double baseLineValue )
-    {
-        this.baseLineValue = baseLineValue;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Double getBaseLineValue() {
+    return baseLineValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getBaseLineLabel()
-    {
-        return baseLineLabel;
-    }
+  public void setBaseLineValue(Double baseLineValue) {
+    this.baseLineValue = baseLineValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "baseLineLabel" )
-    public String getDisplayBaseLineLabel()
-    {
-        return getTranslation( "baseLineLabel", getBaseLineLabel() );
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getBaseLineLabel() {
+    return baseLineLabel;
+  }
 
-    public void setBaseLineLabel( String baseLineLabel )
-    {
-        this.baseLineLabel = baseLineLabel;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "baseLineLabel")
+  public String getDisplayBaseLineLabel() {
+    return getTranslation("baseLineLabel", getBaseLineLabel());
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isShowData()
-    {
-        return showData;
-    }
+  public void setBaseLineLabel(String baseLineLabel) {
+    this.baseLineLabel = baseLineLabel;
+  }
 
-    public void setShowData( boolean showData )
-    {
-        this.showData = showData;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isShowData() {
+    return showData;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public HideEmptyItemStrategy getHideEmptyRowItems()
-    {
-        return hideEmptyRowItems;
-    }
+  public void setShowData(boolean showData) {
+    this.showData = showData;
+  }
 
-    public void setHideEmptyRowItems( HideEmptyItemStrategy hideEmptyRowItems )
-    {
-        this.hideEmptyRowItems = hideEmptyRowItems;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public HideEmptyItemStrategy getHideEmptyRowItems() {
+    return hideEmptyRowItems;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isPercentStackedValues()
-    {
-        return percentStackedValues;
-    }
+  public void setHideEmptyRowItems(HideEmptyItemStrategy hideEmptyRowItems) {
+    this.hideEmptyRowItems = hideEmptyRowItems;
+  }
 
-    public void setPercentStackedValues( boolean percentStackedValues )
-    {
-        this.percentStackedValues = percentStackedValues;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isPercentStackedValues() {
+    return percentStackedValues;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isCumulativeValues()
-    {
-        return cumulativeValues;
-    }
+  public void setPercentStackedValues(boolean percentStackedValues) {
+    this.percentStackedValues = percentStackedValues;
+  }
 
-    public void setCumulativeValues( boolean cumulativeValues )
-    {
-        this.cumulativeValues = cumulativeValues;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isCumulativeValues() {
+    return cumulativeValues;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Double getRangeAxisMaxValue()
-    {
-        return rangeAxisMaxValue;
-    }
+  public void setCumulativeValues(boolean cumulativeValues) {
+    this.cumulativeValues = cumulativeValues;
+  }
 
-    public void setRangeAxisMaxValue( Double rangeAxisMaxValue )
-    {
-        this.rangeAxisMaxValue = rangeAxisMaxValue;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Double getRangeAxisMaxValue() {
+    return rangeAxisMaxValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = Integer.MIN_VALUE )
-    public Double getRangeAxisMinValue()
-    {
-        return rangeAxisMinValue;
-    }
+  public void setRangeAxisMaxValue(Double rangeAxisMaxValue) {
+    this.rangeAxisMaxValue = rangeAxisMaxValue;
+  }
 
-    public void setRangeAxisMinValue( Double rangeAxisMinValue )
-    {
-        this.rangeAxisMinValue = rangeAxisMinValue;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = Integer.MIN_VALUE)
+  public Double getRangeAxisMinValue() {
+    return rangeAxisMinValue;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getRangeAxisSteps()
-    {
-        return rangeAxisSteps;
-    }
+  public void setRangeAxisMinValue(Double rangeAxisMinValue) {
+    this.rangeAxisMinValue = rangeAxisMinValue;
+  }
 
-    public void setRangeAxisSteps( Integer rangeAxisSteps )
-    {
-        this.rangeAxisSteps = rangeAxisSteps;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Integer getRangeAxisSteps() {
+    return rangeAxisSteps;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getRangeAxisDecimals()
-    {
-        return rangeAxisDecimals;
-    }
+  public void setRangeAxisSteps(Integer rangeAxisSteps) {
+    this.rangeAxisSteps = rangeAxisSteps;
+  }
 
-    public void setRangeAxisDecimals( Integer rangeAxisDecimals )
-    {
-        this.rangeAxisDecimals = rangeAxisDecimals;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Integer getRangeAxisDecimals() {
+    return rangeAxisDecimals;
+  }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public LegendSet getLegendSet()
-    {
-        return legendSet;
-    }
+  public void setRangeAxisDecimals(Integer rangeAxisDecimals) {
+    this.rangeAxisDecimals = rangeAxisDecimals;
+  }
 
-    public void setLegendSet( LegendSet legendSet )
-    {
-        this.legendSet = legendSet;
-    }
+  @JsonProperty
+  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public LegendSet getLegendSet() {
+    return legendSet;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public LegendDisplayStrategy getLegendDisplayStrategy()
-    {
-        return legendDisplayStrategy;
-    }
+  public void setLegendSet(LegendSet legendSet) {
+    this.legendSet = legendSet;
+  }
 
-    public void setLegendDisplayStrategy( LegendDisplayStrategy legendDisplayStrategy )
-    {
-        this.legendDisplayStrategy = legendDisplayStrategy;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public LegendDisplayStrategy getLegendDisplayStrategy() {
+    return legendDisplayStrategy;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "yearlySeries", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "yearlySerie", namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getYearlySeries()
-    {
-        return yearlySeries;
-    }
+  public void setLegendDisplayStrategy(LegendDisplayStrategy legendDisplayStrategy) {
+    this.legendDisplayStrategy = legendDisplayStrategy;
+  }
 
-    public void setYearlySeries( List<String> yearlySeries )
-    {
-        this.yearlySeries = yearlySeries;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "yearlySeries", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "yearlySerie", namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getYearlySeries() {
+    return yearlySeries;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "filterDimensions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "filterDimension", namespace = DxfNamespaces.DXF_2_0 )
-    public List<String> getFilterDimensions()
-    {
-        return filterDimensions;
-    }
+  public void setYearlySeries(List<String> yearlySeries) {
+    this.yearlySeries = yearlySeries;
+  }
 
-    public void setFilterDimensions( List<String> filterDimensions )
-    {
-        this.filterDimensions = filterDimensions;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "filterDimensions", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "filterDimension", namespace = DxfNamespaces.DXF_2_0)
+  public List<String> getFilterDimensions() {
+    return filterDimensions;
+  }
+
+  public void setFilterDimensions(List<String> filterDimensions) {
+    this.filterDimensions = filterDimensions;
+  }
 }

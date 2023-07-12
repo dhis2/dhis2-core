@@ -29,10 +29,10 @@ package org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
@@ -45,37 +45,39 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-class FilteredDataValueCheckTest
-{
+class FilteredDataValueCheckTest {
 
-    private FilteredDataValueCheck dataValueCheck;
+  private FilteredDataValueCheck dataValueCheck;
 
-    @BeforeEach
-    void setUp()
-    {
-        dataValueCheck = new FilteredDataValueCheck();
-    }
+  @BeforeEach
+  void setUp() {
+    dataValueCheck = new FilteredDataValueCheck();
+  }
 
-    @Test
-    void testNotLinkedDataElementsAreReported()
-    {
-        Event event = new Event();
-        event.setProgramStage( DataValueFilteringTestSupport.PROGRAMSTAGE );
-        HashSet<DataValue> dataValues = Sets.newHashSet(
-            new DataValue( DataValueFilteringTestSupport.DATA_ELEMENT_1, "whatever" ),
-            new DataValue( DataValueFilteringTestSupport.DATA_ELEMENT_2, "another value" ) );
-        event.setDataValues( dataValues );
-        WorkContext ctx = WorkContext.builder().importOptions( ImportOptions.getDefaultImportOptions() )
-            .programsMap( DataValueFilteringTestSupport.getProgramMap() )
-            .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( List.of( event ),
-                Collections.emptyMap(), ImportOptions.getDefaultImportOptions() ) )
+  @Test
+  void testNotLinkedDataElementsAreReported() {
+    Event event = new Event();
+    event.setProgramStage(DataValueFilteringTestSupport.PROGRAMSTAGE);
+    HashSet<DataValue> dataValues =
+        Sets.newHashSet(
+            new DataValue(DataValueFilteringTestSupport.DATA_ELEMENT_1, "whatever"),
+            new DataValue(DataValueFilteringTestSupport.DATA_ELEMENT_2, "another value"));
+    event.setDataValues(dataValues);
+    WorkContext ctx =
+        WorkContext.builder()
+            .importOptions(ImportOptions.getDefaultImportOptions())
+            .programsMap(DataValueFilteringTestSupport.getProgramMap())
+            .eventDataValueMap(
+                new EventDataValueAggregator()
+                    .aggregateDataValues(
+                        List.of(event),
+                        Collections.emptyMap(),
+                        ImportOptions.getDefaultImportOptions()))
             .build();
-        ImportSummary importSummary = dataValueCheck.check( new ImmutableEvent( event ), ctx );
-        assertEquals( ImportStatus.WARNING, importSummary.getStatus() );
-    }
+    ImportSummary importSummary = dataValueCheck.check(new ImmutableEvent(event), ctx);
+    assertEquals(ImportStatus.WARNING, importSummary.getStatus());
+  }
 }

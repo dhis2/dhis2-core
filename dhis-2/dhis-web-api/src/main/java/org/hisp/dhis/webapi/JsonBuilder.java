@@ -29,239 +29,222 @@ package org.hisp.dhis.webapi;
 
 import static java.util.Arrays.asList;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * A helper to build jackson {@link ObjectNode} and {@link ArrayNode}s from java
- * collections and POJO objects.
+ * A helper to build jackson {@link ObjectNode} and {@link ArrayNode}s from java collections and
+ * POJO objects.
  *
  * @author Jan Bernitt
  */
-public final class JsonBuilder
-{
-    public enum Preference
-    {
-        SKIP_NULL_MEMBERS,
-        SKIP_NULL_ELEMENTS,
-        SKIP_EMPTY_ARRAYS
+@Slf4j
+public final class JsonBuilder {
+  public enum Preference {
+    SKIP_NULL_MEMBERS,
+    SKIP_NULL_ELEMENTS,
+    SKIP_EMPTY_ARRAYS
+  }
+
+  private final ObjectMapper jackson;
+
+  private final EnumSet<Preference> preferences = EnumSet.noneOf(Preference.class);
+
+  public JsonBuilder(ObjectMapper jackson) {
+    this.jackson = jackson;
+  }
+
+  public JsonBuilder with(Preference preference) {
+    preferences.add(preference);
+    return this;
+  }
+
+  public JsonBuilder not(Preference preference) {
+    preferences.remove(preference);
+    return this;
+  }
+
+  public boolean is(Preference preference) {
+    return preferences.contains(preference);
+  }
+
+  public JsonBuilder skipNullMembers() {
+    return with(Preference.SKIP_NULL_MEMBERS);
+  }
+
+  public JsonBuilder skipNullElements() {
+    return with(Preference.SKIP_NULL_ELEMENTS);
+  }
+
+  public JsonBuilder skipNulls() {
+    return skipNullElements().skipNullMembers();
+  }
+
+  public JsonBuilder skipEmptyArrays() {
+    return with(Preference.SKIP_EMPTY_ARRAYS);
+  }
+
+  public JsonBuilder skipNullOrEmpty() {
+    return skipNulls().skipEmptyArrays();
+  }
+
+  public ArrayNode toArray(List<String> fields, List<?> values) {
+    ArrayNode arr = jackson.createArrayNode();
+    for (Object e : values) {
+      if (fields.size() == 1) {
+        arr.add(toElement(e));
+      } else {
+        arr.add(toElement(fields, e));
+      }
     }
+    return arr;
+  }
 
-    private final ObjectMapper jackson;
-
-    private final EnumSet<Preference> preferences = EnumSet.noneOf( Preference.class );
-
-    public JsonBuilder( ObjectMapper jackson )
-    {
-        this.jackson = jackson;
+  private JsonNode toElement(List<String> fields, Object e) {
+    if (e instanceof Object[]) {
+      return toObject(fields, (Object[]) e);
+    } else if (e instanceof Collection) {
+      return toObject(fields, (Collection<?>) e);
     }
+    // assume the element e is already an object with all fields
+    return jackson.valueToTree(e);
+  }
 
-    public JsonBuilder with( Preference preference )
-    {
-        preferences.add( preference );
-        return this;
+  private JsonNode toElement(Object e) {
+    if (e instanceof Object[]) {
+      return toJsonNode(((Object[]) e)[0]);
+    } else if (e instanceof Collection && ((Collection<?>) e).size() == 1) {
+      return jackson.valueToTree(((Collection<?>) e).iterator().next());
     }
+    return jackson.valueToTree(e);
+  }
 
-    public JsonBuilder not( Preference preference )
-    {
-        preferences.remove( preference );
-        return this;
+  public ObjectNode toObject(List<String> fields, Object... values) {
+    return toObject(fields, asList(values));
+  }
+
+  public ObjectNode toObject(List<String> fields, Collection<?> values) {
+    ObjectNode obj = jackson.createObjectNode();
+    Iterator<?> iter = values.iterator();
+    for (String field : fields) {
+      Object value = iter.hasNext() ? iter.next() : null;
+      addMember(obj, field, value);
     }
+    return obj;
+  }
 
-    public boolean is( Preference preference )
-    {
-        return preferences.contains( preference );
-    }
-
-    public JsonBuilder skipNullMembers()
-    {
-        return with( Preference.SKIP_NULL_MEMBERS );
-    }
-
-    public JsonBuilder skipNullElements()
-    {
-        return with( Preference.SKIP_NULL_ELEMENTS );
-    }
-
-    public JsonBuilder skipNulls()
-    {
-        return skipNullElements().skipNullMembers();
-    }
-
-    public JsonBuilder skipEmptyArrays()
-    {
-        return with( Preference.SKIP_EMPTY_ARRAYS );
-    }
-
-    public JsonBuilder skipNullOrEmpty()
-    {
-        return skipNulls().skipEmptyArrays();
-    }
-
-    public ArrayNode toArray( List<String> fields, List<?> values )
-    {
-        ArrayNode arr = jackson.createArrayNode();
-        for ( Object e : values )
-        {
-            if ( fields.size() == 1 )
-            {
-                arr.add( toElement( e ) );
+  private void addMember(ObjectNode obj, String name, Object value) {
+    if (!skipValue(value)) {
+      if (name.contains(".")) {
+        String parentName = name.substring(0, name.indexOf('.'));
+        String childName = name.substring(name.indexOf('.') + 1);
+        JsonNode parent = obj.get(parentName);
+        if (parent == null)
+          parent =
+              value instanceof Object[] ? jackson.createArrayNode() : jackson.createObjectNode();
+        obj.set(parentName, parent);
+        if (parent instanceof ArrayNode arr) {
+          if (value instanceof Object[] values) {
+            for (int i = 0; i < values.length; i++) {
+              JsonNode child = arr.get(i);
+              if (child == null) {
+                child = jackson.createObjectNode();
+                arr.add(child);
+              }
+              if (child instanceof ObjectNode e) {
+                addMemberToObject(e, childName, toJsonNode(values[i]));
+              } else if (child instanceof ArrayNode e) {
+                e.add(toJsonNode(values[i]));
+              } else {
+                arr.set(i, toJsonNode(values[i])); // override
+              }
             }
-            else
-            {
-                arr.add( toElement( fields, e ) );
-            }
+          } else {
+            arr.add(toJsonNode(value));
+          }
+        } else if (parent instanceof ObjectNode p) {
+          p.set(childName, toJsonNode(value));
+        } else {
+          addMemberToObject(obj, name, toJsonNode(value));
         }
-        return arr;
+      } else {
+        addMemberToObject(obj, name, toJsonNode(value));
+      }
     }
+  }
 
-    private JsonNode toElement( List<String> fields, Object e )
-    {
-        if ( e instanceof Object[] )
-        {
-            return toObject( fields, (Object[]) e );
-        }
-        else if ( e instanceof Collection )
-        {
-            return toObject( fields, (Collection<?>) e );
-        }
-        // assume the element e is already an object with all fields
-        return jackson.valueToTree( e );
+  private static void addMemberToObject(ObjectNode obj, String name, JsonNode node) {
+    JsonNode memberNode = obj.get(name);
+    if (memberNode != null) {
+      if (node.isObject() && memberNode.isObject()) {
+        ((ObjectNode) memberNode).setAll((ObjectNode) node);
+      } else {
+        log.warn(
+            "Cannot join properties of same name: %s, %s"
+                .formatted(memberNode.toPrettyString(), node.toPrettyString()));
+      }
+    } else {
+      obj.set(name, node);
     }
+  }
 
-    private JsonNode toElement( Object e )
-    {
-        if ( e instanceof Object[] )
-        {
-            return toJsonNode( ((Object[]) e)[0] );
-        }
-        else if ( e instanceof Collection && ((Collection<?>) e).size() == 1 )
-        {
-            return jackson.valueToTree( ((Collection<?>) e).iterator().next() );
-        }
-        return jackson.valueToTree( e );
+  public ObjectNode toObject(Map<String, ?> members) {
+    ObjectNode obj = jackson.createObjectNode();
+    for (Entry<String, ?> member : members.entrySet()) {
+      addMember(obj, member.getKey(), member.getValue());
     }
+    return obj;
+  }
 
-    public ObjectNode toObject( List<String> fields, Object... values )
-    {
-        return toObject( fields, asList( values ) );
+  private Object cleanValue(Object value) {
+    if (value instanceof Object[] && is(Preference.SKIP_NULL_ELEMENTS)) {
+      long nulls = Arrays.stream((Object[]) value).filter(Objects::isNull).count();
+      if (nulls > 0) {
+        return Arrays.stream((Object[]) value).filter(Objects::isNull).toArray();
+      }
     }
+    return value;
+  }
 
-    public ObjectNode toObject( List<String> fields, Collection<?> values )
-    {
-        ObjectNode obj = jackson.createObjectNode();
-        Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
-        Iterator<?> iter = values.iterator();
-        for ( String field : fields )
-        {
-            Object value = iter.hasNext() ? iter.next() : null;
-            addMember( obj, field, value, memberObjectsByName );
-        }
-        return obj;
+  private boolean skipValue(Object value) {
+    if (value == null) {
+      return is(Preference.SKIP_NULL_MEMBERS);
     }
+    if (value instanceof Object[]) {
+      return ((Object[]) value).length == 0 && is(Preference.SKIP_EMPTY_ARRAYS);
+    }
+    return false;
+  }
 
-    private void addMember( ObjectNode obj, String name, Object value, Map<String, ObjectNode> memberObjectsByName )
-    {
-        if ( !skipValue( value ) )
-        {
-            JsonNode node = toJsonNode( value );
-            if ( name.contains( "." ) )
-            {
-                String member = name.substring( 0, name.indexOf( '.' ) );
-                ObjectNode memberNode = memberObjectsByName.computeIfAbsent( member,
-                    key -> jackson.createObjectNode() );
-                obj.set( member, memberNode );
-                memberNode.set( name.substring( name.indexOf( '.' ) + 1 ), node );
-            }
-            else
-            {
-                if ( memberObjectsByName.containsKey( name ) && node.isObject() )
-                {
-                    ObjectNode memberNode = memberObjectsByName.get( name );
-                    memberNode.setAll( (ObjectNode) node );
-                }
-                else
-                {
-                    obj.set( name, node );
-                }
-            }
-        }
+  private JsonNode toJsonNode(Object value) {
+    if (value instanceof org.hisp.dhis.jsontree.JsonNode[] nodes) {
+      ArrayNode arr = jackson.createArrayNode();
+      Stream.of(nodes).forEach(node -> arr.add(readNode(node.getDeclaration())));
+      return arr;
     }
+    if (value instanceof org.hisp.dhis.jsontree.JsonNode node) {
+      return readNode(node.getDeclaration());
+    }
+    return jackson.valueToTree(cleanValue(value));
+  }
 
-    public ObjectNode toObject( Map<String, ?> members )
-    {
-        ObjectNode obj = jackson.createObjectNode();
-        Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
-        for ( Entry<String, ?> member : members.entrySet() )
-        {
-            addMember( obj, member.getKey(), member.getValue(), memberObjectsByName );
-        }
-        return obj;
+  private JsonNode readNode(String json) {
+    try {
+      return jackson.readTree(json);
+    } catch (Exception ex) {
+      throw new IllegalArgumentException(ex);
     }
-
-    private Object cleanValue( Object value )
-    {
-        if ( value instanceof Object[] && is( Preference.SKIP_NULL_ELEMENTS ) )
-        {
-            long nulls = Arrays.stream( (Object[]) value ).filter( Objects::isNull ).count();
-            if ( nulls > 0 )
-            {
-                return Arrays.stream( (Object[]) value ).filter( Objects::isNull ).toArray();
-            }
-        }
-        return value;
-    }
-
-    private boolean skipValue( Object value )
-    {
-        if ( value == null )
-        {
-            return is( Preference.SKIP_NULL_MEMBERS );
-        }
-        if ( value instanceof Object[] )
-        {
-            return ((Object[]) value).length == 0 && is( Preference.SKIP_EMPTY_ARRAYS );
-        }
-        return false;
-    }
-
-    private JsonNode toJsonNode( Object value )
-    {
-        if ( value instanceof org.hisp.dhis.jsontree.JsonNode[] nodes )
-        {
-            ArrayNode arr = jackson.createArrayNode();
-            Stream.of( nodes ).forEach( node -> arr.add( readNode( node.getDeclaration() ) ) );
-            return arr;
-        }
-        if ( value instanceof org.hisp.dhis.jsontree.JsonNode node )
-        {
-            return readNode( node.getDeclaration() );
-        }
-        return jackson.valueToTree( cleanValue( value ) );
-    }
-
-    private JsonNode readNode( String json )
-    {
-        try
-        {
-            return jackson.readTree( json );
-        }
-        catch ( Exception ex )
-        {
-            throw new IllegalArgumentException( ex );
-        }
-    }
+  }
 }

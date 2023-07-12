@@ -31,142 +31,92 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 @Getter
-@Builder( toBuilder = true )
-@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public class EnrollmentOperationParams
-{
-    public static final int DEFAULT_PAGE = 1;
+@Builder(toBuilder = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class EnrollmentOperationParams {
+  public static final int DEFAULT_PAGE = 1;
 
-    public static final int DEFAULT_PAGE_SIZE = 50;
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-    static final EnrollmentOperationParams EMPTY = EnrollmentOperationParams.builder().build();
+  static final EnrollmentOperationParams EMPTY = EnrollmentOperationParams.builder().build();
 
-    @Builder.Default
-    private final EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
+  @Builder.Default private final EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
 
-    /**
-     * Last updated for enrollment.
-     */
-    private final Date lastUpdated;
+  /** Last updated for enrollment. */
+  private final Date lastUpdated;
 
-    /**
-     * The last updated duration filter.
-     */
-    private final String lastUpdatedDuration;
+  /** The last updated duration filter. */
+  private final String lastUpdatedDuration;
 
-    /**
-     * Organisation units for which instances in the response were registered
-     * at. Is related to the specified OrganisationUnitMode.
-     */
-    @Builder.Default
-    private final Set<String> orgUnitUids = new HashSet<>();
+  /**
+   * Organisation units for which instances in the response were registered at. Is related to the
+   * specified OrganisationUnitMode.
+   */
+  @Builder.Default private final Set<String> orgUnitUids = new HashSet<>();
 
-    /**
-     * Selection mode for the specified organisation units.
-     */
-    private final OrganisationUnitSelectionMode orgUnitMode;
+  /** Selection mode for the specified organisation units. */
+  private final OrganisationUnitSelectionMode orgUnitMode;
 
-    /**
-     * Enrollments must be enrolled into this program.
-     */
-    private final String programUid;
+  /** Enrollments must be enrolled into this program. */
+  private final String programUid;
 
-    /**
-     * Status of the tracked entity in the given program.
-     */
-    private final ProgramStatus programStatus;
+  /** Status of the tracked entity in the given program. */
+  private final ProgramStatus programStatus;
 
-    /**
-     * Indicates whether tracked entity is marked for follow up for the
-     * specified program.
-     */
-    private final Boolean followUp;
+  /** Indicates whether tracked entity is marked for follow up for the specified program. */
+  private final Boolean followUp;
 
-    /**
-     * Start date for enrollment in the given program.
-     */
-    private final Date programStartDate;
+  /** Start date for enrollment in the given program. */
+  private final Date programStartDate;
 
-    /**
-     * End date for enrollment in the given program.
-     */
-    private final Date programEndDate;
+  /** End date for enrollment in the given program. */
+  private final Date programEndDate;
 
-    /**
-     * Tracked entity type of the tracked entity in the response.
-     */
-    private final String trackedEntityTypeUid;
+  /** Tracked entity type of the tracked entity in the response. */
+  private final String trackedEntityTypeUid;
 
-    /**
-     * Tracked entity.
-     */
-    private final String trackedEntityUid;
+  /** Tracked entity. */
+  private final String trackedEntityUid;
 
-    /**
-     * Page number.
-     */
-    private final Integer page;
+  /** Page number. */
+  private final Integer page;
 
-    /**
-     * Page size.
-     */
-    private final Integer pageSize;
+  /** Page size. */
+  private final Integer pageSize;
 
-    /**
-     * Indicates whether to include the total number of pages in the paging
-     * response.
-     */
-    private final boolean totalPages;
+  /** Indicates whether to include the total number of pages in the paging response. */
+  private final boolean totalPages;
 
-    /**
-     * Indicates whether paging should be skipped.
-     */
-    private final boolean skipPaging;
+  /** Indicates whether paging should be skipped. */
+  private final boolean skipPaging;
 
-    /**
-     * Indicates whether to include soft-deleted enrollments
-     */
-    private final boolean includeDeleted;
+  /** Indicates whether to include soft-deleted enrollments */
+  private final boolean includeDeleted;
 
-    /**
-     * List of order params
-     */
-    private final List<OrderParam> order;
+  /** List of order params */
+  private final List<OrderParam> order;
 
-    /**
-     * Indicates whether paging is enabled.
-     */
-    public boolean isPaging()
-    {
-        return page != null || pageSize != null;
-    }
+  /** Indicates whether paging is enabled. */
+  public boolean isPaging() {
+    return page != null || pageSize != null;
+  }
 
-    /**
-     * Returns the page number, falls back to default value of 1 if not
-     * specified.
-     */
-    public int getPageWithDefault()
-    {
-        return page != null && page > 0 ? page : DEFAULT_PAGE;
-    }
+  /** Returns the page number, falls back to default value of 1 if not specified. */
+  public int getPageWithDefault() {
+    return page != null && page > 0 ? page : DEFAULT_PAGE;
+  }
 
-    /**
-     * Returns the page size, falls back to default value of 50 if not
-     * specified.
-     */
-    public int getPageSizeWithDefault()
-    {
-        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-    }
+  /** Returns the page size, falls back to default value of 50 if not specified. */
+  public int getPageSizeWithDefault() {
+    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+  }
 }

@@ -30,20 +30,16 @@ package org.hisp.dhis.dxf2.metadata.sync.exception;
 /**
  * @author aamerm
  */
-public class DhisVersionMismatchException extends Exception
-{
-    public DhisVersionMismatchException( String message )
-    {
-        super( message );
-    }
+public class DhisVersionMismatchException extends Exception {
+  public DhisVersionMismatchException(String message) {
+    super(message);
+  }
 
-    public DhisVersionMismatchException( Throwable cause )
-    {
-        super( cause );
-    }
+  public DhisVersionMismatchException(Throwable cause) {
+    super(cause);
+  }
 
-    public DhisVersionMismatchException( String message, Throwable cause )
-    {
-        super( message, cause );
-    }
+  public DhisVersionMismatchException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

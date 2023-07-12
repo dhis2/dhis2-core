@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.deletedobject.DeletedObject;
@@ -46,58 +46,54 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @RestController
-@RequestMapping( value = "/deletedObjects" )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DeletedObjectController
-{
-    private final FieldFilterService fieldFilterService;
+@RequestMapping(value = "/deletedObjects")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class DeletedObjectController {
+  private final FieldFilterService fieldFilterService;
 
-    private final DeletedObjectService deletedObjectService;
+  private final DeletedObjectService deletedObjectService;
 
-    private final ContextService contextService;
+  private final ContextService contextService;
 
-    public DeletedObjectController( FieldFilterService fieldFilterService, DeletedObjectService deletedObjectService,
-        ContextService contextService )
-    {
-        this.fieldFilterService = fieldFilterService;
-        this.deletedObjectService = deletedObjectService;
-        this.contextService = contextService;
+  public DeletedObjectController(
+      FieldFilterService fieldFilterService,
+      DeletedObjectService deletedObjectService,
+      ContextService contextService) {
+    this.fieldFilterService = fieldFilterService;
+    this.deletedObjectService = deletedObjectService;
+    this.contextService = contextService;
+  }
+
+  @OpenApi.Response(DeletedObject[].class)
+  @GetMapping
+  @PreAuthorize("hasRole('ALL')")
+  public RootNode getDeletedObjects(DeletedObjectQuery query) {
+    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+    int totalDeletedObjects = deletedObjectService.countDeletedObjects(query);
+    query.setTotal(totalDeletedObjects);
+
+    if (fields.isEmpty()) {
+      fields.addAll(Preset.ALL.getFields());
     }
 
-    @OpenApi.Response( DeletedObject[].class )
-    @GetMapping
-    @PreAuthorize( "hasRole('ALL')" )
-    public RootNode getDeletedObjects( DeletedObjectQuery query )
-    {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        int totalDeletedObjects = deletedObjectService.countDeletedObjects( query );
-        query.setTotal( totalDeletedObjects );
+    List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects(query);
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
+    RootNode rootNode = NodeUtils.createMetadata();
 
-        List<DeletedObject> deletedObjects = deletedObjectService.getDeletedObjects( query );
-
-        RootNode rootNode = NodeUtils.createMetadata();
-
-        if ( !query.isSkipPaging() )
-        {
-            query.setTotal( totalDeletedObjects );
-            rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
-        }
-
-        rootNode.addChild( fieldFilterService.toCollectionNode( DeletedObject.class,
-            new FieldFilterParams( deletedObjects, fields ) ) );
-
-        return rootNode;
+    if (!query.isSkipPaging()) {
+      query.setTotal(totalDeletedObjects);
+      rootNode.addChild(NodeUtils.createPager(query.getPager()));
     }
+
+    rootNode.addChild(
+        fieldFilterService.toCollectionNode(
+            DeletedObject.class, new FieldFilterParams(deletedObjects, fields)));
+
+    return rootNode;
+  }
 }

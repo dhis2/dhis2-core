@@ -32,19 +32,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 
-public interface DomainMapper<T, R>
-{
-    R from( T from, TrackerIdSchemeParams idSchemeParams );
+public interface DomainMapper<T, R> {
+  R from(T from, TrackerIdSchemeParams idSchemeParams);
 
-    default List<R> fromCollection( Collection<T> froms, TrackerIdSchemeParams idSchemeParams )
-    {
-        return Optional.ofNullable( froms )
-            .orElse( Collections.emptySet() )
-            .stream()
-            .map( e -> this.from( e, idSchemeParams ) )
-            .collect( Collectors.toList() );
-    }
+  default List<R> fromCollection(Collection<T> froms, TrackerIdSchemeParams idSchemeParams) {
+    return Optional.ofNullable(froms).orElse(Collections.emptySet()).stream()
+        .map(e -> this.from(e, idSchemeParams))
+        .collect(Collectors.toList());
+  }
 }

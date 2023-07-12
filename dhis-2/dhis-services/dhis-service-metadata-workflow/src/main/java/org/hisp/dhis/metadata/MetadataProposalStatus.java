@@ -32,23 +32,16 @@ package org.hisp.dhis.metadata;
  *
  * @author Jan Bernitt
  */
-public enum MetadataProposalStatus
-{
-    /**
-     * Proposal has been made but not yet accepted or rejected (initial state)
-     */
-    PROPOSED,
-    /**
-     * Proposal was successfully accepted (final state)
-     */
-    ACCEPTED,
-    /**
-     * Proposal was rejected (final state)
-     */
-    REJECTED,
-    /**
-     * Proposal was accepted but failed to be applied or manually moved to this
-     * state by a user. Allows the proposing user to update the change.
-     */
-    NEEDS_UPDATE
+public enum MetadataProposalStatus {
+  /** Proposal has been made but not yet accepted or rejected (initial state) */
+  PROPOSED,
+  /** Proposal was successfully accepted (final state) */
+  ACCEPTED,
+  /** Proposal was rejected (final state) */
+  REJECTED,
+  /**
+   * Proposal was accepted but failed to be applied or manually moved to this state by a user.
+   * Allows the proposing user to update the change.
+   */
+  NEEDS_UPDATE
 }

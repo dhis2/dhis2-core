@@ -37,15 +37,23 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListStore" )
+@Repository("org.hisp.dhis.programstageworkinglist.ProgramStageWorkingListStore")
 public class HibernateProgramStageWorkingListStore
     extends HibernateIdentifiableObjectStore<ProgramStageWorkingList>
-    implements ProgramStageWorkingListStore
-{
-    public HibernateProgramStageWorkingListStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageWorkingList.class, currentUserService,
-            aclService, true );
-    }
+    implements ProgramStageWorkingListStore {
+  public HibernateProgramStageWorkingListStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramStageWorkingList.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 }

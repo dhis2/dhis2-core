@@ -40,38 +40,32 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class ExistenceValidator
-    implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity )
-    {
-        TrackerImportStrategy importStrategy = bundle.getStrategy( trackedEntity );
+class ExistenceValidator implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
+  @Override
+  public void validate(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
+    TrackerImportStrategy importStrategy = bundle.getStrategy(trackedEntity);
 
-        TrackedEntity existingTe = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+    TrackedEntity existingTe =
+        bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
-        // If the tracked entity is soft-deleted no operation is allowed
-        if ( existingTe != null && existingTe.isDeleted() )
-        {
-            reporter.addError( trackedEntity, E1114, trackedEntity.getTrackedEntity() );
-            return;
-        }
-
-        if ( existingTe != null && importStrategy.isCreate() )
-        {
-            reporter.addError( trackedEntity, E1002, trackedEntity.getTrackedEntity() );
-        }
-        else if ( existingTe == null && importStrategy.isUpdateOrDelete() )
-        {
-            reporter.addError( trackedEntity, E1063, trackedEntity.getTrackedEntity() );
-        }
+    // If the tracked entity is soft-deleted no operation is allowed
+    if (existingTe != null && existingTe.isDeleted()) {
+      reporter.addError(trackedEntity, E1114, trackedEntity.getTrackedEntity());
+      return;
     }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true;
+    if (existingTe != null && importStrategy.isCreate()) {
+      reporter.addError(trackedEntity, E1002, trackedEntity.getTrackedEntity());
+    } else if (existingTe == null && importStrategy.isUpdateOrDelete()) {
+      reporter.addError(trackedEntity, E1063, trackedEntity.getTrackedEntity());
     }
+  }
 
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true;
+  }
 }

@@ -40,7 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.antlr.Parser;
@@ -65,290 +64,275 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author Luciano Fiandesio
  */
-@ExtendWith( MockitoExtension.class )
-class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
-{
-    private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
+@ExtendWith(MockitoExtension.class)
+class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest {
+  private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
 
-    private final String SQL_CASE_VALUE = "case when \"%s\" >= 0 then 1 else 0 end";
+  private final String SQL_CASE_VALUE = "case when \"%s\" >= 0 then 1 else 0 end";
 
-    private Date startDate = getDate( 2018, 1, 1 );
+  private Date startDate = getDate(2018, 1, 1);
 
-    private Date endDate = getDate( 2018, 12, 31 );
+  private Date endDate = getDate(2018, 12, 31);
 
-    @Mock
-    private ProgramIndicatorService programIndicatorService;
+  @Mock private ProgramIndicatorService programIndicatorService;
 
-    @Mock
-    private ProgramStageService programStageService;
+  @Mock private ProgramStageService programStageService;
 
-    @Mock
-    private IdentifiableObjectManager idObjectManager;
+  @Mock private IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    private DimensionService dimensionService;
+  @Mock private DimensionService dimensionService;
 
-    @Mock
-    private I18n i18n;
+  @Mock private I18n i18n;
 
-    private StatementBuilder statementBuilder;
+  private StatementBuilder statementBuilder;
 
-    private CommonExpressionVisitor subject;
+  private CommonExpressionVisitor subject;
 
-    private ProgramIndicator eventIndicator;
+  private ProgramIndicator eventIndicator;
 
-    private ProgramIndicator enrollmentIndicator;
+  private ProgramIndicator enrollmentIndicator;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @BeforeEach
-    public void setUp()
-    {
-        statementBuilder = new PostgreSQLStatementBuilder();
+  @BeforeEach
+  public void setUp() {
+    statementBuilder = new PostgreSQLStatementBuilder();
 
-        eventIndicator = new ProgramIndicator();
-        eventIndicator.setAnalyticsType( AnalyticsType.EVENT );
+    eventIndicator = new ProgramIndicator();
+    eventIndicator.setAnalyticsType(AnalyticsType.EVENT);
 
-        enrollmentIndicator = makeEnrollmentProgramIndicator();
-    }
+    enrollmentIndicator = makeEnrollmentProgramIndicator();
+  }
 
-    @Test
-    void testAnalyticsPeriodEndVariable()
-    {
-        String sql = castString( test( "V{analytics_period_end}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "'2018-12-31'" ) );
-    }
+  @Test
+  void testAnalyticsPeriodEndVariable() {
+    String sql = castString(test("V{analytics_period_end}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("'2018-12-31'"));
+  }
 
-    @Test
-    void testAnalyticsPeriodStartVariable()
-    {
-        String sql = castString( test( "V{analytics_period_start}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "'2018-01-01'" ) );
-    }
+  @Test
+  void testAnalyticsPeriodStartVariable() {
+    String sql =
+        castString(test("V{analytics_period_start}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("'2018-01-01'"));
+  }
 
-    @Test
-    void testCreationDateForEnrollment()
-    {
-        String sql = castString( test( "V{creation_date}", new DefaultLiteral(), enrollmentIndicator ) );
-        assertThat( sql,
-            is( "(select created from analytics_event_" + enrollmentIndicator.getProgram().getUid()
+  @Test
+  void testCreationDateForEnrollment() {
+    String sql = castString(test("V{creation_date}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(
+        sql,
+        is(
+            "(select created from analytics_event_"
+                + enrollmentIndicator.getProgram().getUid()
                 + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
-                + ".pi = ax.pi and created is not null order by executiondate desc limit 1 )" ) );
-    }
+                + ".pi = ax.pi and created is not null order by executiondate desc limit 1 )"));
+  }
 
-    @Test
-    void testCreationDateForEvent()
-    {
-        String sql = castString( test( "V{creation_date}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "created" ) );
-    }
+  @Test
+  void testCreationDateForEvent() {
+    String sql = castString(test("V{creation_date}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("created"));
+  }
 
-    @Test
-    void testCompletedDateForEnrollment()
-    {
-        String sql = castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
-        assertThat( sql, is( "completeddate" ) );
-    }
+  @Test
+  void testCompletedDateForEnrollment() {
+    String sql = castString(test("V{completed_date}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(sql, is("completeddate"));
+  }
 
-    @Test
-    void testCompletedDateForEvent()
-    {
-        String sql = castString( test( "V{completed_date}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "completeddate" ) );
-    }
+  @Test
+  void testCompletedDateForEvent() {
+    String sql = castString(test("V{completed_date}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("completeddate"));
+  }
 
-    @Test
-    void testCurrentDateForEvent()
-    {
-        String sql = castString( test( "V{current_date}", new DefaultLiteral(), eventIndicator ) );
-        String date = DateUtils.getLongDateString();
+  @Test
+  void testCurrentDateForEvent() {
+    String sql = castString(test("V{current_date}", new DefaultLiteral(), eventIndicator));
+    String date = DateUtils.getLongDateString();
 
-        assertThat( sql, startsWith( "'" + date.substring( 0, 13 ) ) );
-    }
+    assertThat(sql, startsWith("'" + date.substring(0, 13)));
+  }
 
-    @Test
-    void testDueDate()
-    {
-        String sql = castString( test( "V{due_date}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "duedate" ) );
-    }
+  @Test
+  void testDueDate() {
+    String sql = castString(test("V{due_date}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("duedate"));
+  }
 
-    @Test
-    void testEnrollmentCount()
-    {
-        String sql = castString( test( "V{enrollment_count}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "distinct pi" ) );
-    }
+  @Test
+  void testEnrollmentCount() {
+    String sql = castString(test("V{enrollment_count}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("distinct pi"));
+  }
 
-    @Test
-    void testEnrollmentDate()
-    {
-        String sql = castString( test( "V{enrollment_date}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "enrollmentdate" ) );
-    }
+  @Test
+  void testEnrollmentDate() {
+    String sql = castString(test("V{enrollment_date}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("enrollmentdate"));
+  }
 
-    @Test
-    void testEnrollmentStatus()
-    {
-        String sql = castString( test( "V{enrollment_status}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "pistatus" ) );
-    }
+  @Test
+  void testEnrollmentStatus() {
+    String sql = castString(test("V{enrollment_status}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("pistatus"));
+  }
 
-    @Test
-    void testEventCount()
-    {
-        String sql = castString( test( "V{event_count}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "case " + DEFAULT_COUNT_CONDITION + " end" ) );
-    }
+  @Test
+  void testEventCount() {
+    String sql = castString(test("V{event_count}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("case " + DEFAULT_COUNT_CONDITION + " end"));
+  }
 
-    @Test
-    void testExecutionDate()
-    {
-        String sql = castString( test( "V{execution_date}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "executiondate" ) );
-    }
+  @Test
+  void testExecutionDate() {
+    String sql = castString(test("V{execution_date}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("executiondate"));
+  }
 
-    @Test
-    void testEventDate()
-    {
-        String sql = castString( test( "V{event_date}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "executiondate" ) );
-    }
+  @Test
+  void testEventDate() {
+    String sql = castString(test("V{event_date}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("executiondate"));
+  }
 
-    @Test
-    void testIncidentDate()
-    {
-        String sql = castString( test( "V{incident_date}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "incidentdate" ) );
-    }
+  @Test
+  void testIncidentDate() {
+    String sql = castString(test("V{incident_date}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("incidentdate"));
+  }
 
-    @Test
-    void testProgramStageId()
-    {
-        String sql = castString( test( "V{program_stage_id}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "ps" ) );
-    }
+  @Test
+  void testProgramStageId() {
+    String sql = castString(test("V{program_stage_id}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("ps"));
+  }
 
-    @Test
-    void testProgramStageIdForEnrollment()
-    {
-        String sql = castString( test( "V{program_stage_id}", new DefaultLiteral(), enrollmentIndicator ) );
-        assertThat( sql, is( "''" ) );
-    }
+  @Test
+  void testProgramStageIdForEnrollment() {
+    String sql = castString(test("V{program_stage_id}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(sql, is("''"));
+  }
 
-    @Test
-    void testProgramStageName()
-    {
-        String sql = castString( test( "V{program_stage_name}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "(select name from programstage where uid = ps)" ) );
-    }
+  @Test
+  void testProgramStageName() {
+    String sql = castString(test("V{program_stage_name}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("(select name from programstage where uid = ps)"));
+  }
 
-    @Test
-    void testProgramStageNameForEnrollment()
-    {
-        String sql = castString( test( "V{program_stage_name}", new DefaultLiteral(), enrollmentIndicator ) );
-        assertThat( sql, is( "''" ) );
-    }
+  @Test
+  void testProgramStageNameForEnrollment() {
+    String sql =
+        castString(test("V{program_stage_name}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(sql, is("''"));
+  }
 
-    @Test
-    void testSyncDate()
-    {
-        String sql = castString( test( "V{sync_date}", new DefaultLiteral(), enrollmentIndicator ) );
-        assertThat( sql, is( "lastupdated" ) );
-    }
+  @Test
+  void testSyncDate() {
+    String sql = castString(test("V{sync_date}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(sql, is("lastupdated"));
+  }
 
-    @Test
-    void testOrgUnitCount()
-    {
-        String sql = castString( test( "V{org_unit_count}", new DefaultLiteral(), enrollmentIndicator ) );
-        assertThat( sql, is( "distinct ou" ) );
-    }
+  @Test
+  void testOrgUnitCount() {
+    String sql = castString(test("V{org_unit_count}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(sql, is("distinct ou"));
+  }
 
-    @Test
-    void testTeiCount()
-    {
-        String sql = castString( test( "V{tei_count}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "distinct tei" ) );
-    }
+  @Test
+  void testTeiCount() {
+    String sql = castString(test("V{tei_count}", new DefaultLiteral(), eventIndicator));
+    assertThat(sql, is("distinct tei"));
+  }
 
-    @Test
-    void testValueCount()
-    {
-        String sql = castString( test( "V{value_count}", new DefaultLiteral(), eventIndicator ) );
+  @Test
+  void testValueCount() {
+    String sql = castString(test("V{value_count}", new DefaultLiteral(), eventIndicator));
 
-        assertThat( sql,
-            is( "nullif(cast((" + sqlCase( SQL_CASE_NOT_NULL, BASE_UID + "a" ) + " + "
-                + sqlCase( SQL_CASE_NOT_NULL, BASE_UID + "b" ) + " + " + sqlCase( SQL_CASE_NOT_NULL, BASE_UID + "c" )
-                + ") as double precision),0)" ) );
-    }
+    assertThat(
+        sql,
+        is(
+            "nullif(cast(("
+                + sqlCase(SQL_CASE_NOT_NULL, BASE_UID + "a")
+                + " + "
+                + sqlCase(SQL_CASE_NOT_NULL, BASE_UID + "b")
+                + " + "
+                + sqlCase(SQL_CASE_NOT_NULL, BASE_UID + "c")
+                + ") as double precision),0)"));
+  }
 
-    @Test
-    void testZeroPosValueCount()
-    {
-        String sql = castString( test( "V{zero_pos_value_count}", new DefaultLiteral(), eventIndicator ) );
+  @Test
+  void testZeroPosValueCount() {
+    String sql = castString(test("V{zero_pos_value_count}", new DefaultLiteral(), eventIndicator));
 
-        assertThat( sql,
-            is( "nullif(cast((" + sqlCase( SQL_CASE_VALUE, BASE_UID + "a" ) + " + "
-                + sqlCase( SQL_CASE_VALUE, BASE_UID + "b" ) + " + " + sqlCase( SQL_CASE_VALUE, BASE_UID + "c" )
-                + ") as double precision),0)" ) );
-    }
+    assertThat(
+        sql,
+        is(
+            "nullif(cast(("
+                + sqlCase(SQL_CASE_VALUE, BASE_UID + "a")
+                + " + "
+                + sqlCase(SQL_CASE_VALUE, BASE_UID + "b")
+                + " + "
+                + sqlCase(SQL_CASE_VALUE, BASE_UID + "c")
+                + ") as double precision),0)"));
+  }
 
-    @Test
-    void testInvalidVariable()
-    {
-        assertThrows( ParserException.class,
-            () -> test( "V{undefined_variable}", new DefaultLiteral(), eventIndicator ) );
-    }
+  @Test
+  void testInvalidVariable() {
+    assertThrows(
+        ParserException.class,
+        () -> test("V{undefined_variable}", new DefaultLiteral(), eventIndicator));
+  }
 
-    private Object test( String expression, AntlrExprLiteral exprLiteral, ProgramIndicator programIndicator )
-    {
-        Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
-        dataElementsAndAttributesIdentifiers.add( BASE_UID + "a" );
-        dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
-        dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
+  private Object test(
+      String expression, AntlrExprLiteral exprLiteral, ProgramIndicator programIndicator) {
+    Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
+    dataElementsAndAttributesIdentifiers.add(BASE_UID + "a");
+    dataElementsAndAttributesIdentifiers.add(BASE_UID + "b");
+    dataElementsAndAttributesIdentifiers.add(BASE_UID + "c");
 
-        ExpressionParams params = ExpressionParams.builder()
-            .dataType( NUMERIC )
+    ExpressionParams params = ExpressionParams.builder().dataType(NUMERIC).build();
+
+    ProgramExpressionParams progParams =
+        ProgramExpressionParams.builder()
+            .programIndicator(programIndicator)
+            .reportingStartDate(startDate)
+            .reportingEndDate(endDate)
+            .dataElementAndAttributeIdentifiers(dataElementsAndAttributesIdentifiers)
             .build();
 
-        ProgramExpressionParams progParams = ProgramExpressionParams.builder()
-            .programIndicator( programIndicator )
-            .reportingStartDate( startDate )
-            .reportingEndDate( endDate )
-            .dataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers )
+    subject =
+        CommonExpressionVisitor.builder()
+            .idObjectManager(idObjectManager)
+            .dimensionService(dimensionService)
+            .programIndicatorService(programIndicatorService)
+            .programStageService(programStageService)
+            .statementBuilder(statementBuilder)
+            .i18nSupplier(() -> new I18n(null, null))
+            .itemMap(PROGRAM_INDICATOR_ITEMS)
+            .itemMethod(ITEM_GET_SQL)
+            .params(params)
+            .progParams(progParams)
             .build();
 
-        subject = CommonExpressionVisitor.builder()
-            .idObjectManager( idObjectManager )
-            .dimensionService( dimensionService )
-            .programIndicatorService( programIndicatorService )
-            .programStageService( programStageService )
-            .statementBuilder( statementBuilder )
-            .i18nSupplier( () -> new I18n( null, null ) )
-            .itemMap( PROGRAM_INDICATOR_ITEMS )
-            .itemMethod( ITEM_GET_SQL )
-            .params( params )
-            .progParams( progParams )
-            .build();
+    subject.setExpressionLiteral(exprLiteral);
 
-        subject.setExpressionLiteral( exprLiteral );
+    return Parser.visit(expression, subject);
+  }
 
-        return Parser.visit( expression, subject );
-    }
+  private ProgramIndicator makeEnrollmentProgramIndicator() {
+    Program program = rnd.nextObject(Program.class);
+    ProgramIndicator programIndicator =
+        createProgramIndicator('A', AnalyticsType.ENROLLMENT, program, "", "");
 
-    private ProgramIndicator makeEnrollmentProgramIndicator()
-    {
-        Program program = rnd.nextObject( Program.class );
-        ProgramIndicator programIndicator = createProgramIndicator( 'A', AnalyticsType.ENROLLMENT, program, "", "" );
+    programIndicator.setProgram(program);
 
-        programIndicator.setProgram( program );
+    return programIndicator;
+  }
 
-        return programIndicator;
-    }
-
-    private String sqlCase( String template, String id )
-    {
-        return String.format( template, id );
-    }
+  private String sqlCase(String template, String id) {
+    return String.format(template, id);
+  }
 }

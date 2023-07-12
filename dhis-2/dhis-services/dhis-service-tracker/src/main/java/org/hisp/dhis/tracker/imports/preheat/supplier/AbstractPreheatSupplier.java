@@ -29,9 +29,7 @@ package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.time.StopWatch;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -40,50 +38,50 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
 
 /**
- * A {@link PreheatSupplier} subclass can implement this abstract class to
- * execute code before and after the supplier has been executed (e.g. timing)
+ * A {@link PreheatSupplier} subclass can implement this abstract class to execute code before and
+ * after the supplier has been executed (e.g. timing)
  *
  * @author Luciano Fiandesio
  */
 @Slf4j
-public abstract class AbstractPreheatSupplier implements PreheatSupplier
-{
-    private final int CACHE_TTL = 60;
+public abstract class AbstractPreheatSupplier implements PreheatSupplier {
+  private final int CACHE_TTL = 60;
 
-    private final long CACHE_CAPACITY = 1000;
+  private final long CACHE_CAPACITY = 1000;
 
-    @Override
-    public void add( TrackerImportParams params, TrackerPreheat preheat )
-    {
-        StopWatch watch = null;
-        if ( log.isDebugEnabled() )
-        {
-            log.debug( "Executing preheat supplier: {}", this.getClass().getName() );
-            watch = new StopWatch();
-            watch.start();
-        }
-
-        preheatAdd( params, preheat );
-
-        if ( log.isDebugEnabled() )
-        {
-            if ( watch != null && watch.isStarted() )
-            {
-                watch.stop();
-                log.debug( "Supplier {} executed in : {}", this.getClass().getName(),
-                    TimeUnit.SECONDS.convert( watch.getNanoTime(), TimeUnit.NANOSECONDS ) );
-            }
-        }
+  @Override
+  public void add(TrackerImportParams params, TrackerPreheat preheat) {
+    StopWatch watch = null;
+    if (log.isDebugEnabled()) {
+      log.debug("Executing preheat supplier: {}", this.getClass().getName());
+      watch = new StopWatch();
+      watch.start();
     }
 
-    /**
-     * Template method: executes preheat logic from the subclass
-     */
-    public abstract void preheatAdd( TrackerImportParams params, TrackerPreheat preheat );
+    preheatAdd(params, preheat);
 
-    protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects )
-    {
-        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, CACHE_TTL,
-            CACHE_CAPACITY ) );
+    if (log.isDebugEnabled()) {
+      if (watch != null && watch.isStarted()) {
+        watch.stop();
+        log.debug(
+            "Supplier {} executed in : {}",
+            this.getClass().getName(),
+            TimeUnit.SECONDS.convert(watch.getNanoTime(), TimeUnit.NANOSECONDS));
+      }
     }
+  }
+
+  /** Template method: executes preheat logic from the subclass */
+  public abstract void preheatAdd(TrackerImportParams params, TrackerPreheat preheat);
+
+  protected void addToCache(PreheatCacheService cache, List<? extends IdentifiableObject> objects) {
+    objects.forEach(
+        rt ->
+            cache.put(
+                HibernateProxyUtils.getRealClass(rt).getName(),
+                rt.getUid(),
+                rt,
+                CACHE_TTL,
+                CACHE_CAPACITY));
+  }
 }

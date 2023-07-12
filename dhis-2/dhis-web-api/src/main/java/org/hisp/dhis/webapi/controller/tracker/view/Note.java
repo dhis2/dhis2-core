@@ -27,45 +27,37 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.view;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.webapi.common.UID;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or
- * Enrollment may have multiple notes.
+ * Notes are text-only objects attached to Events and Enrollments. An Event or Enrollment may have
+ * multiple notes.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared( pattern = Pattern.INFO )
+@OpenApi.Shared(pattern = Pattern.INFO)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Note
-{
-    @OpenApi.Property( { UID.class, Note.class } )
-    @JsonProperty
-    private String note;
+public class Note {
+  @OpenApi.Property({UID.class, Note.class})
+  @JsonProperty
+  private String note;
 
-    @JsonProperty
-    private Instant storedAt;
+  @JsonProperty private Instant storedAt;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 
-    @JsonProperty
-    private User createdBy;
+  @JsonProperty private User createdBy;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 }

@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErro
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -50,36 +49,31 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @RestController
 @AllArgsConstructor
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequestMapping( value = "/organisationUnitProfile" )
-public class OrganisationUnitProfileController
-{
-    private final OrgUnitProfileService orgUnitProfileService;
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequestMapping(value = "/organisationUnitProfile")
+public class OrganisationUnitProfileController {
+  private final OrgUnitProfileService orgUnitProfileService;
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')" )
-    @PostMapping( consumes = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.OK )
-    public void saveProfile( @RequestBody OrgUnitProfile profile )
-        throws BadRequestException
-    {
-        validateAndThrowErrors( () -> orgUnitProfileService.validateOrgUnitProfile( profile ) );
+  @PreAuthorize("hasRole('ALL') or hasRole('F_ORG_UNIT_PROFILE_ADD')")
+  @PostMapping(consumes = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.OK)
+  public void saveProfile(@RequestBody OrgUnitProfile profile) throws BadRequestException {
+    validateAndThrowErrors(() -> orgUnitProfileService.validateOrgUnitProfile(profile));
 
-        orgUnitProfileService.saveOrgUnitProfile( profile );
-    }
+    orgUnitProfileService.saveOrgUnitProfile(profile);
+  }
 
-    @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public OrgUnitProfile getProfile()
-    {
-        return orgUnitProfileService.getOrgUnitProfile();
-    }
+  @GetMapping(produces = APPLICATION_JSON_VALUE)
+  public OrgUnitProfile getProfile() {
+    return orgUnitProfileService.getOrgUnitProfile();
+  }
 
-    @GetMapping( value = "/{uid}/data", produces = APPLICATION_JSON_VALUE )
-    public OrgUnitProfileData getProfileData( @PathVariable String uid,
-        @RequestParam( required = false ) String period )
-    {
-        return orgUnitProfileService.getOrgUnitProfileData( uid, period );
-    }
+  @GetMapping(value = "/{uid}/data", produces = APPLICATION_JSON_VALUE)
+  public OrgUnitProfileData getProfileData(
+      @PathVariable String uid, @RequestParam(required = false) String period) {
+    return orgUnitProfileService.getOrgUnitProfileData(uid, period);
+  }
 }

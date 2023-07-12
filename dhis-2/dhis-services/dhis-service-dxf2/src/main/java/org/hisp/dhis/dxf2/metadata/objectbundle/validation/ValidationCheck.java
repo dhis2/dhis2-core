@@ -29,57 +29,48 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * This interface is implemented by classes that can validate an
- * {@see ObjectBundle}
+ * This interface is implemented by classes that can validate an {@see ObjectBundle}
  *
  * @author Luciano Fiandesio
  */
 @FunctionalInterface
-public interface ValidationCheck
-{
-    /**
-     * Execute a validation check against the {@link ObjectBundle}
-     *
-     * @param bundle an {@link ObjectBundle} to validate
-     * @param klass the class of Object to validate, within the bundle
-     * @param persistedObjects a List of IdentifiableObject
-     * @param nonPersistedObjects a List of IdentifiableObject
-     * @param importStrategy the {@link ImportStrategy}
-     * @param context a {@link ValidationContext} containing the services
-     *        required for validation
-     *
-     * @return a {@link TypeReport}
-     */
-    <T extends IdentifiableObject> TypeReport check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context );
+public interface ValidationCheck {
+  /**
+   * Execute a validation check against the {@link ObjectBundle}
+   *
+   * @param bundle an {@link ObjectBundle} to validate
+   * @param klass the class of Object to validate, within the bundle
+   * @param persistedObjects a List of IdentifiableObject
+   * @param nonPersistedObjects a List of IdentifiableObject
+   * @param importStrategy the {@link ImportStrategy}
+   * @param context a {@link ValidationContext} containing the services required for validation
+   * @return a {@link TypeReport}
+   */
+  <T extends IdentifiableObject> TypeReport check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context);
 
-    default <T extends IdentifiableObject> List<T> selectObjects( List<T> persistedObjects,
-        List<T> nonPersistedObjects, ImportStrategy importStrategy )
-    {
+  default <T extends IdentifiableObject> List<T> selectObjects(
+      List<T> persistedObjects, List<T> nonPersistedObjects, ImportStrategy importStrategy) {
 
-        if ( importStrategy.isCreateAndUpdate() )
-        {
-            return ValidationUtils.joinObjects( persistedObjects, nonPersistedObjects );
-        }
-        else if ( importStrategy.isCreate() )
-        {
-            return nonPersistedObjects;
-        }
-        else if ( importStrategy.isUpdate() )
-        {
-            return persistedObjects;
-        }
-        else
-        {
-            return Collections.emptyList();
-        }
+    if (importStrategy.isCreateAndUpdate()) {
+      return ValidationUtils.joinObjects(persistedObjects, nonPersistedObjects);
+    } else if (importStrategy.isCreate()) {
+      return nonPersistedObjects;
+    } else if (importStrategy.isUpdate()) {
+      return persistedObjects;
+    } else {
+      return Collections.emptyList();
     }
+  }
 }

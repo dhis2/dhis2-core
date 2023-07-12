@@ -33,9 +33,7 @@ import static org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecu
 
 import java.util.List;
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -49,85 +47,70 @@ import org.hisp.dhis.tracker.imports.programrule.executor.RuleActionExecutor;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 /**
- * This executor assigns a value to a field if it is empty, otherwise returns an
- * error
- *
- * @Author Enrico Colasante
+ * This executor assigns a value to a field if it is empty, otherwise returns an error @Author
+ * Enrico Colasante
  */
 @RequiredArgsConstructor
-public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment>
-{
-    private final SystemSettingManager systemSettingManager;
+public class AssignAttributeExecutor implements RuleActionExecutor<Enrollment> {
+  private final SystemSettingManager systemSettingManager;
 
-    private final String ruleUid;
+  private final String ruleUid;
 
-    private final String value;
+  private final String value;
 
-    private final String attributeUid;
+  private final String attributeUid;
 
-    private final List<Attribute> attributes;
+  private final List<Attribute> attributes;
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Enrollment enrollment )
-    {
-        Boolean canOverwrite = systemSettingManager
-            .getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
-        TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( attributeUid );
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Enrollment enrollment) {
+    Boolean canOverwrite =
+        systemSettingManager.getBooleanSetting(SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE);
+    TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
 
-        Optional<Attribute> payloadAttribute = attributes.stream()
-            .filter( at -> at.getAttribute().isEqualTo( attribute ) )
+    Optional<Attribute> payloadAttribute =
+        attributes.stream().filter(at -> at.getAttribute().isEqualTo(attribute)).findAny();
+
+    if (payloadAttribute.isEmpty()
+        || Boolean.TRUE.equals(canOverwrite)
+        || isEqual(value, payloadAttribute.get().getValue(), attribute.getValueType())) {
+      addOrOverwriteAttribute(enrollment, bundle);
+      return Optional.of(warning(ruleUid, ValidationCode.E1310, attributeUid, value));
+    }
+    return Optional.of(
+        error(ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment()));
+  }
+
+  private void addOrOverwriteAttribute(Enrollment enrollment, TrackerBundle bundle) {
+    TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute(attributeUid);
+    Optional<TrackedEntity> trackedEntity =
+        bundle.findTrackedEntityByUid(enrollment.getTrackedEntity());
+
+    if (trackedEntity.isPresent()) {
+      List<Attribute> teiAttributes = trackedEntity.get().getAttributes();
+      Optional<Attribute> optionalAttribute =
+          teiAttributes.stream().filter(at -> at.getAttribute().isEqualTo(attribute)).findAny();
+      if (optionalAttribute.isPresent()) {
+        optionalAttribute.get().setValue(value);
+        return;
+      }
+    }
+
+    List<Attribute> enrollmentAttributes = enrollment.getAttributes();
+    Optional<Attribute> optionalAttribute =
+        enrollmentAttributes.stream()
+            .filter(at -> at.getAttribute().isEqualTo(attribute))
             .findAny();
-
-        if ( payloadAttribute.isEmpty() ||
-            Boolean.TRUE.equals( canOverwrite ) ||
-            isEqual( value, payloadAttribute.get().getValue(), attribute.getValueType() ) )
-        {
-            addOrOverwriteAttribute( enrollment, bundle );
-            return Optional.of( warning( ruleUid, ValidationCode.E1310, attributeUid, value ) );
-        }
-        return Optional.of(
-            error( ruleUid, ValidationCode.E1309, attributeUid, enrollment.getEnrollment() ) );
+    if (optionalAttribute.isPresent()) {
+      optionalAttribute.get().setValue(value);
+    } else {
+      enrollmentAttributes.add(
+          createAttribute(
+              bundle.getPreheat().getIdSchemes().toMetadataIdentifier(attribute), value));
     }
+  }
 
-    private void addOrOverwriteAttribute( Enrollment enrollment, TrackerBundle bundle )
-    {
-        TrackedEntityAttribute attribute = bundle.getPreheat().getTrackedEntityAttribute( attributeUid );
-        Optional<TrackedEntity> trackedEntity = bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() );
-
-        if ( trackedEntity.isPresent() )
-        {
-            List<Attribute> teiAttributes = trackedEntity.get().getAttributes();
-            Optional<Attribute> optionalAttribute = teiAttributes.stream()
-                .filter( at -> at.getAttribute().isEqualTo( attribute ) )
-                .findAny();
-            if ( optionalAttribute.isPresent() )
-            {
-                optionalAttribute.get().setValue( value );
-                return;
-            }
-        }
-
-        List<Attribute> enrollmentAttributes = enrollment.getAttributes();
-        Optional<Attribute> optionalAttribute = enrollmentAttributes.stream()
-            .filter( at -> at.getAttribute().isEqualTo( attribute ) )
-            .findAny();
-        if ( optionalAttribute.isPresent() )
-        {
-            optionalAttribute.get().setValue( value );
-        }
-        else
-        {
-            enrollmentAttributes
-                .add( createAttribute( bundle.getPreheat().getIdSchemes().toMetadataIdentifier( attribute ),
-                    value ) );
-        }
-    }
-
-    private Attribute createAttribute( MetadataIdentifier attribute, String newValue )
-    {
-        return Attribute.builder()
-            .attribute( attribute )
-            .value( newValue )
-            .build();
-    }
+  private Attribute createAttribute(MetadataIdentifier attribute, String newValue) {
+    return Attribute.builder().attribute(attribute).value(newValue).build();
+  }
 }

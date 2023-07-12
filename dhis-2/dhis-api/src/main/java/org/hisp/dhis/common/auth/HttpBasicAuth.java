@@ -27,49 +27,43 @@
  */
 package org.hisp.dhis.common.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Base64;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen
  */
 @Getter
 @Setter
-@EqualsAndHashCode( callSuper = true )
-@Accessors( chain = true )
-public class HttpBasicAuth extends Auth
-{
-    public static final String TYPE = "http-basic";
+@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+public class HttpBasicAuth extends Auth {
+  public static final String TYPE = "http-basic";
 
-    @JsonProperty( required = true )
-    private String username;
+  @JsonProperty(required = true)
+  private String username;
 
-    @JsonProperty( required = true )
-    private String password;
+  @JsonProperty(required = true)
+  private String password;
 
-    public HttpBasicAuth()
-    {
-        super( TYPE );
+  public HttpBasicAuth() {
+    super(TYPE);
+  }
+
+  @Override
+  public void apply(MultiValueMap<String, String> headers) {
+    if (!(StringUtils.hasText(username) && StringUtils.hasText(password))) {
+      return;
     }
 
-    @Override
-    public void apply( MultiValueMap<String, String> headers )
-    {
-        if ( !(StringUtils.hasText( username ) && StringUtils.hasText( password )) )
-        {
-            return;
-        }
-
-        headers.add( "Authorization",
-            "Basic " + Base64.getEncoder().encodeToString( (username + ":" + password).getBytes() ) );
-    }
+    headers.add(
+        "Authorization",
+        "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes()));
+  }
 }

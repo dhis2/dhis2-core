@@ -33,25 +33,21 @@ import java.util.function.Function;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface FileReader
-{
-    FileReader read( File file )
-        throws Exception;
+public interface FileReader {
+  FileReader read(File file) throws Exception;
 
-    FileReader replacePropertyValuesWithIds( String propertyValues );
+  FileReader replacePropertyValuesWithIds(String propertyValues);
 
-    FileReader replacePropertyValuesWith( String propertyNames, String replacedValues );
+  FileReader replacePropertyValuesWith(String propertyNames, String replacedValues);
 
-    FileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue );
+  FileReader replacePropertyValuesRecursivelyWith(String propertyName, String replacedValue);
 
-    FileReader replace( Function<Object, Object> function );
+  FileReader replace(Function<Object, Object> function);
 
-    Object get();
+  Object get();
 
-    default <T> T get( Class<T> type )
-    {
-        T t = type.cast( get() );
-        return t;
-    }
-
+  default <T> T get(Class<T> type) {
+    T t = type.cast(get());
+    return t;
+  }
 }

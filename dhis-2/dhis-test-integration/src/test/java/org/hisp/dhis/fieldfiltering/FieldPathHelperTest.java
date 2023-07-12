@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -43,58 +42,53 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class FieldPathHelperTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private FieldPathHelper helper;
+class FieldPathHelperTest extends SingleSetupIntegrationTestBase {
+  @Autowired private FieldPathHelper helper;
 
-    @Test
-    public void testApplySimplePreset()
-    {
-        Map<String, FieldPath> fieldMapPath = new HashMap<>();
+  @Test
+  public void testApplySimplePreset() {
+    Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
-        FieldPath owner = new FieldPath( FieldPreset.SIMPLE, List.of(), false, true );
+    FieldPath owner = new FieldPath(FieldPreset.SIMPLE, List.of(), false, true);
 
-        helper.applyPresets( List.of( owner ), fieldMapPath, DataElement.class );
+    helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
-        assertPropertyExists( "id", fieldMapPath );
-        assertPropertyExists( "name", fieldMapPath );
-        assertPropertyExists( "shortName", fieldMapPath );
-        assertPropertyExists( "description", fieldMapPath );
-        assertPropertyExists( "valueType", fieldMapPath );
-        assertPropertyExists( "aggregationType", fieldMapPath );
-        assertPropertyExists( "domainType", fieldMapPath );
+    assertPropertyExists("id", fieldMapPath);
+    assertPropertyExists("name", fieldMapPath);
+    assertPropertyExists("shortName", fieldMapPath);
+    assertPropertyExists("description", fieldMapPath);
+    assertPropertyExists("valueType", fieldMapPath);
+    assertPropertyExists("aggregationType", fieldMapPath);
+    assertPropertyExists("domainType", fieldMapPath);
 
-        assertNull( fieldMapPath.get( "access" ) );
-        assertNull( fieldMapPath.get( "dataSetElements" ) );
-        assertNull( fieldMapPath.get( "optionSet" ) );
-        assertNull( fieldMapPath.get( "categoryCombo" ) );
-        assertNull( fieldMapPath.get( "translations" ) );
-    }
+    assertNull(fieldMapPath.get("access"));
+    assertNull(fieldMapPath.get("dataSetElements"));
+    assertNull(fieldMapPath.get("optionSet"));
+    assertNull(fieldMapPath.get("categoryCombo"));
+    assertNull(fieldMapPath.get("translations"));
+  }
 
-    @Test
-    public void testApplyIdentifiablePreset()
-    {
-        Map<String, FieldPath> fieldMapPath = new HashMap<>();
+  @Test
+  public void testApplyIdentifiablePreset() {
+    Map<String, FieldPath> fieldMapPath = new HashMap<>();
 
-        FieldPath owner = new FieldPath( FieldPreset.IDENTIFIABLE, List.of(), false, true );
+    FieldPath owner = new FieldPath(FieldPreset.IDENTIFIABLE, List.of(), false, true);
 
-        helper.applyPresets( List.of( owner ), fieldMapPath, DataElement.class );
+    helper.applyPresets(List.of(owner), fieldMapPath, DataElement.class);
 
-        assertPropertyExists( "id", fieldMapPath );
-        assertPropertyExists( "name", fieldMapPath );
-        assertPropertyExists( "code", fieldMapPath );
-        assertPropertyExists( "created", fieldMapPath );
-        assertPropertyExists( "lastUpdated", fieldMapPath );
-        assertPropertyExists( "lastUpdatedBy", fieldMapPath );
+    assertPropertyExists("id", fieldMapPath);
+    assertPropertyExists("name", fieldMapPath);
+    assertPropertyExists("code", fieldMapPath);
+    assertPropertyExists("created", fieldMapPath);
+    assertPropertyExists("lastUpdated", fieldMapPath);
+    assertPropertyExists("lastUpdatedBy", fieldMapPath);
 
-        assertNull( fieldMapPath.get( "shortName" ) );
-        assertNull( fieldMapPath.get( "description" ) );
-    }
+    assertNull(fieldMapPath.get("shortName"));
+    assertNull(fieldMapPath.get("description"));
+  }
 
-    private void assertPropertyExists( String propertyName, Map<String, FieldPath> fieldMapPath )
-    {
-        assertNotNull( fieldMapPath.get( propertyName ) );
-        assertEquals( propertyName, fieldMapPath.get( propertyName ).getName() );
-    }
+  private void assertPropertyExists(String propertyName, Map<String, FieldPath> fieldMapPath) {
+    assertNotNull(fieldMapPath.get(propertyName));
+    assertEquals(propertyName, fieldMapPath.get(propertyName).getName());
+  }
 }

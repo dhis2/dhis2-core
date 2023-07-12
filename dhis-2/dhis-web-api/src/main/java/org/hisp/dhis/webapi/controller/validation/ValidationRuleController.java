@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.validation;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -57,59 +57,49 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @Controller
-@RequestMapping( value = ValidationRuleSchemaDescriptor.API_ENDPOINT )
-public class ValidationRuleController
-    extends AbstractCrudController<ValidationRule>
-{
-    @Autowired
-    private DataSetService dataSetService;
+@RequestMapping(value = ValidationRuleSchemaDescriptor.API_ENDPOINT)
+public class ValidationRuleController extends AbstractCrudController<ValidationRule> {
+  @Autowired private DataSetService dataSetService;
 
-    @Autowired
-    private ValidationRuleService validationRuleService;
+  @Autowired private ValidationRuleService validationRuleService;
 
-    @Autowired
-    private ExpressionService expressionService;
+  @Autowired private ExpressionService expressionService;
 
-    @Autowired
-    private I18nManager i18nManager;
+  @Autowired private I18nManager i18nManager;
 
-    @Override
-    protected List<ValidationRule> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
-        List<Order> orders )
-        throws BadRequestException
-    {
-        if ( options.contains( "dataSet" ) )
-        {
-            DataSet ds = dataSetService.getDataSet( options.get( "dataSet" ) );
+  @Override
+  protected List<ValidationRule> getEntityList(
+      WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders)
+      throws BadRequestException {
+    if (options.contains("dataSet")) {
+      DataSet ds = dataSetService.getDataSet(options.get("dataSet"));
 
-            if ( ds == null )
-            {
-                return List.of();
-            }
+      if (ds == null) {
+        return List.of();
+      }
 
-            return Lists.newArrayList( validationRuleService.getValidationRulesForDataSet( ds ) );
-        }
-
-        return super.getEntityList( metadata, options, filters, orders );
+      return Lists.newArrayList(validationRuleService.getValidationRulesForDataSet(ds));
     }
 
-    @PostMapping( value = "/expression/description", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage getExpressionDescription( @RequestBody String expression )
-    {
-        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression,
-            VALIDATION_RULE_EXPRESSION );
+    return super.getEntityList(metadata, options, filters, orders);
+  }
 
-        return new DescriptiveWebMessage( result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK )
-            .setDescription( result::isValid,
-                () -> expressionService.getExpressionDescription( expression, VALIDATION_RULE_EXPRESSION ) )
-            .setMessage( i18nManager.getI18n().getString( result.getKey() ) );
-    }
+  @PostMapping(value = "/expression/description", produces = APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public WebMessage getExpressionDescription(@RequestBody String expression) {
+    ExpressionValidationOutcome result =
+        expressionService.expressionIsValid(expression, VALIDATION_RULE_EXPRESSION);
+
+    return new DescriptiveWebMessage(result.isValid() ? Status.OK : Status.ERROR, HttpStatus.OK)
+        .setDescription(
+            result::isValid,
+            () ->
+                expressionService.getExpressionDescription(expression, VALIDATION_RULE_EXPRESSION))
+        .setMessage(i18nManager.getI18n().getString(result.getKey()));
+  }
 }

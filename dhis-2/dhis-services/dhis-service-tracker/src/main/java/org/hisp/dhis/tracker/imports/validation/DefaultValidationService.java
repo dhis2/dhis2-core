@@ -30,10 +30,8 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.hisp.dhis.tracker.imports.validation.PersistablesFilter.filter;
 
 import java.util.HashSet;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.tracker.imports.ValidationMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -47,59 +45,54 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DefaultValidationService
-    implements ValidationService
-{
+public class DefaultValidationService implements ValidationService {
 
-    @Qualifier( "org.hisp.dhis.tracker.imports.validation.validator.DefaultValidator" )
-    private final Validator<TrackerBundle> validator;
+  @Qualifier("org.hisp.dhis.tracker.imports.validation.validator.DefaultValidator")
+  private final Validator<TrackerBundle> validator;
 
-    @Qualifier( "org.hisp.dhis.tracker.imports.validation.validator.RuleEngineValidator" )
-    private final Validator<TrackerBundle> ruleEngineValidator;
+  @Qualifier("org.hisp.dhis.tracker.imports.validation.validator.RuleEngineValidator")
+  private final Validator<TrackerBundle> ruleEngineValidator;
 
-    @Override
-    public ValidationResult validate( TrackerBundle bundle )
-    {
-        return validate( bundle, validator );
+  @Override
+  public ValidationResult validate(TrackerBundle bundle) {
+    return validate(bundle, validator);
+  }
+
+  @Override
+  public ValidationResult validateRuleEngine(TrackerBundle bundle) {
+    return validate(bundle, ruleEngineValidator);
+  }
+
+  private ValidationResult validate(TrackerBundle bundle, Validator<TrackerBundle> validator) {
+    User user = bundle.getUser();
+    if ((user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode()) {
+      log.warn(
+          "Skipping validation for metadata import by user '"
+              + bundle.getUsername()
+              + "'. Not recommended.");
+      return Result.empty();
     }
 
-    @Override
-    public ValidationResult validateRuleEngine( TrackerBundle bundle )
-    {
-        return validate( bundle, ruleEngineValidator );
+    Reporter reporter =
+        new Reporter(
+            bundle.getPreheat().getIdSchemes(),
+            bundle.getValidationMode() == ValidationMode.FAIL_FAST);
+
+    try {
+      validator.validate(reporter, bundle, bundle);
+    } catch (FailFastException e) {
+      // exit early when in FAIL_FAST validation mode
     }
 
-    private ValidationResult validate( TrackerBundle bundle, Validator<TrackerBundle> validator )
-    {
-        User user = bundle.getUser();
-        if ( (user == null || user.isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
-        {
-            log.warn( "Skipping validation for metadata import by user '" +
-                bundle.getUsername() + "'. Not recommended." );
-            return Result.empty();
-        }
+    PersistablesFilter.Result persistables =
+        filter(bundle, reporter.getInvalidDTOs(), bundle.getImportStrategy());
 
-        Reporter reporter = new Reporter( bundle.getPreheat().getIdSchemes(),
-            bundle.getValidationMode() == ValidationMode.FAIL_FAST );
-
-        try
-        {
-            validator.validate( reporter, bundle, bundle );
-        }
-        catch ( FailFastException e )
-        {
-            // exit early when in FAIL_FAST validation mode
-        }
-
-        PersistablesFilter.Result persistables = filter( bundle, reporter.getInvalidDTOs(),
-            bundle.getImportStrategy() );
-
-        return new Result(
-            persistables.getTrackedEntities(),
-            persistables.getEnrollments(),
-            persistables.getEvents(),
-            persistables.getRelationships(),
-            new HashSet<>( ListUtils.union( reporter.getErrors(), persistables.getErrors() ) ),
-            new HashSet<>( reporter.getWarnings() ) );
-    }
+    return new Result(
+        persistables.getTrackedEntities(),
+        persistables.getEnrollments(),
+        persistables.getEvents(),
+        persistables.getRelationships(),
+        new HashSet<>(ListUtils.union(reporter.getErrors(), persistables.getErrors())),
+        new HashSet<>(reporter.getWarnings()));
+  }
 }

@@ -30,9 +30,7 @@ package org.hisp.dhis.programstagefilter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -47,78 +45,68 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.programstagefilter.EventFilterService" )
-@Transactional( readOnly = true )
-public class DefaultEventFilterService implements EventFilterService
-{
-    private final ProgramService programService;
+@Service("org.hisp.dhis.programstagefilter.EventFilterService")
+@Transactional(readOnly = true)
+public class DefaultEventFilterService implements EventFilterService {
+  private final ProgramService programService;
 
-    private final ProgramStageService programStageService;
+  private final ProgramStageService programStageService;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    @Override
-    public List<String> validate( EventFilter eventFilter )
-    {
-        List<String> errors = new ArrayList<>();
+  @Override
+  public List<String> validate(EventFilter eventFilter) {
+    List<String> errors = new ArrayList<>();
 
-        if ( eventFilter.getProgram() == null )
-        {
-            errors.add( "Program should be specified for event filters." );
-        }
-        else
-        {
-            Program pr = programService.getProgram( eventFilter.getProgram() );
+    if (eventFilter.getProgram() == null) {
+      errors.add("Program should be specified for event filters.");
+    } else {
+      Program pr = programService.getProgram(eventFilter.getProgram());
 
-            if ( pr == null )
-            {
-                errors.add( "Program is specified but does not exist: " + eventFilter.getProgram() );
-            }
-        }
-
-        if ( eventFilter.getProgramStage() != null )
-        {
-            ProgramStage ps = programStageService.getProgramStage( eventFilter.getProgramStage() );
-            if ( ps == null )
-            {
-                errors.add(
-                    "Program stage is specified but does not exist: " + eventFilter.getProgramStage() );
-            }
-        }
-
-        EventQueryCriteria eventQC = eventFilter.getEventQueryCriteria();
-        if ( eventQC != null )
-        {
-            if ( eventQC.getOrganisationUnit() != null )
-            {
-                OrganisationUnit ou = organisationUnitService.getOrganisationUnit( eventQC.getOrganisationUnit() );
-                if ( ou == null )
-                {
-                    errors.add( "Org unit is specified but does not exist: " + eventQC.getOrganisationUnit() );
-                }
-            }
-            if ( eventQC.getAssignedUserMode() != null && eventQC.getAssignedUsers() != null
-                && !eventQC.getAssignedUsers().isEmpty()
-                && !eventQC.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
-            {
-                errors.add( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
-            }
-
-            if ( eventQC.getEvents() != null && !eventQC.getEvents().isEmpty() && eventQC.getDataFilters() != null
-                && !eventQC.getDataFilters().isEmpty() )
-            {
-                errors.add( "Event UIDs and filters can not be specified at the same time" );
-            }
-
-            if ( eventQC.getDisplayColumnOrder() != null && eventQC.getDisplayColumnOrder().size() > 0
-                && (new HashSet<>( eventQC.getDisplayColumnOrder() )).size() < eventQC.getDisplayColumnOrder()
-                    .size() )
-            {
-                errors.add( "Event query criteria can not have duplicate column ordering fields" );
-            }
-        }
-
-        return errors;
+      if (pr == null) {
+        errors.add("Program is specified but does not exist: " + eventFilter.getProgram());
+      }
     }
 
+    if (eventFilter.getProgramStage() != null) {
+      ProgramStage ps = programStageService.getProgramStage(eventFilter.getProgramStage());
+      if (ps == null) {
+        errors.add(
+            "Program stage is specified but does not exist: " + eventFilter.getProgramStage());
+      }
+    }
+
+    EventQueryCriteria eventQC = eventFilter.getEventQueryCriteria();
+    if (eventQC != null) {
+      if (eventQC.getOrganisationUnit() != null) {
+        OrganisationUnit ou =
+            organisationUnitService.getOrganisationUnit(eventQC.getOrganisationUnit());
+        if (ou == null) {
+          errors.add("Org unit is specified but does not exist: " + eventQC.getOrganisationUnit());
+        }
+      }
+      if (eventQC.getAssignedUserMode() != null
+          && eventQC.getAssignedUsers() != null
+          && !eventQC.getAssignedUsers().isEmpty()
+          && !eventQC.getAssignedUserMode().equals(AssignedUserSelectionMode.PROVIDED)) {
+        errors.add("Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED");
+      }
+
+      if (eventQC.getEvents() != null
+          && !eventQC.getEvents().isEmpty()
+          && eventQC.getDataFilters() != null
+          && !eventQC.getDataFilters().isEmpty()) {
+        errors.add("Event UIDs and filters can not be specified at the same time");
+      }
+
+      if (eventQC.getDisplayColumnOrder() != null
+          && eventQC.getDisplayColumnOrder().size() > 0
+          && (new HashSet<>(eventQC.getDisplayColumnOrder())).size()
+              < eventQC.getDisplayColumnOrder().size()) {
+        errors.add("Event query criteria can not have duplicate column ordering fields");
+      }
+    }
+
+    return errors;
+  }
 }

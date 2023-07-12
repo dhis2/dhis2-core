@@ -32,9 +32,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -45,49 +43,40 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment>
-{
-    private final EnrollmentService enrollmentService;
+public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment> {
+  private final EnrollmentService enrollmentService;
 
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( TrackedEntity.class, this::deleteTrackedEntity );
-        whenVetoing( Program.class, this::allowDeleteProgram );
-        whenDeleting( Program.class, this::deleteProgram );
+  @Override
+  protected void registerHandler() {
+    whenDeleting(TrackedEntity.class, this::deleteTrackedEntity);
+    whenVetoing(Program.class, this::allowDeleteProgram);
+    whenDeleting(Program.class, this::deleteProgram);
+  }
+
+  private void deleteTrackedEntity(TrackedEntity trackedEntity) {
+    for (Enrollment enrollment : trackedEntity.getEnrollments()) {
+      enrollmentService.deleteEnrollment(enrollment);
     }
+  }
 
-    private void deleteTrackedEntity( TrackedEntity trackedEntity )
-    {
-        for ( Enrollment enrollment : trackedEntity.getEnrollments() )
-        {
-            enrollmentService.deleteEnrollment( enrollment );
-        }
+  private DeletionVeto allowDeleteProgram(Program program) {
+    if (program.isWithoutRegistration()) {
+      return ACCEPT;
     }
+    String sql = "select 1 from programinstance where programid = :id limit 1";
+    return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
+  }
 
-    private DeletionVeto allowDeleteProgram( Program program )
-    {
-        if ( program.isWithoutRegistration() )
-        {
-            return ACCEPT;
-        }
-        String sql = "select 1 from programinstance where programid = :id limit 1";
-        return vetoIfExists( VETO, sql, Map.of( "id", program.getId() ) );
+  private void deleteProgram(Program program) {
+    Collection<Enrollment> enrollments = enrollmentService.getEnrollments(program);
+
+    if (enrollments != null) {
+      Iterator<Enrollment> iterator = enrollments.iterator();
+      while (iterator.hasNext()) {
+        Enrollment enrollment = iterator.next();
+        iterator.remove();
+        enrollmentService.hardDeleteEnrollment(enrollment);
+      }
     }
-
-    private void deleteProgram( Program program )
-    {
-        Collection<Enrollment> enrollments = enrollmentService.getEnrollments( program );
-
-        if ( enrollments != null )
-        {
-            Iterator<Enrollment> iterator = enrollments.iterator();
-            while ( iterator.hasNext() )
-            {
-                Enrollment enrollment = iterator.next();
-                iterator.remove();
-                enrollmentService.hardDeleteEnrollment( enrollment );
-            }
-        }
-    }
+  }
 }

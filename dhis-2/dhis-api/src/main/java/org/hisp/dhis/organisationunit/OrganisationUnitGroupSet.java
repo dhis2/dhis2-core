@@ -27,13 +27,17 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -42,186 +46,152 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Kristian Nordal
  */
-@JacksonXmlRootElement( localName = "organisationUnitGroupSet", namespace = DxfNamespaces.DXF_2_0 )
-public class OrganisationUnitGroupSet
-    extends BaseDimensionalObject
-    implements MetadataObject
-{
-    private boolean compulsory;
+@JacksonXmlRootElement(localName = "organisationUnitGroupSet", namespace = DxfNamespaces.DXF_2_0)
+public class OrganisationUnitGroupSet extends BaseDimensionalObject implements MetadataObject {
+  private boolean compulsory;
 
-    private boolean includeSubhierarchyInAnalytics;
+  private boolean includeSubhierarchyInAnalytics;
 
-    private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
+  private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public OrganisationUnitGroupSet()
-    {
+  public OrganisationUnitGroupSet() {}
+
+  public OrganisationUnitGroupSet(String name, String description, boolean compulsory) {
+    this.name = name;
+    this.description = description;
+    this.compulsory = compulsory;
+    this.includeSubhierarchyInAnalytics = false;
+  }
+
+  public OrganisationUnitGroupSet(
+      String name, String description, boolean compulsory, boolean dataDimension) {
+    this(name, description, compulsory);
+    this.dataDimension = dataDimension;
+    this.includeSubhierarchyInAnalytics = false;
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
+
+  public void addOrganisationUnitGroup(OrganisationUnitGroup organisationUnitGroup) {
+    organisationUnitGroups.add(organisationUnitGroup);
+    organisationUnitGroup.getGroupSets().add(this);
+  }
+
+  public void removeOrganisationUnitGroup(OrganisationUnitGroup organisationUnitGroup) {
+    organisationUnitGroups.remove(organisationUnitGroup);
+    organisationUnitGroup.getGroupSets().remove(this);
+  }
+
+  public void removeAllOrganisationUnitGroups() {
+    for (OrganisationUnitGroup group : organisationUnitGroups) {
+      group.getGroupSets().remove(this);
     }
 
-    public OrganisationUnitGroupSet( String name, String description, boolean compulsory )
-    {
-        this.name = name;
-        this.description = description;
-        this.compulsory = compulsory;
-        this.includeSubhierarchyInAnalytics = false;
+    organisationUnitGroups.clear();
+  }
+
+  public Collection<OrganisationUnit> getOrganisationUnits() {
+    List<OrganisationUnit> units = new ArrayList<>();
+
+    for (OrganisationUnitGroup group : organisationUnitGroups) {
+      units.addAll(group.getMembers());
     }
 
-    public OrganisationUnitGroupSet( String name, String description, boolean compulsory, boolean dataDimension )
-    {
-        this( name, description, compulsory );
-        this.dataDimension = dataDimension;
-        this.includeSubhierarchyInAnalytics = false;
+    return units;
+  }
+
+  public boolean isMemberOfOrganisationUnitGroups(OrganisationUnit organisationUnit) {
+    for (OrganisationUnitGroup group : organisationUnitGroups) {
+      if (group.getMembers().contains(organisationUnit)) {
+        return true;
+      }
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+    return false;
+  }
 
-    public void addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
-    {
-        organisationUnitGroups.add( organisationUnitGroup );
-        organisationUnitGroup.getGroupSets().add( this );
+  public boolean hasOrganisationUnitGroups() {
+    return organisationUnitGroups != null && organisationUnitGroups.size() > 0;
+  }
+
+  public OrganisationUnitGroup getGroup(OrganisationUnit unit) {
+    for (OrganisationUnitGroup group : organisationUnitGroups) {
+      if (group.getMembers().contains(unit)) {
+        return group;
+      }
     }
 
-    public void removeOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
-    {
-        organisationUnitGroups.remove( organisationUnitGroup );
-        organisationUnitGroup.getGroupSets().remove( this );
-    }
+    return null;
+  }
 
-    public void removeAllOrganisationUnitGroups()
-    {
-        for ( OrganisationUnitGroup group : organisationUnitGroups )
-        {
-            group.getGroupSets().remove( this );
-        }
+  public List<OrganisationUnitGroup> getSortedGroups() {
+    List<OrganisationUnitGroup> sortedGroups = new ArrayList<>(organisationUnitGroups);
 
-        organisationUnitGroups.clear();
-    }
+    Collections.sort(sortedGroups);
 
-    public Collection<OrganisationUnit> getOrganisationUnits()
-    {
-        List<OrganisationUnit> units = new ArrayList<>();
+    return sortedGroups;
+  }
 
-        for ( OrganisationUnitGroup group : organisationUnitGroups )
-        {
-            units.addAll( group.getMembers() );
-        }
+  // -------------------------------------------------------------------------
+  // Dimensional object
+  // -------------------------------------------------------------------------
 
-        return units;
-    }
+  @Override
+  @JsonProperty
+  @JsonSerialize(contentAs = BaseDimensionalItemObject.class)
+  @JacksonXmlElementWrapper(localName = "items", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "item", namespace = DxfNamespaces.DXF_2_0)
+  public List<DimensionalItemObject> getItems() {
+    return new ArrayList<>(organisationUnitGroups);
+  }
 
-    public boolean isMemberOfOrganisationUnitGroups( OrganisationUnit organisationUnit )
-    {
-        for ( OrganisationUnitGroup group : organisationUnitGroups )
-        {
-            if ( group.getMembers().contains( organisationUnit ) )
-            {
-                return true;
-            }
-        }
+  @Override
+  public DimensionType getDimensionType() {
+    return DimensionType.ORGANISATION_UNIT_GROUP_SET;
+  }
 
-        return false;
-    }
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public boolean hasOrganisationUnitGroups()
-    {
-        return organisationUnitGroups != null && organisationUnitGroups.size() > 0;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isCompulsory() {
+    return compulsory;
+  }
 
-    public OrganisationUnitGroup getGroup( OrganisationUnit unit )
-    {
-        for ( OrganisationUnitGroup group : organisationUnitGroups )
-        {
-            if ( group.getMembers().contains( unit ) )
-            {
-                return group;
-            }
-        }
+  public void setCompulsory(boolean compulsory) {
+    this.compulsory = compulsory;
+  }
 
-        return null;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isIncludeSubhierarchyInAnalytics() {
+    return includeSubhierarchyInAnalytics;
+  }
 
-    public List<OrganisationUnitGroup> getSortedGroups()
-    {
-        List<OrganisationUnitGroup> sortedGroups = new ArrayList<>( organisationUnitGroups );
+  public void setIncludeSubhierarchyInAnalytics(boolean includeSubhierarchyInAnalytics) {
+    this.includeSubhierarchyInAnalytics = includeSubhierarchyInAnalytics;
+  }
 
-        Collections.sort( sortedGroups );
+  @JsonProperty("organisationUnitGroups")
+  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JacksonXmlElementWrapper(localName = "organisationUnitGroups", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0)
+  public Set<OrganisationUnitGroup> getOrganisationUnitGroups() {
+    return organisationUnitGroups;
+  }
 
-        return sortedGroups;
-    }
-
-    // -------------------------------------------------------------------------
-    // Dimensional object
-    // -------------------------------------------------------------------------
-
-    @Override
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseDimensionalItemObject.class )
-    @JacksonXmlElementWrapper( localName = "items", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "item", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DimensionalItemObject> getItems()
-    {
-        return new ArrayList<>( organisationUnitGroups );
-    }
-
-    @Override
-    public DimensionType getDimensionType()
-    {
-        return DimensionType.ORGANISATION_UNIT_GROUP_SET;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isCompulsory()
-    {
-        return compulsory;
-    }
-
-    public void setCompulsory( boolean compulsory )
-    {
-        this.compulsory = compulsory;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isIncludeSubhierarchyInAnalytics()
-    {
-        return includeSubhierarchyInAnalytics;
-    }
-
-    public void setIncludeSubhierarchyInAnalytics( boolean includeSubhierarchyInAnalytics )
-    {
-        this.includeSubhierarchyInAnalytics = includeSubhierarchyInAnalytics;
-    }
-
-    @JsonProperty( "organisationUnitGroups" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "organisationUnitGroups", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "organisationUnitGroup", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<OrganisationUnitGroup> getOrganisationUnitGroups()
-    {
-        return organisationUnitGroups;
-    }
-
-    public void setOrganisationUnitGroups( Set<OrganisationUnitGroup> organisationUnitGroups )
-    {
-        this.organisationUnitGroups = organisationUnitGroups;
-    }
+  public void setOrganisationUnitGroups(Set<OrganisationUnitGroup> organisationUnitGroups) {
+    this.organisationUnitGroups = organisationUnitGroups;
+  }
 }

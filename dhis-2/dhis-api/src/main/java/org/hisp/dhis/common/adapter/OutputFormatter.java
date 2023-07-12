@@ -30,102 +30,82 @@ package org.hisp.dhis.common.adapter;
 import java.math.BigDecimal;
 
 /**
- * Simple component responsible do enforce specific output/format to types where
- * this is required.
+ * Simple component responsible do enforce specific output/format to types where this is required.
  *
- * Its goal is to provide methods that can improve the String representation of
- * particular types. Should be used specially for serialization purposes and in
- * very specific cases.
+ * <p>Its goal is to provide methods that can improve the String representation of particular types.
+ * Should be used specially for serialization purposes and in very specific cases.
  *
  * @author maikel arabori
  */
-public class OutputFormatter
-{
-    private static final int TEN_MILLION = 10000000;
+public class OutputFormatter {
+  private static final int TEN_MILLION = 10000000;
 
-    private OutputFormatter()
-    {
+  private OutputFormatter() {}
+
+  /**
+   * This method should support different formatters and apply them based on the input object type.
+   *
+   * <p>Currently only Double type is supported.
+   *
+   * @param object represents the object to be formatted.
+   * @return a String containing the full value of the number object. If the type is not supported
+   *     or is null it will return the given parameter object itself
+   */
+  public static Object maybeFormat(final Object object) {
+    if (object instanceof Double) {
+      return formatDouble((Double) object);
     }
 
-    /**
-     * This method should support different formatters and apply them based on
-     * the input object type.
-     *
-     * Currently only Double type is supported.
-     *
-     * @param object represents the object to be formatted.
-     *
-     * @return a String containing the full value of the number object. If the
-     *         type is not supported or is null it will return the given
-     *         parameter object itself
-     */
-    public static Object maybeFormat( final Object object )
-    {
-        if ( object instanceof Double )
-        {
-            return formatDouble( (Double) object );
-        }
+    return object;
+  }
 
-        return object;
+  /**
+   * This method will simply format a Double object to a non-scientific notation. It will happen
+   * only if the given argument is a Double.
+   *
+   * <p>By default, depending on the type, Java will convert number types, that are equals or
+   * greater than 10 million, to scientific notation when transformed to String.
+   *
+   * <p>For example, the Double 99999999 becomes 9.9999999E7 (scientific) when printed.
+   *
+   * <p>So, this method aims to avoid such representations and instead returns the full value as
+   * String (in this example it would be "99999999.0").
+   *
+   * @param doubleValue represents the object that should be a Double
+   * @return a String containing the full value of the number object. If the type is not supported
+   *     or is null it will return the given parameter object itself
+   * @throws NullPointerException if doubleValue is null
+   */
+  private static Object formatDouble(final Double doubleValue) {
+    // Don't waste resources if the value is smaller than 10
+    // million as the default representation will be the expected one.
+    if (doubleValue >= TEN_MILLION) {
+      // Needs to pass a String to the constructor, otherwise precision
+      // is lost.
+      final String numericValue = new BigDecimal((doubleValue).toString()).toPlainString();
+
+      // Because toPlainString() does not print an extra ".0"
+      // when the decimal digit is zero or absent.
+      return handleDecimalDigit(handleDecimalDigit(numericValue));
     }
 
-    /**
-     * This method will simply format a Double object to a non-scientific
-     * notation. It will happen only if the given argument is a Double.
-     *
-     * By default, depending on the type, Java will convert number types, that
-     * are equals or greater than 10 million, to scientific notation when
-     * transformed to String.
-     *
-     * For example, the Double 99999999 becomes 9.9999999E7 (scientific) when
-     * printed.
-     *
-     * So, this method aims to avoid such representations and instead returns
-     * the full value as String (in this example it would be "99999999.0").
-     *
-     * @param doubleValue represents the object that should be a Double
-     *
-     * @return a String containing the full value of the number object. If the
-     *         type is not supported or is null it will return the given
-     *         parameter object itself
-     *
-     * @throws NullPointerException if doubleValue is null
-     */
-    private static Object formatDouble( final Double doubleValue )
-    {
-        // Don't waste resources if the value is smaller than 10
-        // million as the default representation will be the expected one.
-        if ( doubleValue >= TEN_MILLION )
-        {
-            // Needs to pass a String to the constructor, otherwise precision
-            // is lost.
-            final String numericValue = new BigDecimal( (doubleValue).toString() ).toPlainString();
+    return doubleValue.toString();
+  }
 
-            // Because toPlainString() does not print an extra ".0"
-            // when the decimal digit is zero or absent.
-            return handleDecimalDigit( handleDecimalDigit( numericValue ) );
-        }
+  /**
+   * This method appends a ".0" at the end of the value when it has not decimal digit. We use this
+   * method to keep backward compatibility with the current behaviour.
+   *
+   * @param numericValue
+   * @return the given numericValue + ".0"
+   */
+  private static String handleDecimalDigit(final String numericValue) {
+    final boolean hasDecimalDigit = numericValue.contains(".");
 
-        return doubleValue.toString();
+    if (!hasDecimalDigit) {
+      return numericValue + ".0";
     }
 
-    /**
-     * This method appends a ".0" at the end of the value when it has not
-     * decimal digit. We use this method to keep backward compatibility with the
-     * current behaviour.
-     *
-     * @param numericValue
-     * @return the given numericValue + ".0"
-     */
-    private static String handleDecimalDigit( final String numericValue )
-    {
-        final boolean hasDecimalDigit = numericValue.contains( "." );
-
-        if ( !hasDecimalDigit )
-        {
-            return numericValue + ".0";
-        }
-
-        return numericValue;
-    }
+    return numericValue;
+  }
 }

@@ -27,99 +27,88 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author mortenoh
  */
-public class GetSystemAuthoritiesAction
-    extends ActionPagingSupport<String>
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetSystemAuthoritiesAction extends ActionPagingSupport<String> {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private SystemAuthoritiesProvider authoritiesProvider;
+  private SystemAuthoritiesProvider authoritiesProvider;
 
-    public void setAuthoritiesProvider( SystemAuthoritiesProvider authoritiesProvider )
-    {
-        this.authoritiesProvider = authoritiesProvider;
+  public void setAuthoritiesProvider(SystemAuthoritiesProvider authoritiesProvider) {
+    this.authoritiesProvider = authoritiesProvider;
+  }
+
+  private I18n i18n;
+
+  public void setI18n(I18n i18n) {
+    this.i18n = i18n;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private String systemAuthorities;
+
+  public String getSystemAuthorities() {
+    return systemAuthorities;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    ObjectNode root = mapper.createObjectNode();
+    ArrayNode authNodes = mapper.createArrayNode();
+
+    List<String> listAuthorities = new ArrayList<>(authoritiesProvider.getSystemAuthorities());
+    Collections.sort(listAuthorities);
+
+    if (usePaging) {
+      this.paging = createPaging(listAuthorities.size());
+
+      listAuthorities = listAuthorities.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    private I18n i18n;
+    listAuthorities.forEach(
+        auth -> {
+          String name = getAuthName(auth);
 
-    public void setI18n( I18n i18n )
-    {
-        this.i18n = i18n;
+          authNodes.add(mapper.createObjectNode().put("id", auth).put("name", name));
+        });
+
+    root.set("systemAuthorities", authNodes);
+
+    systemAuthorities = mapper.writeValueAsString(root);
+
+    return SUCCESS;
+  }
+
+  private String getAuthName(String auth) {
+    auth = i18n.getString(auth);
+
+    // Custom App doesn't have translation for See App authority
+    if (auth.startsWith(App.SEE_APP_AUTHORITY_PREFIX)) {
+      auth = auth.replaceFirst(App.SEE_APP_AUTHORITY_PREFIX, "").replaceAll("_", " ") + " app";
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
-
-    private String systemAuthorities;
-
-    public String getSystemAuthorities()
-    {
-        return systemAuthorities;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode root = mapper.createObjectNode();
-        ArrayNode authNodes = mapper.createArrayNode();
-
-        List<String> listAuthorities = new ArrayList<>( authoritiesProvider.getSystemAuthorities() );
-        Collections.sort( listAuthorities );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( listAuthorities.size() );
-
-            listAuthorities = listAuthorities.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        listAuthorities.forEach( auth -> {
-            String name = getAuthName( auth );
-
-            authNodes.add( mapper.createObjectNode().put( "id", auth ).put( "name", name ) );
-        } );
-
-        root.set( "systemAuthorities", authNodes );
-
-        systemAuthorities = mapper.writeValueAsString( root );
-
-        return SUCCESS;
-    }
-
-    private String getAuthName( String auth )
-    {
-        auth = i18n.getString( auth );
-
-        // Custom App doesn't have translation for See App authority
-        if ( auth.startsWith( App.SEE_APP_AUTHORITY_PREFIX ) )
-        {
-            auth = auth.replaceFirst( App.SEE_APP_AUTHORITY_PREFIX, "" ).replaceAll( "_", " " ) + " app";
-        }
-
-        return auth;
-    }
+    return auth;
+  }
 }

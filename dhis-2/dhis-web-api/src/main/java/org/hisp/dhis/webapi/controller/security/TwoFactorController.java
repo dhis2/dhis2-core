@@ -38,11 +38,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -69,164 +66,147 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Henning Håkonsen
  * @author Morten Svanaes
  */
-@OpenApi.Tags( { "user", "login" } )
+@OpenApi.Tags({"user", "login"})
 @RestController
-@RequestMapping( value = "/2fa" )
-@ApiVersion( { DhisApiVersion.DEFAULT,
-    DhisApiVersion.ALL } )
+@RequestMapping(value = "/2fa")
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
 @AllArgsConstructor
-public class TwoFactorController
-{
-    private final UserService defaultUserService;
+public class TwoFactorController {
+  private final UserService defaultUserService;
 
-    private final SystemSettingManager systemSettingManager;
+  private final SystemSettingManager systemSettingManager;
 
-    /**
-     * @deprecated Use {@link #generateQRCode}.
-     * @param currentUser
-     * @return
-     * @throws WebMessageException
-     */
-    @Deprecated( since = "2.39" )
-    @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.ACCEPTED )
-    @ResponseBody
-    public Map<String, Object> getQrCode( @CurrentUser User currentUser )
-        throws WebMessageException
-    {
-        if ( currentUser == null )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
-        }
-
-        return Map.of( "url", "url" );
+  /**
+   * @deprecated Use {@link #generateQRCode}.
+   * @param currentUser
+   * @return
+   * @throws WebMessageException
+   */
+  @Deprecated(since = "2.39")
+  @GetMapping(value = "/qr", produces = APPLICATION_JSON_VALUE)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  @ResponseBody
+  public Map<String, Object> getQrCode(@CurrentUser User currentUser) throws WebMessageException {
+    if (currentUser == null) {
+      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
 
-    @GetMapping( value = "/qrCode", produces = APPLICATION_OCTET_STREAM )
-    @ResponseStatus( HttpStatus.ACCEPTED )
-    public void generateQRCode( @CurrentUser User currentUser, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
-    {
-        if ( currentUser == null )
-        {
-            throw new WebMessageException( conflict( ErrorCode.E3027.getMessage(), ErrorCode.E3027 ) );
-        }
+    return Map.of("url", "url");
+  }
 
-        if ( currentUser.isTwoFactorEnabled() &&
-            !UserService.hasTwoFactorSecretForApproval( currentUser ) )
-        {
-            throw new WebMessageException( conflict(
-                ErrorCode.E3022.getMessage(), ErrorCode.E3022 ) );
-        }
-
-        defaultUserService.generateTwoFactorOtpSecretForApproval( currentUser );
-
-        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
-
-        List<ErrorCode> errorCodes = new ArrayList<>();
-
-        String qrContent = TwoFactoryAuthenticationUtils.generateQrContent( appName, currentUser,
-            errorCodes::add );
-
-        if ( !errorCodes.isEmpty() )
-        {
-            throw new WebMessageException( conflict( errorCodes.get( 0 ).getMessage(), errorCodes.get( 0 ) ) );
-        }
-
-        byte[] qrCode = TwoFactoryAuthenticationUtils.generateQRCode( qrContent, 200, 200,
-            errorCodes::add );
-
-        if ( !errorCodes.isEmpty() )
-        {
-            throw new WebMessageException( conflict( errorCodes.get( 0 ).getMessage(), errorCodes.get( 0 ) ) );
-        }
-
-        OutputStream outputStream = response.getOutputStream();
-        outputStream.write( qrCode );
+  @GetMapping(value = "/qrCode", produces = APPLICATION_OCTET_STREAM)
+  @ResponseStatus(HttpStatus.ACCEPTED)
+  public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
+      throws IOException, WebMessageException {
+    if (currentUser == null) {
+      throw new WebMessageException(conflict(ErrorCode.E3027.getMessage(), ErrorCode.E3027));
     }
 
-    @GetMapping( value = "/enabled", consumes = { "text/*", "application/*" } )
-    @ResponseStatus( HttpStatus.OK )
-    @ResponseBody
-    public boolean isEnabled( @CurrentUser( required = true ) User currentUser )
-    {
-        return currentUser.isTwoFactorEnabled() && !UserService.hasTwoFactorSecretForApproval( currentUser );
+    if (currentUser.isTwoFactorEnabled()
+        && !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+      throw new WebMessageException(conflict(ErrorCode.E3022.getMessage(), ErrorCode.E3022));
     }
 
-    /**
-     * Enable 2FA authentication for the current user.
-     *
-     * @param body The body of the request.
-     * @param currentUser This is the user that is currently logged in.
-     *
-     * @return
-     */
-    @PostMapping( value = "/enabled", consumes = { "text/*", "application/*" } )
-    @ResponseStatus( HttpStatus.OK )
-    @ResponseBody
-    public WebMessage enable(
-        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
-    {
-        String code = body.get( "code" );
+    defaultUserService.generateTwoFactorOtpSecretForApproval(currentUser);
 
-        if ( !currentUser.isTwoFactorEnabled() || !UserService.hasTwoFactorSecretForApproval( currentUser ) )
-        {
-            throw new WebMessageException( conflict(
-                ErrorCode.E3029.getMessage(), ErrorCode.E3029 ) );
-        }
+    String appName = systemSettingManager.getStringSetting(SettingKey.APPLICATION_TITLE);
 
-        if ( !verifyCode( code, currentUser ) )
-        {
-            return unauthorized( ErrorCode.E3023.getMessage() );
-        }
+    List<ErrorCode> errorCodes = new ArrayList<>();
 
-        defaultUserService.enableTwoFa( currentUser, code );
+    String qrContent =
+        TwoFactoryAuthenticationUtils.generateQrContent(appName, currentUser, errorCodes::add);
 
-        return ok( "Two factor authentication was enabled successfully" );
+    if (!errorCodes.isEmpty()) {
+      throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
     }
 
-    /**
-     * Disable 2FA authentication for the current user.
-     *
-     * @param body The body of the request.
-     * @param currentUser This is the user that is currently logged in.
-     *
-     * @return
-     */
-    @PostMapping( value = "/disabled", consumes = { "text/*", "application/*" } )
-    @ResponseStatus( HttpStatus.OK )
-    @ResponseBody
-    public WebMessage disable(
-        @RequestBody Map<String, String> body, @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
-    {
-        String code = body.get( "code" );
+    byte[] qrCode =
+        TwoFactoryAuthenticationUtils.generateQRCode(qrContent, 200, 200, errorCodes::add);
 
-        if ( !currentUser.isTwoFactorEnabled() )
-        {
-            throw new WebMessageException( conflict(
-                ErrorCode.E3031.getMessage(), ErrorCode.E3031 ) );
-        }
-
-        if ( !verifyCode( code, currentUser ) )
-        {
-            return unauthorized( ErrorCode.E3023.getMessage() );
-        }
-
-        defaultUserService.disableTwoFa( currentUser, code );
-
-        return ok( "Two factor authentication was disabled successfully" );
+    if (!errorCodes.isEmpty()) {
+      throw new WebMessageException(conflict(errorCodes.get(0).getMessage(), errorCodes.get(0)));
     }
 
-    private static boolean verifyCode( String code, User currentUser )
-    {
-        if ( currentUser == null )
-        {
-            throw new BadCredentialsException( ErrorCode.E3025.getMessage() );
-        }
+    OutputStream outputStream = response.getOutputStream();
+    outputStream.write(qrCode);
+  }
 
-        return TwoFactoryAuthenticationUtils.verify( code, currentUser.getSecret() );
+  @GetMapping(
+      value = "/enabled",
+      consumes = {"text/*", "application/*"})
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public boolean isEnabled(@CurrentUser(required = true) User currentUser) {
+    return currentUser.isTwoFactorEnabled()
+        && !UserService.hasTwoFactorSecretForApproval(currentUser);
+  }
+
+  /**
+   * Enable 2FA authentication for the current user.
+   *
+   * @param body The body of the request.
+   * @param currentUser This is the user that is currently logged in.
+   * @return
+   */
+  @PostMapping(
+      value = "/enabled",
+      consumes = {"text/*", "application/*"})
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public WebMessage enable(
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      throws WebMessageException {
+    String code = body.get("code");
+
+    if (!currentUser.isTwoFactorEnabled()
+        || !UserService.hasTwoFactorSecretForApproval(currentUser)) {
+      throw new WebMessageException(conflict(ErrorCode.E3029.getMessage(), ErrorCode.E3029));
     }
+
+    if (!verifyCode(code, currentUser)) {
+      return unauthorized(ErrorCode.E3023.getMessage());
+    }
+
+    defaultUserService.enableTwoFa(currentUser, code);
+
+    return ok("Two factor authentication was enabled successfully");
+  }
+
+  /**
+   * Disable 2FA authentication for the current user.
+   *
+   * @param body The body of the request.
+   * @param currentUser This is the user that is currently logged in.
+   * @return
+   */
+  @PostMapping(
+      value = "/disabled",
+      consumes = {"text/*", "application/*"})
+  @ResponseStatus(HttpStatus.OK)
+  @ResponseBody
+  public WebMessage disable(
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      throws WebMessageException {
+    String code = body.get("code");
+
+    if (!currentUser.isTwoFactorEnabled()) {
+      throw new WebMessageException(conflict(ErrorCode.E3031.getMessage(), ErrorCode.E3031));
+    }
+
+    if (!verifyCode(code, currentUser)) {
+      return unauthorized(ErrorCode.E3023.getMessage());
+    }
+
+    defaultUserService.disableTwoFa(currentUser, code);
+
+    return ok("Two factor authentication was disabled successfully");
+  }
+
+  private static boolean verifyCode(String code, User currentUser) {
+    if (currentUser == null) {
+      throw new BadCredentialsException(ErrorCode.E3025.getMessage());
+    }
+
+    return TwoFactoryAuthenticationUtils.verify(code, currentUser.getSecret());
+  }
 }

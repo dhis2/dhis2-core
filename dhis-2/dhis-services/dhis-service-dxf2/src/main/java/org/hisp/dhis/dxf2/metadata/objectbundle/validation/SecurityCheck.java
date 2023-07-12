@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -46,104 +45,106 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class SecurityCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext context, Consumer<ObjectReport> addReports )
-    {
-        if ( importStrategy.isUpdate() || importStrategy.isCreateAndUpdate() )
-        {
-            runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.UPDATE, context, addReports );
-        }
-        if ( importStrategy.isCreate() || importStrategy.isCreateAndUpdate() )
-        {
-            runValidationCheck( bundle, klass, nonPersistedObjects, ImportStrategy.CREATE, context, addReports );
-        }
-        if ( importStrategy.isDelete() )
-        {
-            runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.DELETE, context, addReports );
-        }
+public class SecurityCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports) {
+    if (importStrategy.isUpdate() || importStrategy.isCreateAndUpdate()) {
+      runValidationCheck(
+          bundle, klass, persistedObjects, ImportStrategy.UPDATE, context, addReports);
+    }
+    if (importStrategy.isCreate() || importStrategy.isCreateAndUpdate()) {
+      runValidationCheck(
+          bundle, klass, nonPersistedObjects, ImportStrategy.CREATE, context, addReports);
+    }
+    if (importStrategy.isDelete()) {
+      runValidationCheck(
+          bundle, klass, persistedObjects, ImportStrategy.DELETE, context, addReports);
+    }
+  }
+
+  private <T extends IdentifiableObject> void runValidationCheck(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> objects,
+      ImportStrategy importMode,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    if (objects == null || objects.isEmpty()) {
+      return;
     }
 
-    private <T extends IdentifiableObject> void runValidationCheck( ObjectBundle bundle, Class<T> klass,
-        List<T> objects, ImportStrategy importMode, ValidationContext ctx,
-        Consumer<ObjectReport> addReports )
-    {
-        if ( objects == null || objects.isEmpty() )
-        {
-            return;
+    PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+    for (T object : objects) {
+      if (importMode.isCreate()) {
+        if (!ctx.getAclService().canCreate(bundle.getUser(), klass)) {
+          ErrorReport errorReport =
+              new ErrorReport(
+                  klass,
+                  ErrorCode.E3000,
+                  identifier.getIdentifiersWithName(bundle.getUser()),
+                  identifier.getIdentifiersWithName(object));
+
+          addReports.accept(createObjectReport(errorReport, object, bundle));
+          ctx.markForRemoval(object);
+          continue;
         }
+      } else {
+        T persistedObject = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
 
-        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+        if (importMode.isUpdate()) {
+          if (!ctx.getAclService().canUpdate(bundle.getUser(), persistedObject)) {
+            ErrorReport errorReport =
+                new ErrorReport(
+                    klass,
+                    ErrorCode.E3001,
+                    identifier.getIdentifiersWithName(bundle.getUser()),
+                    identifier.getIdentifiersWithName(object));
 
-        for ( T object : objects )
-        {
-            if ( importMode.isCreate() )
-            {
-                if ( !ctx.getAclService().canCreate( bundle.getUser(), klass ) )
-                {
-                    ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3000,
-                        identifier.getIdentifiersWithName( bundle.getUser() ),
-                        identifier.getIdentifiersWithName( object ) );
+            addReports.accept(createObjectReport(errorReport, object, bundle));
+            ctx.markForRemoval(object);
+            continue;
+          }
+        } else if (importMode.isDelete()
+            && !ctx.getAclService().canDelete(bundle.getUser(), persistedObject)) {
+          ErrorReport errorReport =
+              new ErrorReport(
+                  klass,
+                  ErrorCode.E3002,
+                  identifier.getIdentifiersWithName(bundle.getUser()),
+                  identifier.getIdentifiersWithName(object));
 
-                    addReports.accept( createObjectReport( errorReport, object, bundle ) );
-                    ctx.markForRemoval( object );
-                    continue;
-                }
-            }
-            else
-            {
-                T persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
-
-                if ( importMode.isUpdate() )
-                {
-                    if ( !ctx.getAclService().canUpdate( bundle.getUser(), persistedObject ) )
-                    {
-                        ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3001,
-                            identifier.getIdentifiersWithName( bundle.getUser() ),
-                            identifier.getIdentifiersWithName( object ) );
-
-                        addReports.accept( createObjectReport( errorReport, object, bundle ) );
-                        ctx.markForRemoval( object );
-                        continue;
-                    }
-                }
-                else if ( importMode.isDelete() && !ctx.getAclService().canDelete( bundle.getUser(), persistedObject ) )
-                {
-                    ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E3002,
-                        identifier.getIdentifiersWithName( bundle.getUser() ),
-                        identifier.getIdentifiersWithName( object ) );
-
-                    addReports.accept( createObjectReport( errorReport, object, bundle ) );
-                    ctx.markForRemoval( object );
-                    continue;
-                }
-            }
-
-            if ( object instanceof User )
-            {
-                User user = (User) object;
-                List<ErrorReport> errorReports = ctx.getUserService().validateUser( user, bundle.getUser() );
-
-                if ( !errorReports.isEmpty() )
-                {
-                    addReports.accept( createObjectReport( errorReports, object, bundle ) );
-                    ctx.markForRemoval( object );
-                }
-            }
-
-            if ( !bundle.isSkipSharing() )
-            {
-                List<ErrorReport> sharingErrorReports = ctx.getAclService().verifySharing( object, bundle.getUser() );
-                if ( !sharingErrorReports.isEmpty() )
-                {
-                    addReports.accept( createObjectReport( sharingErrorReports, object, bundle ) );
-                    ctx.markForRemoval( object );
-                }
-            }
-
+          addReports.accept(createObjectReport(errorReport, object, bundle));
+          ctx.markForRemoval(object);
+          continue;
         }
+      }
+
+      if (object instanceof User) {
+        User user = (User) object;
+        List<ErrorReport> errorReports = ctx.getUserService().validateUser(user, bundle.getUser());
+
+        if (!errorReports.isEmpty()) {
+          addReports.accept(createObjectReport(errorReports, object, bundle));
+          ctx.markForRemoval(object);
+        }
+      }
+
+      if (!bundle.isSkipSharing()) {
+        List<ErrorReport> sharingErrorReports =
+            ctx.getAclService().verifySharing(object, bundle.getUser());
+        if (!sharingErrorReports.isEmpty()) {
+          addReports.accept(createObjectReport(sharingErrorReports, object, bundle));
+          ctx.markForRemoval(object);
+        }
+      }
     }
+  }
 }

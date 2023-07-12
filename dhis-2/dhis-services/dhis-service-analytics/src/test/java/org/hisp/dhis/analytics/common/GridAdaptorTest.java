@@ -50,9 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.sql.rowset.RowSetMetaDataImpl;
-
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.common.params.CommonParams;
@@ -86,218 +84,223 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  *
  * @author maikel arabori
  */
-@ExtendWith( MockitoExtension.class )
-class GridAdaptorTest extends DhisConvenienceTest
-{
-    private GridAdaptor gridAdaptor;
+@ExtendWith(MockitoExtension.class)
+class GridAdaptorTest extends DhisConvenienceTest {
+  private GridAdaptor gridAdaptor;
 
-    private HeaderParamsHandler headerParamsHandler;
+  private HeaderParamsHandler headerParamsHandler;
 
-    private MetadataParamsHandler metadataDetailsHandler;
+  private MetadataParamsHandler metadataDetailsHandler;
 
-    private SchemeIdResponseMapper schemeIdResponseMapper;
+  private SchemeIdResponseMapper schemeIdResponseMapper;
 
-    private User user;
+  private User user;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @BeforeEach
-    void setUp()
-    {
-        headerParamsHandler = new HeaderParamsHandler();
-        metadataDetailsHandler = new MetadataParamsHandler();
-        schemeIdResponseMapper = new SchemeIdResponseMapper();
-        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper,
-            currentUserService );
-        user = makeUser( ADMIN_USER_UID );
-    }
+  @BeforeEach
+  void setUp() {
+    headerParamsHandler = new HeaderParamsHandler();
+    metadataDetailsHandler = new MetadataParamsHandler();
+    schemeIdResponseMapper = new SchemeIdResponseMapper();
+    gridAdaptor =
+        new GridAdaptor(
+            headerParamsHandler,
+            metadataDetailsHandler,
+            schemeIdResponseMapper,
+            currentUserService);
+    user = makeUser(ADMIN_USER_UID);
+  }
 
-    @Test
-    void testCreateGridWithFields()
-        throws SQLException
-    {
-        // Given
-        ResultSet resultSet = mock( ResultSet.class );
+  @Test
+  void testCreateGridWithFields() throws SQLException {
+    // Given
+    ResultSet resultSet = mock(ResultSet.class);
 
-        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
-        metaData.setColumnCount( 2 );
-        metaData.setColumnName( 1, "anyFakeCol-1" );
-        metaData.setColumnName( 2, "anyFakeCol-2" );
+    RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+    metaData.setColumnCount(2);
+    metaData.setColumnName(1, "anyFakeCol-1");
+    metaData.setColumnName(2, "anyFakeCol-2");
 
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
-            .commonParams( stubCommonParams() ).build();
-
-        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode" ) );
-
-        when( resultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( resultSet.getMetaData() ).thenReturn( metaData );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-
-        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
-        SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
-        long anyCount = 0;
-
-        // When
-        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams, fields );
-
-        // Then
-        assertNotNull( grid, "Should not be null: grid" );
-        assertFalse( grid.getHeaders().isEmpty(), "Should not be empty: headers" );
-        assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
-        assertEquals( 1, grid.getHeaders().size(), "Should have size of 1: headers" );
-        assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
-    }
-
-    @Test
-    void testCreateGridWithEmptyField()
-        throws SQLException
-    {
-        // Given
-        ResultSet resultSet = mock( ResultSet.class );
-
-        RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
-        metaData.setColumnCount( 2 );
-        metaData.setColumnName( 1, "anyFakeCol-1" );
-        metaData.setColumnName( 2, "anyFakeCol-2" );
-
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
-            .commonParams( stubCommonParams() ).build();
-
-        List<Field> fields = emptyList();
-
-        when( resultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( resultSet.getMetaData() ).thenReturn( metaData );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-
-        SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet( resultSet );
-        SqlQueryResult mockSqlResult = new SqlQueryResult( sqlRowSet );
-        long anyCount = 0;
-
-        // When
-        Grid grid = gridAdaptor.createGrid( Optional.of( mockSqlResult ), anyCount, teiQueryParams, fields );
-
-        // Then
-        assertNotNull( grid, "Should not be null: grid" );
-        assertTrue( grid.getHeaders().isEmpty(), "Should be empty: headers" );
-        assertFalse( grid.getRows().isEmpty(), "Should not be empty: rows" );
-        assertEquals( 3, grid.getRows().size(), "Should have size of 3: rows" );
-        assertTrue( MapUtils.isNotEmpty( grid.getMetaData() ) );
-    }
-
-    @Test
-    void testCreateGridWithEmptySqlResult()
-    {
-        // Given
-        Optional<SqlQueryResult> emptySqlResult = Optional.empty();
-
-        TeiQueryParams teiQueryParams = TeiQueryParams.builder().trackedEntityType( stubTrackedEntityType() )
-            .commonParams( stubCommonParams() ).build();
-
-        List<Field> fields = List.of( ofUnquoted( "ev", null, "oucode" ) );
-
-        long anyCount = 0;
-
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-
-        // When
-        Grid grid = gridAdaptor.createGrid( emptySqlResult, anyCount, teiQueryParams, fields );
-
-        // Then
-        assertTrue( isNotEmpty( grid.getHeaders() ) );
-        assertTrue( MapUtils.isNotEmpty( grid.getMetaData() ) );
-        assertTrue( isEmpty( grid.getRows() ) );
-    }
-
-    @Test
-    void testCreateGridWithNullTeiQueryParams()
-    {
-        // Given
-        Optional<SqlQueryResult> anySqlResult = Optional.empty();
-        TeiQueryParams nullTeiQueryParams = null;
-        long anyCount = 0;
-
-        // When
-        IllegalArgumentException ex = assertThrows(
-            IllegalArgumentException.class,
-            () -> gridAdaptor.createGrid( anySqlResult, anyCount, nullTeiQueryParams, null ),
-            "Expected exception not thrown: createGrid()" );
-
-        // Then
-        assertTrue( ex.getMessage().contains( "The 'teiQueryParams' must not be null" ) );
-    }
-
-    private TrackedEntityType stubTrackedEntityType()
-    {
-        TrackedEntityTypeAttribute tetaA = createTrackedEntityTypeAttribute( 'A', TEXT );
-        tetaA.setUid( "tetaA-uid" );
-        tetaA.getTrackedEntityAttribute().setUid( "teaA-uid" );
-
-        TrackedEntityTypeAttribute tetaB = createTrackedEntityTypeAttribute( 'B', TEXT );
-        tetaB.setUid( "tetaB-uid" );
-        tetaB.getTrackedEntityAttribute().setUid( "teaB-uid" );
-
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setUid( "tet-uid" );
-        trackedEntityType.setTrackedEntityTypeAttributes( List.of( tetaA, tetaB ) );
-
-        return trackedEntityType;
-    }
-
-    private CommonParams stubCommonParams()
-    {
-        List<DimensionIdentifier<DimensionParam>> dimIdentifiers = getDimensionIdentifiers();
-
-        return CommonParams.builder().programs( List.of( createProgram( 'A' ) ) )
-            .dimensionIdentifiers( dimIdentifiers )
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder()
+            .trackedEntityType(stubTrackedEntityType())
+            .commonParams(stubCommonParams())
             .build();
-    }
 
-    private List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
-    {
-        List<String> ous = List.of( "ou1-uid", "ou2-uid" );
+    List<Field> fields = List.of(ofUnquoted("ev", null, "oucode"));
 
-        DimensionIdentifier<DimensionParam> dimensionIdentifierA = stubDimensionIdentifier(
-            ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaA-uid" );
+    when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+    when(resultSet.getMetaData()).thenReturn(metaData);
+    when(currentUserService.getCurrentUser()).thenReturn(user);
 
-        DimensionIdentifier<DimensionParam> dimensionIdentifierB = stubDimensionIdentifier(
-            ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaB-uid" );
+    SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
+    SqlQueryResult mockSqlResult = new SqlQueryResult(sqlRowSet);
+    long anyCount = 0;
 
-        List<DimensionIdentifier<DimensionParam>> dimIdentifiers = new ArrayList<>();
-        dimIdentifiers.add( dimensionIdentifierA );
-        dimIdentifiers.add( dimensionIdentifierB );
+    // When
+    Grid grid =
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields);
 
-        return dimIdentifiers;
-    }
+    // Then
+    assertNotNull(grid, "Should not be null: grid");
+    assertFalse(grid.getHeaders().isEmpty(), "Should not be empty: headers");
+    assertFalse(grid.getRows().isEmpty(), "Should not be empty: rows");
+    assertEquals(1, grid.getHeaders().size(), "Should have size of 1: headers");
+    assertEquals(3, grid.getRows().size(), "Should have size of 3: rows");
+  }
 
-    private DimensionIdentifier<DimensionParam> stubDimensionIdentifier( List<String> ous,
-        String programUid, String programStageUid, String dimensionUid )
-    {
-        BaseDimensionalObject tea = new BaseDimensionalObject( dimensionUid, DATA_X,
+  @Test
+  void testCreateGridWithEmptyField() throws SQLException {
+    // Given
+    ResultSet resultSet = mock(ResultSet.class);
+
+    RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
+    metaData.setColumnCount(2);
+    metaData.setColumnName(1, "anyFakeCol-1");
+    metaData.setColumnName(2, "anyFakeCol-2");
+
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder()
+            .trackedEntityType(stubTrackedEntityType())
+            .commonParams(stubCommonParams())
+            .build();
+
+    List<Field> fields = emptyList();
+
+    when(resultSet.next()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+    when(resultSet.getMetaData()).thenReturn(metaData);
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    SqlRowSet sqlRowSet = new ResultSetWrappingSqlRowSet(resultSet);
+    SqlQueryResult mockSqlResult = new SqlQueryResult(sqlRowSet);
+    long anyCount = 0;
+
+    // When
+    Grid grid =
+        gridAdaptor.createGrid(Optional.of(mockSqlResult), anyCount, teiQueryParams, fields);
+
+    // Then
+    assertNotNull(grid, "Should not be null: grid");
+    assertTrue(grid.getHeaders().isEmpty(), "Should be empty: headers");
+    assertFalse(grid.getRows().isEmpty(), "Should not be empty: rows");
+    assertEquals(3, grid.getRows().size(), "Should have size of 3: rows");
+    assertTrue(MapUtils.isNotEmpty(grid.getMetaData()));
+  }
+
+  @Test
+  void testCreateGridWithEmptySqlResult() {
+    // Given
+    Optional<SqlQueryResult> emptySqlResult = Optional.empty();
+
+    TeiQueryParams teiQueryParams =
+        TeiQueryParams.builder()
+            .trackedEntityType(stubTrackedEntityType())
+            .commonParams(stubCommonParams())
+            .build();
+
+    List<Field> fields = List.of(ofUnquoted("ev", null, "oucode"));
+
+    long anyCount = 0;
+
+    when(currentUserService.getCurrentUser()).thenReturn(user);
+
+    // When
+    Grid grid = gridAdaptor.createGrid(emptySqlResult, anyCount, teiQueryParams, fields);
+
+    // Then
+    assertTrue(isNotEmpty(grid.getHeaders()));
+    assertTrue(MapUtils.isNotEmpty(grid.getMetaData()));
+    assertTrue(isEmpty(grid.getRows()));
+  }
+
+  @Test
+  void testCreateGridWithNullTeiQueryParams() {
+    // Given
+    Optional<SqlQueryResult> anySqlResult = Optional.empty();
+    TeiQueryParams nullTeiQueryParams = null;
+    long anyCount = 0;
+
+    // When
+    IllegalArgumentException ex =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> gridAdaptor.createGrid(anySqlResult, anyCount, nullTeiQueryParams, null),
+            "Expected exception not thrown: createGrid()");
+
+    // Then
+    assertTrue(ex.getMessage().contains("The 'teiQueryParams' must not be null"));
+  }
+
+  private TrackedEntityType stubTrackedEntityType() {
+    TrackedEntityTypeAttribute tetaA = createTrackedEntityTypeAttribute('A', TEXT);
+    tetaA.setUid("tetaA-uid");
+    tetaA.getTrackedEntityAttribute().setUid("teaA-uid");
+
+    TrackedEntityTypeAttribute tetaB = createTrackedEntityTypeAttribute('B', TEXT);
+    tetaB.setUid("tetaB-uid");
+    tetaB.getTrackedEntityAttribute().setUid("teaB-uid");
+
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid("tet-uid");
+    trackedEntityType.setTrackedEntityTypeAttributes(List.of(tetaA, tetaB));
+
+    return trackedEntityType;
+  }
+
+  private CommonParams stubCommonParams() {
+    List<DimensionIdentifier<DimensionParam>> dimIdentifiers = getDimensionIdentifiers();
+
+    return CommonParams.builder()
+        .programs(List.of(createProgram('A')))
+        .dimensionIdentifiers(dimIdentifiers)
+        .build();
+  }
+
+  private List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers() {
+    List<String> ous = List.of("ou1-uid", "ou2-uid");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifierA =
+        stubDimensionIdentifier(ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaA-uid");
+
+    DimensionIdentifier<DimensionParam> dimensionIdentifierB =
+        stubDimensionIdentifier(ous, "Z8z5uu61HAb", "tO8L1aBitDm", "teaB-uid");
+
+    List<DimensionIdentifier<DimensionParam>> dimIdentifiers = new ArrayList<>();
+    dimIdentifiers.add(dimensionIdentifierA);
+    dimIdentifiers.add(dimensionIdentifierB);
+
+    return dimIdentifiers;
+  }
+
+  private DimensionIdentifier<DimensionParam> stubDimensionIdentifier(
+      List<String> ous, String programUid, String programStageUid, String dimensionUid) {
+    BaseDimensionalObject tea =
+        new BaseDimensionalObject(
+            dimensionUid,
+            DATA_X,
             ous.stream()
-                .map( item -> new BaseDimensionalItemObject( item ) )
-                .collect( Collectors.toList() ),
-            TEXT );
+                .map(item -> new BaseDimensionalItemObject(item))
+                .collect(Collectors.toList()),
+            TEXT);
 
-        DimensionParam dimensionParam = DimensionParam.ofObject( tea, DIMENSIONS, ous );
+    DimensionParam dimensionParam = DimensionParam.ofObject(tea, DIMENSIONS, ous);
 
-        ElementWithOffset program = emptyElementWithOffset();
-        ElementWithOffset programStage = emptyElementWithOffset();
+    ElementWithOffset program = emptyElementWithOffset();
+    ElementWithOffset programStage = emptyElementWithOffset();
 
-        if ( isNotBlank( programUid ) )
-        {
-            Program p = new Program();
-            p.setUid( programUid );
-            program = ElementWithOffset.of( p, null );
-        }
-
-        if ( isNotBlank( programStageUid ) )
-        {
-            ProgramStage ps = new ProgramStage();
-            ps.setUid( programStageUid );
-            programStage = ElementWithOffset.of( ps, null );
-        }
-
-        return DimensionIdentifier.of( program, programStage, dimensionParam );
+    if (isNotBlank(programUid)) {
+      Program p = new Program();
+      p.setUid(programUid);
+      program = ElementWithOffset.of(p, null);
     }
+
+    if (isNotBlank(programStageUid)) {
+      ProgramStage ps = new ProgramStage();
+      ps.setUid(programStageUid);
+      programStage = ElementWithOffset.of(ps, null);
+    }
+
+    return DimensionIdentifier.of(program, programStage, dimensionParam);
+  }
 }

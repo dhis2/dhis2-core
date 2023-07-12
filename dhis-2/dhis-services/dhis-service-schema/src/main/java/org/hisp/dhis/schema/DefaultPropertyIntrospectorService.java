@@ -32,9 +32,7 @@ import static java.util.Collections.unmodifiableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.introspection.GistPropertyIntrospector;
@@ -47,51 +45,46 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Default {@link PropertyIntrospectorService} implementation that uses
- * Reflection and Jackson annotations for reading in properties.
+ * Default {@link PropertyIntrospectorService} implementation that uses Reflection and Jackson
+ * annotations for reading in properties.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.schema.PropertyIntrospectorService" )
-public class DefaultPropertyIntrospectorService implements PropertyIntrospectorService
-{
-    private final Map<Class<?>, Map<String, Property>> classMapCache = new ConcurrentHashMap<>();
+@Service("org.hisp.dhis.schema.PropertyIntrospectorService")
+public class DefaultPropertyIntrospectorService implements PropertyIntrospectorService {
+  private final Map<Class<?>, Map<String, Property>> classMapCache = new ConcurrentHashMap<>();
 
-    private final PropertyIntrospector introspector;
+  private final PropertyIntrospector introspector;
 
-    @Autowired
-    public DefaultPropertyIntrospectorService( SessionFactory sessionFactory )
-    {
-        this( new HibernatePropertyIntrospector( sessionFactory )
-            .then( new JacksonPropertyIntrospector() )
-            .then( new TranslatablePropertyIntrospector() )
-            .then( new PropertyPropertyIntrospector() )
-            .then( new GistPropertyIntrospector() ) );
+  @Autowired
+  public DefaultPropertyIntrospectorService(SessionFactory sessionFactory) {
+    this(
+        new HibernatePropertyIntrospector(sessionFactory)
+            .then(new JacksonPropertyIntrospector())
+            .then(new TranslatablePropertyIntrospector())
+            .then(new PropertyPropertyIntrospector())
+            .then(new GistPropertyIntrospector()));
+  }
+
+  @Override
+  public Map<String, Property> getPropertiesMap(Class<?> klass) {
+    return classMapCache.computeIfAbsent(klass, this::scanClass);
+  }
+
+  /**
+   * Introspect a class and return a map with key=property-name, and value=Property class.
+   *
+   * @param klass Class to scan
+   * @return Map with key=property-name, and value=Property class
+   */
+  private Map<String, Property> scanClass(Class<?> klass) {
+    if (klass.isInterface() && IdentifiableObject.class.isAssignableFrom(klass)) {
+      throw new IllegalArgumentException(
+          "Use SchemaService#getConcreteClass to resolve base type: " + klass);
     }
-
-    @Override
-    public Map<String, Property> getPropertiesMap( Class<?> klass )
-    {
-        return classMapCache.computeIfAbsent( klass, this::scanClass );
-    }
-
-    /**
-     * Introspect a class and return a map with key=property-name, and
-     * value=Property class.
-     *
-     * @param klass Class to scan
-     * @return Map with key=property-name, and value=Property class
-     */
-    private Map<String, Property> scanClass( Class<?> klass )
-    {
-        if ( klass.isInterface() && IdentifiableObject.class.isAssignableFrom( klass ) )
-        {
-            throw new IllegalArgumentException( "Use SchemaService#getConcreteClass to resolve base type: " + klass );
-        }
-        Map<String, Property> properties = new HashMap<>();
-        introspector.introspect( klass, properties );
-        return unmodifiableMap( properties );
-    }
-
+    Map<String, Property> properties = new HashMap<>();
+    introspector.introspect(klass, properties);
+    return unmodifiableMap(properties);
+  }
 }

@@ -34,20 +34,17 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class OrganisationUnitGroupSetDeletionHandler extends IdObjectDeletionHandler<OrganisationUnitGroup>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
-    }
+public class OrganisationUnitGroupSetDeletionHandler
+    extends IdObjectDeletionHandler<OrganisationUnitGroup> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup);
+  }
 
-    private void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
-    {
-        for ( OrganisationUnitGroupSet groupSet : group.getGroupSets() )
-        {
-            groupSet.getOrganisationUnitGroups().remove( group );
-            idObjectManager.updateNoAcl( groupSet );
-        }
+  private void deleteOrganisationUnitGroup(OrganisationUnitGroup group) {
+    for (OrganisationUnitGroupSet groupSet : group.getGroupSets()) {
+      groupSet.getOrganisationUnitGroups().remove(group);
+      idObjectManager.updateNoAcl(groupSet);
     }
+  }
 }
