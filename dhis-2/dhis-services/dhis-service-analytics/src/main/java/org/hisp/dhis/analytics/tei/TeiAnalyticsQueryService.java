@@ -105,6 +105,7 @@ public class TeiAnalyticsQueryService {
       }
     } catch (BadSqlGrammarException ex) {
       log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);
@@ -144,6 +145,7 @@ public class TeiAnalyticsQueryService {
       grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(explainId));
     } catch (BadSqlGrammarException ex) {
       log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+      throw ex;
     } catch (DataAccessResourceFailureException ex) {
       log.warn(E7131.getMessage(), ex);
       throw new QueryRuntimeException(E7131);

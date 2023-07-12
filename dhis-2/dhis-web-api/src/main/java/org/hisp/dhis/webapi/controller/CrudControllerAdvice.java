@@ -43,6 +43,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.persistence.PersistenceException;
@@ -76,6 +77,7 @@ import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.common.UIDParamEditor;
+import org.hisp.dhis.webapi.controller.errorhandling.analytics.AnalyticsExceptionService;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -84,6 +86,7 @@ import org.hisp.dhis.webapi.controller.tracker.imports.IdSchemeParamEditor;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -120,10 +123,12 @@ public class CrudControllerAdvice {
     DataAccessResourceFailureException.class
   };
 
-  private static final String GENERIC_ERROR_MESSAGE =
+  public static final String GENERIC_ERROR_MESSAGE =
       "An unexpected error has occured. Please contact your system administrator";
 
   private final List<Class<?>> enumClasses;
+
+  @Autowired private AnalyticsExceptionService analyticsExceptionService;
 
   public CrudControllerAdvice() {
     this.enumClasses =
@@ -144,6 +149,14 @@ public class CrudControllerAdvice {
     this.enumClasses.forEach(c -> binder.registerCustomEditor(c, new ConvertEnum(c)));
     binder.registerCustomEditor(TrackerIdSchemeParam.class, new IdSchemeParamEditor());
     binder.registerCustomEditor(UID.class, new UIDParamEditor());
+  }
+
+  @ExceptionHandler
+  @ResponseBody
+  public WebMessage badSqlGrammarException(BadSqlGrammarException ex) {
+    return Optional.ofNullable(analyticsExceptionService)
+        .map(handler -> handler.handle(ex))
+        .orElse(defaultExceptionHandler(ex));
   }
 
   @ExceptionHandler(org.hisp.dhis.feedback.BadRequestException.class)
