@@ -304,7 +304,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     Query<?> query =
         getSession()
             .createNativeQuery(
-                "select exists(select 1 from programinstance where uid=:uid and deleted is false)");
+                "select exists(select 1 from enrollment where uid=:uid and deleted is false)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();
@@ -317,8 +317,7 @@ public class HibernateEnrollmentStore extends SoftDeleteHibernateObjectStore<Enr
     }
 
     Query<?> query =
-        getSession()
-            .createNativeQuery("select exists(select 1 from programinstance where uid=:uid)");
+        getSession().createNativeQuery("select exists(select 1 from enrollment where uid=:uid)");
     query.setParameter("uid", uid);
 
     return ((Boolean) query.getSingleResult()).booleanValue();

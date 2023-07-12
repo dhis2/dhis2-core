@@ -163,11 +163,10 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
   @Override
   public int deleteSoftDeletedEnrollments() {
-    String enrollmentSelect =
-        "(select programinstanceid from programinstance where deleted is true)";
+    String enrollmentSelect = "(select programinstanceid from enrollment where deleted is true)";
 
     List<String> deletedEnrollments =
-        getDeletionEntities("select uid from programinstance where deleted is true");
+        getDeletionEntities("select uid from enrollment where deleted is true");
 
     if (deletedEnrollments.isEmpty()) {
       return 0;
@@ -209,7 +208,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage where programinstanceid in " + enrollmentSelect,
           "delete from event where programinstanceid in " + enrollmentSelect,
           // finally delete the enrollments themselves
-          "delete from programinstance where deleted is true"
+          "delete from enrollment where deleted is true"
         };
 
     int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
@@ -228,7 +227,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
         "(select trackedentityinstanceid from trackedentityinstance where deleted is true)";
 
     String enrollmentSelect =
-        "(select programinstanceid from programinstance where trackedentityinstanceid in "
+        "(select programinstanceid from enrollment where trackedentityinstanceid in "
             + teiSelect
             + " )";
 
@@ -240,7 +239,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
 
     List<String> associatedEnrollments =
         getDeletionEntities(
-            "select uid from programinstance where trackedentityinstanceid in " + teiSelect);
+            "select uid from enrollment where trackedentityinstanceid in " + teiSelect);
 
     List<String> associatedEvents =
         getDeletionEntities("select uid from event where programinstanceid in " + enrollmentSelect);
@@ -306,7 +305,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programtempowner where trackedentityinstanceid in " + teiSelect,
           "delete from programtempownershipaudit where trackedentityinstanceid in " + teiSelect,
           "delete from programownershiphistory where trackedentityinstanceid in " + teiSelect,
-          "delete from programinstance where trackedentityinstanceid in " + teiSelect,
+          "delete from enrollment where trackedentityinstanceid in " + teiSelect,
           // finally delete the TEIs
           "delete from trackedentityinstance where deleted is true"
         };

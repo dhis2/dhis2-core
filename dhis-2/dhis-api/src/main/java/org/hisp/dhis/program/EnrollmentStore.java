@@ -163,7 +163,7 @@ public interface EnrollmentStore extends IdentifiableObjectStore<Enrollment> {
    *
    * <pre>{@code
    * select programinstanceid, programid, trackedentityinstanceid
-   *     from programinstance
+   *     from enrollment
    *     where (programid = 726 and trackedentityinstanceid = 19 and status = 'ACTIVE')
    *        or (programid = 726 and trackedentityinstanceid = 18 and status = 'ACTIVE')
    *        or (programid = 726 and trackedentityinstanceid = 17 and status = 'ACTIVE')

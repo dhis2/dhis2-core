@@ -91,7 +91,7 @@ public class EnrollmentQuery {
 
   public static String getQuery() {
     return getSelect()
-        + "from programinstance pi "
+        + "from enrollment pi "
         + "join program p on pi.programid = p.programid "
         + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
         + "join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid "

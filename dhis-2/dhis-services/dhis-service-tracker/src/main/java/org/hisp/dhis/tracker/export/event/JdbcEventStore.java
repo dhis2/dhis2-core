@@ -781,7 +781,7 @@ public class JdbcEventStore implements EventStore {
       StringBuilder dataElementAndFiltersSql) {
     StringBuilder fromBuilder =
         new StringBuilder(" from event psi ")
-            .append("inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+            .append("inner join enrollment pi on pi.programinstanceid=psi.programinstanceid ")
             .append("inner join program p on p.programid=pi.programid ")
             .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
 
@@ -1172,7 +1172,7 @@ public class JdbcEventStore implements EventStore {
         new StringBuilder()
             .append(
                 " from event psi "
-                    + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
+                    + "inner join enrollment pi on pi.programinstanceid = psi.programinstanceid "
                     + "inner join program p on p.programid = pi.programid "
                     + "inner join programstage ps on ps.programstageid = psi.programstageid "
                     + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "

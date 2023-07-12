@@ -886,7 +886,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    */
   private String getFromSubQueryJoinEnrollmentConditions(TrackedEntityQueryParams params) {
     if (params.getOrders().stream().anyMatch(p -> ENROLLED_AT.isPropertyEqualTo(p.getField()))) {
-      return new StringBuilder(" INNER JOIN programinstance ")
+      return new StringBuilder(" INNER JOIN enrollment ")
           .append(PROGRAM_INSTANCE_ALIAS)
           .append(" ON ")
           .append(PROGRAM_INSTANCE_ALIAS + "." + "trackedentityinstanceid")
@@ -904,7 +904,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
    *
    * @param whereAnd indicator tracking whether WHERE has been invoked or not
    * @param params
-   * @return an SQL EXISTS clause for programinstance, or empty string if not program is specified.
+   * @return an SQL EXISTS clause for enrollment, or empty string if not program is specified.
    */
   private String getFromSubQueryEnrollmentConditions(
       SqlHelper whereAnd, TrackedEntityQueryParams params) {
@@ -918,7 +918,7 @@ public class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<
         .append(whereAnd.whereAnd())
         .append("EXISTS (")
         .append("SELECT PI.trackedentityinstanceid ")
-        .append("FROM programinstance PI ");
+        .append("FROM enrollment PI ");
 
     if (params.hasFilterForEvents()) {
       program.append(getFromSubQueryEvent(params));

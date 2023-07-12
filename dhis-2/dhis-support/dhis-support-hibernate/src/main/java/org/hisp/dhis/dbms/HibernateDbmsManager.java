@@ -231,7 +231,7 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("eventcomments");
     emptyTable("programinstancecomments");
     emptyTable("event");
-    emptyTable("programinstance");
+    emptyTable("enrollment");
     emptyTable("programnotificationtemplate");
     emptyTable("programstagedataelement");
     emptyTable("programstagesection_dataelements");

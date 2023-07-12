@@ -90,7 +90,7 @@ public class EnrollmentRepeatableStageCheck implements Checker {
         "select exists( "
             + "select * "
             + "from event psi "
-            + "  join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+            + "  join enrollment pi on psi.programinstanceid = pi.programinstanceid "
             + "where pi.programinstanceid = ? "
             + "  and psi.programstageid = ? "
             + "  and psi.deleted = false "

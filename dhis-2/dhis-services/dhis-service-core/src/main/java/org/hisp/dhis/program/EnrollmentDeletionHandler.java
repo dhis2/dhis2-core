@@ -63,7 +63,7 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
     if (program.isWithoutRegistration()) {
       return ACCEPT;
     }
-    String sql = "select 1 from programinstance where programid = :id limit 1";
+    String sql = "select 1 from enrollment where programid = :id limit 1";
     return vetoIfExists(VETO, sql, Map.of("id", program.getId()));
   }
 

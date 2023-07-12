@@ -97,7 +97,7 @@ public class EnrollmentPreProcessor implements Processor {
       JdbcTemplate jdbcTemplate, Program program, ProgramStatus status) {
     final String sql =
         "select pi.programinstanceid, pi.programid, pi.uid "
-            + "from programinstance pi "
+            + "from enrollment pi "
             + "where pi.programid = ? and pi.status = ?";
 
     return jdbcTemplate.query(
