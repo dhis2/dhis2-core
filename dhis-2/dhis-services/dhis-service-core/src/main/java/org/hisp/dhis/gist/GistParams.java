@@ -47,6 +47,12 @@ public final class GistParams {
 
   int pageSize = 50;
 
+  /**
+   * The name of the property in the response object that holds the list of response objects when a
+   * paged response is used.
+   */
+  String pageListName;
+
   boolean translate = true;
 
   boolean inverse = false;
