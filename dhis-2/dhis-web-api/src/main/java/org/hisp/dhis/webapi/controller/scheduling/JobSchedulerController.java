@@ -156,7 +156,8 @@ public class JobSchedulerController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateQueue(@PathVariable String name, @RequestBody SchedulerQueue queue)
       throws NotFoundException, ConflictException {
-    jobQueueService.updateQueue(name, queue.getCronExpression(), queue.getSequence());
+    jobQueueService.updateQueue(
+        name, queue.getName(), queue.getCronExpression(), queue.getSequence());
   }
 
   @DeleteMapping("/queues/{name}")

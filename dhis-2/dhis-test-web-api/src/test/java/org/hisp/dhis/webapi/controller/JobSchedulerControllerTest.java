@@ -240,6 +240,28 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
+  void testUpdateQueue_WithRename() {
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/scheduler/queues/testQueue",
+            format("{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdC)));
+
+    assertStatus(
+        HttpStatus.NO_CONTENT,
+        PUT(
+            "/scheduler/queues/testQueue",
+            format(
+                "{'cronExpression':'0 0 2 ? * *','sequence':['%s','%s'],'name':'newName'}",
+                jobIdB, jobIdA)));
+
+    JsonObject queue = GET("/scheduler/queues/newName").content();
+    assertEquals("0 0 2 ? * *", queue.getString("cronExpression").string());
+    assertEquals(List.of(jobIdB, jobIdA), queue.getArray("sequence").stringValues());
+    assertStatus(HttpStatus.NOT_FOUND, GET("/scheduler/queues/testQueue"));
+  }
+
+  @Test
   void testUpdateQueue_NotExistingQueue() {
     JsonWebMessage message =
         assertWebMessage(
