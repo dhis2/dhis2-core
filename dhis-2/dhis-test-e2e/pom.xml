@@ -30,7 +30,7 @@
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <lombok.version>1.18.28</lombok.version>
-    <allure.version>2.22.0</allure.version>
+    <allure.version>2.23.0</allure.version>
     <selenium-java.version>4.9.0</selenium-java.version>
     <slf4j-simple.version>2.0.7</slf4j-simple.version>
   </properties>
