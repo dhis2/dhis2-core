@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,22 +36,16 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiFunction;
-import java.util.stream.Stream;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -73,8 +66,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.util.SharingUtils;
 
 /**
  * @author Bob Jolliffe
@@ -114,8 +106,20 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
    */
   private Map<String, String> translationCache = new ConcurrentHashMap<>();
 
+  /** This object is available as external read-only. */
+  protected transient Boolean externalAccess;
+
+  /** Access string for public access. */
+  protected transient String publicAccess;
+
   /** User who created this object. This field is immutable and must not be updated. */
-  @Immutable protected User createdBy;
+  protected User createdBy;
+
+  /** Access for user groups. */
+  protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
+
+  /** Access for users. */
+  protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
 
   /** Access information for this object. Applies to current user. */
   protected transient Access access;
@@ -300,11 +304,6 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return cacheAttributeValues.get(attributeUid);
   }
 
-  public String getAttributeValueString(Attribute attribute) {
-    AttributeValue attributeValue = getAttributeValue(attribute);
-    return attributeValue != null ? attributeValue.getValue() : null;
-  }
-
   @Gist(included = Include.FALSE)
   @Override
   @JsonProperty
@@ -387,6 +386,57 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
 
   public void setOwner(String userId) {
     getSharing().setOwner(userId);
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 8, max = 8)
+  public String getPublicAccess() {
+    return SharingUtils.getDtoPublicAccess(publicAccess, getSharing());
+  }
+
+  public void setPublicAccess(String publicAccess) {
+    this.publicAccess = publicAccess;
+    getSharing().setPublicAccess(publicAccess);
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean getExternalAccess() {
+    return SharingUtils.getDtoExternalAccess(externalAccess, getSharing());
+  }
+
+  public void setExternalAccess(boolean externalAccess) {
+    this.externalAccess = externalAccess;
+    getSharing().setExternal(externalAccess);
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "userGroupAccesses", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0)
+  public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses() {
+    return SharingUtils.getDtoUserGroupAccesses(userGroupAccesses, getSharing());
+  }
+
+  public void setUserGroupAccesses(Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses) {
+    getSharing().setDtoUserGroupAccesses(userGroupAccesses);
+    this.userGroupAccesses = userGroupAccesses;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "userAccess", namespace = DxfNamespaces.DXF_2_0)
+  public Set<org.hisp.dhis.user.UserAccess> getUserAccesses() {
+    return SharingUtils.getDtoUserAccesses(userAccesses, getSharing());
+  }
+
+  public void setUserAccesses(Set<org.hisp.dhis.user.UserAccess> userAccesses) {
+    getSharing().setDtoUserAccesses(userAccesses);
+    this.userAccesses = userAccesses;
   }
 
   @Override
@@ -539,48 +589,13 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     return null;
   }
 
-  // -------------------------------------------------------------------------
-  // Sharing helpers
-  // -------------------------------------------------------------------------
-
-  public void setExternalAccess(boolean externalAccess) {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-
-    sharing.setExternal(externalAccess);
-  }
-
-  public void setPublicAccess(String access) {
-    if (sharing == null) {
-      sharing = new Sharing();
-    }
-
-    sharing.setPublicAccess(access);
-  }
-
-  public String getPublicAccess() {
-    if (sharing != null) {
-      return sharing.getPublicAccess();
-    }
-
-    return null;
-  }
-
-  public Collection<UserAccess> getUserAccesses() {
-    if (sharing == null || getSharing().getUsers() == null) {
-      return Collections.emptyList();
-    }
-
-    return getSharing().getUsers().values();
-  }
-
-  public Collection<UserGroupAccess> getUserGroupAccesses() {
-    if (sharing == null || getSharing().getUserGroups() == null) {
-      return Collections.emptyList();
-    }
-
-    return getSharing().getUserGroups().values();
+  /**
+   * Set legacy sharing collections to null so that the ImportService will import current object
+   * with new Sharing format.
+   */
+  public void clearLegacySharingCollections() {
+    this.userAccesses = null;
+    this.userGroupAccesses = null;
   }
 
   @Override
@@ -625,43 +640,5 @@ public class BaseIdentifiableObject extends BaseLinkableObject implements Identi
     }
 
     return defaultValue;
-  }
-
-  /**
-   * Method that allows copying of a Collection which requires a parent object of each element to be
-   * used in the copying logic.
-   *
-   * @param parent Object to be used as part of the copying logic
-   * @param original Collection to be copied
-   * @param copy BiFunction which applies the copying logic
-   * @return Copied Set
-   * @param <T> parent
-   * @param <E> element
-   */
-  public static <T, E> Set<E> copySet(T parent, Collection<E> original, BiFunction<E, T, E> copy) {
-    return original == null
-        ? Stream.<E>empty().collect(toSet())
-        : original.stream()
-            .filter(Objects::nonNull)
-            .map(e -> copy.apply(e, parent))
-            .collect(toSet());
-  }
-
-  /**
-   * Method that allows copying of a Collection which requires a parent object of each element to be
-   * used in the copying logic.
-   *
-   * @param parent Object to be used as part of the copying logic
-   * @param original Collection to be copied
-   * @param copy BiFunction which applies the copying logic
-   * @return Copied List
-   * @param <T> parent
-   * @param <E> element
-   */
-  public static <T, E> List<E> copyList(
-      T parent, Collection<E> original, BiFunction<E, T, E> copy) {
-    return original == null
-        ? Stream.<E>empty().toList()
-        : original.stream().filter(Objects::nonNull).map(e -> copy.apply(e, parent)).toList();
   }
 }

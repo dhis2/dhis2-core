@@ -47,7 +47,6 @@ import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.DefaultReadOnlyDataSourceManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -73,8 +72,8 @@ public class DataSourceConfig {
   }
 
   @Bean("jdbcTemplate")
-  @Primary
   @DependsOn("dataSource")
+  @Primary
   public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
     JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
     jdbcTemplate.setFetchSize(1000);
@@ -103,15 +102,13 @@ public class DataSourceConfig {
   }
 
   @Bean("actualDataSource")
-  public DataSource actualDataSource(
-      HibernateConfigurationProvider hibernateConfigurationProvider) {
+  public DataSource actualDataSource() {
     String jdbcUrl = dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL);
     String username = dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME);
     String dbPoolType = dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE);
 
     DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
     builder.dhisConfig(dhisConfig);
-    builder.hibernateConfig(hibernateConfigurationProvider);
     builder.dbPoolType(dbPoolType);
 
     try {

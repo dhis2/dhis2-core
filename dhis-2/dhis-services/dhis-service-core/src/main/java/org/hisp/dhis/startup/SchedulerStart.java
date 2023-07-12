@@ -27,20 +27,19 @@
  */
 package org.hisp.dhis.startup;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
+import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.FILE_RESOURCE_CLEANUP;
 import static org.hisp.dhis.scheduling.JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
 
-import java.time.Clock;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -58,6 +57,7 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
  * @author Henning Håkonsen
  */
 @Slf4j
+@RequiredArgsConstructor
 public class SchedulerStart extends AbstractStartupRoutine {
 
   // Execute at 3-5AM every night and, use a random min/sec, so we don't have
@@ -104,11 +104,6 @@ public class SchedulerStart extends AbstractStartupRoutine {
         "uwWCT2BMmlq",
         REMOVE_USED_OR_EXPIRED_RESERVED_VALUES,
         "Remove expired or used reserved values"),
-    REMOVE_EXPIRED_LOCK_EXCEPTIONS(
-        CRON_DAILY_2AM,
-        "OQ9KeLgqy20",
-        JobType.LOCK_EXCEPTION_CLEANUP,
-        "Remove lock exceptions older than 6 months"),
     LEADER_ELECTION(
         LEADER_JOB_CRON_FORMAT,
         "MoUd5BTQ3lY",
@@ -143,28 +138,6 @@ public class SchedulerStart extends AbstractStartupRoutine {
 
   private final MessageService messageService;
 
-  public SchedulerStart(
-      SystemSettingManager systemSettingManager,
-      boolean redisEnabled,
-      String leaderElectionTime,
-      JobConfigurationService jobConfigurationService,
-      SchedulingManager schedulingManager,
-      MessageService messageService) {
-    checkNotNull(systemSettingManager);
-    checkNotNull(jobConfigurationService);
-    checkNotNull(schedulingManager);
-    checkNotNull(messageService);
-    checkNotNull(leaderElectionTime);
-    checkNotNull(redisEnabled);
-
-    this.systemSettingManager = systemSettingManager;
-    this.redisEnabled = redisEnabled;
-    this.leaderElectionTime = leaderElectionTime;
-    this.jobConfigurationService = jobConfigurationService;
-    this.schedulingManager = schedulingManager;
-    this.messageService = messageService;
-  }
-
   @Override
   public void execute() throws Exception {
     Date now = new Date();
@@ -176,23 +149,21 @@ public class SchedulerStart extends AbstractStartupRoutine {
     jobConfigurations.forEach(
         (jobConfig -> {
           if (jobConfig.isEnabled()) {
+            Date oldExecutionTime = jobConfig.getNextExecutionTime();
+
+            jobConfig.setNextExecutionTime(null);
             jobConfig.setJobStatus(SCHEDULED);
             jobConfigurationService.updateJobConfiguration(jobConfig);
 
-            Date lastExecuted = jobConfig.getLastExecuted();
-            if (lastExecuted != null) {
-              Date expectedFutureExecutionTime =
-                  jobConfig.nextExecutionTimeAfter(
-                      Clock.fixed(lastExecuted.toInstant().plusSeconds(1), ZoneId.systemDefault()));
-              if (expectedFutureExecutionTime != null && expectedFutureExecutionTime.before(now)) {
-                unexecutedJobs.add(
-                    "\nJob ["
-                        + jobConfig.getUid()
-                        + ", "
-                        + jobConfig.getName()
-                        + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
-                        + expectedFutureExecutionTime);
-              }
+            if (jobConfig.getLastExecutedStatus() == FAILED
+                || (oldExecutionTime != null && oldExecutionTime.compareTo(now) < 0)) {
+              unexecutedJobs.add(
+                  "\nJob ["
+                      + jobConfig.getUid()
+                      + ", "
+                      + jobConfig.getName()
+                      + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
+                      + oldExecutionTime);
             }
 
             schedulingManager.schedule(jobConfig);
@@ -200,10 +171,15 @@ public class SchedulerStart extends AbstractStartupRoutine {
         }));
 
     if (!unexecutedJobs.isEmpty()) {
-      String msg =
-          "Scheduler started with one or more unexecuted jobs:\n" + String.join("", unexecutedJobs);
-      messageService.sendSystemErrorNotification("Scheduler startup", new Exception(msg));
-      log.warn(msg);
+      StringBuilder jobs = new StringBuilder();
+
+      for (String unexecutedJob : unexecutedJobs) {
+        jobs.append(unexecutedJob).append("\n");
+      }
+
+      messageService.sendSystemErrorNotification(
+          "Scheduler startup",
+          new Exception("Scheduler started with one or more unexecuted jobs:\n" + jobs));
     }
   }
 
@@ -220,7 +196,6 @@ public class SchedulerStart extends AbstractStartupRoutine {
     addDefaultJob(SystemJob.DATA_SET_NOTIFICATION, jobConfigurations);
     addDefaultJob(SystemJob.REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations);
     addDefaultJob(SystemJob.SYSTEM_VERSION_UPDATE_CHECK, jobConfigurations);
-    addDefaultJob(SystemJob.REMOVE_EXPIRED_LOCK_EXCEPTIONS, jobConfigurations);
 
     if (redisEnabled && verifyNoJobExist(SystemJob.LEADER_ELECTION.name, jobConfigurations)) {
       JobConfiguration leaderElectionJobConfiguration =

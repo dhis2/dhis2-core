@@ -39,7 +39,9 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
+import javax.persistence.EntityManager;
 import javax.persistence.NonUniqueResultException;
+import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -48,6 +50,7 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -59,8 +62,10 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -77,6 +82,8 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   protected SessionFactory sessionFactory;
 
+  @PersistenceContext protected EntityManager entityManager;
+
   protected JdbcTemplate jdbcTemplate;
 
   protected ApplicationEventPublisher publisher;
@@ -86,7 +93,7 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   protected boolean cacheable;
 
   public HibernateGenericStore(
-      SessionFactory sessionFactory,
+      @Qualifier("sessionFactory") SessionFactory sessionFactory,
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       Class<T> clazz,
@@ -129,7 +136,11 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
    * @return the current session.
    */
   protected final Session getSession() {
-    return sessionFactory.getCurrentSession();
+    return entityManager.unwrap(Session.class);
+  }
+
+  protected final EntityManager getEntityManager() {
+    return entityManager;
   }
 
   protected final StatelessSession getStatelessSession() {
@@ -172,11 +183,31 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
         .setHint(QueryHints.CACHEABLE, cacheable);
   }
 
+  /**
+   * Creates a Criteria for the implementation Class type.
+   *
+   * <p>Please note that sharing is not considered.
+   *
+   * @return a Criteria instance.
+   */
+  @Deprecated
+  public final Criteria getCriteria() {
+    DetachedCriteria criteria = DetachedCriteria.forClass(getClazz());
+
+    preProcessDetachedCriteria(criteria);
+
+    return getExecutableCriteria(criteria);
+  }
+
   /** Override to add additional restrictions to criteria before it is invoked. */
   protected void preProcessDetachedCriteria(DetachedCriteria detachedCriteria) {}
 
+  public final Criteria getExecutableCriteria(DetachedCriteria detachedCriteria) {
+    return detachedCriteria.getExecutableCriteria(getSession()).setCacheable(cacheable);
+  }
+
   public CriteriaBuilder getCriteriaBuilder() {
-    return sessionFactory.getCriteriaBuilder();
+    return entityManager.getCriteriaBuilder();
   }
 
   // ------------------------------------------------------------------------------------------
@@ -391,7 +422,9 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
 
   @Override
   public void delete(T object) {
-    publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
+    if (!ObjectDeletionRequestedEvent.shouldSkip(HibernateProxyUtils.getRealClass(object))) {
+      publisher.publishEvent(new ObjectDeletionRequestedEvent(object));
+    }
 
     getSession().delete(object);
   }
@@ -617,14 +650,16 @@ public class HibernateGenericStore<T> implements GenericStore<T> {
   }
 
   @Override
-  public boolean isAttributeValueUnique(T object, AttributeValue attributeValue) {
+  public <P extends IdentifiableObject> boolean isAttributeValueUnique(
+      P object, AttributeValue attributeValue) {
     List<T> objects = getByAttributeValue(attributeValue);
     return objects.isEmpty()
         || (object != null && objects.size() == 1 && object.equals(objects.get(0)));
   }
 
   @Override
-  public boolean isAttributeValueUnique(T object, Attribute attribute, String value) {
+  public <P extends IdentifiableObject> boolean isAttributeValueUnique(
+      P object, Attribute attribute, String value) {
     List<T> objects = getByAttributeAndValue(attribute, value);
     return objects.isEmpty()
         || (object != null && objects.size() == 1 && object.equals(objects.get(0)));

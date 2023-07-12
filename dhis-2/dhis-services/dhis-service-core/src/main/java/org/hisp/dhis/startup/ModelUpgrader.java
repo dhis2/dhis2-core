@@ -27,31 +27,31 @@
  */
 package org.hisp.dhis.startup;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Lars Helge Overland
  */
+@RequiredArgsConstructor
 public class ModelUpgrader extends TransactionContextStartupRoutine {
   private final OrganisationUnitService organisationUnitService;
 
   private final CategoryService categoryService;
 
-  public ModelUpgrader(
-      OrganisationUnitService organisationUnitService, CategoryService categoryService) {
-    checkNotNull(organisationUnitService);
-    checkNotNull(categoryService);
-    this.organisationUnitService = organisationUnitService;
-    this.categoryService = categoryService;
-  }
+  private final TransactionTemplate transactionTemplate;
 
   // -------------------------------------------------------------------------
   // Execute
   // -------------------------------------------------------------------------
+
+  @Override
+  protected TransactionTemplate getTransactionTemplate() {
+    return this.transactionTemplate;
+  }
 
   @Override
   public void executeInTransaction() {

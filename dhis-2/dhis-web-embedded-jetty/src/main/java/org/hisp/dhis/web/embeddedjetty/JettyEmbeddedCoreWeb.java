@@ -27,30 +27,33 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
-import static org.hisp.dhis.webapi.servlet.DhisWebApiWebAppInitializer.setupServlets;
 import static org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME;
 
 import java.security.Security;
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import javax.servlet.ServletRegistration;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
-import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
+import org.springframework.web.servlet.DispatcherServlet;
 
 public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
   private static final int DEFAULT_HTTP_PORT = 9090;
 
   private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
-  private static final Long ELAPSED_SINCE_START = System.currentTimeMillis();
+  private static final Long elapsedSinceStart = System.currentTimeMillis();
 
-  public JettyEmbeddedCoreWeb() {
+  public JettyEmbeddedCoreWeb() throws Exception {
     super();
   }
 
@@ -62,9 +65,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
     setDefaultPropertyValue("jetty.host", SERVER_HOSTNAME_OR_IP);
     setDefaultPropertyValue("jetty.http.port", String.valueOf(DEFAULT_HTTP_PORT));
 
-    /*
-     * This property is very import, this will instruct Spring to use
-     * special Spring config classes adapted to running in embedded Jetty.
+    /**
+     * This property is very import, this will instruct Spring to use special Spring config classes
+     * adapted to running in embedded Jetty.
      *
      * @see org.hisp.dhis.web.embeddedjetty.SpringConfiguration
      */
@@ -73,6 +76,10 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
     JettyEmbeddedCoreWeb jettyEmbeddedCoreWeb = new JettyEmbeddedCoreWeb();
     jettyEmbeddedCoreWeb.printBanner("DHIS2 API Server");
     jettyEmbeddedCoreWeb.startJetty();
+  }
+
+  public static Long getElapsedMsSinceStart() {
+    return System.currentTimeMillis() - elapsedSinceStart;
   }
 
   public ServletContextHandler getServletContextHandler() {
@@ -85,8 +92,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
 
     AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
     contextHandler.addEventListener(new ContextLoaderListener(webApplicationContext));
-    contextHandler.addEventListener(new StartupListener());
-    contextHandler.addEventListener(new HttpSessionEventPublisher());
+
+    StartupListener startupListener = new StartupListener();
+    contextHandler.addEventListener(startupListener);
 
     // Spring Security Filter
     contextHandler.addFilter(
@@ -96,11 +104,31 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
 
     ContextHandler.Context context = contextHandler.getServletContext();
 
-    setupServlets(context, webApplicationContext);
+    DispatcherServlet servlet = new DispatcherServlet(webApplicationContext);
+
+    ServletRegistration.Dynamic dispatcher = context.addServlet("dispatcher", servlet);
+    dispatcher.setAsyncSupported(true);
+    dispatcher.setLoadOnStartup(1);
+    dispatcher.addMapping("/api/*");
+    dispatcher.addMapping("/uaa/*");
+
+    FilterRegistration.Dynamic openSessionInViewFilter =
+        context.addFilter("openEntityManagerInViewFilter", OpenEntityManagerInViewFilter.class);
+    openSessionInViewFilter.setInitParameter(
+        "entityManagerFactoryBeanName", "entityManagerFactory");
+    openSessionInViewFilter.addMappingForUrlPatterns(null, false, "/*");
+    openSessionInViewFilter.addMappingForServletNames(null, false, "dispatcher");
+
+    FilterRegistration.Dynamic characterEncodingFilter =
+        context.addFilter("characterEncodingFilter", CharacterEncodingFilter.class);
+    characterEncodingFilter.setInitParameter("encoding", "UTF-8");
+    characterEncodingFilter.setInitParameter("forceEncoding", "true");
+    characterEncodingFilter.addMappingForUrlPatterns(null, false, "/*");
+    characterEncodingFilter.addMappingForServletNames(null, false, "dispatcher");
 
     context
-        .addServlet("LogoutServlet", LogoutServlet.class)
-        .addMapping("/dhis-web-commons-security/logout.action");
+        .addFilter("RequestIdentifierFilter", new DelegatingFilterProxy("requestIdentifierFilter"))
+        .addMappingForUrlPatterns(null, true, "/*");
 
     context
         .addServlet("GetModulesServlet", GetAppMenuServlet.class)
@@ -115,9 +143,5 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase {
     AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
     context.register(SpringConfiguration.class);
     return context;
-  }
-
-  public static Long getElapsedMsSinceStart() {
-    return System.currentTimeMillis() - ELAPSED_SINCE_START;
   }
 }

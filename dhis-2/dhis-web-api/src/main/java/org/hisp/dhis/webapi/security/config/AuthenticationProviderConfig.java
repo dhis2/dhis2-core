@@ -61,7 +61,7 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 public class AuthenticationProviderConfig {
   @Autowired private DhisConfigurationProvider configurationProvider;
 
-  @Autowired TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
+  @Autowired private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
   @Autowired
   @Qualifier("ldapUserDetailsService")

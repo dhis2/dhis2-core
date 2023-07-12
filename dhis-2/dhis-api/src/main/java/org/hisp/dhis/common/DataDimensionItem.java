@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,14 +45,13 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.validation.ValidationRule;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement(localName = "dataDimensionItem", namespace = DxfNamespaces.DXF_2_0)
-public class DataDimensionItem {
+public class DataDimensionItem implements Serializable {
   public static final Set<Class<? extends DimensionalItemObject>> DATA_DIM_CLASSES =
       Set.of(
           Indicator.class,
@@ -62,7 +62,6 @@ public class DataDimensionItem {
           ProgramDataElementDimensionItem.class,
           ProgramTrackedEntityAttributeDimensionItem.class,
           ExpressionDimensionItem.class,
-          SubexpressionDimensionItem.class,
           ValidationRule.class);
 
   public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
@@ -77,7 +76,6 @@ public class DataDimensionItem {
               DataDimensionItemType.PROGRAM_ATTRIBUTE,
                   ProgramTrackedEntityAttributeDimensionItem.class,
               DataDimensionItemType.EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class,
-              DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class,
               DataDimensionItemType.VALIDATION_RULE, ValidationRule.class);
 
   private int id;
@@ -101,8 +99,6 @@ public class DataDimensionItem {
   private ProgramTrackedEntityAttributeDimensionItem programAttribute;
 
   private ExpressionDimensionItem expressionDimensionItem;
-
-  private SubexpressionDimensionItem subexpressionDimensionItem;
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -169,8 +165,6 @@ public class DataDimensionItem {
       dimension.setProgramAttribute((ProgramTrackedEntityAttributeDimensionItem) object);
     } else if (ExpressionDimensionItem.class.isAssignableFrom(object.getClass())) {
       dimension.setExpressionDimensionItem((ExpressionDimensionItem) object);
-    } else if (SubexpressionDimensionItem.class.isAssignableFrom(object.getClass())) {
-      dimension.setSubexpressionDimensionItem((SubexpressionDimensionItem) object);
     } else {
       throw new IllegalArgumentException(
           "Not a valid data dimension: " + object.getClass().getSimpleName() + ", " + object);
@@ -199,8 +193,6 @@ public class DataDimensionItem {
     } else if (programAttribute != null) {
       return programAttribute;
     } else if (expressionDimensionItem != null) {
-      return expressionDimensionItem;
-    } else if (subexpressionDimensionItem != null) {
       return expressionDimensionItem;
     }
 
@@ -373,70 +365,5 @@ public class DataDimensionItem {
 
   public void setExpressionDimensionItem(ExpressionDimensionItem expressionDimensionItem) {
     this.expressionDimensionItem = expressionDimensionItem;
-  }
-
-  @JsonProperty
-  @JsonSerialize(as = BaseNameableObject.class)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public SubexpressionDimensionItem getSubexpressionDimensionItem() {
-    return subexpressionDimensionItem;
-  }
-
-  public void setSubexpressionDimensionItem(SubexpressionDimensionItem subexpressionDimensionItem) {
-    this.subexpressionDimensionItem = subexpressionDimensionItem;
-  }
-
-  /**
-   * Indicates whether this item has an indicator.
-   *
-   * @return
-   */
-  public boolean hasIndicator() {
-    return indicator != null;
-  }
-
-  /**
-   * Indicates whether this item has a data element.
-   *
-   * @return
-   */
-  public boolean hasDataElement() {
-    return dataElement != null;
-  }
-
-  /**
-   * Indicates whether this item has a data element operand.
-   *
-   * @return
-   */
-  public boolean hasDataElementOperand() {
-    return dataElementOperand != null;
-  }
-
-  /**
-   * Indicates whether this item has a reporting rate.
-   *
-   * @return
-   */
-  public boolean hasReportingRate() {
-    return reportingRate != null;
-  }
-
-  /**
-   * Indicates whether this item has a program indicator.
-   *
-   * @return
-   */
-  public boolean hasProgramIndicator() {
-    return programIndicator != null;
-  }
-
-  /**
-   * Indicates whether this item has a program tracked entity attribute dimension item.
-   *
-   * @return
-   */
-  public boolean hasProgramTrackedEntityAttributeDimensionItem() {
-    return programAttribute != null;
   }
 }

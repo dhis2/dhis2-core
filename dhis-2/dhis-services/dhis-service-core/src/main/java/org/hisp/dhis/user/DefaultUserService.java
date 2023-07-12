@@ -36,9 +36,7 @@ import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
 import com.google.common.collect.Lists;
-import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -54,7 +52,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
@@ -62,13 +59,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
@@ -547,8 +543,7 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  @CheckForNull
-  public User getUserByOpenId(@Nonnull String openId) {
+  public User getUserByOpenId(String openId) {
     User user = userStore.getUserByOpenId(openId);
 
     if (user != null) {
@@ -635,7 +630,7 @@ public class DefaultUserService implements UserService {
     if (userRoles != null) {
       List<UserRole> roles =
           userRoleStore.getByUid(
-              userRoles.stream().map(IdentifiableObject::getUid).collect(Collectors.toList()));
+              userRoles.stream().map(BaseIdentifiableObject::getUid).collect(Collectors.toList()));
 
       roles.forEach(
           ur -> {
@@ -782,16 +777,6 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
-  public CurrentUserDetails createUserDetails(String userUid) throws NotFoundException {
-    User user = userStore.getByUid(userUid);
-    if (user == null) {
-      throw new NotFoundException(User.class, userUid);
-    }
-    return createUserDetails(user);
-  }
-
-  @Override
-  @Transactional(readOnly = true)
   public CurrentUserDetails createUserDetails(User user) {
     Objects.requireNonNull(user);
 
@@ -825,10 +810,7 @@ public class DefaultUserService implements UserService {
         .credentialsNonExpired(credentialsNonExpired)
         .authorities(user.getAuthorities())
         .userSettings(new HashMap<>())
-        .userGroupIds(
-            user.getUid() == null
-                ? Set.of()
-                : currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs())
+        .userGroupIds(currentUserService.getCurrentUserGroupsInfo(user.getUid()).getUserGroupUIDs())
         .isSuper(user.isSuper())
         .build();
   }
@@ -871,6 +853,7 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public boolean hasTwoFactorRoleRestriction(User user) {
     return user.hasAnyRestrictions(Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME));
   }
@@ -911,30 +894,6 @@ public class DefaultUserService implements UserService {
         || !currentUser.canModifyUser(userToModify)) {
       throw new UpdateAccessDeniedException(
           "You don't have the proper permissions to update this user.");
-    }
-  }
-
-  @Override
-  @Nonnull
-  @Transactional(readOnly = true)
-  public List<User> getLinkedUserAccounts(@Nonnull User actingUser) {
-    return userStore.getLinkedUserAccounts(actingUser);
-  }
-
-  @Override
-  @Transactional
-  public void setActiveLinkedAccounts(@Nonnull User actingUser, @Nonnull String activeUsername) {
-    Instant oneHourAgo = Instant.now().minus(1, ChronoUnit.HOURS);
-    Instant oneHourInTheFuture = Instant.now().plus(1, ChronoUnit.HOURS);
-
-    List<User> linkedUserAccounts = getLinkedUserAccounts(actingUser);
-    for (User user : linkedUserAccounts) {
-      user.setLastLogin(
-          user.getUsername().equals(activeUsername)
-              ? Date.from(oneHourInTheFuture)
-              : Date.from(oneHourAgo));
-
-      updateUser(user);
     }
   }
 }

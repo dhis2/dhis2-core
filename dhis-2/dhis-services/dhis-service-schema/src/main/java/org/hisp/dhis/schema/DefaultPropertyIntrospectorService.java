@@ -32,8 +32,8 @@ import static java.util.Collections.unmodifiableMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.introspection.GistPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.HibernatePropertyIntrospector;
@@ -58,7 +58,7 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
   private final PropertyIntrospector introspector;
 
   @Autowired
-  public DefaultPropertyIntrospectorService(SessionFactory sessionFactory) {
+  public DefaultPropertyIntrospectorService(EntityManagerFactory sessionFactory) {
     this(
         new HibernatePropertyIntrospector(sessionFactory)
             .then(new JacksonPropertyIntrospector())

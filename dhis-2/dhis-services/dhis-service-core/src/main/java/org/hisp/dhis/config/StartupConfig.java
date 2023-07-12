@@ -49,18 +49,23 @@ import org.hisp.dhis.startup.ModelUpgrader;
 import org.hisp.dhis.startup.SchedulerStart;
 import org.hisp.dhis.startup.SettingUpgrader;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
 public class StartupConfig {
+  @Autowired private TransactionTemplate transactionTemplate;
+
   @Bean("org.hisp.dhis.period.PeriodTypePopulator")
   public PeriodTypePopulator periodTypePopulator(
       PeriodStore periodStore, SessionFactory sessionFactory) {
-    PeriodTypePopulator populator = new PeriodTypePopulator(periodStore, sessionFactory);
+    PeriodTypePopulator populator =
+        new PeriodTypePopulator(periodStore, sessionFactory, transactionTemplate);
     populator.setName("PeriodTypePopulator");
     populator.setRunlevel(3);
     return populator;
@@ -70,7 +75,8 @@ public class StartupConfig {
   public DataElementDefaultDimensionPopulator dataElementDefaultDimensionPopulator(
       DataElementService dataElementService, CategoryService categoryService) {
     DataElementDefaultDimensionPopulator populator =
-        new DataElementDefaultDimensionPopulator(dataElementService, categoryService);
+        new DataElementDefaultDimensionPopulator(
+            dataElementService, categoryService, transactionTemplate);
     populator.setName("DataElementDefaultDimensionPopulator");
     populator.setRunlevel(4);
     return populator;
@@ -81,7 +87,8 @@ public class StartupConfig {
       ConfigurationService configurationService,
       DhisConfigurationProvider dhisConfigurationProvider) {
     ConfigurationPopulator populator =
-        new ConfigurationPopulator(configurationService, dhisConfigurationProvider);
+        new ConfigurationPopulator(
+            configurationService, dhisConfigurationProvider, transactionTemplate);
     populator.setName("ConfigurationPopulator");
     populator.setRunlevel(12);
     populator.setSkipInTests(true);
@@ -90,7 +97,7 @@ public class StartupConfig {
 
   @Bean("org.hisp.dhis.startup.I18nLocalePopulator")
   public I18nLocalePopulator i18nLocalePopulator(I18nLocaleService i18nLocaleService) {
-    I18nLocalePopulator populator = new I18nLocalePopulator(i18nLocaleService);
+    I18nLocalePopulator populator = new I18nLocalePopulator(i18nLocaleService, transactionTemplate);
     populator.setName("I18nLocalePopulator");
     populator.setRunlevel(13);
     populator.setSkipInTests(true);
@@ -100,7 +107,8 @@ public class StartupConfig {
   @Bean("org.hisp.dhis.startup.ModelUpgrader")
   public ModelUpgrader modelUpgrader(
       OrganisationUnitService organisationUnitService, CategoryService categoryService) {
-    ModelUpgrader upgrader = new ModelUpgrader(organisationUnitService, categoryService);
+    ModelUpgrader upgrader =
+        new ModelUpgrader(organisationUnitService, categoryService, transactionTemplate);
     upgrader.setName("ModelUpgrader");
     upgrader.setRunlevel(7);
     upgrader.setSkipInTests(true);
@@ -118,7 +126,8 @@ public class StartupConfig {
 
   @Bean("org.hisp.dhis.startup.DefaultAdminUserPopulator")
   public DefaultAdminUserPopulator defaultAdminUserPopulator(UserService userService) {
-    DefaultAdminUserPopulator upgrader = new DefaultAdminUserPopulator(userService);
+    DefaultAdminUserPopulator upgrader =
+        new DefaultAdminUserPopulator(userService, transactionTemplate);
     upgrader.setName("defaultAdminUserPopulator");
     upgrader.setRunlevel(2);
     upgrader.setSkipInTests(true);

@@ -49,6 +49,7 @@ import org.hisp.dhis.security.authority.SchemaAuthoritiesProvider;
 import org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.security.intercept.XWorkSecurityInterceptor;
+import org.hisp.dhis.security.spring2fa.DefaultTwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.user.CurrentUserService;

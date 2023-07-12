@@ -46,7 +46,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
@@ -432,7 +431,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
             ? "from User u where lower(u.username) = lower(:username)"
             : "from User u where u.username = :username";
 
-    TypedQuery<User> typedQuery = sessionFactory.getCurrentSession().createQuery(hql, User.class);
+    TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
     typedQuery.setParameter("username", username);
     typedQuery.setHint(QueryHints.CACHEABLE, true);
 
@@ -527,12 +526,10 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  @CheckForNull
-  public User getUserByOpenId(@Nonnull String openId) {
-    Query<User> query = getQuery("from User u where u.openId = :openId order by u.lastLogin desc");
+  public User getUserByOpenId(String openId) {
+    Query<User> query = getQuery("from User u where u.openId = :openId");
     query.setParameter("openId", openId);
-    List<User> list = query.getResultList();
-    return list.isEmpty() ? null : list.get(0);
+    return query.uniqueResult();
   }
 
   @Override
@@ -567,18 +564,6 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     Query<User> query = getQuery(hql);
     query.setParameter("authority", authority);
 
-    return query.getResultList();
-  }
-
-  @Override
-  @Nonnull
-  public List<User> getLinkedUserAccounts(@Nonnull User currentUser) {
-    if (currentUser.getOpenId() == null) {
-      return List.of();
-    }
-
-    Query<User> query = getQuery("from User u where u.openId = :openId order by u.username");
-    query.setParameter("openId", currentUser.getOpenId());
     return query.getResultList();
   }
 
