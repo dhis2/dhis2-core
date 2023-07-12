@@ -68,6 +68,6 @@ class ProgramStageControllerTest extends DhisControllerConvenienceTest {
     JsonResponse programStage = GET("/programStages/{id}", programStageId).content();
     assertEquals("VoZMWi7rBgj", programStage.getString("program.id").string());
     JsonResponse program = GET("/programs/{id}", "VoZMWi7rBgj").content();
-    assertEquals(programStageId, program.getString("$.programStages[0].id").string());
+    assertEquals(programStageId, program.getString("programStages[0].id").string());
   }
 }
