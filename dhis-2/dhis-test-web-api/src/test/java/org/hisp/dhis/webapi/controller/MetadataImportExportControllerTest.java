@@ -259,10 +259,10 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
         GET("/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d").content();
 
     assertEquals(2, response.getObject("options").size());
-    assertEquals(3, response.getNumber("options[0].sortOrder").intValue());
-    assertEquals(5, response.getNumber("options[1].sortOrder").intValue());
     assertEquals("Uh4HvjK6zg3", response.getString("options[0].id").string());
     assertEquals("BQMei56UBl6", response.getString("options[1].id").string());
+    assertEquals(0, response.getNumber("options[0].sortOrder").intValue());
+    assertEquals(5, response.getNumber("options[1].sortOrder").intValue());
   }
 
   /** Import OptionSet with two Options, one has sortOrder and the other doesn't */

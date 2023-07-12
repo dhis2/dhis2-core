@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -81,10 +82,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     handleAttributeValues(identifiableObject, bundle, schema);
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
-    handleSortOrder(identifiableObject, bundle, schema);
+    handleSortableProperties(identifiableObject, bundle, schema);
   }
 
-  private void handleSortOrder(
+  private void handleSortableProperties(
       IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema) {
     findSortableProperty(bundle.getPreheat(), schema)
         .forEach(
@@ -93,19 +94,14 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                   ListUtils.emptyIfNull(
                       ReflectionUtils.invokeGetterMethod(propertyName, identifiableObject));
 
-              boolean hasSortOrder =
-                  collection.stream()
-                      .anyMatch(item -> ((SortableObject) item).getSortOrder() != null);
               int sortOrder = 0;
-              int max = collection.size();
-              for (IdentifiableObject item : collection) {
-                SortableObject sortableItem =
-                    (SortableObject) bundle.getPreheat().get(bundle.getPreheatIdentifier(), item);
-                if (((SortableObject) item).getSortOrder() == null) {
-                  sortableItem.setSortOrder(hasSortOrder ? sortOrder++ : ++max);
-                }
-
-                bundle.getPreheat().put(bundle.getPreheatIdentifier(), item);
+              for( IdentifiableObject object : collection ) {
+                  IdentifiableObject sortableObject =
+                       bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
+                  if (((SortableObject) sortableObject).getSortOrder() == null) {
+                    ((SortableObject)sortableObject).setSortOrder(sortOrder++);
+                  }
+                  bundle.getPreheat().put(bundle.getPreheatIdentifier(), sortableObject);
               }
             });
   }
