@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -95,13 +94,13 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
                       ReflectionUtils.invokeGetterMethod(propertyName, identifiableObject));
 
               int sortOrder = 0;
-              for( IdentifiableObject object : collection ) {
-                  IdentifiableObject sortableObject =
-                       bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
-                  if (((SortableObject) sortableObject).getSortOrder() == null) {
-                    ((SortableObject)sortableObject).setSortOrder(sortOrder++);
-                  }
-                  bundle.getPreheat().put(bundle.getPreheatIdentifier(), sortableObject);
+              for (IdentifiableObject object : collection) {
+                IdentifiableObject sortableObject =
+                    bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
+                if (((SortableObject) sortableObject).getSortOrder() == null) {
+                  ((SortableObject) sortableObject).setSortOrder(sortOrder++);
+                }
+                bundle.getPreheat().put(bundle.getPreheatIdentifier(), sortableObject);
               }
             });
   }
