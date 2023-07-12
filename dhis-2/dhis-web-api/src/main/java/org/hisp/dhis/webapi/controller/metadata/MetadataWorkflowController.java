@@ -36,13 +36,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.gist.GistParams;
 import org.hisp.dhis.metadata.MetadataAdjustParams;
 import org.hisp.dhis.metadata.MetadataProposal;
 import org.hisp.dhis.metadata.MetadataProposalSchemaDescriptor;
@@ -82,16 +82,14 @@ public class MetadataWorkflowController extends AbstractGistReadOnlyController<M
   private final MetadataWorkflowService service;
 
   @GetMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getProposal(
-      @PathVariable("uid") String uid, HttpServletRequest request, HttpServletResponse response)
+  public ResponseEntity<JsonNode> getProposal(@PathVariable("uid") String uid, GistParams params)
       throws NotFoundException {
-    return getObjectGist(uid, request, response);
+    return getObjectGist(uid, params);
   }
 
   @GetMapping(value = "", produces = APPLICATION_JSON_VALUE)
-  public ResponseEntity<JsonNode> getProposals(
-      HttpServletRequest request, HttpServletResponse response) {
-    return getObjectListGist(request, response);
+  public ResponseEntity<JsonNode> getProposals(GistParams params, HttpServletRequest request) {
+    return getObjectListGist(params, request);
   }
 
   @PostMapping(value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)

@@ -49,6 +49,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.WebClientUtils;
@@ -327,7 +328,7 @@ public interface WebClient {
             String.format(
                 "{\"status\": \"error\",\"httpStatus\":\"%s\",\"httpStatusCode\":%d, \"message\":%s}",
                 status().name(), response.getStatus(), errorMessage);
-        return new JsonResponse(error).as(JsonError.class);
+        return new JsonResponse(error, JsonTypedAccess.GLOBAL).as(JsonError.class);
       }
       return contentUnchecked().as(JsonError.class);
     }
@@ -337,7 +338,7 @@ public interface WebClient {
     }
 
     public JsonResponse contentUnchecked() {
-      return failOnException(() -> new JsonResponse(response.getContent()));
+      return failOnException(() -> new JsonResponse(response.getContent(), JsonTypedAccess.GLOBAL));
     }
 
     public String location() {

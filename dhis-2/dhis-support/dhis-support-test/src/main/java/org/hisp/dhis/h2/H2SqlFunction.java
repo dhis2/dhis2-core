@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.jsontree.JsonDocument.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.postgresql.util.PGobject;
 
@@ -79,7 +80,12 @@ public class H2SqlFunction {
     if (content == null) {
       return "null";
     }
-    return new JsonResponse(content).get("$").node().getType().name().toLowerCase();
+    return new JsonResponse(content, JsonTypedAccess.GLOBAL)
+        .get("$")
+        .node()
+        .getType()
+        .name()
+        .toLowerCase();
   }
 
   // Postgres inbuilt function
@@ -89,7 +95,7 @@ public class H2SqlFunction {
       if (content == null) {
         return null;
       }
-      JsonValue value = new JsonResponse(content).get(toJsonPath(paths));
+      JsonValue value = new JsonResponse(content, JsonTypedAccess.GLOBAL).get(toJsonPath(paths));
       if (!value.exists()) {
         return null;
       }
@@ -110,7 +116,7 @@ public class H2SqlFunction {
       if (content == null) {
         return null;
       }
-      JsonValue value = new JsonResponse(content).get(toJsonPath(paths));
+      JsonValue value = new JsonResponse(content, JsonTypedAccess.GLOBAL).get(toJsonPath(paths));
       if (!value.exists()) {
         return null;
       }
