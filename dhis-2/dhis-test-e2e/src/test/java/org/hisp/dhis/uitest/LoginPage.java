@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,37 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity;
+package org.hisp.dhis.uitest;
 
-import java.util.List;
-import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.FindBy;
+import org.openqa.selenium.support.PageFactory;
 
-public interface TrackedEntityService {
-  TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException;
+public class LoginPage {
 
-  TrackedEntity getTrackedEntity(TrackedEntity trackedEntity, TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException;
+  @FindBy(css = "input[id$='username']")
+  public WebElement inputUsername;
 
-  TrackedEntity getTrackedEntity(String uid, String programIdentifier, TrackedEntityParams params)
-      throws NotFoundException, ForbiddenException;
+  @FindBy(css = "input[class='button']")
+  public WebElement inputSubmit;
 
-  /**
-   * Fetches {@see TrackedEntity}s based on the specified parameters.
-   *
-   * @param operationParams a {@see TrackedEntityOperationParams} instance with the operation
-   *     parameters
-   * @return {@see TrackedEntity}s
-   */
-  List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
-      throws ForbiddenException, NotFoundException, BadRequestException;
+  @FindBy(css = "input[id$='password']")
+  public WebElement inputPassword;
 
-  int getTrackedEntityCount(
-      TrackedEntityOperationParams operationParams,
-      boolean skipAccessValidation,
-      boolean skipSearchScopeValidation)
-      throws ForbiddenException, BadRequestException;
+  public LoginPage(WebDriver driver) {
+    PageFactory.initElements(driver, this);
+  }
 }

@@ -27,7 +27,7 @@ services:
       POSTGRES_PASSWORD: &postgres_password dhis
       PGPASSWORD: *postgres_password # needed by psql in healthcheck
     healthcheck:
-      test: ["CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null"]
+      test: [ "CMD-SHELL", "psql --no-password --quiet --username $$POSTGRES_USER postgres://127.0.0.1/$$POSTGRES_DB -p 5432 --command \"SELECT 'ok'\" > /dev/null" ]
       start_period: 120s
       interval: 1s
       timeout: 3s
@@ -39,3 +39,9 @@ services:
       - ./config/redis/redis.conf:/usr/local/etc/redis.conf
     ports:
       - "6379"
+
+  selenium:
+    image: 'selenium/standalone-chrome:latest'
+    ports:
+      - '4444'
+      - '7900'
