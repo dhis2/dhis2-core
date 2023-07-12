@@ -71,7 +71,8 @@ class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest {
   }
 
   @Test
-  @Disabled("generated query will fail on H2 database and we are now propagating BadSqlGrammarException since DHIS2-15184")
+  @Disabled(
+      "generated query will fail on H2 database and we are now propagating BadSqlGrammarException since DHIS2-15184")
   void testGetQueryJson() {
     JsonGrid grid =
         GET(
