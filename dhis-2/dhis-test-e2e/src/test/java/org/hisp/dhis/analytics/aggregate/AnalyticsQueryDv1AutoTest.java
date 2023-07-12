@@ -1,48 +1,27 @@
-/*
- * Copyright (c) 2004-2023, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.hisp.dhis.analytics.aggregate;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-/** Groups e2e tests for "/analytics" aggregate endpoint. */
+/**
+ * Groups e2e tests for "/analytics" aggregate endpoint.
+ */
 public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
+
   private RestApiActions actions;
 
   @BeforeAll
@@ -51,43 +30,38 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void query1And3CoverageYearly() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("filter=pe:THIS_YEAR")
-            .add("skipData=false")
-            .add("includeNumDen=false")
-            .add("displayProperty=NAME")
-            .add("skipMeta=false")
-            .add("dimension=dx:Uvn6LCg7dVU;sB79w2hiLp8,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
-            .add("relativePeriodDate=2022-01-01");
+  public void query1And3CoverageYearly() throws JSONException {
+// Given 
+    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=pe:THIS_YEAR")
+        .add("skipData=false")
+        .add("includeNumDen=false")
+        .add("displayProperty=NAME")
+        .add("skipMeta=false")
+        .add("dimension=dx:Uvn6LCg7dVU;sB79w2hiLp8,ou:USER_ORGUNIT;USER_ORGUNIT_CHILDREN")
+        .add("relativePeriodDate=2022-01-01");
 
-    // When
+// When 
     ApiResponse response = actions.get(params);
 
-    // Then
-    response
-        .validate()
-        .statusCode(200)
+// Then 
+    response.validate().statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(28)))
         .body("height", equalTo(28))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Assert metaData.
-    assertEquals(
-        response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, fdc6uOvgoji={name=Bombali}, ImspTQPwCqd={name=Sierra Leone}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[Uvn6LCg7dVU,sB79w2hiLp8], pe=[2022], ou=[ImspTQPwCqd,O6uvpzGd5pu,fdc6uOvgoji,lc3eMKXaEfw,jUb8gELQApl,PMa2VCrupOd,kJq2mPyFEHo,qhqAxPSTUXp,Vth0fbpFcsO,jmIPBj66vD6,TEQlaapDQoK,bL4ooGhyHRQ,eIQbndfxQMb,at6UHUQatSo], co=[]}}"
-            .replaceAll(" ", ""));
+// Assert metaData. 
+    String expectedMetaData = "{\"items\":{\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"2022\":{\"name\":\"2022\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"sB79w2hiLp8\"],\"pe\":[\"2022\"],\"ou\":[\"ImspTQPwCqd\",\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"co\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
+// Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
+// Assert rows.
     validateRow(response, List.of("Uvn6LCg7dVU", "ImspTQPwCqd", "101.5"));
     validateRow(response, List.of("Uvn6LCg7dVU", "O6uvpzGd5pu", "142.3"));
     validateRow(response, List.of("Uvn6LCg7dVU", "fdc6uOvgoji", "82.2"));
@@ -119,44 +93,39 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void query13DropoutRateYearly() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("filter=pe:THIS_YEAR")
-            .add("skipData=false")
-            .add("includeNumDen=false")
-            .add("displayProperty=NAME")
-            .add("skipMeta=false")
-            .add(
-                "dimension=dx:ReUHfIn0pTQ,ou:O6uvpzGd5pu;fdc6uOvgoji;lc3eMKXaEfw;jUb8gELQApl;PMa2VCrupOd;kJq2mPyFEHo;qhqAxPSTUXp;Vth0fbpFcsO;jmIPBj66vD6;TEQlaapDQoK;bL4ooGhyHRQ;eIQbndfxQMb;at6UHUQatSo")
-            .add("relativePeriodDate=2022-01-01");
+  public void query13DropoutRateYearly() throws JSONException {
+// Given 
+    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=pe:THIS_YEAR")
+        .add("skipData=false")
+        .add("includeNumDen=false")
+        .add("displayProperty=NAME")
+        .add("skipMeta=false")
+        .add(
+            "dimension=dx:ReUHfIn0pTQ,ou:O6uvpzGd5pu;fdc6uOvgoji;lc3eMKXaEfw;jUb8gELQApl;PMa2VCrupOd;kJq2mPyFEHo;qhqAxPSTUXp;Vth0fbpFcsO;jmIPBj66vD6;TEQlaapDQoK;bL4ooGhyHRQ;eIQbndfxQMb;at6UHUQatSo")
+        .add("relativePeriodDate=2022-01-01");
 
-    // When
+// When 
     ApiResponse response = actions.get(params);
 
-    // Then
-    response
-        .validate()
-        .statusCode(200)
+// Then 
+    response.validate().statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(13)))
         .body("height", equalTo(13))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Assert metaData.
-    assertEquals(
-        response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, fdc6uOvgoji={name=Bombali}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pe={name=Period}, ReUHfIn0pTQ={name=ANC 1-3 Dropout Rate}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[ReUHfIn0pTQ], pe=[2022], ou=[O6uvpzGd5pu,fdc6uOvgoji,lc3eMKXaEfw,jUb8gELQApl,PMa2VCrupOd,kJq2mPyFEHo,qhqAxPSTUXp,Vth0fbpFcsO,jmIPBj66vD6,TEQlaapDQoK,bL4ooGhyHRQ,eIQbndfxQMb,at6UHUQatSo], co=[]}}"
-            .replaceAll(" ", ""));
+// Assert metaData. 
+    String expectedMetaData = "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"2022\":{\"name\":\"2022\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ReUHfIn0pTQ\":{\"name\":\"ANC 1-3 Dropout Rate\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"dx\":[\"ReUHfIn0pTQ\"],\"pe\":[\"2022\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"co\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
+// Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
+// Assert rows.
     validateRow(response, List.of("ReUHfIn0pTQ", "O6uvpzGd5pu", "34.4"));
     validateRow(response, List.of("ReUHfIn0pTQ", "fdc6uOvgoji", "38.0"));
     validateRow(response, List.of("ReUHfIn0pTQ", "lc3eMKXaEfw", "33.6"));
@@ -173,43 +142,38 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void query13TrendLinesLast12Months() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("filter=ou:ImspTQPwCqd")
-            .add("skipData=false")
-            .add("includeNumDen=false")
-            .add("displayProperty=NAME")
-            .add("skipMeta=false")
-            .add("dimension=dx:Uvn6LCg7dVU;OdiHJayrsKo;sB79w2hiLp8,pe:LAST_12_MONTHS")
-            .add("relativePeriodDate=2022-01-01");
+  public void query13TrendLinesLast12Months() throws JSONException {
+// Given 
+    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd")
+        .add("skipData=false")
+        .add("includeNumDen=false")
+        .add("displayProperty=NAME")
+        .add("skipMeta=false")
+        .add("dimension=dx:Uvn6LCg7dVU;OdiHJayrsKo;sB79w2hiLp8,pe:LAST_12_MONTHS")
+        .add("relativePeriodDate=2022-01-01");
 
-    // When
+// When 
     ApiResponse response = actions.get(params);
 
-    // Then
-    response
-        .validate()
-        .statusCode(200)
+// Then 
+    response.validate().statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(36)))
         .body("height", equalTo(36))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Assert metaData.
-    assertEquals(
-        response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, ou={name=Organisation unit}, OdiHJayrsKo={name=ANC 2 Coverage}, 202109={name=September 2021}, 202107={name=July 2021}, 202108={name=August 2021}, 202105={name=May 2021}, 202106={name=June 2021}, 202103={name=March 2021}, 202104={name=April 2021}, LAST_12_MONTHS={name=Last 12 months}, 202101={name=January 2021}, 202112={name=December 2021}, 202102={name=February 2021}, ImspTQPwCqd={name=Sierra Leone}, 202110={name=October 2021}, 202111={name=November 2021}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}}, dimensions={dx=[Uvn6LCg7dVU,OdiHJayrsKo,sB79w2hiLp8], pe=[202101,202102,202103,202104,202105,202106,202107,202108,202109,202110,202111,202112], ou=[ImspTQPwCqd], co=[]}}"
-            .replaceAll(" ", ""));
+// Assert metaData. 
+    String expectedMetaData = "{\"items\":{\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"ou\":{\"name\":\"Organisation unit\"},\"OdiHJayrsKo\":{\"name\":\"ANC 2 Coverage\"},\"202109\":{\"name\":\"September 2021\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202101\":{\"name\":\"January 2021\"},\"202112\":{\"name\":\"December 2021\"},\"202102\":{\"name\":\"February 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"OdiHJayrsKo\",\"sB79w2hiLp8\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
+// Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
+// Assert rows.
     validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.7"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.4"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.6"));
@@ -249,44 +213,39 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void query14VisitsByDistrictsThisYearstacked() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("filter=pe:THIS_YEAR")
-            .add("skipData=false")
-            .add("includeNumDen=false")
-            .add("displayProperty=NAME")
-            .add("skipMeta=false")
-            .add(
-                "dimension=dx:cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;fbfJHSPpUQD,ou:USER_ORGUNIT_CHILDREN")
-            .add("relativePeriodDate=2022-01-01");
+  public void query14VisitsByDistrictsThisYearstacked() throws JSONException {
+// Given 
+    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=pe:THIS_YEAR")
+        .add("skipData=false")
+        .add("includeNumDen=false")
+        .add("displayProperty=NAME")
+        .add("skipMeta=false")
+        .add(
+            "dimension=dx:cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG;fbfJHSPpUQD,ou:USER_ORGUNIT_CHILDREN")
+        .add("relativePeriodDate=2022-01-01");
 
-    // When
+// When 
     ApiResponse response = actions.get(params);
 
-    // Then
-    response
-        .validate()
-        .statusCode(200)
+// Then 
+    response.validate().statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(52)))
         .body("height", equalTo(52))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Assert metaData.
-    assertEquals(
-        response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={jUb8gELQApl={name=Kailahun}, TEQlaapDQoK={name=Port Loko}, eIQbndfxQMb={name=Tonkolili}, Vth0fbpFcsO={name=Kono}, PMa2VCrupOd={name=Kambia}, ou={name=Organisation unit}, THIS_YEAR={name=This year}, O6uvpzGd5pu={name=Bo}, bL4ooGhyHRQ={name=Pujehun}, 2022={name=2022}, kJq2mPyFEHo={name=Kenema}, fbfJHSPpUQD={name=ANC 1st visit}, fdc6uOvgoji={name=Bombali}, hfdmMSPBgLG={name=ANC 4th or more visits}, at6UHUQatSo={name=Western Area}, dx={name=Data}, pq2XI5kz2BY={name=Fixed}, pe={name=Period}, cYeuwXTCPkU={name=ANC 2nd visit}, Jtf34kNZhzP={name=ANC 3rd visit}, PT59n8BQbqM={name=Outreach}, lc3eMKXaEfw={name=Bonthe}, qhqAxPSTUXp={name=Koinadugu}, jmIPBj66vD6={name=Moyamba}}, dimensions={dx=[cYeuwXTCPkU,Jtf34kNZhzP,hfdmMSPBgLG,fbfJHSPpUQD], pe=[2022], ou=[O6uvpzGd5pu,fdc6uOvgoji,lc3eMKXaEfw,jUb8gELQApl,PMa2VCrupOd,kJq2mPyFEHo,qhqAxPSTUXp,Vth0fbpFcsO,jmIPBj66vD6,TEQlaapDQoK,bL4ooGhyHRQ,eIQbndfxQMb,at6UHUQatSo], co=[pq2XI5kz2BY,PT59n8BQbqM]}}"
-            .replaceAll(" ", ""));
+// Assert metaData. 
+    String expectedMetaData = "{\"items\":{\"jUb8gELQApl\":{\"name\":\"Kailahun\"},\"eIQbndfxQMb\":{\"name\":\"Tonkolili\"},\"Vth0fbpFcsO\":{\"name\":\"Kono\"},\"THIS_YEAR\":{\"name\":\"This year\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"bL4ooGhyHRQ\":{\"name\":\"Pujehun\"},\"kJq2mPyFEHo\":{\"name\":\"Kenema\"},\"hfdmMSPBgLG\":{\"name\":\"ANC 4th or more visits\"},\"at6UHUQatSo\":{\"name\":\"Western Area\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"Jtf34kNZhzP\":{\"name\":\"ANC 3rd visit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"},\"TEQlaapDQoK\":{\"name\":\"Port Loko\"},\"PMa2VCrupOd\":{\"name\":\"Kambia\"},\"ou\":{\"name\":\"Organisation unit\"},\"2022\":{\"name\":\"2022\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"},\"fdc6uOvgoji\":{\"name\":\"Bombali\"},\"pe\":{\"name\":\"Period\"},\"cYeuwXTCPkU\":{\"name\":\"ANC 2nd visit\"},\"lc3eMKXaEfw\":{\"name\":\"Bonthe\"},\"qhqAxPSTUXp\":{\"name\":\"Koinadugu\"},\"jmIPBj66vD6\":{\"name\":\"Moyamba\"}},\"dimensions\":{\"dx\":[\"cYeuwXTCPkU\",\"Jtf34kNZhzP\",\"hfdmMSPBgLG\",\"fbfJHSPpUQD\"],\"pe\":[\"2022\"],\"ou\":[\"O6uvpzGd5pu\",\"fdc6uOvgoji\",\"lc3eMKXaEfw\",\"jUb8gELQApl\",\"PMa2VCrupOd\",\"kJq2mPyFEHo\",\"qhqAxPSTUXp\",\"Vth0fbpFcsO\",\"jmIPBj66vD6\",\"TEQlaapDQoK\",\"bL4ooGhyHRQ\",\"eIQbndfxQMb\",\"at6UHUQatSo\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
+// Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
+// Assert rows.
     validateRow(response, List.of("hfdmMSPBgLG", "jmIPBj66vD6", "10309"));
     validateRow(response, List.of("hfdmMSPBgLG", "at6UHUQatSo", "21709"));
     validateRow(response, List.of("fbfJHSPpUQD", "jmIPBj66vD6", "16169"));
@@ -300,8 +259,8 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("Jtf34kNZhzP", "PMa2VCrupOd", "9074"));
     validateRow(response, List.of("cYeuwXTCPkU", "Vth0fbpFcsO", "9148"));
     validateRow(response, List.of("hfdmMSPBgLG", "lc3eMKXaEfw", "2690"));
-    validateRow(response, List.of("cYeuwXTCPkU", "lc3eMKXaEfw", "6427"));
     validateRow(response, List.of("cYeuwXTCPkU", "kJq2mPyFEHo", "29478"));
+    validateRow(response, List.of("cYeuwXTCPkU", "lc3eMKXaEfw", "6427"));
     validateRow(response, List.of("Jtf34kNZhzP", "at6UHUQatSo", "29281"));
     validateRow(response, List.of("hfdmMSPBgLG", "fdc6uOvgoji", "6108"));
     validateRow(response, List.of("hfdmMSPBgLG", "kJq2mPyFEHo", "14094"));
@@ -342,43 +301,38 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void query14VisitsLast12Months() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("filter=ou:ImspTQPwCqd")
-            .add("skipData=false")
-            .add("includeNumDen=false")
-            .add("displayProperty=NAME")
-            .add("skipMeta=false")
-            .add("dimension=dx:fbfJHSPpUQD;cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG,pe:LAST_12_MONTHS")
-            .add("relativePeriodDate=2022-01-01");
+  public void query14VisitsLast12Months() throws JSONException {
+// Given 
+    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:ImspTQPwCqd")
+        .add("skipData=false")
+        .add("includeNumDen=false")
+        .add("displayProperty=NAME")
+        .add("skipMeta=false")
+        .add("dimension=dx:fbfJHSPpUQD;cYeuwXTCPkU;Jtf34kNZhzP;hfdmMSPBgLG,pe:LAST_12_MONTHS")
+        .add("relativePeriodDate=2022-01-01");
 
-    // When
+// When 
     ApiResponse response = actions.get(params);
 
-    // Then
-    response
-        .validate()
-        .statusCode(200)
+// Then 
+    response.validate().statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(48)))
         .body("height", equalTo(48))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Assert metaData.
-    assertEquals(
-        response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={ou={name=Organisation unit}, 202109={name=September 2021}, 202107={name=July 2021}, fbfJHSPpUQD={name=ANC 1st visit}, 202108={name=August 2021}, 202105={name=May 2021}, 202106={name=June 2021}, 202103={name=March 2021}, 202104={name=April 2021}, LAST_12_MONTHS={name=Last 12 months}, 202101={name=January 2021}, 202112={name=December 2021}, 202102={name=February 2021}, ImspTQPwCqd={name=Sierra Leone}, 202110={name=October 2021}, hfdmMSPBgLG={name=ANC 4th or more visits}, 202111={name=November 2021}, dx={name=Data}, pq2XI5kz2BY={name=Fixed}, pe={name=Period}, cYeuwXTCPkU={name=ANC 2nd visit}, Jtf34kNZhzP={name=ANC 3rd visit}, PT59n8BQbqM={name=Outreach}}, dimensions={dx=[fbfJHSPpUQD,cYeuwXTCPkU,Jtf34kNZhzP,hfdmMSPBgLG], pe=[202101,202102,202103,202104,202105,202106,202107,202108,202109,202110,202111,202112], ou=[ImspTQPwCqd], co=[pq2XI5kz2BY,PT59n8BQbqM]}}"
-            .replaceAll(" ", ""));
+// Assert metaData. 
+    String expectedMetaData = "{\"items\":{\"ou\":{\"name\":\"Organisation unit\"},\"202109\":{\"name\":\"September 2021\"},\"202107\":{\"name\":\"July 2021\"},\"fbfJHSPpUQD\":{\"name\":\"ANC 1st visit\"},\"202108\":{\"name\":\"August 2021\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202101\":{\"name\":\"January 2021\"},\"202112\":{\"name\":\"December 2021\"},\"202102\":{\"name\":\"February 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"hfdmMSPBgLG\":{\"name\":\"ANC 4th or more visits\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"pq2XI5kz2BY\":{\"name\":\"Fixed\"},\"pe\":{\"name\":\"Period\"},\"cYeuwXTCPkU\":{\"name\":\"ANC 2nd visit\"},\"Jtf34kNZhzP\":{\"name\":\"ANC 3rd visit\"},\"PT59n8BQbqM\":{\"name\":\"Outreach\"}},\"dimensions\":{\"dx\":[\"fbfJHSPpUQD\",\"cYeuwXTCPkU\",\"Jtf34kNZhzP\",\"hfdmMSPBgLG\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"pq2XI5kz2BY\",\"PT59n8BQbqM\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
+// Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
+// Assert rows.
     validateRow(response, List.of("Jtf34kNZhzP", "202101", "11803"));
     validateRow(response, List.of("Jtf34kNZhzP", "202109", "15306"));
     validateRow(response, List.of("cYeuwXTCPkU", "202110", "16113"));
@@ -430,43 +384,38 @@ public class AnalyticsQueryDv1AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  public void query1stAnd3rdTrendsMonthly() {
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("filter=ou:USER_ORGUNIT")
-            .add("skipData=false")
-            .add("includeNumDen=false")
-            .add("displayProperty=NAME")
-            .add("skipMeta=false")
-            .add("dimension=dx:Uvn6LCg7dVU;sB79w2hiLp8,pe:LAST_12_MONTHS")
-            .add("relativePeriodDate=2022-01-01");
+  public void query1stAnd3rdTrendsMonthly() throws JSONException {
+// Given 
+    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=ou:USER_ORGUNIT")
+        .add("skipData=false")
+        .add("includeNumDen=false")
+        .add("displayProperty=NAME")
+        .add("skipMeta=false")
+        .add("dimension=dx:Uvn6LCg7dVU;sB79w2hiLp8,pe:LAST_12_MONTHS")
+        .add("relativePeriodDate=2022-01-01");
 
-    // When
+// When 
     ApiResponse response = actions.get(params);
 
-    // Then
-    response
-        .validate()
-        .statusCode(200)
+// Then 
+    response.validate().statusCode(200)
         .body("headers", hasSize(equalTo(3)))
         .body("rows", hasSize(equalTo(24)))
         .body("height", equalTo(24))
         .body("width", equalTo(3))
         .body("headerWidth", equalTo(3));
 
-    // Assert metaData.
-    assertEquals(
-        response.extract("metaData").toString().replaceAll(" ", ""),
-        "{items={sB79w2hiLp8={name=ANC 3 Coverage}, ou={name=Organisation unit}, 202109={name=September 2021}, 202107={name=July 2021}, 202108={name=August 2021}, 202105={name=May 2021}, 202106={name=June 2021}, 202103={name=March 2021}, 202104={name=April 2021}, LAST_12_MONTHS={name=Last 12 months}, 202101={name=January 2021}, 202112={name=December 2021}, 202102={name=February 2021}, ImspTQPwCqd={name=Sierra Leone}, 202110={name=October 2021}, 202111={name=November 2021}, dx={name=Data}, pe={name=Period}, Uvn6LCg7dVU={name=ANC 1 Coverage}}, dimensions={dx=[Uvn6LCg7dVU,sB79w2hiLp8], pe=[202101,202102,202103,202104,202105,202106,202107,202108,202109,202110,202111,202112], ou=[ImspTQPwCqd], co=[]}}"
-            .replaceAll(" ", ""));
+// Assert metaData. 
+    String expectedMetaData = "{\"items\":{\"sB79w2hiLp8\":{\"name\":\"ANC 3 Coverage\"},\"ou\":{\"name\":\"Organisation unit\"},\"202109\":{\"name\":\"September 2021\"},\"202107\":{\"name\":\"July 2021\"},\"202108\":{\"name\":\"August 2021\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"202101\":{\"name\":\"January 2021\"},\"202112\":{\"name\":\"December 2021\"},\"202102\":{\"name\":\"February 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202110\":{\"name\":\"October 2021\"},\"202111\":{\"name\":\"November 2021\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"Uvn6LCg7dVU\":{\"name\":\"ANC 1 Coverage\"}},\"dimensions\":{\"dx\":[\"Uvn6LCg7dVU\",\"sB79w2hiLp8\"],\"pe\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\",\"202107\",\"202108\",\"202109\",\"202110\",\"202111\",\"202112\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
 
-    // Assert headers.
+// Assert headers.
     validateHeader(response, 0, "dx", "Data", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 1, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeader(response, 2, "value", "Value", "NUMBER", "java.lang.Double", false, false);
 
-    // Assert rows.
+// Assert rows.
     validateRow(response, List.of("Uvn6LCg7dVU", "202101", "96.7"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202102", "100.4"));
     validateRow(response, List.of("Uvn6LCg7dVU", "202103", "105.6"));
