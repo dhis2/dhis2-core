@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -76,41 +73,48 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
       baseIdentifiableObject.getSharing().setOwner(baseIdentifiableObject.getCreatedBy());
     }
 
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
-        handleAttributeValues( identifiableObject, bundle, schema );
-        handleSkipSharing( identifiableObject, bundle );
-        handleSkipTranslation( identifiableObject, bundle );
-        handleSortOrder( identifiableObject, bundle, schema );
-    }
+    Schema schema =
+        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(identifiableObject));
+    handleAttributeValues(identifiableObject, bundle, schema);
+    handleSkipSharing(identifiableObject, bundle);
+    handleSkipTranslation(identifiableObject, bundle);
+    handleSortOrder(identifiableObject, bundle, schema);
+  }
 
-    private void handleSortOrder( IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema )
-    {
-        findSortableProperty( schema )
-            .forEach( property -> {
-                List<IdentifiableObject> collection = ListUtils.emptyIfNull(
-                    ReflectionUtils.invokeGetterMethod( property.getFieldName(), identifiableObject ) );
-                for ( int i=0; i < collection.size(); i++ )
-                {
-                    IdentifiableObject item = collection.get( i );
-                    IdentifiableObject preheatedItem = bundle.getPreheat().get( bundle.getPreheatIdentifier(), item );
-                    SortableObject sortableItem = (SortableObject) preheatedItem;
-                    if ( sortableItem.getSortOrder() == null )
-                    {
-                        sortableItem.setSortOrder( i );
-                    }
-
-                    bundle.getPreheat().put( bundle.getPreheatIdentifier(), item );
+  private void handleSortOrder(
+      IdentifiableObject identifiableObject, ObjectBundle bundle, Schema schema) {
+    findSortableProperty(schema)
+        .forEach(
+            property -> {
+              List<IdentifiableObject> collection =
+                  ListUtils.emptyIfNull(
+                      ReflectionUtils.invokeGetterMethod(
+                          property.getFieldName(), identifiableObject));
+              for (int i = 0; i < collection.size(); i++) {
+                IdentifiableObject item = collection.get(i);
+                IdentifiableObject preheatedItem =
+                    bundle.getPreheat().get(bundle.getPreheatIdentifier(), item);
+                SortableObject sortableItem = (SortableObject) preheatedItem;
+                if (sortableItem.getSortOrder() == null) {
+                  sortableItem.setSortOrder(i);
                 }
-            } );
-    }
 
-    private List<Property> findSortableProperty( Schema schema )
-    {
-        return schema.getPersistedProperties().values().stream().filter( p -> p.isCollection()
-            && SortableObject.class.isAssignableFrom( p.getItemKlass() )
-            && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )
-            .toList();
-    }
+                bundle.getPreheat().put(bundle.getPreheatIdentifier(), item);
+              }
+            });
+  }
+
+  private List<Property> findSortableProperty(Schema schema) {
+    return schema.getPersistedProperties().values().stream()
+        .filter(
+            p ->
+                p.isCollection()
+                    && SortableObject.class.isAssignableFrom(p.getItemKlass())
+                    && schemaService
+                        .getDynamicSchema(p.getItemKlass())
+                        .hasPersistedProperty("sortOrder"))
+        .toList();
+  }
 
   @Override
   public void preUpdate(

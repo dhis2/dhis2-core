@@ -44,12 +44,9 @@ import org.hisp.dhis.schema.annotation.Property;
 /**
  * @author Chau Thu Tran
  */
-@JacksonXmlRootElement( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
-public class Option
-    extends BaseNameableObject
-    implements MetadataObject, SortableObject
-{
-    private OptionSet optionSet;
+@JacksonXmlRootElement(localName = "option", namespace = DxfNamespaces.DXF_2_0)
+public class Option extends BaseNameableObject implements MetadataObject, SortableObject {
+  private OptionSet optionSet;
 
   private Integer sortOrder;
 
