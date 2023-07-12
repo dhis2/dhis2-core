@@ -93,7 +93,7 @@ BEGIN
         SELECT * FROM get_tables_missing_uid_index()
     ) LOOP
             -- Check if the table name starts with '_view'
-            IF rec.table_name <> 'audit' AND rec.table_name NOT LIKE '_view%' THEN
+            IF rec.table_name <> 'audit' THEN
                 PERFORM alter_uid_not_null(format('%I', rec.table_name));
             END IF;
         END LOOP;
@@ -108,7 +108,7 @@ BEGIN
     FOR rec IN (
         SELECT * FROM get_tables_missing_uid_index()
     ) LOOP
-            IF rec.table_name <> 'audit' AND rec.table_name NOT LIKE '_view%' THEN
+            IF rec.table_name <> 'audit' THEN
                 PERFORM make_uid_unique(format('%I', rec.table_name));
             END IF;
         END LOOP;
